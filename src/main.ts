@@ -193,8 +193,12 @@ function renderRunSettings(c: Computed): Raw {
             <div class="ph">Parent ${pi + 1} <span class="muted">(<output data-parent-total="${pi}">${total}</output> / ${MAX_PARENT_STARS}★)</span></div>
             ${STATS.map((s, i) => html`<div class="blue-parent-control">
               <div class="blue-parent-heading"><span>${s.charAt(0).toUpperCase() + s.slice(1)}</span><output data-parent-output="${pi}-${i}">${stars[i]}★</output></div>
-              <input type="range" min="0" max="${MAX_PARENT_STARS}" step="1" value="${stars[i]}" data-parent="${pi}" data-stat="${i}" aria-label="Parent ${pi + 1} ${s} blue stars" />
-              <div class="blue-slider-notches" aria-hidden="true">${Array.from({ length: MAX_PARENT_STARS + 1 }, () => html`<i></i>`)}</div>
+              <div class="blue-slider">
+                <input type="range" min="0" max="${MAX_PARENT_STARS}" step="1" value="${stars[i]}" data-parent="${pi}" data-stat="${i}" aria-label="Parent ${pi + 1} ${s} blue stars" />
+                <svg class="blue-slider-notches" viewBox="0 0 90 5" preserveAspectRatio="none" shape-rendering="crispEdges" aria-hidden="true">
+                  ${Array.from({ length: MAX_PARENT_STARS + 1 }, (_, tick) => html`<line x1="${tick * 10}" y1="0" x2="${tick * 10}" y2="5" vector-effect="non-scaling-stroke" />`)}
+                </svg>
+              </div>
             </div>`)}
           </section>`;
         })}

@@ -85,7 +85,21 @@ assert.ok(!bodyText.includes("Blue spark stars depend on each stat's final value
 assert.ok(!bodyText.includes('White spark stars'), 'predicted run still shows white spark odds');
 assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'inventory settings still show default limit-break controls');
 assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
-assert.equal(await page.locator('.blue-slider-notches i').count(), 100, 'parent sliders do not show all ten positions');
+const sliderTicks = await page.$eval('.blue-slider', (wrapper) => {
+  const input = wrapper.querySelector('input');
+  const svg = wrapper.querySelector('.blue-slider-notches');
+  const inputRect = input.getBoundingClientRect();
+  const svgRect = svg.getBoundingClientRect();
+  return {
+    lines: svg.querySelectorAll('line').length,
+    vectorWidths: [...svg.querySelectorAll('line')].every((line) => line.getAttribute('vector-effect') === 'non-scaling-stroke'),
+    inputZ: Number(getComputedStyle(input).zIndex),
+    ticksZ: Number(getComputedStyle(svg).zIndex),
+    leftInset: svgRect.left - inputRect.left,
+    rightInset: inputRect.right - svgRect.right,
+  };
+});
+assert.deepEqual(sliderTicks, { lines: 10, vectorWidths: true, inputZ: 2, ticksZ: 1, leftInset: 10, rightInset: 10 }, 'slider tick geometry is not stable');
 assert.equal(await page.locator('.blue-gain-compact').count(), 1, 'parent gain detail is not compact');
 assert.equal(await page.locator('.blue-gain-summary [data-inherited-stat]').count(), 5, 'parent gain summary does not include all stats');
 const summary = await page.evaluate(() => ({

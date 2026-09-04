@@ -76,18 +76,19 @@ details > summary { cursor: pointer; color: var(--accent); }
 .pill.warn { background: #fbe6d1; color: #8a4a08; }
 .stat .s .pill { font-size: 11px; padding: 0 4px; }
 .cover .pill { font-size: 11px; padding: 0 4px; }
-.blue-parents { display: grid; gap: 8px; }
-.blue-parent-card { padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcfe; }
-.blue-parent-card .ph { font-size: 13px; font-weight: 600; margin-bottom: 7px; }
-.blue-parent-control { margin: 7px 0; }
+.blue-parents { display: grid; gap: 6px; }
+.blue-parent-card { padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcfe; }
+.blue-parent-card .ph { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.blue-parent-control { margin: 3px 0; }
 .blue-parent-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .blue-parent-heading span { font-weight: 600; }
 .blue-parent-heading output { color: var(--muted); font-variant-numeric: tabular-nums; }
-.blue-parent-control input[type=range] { display: block; width: 100%; margin: 5px 0 0; }
-.blue-slider-notches { display: flex; justify-content: space-between; height: 6px; margin: -3px 7px 8px; }
-.blue-slider-notches i { display: block; width: 1px; height: 5px; background: #aeb6c1; }
+.blue-slider { position: relative; height: 23px; }
+.blue-parent-control input[type=range] { position: relative; z-index: 2; display: block; width: 100%; margin: 0; background: transparent; }
+.blue-slider-notches { position: absolute; z-index: 1; top: 15px; right: 10px; left: 10px; width: calc(100% - 20px); height: 5px; overflow: visible; pointer-events: none; }
+.blue-slider-notches line { stroke: #aeb6c1; stroke-width: 1; }
 .blue-gain-compact { display: flex; flex-direction: column; gap: 1px; margin-top: 9px; padding: 8px 10px; border: 1px solid var(--accent); border-radius: 7px; }
-.blue-gain-compact strong { padding-top: 7px; border-top: 1px solid var(--line); color: var(--accent); font-size: 18px; }
+.blue-gain-compact strong { color: var(--accent); font-size: 18px; }
 .blue-gain-compact span { color: var(--muted); font-size: 11px; }
 .blue-gain-summary { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 7px; color: var(--muted); font-size: 11px; }
 .blue-gain-summary span.active { color: var(--accent); }
