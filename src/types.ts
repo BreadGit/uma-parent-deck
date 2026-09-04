@@ -6,7 +6,7 @@ export type Focus = 'balanced' | 'stamina' | 'sprint';
 
 export interface Reward { t: string; v?: string; d?: number | { d: number; v: string }[] }
 export interface EventChoice { outcomes: Reward[][] }
-export interface CardEvent { kind: 'chain' | 'random'; index: number; name?: string; choices: EventChoice[] }
+export interface CardEvent { kind: 'chain' | 'random' | 'recreation' | 'special'; index: number; name?: string; choices: EventChoice[] }
 
 export interface Card {
   id: number;
@@ -26,6 +26,8 @@ export interface Card {
   hintOthers: { type: number; value: number }[];
   chainEvents: CardEvent[];
   randomEvents: CardEvent[];
+  recreationEvents: CardEvent[]; // Pal dates or Group member outings, last one is the finale
+  specialEvents: CardEvent[];    // Pal/Group extra events (unlock, New Year), not reachable in independent training
 }
 
 export interface Skill {

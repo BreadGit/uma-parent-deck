@@ -120,7 +120,23 @@ function decodeEvent(evrew, entry, kind, index) {
   return { kind, index, choices };
 }
 
-function normalizeCards(raw, eventNames) {
+// Page-format event ({i, n, c: [{o, r: [{t, v, d}]}]}) -> normalized event with outcomes split at 'di'.
+function decodePageEvent(ev, kind, index) {
+  const choices = (ev.c ?? []).map((ch) => {
+    const outcomes = [[]];
+    for (const r of ch.r ?? []) {
+      if (r.t === 'di') { outcomes.push([]); continue; }
+      const out = { t: r.t };
+      if (r.v != null) out.v = r.v;
+      if (r.d != null) out.d = r.d;
+      outcomes[outcomes.length - 1].push(out);
+    }
+    return { outcomes };
+  });
+  return { kind, index, name: ev.n, choices };
+}
+
+function normalizeCards(raw, eventNames, palGroupEvents) {
   const evrew = raw['dict/evrew'];
   const randomNamesByChar = new Map();
   for (const c of raw['support-cards']) {
@@ -152,9 +168,20 @@ function normalizeCards(raw, eventNames) {
       if (h && typeof h === 'object' && 'hint_type' in h) hintOthers.push({ type: h.hint_type, value: h.hint_value });
     }
     const names = eventNames[c.support_id] ?? {};
-    const chainEvents = (chainByCard.get(c.support_id) ?? []).map((e, i) => ({ ...decodeEvent(evrew, e, 'chain', i + 1), ...(names.chain?.[i] ? { name: names.chain[i] } : {}) }));
+    // Pal/Group cards have no chain events; the static feed lists their special events under that key without rewards.
+    const chainEvents = palGroupEvents[c.support_id] ? [] : (chainByCard.get(c.support_id) ?? []).map((e, i) => ({ ...decodeEvent(evrew, e, 'chain', i + 1), ...(names.chain?.[i] ? { name: names.chain[i] } : {}) }));
     const rnames = randomNamesByChar.get(c.char_id) ?? [];
-    const randomEvents = (randomByChar.get(c.char_id) ?? []).map((e, i) => ({ ...decodeEvent(evrew, e, 'random', i + 1), ...(rnames[i] ? { name: rnames[i] } : {}) }));
+    let randomEvents = (randomByChar.get(c.char_id) ?? []).map((e, i) => ({ ...decodeEvent(evrew, e, 'random', i + 1), ...(rnames[i] ? { name: rnames[i] } : {}) }));
+    // Pal and Group cards: outings (dates / member outings + finale) and special events come from the page data.
+    let recreationEvents = [];
+    let specialEvents = [];
+    const pg = palGroupEvents[c.support_id];
+    if (pg) {
+      const outings = pg.dates ?? pg.dates_random ?? [];
+      recreationEvents = outings.map((e, i) => decodePageEvent(e, 'recreation', i + 1));
+      specialEvents = (pg.special ?? []).map((e, i) => decodePageEvent(e, 'special', i + 1));
+      randomEvents = (pg.random ?? []).map((e, i) => decodePageEvent(e, 'random', i + 1));
+    }
     cards.push({
       id: c.support_id,
       charId: c.char_id,
@@ -173,6 +200,8 @@ function normalizeCards(raw, eventNames) {
       hintOthers,
       chainEvents,
       randomEvents,
+      recreationEvents,
+      specialEvents,
     });
   }
   return cards.sort((a, b) => a.id - b.id);
@@ -287,7 +316,9 @@ async function normalize() {
   for (const key of STATIC_KEYS) raw[key] = await readJson(rawName(key));
   const namesFile = path.join(RAW, 'event-names.json');
   const eventNames = (await exists(namesFile)) ? await readJson(namesFile) : {};
-  const cards = normalizeCards(raw, eventNames);
+  const pgFile = path.join(RAW, 'event-data-friend-group.json');
+  const palGroupEvents = (await exists(pgFile)) ? await readJson(pgFile) : {};
+  const cards = normalizeCards(raw, eventNames, palGroupEvents);
   const kita = cards.find((c) => c.id === 30028);
   const kitaLast = kita?.chainEvents[2]?.choices[0]?.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331);
   if (!kitaLast) throw new Error('event reward decoding self-check failed (Kitasan Black chain 3 should hint 200331)');

@@ -29,7 +29,7 @@ export function resolveTarget(id: number, data: Data): Target | null {
   return { id: base.id, name: base.name.replace(/ ○$/, ''), white, circle, gold, familyIds };
 }
 
-export type SourceKind = 'hint' | 'chain' | 'random' | 'innate' | 'awakening' | 'char-event';
+export type SourceKind = 'hint' | 'chain' | 'random' | 'recreation' | 'special' | 'innate' | 'awakening' | 'char-event';
 export interface SkillSource {
   kind: SourceKind;
   skillId: number;
@@ -57,28 +57,44 @@ function rewardSkills(rw: Reward[]): { id: number; share: number }[] {
   return out;
 }
 
-/** Skill sources from a card's chain and random events, with the wishlist assumed to pick the right choice. */
+const EVENT_LABEL: Record<CardEvent['kind'], string> = { chain: 'Chain event', random: 'Random event', recreation: 'Outing', special: 'Special event' };
+
+/** Skill sources from a card's events, with the wishlist assumed to pick the right choice. */
 export function eventSources(card: Card, settings: Settings): SkillSource[] {
   const out: SkillSource[] = [];
   const chainRates = card.rarity === 'SSR' ? settings.chainRatesSSR : card.rarity === 'SR' ? settings.chainRatesSR : [];
-  const scan = (ev: CardEvent, pFire: number, kind: 'chain' | 'random') => {
+  const scan = (ev: CardEvent, pFire: number, label: string) => {
     const nChoices = ev.choices.length;
     ev.choices.forEach((choice) => {
       const nOut = choice.outcomes.length;
+      // Outcomes of one choice are mutually exclusive: add up the chance per skill across outcomes.
+      const perSkill = new Map<number, { p: number; where: Set<string> }>();
       choice.outcomes.forEach((outcome, oi) => {
-        // outcomes after a divider: [small, big]; with one outcome it's guaranteed
         const pOutcome = nOut === 1 ? 1 : oi === nOut - 1 ? settings.bigRewardRate : (1 - settings.bigRewardRate) / (nOut - 1);
         for (const { id, share } of rewardSkills(outcome)) {
-          // the same skill appearing in every choice is not a choice
-          const inAll = ev.choices.every((c) => c.outcomes.some((o) => rewardSkills(o).some((x) => x.id === id)));
-          out.push({ kind, skillId: id, gold: false, circle: false, pObtain: pFire * pOutcome * share, isChoice: nChoices > 1 && !inAll,
-            detail: `${kind === 'chain' ? 'Chain event' : 'Random event'} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}${nOut > 1 ? (oi === nOut - 1 ? ', big reward' : ', small reward') : ''}` });
+          const cur = perSkill.get(id) ?? { p: 0, where: new Set<string>() };
+          cur.p += pOutcome * share;
+          if (nOut > 1) cur.where.add(oi === nOut - 1 ? 'big reward' : 'small reward');
+          perSkill.set(id, cur);
         }
       });
+      for (const [id, { p, where }] of perSkill) {
+        const inAll = ev.choices.every((c) => c.outcomes.some((o) => rewardSkills(o).some((x) => x.id === id)));
+        const both = where.size === 2 ? '' : where.size === 1 ? `, ${[...where][0]}` : '';
+        out.push({ kind: ev.kind, skillId: id, gold: false, circle: false, pObtain: pFire * p, isChoice: nChoices > 1 && !inAll,
+          detail: `${label} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}${both}` });
+      }
     });
   };
-  card.chainEvents.forEach((ev) => scan(ev, chainRates[ev.index - 1] ?? 0, 'chain'));
-  card.randomEvents.forEach((ev) => scan(ev, settings.randomEventRate, 'random'));
+  card.chainEvents.forEach((ev) => scan(ev, chainRates[ev.index - 1] ?? 0, EVENT_LABEL.chain));
+  const randomScale = Math.min(1, 2 / Math.max(1, card.randomEvents.length));
+  card.randomEvents.forEach((ev) => scan(ev, settings.randomEventRate * randomScale, EVENT_LABEL.random));
+  const nRec = card.recreationEvents.length;
+  card.recreationEvents.forEach((ev) => {
+    const rate = card.type === 'friend' ? settings.palChainRate : ev.index === nRec ? settings.groupFinaleRate : settings.groupOutingRate;
+    scan(ev, rate, card.type === 'friend' ? 'Date' : ev.index === nRec ? 'Group finale' : 'Member outing');
+  });
+  card.specialEvents.forEach((ev) => scan(ev, settings.specialEventRate, EVENT_LABEL.special));
   return out;
 }
 

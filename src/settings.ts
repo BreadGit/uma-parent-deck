@@ -13,7 +13,11 @@ export interface Settings {
   hintTurnsShare: number;        // fraction of turns a card is on the trained facility (0.07 x 0.4 x 0.75 x 44 turns = 0.9 hints/run at 0% Hint Frequency, 1.3 at 40%)
   chainRatesSSR: number[];       // completion chance of chain event 1..3 for SSR
   chainRatesSR: number[];        // chain 1..2 for SR
-  randomEventRate: number;       // chance a given random event fires during a run
+  randomEventRate: number;       // chance a given random event fires during a run (cards with more than 2 random events are scaled so 2 fire on average)
+  palChainRate: number;          // Pal card date chain completes (every date, incl. the finale skill)
+  groupOutingRate: number;       // Group card member outing happens
+  groupFinaleRate: number;       // Group card finale (gold skill) happens
+  specialEventRate: number;      // Pal/Group unlock and New Year events (never seen in independent training)
   bigRewardRate: number;         // when an outcome is split into small/big rewards, chance of the big one
   goldSparkRate: number;         // white spark chance at run end when the gold skill is owned
   whiteSparkRate: number;        // ... when the white skill is owned
@@ -37,6 +41,10 @@ export const DEFAULT_SETTINGS: Settings = {
   chainRatesSSR: [0.69, 0.36, 0.12],
   chainRatesSR: [0.74, 0.35],
   randomEventRate: 0.5,
+  palChainRate: 0.97,
+  groupOutingRate: 0.9,
+  groupFinaleRate: 0.85,
+  specialEventRate: 0,
   bigRewardRate: 0.3,
   goldSparkRate: 0.4,
   whiteSparkRate: 0.2,

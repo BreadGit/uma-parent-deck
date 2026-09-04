@@ -105,3 +105,21 @@ test('blue spark inheritance packs stars and caps the total', async () => {
   assert.ok(Math.abs(low.inspiration - 2 * 21 * 0.9) < 1e-9);
   assert.deepEqual(clampStars([9, 3, 3, 3, 6], 4), [9, 3, 3, 3, 0]);
 });
+
+test('Pal and Group outings are skill sources at their own rates', () => {
+  const lightHello = data.cardById.get(30052)!;
+  const seeYa = resolveTarget(201661, data)!; // Playtime's Over (white) / See Ya Later! (gold)
+  assert.equal(seeYa.gold?.id, 201662);
+  const srcs = cardSourcesForTarget(lightHello, 4, seeYa, 20, data.model.races.totalTurns, data, settings);
+  const finale = srcs.find((s) => s.kind === 'recreation');
+  assert.ok(finale && finale.gold, 'finale should give the gold form');
+  assert.ok(Math.abs(finale!.pObtain - settings.palChainRate) < 1e-9, `pObtain ${finale!.pObtain}`);
+  assert.equal(combineSources(srcs).pGold > 0.95, true);
+  const throne = data.cardById.get(30067)!;
+  const photon = resolveTarget(201113, data)!;
+  const t = cardSourcesForTarget(throne, 4, photon, 20, data.model.races.totalTurns, data, settings).find((s) => s.kind === 'recreation')!;
+  assert.ok(Math.abs(t.pObtain - settings.groupFinaleRate) < 1e-9);
+  const prudent = resolveTarget(200452, data)!;
+  const m = cardSourcesForTarget(throne, 4, prudent, 20, data.model.races.totalTurns, data, settings).find((s) => s.kind === 'recreation')!;
+  assert.ok(Math.abs(m.pObtain - settings.groupOutingRate) < 1e-9);
+});

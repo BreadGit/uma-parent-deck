@@ -257,7 +257,9 @@
     ],
     "name": "So Many Options!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10002,
@@ -515,7 +517,9 @@
     ],
     "name": "What Should I Do?"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10003,
@@ -770,7 +774,9 @@
     ],
     "name": "My Weapon"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10004,
@@ -1024,7 +1030,9 @@
     ],
     "name": "Drive Destination"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10005,
@@ -1283,7 +1291,9 @@
     ],
     "name": "Conquering the Crowds"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10006,
@@ -1546,7 +1556,9 @@
     ],
     "name": "Revive the Brand! Golshi's Yakisoba"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10007,
@@ -1804,7 +1816,9 @@
     ],
     "name": "Enemies on Main Street"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10008,
@@ -2067,7 +2081,9 @@
     ],
     "name": "Yeehaw! Party Tonight ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10009,
@@ -2326,7 +2342,9 @@
     ],
     "name": "A Friendly Daytime Discussion"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10010,
@@ -2583,7 +2601,9 @@
     ],
     "name": "To Reach the Greatest Heights"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10011,
@@ -2853,7 +2873,9 @@
     ],
     "name": "Secret Notebook!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10012,
@@ -3113,7 +3135,9 @@
     ],
     "name": "Beyond Our Limited Time"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10013,
@@ -3402,7 +3426,9 @@
     ],
     "name": "The Student Council President's Thoughtfulness"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10014,
@@ -3661,7 +3687,9 @@
     ],
     "name": "Recruiting Advisors"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10015,
@@ -3911,7 +3939,9 @@
     ],
     "name": "A Page About Cloudy Weather"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10016,
@@ -4183,7 +4213,9 @@
     ],
     "name": "Full-Power Racing!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10017,
@@ -4435,7 +4467,9 @@
     ],
     "name": "13:12 / Lunch Break, Gotta Get Myself Together"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10018,
@@ -4714,7 +4748,9 @@
     ],
     "name": "Enough to Break into a Dash!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10019,
@@ -4964,7 +5000,9 @@
     ],
     "name": "Leave it to Me to Be Considerate! ♪"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10020,
@@ -5220,7 +5258,9 @@
     ],
     "name": "Urara's ☆ Long Shot Dash!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10021,
@@ -5359,7 +5399,418 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "My Chosen Way of Life",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "Enthusiastic Pair",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "bo",
+         "v": "-5",
+         "d": 9001
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200692
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Milk with a Chance of Apples",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "Inexplicable Speed",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "he"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Memories of Cinema",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "A Sigh and a Bandage",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+35"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "he"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "A Surprise Breather",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+35"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200432
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Tazuna, the Director's Secretary",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Good Job! ♪",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+3"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "From Just a Little Closer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+6"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "The Usual, Please!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "A Bond with Tazuna: Aspirations Entrusted",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201611
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 10022,
@@ -5500,7 +5951,457 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "Trainer Tip: Always Improve Your Coaching",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "The Search for a Hobby",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200272
+        },
+        {
+         "t": "bo",
+         "v": "-5",
+         "d": 9004
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Studying with Your Body!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "How I Play at the Park",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ],
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Reckless Training",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "The Joy of Respect",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "Chasing Dreams",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ],
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+22"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 200831
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Fellow Trainer Aoi Kiryuin",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Good Job!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "in",
+         "v": "+3"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "Gift of Words",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "sk",
+         "v": "+1/+3",
+         "d": 200941
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 200442
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "The Perfect Place for a Party",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+5",
+         "d": 3
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "A Bond with Aoi: Being a Good Mentor",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sk",
+         "v": "+1/+3",
+         "d": 201621
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 10023,
@@ -5773,7 +6674,9 @@
     ],
     "name": "This Is Nothing!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10024,
@@ -6035,7 +6938,9 @@
     ],
     "name": "Hishiama's Struggles: Final Stretch"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10025,
@@ -6326,7 +7231,9 @@
     ],
     "name": "Agile but Strong"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10026,
@@ -6619,7 +7526,9 @@
     ],
     "name": "Heavy Romance"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10027,
@@ -6911,7 +7820,9 @@
     ],
     "name": "A Battle I Can't Lose!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10028,
@@ -7187,7 +8098,9 @@
     ],
     "name": "Reminiscent Clover"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10029,
@@ -7481,7 +8394,9 @@
     ],
     "name": "Step-Out-of-Your-Comfort-Zone Theory"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10030,
@@ -7732,7 +8647,9 @@
     ],
     "name": "Fashion Advice for Mayano!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10031,
@@ -8005,7 +8922,9 @@
     ],
     "name": "A Taste of Silence"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10032,
@@ -8266,7 +9185,9 @@
     ],
     "name": "Orders Must Be Followed"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10033,
@@ -8519,7 +9440,9 @@
     ],
     "name": "It's Not Like I Like Romance!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10034,
@@ -8780,7 +9703,9 @@
     ],
     "name": "Aiming for the City Spots"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10035,
@@ -9070,7 +9995,9 @@
     ],
     "name": "Ten Minutes Left!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10036,
@@ -9355,7 +10282,9 @@
     ],
     "name": "Happenstance Introduced Through Intervention"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10037,
@@ -9633,7 +10562,9 @@
     ],
     "name": "//Absolute Desire"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10038,
@@ -9883,7 +10814,9 @@
     ],
     "name": "Responding to the Unforeseen"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10039,
@@ -10148,7 +11081,9 @@
     ],
     "name": "If I'm Cute, Come to My Show! ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10040,
@@ -10440,7 +11375,9 @@
     ],
     "name": "Just Don't Bother Me"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10041,
@@ -10723,7 +11660,9 @@
     ],
     "name": "Let's Bloom Beautifully ♪"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10042,
@@ -10975,7 +11914,9 @@
     ],
     "name": "Preparing My Special Move!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10043,
@@ -11269,7 +12210,9 @@
     ],
     "name": "How To Be More Marvelous ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10044,
@@ -11548,7 +12491,9 @@
     ],
     "name": "When Piety and Kindness Intersect"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10045,
@@ -11808,7 +12753,9 @@
     ],
     "name": "Please... Buy Some Carrots"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10046,
@@ -12112,7 +13059,9 @@
     ],
     "name": "Hope She'll Like It..."
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10047,
@@ -12373,7 +13322,9 @@
     ],
     "name": "(Delicious) Burden"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10048,
@@ -12640,7 +13591,9 @@
     ],
     "name": "You May Advise Me!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10049,
@@ -12912,7 +13865,9 @@
     ],
     "name": "Misdirection"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10050,
@@ -13197,7 +14152,9 @@
     ],
     "name": "Wonderful ☆ Mistake!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10051,
@@ -13444,7 +14401,9 @@
     ],
     "name": "I'm All Fired Up!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10052,
@@ -13714,7 +14673,9 @@
     ],
     "name": "Smiles Forever"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10053,
@@ -13960,7 +14921,9 @@
     ],
     "name": "Ikuno-Style Management"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10054,
@@ -14220,7 +15183,9 @@
     ],
     "name": "Optimistic Escapism"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10055,
@@ -14510,7 +15475,9 @@
     ],
     "name": "Ah, Home Sweet Home"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10056,
@@ -14784,7 +15751,9 @@
     ],
     "name": "I Love Complicated Things!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10057,
@@ -15038,7 +16007,9 @@
     ],
     "name": "Just A Typical Accident?!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10058,
@@ -15288,7 +16259,9 @@
     ],
     "name": "The Will to Protect!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10059,
@@ -15549,7 +16522,9 @@
     ],
     "name": "A Tale Entrusted"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10060,
@@ -15726,7 +16701,498 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "The Kashimoto Art of Tidying Up",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "Unexpected Side",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 200462
+        },
+        {
+         "t": "bo",
+         "v": "+12",
+         "d": 9006
+        },
+        {
+         "t": "ds"
+        }
+       ],
+       [
+        {
+         "t": "sk",
+         "v": "+5",
+         "d": 200272
+        },
+        {
+         "t": "bo",
+         "v": "-10",
+         "d": 9006
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201641
+        },
+        {
+         "t": "bo",
+         "v": "-10",
+         "d": 9006
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Sing from the Heart",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "A Change of Pace",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Picture Their Joy",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "Confused by Kindness",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "A Peek at Her Heart",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 200372
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200372
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Riko Kashimoto, the Hard Worker",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+6"
+        },
+        {
+         "t": "gu",
+         "v": "+6"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Good Work",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+3"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "A Priceless Connection",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "We Need This Sometimes",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+4"
+        },
+        {
+         "t": "gu",
+         "v": "+4"
+        },
+        {
+         "t": "pt",
+         "v": "+6"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "Bonding with Riko: No More Regrets",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+12"
+        },
+        {
+         "t": "gu",
+         "v": "+6"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201631
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 10061,
@@ -15995,7 +17461,9 @@
     ],
     "name": "Full-Power Thinking!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10062,
@@ -16252,7 +17720,9 @@
     ],
     "name": "Until I Bloom..."
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10063,
@@ -16497,7 +17967,9 @@
     ],
     "name": "Princess Escape!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10064,
@@ -16756,7 +18228,9 @@
     ],
     "name": "Leave It to Me ♪"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10065,
@@ -17015,7 +18489,9 @@
     ],
     "name": "Tons of Trouble!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10066,
@@ -17272,7 +18748,9 @@
     ],
     "name": "Chomp Attack!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10067,
@@ -17542,7 +19020,9 @@
     ],
     "name": "Sundown Solo Supper"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10068,
@@ -17799,7 +19279,9 @@
     ],
     "name": "Mikoshi, Heave Ho!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10069,
@@ -18071,7 +19553,9 @@
     ],
     "name": "The Glass Girl Wants to Play"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10070,
@@ -18308,7 +19792,9 @@
     ],
     "name": "Sponsored Posts Can Be Low-Key Sus"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10071,
@@ -18565,7 +20051,9 @@
     ],
     "name": "Want Me to Help You?"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10072,
@@ -18840,7 +20328,9 @@
     ],
     "name": "Lone Wolf"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10073,
@@ -19112,7 +20602,9 @@
     ],
     "name": "#Cuteness4U ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10074,
@@ -19217,7 +20709,518 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "The Applications of Acupuncture",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 1
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        },
+        {
+         "t": "se",
+         "d": 7
+        }
+       ],
+       [
+        {
+         "t": "pt",
+         "v": "+50"
+        },
+        {
+         "t": "sg",
+         "d": 200283
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "A Pleasant Practice Partner?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "me",
+         "v": "+4"
+        },
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+10",
+         "d": 9005
+        },
+        {
+         "t": "ds"
+        }
+       ],
+       [
+        {
+         "t": "pt",
+         "v": "+50"
+        },
+        {
+         "t": "sg",
+         "d": 200353
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "pt",
+         "v": "+100"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202032
+        },
+        {
+         "t": "sg",
+         "d": 200521
+        },
+        {
+         "t": "bo",
+         "v": "-10",
+         "d": 9005
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Trusty Teamwork?!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 1
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "Storied ☆ Sunglasses",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 2
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "The Final Race ☆ For a Worry-Free Future!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "5s",
+         "v": "+3"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 202032
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+5"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202032
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202032
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Just a Poke ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+3"
+        },
+        {
+         "t": "se",
+         "d": 10
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Suspicious, But Safe?!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+20",
+         "d": 1
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "An Accurate Acupuncturist ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+2"
+        },
+        {
+         "t": "rs",
+         "v": "+4",
+         "d": 1
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "Healing Hot Spring Holiday ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+15",
+         "d": 2
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "An Encouraging Entrustment?!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 2
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 6,
+    "name": "A Bond Bolstered by Booze?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 2
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201591
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 10075,
@@ -19463,7 +21466,9 @@
     ],
     "name": "Lonesome Cepheus"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10076,
@@ -19703,7 +21708,9 @@
     ],
     "name": "Sure and Steady"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10077,
@@ -19937,7 +21944,9 @@
     ],
     "name": "A Diligent Effort"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10078,
@@ -20225,7 +22234,9 @@
     ],
     "name": "Even if I Ruffle Feathers"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10079,
@@ -20459,7 +22470,9 @@
     ],
     "name": "Magnificent Melodia"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10080,
@@ -20682,7 +22695,9 @@
     ],
     "name": "Come Rain or River"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10081,
@@ -20936,7 +22951,9 @@
     ],
     "name": "Helping Out to the MAX!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 10083,
@@ -21130,7 +23147,507 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "Some Crafty Research ♪",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+7"
+        },
+        {
+         "t": "gu",
+         "v": "+7"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "Embrace Those Emotions!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+7"
+        },
+        {
+         "t": "gu",
+         "v": "+7"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "sk",
+         "v": "+5",
+         "d": 200272
+        },
+        {
+         "t": "bo",
+         "v": "-5",
+         "d": 9008
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Repose in the Lunar Mare",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "me",
+         "v": "+4"
+        },
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "Tycho's Radiance",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Hidden Beneath the Regolith",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+50"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "Scaling Mons Huygens",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "At Rainbow Cove",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201661
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ],
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201661
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Light Hello, the Event Planner",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+10",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Another Day's Hard Work!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+3"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "pt",
+         "v": "+3"
+        },
+        {
+         "t": "mt",
+         "v": "+20"
+        },
+        {
+         "t": "bo",
+         "v": "+7",
+         "d": 9008
+        }
+       ],
+       [
+        {
+         "t": "gu",
+         "v": "+3"
+        },
+        {
+         "t": "pt",
+         "v": "+3"
+        },
+        {
+         "t": "mt",
+         "v": "+20"
+        },
+        {
+         "t": "bo",
+         "v": "+7",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "Dawn Under the Waning Moon",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "gu",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "Until It Shines in Full",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "Bonding with Light Hello: Letting Loose",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201522
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201532
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 10084,
@@ -21381,7 +23898,9 @@
     ],
     "name": "An Electrifying Present!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20001,
@@ -21754,7 +24273,9 @@
     ],
     "name": "Misdirection"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20002,
@@ -22133,7 +24654,9 @@
     ],
     "name": "This Is Nothing!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20003,
@@ -22484,7 +25007,9 @@
     ],
     "name": "Hishiama's Struggles: Final Stretch"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20004,
@@ -22915,7 +25440,9 @@
     ],
     "name": "Agile but Strong"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20005,
@@ -23292,7 +25819,9 @@
     ],
     "name": "Heavy Romance"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20006,
@@ -23698,7 +26227,9 @@
     ],
     "name": "Step-Out-of-Your-Comfort-Zone Theory"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20007,
@@ -24043,7 +26574,9 @@
     ],
     "name": "Fashion Advice for Mayano!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20008,
@@ -24422,7 +26955,9 @@
     ],
     "name": "A Taste of Silence"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20009,
@@ -24809,7 +27344,9 @@
     ],
     "name": "Orders Must Be Followed"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20010,
@@ -25173,7 +27710,9 @@
     ],
     "name": "It's Not Like I Like Romance!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20011,
@@ -25521,7 +28060,9 @@
     ],
     "name": "Aiming for the City Spots"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20012,
@@ -25894,7 +28435,9 @@
     ],
     "name": "Happenstance Introduced Through Intervention"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20013,
@@ -26232,7 +28775,9 @@
     ],
     "name": "Responding to the Unforeseen"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20014,
@@ -26616,7 +29161,9 @@
     ],
     "name": "Just Don't Bother Me"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20015,
@@ -27009,7 +29556,9 @@
     ],
     "name": "How To Be More Marvelous ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20016,
@@ -27422,7 +29971,9 @@
     ],
     "name": "When Piety and Kindness Intersect"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20017,
@@ -27816,7 +30367,9 @@
     ],
     "name": "Please... Buy Some Carrots"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20018,
@@ -28218,7 +30771,9 @@
     ],
     "name": "Hope She'll Like It..."
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20019,
@@ -28584,7 +31139,9 @@
     ],
     "name": "(Delicious) Burden"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20020,
@@ -28929,7 +31486,9 @@
     ],
     "name": "You May Advise Me!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20021,
@@ -29109,7 +31668,462 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "Trainer Tip: Always Improve Your Coaching",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "The Search for a Hobby",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200272
+        },
+        {
+         "t": "bo",
+         "v": "-5",
+         "d": 9004
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Studying with Your Body!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "How I Play at the Park",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ],
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Reckless Training",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "The Joy of Respect",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "Chasing Dreams",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200831
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ],
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 200831
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Fellow Trainer Aoi Kiryuin",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Good Job!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "in",
+         "v": "+3"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "Gift of Words",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "sk",
+         "v": "+1/+3",
+         "d": 200941
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 200442
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "The Perfect Place for a Party",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+5",
+         "d": 3
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "A Bond with Aoi: Being a Good Mentor",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sk",
+         "v": "+1/+3",
+         "d": 201621
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9004
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 20022,
@@ -29511,7 +32525,9 @@
     ],
     "name": "A Battle I Can't Lose!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20023,
@@ -29918,7 +32934,9 @@
     ],
     "name": "Wonderful ☆ Mistake!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20024,
@@ -30335,7 +33353,9 @@
     ],
     "name": "Smiles Forever"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20025,
@@ -30691,7 +33711,9 @@
     ],
     "name": "Ikuno-Style Management"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20026,
@@ -31053,7 +34075,9 @@
     ],
     "name": "(Delicious) Burden"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20027,
@@ -31454,7 +34478,9 @@
     ],
     "name": "Let's Bloom Beautifully ♪"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20028,
@@ -31830,7 +34856,9 @@
     ],
     "name": "A Tale Entrusted"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20029,
@@ -32243,7 +35271,9 @@
     ],
     "name": "Full-Power Thinking!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20030,
@@ -32649,7 +35679,9 @@
     ],
     "name": "Ten Minutes Left!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20031,
@@ -33034,7 +36066,9 @@
     ],
     "name": "Chomp Attack!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20032,
@@ -33424,7 +36458,9 @@
     ],
     "name": "Mikoshi, Heave Ho!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20033,
@@ -33803,7 +36839,9 @@
     ],
     "name": "Secret Notebook!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20034,
@@ -34185,7 +37223,9 @@
     ],
     "name": "The Glass Girl Wants to Play"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20035,
@@ -34580,7 +37620,9 @@
     ],
     "name": "Sponsored Posts Can Be Low-Key Sus"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20037,
@@ -34925,7 +37967,9 @@
     ],
     "name": "Reminiscent Clover"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20038,
@@ -35306,7 +38350,9 @@
     ],
     "name": "Want Me to Help You?"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20039,
@@ -35700,7 +38746,9 @@
     ],
     "name": "Enemies on Main Street"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20040,
@@ -36043,7 +39091,9 @@
     ],
     "name": "It's Not Like I Like Romance!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20041,
@@ -36406,7 +39456,9 @@
     ],
     "name": "Lonesome Cepheus"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20042,
@@ -36784,7 +39836,9 @@
     ],
     "name": "Enough to Break into a Dash!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20043,
@@ -37136,7 +40190,9 @@
     ],
     "name": "So Many Options!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20044,
@@ -37496,7 +40552,9 @@
     ],
     "name": "#Cuteness4U ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20045,
@@ -37870,7 +40928,9 @@
     ],
     "name": "If I'm Cute, Come to My Show! ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20046,
@@ -38273,7 +41333,9 @@
     ],
     "name": "Wonderful ☆ Mistake!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20047,
@@ -38637,7 +41699,9 @@
     ],
     "name": "My Weapon"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20048,
@@ -39029,7 +42093,9 @@
     ],
     "name": "Conquering the Crowds"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20049,
@@ -39420,7 +42486,9 @@
     ],
     "name": "13:12 / Lunch Break, Gotta Get Myself Together"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20050,
@@ -39811,7 +42879,9 @@
     ],
     "name": "Recruiting Advisors"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20051,
@@ -40164,7 +43234,9 @@
     ],
     "name": "Come Rain or River"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 20052,
@@ -40514,7 +43586,9 @@
     ],
     "name": "Helping Out to the MAX!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30001,
@@ -40977,7 +44051,9 @@
     ],
     "name": "So Many Options!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30002,
@@ -41368,7 +44444,9 @@
     ],
     "name": "What Should I Do?"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30003,
@@ -41757,7 +44835,9 @@
     ],
     "name": "My Weapon"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30004,
@@ -42175,7 +45255,9 @@
     ],
     "name": "Revive the Brand! Golshi's Yakisoba"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30005,
@@ -42579,7 +45661,9 @@
     ],
     "name": "Enemies on Main Street"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30006,
@@ -43044,7 +46128,9 @@
     ],
     "name": "A Friendly Daytime Discussion"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30007,
@@ -43446,7 +46532,9 @@
     ],
     "name": "Secret Notebook!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30008,
@@ -43917,7 +47005,9 @@
     ],
     "name": "Recruiting Advisors"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30009,
@@ -44348,7 +47438,9 @@
     ],
     "name": "A Battle I Can't Lose!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30010,
@@ -44785,7 +47877,9 @@
     ],
     "name": "Reminiscent Clover"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30011,
@@ -45230,7 +48324,9 @@
     ],
     "name": "Ten Minutes Left!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30012,
@@ -45640,7 +48736,9 @@
     ],
     "name": "Full-Power Racing!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30013,
@@ -46048,7 +49146,9 @@
     ],
     "name": "//Absolute Desire"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30014,
@@ -46454,7 +49554,9 @@
     ],
     "name": "13:12 / Lunch Break, Gotta Get Myself Together"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30015,
@@ -46839,7 +49941,9 @@
     ],
     "name": "Enough to Break into a Dash!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30016,
@@ -47199,7 +50303,9 @@
     ],
     "name": "Leave it to Me to Be Considerate! ♪"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30017,
@@ -47658,7 +50764,9 @@
     ],
     "name": "If I'm Cute, Come to My Show! ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30018,
@@ -48096,7 +51204,9 @@
     ],
     "name": "Let's Bloom Beautifully ♪"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30019,
@@ -48465,7 +51575,9 @@
     ],
     "name": "Urara's ☆ Long Shot Dash!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30020,
@@ -48831,7 +51943,9 @@
     ],
     "name": "Preparing My Special Move!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30021,
@@ -49011,7 +52125,442 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "My Chosen Way of Life",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "Enthusiastic Pair",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "bo",
+         "v": "-5",
+         "d": 9001
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200692
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Milk with a Chance of Apples",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "Inexplicable Speed",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "he"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Memories of Cinema",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "A Sigh and a Bandage",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+35"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "he"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "A Surprise Breather",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+35"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200432
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+35"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200431
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Tazuna, the Director's Secretary",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Good Job! ♪",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+3"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "From Just a Little Closer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+6"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "The Usual, Please!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "A Bond with Tazuna: Aspirations Entrusted",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9001
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201611
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 30022,
@@ -49399,7 +52948,9 @@
     ],
     "name": "To Reach the Greatest Heights"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30023,
@@ -49814,7 +53365,9 @@
     ],
     "name": "A Page About Cloudy Weather"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30024,
@@ -50262,7 +53815,9 @@
     ],
     "name": "Conquering the Crowds"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30025,
@@ -50671,7 +54226,9 @@
     ],
     "name": "So Many Options!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30026,
@@ -51124,7 +54681,9 @@
     ],
     "name": "I'm All Fired Up!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30027,
@@ -51633,7 +55192,9 @@
     ],
     "name": "Optimistic Escapism"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30028,
@@ -52098,7 +55659,9 @@
     ],
     "name": "Ah, Home Sweet Home"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30029,
@@ -52555,7 +56118,9 @@
     ],
     "name": "I Love Complicated Things!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30030,
@@ -52962,7 +56527,9 @@
     ],
     "name": "Just A Typical Accident?!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30031,
@@ -53438,7 +57005,9 @@
     ],
     "name": "Aiming for the City Spots"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30032,
@@ -53880,7 +57449,9 @@
     ],
     "name": "The Will to Protect!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30033,
@@ -54244,7 +57815,9 @@
     ],
     "name": "Full-Power Racing!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30034,
@@ -54675,7 +58248,9 @@
     ],
     "name": "A Page About Cloudy Weather"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30036,
@@ -54892,7 +58467,506 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "The Kashimoto Art of Tidying Up",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "Unexpected Side",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 200462
+        },
+        {
+         "t": "bo",
+         "v": "+12",
+         "d": 9006
+        },
+        {
+         "t": "ds"
+        }
+       ],
+       [
+        {
+         "t": "sk",
+         "v": "+5",
+         "d": 200272
+        },
+        {
+         "t": "bo",
+         "v": "-10",
+         "d": 9006
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201641
+        },
+        {
+         "t": "bo",
+         "v": "-10",
+         "d": 9006
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Sing from the Heart",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "A Change of Pace",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Picture Their Joy",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "Confused by Kindness",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "A Peek at Her Heart",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 200371
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200371
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Riko Kashimoto, the Hard Worker",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+6"
+        },
+        {
+         "t": "gu",
+         "v": "+6"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Good Work",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+3"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "A Priceless Connection",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "We Need This Sometimes",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+4"
+        },
+        {
+         "t": "gu",
+         "v": "+4"
+        },
+        {
+         "t": "pt",
+         "v": "+6"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "Bonding with Riko: No More Regrets",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+12"
+        },
+        {
+         "t": "gu",
+         "v": "+6"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201631
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9006
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 30038,
@@ -55389,7 +59463,9 @@
     ],
     "name": "Until I Bloom..."
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30039,
@@ -55789,7 +59865,9 @@
     ],
     "name": "Princess Escape!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30040,
@@ -56218,7 +60296,9 @@
     ],
     "name": "Leave It to Me ♪"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30041,
@@ -56606,7 +60686,9 @@
     ],
     "name": "Hope She'll Like It..."
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30042,
@@ -57157,7 +61239,9 @@
     ],
     "name": "Tons of Trouble!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30043,
@@ -57636,7 +61720,9 @@
     ],
     "name": "Sundown Solo Supper"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30044,
@@ -57996,7 +62082,9 @@
     ],
     "name": "Lone Wolf"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30045,
@@ -58428,7 +62516,9 @@
     ],
     "name": "Wonderful ☆ Mistake!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30046,
@@ -58841,7 +62931,9 @@
     ],
     "name": "Full-Power Racing!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30047,
@@ -59237,7 +63329,9 @@
     ],
     "name": "This Is Nothing!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30048,
@@ -59645,7 +63739,9 @@
     ],
     "name": "It's Not Like I Like Romance!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30052,
@@ -59871,7 +63967,515 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "Some Crafty Research ♪",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+7"
+        },
+        {
+         "t": "gu",
+         "v": "+7"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "Embrace Those Emotions!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+7"
+        },
+        {
+         "t": "gu",
+         "v": "+7"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "sk",
+         "v": "+5",
+         "d": 200272
+        },
+        {
+         "t": "bo",
+         "v": "-5",
+         "d": 9008
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Repose in the Lunar Mare",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "me",
+         "v": "+4"
+        },
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "Tycho's Radiance",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Hidden Beneath the Regolith",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+50"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "Scaling Mons Huygens",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "At Rainbow Cove",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201662
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ],
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201662
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Light Hello, the Event Planner",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+10",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Another Day's Hard Work!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+3"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "pt",
+         "v": "+3"
+        },
+        {
+         "t": "mt",
+         "v": "+20"
+        },
+        {
+         "t": "bo",
+         "v": "+7",
+         "d": 9008
+        }
+       ],
+       [
+        {
+         "t": "gu",
+         "v": "+3"
+        },
+        {
+         "t": "pt",
+         "v": "+3"
+        },
+        {
+         "t": "mt",
+         "v": "+20"
+        },
+        {
+         "t": "bo",
+         "v": "+7",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "Dawn Under the Waning Moon",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "gu",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "Until It Shines in Full",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "Bonding with Light Hello: Letting Loose",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201522
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201532
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9008
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 30053,
@@ -60320,7 +64924,9 @@
     ],
     "name": "Yeehaw! Party Tonight ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30054,
@@ -60765,7 +65371,9 @@
     ],
     "name": "(Delicious) Burden"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30055,
@@ -61215,7 +65823,9 @@
     ],
     "name": "Recruiting Advisors"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30056,
@@ -61668,7 +66278,9 @@
     ],
     "name": "You May Advise Me!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30057,
@@ -62092,7 +66704,9 @@
     ],
     "name": "Revive the Brand! Golshi's Yakisoba"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30062,
@@ -62474,7 +67088,9 @@
     ],
     "name": "What Should I Do?"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30063,
@@ -62897,7 +67513,9 @@
     ],
     "name": "Ikuno-Style Management"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30064,
@@ -63302,7 +67920,9 @@
     ],
     "name": "A Battle I Can't Lose!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30065,
@@ -63705,7 +68325,9 @@
     ],
     "name": "A Tale Entrusted"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30066,
@@ -64112,7 +68734,9 @@
     ],
     "name": "Orders Must Be Followed"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30067,
@@ -64340,30 +68964,95 @@
    201112
   ],
   "hintOthers": [],
-  "chainEvents": [
-   {
-    "kind": "chain",
-    "index": 1,
-    "choices": [],
-    "name": "Diamonds in the Rough"
-   },
-   {
-    "kind": "chain",
-    "index": 2,
-    "choices": [],
-    "name": "We'll Get Stronger, Together"
-   },
-   {
-    "kind": "chain",
-    "index": 3,
-    "choices": [],
-    "name": "The Heroic Trio Running Side by Side"
-   }
-  ],
+  "chainEvents": [],
   "randomEvents": [
    {
     "kind": "random",
     "index": 1,
+    "name": "My Way, Or...",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 1003
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 1003
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "My Weapon",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 1003
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201312
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 1003
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 3,
+    "name": "The Emperor's Encouragement",
     "choices": [
      {
       "outcomes": [
@@ -64399,12 +69088,12 @@
        ]
       ]
      }
-    ],
-    "name": "The Emperor's Encouragement"
+    ]
    },
    {
     "kind": "random",
-    "index": 2,
+    "index": 4,
+    "name": "The Student Council President's Thoughtfulness",
     "choices": [
      {
       "outcomes": [
@@ -64437,8 +69126,570 @@
        ]
       ]
      }
-    ],
-    "name": "The Student Council President's Thoughtfulness"
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 5,
+    "name": "Preparing to the MAX!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 1073
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 1073
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 6,
+    "name": "Helping Out to the MAX!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201402
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 1073
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 1073
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 7,
+    "name": "Emulation Is the Sincerest Form of Flattery",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "in",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 101
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 8,
+    "name": "The Bright Future Ahead",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "#Studenting",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+30"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202092
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "The Monarch's Pride",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200452
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "A Leisurely Stroll for Two",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202152
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "I Wanna Be Just Like Prez!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+25"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200042
+        },
+        {
+         "t": "he",
+         "d": 1
+        },
+        {
+         "t": "he",
+         "d": 2
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "I Want to Be Just Like President Rudolf!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "in",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201113
+        },
+        {
+         "t": "se",
+         "d": 101
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Diamonds in the Rough",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "We'll Get Stronger, Together",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 101
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "se_has",
+         "d": 101
+        },
+        {
+         "t": "in",
+         "v": "+4"
+        },
+        {
+         "t": "pt",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 101
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "se_has",
+         "d": 101
+        },
+        {
+         "t": "sp",
+         "v": "+4"
+        },
+        {
+         "t": "pt",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 101
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "se_has",
+         "d": 101
+        },
+        {
+         "t": "en",
+         "v": "+3"
+        },
+        {
+         "t": "pt",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "The Heroic Trio Running Side by Side",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "in",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "With Our Powers Combined",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "in",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "Dreaming the Same Dream",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201112
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
    }
   ]
  },
@@ -64889,7 +70140,9 @@
     ],
     "name": "#Cuteness4U ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30069,
@@ -65327,7 +70580,9 @@
     ],
     "name": "Lone Wolf"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30070,
@@ -65751,7 +71006,9 @@
     ],
     "name": "Aiming for the City Spots"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30071,
@@ -66200,7 +71457,9 @@
     ],
     "name": "Smiles Forever"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30072,
@@ -66660,7 +71919,9 @@
     ],
     "name": "Fashion Advice for Mayano!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30073,
@@ -67064,7 +72325,9 @@
     ],
     "name": "Just Don't Bother Me"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30074,
@@ -67456,7 +72719,9 @@
     ],
     "name": "How To Be More Marvelous ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30075,
@@ -67883,7 +73148,9 @@
     ],
     "name": "A Taste of Silence"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30076,
@@ -68217,7 +73484,9 @@
     ],
     "name": "What Should I Do?"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30077,
@@ -68653,7 +73922,9 @@
     ],
     "name": "Lonesome Cepheus"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30078,
@@ -69192,7 +74463,9 @@
     ],
     "name": "When Piety and Kindness Intersect"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30079,
@@ -69608,7 +74881,9 @@
     ],
     "name": "Please... Buy Some Carrots"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30080,
@@ -69735,7 +75010,517 @@
   ],
   "hintOthers": [],
   "chainEvents": [],
-  "randomEvents": []
+  "randomEvents": [
+   {
+    "kind": "random",
+    "index": 1,
+    "name": "The Applications of Acupuncture",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 1
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        },
+        {
+         "t": "se",
+         "d": 7
+        }
+       ],
+       [
+        {
+         "t": "pt",
+         "v": "+50"
+        },
+        {
+         "t": "sg",
+         "d": 200283
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 2,
+    "name": "A Pleasant Practice Partner?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "me",
+         "v": "+4"
+        },
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "bo",
+         "v": "+10",
+         "d": 9005
+        },
+        {
+         "t": "ds"
+        }
+       ],
+       [
+        {
+         "t": "pt",
+         "v": "+50"
+        },
+        {
+         "t": "sg",
+         "d": 200353
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "pt",
+         "v": "+100"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202032
+        },
+        {
+         "t": "sg",
+         "d": 200521
+        },
+        {
+         "t": "bo",
+         "v": "-10",
+         "d": 9005
+        },
+        {
+         "t": "ee"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "Trusty Teamwork?!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 1
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "Storied ☆ Sunglasses",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 2
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "The Final Race ☆ For a Worry-Free Future!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "5s",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 202031
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "fe"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202031
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202032
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Just a Poke ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+3"
+        },
+        {
+         "t": "se",
+         "d": 10
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-2"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "Suspicious, But Safe?!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+20",
+         "d": 1
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "An Accurate Acupuncturist ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+2"
+        },
+        {
+         "t": "rs",
+         "v": "+4",
+         "d": 1
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-5"
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "Healing Hot Spring Holiday ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+15",
+         "d": 2
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "An Encouraging Entrustment?!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 2
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 6,
+    "name": "A Bond Bolstered by Booze?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 2
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201591
+        },
+        {
+         "t": "bo",
+         "v": "+5",
+         "d": 9005
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": 30081,
@@ -69965,47 +75750,12 @@
    200352
   ],
   "hintOthers": [],
-  "chainEvents": [
-   {
-    "kind": "chain",
-    "index": 1,
-    "choices": [],
-    "name": "Every One of Us Has a Dream"
-   },
-   {
-    "kind": "chain",
-    "index": 2,
-    "choices": [],
-    "name": "A Second Serving of Training"
-   },
-   {
-    "kind": "chain",
-    "index": 3,
-    "choices": [],
-    "name": "Beyond the Horizon of Our Dreams"
-   },
-   {
-    "kind": "chain",
-    "index": 4,
-    "choices": [],
-    "name": "Another Day, Another Step Towards Our Dream"
-   },
-   {
-    "kind": "chain",
-    "index": 5,
-    "choices": [],
-    "name": "The Luckiest Racer in Japan"
-   },
-   {
-    "kind": "chain",
-    "index": 6,
-    "choices": []
-   }
-  ],
+  "chainEvents": [],
   "randomEvents": [
    {
     "kind": "random",
     "index": 1,
+    "name": "Watch Where You're Going!",
     "choices": [
      {
       "outcomes": [
@@ -70036,12 +75786,12 @@
        ]
       ]
      }
-    ],
-    "name": "Watch Where You're Going!"
+    ]
    },
    {
     "kind": "random",
     "index": 2,
+    "name": "So Many Options!",
     "choices": [
      {
       "outcomes": [
@@ -70083,8 +75833,877 @@
        ]
       ]
      }
-    ],
-    "name": "So Many Options!"
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 3,
+    "name": "On and On",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 4,
+    "name": "What Should I Do?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200022
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 5,
+    "name": "To Maintain My Weight",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "st",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "me",
+         "v": "+4"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 6,
+    "name": "To Reach the Greatest Heights",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200532
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 7,
+    "name": "A Page of Flower Shop Assistance",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 8,
+    "name": "A Page About Cloudy Weather",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200152
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 9,
+    "name": "Full-Power Muscles!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 10,
+    "name": "Full-Power Racing!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201392
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 11,
+    "name": "Student Council Member!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "me",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 12,
+    "name": "Lone Wolf",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+3"
+        },
+        {
+         "t": "st",
+         "v": "+3"
+        },
+        {
+         "t": "po",
+         "v": "+3"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201641
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 13,
+    "name": "We're All Shining Stars",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+6"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 100
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        },
+        {
+         "t": "ds"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "random",
+    "index": 14,
+    "name": "Teamwork Makes the Dream Work!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "recreationEvents": [
+   {
+    "kind": "recreation",
+    "index": 1,
+    "name": "I Shall Have the Last Laugh",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "me",
+         "v": "+4"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 202032
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 2,
+    "name": "The Secret to Her Success",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+25"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200292
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 3,
+    "name": "Common Threads, Dreams Entwined",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "po",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 4,
+    "name": "It's Tough Being a Little Sister",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        },
+        {
+         "t": "he",
+         "d": 2
+        },
+        {
+         "t": "he",
+         "d": 6
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 5,
+    "name": "The Scenery that Lies Beyond",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-5"
+        },
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "po",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 6,
+    "name": "I Want to Share My Dream",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+40"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "recreation",
+    "index": 7,
+    "name": "The Meaning of Support",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202061
+        },
+        {
+         "t": "se",
+         "d": 100
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "specialEvents": [
+   {
+    "kind": "special",
+    "index": 1,
+    "name": "Every One of Us Has a Dream",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+6"
+        },
+        {
+         "t": "po",
+         "v": "+6"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 2,
+    "name": "A Second Serving of Training",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+4"
+        },
+        {
+         "t": "pt",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+4"
+        },
+        {
+         "t": "pt",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+3"
+        },
+        {
+         "t": "pt",
+         "v": "+4"
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 3,
+    "name": "Beyond the Horizon of Our Dreams",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 4,
+    "name": "Another Day, Another Step Towards Our Dream",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+3"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "special",
+    "index": 5,
+    "name": "The Luckiest Racer in Japan",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+7"
+        },
+        {
+         "t": "st",
+         "v": "+7"
+        },
+        {
+         "t": "po",
+         "v": "+7"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200352
+        },
+        {
+         "t": "bo",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
    }
   ]
  },
@@ -70499,7 +77118,9 @@
     ],
     "name": "Let's Bloom Beautifully ♪"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30083,
@@ -70944,7 +77565,9 @@
     ],
     "name": "Enough to Break into a Dash!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30084,
@@ -71359,7 +77982,9 @@
     ],
     "name": "Sponsored Posts Can Be Low-Key Sus"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30085,
@@ -71835,7 +78460,9 @@
     ],
     "name": "Heavy Romance"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30086,
@@ -72274,7 +78901,9 @@
     ],
     "name": "A Diligent Effort"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30087,
@@ -72642,7 +79271,9 @@
     ],
     "name": "Sure and Steady"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30088,
@@ -73081,7 +79712,9 @@
     ],
     "name": "I Love Complicated Things!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30089,
@@ -73502,7 +80135,9 @@
     ],
     "name": "How To Be More Marvelous ☆"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30090,
@@ -73919,7 +80554,9 @@
     ],
     "name": "The Student Council President's Thoughtfulness"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30091,
@@ -74381,7 +81018,9 @@
     ],
     "name": "Want Me to Help You?"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30092,
@@ -74796,7 +81435,9 @@
     ],
     "name": "//Absolute Desire"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30093,
@@ -75187,7 +81828,9 @@
     ],
     "name": "This Is Nothing!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30094,
@@ -75631,7 +82274,9 @@
     ],
     "name": "Tons of Trouble!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30095,
@@ -76094,7 +82739,9 @@
     ],
     "name": "Full-Power Thinking!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30096,
@@ -76442,7 +83089,9 @@
     ],
     "name": "Princess Escape!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30097,
@@ -76920,7 +83569,9 @@
     ],
     "name": "Even if I Ruffle Feathers"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30098,
@@ -77327,7 +83978,9 @@
     ],
     "name": "Urara's ☆ Long Shot Dash!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30099,
@@ -77759,7 +84412,9 @@
     ],
     "name": "Ikuno-Style Management"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30100,
@@ -78176,7 +84831,9 @@
     ],
     "name": "A Page About Cloudy Weather"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30101,
@@ -78638,7 +85295,9 @@
     ],
     "name": "Happenstance Introduced Through Intervention"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30102,
@@ -79092,7 +85751,9 @@
     ],
     "name": "Secret Notebook!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30103,
@@ -79578,7 +86239,9 @@
     ],
     "name": "Just A Typical Accident?!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30104,
@@ -79994,7 +86657,9 @@
     ],
     "name": "A Tale Entrusted"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30105,
@@ -80447,7 +87112,9 @@
     ],
     "name": "So Many Options!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30106,
@@ -80866,7 +87533,9 @@
     ],
     "name": "Agile but Strong"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30107,
@@ -81291,7 +87960,9 @@
     ],
     "name": "Drive Destination"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30108,
@@ -81799,7 +88470,9 @@
     ],
     "name": "Sundown Solo Supper"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30109,
@@ -82197,7 +88870,9 @@
     ],
     "name": "Until I Bloom..."
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30110,
@@ -82611,7 +89286,9 @@
     ],
     "name": "A Taste of Silence"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30111,
@@ -83068,7 +89745,9 @@
     ],
     "name": "My Weapon"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30112,
@@ -83544,7 +90223,9 @@
     ],
     "name": "I'm All Fired Up!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30113,
@@ -83973,7 +90654,9 @@
     ],
     "name": "Step-Out-of-Your-Comfort-Zone Theory"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30114,
@@ -84359,7 +91042,9 @@
     ],
     "name": "Magnificent Melodia"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30115,
@@ -84771,7 +91456,9 @@
     ],
     "name": "Optimistic Escapism"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30116,
@@ -85222,7 +91909,9 @@
     ],
     "name": "Smiles Forever"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30117,
@@ -85617,7 +92306,9 @@
     ],
     "name": "Chomp Attack!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30118,
@@ -86053,7 +92744,9 @@
     ],
     "name": "A Professional's Creed"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30121,
@@ -86449,7 +93142,9 @@
     ],
     "name": "Orders Must Be Followed"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  },
  {
   "id": 30145,
@@ -86838,6 +93533,8 @@
     ],
     "name": "An Electrifying Present!"
    }
-  ]
+  ],
+  "recreationEvents": [],
+  "specialEvents": []
  }
 ]

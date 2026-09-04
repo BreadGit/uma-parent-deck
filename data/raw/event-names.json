@@ -65,8 +65,8 @@
  "10008": {
   "chain": [],
   "random": [
-   "Yes! Let's Hug \u2606",
-   "Yeehaw! Party Tonight \u2606"
+   "Yes! Let's Hug ☆",
+   "Yeehaw! Party Tonight ☆"
   ],
   "special": [],
   "dates": []
@@ -164,8 +164,8 @@
  "10019": {
   "chain": [],
   "random": [
-   "Leave it to Me to Help Out! \u266a",
-   "Leave it to Me to Be Considerate! \u266a"
+   "Leave it to Me to Help Out! ♪",
+   "Leave it to Me to Be Considerate! ♪"
   ],
   "special": [],
   "dates": []
@@ -173,21 +173,27 @@
  "10020": {
   "chain": [],
   "random": [
-   "Urara's \u2606 Study Review",
-   "Urara's \u2606 Long Shot Dash!"
+   "Urara's ☆ Study Review",
+   "Urara's ☆ Long Shot Dash!"
   ],
   "special": [],
   "dates": []
  },
  "10021": {
-  "chain": [],
+  "chain": [
+   "Tazuna, the Director's Secretary",
+   "Good Job! ♪",
+   "From Just a Little Closer",
+   "The Usual, Please!",
+   "A Bond with Tazuna: Aspirations Entrusted"
+  ],
   "random": [
    "My Chosen Way of Life",
    "Enthusiastic Pair"
   ],
   "special": [
    "Tazuna, the Director's Secretary",
-   "Good Job! \u266a",
+   "Good Job! ♪",
    "From Just a Little Closer",
    "The Usual, Please!",
    "A Bond with Tazuna: Aspirations Entrusted"
@@ -201,7 +207,13 @@
   ]
  },
  "10022": {
-  "chain": [],
+  "chain": [
+   "Fellow Trainer Aoi Kiryuin",
+   "Good Job!",
+   "Gift of Words",
+   "The Perfect Place for a Party",
+   "A Bond with Aoi: Being a Good Mentor"
+  ],
   "random": [
    "Trainer Tip: Always Improve Your Coaching",
    "The Search for a Hobby"
@@ -368,8 +380,8 @@
  "10039": {
   "chain": [],
   "random": [
-   "Chants Are the Life of a Concert \u2606",
-   "If I'm Cute, Come to My Show! \u2606"
+   "Chants Are the Life of a Concert ☆",
+   "If I'm Cute, Come to My Show! ☆"
   ],
   "special": [],
   "dates": []
@@ -387,7 +399,7 @@
   "chain": [],
   "random": [
    "Warmth, Love, and Lunch",
-   "Let's Bloom Beautifully \u266a"
+   "Let's Bloom Beautifully ♪"
   ],
   "special": [],
   "dates": []
@@ -404,8 +416,8 @@
  "10043": {
   "chain": [],
   "random": [
-   "Marvelous, No Question \u2606",
-   "How To Be More Marvelous \u2606"
+   "Marvelous, No Question ☆",
+   "How To Be More Marvelous ☆"
   ],
   "special": [],
   "dates": []
@@ -467,8 +479,8 @@
  "10050": {
   "chain": [],
   "random": [
-   "Miracle \u2606 Escape!",
-   "Wonderful \u2606 Mistake!"
+   "Miracle ☆ Escape!",
+   "Wonderful ☆ Mistake!"
   ],
   "special": [],
   "dates": []
@@ -485,7 +497,7 @@
  "10052": {
   "chain": [],
   "random": [
-   "Encounter With the Sun \u2606",
+   "Encounter With the Sun ☆",
    "Smiles Forever"
   ],
   "special": [],
@@ -555,7 +567,13 @@
   "dates": []
  },
  "10060": {
-  "chain": [],
+  "chain": [
+   "Riko Kashimoto, the Hard Worker",
+   "Good Work",
+   "A Priceless Connection",
+   "We Need This Sometimes",
+   "Bonding with Riko: No More Regrets"
+  ],
   "random": [
    "The Kashimoto Art of Tidying Up",
    "Unexpected Side"
@@ -605,8 +623,8 @@
  "10064": {
   "chain": [],
   "random": [
-   "Eat Up \u266a",
-   "Leave It to Me \u266a"
+   "Eat Up ♪",
+   "Leave It to Me ♪"
   ],
   "special": [],
   "dates": []
@@ -687,29 +705,36 @@
   "chain": [],
   "random": [
    "#UrUniqueCuteness",
-   "#Cuteness4U \u2606"
+   "#Cuteness4U ☆"
   ],
   "special": [],
   "dates": []
  },
  "10074": {
-  "chain": [],
+  "chain": [
+   "Just a Poke ☆",
+   "Suspicious, But Safe?!",
+   "An Accurate Acupuncturist ☆",
+   "Healing Hot Spring Holiday ☆",
+   "An Encouraging Entrustment?!",
+   "A Bond Bolstered by Booze?"
+  ],
   "random": [
    "The Applications of Acupuncture",
    "A Pleasant Practice Partner?"
   ],
   "special": [
-   "Just a Poke \u2606",
+   "Just a Poke ☆",
    "Suspicious, But Safe?!",
-   "An Accurate Acupuncturist \u2606",
-   "Healing Hot Spring Holiday \u2606",
+   "An Accurate Acupuncturist ☆",
+   "Healing Hot Spring Holiday ☆",
    "An Encouraging Entrustment?!",
    "A Bond Bolstered by Booze?"
   ],
   "dates": [
    "Trusty Teamwork?!",
-   "Storied \u2606 Sunglasses",
-   "The Final Race \u2606 For a Worry-Free Future!"
+   "Storied ☆ Sunglasses",
+   "The Final Race ☆ For a Worry-Free Future!"
   ]
  },
  "10075": {
@@ -776,9 +801,15 @@
   "dates": []
  },
  "10083": {
-  "chain": [],
+  "chain": [
+   "Light Hello, the Event Planner",
+   "Another Day's Hard Work!",
+   "Dawn Under the Waning Moon",
+   "Until It Shines in Full",
+   "Bonding with Light Hello: Letting Loose"
+  ],
   "random": [
-   "Some Crafty Research \u266a",
+   "Some Crafty Research ♪",
    "Embrace Those Emotions!"
   ],
   "special": [
@@ -880,7 +911,7 @@
  "20007": {
   "chain": [
    "Still Taxiing?",
-   "Take Off toward Trendy \u266a"
+   "Take Off toward Trendy ♪"
   ],
   "random": [
    "Snack Advice for Mayano!",
@@ -975,12 +1006,12 @@
  },
  "20015": {
   "chain": [
-   "Marvelous World Plan \u2606",
-   "Marvelously Marvelous \u2606"
+   "Marvelous World Plan ☆",
+   "Marvelously Marvelous ☆"
   ],
   "random": [
-   "Marvelous, No Question \u2606",
-   "How To Be More Marvelous \u2606"
+   "Marvelous, No Question ☆",
+   "How To Be More Marvelous ☆"
   ],
   "special": [],
   "dates": []
@@ -1046,7 +1077,13 @@
   "dates": []
  },
  "20021": {
-  "chain": [],
+  "chain": [
+   "Fellow Trainer Aoi Kiryuin",
+   "Good Job!",
+   "Gift of Words",
+   "The Perfect Place for a Party",
+   "A Bond with Aoi: Being a Good Mentor"
+  ],
   "random": [
    "Trainer Tip: Always Improve Your Coaching",
    "The Search for a Hobby"
@@ -1084,8 +1121,8 @@
    "Premeditated Mischief"
   ],
   "random": [
-   "Miracle \u2606 Escape!",
-   "Wonderful \u2606 Mistake!"
+   "Miracle ☆ Escape!",
+   "Wonderful ☆ Mistake!"
   ],
   "special": [],
   "dates": []
@@ -1096,7 +1133,7 @@
    "#LOL #Party! #Round2"
   ],
   "random": [
-   "Encounter With the Sun \u2606",
+   "Encounter With the Sun ☆",
    "Smiles Forever"
   ],
   "special": [],
@@ -1133,7 +1170,7 @@
   ],
   "random": [
    "Warmth, Love, and Lunch",
-   "Let's Bloom Beautifully \u266a"
+   "Let's Bloom Beautifully ♪"
   ],
   "special": [],
   "dates": []
@@ -1152,7 +1189,7 @@
  },
  "20029": {
   "chain": [
-   "No More Words \u266a Use Body Language!",
+   "No More Words ♪ Use Body Language!",
    "Never Give Up! Endless Possibilities!"
   ],
   "random": [
@@ -1212,7 +1249,7 @@
  },
  "20034": {
   "chain": [
-   "Special Drinks Made with Friends \u266a",
+   "Special Drinks Made with Friends ♪",
    "The Place I Wish to Stand"
   ],
   "random": [
@@ -1237,7 +1274,7 @@
  "20037": {
   "chain": [
    "What Even Is Normal?",
-   "Clovers For You Too \u266a"
+   "Clovers For You Too ♪"
   ],
   "random": [
    "Wonderful New Shoes",
@@ -1325,7 +1362,7 @@
   ],
   "random": [
    "#UrUniqueCuteness",
-   "#Cuteness4U \u2606"
+   "#Cuteness4U ☆"
   ],
   "special": [],
   "dates": []
@@ -1336,8 +1373,8 @@
    "This Is an Umadol!"
   ],
   "random": [
-   "Chants Are the Life of a Concert \u2606",
-   "If I'm Cute, Come to My Show! \u2606"
+   "Chants Are the Life of a Concert ☆",
+   "If I'm Cute, Come to My Show! ☆"
   ],
   "special": [],
   "dates": []
@@ -1348,8 +1385,8 @@
    "The Trick to Perseverance!"
   ],
   "random": [
-   "Miracle \u2606 Escape!",
-   "Wonderful \u2606 Mistake!"
+   "Miracle ☆ Escape!",
+   "Wonderful ☆ Mistake!"
   ],
   "special": [],
   "dates": []
@@ -1368,8 +1405,8 @@
  },
  "20048": {
   "chain": [
-   "\"I Just Can't Quit Food\" \u2014Oguri Cap",
-   "\"Happiness? Don't Mind If I Do\" \u2014Oguri Cap"
+   "\"I Just Can't Quit Food\" —Oguri Cap",
+   "\"Happiness? Don't Mind If I Do\" —Oguri Cap"
   ],
   "random": [
    "How Should I Respond?",
@@ -1441,9 +1478,9 @@
  },
  "30002": {
   "chain": [
-   "Letters \u2192 ?",
-   "Letters \u2192 Feelings \u2192 ?",
-   "Letters \u2192 Feelings \u2192 Wait for Me, Okay?"
+   "Letters → ?",
+   "Letters → Feelings → ?",
+   "Letters → Feelings → Wait for Me, Okay?"
   ],
   "random": [
    "On and On",
@@ -1519,7 +1556,7 @@
  },
  "30008": {
   "chain": [
-   "Be Strategic \u2606",
+   "Be Strategic ☆",
    "Beware of the Trap",
    "It's All to Win"
   ],
@@ -1545,9 +1582,9 @@
  },
  "30010": {
   "chain": [
-   "Lovely Training Weather \u266a",
-   "Lovely Concert Weather \u266a",
-   "Lovely Racing Weather \u266a"
+   "Lovely Training Weather ♪",
+   "Lovely Concert Weather ♪",
+   "Lovely Racing Weather ♪"
   ],
   "random": [
    "Wonderful New Shoes",
@@ -1628,21 +1665,21 @@
    "Have a Second Helping!"
   ],
   "random": [
-   "Leave it to Me to Help Out! \u266a",
-   "Leave it to Me to Be Considerate! \u266a"
+   "Leave it to Me to Help Out! ♪",
+   "Leave it to Me to Be Considerate! ♪"
   ],
   "special": [],
   "dates": []
  },
  "30017": {
   "chain": [
-   "Always on Stage \u2606",
-   "Shining Always and Everywhere \u2606",
-   "My Umadol Way! \u2606"
+   "Always on Stage ☆",
+   "Shining Always and Everywhere ☆",
+   "My Umadol Way! ☆"
   ],
   "random": [
-   "Chants Are the Life of a Concert \u2606",
-   "If I'm Cute, Come to My Show! \u2606"
+   "Chants Are the Life of a Concert ☆",
+   "If I'm Cute, Come to My Show! ☆"
   ],
   "special": [],
   "dates": []
@@ -1655,7 +1692,7 @@
   ],
   "random": [
    "Warmth, Love, and Lunch",
-   "Let's Bloom Beautifully \u266a"
+   "Let's Bloom Beautifully ♪"
   ],
   "special": [],
   "dates": []
@@ -1667,8 +1704,8 @@
    "Trying Hard with Everyone's Support!"
   ],
   "random": [
-   "Urara's \u2606 Study Review",
-   "Urara's \u2606 Long Shot Dash!"
+   "Urara's ☆ Study Review",
+   "Urara's ☆ Long Shot Dash!"
   ],
   "special": [],
   "dates": []
@@ -1687,14 +1724,20 @@
   "dates": []
  },
  "30021": {
-  "chain": [],
+  "chain": [
+   "Tazuna, the Director's Secretary",
+   "Good Job! ♪",
+   "From Just a Little Closer",
+   "The Usual, Please!",
+   "A Bond with Tazuna: Aspirations Entrusted"
+  ],
   "random": [
    "My Chosen Way of Life",
    "Enthusiastic Pair"
   ],
   "special": [
    "Tazuna, the Director's Secretary",
-   "Good Job! \u266a",
+   "Good Job! ♪",
    "From Just a Little Closer",
    "The Usual, Please!",
    "A Bond with Tazuna: Aspirations Entrusted"
@@ -1877,7 +1920,13 @@
   "dates": []
  },
  "30036": {
-  "chain": [],
+  "chain": [
+   "Riko Kashimoto, the Hard Worker",
+   "Good Work",
+   "A Priceless Connection",
+   "We Need This Sometimes",
+   "Bonding with Riko: No More Regrets"
+  ],
   "random": [
    "The Kashimoto Art of Tidying Up",
    "Unexpected Side"
@@ -1913,7 +1962,7 @@
  "30039": {
   "chain": [
    "Modestly! Boldly!",
-   "Princess Power \u2606 to the Max!",
+   "Princess Power ☆ to the Max!",
    "Hit It! Princess Road!"
   ],
   "random": [
@@ -1925,13 +1974,13 @@
  },
  "30040": {
   "chain": [
-   "I'm Buono Just the Way I Am \u266a",
-   "Let's Go... Buono \u2606",
-   "Buono For You, Buono For Me \u2606"
+   "I'm Buono Just the Way I Am ♪",
+   "Let's Go... Buono ☆",
+   "Buono For You, Buono For Me ☆"
   ],
   "random": [
-   "Eat Up \u266a",
-   "Leave It to Me \u266a"
+   "Eat Up ♪",
+   "Leave It to Me ♪"
   ],
   "special": [],
   "dates": []
@@ -1990,22 +2039,22 @@
  },
  "30045": {
   "chain": [
-   "Fickle Genius Magical Girl Sweepy \u2606",
-   "A Drop of Black Magic \u2606",
-   "Her Mood Like a Flower \u2606"
+   "Fickle Genius Magical Girl Sweepy ☆",
+   "A Drop of Black Magic ☆",
+   "Her Mood Like a Flower ☆"
   ],
   "random": [
-   "Miracle \u2606 Escape!",
-   "Wonderful \u2606 Mistake!"
+   "Miracle ☆ Escape!",
+   "Wonderful ☆ Mistake!"
   ],
   "special": [],
   "dates": []
  },
  "30046": {
   "chain": [
-   "Tickezo\u2606Expedition!",
-   "Tickezo\u2606Friendship!",
-   "Tickezo\u2606Night Fever!"
+   "Tickezo☆Expedition!",
+   "Tickezo☆Friendship!",
+   "Tickezo☆Night Fever!"
   ],
   "random": [
    "Full-Power Muscles!",
@@ -2041,9 +2090,15 @@
   "dates": []
  },
  "30052": {
-  "chain": [],
+  "chain": [
+   "Light Hello, the Event Planner",
+   "Another Day's Hard Work!",
+   "Dawn Under the Waning Moon",
+   "Until It Shines in Full",
+   "Bonding with Light Hello: Letting Loose"
+  ],
   "random": [
-   "Some Crafty Research \u266a",
+   "Some Crafty Research ♪",
    "Embrace Those Emotions!"
   ],
   "special": [
@@ -2068,8 +2123,8 @@
    "Lesson Three: Live in the Moment"
   ],
   "random": [
-   "Yes! Let's Hug \u2606",
-   "Yeehaw! Party Tonight \u2606"
+   "Yes! Let's Hug ☆",
+   "Yeehaw! Party Tonight ☆"
   ],
   "special": [],
   "dates": []
@@ -2180,9 +2235,9 @@
  },
  "30066": {
   "chain": [
-   "Status\u2014Boring?",
-   "Status\u2014As I Am",
-   "Status\u2014Fun!"
+   "Status—Boring?",
+   "Status—As I Am",
+   "Status—Fun!"
   ],
   "random": [
    "Do No Harm",
@@ -2226,7 +2281,7 @@
   ],
   "random": [
    "#UrUniqueCuteness",
-   "#Cuteness4U \u2606"
+   "#Cuteness4U ☆"
   ],
   "special": [],
   "dates": []
@@ -2260,11 +2315,11 @@
  "30071": {
   "chain": [
    "A Legendary Smile in the House!",
-   "Helios's \u2606 Hype Channel!",
+   "Helios's ☆ Hype Channel!",
    "A Smile for the World"
   ],
   "random": [
-   "Encounter With the Sun \u2606",
+   "Encounter With the Sun ☆",
    "Smiles Forever"
   ],
   "special": [],
@@ -2272,9 +2327,9 @@
  },
  "30072": {
   "chain": [
-   "Just Because \u266a",
-   "A Wonderful Weekend \u266a",
-   "Special Gifts for a Special Day \u266a"
+   "Just Because ♪",
+   "A Wonderful Weekend ♪",
+   "Special Gifts for a Special Day ♪"
   ],
   "random": [
    "Snack Advice for Mayano!",
@@ -2298,13 +2353,13 @@
  },
  "30074": {
   "chain": [
-   "Marvelous Guidance \u2606",
-   "Dazzling and Marvelous \u2606",
-   "Pure White Marvelousness \u2606"
+   "Marvelous Guidance ☆",
+   "Dazzling and Marvelous ☆",
+   "Pure White Marvelousness ☆"
   ],
   "random": [
-   "Marvelous, No Question \u2606",
-   "How To Be More Marvelous \u2606"
+   "Marvelous, No Question ☆",
+   "How To Be More Marvelous ☆"
   ],
   "special": [],
   "dates": []
@@ -2375,23 +2430,30 @@
   "dates": []
  },
  "30080": {
-  "chain": [],
+  "chain": [
+   "Just a Poke ☆",
+   "Suspicious, But Safe?!",
+   "An Accurate Acupuncturist ☆",
+   "Healing Hot Spring Holiday ☆",
+   "An Encouraging Entrustment?!",
+   "A Bond Bolstered by Booze?"
+  ],
   "random": [
    "The Applications of Acupuncture",
    "A Pleasant Practice Partner?"
   ],
   "special": [
-   "Just a Poke \u2606",
+   "Just a Poke ☆",
    "Suspicious, But Safe?!",
-   "An Accurate Acupuncturist \u2606",
-   "Healing Hot Spring Holiday \u2606",
+   "An Accurate Acupuncturist ☆",
+   "Healing Hot Spring Holiday ☆",
    "An Encouraging Entrustment?!",
    "A Bond Bolstered by Booze?"
   ],
   "dates": [
    "Trusty Teamwork?!",
-   "Storied \u2606 Sunglasses",
-   "The Final Race \u2606 For a Worry-Free Future!"
+   "Storied ☆ Sunglasses",
+   "The Final Race ☆ For a Worry-Free Future!"
   ]
  },
  "30081": {
@@ -2435,7 +2497,7 @@
   ],
   "random": [
    "Warmth, Love, and Lunch",
-   "Let's Bloom Beautifully \u266a"
+   "Let's Bloom Beautifully ♪"
   ],
   "special": [],
   "dates": []
@@ -2520,13 +2582,13 @@
  },
  "30089": {
   "chain": [
-   "Marvelous\u2606Dive!",
-   "Marvelous\u2606School!",
-   "Marvelous\u2606Victory!"
+   "Marvelous☆Dive!",
+   "Marvelous☆School!",
+   "Marvelous☆Victory!"
   ],
   "random": [
-   "Marvelous, No Question \u2606",
-   "How To Be More Marvelous \u2606"
+   "Marvelous, No Question ☆",
+   "How To Be More Marvelous ☆"
   ],
   "special": [],
   "dates": []
@@ -2642,8 +2704,8 @@
    "The Gift of Excitement"
   ],
   "random": [
-   "Urara's \u2606 Study Review",
-   "Urara's \u2606 Long Shot Dash!"
+   "Urara's ☆ Study Review",
+   "Urara's ☆ Long Shot Dash!"
   ],
   "special": [],
   "dates": []
@@ -2651,7 +2713,7 @@
  "30099": {
   "chain": [
    "Ikuno-style Cuteness Research",
-   "Glasses-style Umadol Song \u2606",
+   "Glasses-style Umadol Song ☆",
    "Ikuno-style Socializing"
   ],
   "random": [
@@ -2859,7 +2921,7 @@
  "30115": {
   "chain": [
    "Giving up Candy's No Big Deal",
-   "As Long as You\u2019re Happy",
+   "As Long as You’re Happy",
    "This Is Just Who I Am"
   ],
   "random": [
@@ -2871,12 +2933,12 @@
  },
  "30116": {
   "chain": [
-   "Helios's Hype Heaven: The Lead-up \u2606",
+   "Helios's Hype Heaven: The Lead-up ☆",
    "Helios's Hype Heaven Week!",
    "Hype Heaven, Part Two!"
   ],
   "random": [
-   "Encounter With the Sun \u2606",
+   "Encounter With the Sun ☆",
    "Smiles Forever"
   ],
   "special": [],

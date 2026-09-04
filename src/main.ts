@@ -298,6 +298,10 @@ function renderSettingsPanel(c: Computed): Raw {
           ${listField('chainRatesSSR', 'SSR chain 1/2/3 completion')}
           ${listField('chainRatesSR', 'SR chain 1/2 completion')}
           ${numField('randomEventRate', 'Random event fires')}
+          ${numField('palChainRate', 'Pal date chain completes')}
+          ${numField('groupOutingRate', 'Group member outing happens')}
+          ${numField('groupFinaleRate', 'Group finale happens (unverified)')}
+          ${numField('specialEventRate', 'Pal/Group unlock and New Year events')}
           ${numField('bigRewardRate', 'Big reward chance (split outcomes)')}
           ${numField('goldSparkRate', 'Spark chance with gold skill')}
           ${numField('whiteSparkRate', 'Spark chance with white skill')}

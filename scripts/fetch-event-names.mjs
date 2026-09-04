@@ -30,9 +30,12 @@ async function buildId() {
   return m[1];
 }
 
+const FULL = path.join(RAW, 'event-data-friend-group.json'); // full event data for Pal and Group cards (their outings are not in the static feed)
 const cards = (await readJson(path.join(RAW, 'support-cards.json'))).filter((c) => c.release_en);
 const names = (await exists(OUT)) ? await readJson(OUT) : {};
-const todo = cards.filter((c) => !names[c.support_id]);
+const full = (await exists(FULL)) ? await readJson(FULL) : {};
+const isPalGroup = (c) => c.type === 'friend' || c.type === 'group';
+const todo = cards.filter((c) => !names[c.support_id] || (isPalGroup(c) && !full[c.support_id]));
 console.log(`${todo.length} cards to fetch (${cards.length - todo.length} cached)`);
 if (todo.length) {
   const id = await buildId();
@@ -46,8 +49,10 @@ if (todo.length) {
     // Group cards keep their chain events under "special" instead of "arrows".
     const chain = en?.arrows?.length ? pick(en.arrows) : pick(en?.special);
     names[c.support_id] = { chain, random: pick(en?.random), special: pick(en?.special), dates: pick(en?.dates) };
-    if (++n % 20 === 0) { await fs.writeFile(OUT, JSON.stringify(names, null, 1)); console.log(`${n}/${todo.length}`); }
+    if (isPalGroup(c)) full[c.support_id] = en;
+    if (++n % 20 === 0) { await fs.writeFile(OUT, JSON.stringify(names, null, 1)); await fs.writeFile(FULL, JSON.stringify(full, null, 1)); console.log(`${n}/${todo.length}`); }
   }
   await fs.writeFile(OUT, JSON.stringify(names, null, 1));
+  await fs.writeFile(FULL, JSON.stringify(full, null, 1));
 }
 console.log('done', Object.keys(names).length);
