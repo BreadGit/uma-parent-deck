@@ -36,7 +36,7 @@ tr.dim td { opacity: .55; }
 .thumb.sm { width: 26px; height: 26px; }
 .deck { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
 @media (max-width: 1300px) { .deck { grid-template-columns: repeat(3, 1fr); } }
-.deck .slot { border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; background: #fbfcfe; }
+.deck .slot { position: relative; border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; background: #fbfcfe; }
 .deck .slot img { width: 72px; height: 72px; border-radius: 6px; }
 .deck .slot .name { font-size: 12px; margin-top: 4px; min-height: 32px; }
 .deck .slot .lb { font-size: 12px; color: var(--muted); }
@@ -94,3 +94,6 @@ details > summary { cursor: pointer; color: var(--accent); }
 .blue-gain-summary output { font-weight: 700; }
 .tag.pin { background: #2f6fed; color: #fff; }
 tr.total td { border-top: 2px solid var(--line); font-weight: 600; }
+.pin-corner { position: absolute; top: 6px; right: 6px; margin: 0; }
+.suggest li .two-line { display: flex; flex-direction: column; line-height: 1.25; }
+.tag.pin + br, .tag.pin { vertical-align: middle; }

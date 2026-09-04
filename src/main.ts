@@ -178,7 +178,7 @@ function renderTrainee(c: Computed): Raw {
           <div><span class="k">${t.title}</span><span class="v">${t.name}</span></div>
           <button class="small" data-action="clear-trainee" style="margin-left:auto">Change</button>
         </div>
-        <div class="small muted">Growth: ${STATS.map((s, i) => `${s} ${t.growth[i]! > 0 ? '+' + t.growth[i] + '%' : '–'}`).join(' · ')}</div>
+        <div class="small muted">Growth bonuses: ${t.growth.some((g) => g > 0) ? STATS.map((s, i) => t.growth[i]! > 0 ? `${s.charAt(0).toUpperCase() + s.slice(1)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</div>
         <h3>Trainee aptitude overrides (match the legacy screen)</h3>
         <div class="apts">${APT_SHOWN.map((k) => html`<label>${k}<select data-apt="${k}">${GRADES.map((g) => html`<option value="${g}" ${c.apt[k] === g ? 'selected' : ''}>${g}</option>`)}</select></label>`)}</div>
         ${overridden ? html`<button class="small" data-action="reset-apts">Reset to base aptitudes</button>` : ''}
@@ -200,7 +200,7 @@ function renderRunSettings(c: Computed): Raw {
       .sort((a, b) => b.rarity.length - a.rarity.length || a.charName.localeCompare(b.charName) || a.id - b.id)
       .map((card) => ({ card, lb: effectiveLb(inventory, card, settings.defaultLb) ?? settings.defaultLb[card.rarity] })).slice(0, 12)
     : [];
-  const activeGain = c.inherited[activeInheritedStat]!;
+  const allGain = c.inherited.reduce((a, x) => ({ start: a.start + x.start, inspiration: a.inspiration + x.inspiration, total: a.total + x.total }), { start: 0, inspiration: 0, total: 0 });
   return html`
     <section class="panel">
       <h2>Run</h2>
@@ -208,7 +208,7 @@ function renderRunSettings(c: Computed): Raw {
       <h3>Pinned cards</h3>
       <div class="suggest">
         <input id="card-search" type="search" placeholder="Search a support card to pin…" value="${cardQuery}" data-input="cardQuery" style="max-width:100%;width:100%" autocomplete="off" />
-        ${cardMatches.length ? html`<ul>${cardMatches.map((p) => html`<li data-action="pin-card" data-id="${p.card.id}"><img src="${cardImg(p.card)}" alt="" />${p.card.name}<span class="r">${p.card.rarity} ${p.card.type} · LB${p.lb}${c.unowned.has(p.card.id) ? ' · not owned' : ''}</span></li>`)}</ul>` : ''}
+        ${cardMatches.length ? html`<ul>${cardMatches.map((p) => html`<li data-action="pin-card" data-id="${p.card.id}"><img src="${cardImg(p.card)}" alt="" /><span class="two-line"><span>${p.card.charName} <span class="muted">(${p.card.rarity} ${p.card.type.charAt(0).toUpperCase() + p.card.type.slice(1)})</span></span><span class="muted small">${p.card.title}</span></span><span class="r">${c.unowned.has(p.card.id) ? 'not owned' : `LB${p.lb}`}</span></li>`)}</ul>` : ''}
       </div>
       <div class="chips">
         ${state.pinnedIds.length ? state.pinnedIds.map((id) => { const card = data.cardById.get(id); if (!card) return '';
@@ -240,11 +240,11 @@ function renderRunSettings(c: Computed): Raw {
         })}
       </div>
       <div class="blue-gain-compact" aria-live="polite">
-        <strong>Total gain <output data-inherited-total>+${num(activeGain.total)}</output></strong>
-        <span><output data-inherited-start>+${num(activeGain.start)}</output> at start · <output data-inherited-inspiration>+${num(activeGain.inspiration)}</output> from inspiration events</span>
+        <strong>Total gain across all stats <output data-inherited-total>+${num(allGain.total)}</output></strong>
+        <span><output data-inherited-start>+${num(allGain.start)}</output> at start · <output data-inherited-inspiration>+${num(allGain.inspiration)}</output> from inspiration events</span>
       </div>
       <div class="blue-gain-summary">
-        ${STATS.map((s, i) => html`<span class="${i === activeInheritedStat ? 'active' : ''}" data-inherited-stat="${i}">${s.charAt(0).toUpperCase() + s.slice(1)} <output>+${num(c.inherited[i]!.total)}</output></span>`)}
+        ${STATS.map((s, i) => html`<span class="${i === activeInheritedStat ? 'active' : ''}" data-inherited-stat="${i}" title="+${num(c.inherited[i]!.start)} at start, +${num(c.inherited[i]!.inspiration)} from inspiration events">${s.charAt(0).toUpperCase() + s.slice(1)} <output>+${num(c.inherited[i]!.total)}</output></span>`)}
       </div>
       <label class="row"><span class="k">Show cards marked not owned</span><input type="checkbox" data-setting="showUnowned" ${settings.showUnowned ? 'checked' : ''} /></label>
     </section>`;
@@ -258,9 +258,10 @@ function renderDeck(c: Computed): Raw {
       <h2>Suggested deck</h2>
       ${d.deck.length ? html`<div class="deck">${d.deck.map((cs) => html`
         <div class="slot">
+          ${state.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin pin-corner">pinned</span>` : ''}
           <img src="${cardImg(cs.card)}" alt="" />
           <div class="name">${cs.card.name}</div>
-          <div class="lb">${state.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin">pinned</span>` : ''}${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select> ${typeTag(cs.card)}</div>
+          <div class="lb">${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select> ${typeTag(cs.card)}</div>
           <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t" title="${x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${x.target.name} ${pill(x.spark)}</span>`)}</div>
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
       <h3>Predicted run (deck ${c.sum.count} races, ${settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
@@ -283,7 +284,7 @@ function renderDeck(c: Computed): Raw {
           });
           const base = c.trainee?.baseStats ?? [0, 0, 0, 0, 0];
           const penalty = settings.lossPenalty * c.sum.expectedLosses;
-          return html`<table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st.slice(0, 3)}</th>`)}<th class="num">total</th></tr></thead><tbody>
+          return html`<table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
             ${cardRows}
             ${row(`Career events and ${c.sum.count} races`, p.eventStats.map((v, i) => v * focusMul[i]!))}
             ${row('Inheritance at the start', c.inherited.map((x) => x.start))}
@@ -349,13 +350,13 @@ function renderRanking(c: Computed): Raw {
     <section class="panel">
       <h2>Card ranking <span class="small muted">(${rows.length} cards · click a header to sort)</span></h2>
       <div class="small muted" style="margin-bottom:6px">Every card counts as owned at the default limit break (R ${settings.defaultLb.R}, SR ${settings.defaultLb.SR}, SSR ${settings.defaultLb.SSR}) until you change it here. ${marked} card${marked === 1 ? '' : 's'} adjusted. Rows in grey are marked not owned.</div>
-      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', 'Added spark chance')}${th('spark', 'Spark chance alone')}<th>Targets</th>${STATS.map((s) => th(s, s.slice(0, 3)))}${th('stats', 'Total')}${th('sp', 'SP')}<th>Basis</th></tr></thead><tbody>
+      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', 'Added spark chance')}${th('spark', 'Spark chance alone')}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', 'Total')}${th('sp', 'SP')}<th>Basis</th></tr></thead><tbody>
         ${rows.map((x) => {
           const owned = !c.unowned.has(x.card.id);
           const explicit = inventory[String(x.card.id)] !== undefined;
           return html`<tr class="${owned ? '' : 'dim'}">
             <td><img class="thumb" src="${cardImg(x.card)}" alt="" loading="lazy" /></td>
-            <td>${x.card.name}<br/><span class="small">${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}${x.card.rarity} ${typeTag(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html`<span class="tag warn">trainee's card</span>` : ''}</span></td>
+            <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}${x.card.name}<br/><span class="small">${x.card.rarity} ${typeTag(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html`<span class="tag warn">trainee's card</span>` : ''}</span></td>
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
             <td class="num">${pill(x.sparkValue, '', 1)}</td>
@@ -481,13 +482,14 @@ app.addEventListener('input', (ev) => {
     if (total) total.value = String(preview.reduce((sum, stars) => sum + stars, 0));
     const previewParents = state.parentStars.map((parent, parentIndex) => parentIndex === pi ? preview : parent);
     const inherited = inheritedFromParents(previewParents, i, settings);
+    const all = STATS.map((_, k) => inheritedFromParents(previewParents, k, settings)).reduce((a, x) => ({ start: a.start + x.start, inspiration: a.inspiration + x.inspiration, total: a.total + x.total }), { start: 0, inspiration: 0, total: 0 });
     for (const summary of app.querySelectorAll<HTMLElement>('[data-inherited-stat]')) summary.classList.toggle('active', Number(summary.dataset.inheritedStat) === i);
     const summaryOutput = app.querySelector<HTMLOutputElement>(`[data-inherited-stat="${i}"] output`);
     if (summaryOutput) summaryOutput.value = `+${num(inherited.total)}`;
     const setGain = (selector: string, value: string) => { const output = app.querySelector<HTMLOutputElement>(`.blue-gain-compact ${selector}`); if (output) output.value = value; };
-    setGain('[data-inherited-total]', `+${num(inherited.total)}`);
-    setGain('[data-inherited-start]', `+${num(inherited.start)}`);
-    setGain('[data-inherited-inspiration]', `+${num(inherited.inspiration)}`);
+    setGain('[data-inherited-total]', `+${num(all.total)}`);
+    setGain('[data-inherited-start]', `+${num(all.start)}`);
+    setGain('[data-inherited-inspiration]', `+${num(all.inspiration)}`);
     return; }
 });
 app.addEventListener('change', (ev) => {
