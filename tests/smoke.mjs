@@ -115,6 +115,18 @@ for (const q of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) {
   await page.click('li[data-action="add-target"]');
 }
 await page.waitForTimeout(300);
+// pin a card by search and check it leads the ranking and sits in the deck
+await page.fill('#card-search', 'kitasan');
+await page.waitForSelector('li[data-action="pin-card"]');
+await page.click('li[data-action="pin-card"]');
+await page.waitForTimeout(200);
+const topRanked = await page.$$eval('section.panel:last-child tbody tr td:nth-child(2)', (tds) => tds.slice(0, 2).map((td) => td.textContent));
+assert.ok(topRanked.some((t) => t.includes('Kitasan Black') && t.includes('pinned')), `pinned card should sit with the pinned rows at the top, got: ${topRanked}`);
+assert.ok((await page.$$eval('.deck .slot .name', (n) => n.map((x) => x.textContent))).some((n) => n.includes('Kitasan Black')), 'pinned card should be in the deck');
+await page.click('.chip button[data-action="unpin-card"]:not([data-id="30052"])');
+await page.click('details:has(> summary:text("Where the stats come from")) > summary');
+const breakdownRows = await page.$$eval('details:has(> summary:text("Where the stats come from")) tbody tr', (r) => r.length);
+assert.ok(breakdownRows >= 10, `breakdown should list cards, career, inheritance, base, final, spread; got ${breakdownRows}`);
 const bodyText = await page.textContent('body');
 assert.ok(!bodyText.includes('blue spark 1★'), 'predicted run still shows blue spark odds');
 assert.ok(!bodyText.includes('Card / event / inherited stats'), 'predicted run still shows stat-source totals');
