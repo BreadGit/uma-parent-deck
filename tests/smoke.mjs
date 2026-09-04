@@ -1,6 +1,6 @@
-// Drives the dev server page with headless Chromium: enable unowned cards, add targets, pick a trainee, screenshot.
+// Drives the dev server in Chromium and checks zoom-sensitive slider rendering in Firefox.
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
+import { chromium, firefox } from 'playwright';
 const url = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
@@ -11,6 +11,43 @@ await page.goto(url);
 await page.waitForSelector('h1');
 await page.evaluate(() => localStorage.clear());
 await page.reload();
+
+// Tick marks must occupy exactly one backing-store pixel each. CSS and SVG strokes
+// can cover different numbers of device pixels when browser zoom puts them between pixels.
+const readTickPixels = (targetPage) => targetPage.$$eval('.blue-slider-notches', (canvases) => canvases.map((canvas) => {
+  const ctx = canvas.getContext('2d');
+  const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const columns = [];
+  for (let x = 0; x < canvas.width; x++) {
+    let painted = false;
+    for (let y = 0; y < canvas.height; y++) painted ||= pixels[(y * canvas.width + x) * 4 + 3] > 0;
+    if (painted) columns.push(x);
+  }
+  const widths = [];
+  for (const x of columns) {
+    if (!widths.length || x > widths.at(-1).end + 1) widths.push({ start: x, end: x });
+    else widths.at(-1).end = x;
+  }
+  return widths.map(({ start, end }) => end - start + 1);
+}));
+const tickPixels = await readTickPixels(page);
+assert.equal(tickPixels.length, 10, 'not every parent slider has a tick canvas');
+assert.ok(tickPixels.every((widths) => widths.length === 10 && widths.every((width) => width === 1)), `slider tick widths vary: ${JSON.stringify(tickPixels)}`);
+
+const firefoxBrowser = await firefox.launch();
+try {
+  for (const deviceScaleFactor of [1, 1.25, 1.5]) {
+    const context = await firefoxBrowser.newContext({ viewport: { width: 1000, height: 900 }, deviceScaleFactor });
+    const firefoxPage = await context.newPage();
+    await firefoxPage.goto(url);
+    await firefoxPage.waitForSelector('.blue-slider-notches');
+    const widthsAtScale = await readTickPixels(firefoxPage);
+    assert.ok(widthsAtScale.every((widths) => widths.length === 10 && widths.every((width) => width === 1)), `Firefox slider tick widths vary at ${deviceScaleFactor}x: ${JSON.stringify(widthsAtScale)}`);
+    await context.close();
+  }
+} finally {
+  await firefoxBrowser.close();
+}
 
 // A range input must stay mounted while it is dragged. Replacing it on each input event
 // breaks pointer capture and prevents the thumb from reaching the pointer.
@@ -87,19 +124,17 @@ assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'invento
 assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
 const sliderTicks = await page.$eval('.blue-slider', (wrapper) => {
   const input = wrapper.querySelector('input');
-  const svg = wrapper.querySelector('.blue-slider-notches');
+  const ticks = wrapper.querySelector('.blue-slider-notches');
   const inputRect = input.getBoundingClientRect();
-  const svgRect = svg.getBoundingClientRect();
+  const tickRect = ticks.getBoundingClientRect();
   return {
-    lines: svg.querySelectorAll('line').length,
-    vectorWidths: [...svg.querySelectorAll('line')].every((line) => line.getAttribute('vector-effect') === 'non-scaling-stroke'),
     inputZ: Number(getComputedStyle(input).zIndex),
-    ticksZ: Number(getComputedStyle(svg).zIndex),
-    leftInset: svgRect.left - inputRect.left,
-    rightInset: inputRect.right - svgRect.right,
+    ticksZ: Number(getComputedStyle(ticks).zIndex),
+    leftInset: tickRect.left - inputRect.left,
+    rightInset: inputRect.right - tickRect.right,
   };
 });
-assert.deepEqual(sliderTicks, { lines: 10, vectorWidths: true, inputZ: 2, ticksZ: 1, leftInset: 10, rightInset: 10 }, 'slider tick geometry is not stable');
+assert.deepEqual(sliderTicks, { inputZ: 2, ticksZ: 1, leftInset: 10, rightInset: 10 }, 'slider tick geometry is not stable');
 assert.equal(await page.locator('.blue-gain-compact').count(), 1, 'parent gain detail is not compact');
 assert.equal(await page.locator('.blue-gain-summary [data-inherited-stat]').count(), 5, 'parent gain summary does not include all stats');
 const summary = await page.evaluate(() => ({

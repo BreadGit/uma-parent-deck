@@ -55,6 +55,29 @@ let activeInheritedStat = 0;
 
 const persist = () => { localStorage.setItem(STATE_KEY, JSON.stringify(state)); saveSettings(settings); saveInventory(inventory); };
 
+function drawBlueSliderNotches(canvas: HTMLCanvasElement): void {
+  const rect = canvas.getBoundingClientRect();
+  const pixelRatio = window.devicePixelRatio || 1;
+  const width = Math.max(1, Math.round(rect.width * pixelRatio));
+  const height = Math.max(1, Math.round(rect.height * pixelRatio));
+  if (canvas.width !== width) canvas.width = width;
+  if (canvas.height !== height) canvas.height = height;
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#aeb6c1';
+  for (let tick = 0; tick <= MAX_PARENT_STARS; tick++) {
+    const x = Math.round(tick * (width - 1) / MAX_PARENT_STARS);
+    ctx.fillRect(x, 0, 1, height);
+  }
+}
+
+const notchObserver = new ResizeObserver((entries) => {
+  for (const entry of entries) drawBlueSliderNotches(entry.target as HTMLCanvasElement);
+});
+window.addEventListener('resize', () => {
+  for (const canvas of document.querySelectorAll<HTMLCanvasElement>('.blue-slider-notches')) drawBlueSliderNotches(canvas);
+});
+
 // ---------- derived ----------
 const skillName = (id: number) => data.skillById.get(id)?.name ?? `#${id}`;
 const skillIcon = (s: Skill | undefined) => (s?.iconId ? `/assets/skills/${s.iconId}.png` : '');
@@ -195,9 +218,7 @@ function renderRunSettings(c: Computed): Raw {
               <div class="blue-parent-heading"><span>${s.charAt(0).toUpperCase() + s.slice(1)}</span><output data-parent-output="${pi}-${i}">${stars[i]}★</output></div>
               <div class="blue-slider">
                 <input type="range" min="0" max="${MAX_PARENT_STARS}" step="1" value="${stars[i]}" data-parent="${pi}" data-stat="${i}" aria-label="Parent ${pi + 1} ${s} blue stars" />
-                <svg class="blue-slider-notches" viewBox="0 0 90 5" preserveAspectRatio="none" shape-rendering="crispEdges" aria-hidden="true">
-                  ${Array.from({ length: MAX_PARENT_STARS + 1 }, (_, tick) => html`<line x1="${tick * 10}" y1="0" x2="${tick * 10}" y2="5" vector-effect="non-scaling-stroke" />`)}
-                </svg>
+                <canvas class="blue-slider-notches" aria-hidden="true"></canvas>
               </div>
             </div>`)}
           </section>`;
@@ -362,6 +383,11 @@ function render() {
       <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>. Independent training stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`.s;
+  notchObserver.disconnect();
+  for (const canvas of app.querySelectorAll<HTMLCanvasElement>('.blue-slider-notches')) {
+    drawBlueSliderNotches(canvas);
+    notchObserver.observe(canvas);
+  }
   if (activeId) {
     const el = document.getElementById(activeId) as HTMLInputElement | null;
     if (el) { el.focus(); if (sel != null && el.type === 'search') try { el.setSelectionRange(sel, sel); } catch { /* ignore */ } }

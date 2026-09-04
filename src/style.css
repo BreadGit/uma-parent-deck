@@ -86,7 +86,6 @@ details > summary { cursor: pointer; color: var(--accent); }
 .blue-slider { position: relative; height: 23px; }
 .blue-parent-control input[type=range] { position: relative; z-index: 2; display: block; width: 100%; margin: 0; background: transparent; }
 .blue-slider-notches { position: absolute; z-index: 1; top: 15px; right: 10px; left: 10px; width: calc(100% - 20px); height: 5px; overflow: visible; pointer-events: none; }
-.blue-slider-notches line { stroke: #aeb6c1; stroke-width: 1; }
 .blue-gain-compact { display: flex; flex-direction: column; gap: 1px; margin-top: 9px; padding: 8px 10px; border: 1px solid var(--accent); border-radius: 7px; }
 .blue-gain-compact strong { color: var(--accent); font-size: 18px; }
 .blue-gain-compact span { color: var(--muted); font-size: 11px; }
