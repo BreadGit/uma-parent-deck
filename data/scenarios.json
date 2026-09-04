@@ -1,0 +1,81 @@
+[
+ {
+  "id": 1,
+  "name": "Ura Finale",
+  "fullName": "The Beginning: URA Finale",
+  "urlName": "ura-finals",
+  "linkedChars": [
+   {
+    "charId": 9004,
+    "name": "Aoi Kiryuin"
+   }
+  ],
+  "startEn": 1750897800
+ },
+ {
+  "id": 2,
+  "name": "Unity Cup",
+  "fullName": "Unity Cup: Shine On, Team Spirit!",
+  "urlName": "unity-cup",
+  "linkedChars": [
+   {
+    "charId": 1010,
+    "name": "Taiki Shuttle"
+   },
+   {
+    "charId": 1030,
+    "name": "Rice Shower"
+   },
+   {
+    "charId": 1052,
+    "name": "Haru Urara"
+   },
+   {
+    "charId": 1056,
+    "name": "Matikanefukukitaru"
+   },
+   {
+    "charId": 9006,
+    "name": "Riko Kashimoto"
+   }
+  ],
+  "startEn": 1762466400
+ },
+ {
+  "id": 4,
+  "name": "Trackblazer",
+  "fullName": "Trackblazer: Start of the Climax",
+  "urlName": "trackblazer",
+  "linkedChars": [],
+  "startEn": 1773352800
+ },
+ {
+  "id": 3,
+  "name": "Brighter Together Our Grand Concert",
+  "fullName": "Brighter Together Our Grand Concert",
+  "urlName": "our-grand-concert",
+  "linkedChars": [
+   {
+    "charId": 1046,
+    "name": "Smart Falcon"
+   },
+   {
+    "charId": 1032,
+    "name": "Agnes Tachyon"
+   },
+   {
+    "charId": 1002,
+    "name": "Silence Suzuka"
+   },
+   {
+    "charId": 1026,
+    "name": "Mihono Bourbon"
+   },
+   {
+    "charId": 9008,
+    "name": "Light Hello"
+   }
+  ],
+  "startEn": 1784757600
+ }
+]

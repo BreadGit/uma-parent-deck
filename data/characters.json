@@ -1,0 +1,5503 @@
+[
+ {
+  "cardId": 100101,
+  "charId": 1001,
+  "name": "Special Week",
+  "title": "[Special Dreamer]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   0,
+   20,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   83,
+   88,
+   98,
+   90,
+   91
+  ],
+  "innateSkills": [
+   200512,
+   201352,
+   200732
+  ],
+  "awakeningSkills": [
+   200162,
+   201351,
+   200612,
+   200511
+  ],
+  "eventSkills": [
+   200472,
+   200512,
+   200332,
+   200032,
+   200042,
+   200562,
+   200602
+  ],
+  "uniqueSkills": [
+   100011
+  ]
+ },
+ {
+  "cardId": 100102,
+  "charId": 1001,
+  "name": "Special Week",
+  "title": "[Hopp'n♪Happy Heart]",
+  "rarity": 3,
+  "releaseEn": "2025-10-14",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   0,
+   10,
+   10,
+   10,
+   0
+  ],
+  "baseStats": [
+   77,
+   90,
+   103,
+   98,
+   82
+  ],
+  "innateSkills": [
+   200462,
+   200592,
+   201132
+  ],
+  "awakeningSkills": [
+   200212,
+   200591,
+   201611,
+   200461
+  ],
+  "eventSkills": [
+   200472,
+   200512,
+   200332,
+   200032,
+   200042,
+   201402,
+   200562,
+   200602
+  ],
+  "uniqueSkills": [
+   110011
+  ]
+ },
+ {
+  "cardId": 100103,
+  "charId": 1001,
+  "name": "Special Week",
+  "title": "[Ruler of Japan]",
+  "rarity": 3,
+  "releaseEn": "2026-06-25",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   10,
+   10,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   96,
+   82,
+   94,
+   82,
+   96
+  ],
+  "innateSkills": [
+   200332,
+   201212,
+   200612
+  ],
+  "awakeningSkills": [
+   201172,
+   201211,
+   201182,
+   202061
+  ],
+  "eventSkills": [
+   200472,
+   200512,
+   200332,
+   200032,
+   200042,
+   200202,
+   200562,
+   200602
+  ],
+  "uniqueSkills": [
+   120011
+  ]
+ },
+ {
+  "cardId": 100201,
+  "charId": 1002,
+  "name": "Silence Suzuka",
+  "title": "[Innocent Silence]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "D",
+   "mile": "A",
+   "medium": "A",
+   "long": "E",
+   "front": "A",
+   "pace": "C",
+   "late": "E",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   101,
+   84,
+   77,
+   100,
+   88
+  ],
+  "innateSkills": [
+   200432,
+   200552,
+   200712
+  ],
+  "awakeningSkills": [
+   200022,
+   200431,
+   200542,
+   200551
+  ],
+  "eventSkills": [
+   200022,
+   202051,
+   200532
+  ],
+  "uniqueSkills": [
+   100021
+  ]
+ },
+ {
+  "cardId": 100301,
+  "charId": 1003,
+  "name": "Tokai Teio",
+  "title": "[Peak Joy]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "E",
+   "medium": "A",
+   "long": "B",
+   "front": "D",
+   "pace": "A",
+   "late": "C",
+   "end": "E"
+  },
+  "growth": [
+   20,
+   10,
+   0,
+   0,
+   0
+  ],
+  "baseStats": [
+   90,
+   89,
+   83,
+   92,
+   96
+  ],
+  "innateSkills": [
+   200452,
+   201132,
+   201332
+  ],
+  "awakeningSkills": [
+   200502,
+   201331,
+   201142,
+   201131
+  ],
+  "eventSkills": [
+   200582,
+   201352,
+   201902
+  ],
+  "uniqueSkills": [
+   100031
+  ]
+ },
+ {
+  "cardId": 100302,
+  "charId": 1003,
+  "name": "Tokai Teio",
+  "title": "[Beyond the Horizon]",
+  "rarity": 3,
+  "releaseEn": "2025-07-16",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "E",
+   "medium": "A",
+   "long": "B",
+   "front": "D",
+   "pace": "A",
+   "late": "C",
+   "end": "E"
+  },
+  "growth": [
+   10,
+   10,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   89,
+   102,
+   80,
+   86,
+   93
+  ],
+  "innateSkills": [
+   200452,
+   201142,
+   200572
+  ],
+  "awakeningSkills": [
+   200172,
+   200571,
+   200352,
+   201141
+  ],
+  "eventSkills": [
+   200582,
+   201352,
+   200562,
+   200342,
+   201902
+  ],
+  "uniqueSkills": [
+   110031
+  ]
+ },
+ {
+  "cardId": 100401,
+  "charId": 1004,
+  "name": "Maruzensky",
+  "title": "[Formula R]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "D",
+   "sprint": "B",
+   "mile": "A",
+   "medium": "B",
+   "long": "C",
+   "front": "A",
+   "pace": "E",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   0,
+   20
+  ],
+  "baseStats": [
+   96,
+   68,
+   86,
+   100,
+   100
+  ],
+  "innateSkills": [
+   200362,
+   201052,
+   200532
+  ],
+  "awakeningSkills": [
+   201062,
+   201051,
+   200432,
+   201061
+  ],
+  "eventSkills": [
+   200982,
+   200742
+  ],
+  "uniqueSkills": [
+   100041
+  ]
+ },
+ {
+  "cardId": 100402,
+  "charId": 1004,
+  "name": "Maruzensky",
+  "title": "[Hot☆Summer Night]",
+  "rarity": 3,
+  "releaseEn": "2025-10-14",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "D",
+   "sprint": "B",
+   "mile": "A",
+   "medium": "B",
+   "long": "C",
+   "front": "A",
+   "pace": "E",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   15,
+   0,
+   0,
+   0,
+   15
+  ],
+  "baseStats": [
+   100,
+   69,
+   93,
+   87,
+   101
+  ],
+  "innateSkills": [
+   200352,
+   200682,
+   201282
+  ],
+  "awakeningSkills": [
+   201571,
+   201281,
+   201082,
+   200681
+  ],
+  "eventSkills": [
+   200982,
+   200742,
+   200542
+  ],
+  "uniqueSkills": [
+   110041
+  ]
+ },
+ {
+  "cardId": 100501,
+  "charId": 1005,
+  "name": "Fuji Kiseki",
+  "title": "[Shooting Star Revue]",
+  "rarity": 3,
+  "releaseEn": "2025-10-02",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "B",
+   "mile": "A",
+   "medium": "B",
+   "long": "E",
+   "front": "C",
+   "pace": "A",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   0,
+   10
+  ],
+  "baseStats": [
+   96,
+   88,
+   97,
+   82,
+   87
+  ],
+  "innateSkills": [
+   200771,
+   201072,
+   200572
+  ],
+  "awakeningSkills": [
+   201052,
+   201071,
+   201042,
+   200571
+  ],
+  "eventSkills": [
+   201372,
+   200582,
+   201072,
+   200572
+  ],
+  "uniqueSkills": [
+   100051
+  ]
+ },
+ {
+  "cardId": 100502,
+  "charId": 1005,
+  "name": "Fuji Kiseki",
+  "title": "[Succès Étoilé]",
+  "rarity": 3,
+  "releaseEn": "2026-04-05",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "B",
+   "mile": "A",
+   "medium": "B",
+   "long": "E",
+   "front": "C",
+   "pace": "A",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   8,
+   0,
+   14,
+   0,
+   8
+  ],
+  "baseStats": [
+   98,
+   77,
+   102,
+   78,
+   95
+  ],
+  "innateSkills": [
+   200771,
+   201042,
+   200582
+  ],
+  "awakeningSkills": [
+   201332,
+   200772,
+   201902,
+   200581
+  ],
+  "eventSkills": [
+   201372,
+   200012,
+   201072,
+   200582,
+   200572
+  ],
+  "uniqueSkills": [
+   110051
+  ]
+ },
+ {
+  "cardId": 100601,
+  "charId": 1006,
+  "name": "Oguri Cap",
+  "title": "[Starlight Beat]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "B",
+   "sprint": "E",
+   "mile": "A",
+   "medium": "A",
+   "long": "B",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   20,
+   0,
+   10,
+   0,
+   0
+  ],
+  "baseStats": [
+   101,
+   66,
+   106,
+   84,
+   93
+  ],
+  "innateSkills": [
+   200342,
+   201062,
+   201352
+  ],
+  "awakeningSkills": [
+   200222,
+   201351,
+   200492,
+   200341
+  ],
+  "eventSkills": [
+   200042,
+   201352
+  ],
+  "uniqueSkills": [
+   100061
+  ]
+ },
+ {
+  "cardId": 100602,
+  "charId": 1006,
+  "name": "Oguri Cap",
+  "title": "[Ashen Miracle]",
+  "rarity": 3,
+  "releaseEn": "2026-01-05",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "B",
+   "sprint": "E",
+   "mile": "A",
+   "medium": "A",
+   "long": "B",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   15,
+   15,
+   0,
+   0,
+   0
+  ],
+  "baseStats": [
+   94,
+   91,
+   111,
+   76,
+   78
+  ],
+  "innateSkills": [
+   201621,
+   200752,
+   201352
+  ],
+  "awakeningSkills": [
+   201422,
+   201351,
+   201571,
+   200751
+  ],
+  "eventSkills": [
+   200042,
+   201352,
+   200202
+  ],
+  "uniqueSkills": [
+   110061
+  ]
+ },
+ {
+  "cardId": 100701,
+  "charId": 1007,
+  "name": "Gold Ship",
+  "title": "[Red Strife]",
+  "rarity": 2,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "B",
+   "end": "A"
+  },
+  "growth": [
+   0,
+   20,
+   10,
+   0,
+   0
+  ],
+  "baseStats": [
+   82,
+   96,
+   100,
+   77,
+   70
+  ],
+  "innateSkills": [
+   201591,
+   201212,
+   201472
+  ],
+  "awakeningSkills": [
+   201482,
+   201471,
+   200622,
+   201481
+  ],
+  "eventSkills": [
+   200052,
+   200142,
+   200433
+  ],
+  "uniqueSkills": [
+   10071,
+   100071
+  ]
+ },
+ {
+  "cardId": 100702,
+  "charId": 1007,
+  "name": "Gold Ship",
+  "title": "[RUN! RUIN! LAUNCHER!]",
+  "rarity": 3,
+  "releaseEn": "2026-07-02",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "B",
+   "end": "A"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   0,
+   10
+  ],
+  "baseStats": [
+   79,
+   93,
+   112,
+   73,
+   93
+  ],
+  "innateSkills": [
+   201562,
+   200752,
+   201482
+  ],
+  "awakeningSkills": [
+   202102,
+   200751,
+   202032,
+   202101
+  ],
+  "eventSkills": [
+   200052,
+   200142,
+   200182,
+   200433
+  ],
+  "uniqueSkills": [
+   110071
+  ]
+ },
+ {
+  "cardId": 100801,
+  "charId": 1008,
+  "name": "Vodka",
+  "title": "[Wild Top Gear]",
+  "rarity": 2,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "F",
+   "front": "C",
+   "pace": "B",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   10,
+   0,
+   20,
+   0,
+   0
+  ],
+  "baseStats": [
+   96,
+   61,
+   105,
+   75,
+   88
+  ],
+  "innateSkills": [
+   200382,
+   200702,
+   200602
+  ],
+  "awakeningSkills": [
+   200372,
+   200381,
+   201032,
+   200701
+  ],
+  "eventSkills": [
+   201052,
+   201702,
+   200602,
+   202452,
+   200492
+  ],
+  "uniqueSkills": [
+   10081,
+   100081
+  ]
+ },
+ {
+  "cardId": 100901,
+  "charId": 1009,
+  "name": "Daiwa Scarlet",
+  "title": "[Peak Blue]",
+  "rarity": 2,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "B",
+   "front": "A",
+   "pace": "A",
+   "late": "E",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   20,
+   0
+  ],
+  "baseStats": [
+   84,
+   77,
+   79,
+   95,
+   90
+  ],
+  "innateSkills": [
+   200282,
+   200722,
+   200572
+  ],
+  "awakeningSkills": [
+   200562,
+   200721,
+   200582,
+   200571
+  ],
+  "eventSkills": [
+   201072,
+   201052,
+   201902,
+   200492,
+   200732
+  ],
+  "uniqueSkills": [
+   10091,
+   100091
+  ]
+ },
+ {
+  "cardId": 101001,
+  "charId": 1010,
+  "name": "Taiki Shuttle",
+  "title": "[Wild Frontier]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "B",
+   "sprint": "A",
+   "mile": "A",
+   "medium": "E",
+   "long": "G",
+   "front": "C",
+   "pace": "A",
+   "late": "E",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   96,
+   71,
+   98,
+   93,
+   92
+  ],
+  "innateSkills": [
+   200362,
+   201052,
+   201532
+  ],
+  "awakeningSkills": [
+   200682,
+   201051,
+   201032,
+   200681
+  ],
+  "eventSkills": [
+   200582,
+   201702,
+   202502,
+   201902
+  ],
+  "uniqueSkills": [
+   100101
+  ]
+ },
+ {
+  "cardId": 101002,
+  "charId": 1010,
+  "name": "Taiki Shuttle",
+  "title": "[Bubblegum☆Memories]",
+  "rarity": 3,
+  "releaseEn": "2026-06-11",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "B",
+   "sprint": "A",
+   "mile": "A",
+   "medium": "E",
+   "long": "G",
+   "front": "C",
+   "pace": "A",
+   "late": "E",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   0,
+   30,
+   0,
+   0
+  ],
+  "baseStats": [
+   102,
+   71,
+   107,
+   92,
+   78
+  ],
+  "innateSkills": [
+   200162,
+   200682,
+   201902
+  ],
+  "awakeningSkills": [
+   201042,
+   200681,
+   201322,
+   201901
+  ],
+  "eventSkills": [
+   200582,
+   202042,
+   201052,
+   201702,
+   202502,
+   201902
+  ],
+  "uniqueSkills": [
+   110101
+  ]
+ },
+ {
+  "cardId": 101101,
+  "charId": 1011,
+  "name": "Grass Wonder",
+  "title": "[Stone-Piercing Blue]",
+  "rarity": 2,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "A",
+   "medium": "B",
+   "long": "A",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   20,
+   0,
+   10,
+   0,
+   0
+  ],
+  "baseStats": [
+   91,
+   70,
+   99,
+   74,
+   91
+  ],
+  "innateSkills": [
+   200871,
+   201152,
+   200602
+  ],
+  "awakeningSkills": [
+   200512,
+   201151,
+   200592,
+   200601
+  ],
+  "eventSkills": [
+   200282,
+   201412,
+   201692,
+   200722
+  ],
+  "uniqueSkills": [
+   10111,
+   100111
+  ]
+ },
+ {
+  "cardId": 101102,
+  "charId": 1011,
+  "name": "Grass Wonder",
+  "title": "[Saintly Jade Cleric]",
+  "rarity": 3,
+  "releaseEn": "2025-09-21",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "A",
+   "medium": "B",
+   "long": "A",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   0,
+   15,
+   0,
+   0,
+   15
+  ],
+  "baseStats": [
+   91,
+   83,
+   97,
+   79,
+   100
+  ],
+  "innateSkills": [
+   200472,
+   200742,
+   201422
+  ],
+  "awakeningSkills": [
+   200771,
+   200741,
+   201542,
+   201421
+  ],
+  "eventSkills": [
+   200282,
+   201412,
+   201692,
+   201442,
+   200722
+  ],
+  "uniqueSkills": [
+   110111
+  ]
+ },
+ {
+  "cardId": 101201,
+  "charId": 1012,
+  "name": "Hishi Amazon",
+  "title": "[Azure Amazon]",
+  "rarity": 3,
+  "releaseEn": "2025-09-17",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "D",
+   "mile": "A",
+   "medium": "A",
+   "long": "B",
+   "front": "G",
+   "pace": "B",
+   "late": "C",
+   "end": "A"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   10,
+   0
+  ],
+  "baseStats": [
+   93,
+   84,
+   105,
+   82,
+   86
+  ],
+  "innateSkills": [
+   200502,
+   200632,
+   200732
+  ],
+  "awakeningSkills": [
+   201452,
+   200731,
+   201462,
+   200631
+  ],
+  "eventSkills": [
+   200512,
+   200732
+  ],
+  "uniqueSkills": [
+   100121
+  ]
+ },
+ {
+  "cardId": 101301,
+  "charId": 1013,
+  "name": "Mejiro McQueen",
+  "title": "[Frontline Elegance]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "A",
+   "front": "B",
+   "pace": "A",
+   "late": "D",
+   "end": "F"
+  },
+  "growth": [
+   0,
+   20,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   71,
+   111,
+   71,
+   103,
+   94
+  ],
+  "innateSkills": [
+   200172,
+   200562,
+   201192
+  ],
+  "awakeningSkills": [
+   201182,
+   201191,
+   201352,
+   200561
+  ],
+  "eventSkills": [
+   200532
+  ],
+  "uniqueSkills": [
+   100131
+  ]
+ },
+ {
+  "cardId": 101302,
+  "charId": 1013,
+  "name": "Mejiro McQueen",
+  "title": "[End of the Skies]",
+  "rarity": 3,
+  "releaseEn": "2025-07-16",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "A",
+   "front": "B",
+   "pace": "A",
+   "late": "D",
+   "end": "F"
+  },
+  "growth": [
+   0,
+   10,
+   10,
+   0,
+   10
+  ],
+  "baseStats": [
+   74,
+   110,
+   72,
+   108,
+   86
+  ],
+  "innateSkills": [
+   200362,
+   200562,
+   200742
+  ],
+  "awakeningSkills": [
+   200192,
+   200741,
+   200462,
+   200361
+  ],
+  "eventSkills": [
+   200532,
+   200482,
+   200452
+  ],
+  "uniqueSkills": [
+   110131
+  ]
+ },
+ {
+  "cardId": 101303,
+  "charId": 1013,
+  "name": "Mejiro McQueen",
+  "title": "[Fair Lady of the Waves]",
+  "rarity": 3,
+  "releaseEn": "2026-07-02",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "A",
+   "front": "B",
+   "pace": "A",
+   "late": "D",
+   "end": "F"
+  },
+  "growth": [
+   8,
+   8,
+   0,
+   0,
+   14
+  ],
+  "baseStats": [
+   82,
+   85,
+   82,
+   113,
+   88
+  ],
+  "innateSkills": [
+   200432,
+   201532,
+   202012
+  ],
+  "awakeningSkills": [
+   202192,
+   202011,
+   200562,
+   202191
+  ],
+  "eventSkills": [
+   200532,
+   201661,
+   200182
+  ],
+  "uniqueSkills": [
+   120131
+  ]
+ },
+ {
+  "cardId": 101401,
+  "charId": 1014,
+  "name": "El Condor Pasa",
+  "title": "[El☆Número 1]",
+  "rarity": 2,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "B",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "B",
+   "front": "E",
+   "pace": "A",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   85,
+   76,
+   80,
+   93,
+   91
+  ],
+  "innateSkills": [
+   200362,
+   201122,
+   201312
+  ],
+  "awakeningSkills": [
+   200562,
+   201121,
+   200722,
+   200561
+  ],
+  "eventSkills": [
+   201142,
+   200162
+  ],
+  "uniqueSkills": [
+   10141,
+   100141
+  ]
+ },
+ {
+  "cardId": 101402,
+  "charId": 1014,
+  "name": "El Condor Pasa",
+  "title": "[Kukulkan Warrior]",
+  "rarity": 3,
+  "releaseEn": "2025-09-21",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "B",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "B",
+   "front": "E",
+   "pace": "A",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   15,
+   0,
+   0,
+   15,
+   0
+  ],
+  "baseStats": [
+   100,
+   75,
+   91,
+   97,
+   87
+  ],
+  "innateSkills": [
+   200512,
+   200702,
+   200612
+  ],
+  "awakeningSkills": [
+   201072,
+   200701,
+   201412,
+   200611
+  ],
+  "eventSkills": [
+   201142,
+   200162,
+   200482,
+   200502
+  ],
+  "uniqueSkills": [
+   110141
+  ]
+ },
+ {
+  "cardId": 101501,
+  "charId": 1015,
+  "name": "TM Opera O",
+  "title": "[O Sole Suo!]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "G",
+   "mile": "E",
+   "medium": "A",
+   "long": "A",
+   "front": "C",
+   "pace": "A",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   20,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   75,
+   108,
+   75,
+   102,
+   90
+  ],
+  "innateSkills": [
+   200582,
+   200722,
+   200142
+  ],
+  "awakeningSkills": [
+   200362,
+   200581,
+   200562,
+   200721
+  ],
+  "eventSkills": [
+   200142
+  ],
+  "uniqueSkills": [
+   100151
+  ]
+ },
+ {
+  "cardId": 101502,
+  "charId": 1015,
+  "name": "TM Opera O",
+  "title": "[New Year, Same Radiance!]",
+  "rarity": 3,
+  "releaseEn": "2026-01-29",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "G",
+   "mile": "E",
+   "medium": "A",
+   "long": "A",
+   "front": "C",
+   "pace": "A",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   14,
+   8,
+   0,
+   0,
+   8
+  ],
+  "baseStats": [
+   87,
+   102,
+   74,
+   88,
+   99
+  ],
+  "innateSkills": [
+   201312,
+   202012,
+   200352
+  ],
+  "awakeningSkills": [
+   200252,
+   200351,
+   200202,
+   202011
+  ],
+  "eventSkills": [
+   200142,
+   200582,
+   201152
+  ],
+  "uniqueSkills": [
+   110151
+  ]
+ },
+ {
+  "cardId": 101601,
+  "charId": 1016,
+  "name": "Narita Brian",
+  "title": "[Maverick]",
+  "rarity": 3,
+  "releaseEn": "2025-08-20",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "B",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   10,
+   20,
+   0,
+   0,
+   0
+  ],
+  "baseStats": [
+   93,
+   89,
+   100,
+   89,
+   79
+  ],
+  "innateSkills": [
+   200362,
+   201102,
+   200572
+  ],
+  "awakeningSkills": [
+   200512,
+   200361,
+   201641,
+   200511
+  ],
+  "eventSkills": [
+   201202
+  ],
+  "uniqueSkills": [
+   100161
+  ]
+ },
+ {
+  "cardId": 101701,
+  "charId": 1017,
+  "name": "Symboli Rudolf",
+  "title": "[Emperor's Path]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "B",
+   "pace": "A",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   0,
+   20,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   86,
+   91,
+   83,
+   96,
+   94
+  ],
+  "innateSkills": [
+   200332,
+   201152,
+   200572
+  ],
+  "awakeningSkills": [
+   200891,
+   201151,
+   201322,
+   200331
+  ],
+  "eventSkills": [
+   200232,
+   201692
+  ],
+  "uniqueSkills": [
+   100171
+  ]
+ },
+ {
+  "cardId": 101702,
+  "charId": 1017,
+  "name": "Symboli Rudolf",
+  "title": "[Archer by Moonlight]",
+  "rarity": 3,
+  "releaseEn": "2025-12-14",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "B",
+   "pace": "A",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   8,
+   14,
+   0,
+   0,
+   8
+  ],
+  "baseStats": [
+   83,
+   87,
+   90,
+   90,
+   100
+  ],
+  "innateSkills": [
+   200192,
+   200752,
+   200562
+  ],
+  "awakeningSkills": [
+   201342,
+   200561,
+   201312,
+   200194
+  ],
+  "eventSkills": [
+   200232,
+   200582,
+   201322,
+   201692
+  ],
+  "uniqueSkills": [
+   110171
+  ]
+ },
+ {
+  "cardId": 101801,
+  "charId": 1018,
+  "name": "Air Groove",
+  "title": "[Empress Road]",
+  "rarity": 2,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "C",
+   "mile": "B",
+   "medium": "A",
+   "long": "E",
+   "front": "D",
+   "pace": "A",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   20,
+   0,
+   0
+  ],
+  "baseStats": [
+   86,
+   81,
+   81,
+   86,
+   91
+  ],
+  "innateSkills": [
+   200502,
+   200722,
+   201372
+  ],
+  "awakeningSkills": [
+   200941,
+   201371,
+   200931,
+   200501
+  ],
+  "eventSkills": [
+   200512
+  ],
+  "uniqueSkills": [
+   10181,
+   100181
+  ]
+ },
+ {
+  "cardId": 101802,
+  "charId": 1018,
+  "name": "Air Groove",
+  "title": "[Quercus Civilis]",
+  "rarity": 3,
+  "releaseEn": "2025-08-28",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "C",
+   "mile": "B",
+   "medium": "A",
+   "long": "E",
+   "front": "D",
+   "pace": "A",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   10,
+   10,
+   0
+  ],
+  "baseStats": [
+   94,
+   82,
+   91,
+   88,
+   95
+  ],
+  "innateSkills": [
+   200342,
+   201072,
+   201322
+  ],
+  "awakeningSkills": [
+   201532,
+   201071,
+   200462,
+   200341
+  ],
+  "eventSkills": [
+   200512,
+   200502,
+   200722
+  ],
+  "uniqueSkills": [
+   110181
+  ]
+ },
+ {
+  "cardId": 101901,
+  "charId": 1019,
+  "name": "Agnes Digital",
+  "title": "[Full-Color Fangirling]",
+  "rarity": 3,
+  "releaseEn": "2025-11-19",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "A",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "G",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "B"
+  },
+  "growth": [
+   8,
+   8,
+   7,
+   0,
+   7
+  ],
+  "baseStats": [
+   85,
+   91,
+   83,
+   100,
+   91
+  ],
+  "innateSkills": [
+   201591,
+   201682,
+   201382
+  ],
+  "awakeningSkills": [
+   200162,
+   201592,
+   201102,
+   201681
+  ],
+  "eventSkills": [
+   201672,
+   201062,
+   200512,
+   200062,
+   201042,
+   200702,
+   201072,
+   202222,
+   202322
+  ],
+  "uniqueSkills": [
+   100191
+  ]
+ },
+ {
+  "cardId": 101902,
+  "charId": 1019,
+  "name": "Agnes Digital",
+  "title": "[Fanatic♡Jiangshi]",
+  "rarity": 3,
+  "releaseEn": "2026-08-18",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "A",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "G",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "B"
+  },
+  "growth": [
+   7,
+   7,
+   8,
+   8,
+   0
+  ],
+  "baseStats": [
+   85,
+   91,
+   98,
+   105,
+   71
+  ],
+  "innateSkills": [
+   202272,
+   200462,
+   200702
+  ],
+  "awakeningSkills": [
+   201591,
+   200461,
+   201682,
+   202271
+  ],
+  "eventSkills": [
+   201672,
+   201062,
+   200512,
+   200062,
+   201042,
+   202302,
+   201032,
+   200702,
+   201072,
+   202222,
+   202322
+  ],
+  "uniqueSkills": [
+   110191
+  ]
+ },
+ {
+  "cardId": 102001,
+  "charId": 1020,
+  "name": "Seiun Sky",
+  "title": "[Reeling in the Big One]",
+  "rarity": 3,
+  "releaseEn": "2025-09-07",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "A",
+   "pace": "B",
+   "late": "D",
+   "end": "E"
+  },
+  "growth": [
+   0,
+   10,
+   0,
+   0,
+   20
+  ],
+  "baseStats": [
+   98,
+   98,
+   88,
+   83,
+   83
+  ],
+  "innateSkills": [
+   200881,
+   201192,
+   200542
+  ],
+  "awakeningSkills": [
+   201522,
+   201191,
+   201611,
+   200541
+  ],
+  "eventSkills": [
+   200891,
+   200742,
+   201242,
+   201621,
+   201581,
+   200732,
+   200911,
+   200542
+  ],
+  "uniqueSkills": [
+   100201
+  ]
+ },
+ {
+  "cardId": 102002,
+  "charId": 1020,
+  "name": "Seiun Sky",
+  "title": "[Soirée des Chatons]",
+  "rarity": 3,
+  "releaseEn": "2026-04-05",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "A",
+   "pace": "B",
+   "late": "D",
+   "end": "E"
+  },
+  "growth": [
+   8,
+   0,
+   8,
+   14,
+   0
+  ],
+  "baseStats": [
+   101,
+   89,
+   84,
+   88,
+   88
+  ],
+  "innateSkills": [
+   200172,
+   200712,
+   200542
+  ],
+  "awakeningSkills": [
+   201272,
+   200541,
+   200532,
+   201271
+  ],
+  "eventSkills": [
+   200891,
+   200742,
+   201242,
+   201621,
+   201581,
+   200732,
+   200911,
+   200012,
+   200542
+  ],
+  "uniqueSkills": [
+   110201
+  ]
+ },
+ {
+  "cardId": 102101,
+  "charId": 1021,
+  "name": "Tamamo Cross",
+  "title": "[Fast as Lightning]",
+  "rarity": 3,
+  "releaseEn": "2026-01-22",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "G",
+   "mile": "E",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "A"
+  },
+  "growth": [
+   0,
+   20,
+   10,
+   0,
+   0
+  ],
+  "baseStats": [
+   83,
+   95,
+   105,
+   83,
+   84
+  ],
+  "innateSkills": [
+   201611,
+   201132,
+   200592
+  ],
+  "awakeningSkills": [
+   200572,
+   200591,
+   200642,
+   201612
+  ],
+  "eventSkills": [
+   200052,
+   201611,
+   200062,
+   200702,
+   200042,
+   200722
+  ],
+  "uniqueSkills": [
+   100211
+  ]
+ },
+ {
+  "cardId": 102201,
+  "charId": 1022,
+  "name": "Fine Motion",
+  "title": "[Noble Seamair]",
+  "rarity": 3,
+  "releaseEn": "2026-01-15",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "C",
+   "front": "D",
+   "pace": "A",
+   "late": "E",
+   "end": "C"
+  },
+  "growth": [
+   0,
+   0,
+   15,
+   0,
+   15
+  ],
+  "baseStats": [
+   96,
+   84,
+   95,
+   88,
+   87
+  ],
+  "innateSkills": [
+   200192,
+   200582,
+   201112
+  ],
+  "awakeningSkills": [
+   201342,
+   200581,
+   200012,
+   201341
+  ],
+  "eventSkills": [
+   201322,
+   201702,
+   200462,
+   200622,
+   200722,
+   201342,
+   200702,
+   200572,
+   201902
+  ],
+  "uniqueSkills": [
+   100221
+  ]
+ },
+ {
+  "cardId": 102202,
+  "charId": 1022,
+  "name": "Fine Motion",
+  "title": "[Titania]",
+  "rarity": 3,
+  "releaseEn": "2026-05-18",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "C",
+   "front": "D",
+   "pace": "A",
+   "late": "E",
+   "end": "C"
+  },
+  "growth": [
+   0,
+   0,
+   0,
+   10,
+   20
+  ],
+  "baseStats": [
+   89,
+   78,
+   89,
+   94,
+   100
+  ],
+  "innateSkills": [
+   200152,
+   201902,
+   201052
+  ],
+  "awakeningSkills": [
+   201042,
+   201051,
+   200192,
+   201901
+  ],
+  "eventSkills": [
+   201322,
+   201702,
+   201032,
+   200582,
+   200462,
+   200622,
+   200722,
+   201342,
+   200702,
+   200572,
+   201902
+  ],
+  "uniqueSkills": [
+   110221
+  ]
+ },
+ {
+  "cardId": 102301,
+  "charId": 1023,
+  "name": "Biwa Hayahide",
+  "title": "[pf. Winning Equation...]",
+  "rarity": 3,
+  "releaseEn": "2025-07-10",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "E",
+   "pace": "A",
+   "late": "B",
+   "end": "E"
+  },
+  "growth": [
+   0,
+   0,
+   0,
+   10,
+   20
+  ],
+  "baseStats": [
+   85,
+   93,
+   82,
+   93,
+   97
+  ],
+  "innateSkills": [
+   200162,
+   200742,
+   200562
+  ],
+  "awakeningSkills": [
+   200262,
+   200561,
+   200821,
+   200741
+  ],
+  "eventSkills": [
+   200052,
+   200372,
+   200582
+  ],
+  "uniqueSkills": [
+   100231
+  ]
+ },
+ {
+  "cardId": 102302,
+  "charId": 1023,
+  "name": "Biwa Hayahide",
+  "title": "[Rouge Caroler]",
+  "rarity": 3,
+  "releaseEn": "2026-01-05",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "E",
+   "pace": "A",
+   "late": "B",
+   "end": "E"
+  },
+  "growth": [
+   0,
+   12,
+   12,
+   0,
+   6
+  ],
+  "baseStats": [
+   83,
+   99,
+   76,
+   96,
+   96
+  ],
+  "innateSkills": [
+   200512,
+   201202,
+   200572
+  ],
+  "awakeningSkills": [
+   201532,
+   201201,
+   201312,
+   200511
+  ],
+  "eventSkills": [
+   200052,
+   200202,
+   201212,
+   200372,
+   200582
+  ],
+  "uniqueSkills": [
+   110231
+  ]
+ },
+ {
+  "cardId": 102401,
+  "charId": 1024,
+  "name": "Mayano Top Gun",
+  "title": "[Scramble☆Zone]",
+  "rarity": 2,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "D",
+   "mile": "D",
+   "medium": "A",
+   "long": "A",
+   "front": "A",
+   "pace": "A",
+   "late": "B",
+   "end": "B"
+  },
+  "growth": [
+   0,
+   20,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   73,
+   100,
+   67,
+   95,
+   90
+  ],
+  "innateSkills": [
+   200382,
+   201272,
+   200742
+  ],
+  "awakeningSkills": [
+   200492,
+   200381,
+   200502,
+   200491
+  ],
+  "eventSkills": [
+   200362,
+   200552,
+   201902,
+   200602,
+   200642
+  ],
+  "uniqueSkills": [
+   10241,
+   100241
+  ]
+ },
+ {
+  "cardId": 102402,
+  "charId": 1024,
+  "name": "Mayano Top Gun",
+  "title": "[Sunlight Bouquet]",
+  "rarity": 3,
+  "releaseEn": "2025-08-28",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "D",
+   "mile": "D",
+   "medium": "A",
+   "long": "A",
+   "front": "A",
+   "pace": "A",
+   "late": "B",
+   "end": "B"
+  },
+  "growth": [
+   10,
+   10,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   83,
+   100,
+   82,
+   90,
+   95
+  ],
+  "innateSkills": [
+   200352,
+   201332,
+   201162
+  ],
+  "awakeningSkills": [
+   200432,
+   201161,
+   200332,
+   200351
+  ],
+  "eventSkills": [
+   200362,
+   200472,
+   200372,
+   200552,
+   201902,
+   200602,
+   200642
+  ],
+  "uniqueSkills": [
+   110241
+  ]
+ },
+ {
+  "cardId": 102501,
+  "charId": 1025,
+  "name": "Manhattan Cafe",
+  "title": "[Creeping Shadow]",
+  "rarity": 3,
+  "releaseEn": "2025-12-08",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "B",
+   "long": "A",
+   "front": "G",
+   "pace": "C",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   0,
+   30,
+   0,
+   0,
+   0
+  ],
+  "baseStats": [
+   83,
+   98,
+   94,
+   86,
+   89
+  ],
+  "innateSkills": [
+   200232,
+   201222,
+   201422
+  ],
+  "awakeningSkills": [
+   201581,
+   201421,
+   201202,
+   201221
+  ],
+  "eventSkills": [
+   200602,
+   201172,
+   201182
+  ],
+  "uniqueSkills": [
+   100251
+  ]
+ },
+ {
+  "cardId": 102601,
+  "charId": 1026,
+  "name": "Mihono Bourbon",
+  "title": "[MB-19890425]",
+  "rarity": 3,
+  "releaseEn": "2025-07-02",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "C",
+   "mile": "B",
+   "medium": "A",
+   "long": "B",
+   "front": "A",
+   "pace": "E",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   20,
+   10,
+   0,
+   0
+  ],
+  "baseStats": [
+   96,
+   72,
+   92,
+   102,
+   88
+  ],
+  "innateSkills": [
+   200232,
+   200532,
+   200712
+  ],
+  "awakeningSkills": [
+   201242,
+   200531,
+   201252,
+   200711
+  ],
+  "eventSkills": [
+   200162,
+   200552,
+   200372
+  ],
+  "uniqueSkills": [
+   100261
+  ]
+ },
+ {
+  "cardId": 102602,
+  "charId": 1026,
+  "name": "Mihono Bourbon",
+  "title": "[CODE: ICING]",
+  "rarity": 3,
+  "releaseEn": "2026-02-18",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "C",
+   "mile": "B",
+   "medium": "A",
+   "long": "B",
+   "front": "A",
+   "pace": "E",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   10,
+   10,
+   0,
+   0
+  ],
+  "baseStats": [
+   100,
+   68,
+   92,
+   96,
+   94
+  ],
+  "innateSkills": [
+   200432,
+   200542,
+   200762
+  ],
+  "awakeningSkills": [
+   201522,
+   200541,
+   201601,
+   200431
+  ],
+  "eventSkills": [
+   200162,
+   200532,
+   201082,
+   200552,
+   200372
+  ],
+  "uniqueSkills": [
+   110261
+  ]
+ },
+ {
+  "cardId": 102701,
+  "charId": 1027,
+  "name": "Mejiro Ryan",
+  "title": "[Down the Line]",
+  "rarity": 1,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "C",
+   "medium": "A",
+   "long": "B",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   0,
+   10
+  ],
+  "baseStats": [
+   87,
+   66,
+   95,
+   71,
+   81
+  ],
+  "innateSkills": [
+   200232,
+   200722,
+   200612
+  ],
+  "awakeningSkills": [
+   200472,
+   200721,
+   201102,
+   200611
+  ],
+  "eventSkills": [
+   200162,
+   200602
+  ],
+  "uniqueSkills": [
+   10271,
+   100271
+  ]
+ },
+ {
+  "cardId": 102801,
+  "charId": 1028,
+  "name": "Hishi Akebono",
+  "title": "[Buono ☆ Alla Moda]",
+  "rarity": 3,
+  "releaseEn": "2025-11-11",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "A",
+   "mile": "B",
+   "medium": "F",
+   "long": "G",
+   "front": "B",
+   "pace": "A",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   10,
+   0
+  ],
+  "baseStats": [
+   99,
+   60,
+   108,
+   91,
+   92
+  ],
+  "innateSkills": [
+   200212,
+   201352,
+   201002
+  ],
+  "awakeningSkills": [
+   201362,
+   201001,
+   201012,
+   201351
+  ],
+  "eventSkills": [
+   200562,
+   200992
+  ],
+  "uniqueSkills": [
+   100281
+  ]
+ },
+ {
+  "cardId": 102901,
+  "charId": 1029,
+  "name": "Yukino Bijin",
+  "title": "[Darl'n Snowflake]",
+  "rarity": 3,
+  "releaseEn": "2026-08-05",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "B",
+   "sprint": "D",
+   "mile": "A",
+   "medium": "A",
+   "long": "E",
+   "front": "C",
+   "pace": "A",
+   "late": "F",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   20,
+   0
+  ],
+  "baseStats": [
+   95,
+   86,
+   83,
+   95,
+   91
+  ],
+  "innateSkills": [
+   200492,
+   201102,
+   201342
+  ],
+  "awakeningSkills": [
+   200242,
+   200491,
+   201322,
+   201341
+  ],
+  "eventSkills": [
+   200202,
+   202172,
+   200342,
+   201902,
+   202222,
+   202282
+  ],
+  "uniqueSkills": [
+   100291
+  ]
+ },
+ {
+  "cardId": 103001,
+  "charId": 1030,
+  "name": "Rice Shower",
+  "title": "[Rosy Dreams]",
+  "rarity": 3,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "B",
+   "pace": "A",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   10,
+   0,
+   20,
+   0
+  ],
+  "baseStats": [
+   71,
+   117,
+   70,
+   102,
+   90
+  ],
+  "innateSkills": [
+   200861,
+   201342,
+   200742
+  ],
+  "awakeningSkills": [
+   201581,
+   201341,
+   201352,
+   200741
+  ],
+  "eventSkills": [
+   200152,
+   200062
+  ],
+  "uniqueSkills": [
+   100301
+  ]
+ },
+ {
+  "cardId": 103002,
+  "charId": 1030,
+  "name": "Rice Shower",
+  "title": "[Vampire Makeover!]",
+  "rarity": 3,
+  "releaseEn": "2025-11-24",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "B",
+   "pace": "A",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   15,
+   15,
+   0,
+   0
+  ],
+  "baseStats": [
+   76,
+   121,
+   67,
+   97,
+   89
+  ],
+  "innateSkills": [
+   200771,
+   201172,
+   200562
+  ],
+  "awakeningSkills": [
+   200352,
+   200561,
+   200851,
+   200772
+  ],
+  "eventSkills": [
+   200152,
+   200742,
+   200801,
+   200062
+  ],
+  "uniqueSkills": [
+   110301
+  ]
+ },
+ {
+  "cardId": 103101,
+  "charId": 1031,
+  "name": "Ines Fujin",
+  "title": "[Always Electrifying]",
+  "rarity": 3,
+  "releaseEn": "2026-04-30",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "A",
+   "medium": "A",
+   "long": "C",
+   "front": "A",
+   "pace": "C",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   15,
+   0,
+   0,
+   15,
+   0
+  ],
+  "baseStats": [
+   100,
+   96,
+   72,
+   98,
+   84
+  ],
+  "innateSkills": [
+   201651,
+   201282,
+   202132
+  ],
+  "awakeningSkills": [
+   200032,
+   201281,
+   201082,
+   202131
+  ],
+  "eventSkills": [
+   201661,
+   201262,
+   200532,
+   201242
+  ],
+  "uniqueSkills": [
+   100311
+  ]
+ },
+ {
+  "cardId": 103201,
+  "charId": 1032,
+  "name": "Agnes Tachyon",
+  "title": "[tach-nology]",
+  "rarity": 1,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "D",
+   "medium": "A",
+   "long": "B",
+   "front": "E",
+   "pace": "A",
+   "late": "B",
+   "end": "F"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   82,
+   76,
+   76,
+   79,
+   87
+  ],
+  "innateSkills": [
+   200132,
+   201152,
+   200572
+  ],
+  "awakeningSkills": [
+   201102,
+   201151,
+   201112,
+   200571
+  ],
+  "eventSkills": [
+   200332,
+   201362
+  ],
+  "uniqueSkills": [
+   10321,
+   100321
+  ]
+ },
+ {
+  "cardId": 103301,
+  "charId": 1033,
+  "name": "Admire Vega",
+  "title": "[Starry Nocturne]",
+  "rarity": 3,
+  "releaseEn": "2026-03-05",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "C",
+   "front": "G",
+   "pace": "G",
+   "late": "B",
+   "end": "A"
+  },
+  "growth": [
+   10,
+   0,
+   20,
+   0,
+   0
+  ],
+  "baseStats": [
+   96,
+   79,
+   108,
+   69,
+   98
+  ],
+  "innateSkills": [
+   200492,
+   201152,
+   201492
+  ],
+  "awakeningSkills": [
+   200632,
+   201491,
+   200861,
+   200631
+  ],
+  "eventSkills": [
+   200632,
+   200362,
+   200642,
+   201102,
+   200442,
+   201452,
+   201462
+  ],
+  "uniqueSkills": [
+   100331
+  ]
+ },
+ {
+  "cardId": 103401,
+  "charId": 1034,
+  "name": "Inari One",
+  "title": "[Edomurasaki]",
+  "rarity": 3,
+  "releaseEn": "2026-05-28",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "A",
+   "sprint": "F",
+   "mile": "B",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "B",
+   "end": "A"
+  },
+  "growth": [
+   0,
+   10,
+   20,
+   0,
+   0
+  ],
+  "baseStats": [
+   88,
+   100,
+   109,
+   74,
+   79
+  ],
+  "innateSkills": [
+   201611,
+   201452,
+   202002
+  ],
+  "awakeningSkills": [
+   200202,
+   201612,
+   200642,
+   202001
+  ],
+  "eventSkills": [
+   200462,
+   201682,
+   201611,
+   202102,
+   201702,
+   202092
+  ],
+  "uniqueSkills": [
+   100341
+  ]
+ },
+ {
+  "cardId": 103501,
+  "charId": 1035,
+  "name": "Winning Ticket",
+  "title": "[Get to Winning!]",
+  "rarity": 1,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "B",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   10,
+   20,
+   0,
+   0
+  ],
+  "baseStats": [
+   87,
+   68,
+   91,
+   74,
+   80
+  ],
+  "innateSkills": [
+   200152,
+   200732,
+   201402
+  ],
+  "awakeningSkills": [
+   200592,
+   201401,
+   201392,
+   200591
+  ],
+  "eventSkills": [
+   200492,
+   201382,
+   201392,
+   200592,
+   200602,
+   200612
+  ],
+  "uniqueSkills": [
+   10351,
+   100351
+  ]
+ },
+ {
+  "cardId": 103502,
+  "charId": 1035,
+  "name": "Winning Ticket",
+  "title": "[Dream Deliverer]",
+  "rarity": 3,
+  "releaseEn": "2026-07-27",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "B",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   8,
+   0,
+   14,
+   8,
+   0
+  ],
+  "baseStats": [
+   101,
+   73,
+   109,
+   87,
+   80
+  ],
+  "innateSkills": [
+   202172,
+   201412,
+   201702
+  ],
+  "awakeningSkills": [
+   200592,
+   201411,
+   202152,
+   201701
+  ],
+  "eventSkills": [
+   200492,
+   201382,
+   201392,
+   200592,
+   200602,
+   201112,
+   202082,
+   201172,
+   201202,
+   200612
+  ],
+  "uniqueSkills": [
+   110351
+  ]
+ },
+ {
+  "cardId": 103601,
+  "charId": 1036,
+  "name": "Air Shakur",
+  "title": "[unsigned]",
+  "rarity": 3,
+  "releaseEn": "2026-06-18",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "E",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "C",
+   "late": "A",
+   "end": "A"
+  },
+  "growth": [
+   0,
+   0,
+   0,
+   0,
+   30
+  ],
+  "baseStats": [
+   99,
+   85,
+   95,
+   69,
+   102
+  ],
+  "innateSkills": [
+   200462,
+   202102,
+   201452
+  ],
+  "awakeningSkills": [
+   201492,
+   202101,
+   201502,
+   201453
+  ],
+  "eventSkills": [
+   201512,
+   202102,
+   200172,
+   200192,
+   202181,
+   200332,
+   202092
+  ],
+  "uniqueSkills": [
+   100361
+  ]
+ },
+ {
+  "cardId": 103701,
+  "charId": 1037,
+  "name": "Eishin Flash",
+  "title": "[Meisterschaft]",
+  "rarity": 3,
+  "releaseEn": "2025-10-30",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   0,
+   0,
+   10,
+   0,
+   20
+  ],
+  "baseStats": [
+   100,
+   83,
+   93,
+   82,
+   92
+  ],
+  "innateSkills": [
+   200502,
+   201542,
+   201112
+  ],
+  "awakeningSkills": [
+   200512,
+   200501,
+   200432,
+   200511
+  ],
+  "eventSkills": [
+   200132,
+   201402,
+   200032
+  ],
+  "uniqueSkills": [
+   100371
+  ]
+ },
+ {
+  "cardId": 103702,
+  "charId": 1037,
+  "name": "Eishin Flash",
+  "title": "[Precise Chocolatier]",
+  "rarity": 3,
+  "releaseEn": "2026-02-18",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   0,
+   8,
+   8,
+   0,
+   14
+  ],
+  "baseStats": [
+   94,
+   88,
+   84,
+   82,
+   102
+  ],
+  "innateSkills": [
+   200302,
+   200592,
+   201152
+  ],
+  "awakeningSkills": [
+   201102,
+   201151,
+   201392,
+   201103
+  ],
+  "eventSkills": [
+   200132,
+   200512,
+   201162,
+   201402,
+   200032
+  ],
+  "uniqueSkills": [
+   110371
+  ]
+ },
+ {
+  "cardId": 103801,
+  "charId": 1038,
+  "name": "Curren Chan",
+  "title": "[Fille Éclair]",
+  "rarity": 3,
+  "releaseEn": "2025-07-27",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "A",
+   "mile": "D",
+   "medium": "G",
+   "long": "G",
+   "front": "B",
+   "pace": "A",
+   "late": "E",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   20,
+   0,
+   0
+  ],
+  "baseStats": [
+   97,
+   58,
+   107,
+   91,
+   97
+  ],
+  "innateSkills": [
+   200462,
+   201372,
+   201012
+  ],
+  "awakeningSkills": [
+   201002,
+   201371,
+   200582,
+   201011
+  ],
+  "eventSkills": [
+   200811,
+   200652
+  ],
+  "uniqueSkills": [
+   100381
+  ]
+ },
+ {
+  "cardId": 103802,
+  "charId": 1038,
+  "name": "Curren Chan",
+  "title": "[Ma Chérie of the New Moon]",
+  "rarity": 3,
+  "releaseEn": "2026-05-18",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "A",
+   "mile": "D",
+   "medium": "G",
+   "long": "G",
+   "front": "B",
+   "pace": "A",
+   "late": "E",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   10,
+   0,
+   10
+  ],
+  "baseStats": [
+   100,
+   54,
+   109,
+   85,
+   102
+  ],
+  "innateSkills": [
+   200851,
+   201322,
+   201012
+  ],
+  "awakeningSkills": [
+   200652,
+   201011,
+   201532,
+   200651
+  ],
+  "eventSkills": [
+   200811,
+   200972,
+   201372,
+   200652
+  ],
+  "uniqueSkills": [
+   110381
+  ]
+ },
+ {
+  "cardId": 103901,
+  "charId": 1039,
+  "name": "Kawakami Princess",
+  "title": "[Princess of Pink]",
+  "rarity": 3,
+  "releaseEn": "2025-12-01",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "D",
+   "mile": "B",
+   "medium": "A",
+   "long": "F",
+   "front": "G",
+   "pace": "C",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   0,
+   0,
+   10,
+   20,
+   0
+  ],
+  "baseStats": [
+   100,
+   71,
+   107,
+   82,
+   90
+  ],
+  "innateSkills": [
+   200492,
+   201072,
+   200612
+  ],
+  "awakeningSkills": [
+   201382,
+   200491,
+   200132,
+   200611
+  ],
+  "eventSkills": [
+   200582,
+   200512,
+   200612
+  ],
+  "uniqueSkills": [
+   100391
+  ]
+ },
+ {
+  "cardId": 104001,
+  "charId": 1040,
+  "name": "Gold City",
+  "title": "[Authentic / 1928]",
+  "rarity": 3,
+  "releaseEn": "2025-10-07",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "D",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "B",
+   "long": "B",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   0,
+   0,
+   10,
+   20,
+   0
+  ],
+  "baseStats": [
+   89,
+   92,
+   94,
+   92,
+   83
+  ],
+  "innateSkills": [
+   200052,
+   200692,
+   200602
+  ],
+  "awakeningSkills": [
+   201651,
+   200691,
+   201062,
+   200601
+  ],
+  "eventSkills": [
+   201072
+  ],
+  "uniqueSkills": [
+   100401
+  ]
+ },
+ {
+  "cardId": 104002,
+  "charId": 1040,
+  "name": "Gold City",
+  "title": "[Autumn Cosmos]",
+  "rarity": 3,
+  "releaseEn": "2025-12-14",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "D",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "B",
+   "long": "B",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   8,
+   0,
+   8,
+   0,
+   14
+  ],
+  "baseStats": [
+   86,
+   98,
+   86,
+   98,
+   82
+  ],
+  "innateSkills": [
+   200232,
+   201092,
+   201692
+  ],
+  "awakeningSkills": [
+   201542,
+   201091,
+   201392,
+   201691
+  ],
+  "eventSkills": [
+   201072,
+   201412,
+   200602
+  ],
+  "uniqueSkills": [
+   110401
+  ]
+ },
+ {
+  "cardId": 104101,
+  "charId": 1041,
+  "name": "Sakura Bakushin O",
+  "title": "[Blossom in Learning]",
+  "rarity": 1,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "A",
+   "mile": "B",
+   "medium": "G",
+   "long": "G",
+   "front": "A",
+   "pace": "A",
+   "late": "F",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   87,
+   54,
+   93,
+   85,
+   81
+  ],
+  "innateSkills": [
+   200841,
+   201312,
+   200652
+  ],
+  "awakeningSkills": [
+   200982,
+   200651,
+   200992,
+   200981
+  ],
+  "eventSkills": [
+   200042,
+   201282,
+   202042
+  ],
+  "uniqueSkills": [
+   10411,
+   100411
+  ]
+ },
+ {
+  "cardId": 104201,
+  "charId": 1042,
+  "name": "Seeking the Pearl",
+  "title": "[Rocket☆Star]",
+  "rarity": 3,
+  "releaseEn": "2026-08-12",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "A",
+   "mile": "A",
+   "medium": "E",
+   "long": "G",
+   "front": "C",
+   "pace": "A",
+   "late": "A",
+   "end": "B"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   0,
+   20
+  ],
+  "baseStats": [
+   99,
+   65,
+   104,
+   93,
+   89
+  ],
+  "innateSkills": [
+   200152,
+   200962,
+   201072
+  ],
+  "awakeningSkills": [
+   202042,
+   200963,
+   201902,
+   201071
+  ],
+  "eventSkills": [
+   201591,
+   201112,
+   200722,
+   202102,
+   201032,
+   201042
+  ],
+  "uniqueSkills": [
+   100421
+  ]
+ },
+ {
+  "cardId": 104401,
+  "charId": 1044,
+  "name": "Sweep Tosho",
+  "title": "[Platanus Witch]",
+  "rarity": 3,
+  "releaseEn": "2026-06-04",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "A",
+   "medium": "A",
+   "long": "D",
+   "front": "G",
+   "pace": "G",
+   "late": "A",
+   "end": "A"
+  },
+  "growth": [
+   10,
+   0,
+   20,
+   0,
+   0
+  ],
+  "baseStats": [
+   101,
+   85,
+   110,
+   65,
+   89
+  ],
+  "innateSkills": [
+   200781,
+   201482,
+   202082
+  ],
+  "awakeningSkills": [
+   201512,
+   201481,
+   200642,
+   201511
+  ],
+  "eventSkills": [
+   201651,
+   201462,
+   202141,
+   202161
+  ],
+  "uniqueSkills": [
+   100441
+  ]
+ },
+ {
+  "cardId": 104501,
+  "charId": 1045,
+  "name": "Super Creek",
+  "title": "[Murmuring Stream]",
+  "rarity": 2,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "G",
+   "medium": "A",
+   "long": "A",
+   "front": "D",
+   "pace": "A",
+   "late": "B",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   10,
+   0,
+   0,
+   20
+  ],
+  "baseStats": [
+   65,
+   100,
+   71,
+   100,
+   89
+  ],
+  "innateSkills": [
+   200352,
+   200742,
+   201372
+  ],
+  "awakeningSkills": [
+   200462,
+   201371,
+   200881,
+   200351
+  ],
+  "eventSkills": [
+   200352,
+   "201352",
+   200582
+  ],
+  "uniqueSkills": [
+   10451,
+   100451
+  ]
+ },
+ {
+  "cardId": 104502,
+  "charId": 1045,
+  "name": "Super Creek",
+  "title": "[Chiffon-Wrapped Mummy]",
+  "rarity": 3,
+  "releaseEn": "2025-11-24",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "G",
+   "medium": "A",
+   "long": "A",
+   "front": "D",
+   "pace": "A",
+   "late": "B",
+   "end": "G"
+  },
+  "growth": [
+   14,
+   8,
+   0,
+   8,
+   0
+  ],
+  "baseStats": [
+   74,
+   106,
+   75,
+   98,
+   97
+  ],
+  "innateSkills": [
+   200332,
+   201162,
+   201352
+  ],
+  "awakeningSkills": [
+   201322,
+   200331,
+   201102,
+   201161
+  ],
+  "eventSkills": [
+   200352,
+   "201352",
+   201432,
+   200732,
+   200582
+  ],
+  "uniqueSkills": [
+   110451
+  ]
+ },
+ {
+  "cardId": 104601,
+  "charId": 1046,
+  "name": "Smart Falcon",
+  "title": "[LOVE☆4EVER]",
+  "rarity": 3,
+  "releaseEn": "2025-08-11",
+  "aptitudes": {
+   "turf": "E",
+   "dirt": "A",
+   "sprint": "B",
+   "mile": "A",
+   "medium": "A",
+   "long": "E",
+   "front": "A",
+   "pace": "D",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   0,
+   10,
+   0,
+   0
+  ],
+  "baseStats": [
+   94,
+   85,
+   85,
+   100,
+   86
+  ],
+  "innateSkills": [
+   200452,
+   201522,
+   201672
+  ],
+  "awakeningSkills": [
+   200162,
+   200451,
+   200952,
+   201671
+  ],
+  "eventSkills": [
+   201272,
+   201672,
+   202202,
+   202262
+  ],
+  "uniqueSkills": [
+   100461
+  ]
+ },
+ {
+  "cardId": 104602,
+  "charId": 1046,
+  "name": "Smart Falcon",
+  "title": "[Twilight Triumph]",
+  "rarity": 3,
+  "releaseEn": "2026-07-22",
+  "aptitudes": {
+   "turf": "E",
+   "dirt": "A",
+   "sprint": "B",
+   "mile": "A",
+   "medium": "A",
+   "long": "E",
+   "front": "A",
+   "pace": "D",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   99,
+   82,
+   82,
+   104,
+   83
+  ],
+  "innateSkills": [
+   201672,
+   201252,
+   202132
+  ],
+  "awakeningSkills": [
+   202312,
+   201671,
+   202352,
+   202311
+  ],
+  "eventSkills": [
+   201272,
+   202282,
+   200452,
+   201672,
+   202202,
+   202262
+  ],
+  "uniqueSkills": [
+   110461
+  ]
+ },
+ {
+  "cardId": 104801,
+  "charId": 1048,
+  "name": "Tosen Jordan",
+  "title": "[Jokester ☆ Vibes]",
+  "rarity": 3,
+  "releaseEn": "2025-12-18",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "B",
+   "front": "C",
+   "pace": "A",
+   "late": "B",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   10,
+   10,
+   0
+  ],
+  "baseStats": [
+   89,
+   98,
+   75,
+   101,
+   87
+  ],
+  "innateSkills": [
+   200302,
+   200602,
+   201102
+  ],
+  "awakeningSkills": [
+   200572,
+   200601,
+   201702,
+   200571
+  ],
+  "eventSkills": [
+   200372,
+   201402
+  ],
+  "uniqueSkills": [
+   100481
+  ]
+ },
+ {
+  "cardId": 105001,
+  "charId": 1050,
+  "name": "Narita Taishin",
+  "title": "[Nevertheless]",
+  "rarity": 3,
+  "releaseEn": "2025-08-03",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "D",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "F",
+   "late": "B",
+   "end": "A"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   20,
+   0
+  ],
+  "baseStats": [
+   96,
+   82,
+   99,
+   79,
+   94
+  ],
+  "innateSkills": [
+   201641,
+   200622,
+   201162
+  ],
+  "awakeningSkills": [
+   200642,
+   200621,
+   201452,
+   200641
+  ],
+  "eventSkills": [
+   200622,
+   202022
+  ],
+  "uniqueSkills": [
+   100501
+  ]
+ },
+ {
+  "cardId": 105002,
+  "charId": 1050,
+  "name": "Narita Taishin",
+  "title": "[Difference Engineer]",
+  "rarity": 3,
+  "releaseEn": "2026-07-27",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "D",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "F",
+   "late": "B",
+   "end": "A"
+  },
+  "growth": [
+   0,
+   8,
+   0,
+   8,
+   14
+  ],
+  "baseStats": [
+   90,
+   84,
+   93,
+   82,
+   101
+  ],
+  "innateSkills": [
+   200492,
+   202382,
+   202082
+  ],
+  "awakeningSkills": [
+   201552,
+   202381,
+   201452,
+   202081
+  ],
+  "eventSkills": [
+   200622,
+   201182,
+   201212,
+   201112,
+   202102,
+   202022
+  ],
+  "uniqueSkills": [
+   110501
+  ]
+ },
+ {
+  "cardId": 105101,
+  "charId": 1051,
+  "name": "Nishino Flower",
+  "title": "[Layered Petals]",
+  "rarity": 3,
+  "releaseEn": "2026-04-12",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "A",
+   "mile": "A",
+   "medium": "E",
+   "long": "G",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   15,
+   0,
+   15,
+   0,
+   0
+  ],
+  "baseStats": [
+   93,
+   81,
+   95,
+   86,
+   95
+  ],
+  "innateSkills": [
+   200362,
+   201062,
+   201342
+  ],
+  "awakeningSkills": [
+   200652,
+   200361,
+   201392,
+   201341
+  ],
+  "eventSkills": [
+   200152,
+   200332,
+   200702,
+   201052,
+   200732,
+   201902
+  ],
+  "uniqueSkills": [
+   100511
+  ]
+ },
+ {
+  "cardId": 105201,
+  "charId": 1052,
+  "name": "Haru Urara",
+  "title": "[Bestest Prize ♪]",
+  "rarity": 1,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "G",
+   "dirt": "A",
+   "sprint": "A",
+   "mile": "B",
+   "medium": "G",
+   "long": "G",
+   "front": "G",
+   "pace": "G",
+   "late": "A",
+   "end": "B"
+  },
+  "growth": [
+   0,
+   0,
+   10,
+   20,
+   0
+  ],
+  "baseStats": [
+   83,
+   58,
+   89,
+   86,
+   84
+  ],
+  "innateSkills": [
+   200442,
+   200652,
+   201412
+  ],
+  "awakeningSkills": [
+   200472,
+   200441,
+   200302,
+   200471
+  ],
+  "eventSkills": [
+   200302
+  ],
+  "uniqueSkills": [
+   10521,
+   100521
+  ]
+ },
+ {
+  "cardId": 105202,
+  "charId": 1052,
+  "name": "Haru Urara",
+  "title": "[New Year ♪ New Urara!]",
+  "rarity": 3,
+  "releaseEn": "2026-01-29",
+  "aptitudes": {
+   "turf": "G",
+   "dirt": "A",
+   "sprint": "A",
+   "mile": "A",
+   "medium": "G",
+   "long": "G",
+   "front": "G",
+   "pace": "G",
+   "late": "A",
+   "end": "B"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   10,
+   0
+  ],
+  "baseStats": [
+   94,
+   54,
+   106,
+   98,
+   98
+  ],
+  "innateSkills": [
+   200452,
+   201072,
+   201402
+  ],
+  "awakeningSkills": [
+   201621,
+   200451,
+   200242,
+   201401
+  ],
+  "eventSkills": [
+   201402,
+   200472,
+   200302
+  ],
+  "uniqueSkills": [
+   110521
+  ]
+ },
+ {
+  "cardId": 105301,
+  "charId": 1053,
+  "name": "Bamboo Memory",
+  "title": "[Iron Ambition]",
+  "rarity": 3,
+  "releaseEn": "2026-07-07",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "D",
+   "sprint": "A",
+   "mile": "A",
+   "medium": "C",
+   "long": "G",
+   "front": "G",
+   "pace": "E",
+   "late": "A",
+   "end": "C"
+  },
+  "growth": [
+   10,
+   0,
+   10,
+   10,
+   0
+  ],
+  "baseStats": [
+   98,
+   74,
+   104,
+   92,
+   82
+  ],
+  "innateSkills": [
+   200462,
+   200612,
+   202112
+  ],
+  "awakeningSkills": [
+   200972,
+   200611,
+   202122,
+   202111
+  ],
+  "eventSkills": [
+   200292,
+   200962,
+   200512
+  ],
+  "uniqueSkills": [
+   100531
+  ]
+ },
+ {
+  "cardId": 105601,
+  "charId": 1056,
+  "name": "Matikanefukukitaru",
+  "title": "[Rising☆Fortune]",
+  "rarity": 1,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   0,
+   20,
+   10,
+   0,
+   0
+  ],
+  "baseStats": [
+   77,
+   81,
+   88,
+   81,
+   73
+  ],
+  "innateSkills": [
+   201562,
+   201422,
+   201232
+  ],
+  "awakeningSkills": [
+   201571,
+   201231,
+   200781,
+   201561
+  ],
+  "eventSkills": [
+   200851,
+   200602
+  ],
+  "uniqueSkills": [
+   10561,
+   100561
+  ]
+ },
+ {
+  "cardId": 105602,
+  "charId": 1056,
+  "name": "Matikanefukukitaru",
+  "title": "[Lucky Tidings]",
+  "rarity": 3,
+  "releaseEn": "2025-11-06",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   0,
+   10,
+   0,
+   10,
+   10
+  ],
+  "baseStats": [
+   87,
+   100,
+   94,
+   94,
+   75
+  ],
+  "innateSkills": [
+   200012,
+   200602,
+   201212
+  ],
+  "awakeningSkills": [
+   200752,
+   201211,
+   200062,
+   200751
+  ],
+  "eventSkills": [
+   200851,
+   201562,
+   200602
+  ],
+  "uniqueSkills": [
+   110561
+  ]
+ },
+ {
+  "cardId": 105801,
+  "charId": 1058,
+  "name": "Meisho Doto",
+  "title": "[Turbulent Blue]",
+  "rarity": 3,
+  "releaseEn": "2025-10-21",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "A",
+   "front": "F",
+   "pace": "A",
+   "late": "B",
+   "end": "E"
+  },
+  "growth": [
+   0,
+   20,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   93,
+   95,
+   85,
+   96,
+   81
+  ],
+  "innateSkills": [
+   200472,
+   201112,
+   200582
+  ],
+  "awakeningSkills": [
+   200142,
+   200581,
+   200861,
+   200471
+  ],
+  "eventSkills": [
+   201362,
+   200582,
+   200722
+  ],
+  "uniqueSkills": [
+   100581
+  ]
+ },
+ {
+  "cardId": 105802,
+  "charId": 1058,
+  "name": "Meisho Doto",
+  "title": "[Dot-o'-Lantern]",
+  "rarity": 3,
+  "releaseEn": "2026-08-18",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "A",
+   "front": "F",
+   "pace": "A",
+   "late": "B",
+   "end": "E"
+  },
+  "growth": [
+   0,
+   0,
+   15,
+   0,
+   15
+  ],
+  "baseStats": [
+   89,
+   89,
+   75,
+   103,
+   94
+  ],
+  "innateSkills": [
+   200352,
+   201902,
+   201102
+  ],
+  "awakeningSkills": [
+   202372,
+   201901,
+   200012,
+   200351
+  ],
+  "eventSkills": [
+   201362,
+   201702,
+   201112,
+   200582,
+   200722
+  ],
+  "uniqueSkills": [
+   110581
+  ]
+ },
+ {
+  "cardId": 105901,
+  "charId": 1059,
+  "name": "Mejiro Dober",
+  "title": "[Off the Line]",
+  "rarity": 3,
+  "releaseEn": "2025-12-28",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "A",
+   "medium": "A",
+   "long": "F",
+   "front": "C",
+   "pace": "B",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   0,
+   20
+  ],
+  "baseStats": [
+   96,
+   85,
+   97,
+   75,
+   97
+  ],
+  "innateSkills": [
+   200062,
+   201442,
+   201142
+  ],
+  "awakeningSkills": [
+   201382,
+   201441,
+   200722,
+   200064
+  ],
+  "eventSkills": [
+   200192,
+   201072,
+   201702
+  ],
+  "uniqueSkills": [
+   100591
+  ]
+ },
+ {
+  "cardId": 105902,
+  "charId": 1059,
+  "name": "Mejiro Dober",
+  "title": "[Sapphire Sojourn]",
+  "rarity": 3,
+  "releaseEn": "2026-06-11",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "A",
+   "medium": "A",
+   "long": "F",
+   "front": "C",
+   "pace": "B",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   94,
+   78,
+   92,
+   86,
+   100
+  ],
+  "innateSkills": [
+   200062,
+   202122,
+   202082
+  ],
+  "awakeningSkills": [
+   201102,
+   202121,
+   202152,
+   202081
+  ],
+  "eventSkills": [
+   200192,
+   200702,
+   202172,
+   201072,
+   201702
+  ],
+  "uniqueSkills": [
+   110591
+  ]
+ },
+ {
+  "cardId": 106001,
+  "charId": 1060,
+  "name": "Nice Nature",
+  "title": "[Poinsettia Ribbon]",
+  "rarity": 1,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "F",
+   "pace": "B",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   0,
+   10
+  ],
+  "baseStats": [
+   86,
+   72,
+   89,
+   69,
+   84
+  ],
+  "innateSkills": [
+   200122,
+   201162,
+   201442
+  ],
+  "awakeningSkills": [
+   200911,
+   201161,
+   201422,
+   201441
+  ],
+  "eventSkills": [
+   201432,
+   200512
+  ],
+  "uniqueSkills": [
+   10601,
+   100601
+  ]
+ },
+ {
+  "cardId": 106002,
+  "charId": 1060,
+  "name": "Nice Nature",
+  "title": "[Run & Win]",
+  "rarity": 3,
+  "releaseEn": "2026-04-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "F",
+   "pace": "B",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   0,
+   10,
+   10,
+   0,
+   10
+  ],
+  "baseStats": [
+   86,
+   86,
+   94,
+   86,
+   98
+  ],
+  "innateSkills": [
+   200492,
+   201152,
+   201542
+  ],
+  "awakeningSkills": [
+   202082,
+   201151,
+   200302,
+   200491
+  ],
+  "eventSkills": [
+   201432,
+   201402,
+   202122,
+   200512
+  ],
+  "uniqueSkills": [
+   110601
+  ]
+ },
+ {
+  "cardId": 106101,
+  "charId": 1061,
+  "name": "King Halo",
+  "title": "[King of Emeralds]",
+  "rarity": 1,
+  "releaseEn": "2025-06-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "A",
+   "mile": "B",
+   "medium": "B",
+   "long": "C",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   10,
+   0
+  ],
+  "baseStats": [
+   87,
+   60,
+   93,
+   73,
+   87
+  ],
+  "innateSkills": [
+   200262,
+   200672,
+   201432
+  ],
+  "awakeningSkills": [
+   201142,
+   200671,
+   201072,
+   201431
+  ],
+  "eventSkills": [
+   200612,
+   201432
+  ],
+  "uniqueSkills": [
+   10611,
+   100611
+  ]
+ },
+ {
+  "cardId": 106102,
+  "charId": 1061,
+  "name": "King Halo",
+  "title": "[Cheerleader in Noble White]",
+  "rarity": 3,
+  "releaseEn": "2026-04-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "A",
+   "mile": "B",
+   "medium": "B",
+   "long": "C",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   10,
+   0,
+   10,
+   10,
+   0
+  ],
+  "baseStats": [
+   100,
+   62,
+   110,
+   89,
+   89
+  ],
+  "innateSkills": [
+   200172,
+   200672,
+   200612
+  ],
+  "awakeningSkills": [
+   200692,
+   200611,
+   201382,
+   200174
+  ],
+  "eventSkills": [
+   200612,
+   201432,
+   202112,
+   201072
+  ],
+  "uniqueSkills": [
+   110611
+  ]
+ },
+ {
+  "cardId": 106201,
+  "charId": 1062,
+  "name": "Matikanetannhauser",
+  "title": "[Clippety-Tippety-Clop]",
+  "rarity": 2,
+  "releaseEn": "2026-03-12",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "D",
+   "medium": "A",
+   "long": "A",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "E"
+  },
+  "growth": [
+   0,
+   20,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   79,
+   91,
+   82,
+   88,
+   85
+  ],
+  "innateSkills": [
+   200482,
+   201212,
+   200602
+  ],
+  "awakeningSkills": [
+   201621,
+   200481,
+   200512,
+   201211
+  ],
+  "eventSkills": [
+   200472,
+   201042,
+   200752,
+   200702,
+   201702
+  ],
+  "uniqueSkills": [
+   10621,
+   100621
+  ]
+ },
+ {
+  "cardId": 106401,
+  "charId": 1064,
+  "name": "Mejiro Palmer",
+  "title": "[Line Breakthrough]",
+  "rarity": 3,
+  "releaseEn": "2026-05-10",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "F",
+   "medium": "A",
+   "long": "A",
+   "front": "A",
+   "pace": "E",
+   "late": "F",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   10,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   92,
+   103,
+   76,
+   91,
+   88
+  ],
+  "innateSkills": [
+   201661,
+   201242,
+   201192
+  ],
+  "awakeningSkills": [
+   200532,
+   201662,
+   200302,
+   201191
+  ],
+  "eventSkills": [
+   201522,
+   201631,
+   202051
+  ],
+  "uniqueSkills": [
+   100641
+  ]
+ },
+ {
+  "cardId": 106701,
+  "charId": 1067,
+  "name": "Satono Diamond",
+  "title": "[Natural Brilliance]",
+  "rarity": 3,
+  "releaseEn": "2026-03-22",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   0,
+   15,
+   0,
+   0,
+   15
+  ],
+  "baseStats": [
+   91,
+   88,
+   93,
+   83,
+   95
+  ],
+  "innateSkills": [
+   200012,
+   201692,
+   201102
+  ],
+  "awakeningSkills": [
+   202012,
+   201691,
+   200152,
+   200014
+  ],
+  "eventSkills": [
+   200362,
+   200742,
+   200192
+  ],
+  "uniqueSkills": [
+   100671
+  ]
+ },
+ {
+  "cardId": 106801,
+  "charId": 1068,
+  "name": "Kitasan Black",
+  "title": "[Gilded Shrine to Glory]",
+  "rarity": 3,
+  "releaseEn": "2026-03-12",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "A",
+   "pace": "B",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   10,
+   0,
+   0,
+   0
+  ],
+  "baseStats": [
+   97,
+   100,
+   79,
+   86,
+   88
+  ],
+  "innateSkills": [
+   200432,
+   201172,
+   200532
+  ],
+  "awakeningSkills": [
+   201102,
+   200531,
+   201272,
+   201173
+  ],
+  "eventSkills": [
+   200332,
+   200352,
+   200172,
+   201142,
+   201192,
+   202462,
+   200452
+  ],
+  "uniqueSkills": [
+   100681
+  ]
+ },
+ {
+  "cardId": 106901,
+  "charId": 1069,
+  "name": "Sakura Chiyono O",
+  "title": "[Strength in Full Bloom]",
+  "rarity": 3,
+  "releaseEn": "2026-02-11",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "A",
+   "medium": "A",
+   "long": "E",
+   "front": "B",
+   "pace": "A",
+   "late": "F",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   10,
+   10
+  ],
+  "baseStats": [
+   93,
+   96,
+   78,
+   93,
+   90
+  ],
+  "innateSkills": [
+   200172,
+   200582,
+   201112
+  ],
+  "awakeningSkills": [
+   200342,
+   200581,
+   201532,
+   200174
+  ],
+  "eventSkills": [
+   201532,
+   200722,
+   201902,
+   202012
+  ],
+  "uniqueSkills": [
+   100691
+  ]
+ },
+ {
+  "cardId": 107101,
+  "charId": 1071,
+  "name": "Mejiro Ardan",
+  "title": "[Crystalline]",
+  "rarity": 3,
+  "releaseEn": "2026-02-25",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "F",
+   "sprint": "E",
+   "mile": "B",
+   "medium": "A",
+   "long": "D",
+   "front": "C",
+   "pace": "A",
+   "late": "D",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   0,
+   20
+  ],
+  "baseStats": [
+   92,
+   89,
+   89,
+   80,
+   100
+  ],
+  "innateSkills": [
+   200022,
+   200572,
+   201702
+  ],
+  "awakeningSkills": [
+   201322,
+   200571,
+   201142,
+   201701
+  ],
+  "eventSkills": [
+   200582,
+   201532,
+   201702,
+   201212,
+   200732,
+   200462,
+   200352
+  ],
+  "uniqueSkills": [
+   100711
+  ]
+ },
+ {
+  "cardId": 107201,
+  "charId": 1072,
+  "name": "Yaeno Muteki",
+  "title": "[Blazed Head, Covered Fists]",
+  "rarity": 3,
+  "releaseEn": "2026-04-20",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "E",
+   "sprint": "G",
+   "mile": "B",
+   "medium": "A",
+   "long": "E",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   0,
+   20,
+   10,
+   0
+  ],
+  "baseStats": [
+   92,
+   81,
+   97,
+   97,
+   83
+  ],
+  "innateSkills": [
+   200462,
+   200732,
+   201322
+  ],
+  "awakeningSkills": [
+   202092,
+   200461,
+   200342,
+   200731
+  ],
+  "eventSkills": [
+   200132,
+   201661,
+   200462,
+   200512
+  ],
+  "uniqueSkills": [
+   100721
+  ]
+ },
+ {
+  "cardId": 107401,
+  "charId": 1074,
+  "name": "Mejiro Bright",
+  "title": "[Brunissage Line]",
+  "rarity": 3,
+  "releaseEn": "2026-03-26",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "D",
+   "late": "A",
+   "end": "A"
+  },
+  "growth": [
+   0,
+   14,
+   0,
+   8,
+   8
+  ],
+  "baseStats": [
+   89,
+   107,
+   87,
+   75,
+   92
+  ],
+  "innateSkills": [
+   200472,
+   201462,
+   202072
+  ],
+  "awakeningSkills": [
+   201212,
+   200471,
+   201222,
+   202071
+  ],
+  "eventSkills": [
+   200162,
+   200752,
+   200732,
+   200142,
+   201182,
+   201202,
+   201232
+  ],
+  "uniqueSkills": [
+   100741
+  ]
+ },
+ {
+  "cardId": 107801,
+  "charId": 1078,
+  "name": "Yamanin Zephyr",
+  "title": "[Fluttertail Spirit]",
+  "rarity": 3,
+  "releaseEn": "2026-09-01",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "D",
+   "sprint": "B",
+   "mile": "A",
+   "medium": "A",
+   "long": "G",
+   "front": "E",
+   "pace": "A",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   0,
+   10,
+   10
+  ],
+  "baseStats": [
+   97,
+   83,
+   81,
+   97,
+   92
+  ],
+  "innateSkills": [
+   200302,
+   201052,
+   202412
+  ],
+  "awakeningSkills": [
+   201042,
+   201051,
+   200342,
+   202411
+  ],
+  "eventSkills": [
+   201072,
+   200172,
+   200182,
+   200192,
+   200202
+  ],
+  "uniqueSkills": [
+   100781
+  ]
+ },
+ {
+  "cardId": 108701,
+  "charId": 1087,
+  "name": "Aston Machan",
+  "title": "[Flare]",
+  "rarity": 3,
+  "releaseEn": "2026-08-25",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "A",
+   "mile": "B",
+   "medium": "G",
+   "long": "G",
+   "front": "A",
+   "pace": "A",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   99,
+   73,
+   97,
+   98,
+   83
+  ],
+  "innateSkills": [
+   200162,
+   202042,
+   200532
+  ],
+  "awakeningSkills": [
+   200972,
+   200531,
+   201601,
+   202041
+  ],
+  "eventSkills": [
+   202042,
+   201522,
+   201052,
+   200682,
+   200712,
+   200722
+  ],
+  "uniqueSkills": [
+   100871
+  ]
+ },
+ {
+  "cardId": 109801,
+  "charId": 1098,
+  "name": "Copano Rickey",
+  "title": "[Eightfold☆Fortune]",
+  "rarity": 3,
+  "releaseEn": "2026-07-16",
+  "aptitudes": {
+   "turf": "F",
+   "dirt": "A",
+   "sprint": "C",
+   "mile": "A",
+   "medium": "A",
+   "long": "G",
+   "front": "A",
+   "pace": "A",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   0,
+   0,
+   10,
+   0,
+   20
+  ],
+  "baseStats": [
+   93,
+   87,
+   93,
+   87,
+   90
+  ],
+  "innateSkills": [
+   202262,
+   201532,
+   201112
+  ],
+  "awakeningSkills": [
+   202332,
+   202261,
+   202252,
+   202331
+  ],
+  "eventSkills": [
+   202332,
+   201672,
+   201682,
+   202262
+  ],
+  "uniqueSkills": [
+   100981
+  ]
+ }
+]

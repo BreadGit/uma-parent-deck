@@ -1,0 +1,210 @@
+[
+ {
+  "id": 1,
+  "name": "Friendship Bonus",
+  "symbol": "percent",
+  "calc": "mult"
+ },
+ {
+  "id": 2,
+  "name": "Mood Effect",
+  "symbol": "percent",
+  "calc": "add"
+ },
+ {
+  "id": 3,
+  "name": "Speed Bonus",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 4,
+  "name": "Stamina Bonus",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 5,
+  "name": "Power Bonus",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 6,
+  "name": "Guts Bonus",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 7,
+  "name": "Wit Bonus",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 8,
+  "name": "Training Effectiveness",
+  "symbol": "percent",
+  "calc": "add"
+ },
+ {
+  "id": 9,
+  "name": "Initial Speed",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 10,
+  "name": "Initial Stamina",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 11,
+  "name": "Initial Power",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 12,
+  "name": "Initial Guts",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 13,
+  "name": "Initial Wit",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 14,
+  "name": "Initial Friendship Gauge",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 15,
+  "name": "Race Bonus",
+  "symbol": "percent",
+  "calc": "add"
+ },
+ {
+  "id": 16,
+  "name": "Fan Bonus",
+  "symbol": "percent",
+  "calc": "add"
+ },
+ {
+  "id": 17,
+  "name": "Hint Levels",
+  "symbol": "level",
+  "calc": "add"
+ },
+ {
+  "id": 18,
+  "name": "Hint Frequency",
+  "symbol": "percent",
+  "calc": "add"
+ },
+ {
+  "id": 19,
+  "name": "Specialty Priority",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 20,
+  "name": "Max Speed",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 21,
+  "name": "Max Stamina",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 22,
+  "name": "Max Power",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 23,
+  "name": "Max Guts",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 24,
+  "name": "Max Wit",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 25,
+  "name": "Event Recovery",
+  "symbol": "percent",
+  "calc": "add"
+ },
+ {
+  "id": 26,
+  "name": "Event Effectiveness",
+  "symbol": "percent",
+  "calc": "add"
+ },
+ {
+  "id": 27,
+  "name": "Failure Protection",
+  "symbol": "percent",
+  "calc": "mult"
+ },
+ {
+  "id": 28,
+  "name": "Energy Cost Reduction",
+  "symbol": "percent",
+  "calc": "mult"
+ },
+ {
+  "id": 29,
+  "name": "Minigame Effectiveness",
+  "symbol": "percent",
+  "calc": "add"
+ },
+ {
+  "id": 30,
+  "name": "Skill Point Bonus",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 31,
+  "name": "Wit Friendship Recovery",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 32,
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 33,
+  "name": "Hint Quantity Bonus",
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 41,
+  "symbol": "none",
+  "calc": "add"
+ },
+ {
+  "id": 9991,
+  "name": "Increases Stats from Hints",
+  "symbol": "none",
+  "calc": "add"
+ }
+]

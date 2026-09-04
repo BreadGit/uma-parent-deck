@@ -1,0 +1,265 @@
+"""Fit the independent-training card stat model and write data/stat-model.json.
+
+Inputs
+  data/cards.json                       GameTora card passives per limit break
+  docs/loopacord-card-data.csv          Loopacord per-card, per-LB card stats (28 G1 races, Grand Concert, Light Hello SSR in deck)
+  docs/loopacord-independent-training-research.xlsx   run totals used for the event-stat baseline, race scaling, focus modes
+  docs/fujikiseki-card-table.json       fujikiseki per-card medians (mixed LB) used as a second observation source
+  data/characters.json                  growth rates of the trainees in the Loopacord runs
+
+Model (per card, per stat s, at R races and a training focus):
+  card[s] = (floor + initial[s] + role[s] * (k_type_role + a*friendship + b*mood + c*trainingEff + d*statBonus[s])) * raceScale(R)
+  where role is 'primary' (s == card type), 'secondary' (facility's second stat) or none,
+  raceScale(R) = (T - R) / (T - 28), T fitted from the 28 vs 23 race decks.
+Event stats (deck independent) = eventBase[s] * (1 + growth[s]/100) * raceScaleEvent(R), scaled per training focus.
+"""
+import json, csv, re, collections, sys
+import numpy as np
+import openpyxl
+
+ROOT = __import__('pathlib').Path(__file__).resolve().parent.parent
+cards = json.load(open(ROOT / 'data/cards.json'))
+chars = json.load(open(ROOT / 'data/characters.json'))
+rows = list(csv.DictReader(open(ROOT / 'docs/loopacord-card-data.csv')))
+fuji = json.load(open(ROOT / 'docs/fujikiseki-card-table.json'))
+
+STATS = ['speed', 'stamina', 'power', 'guts', 'wit']
+LB = {'0LB': 0, '1LB': 1, '2LB': 2, '3LB': 3, 'MLB': 4}
+TYPE = {'Friend': 'friend', 'Group': 'group', 'Speed': 'speed', 'Stamina': 'stamina', 'Power': 'power', 'Guts': 'guts', 'Wit': 'wit', 'Pal': 'friend'}
+SECONDARY = {'speed': ['power'], 'stamina': ['guts'], 'power': ['stamina'], 'guts': ['speed', 'power'], 'wit': ['speed']}
+RACES_REF = 28
+
+ALIAS = {'heirs to the throne': "the throne's assemblage", 'syrius symboli': 'sirius symboli', 'daichi ruby': 'daiichi ruby', 'mr. cb': 'mr. c.b.'}
+fuji_titles = collections.defaultdict(set)
+for f in fuji: fuji_titles[(f['char'].lower(), f['rarity'], TYPE[f['type']])].add(f['title'])
+def find_card(char, rarity, typ):
+    name = ALIAS.get(char.lower(), char.lower())
+    cs = [c for c in cards if c['charName'].lower() == name and c['rarity'] == rarity and c['type'] == typ]
+    if len(cs) > 1:
+        # disambiguate with the titles fujikiseki saw in the same period
+        titles = fuji_titles.get((name, rarity, typ), set())
+        narrowed = [c for c in cs if c['title'].strip('[]') in titles]
+        if len(narrowed) == 1: return narrowed
+    return cs
+
+def passives(card, lb):
+    e = card['effectsByLb'][lb]
+    return {i: e.get(str(i), 0) + e.get(f'u{i}', 0) for i in range(1, 32)}
+
+# ---------- observations ----------
+observed = []   # {cardId, lb, source, runs, stats[5], sp}
+unmatched = []
+for r in rows:
+    m = re.match(r'(.*) (R|SR|SSR)$', r['name'])
+    cs = find_card(m.group(1), m.group(2), TYPE[r['type']])
+    if len(cs) != 1:
+        unmatched.append((r['name'], r['type'], len(cs))); continue
+    runs = r['runs']
+    n = int(runs.rstrip('+').split('.')[0])
+    observed.append(dict(cardId=cs[0]['id'], lb=LB[r['lb']], source='loopacord', runs=n, wellTested=runs.endswith('+'),
+                         stats=[float(r[s]) for s in STATS], sp=float(r['sp']), card=cs[0]))
+MLB_LEVEL = {'SSR': 50, 'SR': 45, 'R': 40}
+fuji_added = 0
+for f in fuji:
+    cs = find_card(f['char'], f['rarity'], TYPE[f['type']])
+    if len(cs) != 1 or f['runs'] < 10 or f['flagged']:
+        continue
+    if f['level_median'] != MLB_LEVEL[f['rarity']]:
+        continue  # only use rows that are clearly MLB
+    if any(o['cardId'] == cs[0]['id'] and o['lb'] == 4 and o['wellTested'] for o in observed):
+        continue
+    observed.append(dict(cardId=cs[0]['id'], lb=4, source='fujikiseki', runs=f['runs'], wellTested=True,
+                         stats=[f[s + '_median'] for s in STATS], sp=f['sp_median'], card=cs[0]))
+    fuji_added += 1
+print(f'observations: {len(observed)} (fujikiseki added {fuji_added}); unmatched loopacord rows: {len(unmatched)}')
+for u in unmatched: print('  unmatched', u)
+
+# ---------- floor ----------
+floors = []
+for o in observed:
+    if o['source'] != 'loopacord' or not o['wellTested']: continue
+    p = passives(o['card'], o['lb'])
+    for i, s in enumerate(STATS):
+        if o['card']['type'] == s or s in SECONDARY.get(o['card']['type'], []): continue
+        floors.append(o['stats'][i] - p[9 + i])
+FLOOR = float(np.median(floors))
+print(f'floor: median {FLOOR}, mean {np.mean(floors):.2f}, sd {np.std(floors):.2f}, n {len(floors)}')
+
+# ---------- role regression ----------
+recs = []
+for o in observed:
+    if o['source'] != 'loopacord' or not o['wellTested']: continue
+    t = o['card']['type']
+    if t not in STATS: continue
+    p = passives(o['card'], o['lb'])
+    for i, s in enumerate(STATS):
+        role = 'primary' if t == s else ('secondary' if s in SECONDARY[t] else None)
+        if not role: continue
+        recs.append(dict(type=t, role=role, y=o['stats'][i] - FLOOR - p[9 + i], fr=p[1], mo=p[2], te=p[8], sb=p[3 + i], spec=p[19]))
+keys = sorted({(r['type'], r['role']) for r in recs})
+COLS = ['fr', 'mo', 'te', 'sb']
+X = np.array([[1.0 if (r['type'], r['role']) == k else 0.0 for k in keys] + [r[c] for c in COLS] for r in recs])
+y = np.array([r['y'] for r in recs])
+coef, *_ = np.linalg.lstsq(X, y, rcond=None)
+pred = X @ coef
+rmse = float(np.sqrt(np.mean((pred - y) ** 2)))
+r2 = 1 - np.sum((pred - y) ** 2) / np.sum((y - y.mean()) ** 2)
+print(f'role regression: n={len(y)} rmse={rmse:.2f} r2={r2:.3f}')
+consts = {f'{t}.{role}': float(v) for (t, role), v in zip(keys, coef[:len(keys)])}
+slopes = {c: float(v) for c, v in zip(COLS, coef[len(keys):])}
+print('  constants', {k: round(v, 1) for k, v in consts.items()})
+print('  slopes', {k: round(v, 3) for k, v in slopes.items()})
+# per-type rmse
+for k in keys:
+    idx = [i for i, r in enumerate(recs) if (r['type'], r['role']) == k]
+    print(f'  {k[0]:8}{k[1]:10} n={len(idx):3} rmse={np.sqrt(np.mean((pred[idx]-y[idx])**2)):.2f}')
+
+# ---------- SP model ----------
+sp_recs = []
+for o in observed:
+    if o['source'] != 'loopacord' or not o['wellTested']: continue
+    p = passives(o['card'], o['lb'])
+    t = o['card']['type']
+    sp_recs.append(dict(sp=o['sp'], wit=t == 'wit', friend=t in ('friend', 'group'), spb=p[30], hf=p[18], hl=p[17], fr=p[1], te=p[8]))
+Xs = np.array([[1, r['wit'], r['friend'], r['spb']] for r in sp_recs], float)
+ys = np.array([r['sp'] for r in sp_recs])
+cs_, *_ = np.linalg.lstsq(Xs, ys, rcond=None)
+print(f'SP: const={cs_[0]:.1f} wit={cs_[1]:.1f} friend/group={cs_[2]:.1f} skillPointBonus={cs_[3]:.1f} rmse={np.sqrt(np.mean((Xs@cs_-ys)**2)):.1f}')
+SP = dict(base=float(cs_[0]), wit=float(cs_[1]), friend=float(cs_[2]), skillPointBonus=float(cs_[3]))
+
+# ---------- race scaling, event baseline, focus, sigma (from the research workbook) ----------
+wb = openpyxl.load_workbook(ROOT / 'docs/loopacord-independent-training-research.xlsx', read_only=True, data_only=True)
+ws = wb['Race Schedule Data']
+blocks = []  # per (races, block) list of per-run [speed..wit, sp]
+races = None
+for row in ws.iter_rows(values_only=True):
+    cells = list(row)
+    for j, v in enumerate(cells):
+        if isinstance(v, str) and 'Balanced G1s' in v:
+            races = int(v.split()[0])
+    if races and any(isinstance(v, str) and v == 'Run Number' for v in cells):
+        starts = [j for j, v in enumerate(cells) if v == 'Run Number']
+        blocks.append(dict(races=races, cols=starts, rows=[]))
+        continue
+    if blocks and isinstance(cells[blocks[-1]['cols'][0]], (int, float)):
+        b = blocks[-1]
+        vals = []
+        for st in b['cols']:
+            seg = cells[st + 1:st + 7]
+            if all(isinstance(x, (int, float)) for x in seg): vals.append([float(x) for x in seg])
+        if vals: b['rows'].append(vals)
+# card-level scaling: pair block means for 28 vs 23 by block order (same decks listed in the same order)
+by_r = collections.defaultdict(list)
+for b in blocks:
+    for col in range(len(b['cols'])):
+        arr = np.array([r[col] for r in b['rows'] if len(r) > col])
+        if len(arr): by_r[b['races']].append(arr.mean(axis=0))
+ratios = []
+for a, c in zip(by_r[28], by_r[23]):
+    for i in range(5):
+        if a[i] > 30: ratios.append(c[i] / a[i])
+ratio = float(np.median(ratios))
+T = (23 - ratio * 28) / (1 - ratio)
+print(f'race scaling: median 23/28 ratio {ratio:.4f} over {len(ratios)} stat pairs -> total turns T = {T:.1f}')
+sp_ratio = float(np.median([c[5] / a[5] for a, c in zip(by_r[28], by_r[23])]))
+print(f'  card SP 23/28 ratio {sp_ratio:.3f}')
+
+# run totals, deck card sums, event stats and trainee per run from the 'Race Schedule' sheet
+ws = wb['Race Schedule']
+per_run = {28: {}, 23: {}}   # run -> dict(card, event, total, uma)
+cur = 28
+for row in ws.iter_rows(values_only=True):
+    cells = list(row) + [None] * 40
+    if any(isinstance(v, str) and '23 Balanced' in v for v in cells): cur = 23
+    if not isinstance(cells[9], (int, float)): continue
+    run = int(cells[9]); d = per_run[cur].setdefault(run, {})
+    v10 = cells[10:15]; v19 = cells[19:24]
+    if all(isinstance(x, (int, float)) for x in v10):
+        if cells[10] < 900 and all(isinstance(x, (int, float)) for x in v19) and cells[19] > 100:
+            # cols 10-14: event stats incl. race rewards (trainee dependent); cols 19-23: sum of the six cards' log contributions
+            d['event'] = [float(x) for x in v10]; d['card'] = [float(x) for x in v19]; d['eventSp'] = float(cells[15]); d['cardSp'] = float(cells[24])
+        elif cells[10] > 900 and isinstance(cells[16], (int, float)):
+            d['total'] = [float(x) for x in v10]; d['totalSp'] = float(cells[15])
+        elif cells[10] > 900 and isinstance(cells[29], str):
+            d['uma'] = cells[29]
+growth_by_name = {c['name']: c['growth'] for c in chars}
+alias = {'Oguri': 'Oguri Cap', 'Biwa': 'Biwa Hayahide', 'XBiwa': 'Biwa Hayahide', 'Ines Fujin': 'Ines Fujin', 'NYOpera': 'T.M. Opera O'}
+# growth effect on event stats: event[s] = base[s] * (1 + k * g[s]/100); estimate k by comparing trainees within a block
+evs = []
+for R, runs in per_run.items():
+    for run, d in runs.items():
+        if 'event' in d and 'uma' in d and alias.get(d['uma'], d['uma']) in growth_by_name:
+            evs.append((R, np.array(d['event']), np.array(growth_by_name[alias.get(d['uma'], d['uma'])], float), d['uma']))
+print('per-run rows with event stats + trainee:', len(evs), collections.Counter((r, u) for r, _, _, u in evs))
+# least squares on log(event) = log(base_R[s]) + log(1 + k g/100); small k -> linearize: event ~ base_R[s] + base_R[s]*k*g/100
+best = None
+for k in np.linspace(0, 2.0, 201):
+    sse = 0
+    for R in (28, 23):
+        rows_R = [(e, g) for r, e, g, _ in evs if r == R]
+        if not rows_R: continue
+        E = np.array([e / (1 + k * g / 100) for e, g in rows_R])
+        sse += ((E - E.mean(axis=0)) ** 2).sum()
+    if best is None or sse < best[1]: best = (k, sse)
+GROWTH_EFFECT = float(round(best[0], 2))
+print(f'  growth effect on event stats k = {GROWTH_EFFECT} (1.0 = full growth %, 0 = none)')
+event_base = {}; event_sp = {}; sigma_res = []
+for R in (28, 23):
+    rows_R = [(e, g) for r, e, g, _ in evs if r == R]
+    if rows_R:
+        event_base[R] = np.mean([e / (1 + GROWTH_EFFECT * g / 100) for e, g in rows_R], axis=0).tolist()
+    else:
+        event_base[R] = np.mean([d['event'] for d in per_run[R].values() if 'event' in d], axis=0).tolist()
+    event_sp[R] = float(np.mean([d['eventSp'] for d in per_run[R].values() if 'eventSp' in d]))
+    print(f'  event stats base at {R} races: {np.round(event_base[R]).tolist()}, event SP {event_sp[R]:.0f}')
+    # within-trainee residuals of total gains for sigma
+    by_uma = collections.defaultdict(list)
+    for d in per_run[R].values():
+        if 'total' in d and 'uma' in d: by_uma[d['uma']].append(d['total'])
+    for u, ts in by_uma.items():
+        if len(ts) >= 2:
+            a = np.array(ts); sigma_res.extend((a - a.mean(axis=0)).tolist())
+sigma = np.sqrt(np.mean(np.array(sigma_res) ** 2, axis=0)).tolist() if sigma_res else [40, 60, 50, 50, 50]
+print('  run-to-run sd per stat (pooled within trainee, n=%d):' % len(sigma_res), np.round(sigma, 1).tolist())
+# sanity: the six per-card blocks should sum to the deck-level card stats
+for R in (28, 23):
+    deck_card = np.mean([d['card'] for d in per_run[R].values() if 'card' in d], axis=0)
+    if len(by_r[R]) >= 6:
+        s6 = np.sum([b[:5] for b in by_r[R][:6]], axis=0)
+        print(f'  check {R} races: deck card stats {deck_card.round(0).tolist()} vs six-card sum {s6.round(0).tolist()}')
+
+# focus multipliers from the 'Race Mode' sheet (two decks: rows with Mode/Speed..)
+ws = wb['Race Mode']
+modes = collections.defaultdict(list)
+for row in ws.iter_rows(values_only=True):
+    cells = list(row) + [None] * 40
+    if cells[6] in ('Balanced', 'Stamina', 'Sprint') and all(isinstance(x, (int, float)) for x in cells[7:12]):
+        modes[cells[6]].append([float(x) for x in cells[7:12]])
+focus = {}
+for m in ('Balanced', 'Stamina', 'Sprint'):
+    rs = []
+    for i in range(min(len(modes['Balanced']), len(modes[m]))):
+        rs.append((np.array(modes[m][i]) / np.array(modes['Balanced'][i])).tolist())
+    focus[m.lower()] = np.mean(rs, axis=0).round(4).tolist() if rs else [1, 1, 1, 1, 1]
+print('  focus multipliers', focus)
+
+model = dict(
+    version=1,
+    description='Independent training card stat model fitted on Loopacord card data (Grand Concert, 28 G1 races, Light Hello SSR in deck).',
+    stats=STATS,
+    secondary=SECONDARY,
+    floor=FLOOR,
+    roleConstants=consts,
+    slopes=slopes,
+    fit=dict(n=len(y), rmse=rmse, r2=float(r2), floorSd=float(np.std(floors))),
+    races=dict(reference=RACES_REF, totalTurns=float(T), spRatio23=sp_ratio),
+    sp=SP,
+    eventBase={str(k): v for k, v in event_base.items()},
+    eventSp={str(k): v for k, v in event_sp.items()},
+    growthEffect=GROWTH_EFFECT,
+    sigma=sigma,
+    focus=focus,
+    observed=[dict(cardId=o['cardId'], lb=o['lb'], source=o['source'], runs=o['runs'], wellTested=o['wellTested'], stats=o['stats'], sp=o['sp']) for o in observed],
+)
+json.dump(model, open(ROOT / 'data/stat-model.json', 'w'), indent=1)
+print('wrote data/stat-model.json')

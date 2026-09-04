@@ -1,0 +1,20 @@
+{
+ "support-cards": "d6dfa084",
+ "support_effects": "ca447e53",
+ "skills": "11a58047",
+ "character-cards": "db0006ea",
+ "characters": "b306f0ec",
+ "races": "55dde7c9",
+ "ura-races": "c12e8867",
+ "scenarios": "61b7c51c",
+ "en/db-files/single_mode_rank": "d624caeb",
+ "en/db-files/support_card_level": "c2af3d53",
+ "training_events/ssr": "4eaec648",
+ "training_events/sr": "f22d7bda",
+ "training_events/friend": "126fa75f",
+ "training_events/group": "ede3e24d",
+ "training_events/shared": "b2a8aa8f",
+ "training_events/char_card": "6c05ae7b",
+ "dict/evrew": "98991fc3",
+ "status-effects": "0eca6742"
+}

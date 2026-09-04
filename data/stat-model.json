@@ -1,0 +1,2653 @@
+{
+ "version": 1,
+ "description": "Independent training card stat model fitted on Loopacord card data (Grand Concert, 28 G1 races, Light Hello SSR in deck).",
+ "stats": [
+  "speed",
+  "stamina",
+  "power",
+  "guts",
+  "wit"
+ ],
+ "secondary": {
+  "speed": [
+   "power"
+  ],
+  "stamina": [
+   "guts"
+  ],
+  "power": [
+   "stamina"
+  ],
+  "guts": [
+   "speed",
+   "power"
+  ],
+  "wit": [
+   "speed"
+  ]
+ },
+ "floor": 23.0,
+ "roleConstants": {
+  "guts.primary": 25.82948444435124,
+  "guts.secondary": -2.697371293783129,
+  "power.primary": 28.13278627718061,
+  "power.secondary": 2.9566023459563935,
+  "speed.primary": 30.351707047356808,
+  "speed.secondary": 1.7956361619452181,
+  "stamina.primary": 28.072766050483626,
+  "stamina.secondary": 4.077125828247888,
+  "wit.primary": 29.492202213436165,
+  "wit.secondary": -10.86626847412191
+ },
+ "slopes": {
+  "fr": 0.5913193920229363,
+  "mo": 0.1150300895305838,
+  "te": 0.6770384489655081,
+  "sb": 11.006684992571877
+ },
+ "fit": {
+  "n": 265,
+  "rmse": 4.578709248916488,
+  "r2": 0.9456674045223699,
+  "floorSd": 2.6371364479343167
+ },
+ "races": {
+  "reference": 28,
+  "totalTurns": 71.69918699187,
+  "spRatio23": 1.1195484831179412
+ },
+ "sp": {
+  "base": 166.0484665918715,
+  "wit": 25.32229456741048,
+  "friend": 156.02520120104512,
+  "skillPointBonus": 59.263322070830405
+ },
+ "eventBase": {
+  "28": [
+   642.0458683625909,
+   243.34768292290929,
+   398.324278736339,
+   337.0668641373002,
+   457.01090122772837
+  ],
+  "23": [
+   657.5313248682319,
+   225.49913235041083,
+   418.3582817935833,
+   330.125,
+   464.7335856103794
+  ]
+ },
+ "eventSp": {
+  "28": 2576.7272727272725,
+  "23": 2224.818181818182
+ },
+ "growthEffect": 0.29,
+ "sigma": [
+  32.89687900889805,
+  33.745286056955564,
+  15.647350228105644,
+  27.90914966315948,
+  19.249333704639294
+ ],
+ "focus": {
+  "balanced": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "stamina": [
+   0.9892,
+   1.0835,
+   1.0099,
+   0.9784,
+   0.9747
+  ],
+  "sprint": [
+   1.0076,
+   0.9225,
+   1.0275,
+   1.042,
+   1.0259
+  ]
+ },
+ "observed": [
+  {
+   "cardId": 30036,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    50.0,
+    21.0,
+    21.0,
+    21.0
+   ],
+   "sp": 300.0
+  },
+  {
+   "cardId": 30036,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    36.0,
+    21.0,
+    21.0,
+    21.0
+   ],
+   "sp": 300.0
+  },
+  {
+   "cardId": 30021,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    50.0,
+    21.0,
+    21.0,
+    21.0,
+    21.0
+   ],
+   "sp": 400.0
+  },
+  {
+   "cardId": 30036,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    21.0,
+    21.0,
+    21.0,
+    21.0
+   ],
+   "sp": 290.0
+  },
+  {
+   "cardId": 20021,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    21.0,
+    21.0,
+    21.0,
+    40.0
+   ],
+   "sp": 330.0
+  },
+  {
+   "cardId": 30036,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    21.0,
+    21.0,
+    21.0,
+    21.0
+   ],
+   "sp": 250.0
+  },
+  {
+   "cardId": 30021,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    21.0,
+    21.0,
+    21.0,
+    21.0
+   ],
+   "sp": 350.0
+  },
+  {
+   "cardId": 30080,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    22.0,
+    22.0,
+    22.0,
+    22.0
+   ],
+   "sp": 330.0
+  },
+  {
+   "cardId": 30067,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    64.0,
+    38.0,
+    38.0,
+    38.0,
+    38.0
+   ],
+   "sp": 400.0
+  },
+  {
+   "cardId": 30067,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    48.0,
+    34.0,
+    34.0,
+    34.0,
+    34.0
+   ],
+   "sp": 330.0
+  },
+  {
+   "cardId": 30067,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    48.0,
+    34.0,
+    34.0,
+    34.0,
+    34.0
+   ],
+   "sp": 330.0
+  },
+  {
+   "cardId": 30019,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 20,
+   "wellTested": true,
+   "stats": [
+    54.0,
+    25.0,
+    50.0,
+    119.0,
+    25.0
+   ],
+   "sp": 240.0
+  },
+  {
+   "cardId": 20041,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    54.0,
+    22.0,
+    51.0,
+    87.0,
+    22.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30070,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    46.0,
+    22.0,
+    42.0,
+    113.0,
+    22.0
+   ],
+   "sp": 185.0
+  },
+  {
+   "cardId": 30048,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    42.0,
+    22.0,
+    51.0,
+    81.0,
+    22.0
+   ],
+   "sp": 225.0
+  },
+  {
+   "cardId": 30083,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    46.0,
+    22.0,
+    42.0,
+    116.0,
+    22.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 20004,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    47.0,
+    25.0,
+    44.0,
+    89.0,
+    25.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 20029,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    49.0,
+    22.0,
+    45.0,
+    85.0,
+    22.0
+   ],
+   "sp": 260.0
+  },
+  {
+   "cardId": 30030,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    49.0,
+    23.0,
+    46.0,
+    142.0,
+    23.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30011,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 2,
+   "wellTested": false,
+   "stats": [
+    60.0,
+    25.0,
+    46.0,
+    98.0,
+    25.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 30105,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    43.0,
+    22.0,
+    85.0,
+    84.0,
+    22.0
+   ],
+   "sp": 175.0
+  },
+  {
+   "cardId": 20038,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    76.0,
+    23.0,
+    43.0,
+    92.0,
+    23.0
+   ],
+   "sp": 165.0
+  },
+  {
+   "cardId": 20019,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    43.0,
+    23.0,
+    41.0,
+    87.0,
+    23.0
+   ],
+   "sp": 230.0
+  },
+  {
+   "cardId": 20048,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    53.0,
+    21.0,
+    50.0,
+    66.0,
+    21.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 20017,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    46.0,
+    23.0,
+    44.0,
+    115.0,
+    23.0
+   ],
+   "sp": 165.0
+  },
+  {
+   "cardId": 20045,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    38.0,
+    20.0,
+    55.0,
+    89.0,
+    20.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 20022,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    44.0,
+    23.0,
+    60.0,
+    99.0,
+    23.0
+   ],
+   "sp": 225.0
+  },
+  {
+   "cardId": 30109,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    71.0,
+    22.0,
+    57.0,
+    96.0,
+    22.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30112,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 4,
+   "wellTested": false,
+   "stats": [
+    64.0,
+    20.0,
+    49.0,
+    66.0,
+    20.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 10061,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 3,
+   "wellTested": false,
+   "stats": [
+    36.0,
+    21.0,
+    34.0,
+    54.0,
+    21.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 20011,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    40.0,
+    23.0,
+    50.0,
+    95.0,
+    23.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30083,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    38.0,
+    21.0,
+    36.0,
+    59.0,
+    21.0
+   ],
+   "sp": 130.0
+  },
+  {
+   "cardId": 30040,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    38.0,
+    22.0,
+    36.0,
+    59.0,
+    22.0
+   ],
+   "sp": 140.0
+  },
+  {
+   "cardId": 30098,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    47.0,
+    89.0,
+    23.0,
+    23.0
+   ],
+   "sp": 300.0
+  },
+  {
+   "cardId": 30074,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    20.0,
+    89.0,
+    99.0,
+    20.0,
+    20.0
+   ],
+   "sp": 140.0
+  },
+  {
+   "cardId": 30007,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    24.0,
+    57.0,
+    117.0,
+    24.0,
+    24.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 20027,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    44.0,
+    96.0,
+    23.0,
+    23.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30071,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    53.0,
+    89.0,
+    22.0,
+    22.0
+   ],
+   "sp": 240.0
+  },
+  {
+   "cardId": 20005,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    24.0,
+    55.0,
+    123.0,
+    24.0,
+    24.0
+   ],
+   "sp": 250.0
+  },
+  {
+   "cardId": 20003,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    66.0,
+    103.0,
+    22.0,
+    22.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30042,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    22.0,
+    50.0,
+    129.0,
+    22.0,
+    22.0
+   ],
+   "sp": 250.0
+  },
+  {
+   "cardId": 30077,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    24.0,
+    59.0,
+    98.0,
+    24.0,
+    24.0
+   ],
+   "sp": 185.0
+  },
+  {
+   "cardId": 30007,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    53.0,
+    110.0,
+    23.0,
+    23.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30032,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 20,
+   "wellTested": true,
+   "stats": [
+    24.0,
+    51.0,
+    85.0,
+    24.0,
+    24.0
+   ],
+   "sp": 165.0
+  },
+  {
+   "cardId": 30017,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 20,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    54.0,
+    94.0,
+    22.0,
+    22.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 20024,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    44.0,
+    96.0,
+    23.0,
+    23.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 20042,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    46.0,
+    97.0,
+    21.0,
+    21.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 20010,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    24.0,
+    58.0,
+    69.0,
+    24.0,
+    24.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 20009,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    55.0,
+    115.0,
+    22.0,
+    22.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30114,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    46.0,
+    118.0,
+    50.0,
+    21.0
+   ],
+   "sp": 230.0
+  },
+  {
+   "cardId": 20006,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    25.0,
+    64.0,
+    79.0,
+    25.0,
+    25.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 30034,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    65.0,
+    91.0,
+    23.0,
+    23.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 30077,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 3,
+   "wellTested": false,
+   "stats": [
+    23.0,
+    55.0,
+    92.0,
+    23.0,
+    23.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 20043,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 20,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    79.0,
+    85.0,
+    23.0,
+    23.0
+   ],
+   "sp": 135.0
+  },
+  {
+   "cardId": 20037,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    46.0,
+    78.0,
+    22.0,
+    22.0
+   ],
+   "sp": 210.0
+  },
+  {
+   "cardId": 30096,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    20.0,
+    44.0,
+    119.0,
+    20.0,
+    20.0
+   ],
+   "sp": 145.0
+  },
+  {
+   "cardId": 30056,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    56.0,
+    126.0,
+    22.0,
+    22.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 30056,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 2,
+   "wellTested": false,
+   "stats": [
+    22.0,
+    56.0,
+    126.0,
+    22.0,
+    22.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 30017,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 4,
+   "wellTested": false,
+   "stats": [
+    23.0,
+    53.0,
+    92.0,
+    23.0,
+    23.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30114,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    44.0,
+    109.0,
+    21.0,
+    21.0
+   ],
+   "sp": 215.0
+  },
+  {
+   "cardId": 30005,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    22.0,
+    50.0,
+    74.0,
+    22.0,
+    22.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30033,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    51.0,
+    91.0,
+    23.0,
+    23.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 20032,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    60.0,
+    103.0,
+    21.0,
+    21.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30077,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    24.0,
+    53.0,
+    89.0,
+    24.0,
+    24.0
+   ],
+   "sp": 175.0
+  },
+  {
+   "cardId": 30056,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    51.0,
+    87.0,
+    22.0,
+    22.0
+   ],
+   "sp": 155.0
+  },
+  {
+   "cardId": 30017,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    52.0,
+    91.0,
+    22.0,
+    22.0
+   ],
+   "sp": 140.0
+  },
+  {
+   "cardId": 30017,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    22.0,
+    50.0,
+    87.0,
+    22.0,
+    22.0
+   ],
+   "sp": 130.0
+  },
+  {
+   "cardId": 30056,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    21.0,
+    49.0,
+    71.0,
+    21.0,
+    21.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30024,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    22.0,
+    38.0,
+    85.0,
+    22.0,
+    22.0
+   ],
+   "sp": 130.0
+  },
+  {
+   "cardId": 30078,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    108.0,
+    54.0,
+    77.0,
+    54.0,
+    54.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 30045,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    118.0,
+    22.0,
+    51.0,
+    22.0,
+    22.0
+   ],
+   "sp": 230.0
+  },
+  {
+   "cardId": 30020,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    128.0,
+    24.0,
+    50.0,
+    24.0,
+    24.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 30015,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    117.0,
+    23.0,
+    51.0,
+    23.0,
+    23.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 30039,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    126.0,
+    22.0,
+    54.0,
+    22.0,
+    22.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30095,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 5,
+   "wellTested": false,
+   "stats": [
+    93.0,
+    23.0,
+    79.0,
+    23.0,
+    23.0
+   ],
+   "sp": 250.0
+  },
+  {
+   "cardId": 20031,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    116.0,
+    23.0,
+    49.0,
+    23.0,
+    23.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 30025,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    91.0,
+    23.0,
+    49.0,
+    23.0,
+    23.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30107,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    100.0,
+    26.0,
+    65.0,
+    26.0,
+    26.0
+   ],
+   "sp": 205.0
+  },
+  {
+   "cardId": 20023,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    85.0,
+    24.0,
+    52.0,
+    24.0,
+    24.0
+   ],
+   "sp": 260.0
+  },
+  {
+   "cardId": 30014,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    93.0,
+    22.0,
+    51.0,
+    22.0,
+    22.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30107,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    96.0,
+    25.0,
+    63.0,
+    25.0,
+    25.0
+   ],
+   "sp": 195.0
+  },
+  {
+   "cardId": 30101,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    117.0,
+    21.0,
+    44.0,
+    21.0,
+    21.0
+   ],
+   "sp": 300.0
+  },
+  {
+   "cardId": 30028,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    85.0,
+    25.0,
+    63.0,
+    25.0,
+    25.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 30028,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    85.0,
+    25.0,
+    63.0,
+    25.0,
+    25.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 20014,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    108.0,
+    25.0,
+    47.0,
+    25.0,
+    25.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30084,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    108.0,
+    22.0,
+    69.0,
+    22.0,
+    22.0
+   ],
+   "sp": 145.0
+  },
+  {
+   "cardId": 20044,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    106.0,
+    22.0,
+    46.0,
+    22.0,
+    22.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 30020,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    104.0,
+    23.0,
+    45.0,
+    23.0,
+    23.0
+   ],
+   "sp": 140.0
+  },
+  {
+   "cardId": 30072,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    85.0,
+    23.0,
+    58.0,
+    23.0,
+    23.0
+   ],
+   "sp": 165.0
+  },
+  {
+   "cardId": 20013,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    85.0,
+    24.0,
+    46.0,
+    24.0,
+    24.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30039,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    110.0,
+    21.0,
+    51.0,
+    21.0,
+    21.0
+   ],
+   "sp": 120.0
+  },
+  {
+   "cardId": 30107,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    89.0,
+    24.0,
+    59.0,
+    24.0,
+    24.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30086,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    68.0,
+    20.0,
+    48.0,
+    20.0,
+    20.0
+   ],
+   "sp": 130.0
+  },
+  {
+   "cardId": 30095,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    72.0,
+    22.0,
+    45.0,
+    22.0,
+    22.0
+   ],
+   "sp": 250.0
+  },
+  {
+   "cardId": 20039,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    74.0,
+    23.0,
+    58.0,
+    23.0,
+    23.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30101,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    112.0,
+    20.0,
+    43.0,
+    20.0,
+    20.0
+   ],
+   "sp": 220.0
+  },
+  {
+   "cardId": 30057,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    73.0,
+    23.0,
+    58.0,
+    23.0,
+    23.0
+   ],
+   "sp": 240.0
+  },
+  {
+   "cardId": 30044,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    105.0,
+    21.0,
+    42.0,
+    21.0,
+    21.0
+   ],
+   "sp": 130.0
+  },
+  {
+   "cardId": 30107,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    87.0,
+    24.0,
+    58.0,
+    24.0,
+    24.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 30044,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    103.0,
+    21.0,
+    40.0,
+    21.0,
+    21.0
+   ],
+   "sp": 130.0
+  },
+  {
+   "cardId": 30121,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    102.0,
+    22.0,
+    38.0,
+    22.0,
+    22.0
+   ],
+   "sp": 210.0
+  },
+  {
+   "cardId": 30053,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    71.0,
+    20.0,
+    44.0,
+    20.0,
+    20.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 30045,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    93.0,
+    20.0,
+    40.0,
+    22.0,
+    22.0
+   ],
+   "sp": 120.0
+  },
+  {
+   "cardId": 30092,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    76.0,
+    22.0,
+    48.0,
+    22.0,
+    22.0
+   ],
+   "sp": 130.0
+  },
+  {
+   "cardId": 30072,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    79.0,
+    23.0,
+    55.0,
+    23.0,
+    23.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 10002,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 4,
+   "wellTested": false,
+   "stats": [
+    53.0,
+    20.0,
+    35.0,
+    20.0,
+    20.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 20020,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    95.0,
+    23.0,
+    52.0,
+    23.0,
+    23.0
+   ],
+   "sp": 164.0
+  },
+  {
+   "cardId": 30014,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    93.0,
+    23.0,
+    51.0,
+    23.0,
+    23.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30101,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    109.0,
+    20.0,
+    43.0,
+    20.0,
+    20.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 10050,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 4,
+   "wellTested": false,
+   "stats": [
+    47.0,
+    20.0,
+    32.0,
+    20.0,
+    20.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 30065,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    87.0,
+    23.0,
+    46.0,
+    23.0,
+    23.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30101,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    103.0,
+    20.0,
+    43.0,
+    20.0,
+    20.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30072,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    65.0,
+    23.0,
+    54.0,
+    23.0,
+    23.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30101,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 2,
+   "wellTested": false,
+   "stats": [
+    89.0,
+    20.0,
+    42.0,
+    20.0,
+    20.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30016,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 20,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    132.0,
+    23.0,
+    58.0,
+    23.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 30029,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    24.0,
+    99.0,
+    24.0,
+    64.0,
+    24.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 30016,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    125.0,
+    23.0,
+    56.0,
+    23.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30075,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    20.0,
+    119.0,
+    20.0,
+    51.0,
+    20.0
+   ],
+   "sp": 165.0
+  },
+  {
+   "cardId": 30009,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    25.0,
+    140.0,
+    25.0,
+    53.0,
+    25.0
+   ],
+   "sp": 185.0
+  },
+  {
+   "cardId": 20047,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    81.0,
+    22.0,
+    62.0,
+    22.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 20007,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 20,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    110.0,
+    23.0,
+    57.0,
+    23.0
+   ],
+   "sp": 230.0
+  },
+  {
+   "cardId": 20008,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    97.0,
+    23.0,
+    46.0,
+    23.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30016,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    116.0,
+    23.0,
+    54.0,
+    23.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30062,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    136.0,
+    23.0,
+    48.0,
+    23.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30104,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    111.0,
+    22.0,
+    78.0,
+    22.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30113,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    100.0,
+    22.0,
+    42.0,
+    22.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 30016,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    22.0,
+    108.0,
+    22.0,
+    50.0,
+    22.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 20035,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    105.0,
+    23.0,
+    49.0,
+    23.0
+   ],
+   "sp": 165.0
+  },
+  {
+   "cardId": 30008,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    93.0,
+    23.0,
+    55.0,
+    23.0
+   ],
+   "sp": 175.0
+  },
+  {
+   "cardId": 30022,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    98.0,
+    22.0,
+    58.0,
+    22.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30008,
+   "lb": 3,
+   "source": "loopacord",
+   "runs": 2,
+   "wellTested": false,
+   "stats": [
+    23.0,
+    88.0,
+    23.0,
+    52.0,
+    23.0
+   ],
+   "sp": 175.0
+  },
+  {
+   "cardId": 30008,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    87.0,
+    23.0,
+    50.0,
+    23.0
+   ],
+   "sp": 175.0
+  },
+  {
+   "cardId": 20040,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    83.0,
+    22.0,
+    61.0,
+    22.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30079,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    112.0,
+    22.0,
+    81.0,
+    22.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30038,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    78.0,
+    23.0,
+    46.0,
+    23.0
+   ],
+   "sp": 175.0
+  },
+  {
+   "cardId": 30087,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    20.0,
+    102.0,
+    20.0,
+    49.0,
+    20.0
+   ],
+   "sp": 130.0
+  },
+  {
+   "cardId": 30023,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    22.0,
+    72.0,
+    22.0,
+    61.0,
+    22.0
+   ],
+   "sp": 150.0
+  },
+  {
+   "cardId": 30009,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    23.0,
+    81.0,
+    23.0,
+    44.0,
+    23.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30004,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    24.0,
+    114.0,
+    24.0,
+    49.0,
+    24.0
+   ],
+   "sp": 175.0
+  },
+  {
+   "cardId": 20028,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    108.0,
+    23.0,
+    53.0,
+    23.0
+   ],
+   "sp": 165.0
+  },
+  {
+   "cardId": 30010,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    42.0,
+    25.0,
+    25.0,
+    25.0,
+    142.0
+   ],
+   "sp": 230.0
+  },
+  {
+   "cardId": 30108,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 50,
+   "wellTested": true,
+   "stats": [
+    40.0,
+    26.0,
+    26.0,
+    26.0,
+    99.0
+   ],
+   "sp": 270.0
+  },
+  {
+   "cardId": 30054,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    36.0,
+    23.0,
+    23.0,
+    23.0,
+    98.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 20012,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    32.0,
+    23.0,
+    23.0,
+    23.0,
+    100.0
+   ],
+   "sp": 235.0
+  },
+  {
+   "cardId": 20046,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    58.0,
+    22.0,
+    22.0,
+    22.0,
+    98.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 20015,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    32.0,
+    23.0,
+    23.0,
+    23.0,
+    118.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 30091,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    47.0,
+    23.0,
+    23.0,
+    23.0,
+    91.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 20018,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    36.0,
+    25.0,
+    25.0,
+    25.0,
+    132.0
+   ],
+   "sp": 205.0
+  },
+  {
+   "cardId": 30097,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    46.0,
+    23.0,
+    23.0,
+    23.0,
+    97.0
+   ],
+   "sp": 245.0
+  },
+  {
+   "cardId": 20050,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    36.0,
+    24.0,
+    24.0,
+    24.0,
+    81.0
+   ],
+   "sp": 280.0
+  },
+  {
+   "cardId": 20026,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    36.0,
+    25.0,
+    25.0,
+    25.0,
+    111.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 20025,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    32.0,
+    22.0,
+    22.0,
+    22.0,
+    106.0
+   ],
+   "sp": 225.0
+  },
+  {
+   "cardId": 30031,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    34.0,
+    24.0,
+    24.0,
+    24.0,
+    116.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 30111,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    48.0,
+    23.0,
+    23.0,
+    23.0,
+    103.0
+   ],
+   "sp": 190.0
+  },
+  {
+   "cardId": 20001,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    31.0,
+    22.0,
+    22.0,
+    22.0,
+    95.0
+   ],
+   "sp": 240.0
+  },
+  {
+   "cardId": 30066,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    62.0,
+    22.0,
+    22.0,
+    22.0,
+    98.0
+   ],
+   "sp": 175.0
+  },
+  {
+   "cardId": 30097,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    44.0,
+    21.0,
+    21.0,
+    21.0,
+    85.0
+   ],
+   "sp": 220.0
+  },
+  {
+   "cardId": 20002,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    34.0,
+    23.0,
+    23.0,
+    23.0,
+    93.0
+   ],
+   "sp": 200.0
+  },
+  {
+   "cardId": 30097,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    42.0,
+    21.0,
+    21.0,
+    21.0,
+    83.0
+   ],
+   "sp": 210.0
+  },
+  {
+   "cardId": 30088,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    28.0,
+    20.0,
+    20.0,
+    20.0,
+    97.0
+   ],
+   "sp": 210.0
+  },
+  {
+   "cardId": 30108,
+   "lb": 2,
+   "source": "loopacord",
+   "runs": 9,
+   "wellTested": false,
+   "stats": [
+    36.0,
+    25.0,
+    25.0,
+    25.0,
+    86.0
+   ],
+   "sp": 260.0
+  },
+  {
+   "cardId": 30100,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 2,
+   "wellTested": false,
+   "stats": [
+    44.0,
+    22.0,
+    22.0,
+    22.0,
+    81.0
+   ],
+   "sp": 180.0
+  },
+  {
+   "cardId": 30108,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    36.0,
+    25.0,
+    25.0,
+    25.0,
+    85.0
+   ],
+   "sp": 250.0
+  },
+  {
+   "cardId": 20030,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    32.0,
+    22.0,
+    22.0,
+    22.0,
+    91.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 20016,
+   "lb": 4,
+   "source": "loopacord",
+   "runs": 10,
+   "wellTested": true,
+   "stats": [
+    36.0,
+    22.0,
+    22.0,
+    22.0,
+    95.0
+   ],
+   "sp": 210.0
+  },
+  {
+   "cardId": 30031,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 20,
+   "wellTested": true,
+   "stats": [
+    31.0,
+    22.0,
+    22.0,
+    22.0,
+    62.0
+   ],
+   "sp": 160.0
+  },
+  {
+   "cardId": 30013,
+   "lb": 0,
+   "source": "loopacord",
+   "runs": 1,
+   "wellTested": false,
+   "stats": [
+    32.0,
+    23.0,
+    23.0,
+    23.0,
+    65.0
+   ],
+   "sp": 170.0
+  },
+  {
+   "cardId": 30024,
+   "lb": 4,
+   "source": "fujikiseki",
+   "runs": 56,
+   "wellTested": true,
+   "stats": [
+    23.0,
+    50.0,
+    113.0,
+    23.0,
+    23.0
+   ],
+   "sp": 171.0
+  },
+  {
+   "cardId": 30095,
+   "lb": 4,
+   "source": "fujikiseki",
+   "runs": 55,
+   "wellTested": true,
+   "stats": [
+    90.0,
+    22.0,
+    76.0,
+    22.0,
+    22.0
+   ],
+   "sp": 249.0
+  }
+ ]
+}

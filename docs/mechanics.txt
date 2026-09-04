@@ -1,0 +1,1109 @@
+Mechanics
+This section will include detailed numbers on various mechanics within the game. Often, you
+don’t need to know them in such detail.
+
+Document Tabs: Main Page | New Player Info | Mechanics | Strategy | Mid-Run Info
+
+Mechanics
+Gacha
+Legacies
+    3 Star Spark Chance
+    Raising Aptitude
+    Chance of Inheriting Sparks
+    Chance of Getting White Sparks
+    Affinity
+Stats
+    Stat Importance
+    Stamina vs Guts
+    HP
+    Stamina Calculator
+    Required Stamina Chart
+        Recovery Consistency
+    Stamina vs Speed
+Aptitudes
+Support Cards In Detail
+    Stat Stick Passives
+    Other Passives
+    Pal Card Passives
+    Gold Skill Rates
+    Race Bonus Benefits
+    Calculating Training Stat Gain
+Skills
+    Unity Skills
+    Unique Skills
+    Calculating Effectiveness of Skills
+        Speed Skills
+        Acceleration Skills
+Races
+    How do they work?
+    Gate Blocks
+   Uma Racing Styles
+   Phases
+   Secret Stat Checks
+   Popularity
+      Manipulating Popularity
+   Technical Information
+
+
+Gacha
+The SSR/3* rates in Umamusume are 3%, with rate-up cards and umas appearing 0.75% of the
+time usually. You’ll get the rate-up thing ¼ times you get an SSR/3*. This is the same whether
+there are two rate-ups or only one. Each rate-up will be 0.75%, it doesn’t go up to 1.5% for
+single rate-ups. Because of this, dual banners tend to be preferred to pull on.
+
+You also get to pick any of the rate-up things after doing 200 pulls, which is known as sparking,
+a term originating from Granblue Fantasy. (though, it’s a bit confusing with inheritance also
+being sparks on Global…) To get MLB SSRs, you will on average need to spark twice. Pities do
+not carry over across banners. If you do 100 pulls on one banner, you will start from 0 on the
+next, not from 100.
+
+In terms of USD, if you want to whale, one spark will run you $240 if you get them on sale, and
+about $408 at full price, or roughly two dollars per pull. The 2500 pack is the “best value” after
+getting all the sales and monthly pass. They renew the sale packs from time to time.
+
+There are no limited umas. You can pull any character, even the summer or Christmas ones, at
+any time. Some welfare support cards are event-exclusive, but otherwise there are also no
+limited support cards.
+
+Here’s a table showing what you can expect from certain numbers of pulls, pity included, for any
+given rate-up.
+
+SSR
+      Pulls        None          0LB           1LB           2LB           3LB           MLB
+
+              50   69%           26%            5%           0.6%          0.1%           0%
+
+          100      47%           36%           13%            3%           0.6%          0.1%
+
+          200       0%           22%           34%           25%           13%            6%
+
+          300       0%           11%           24%           27%           20%           19%
+
+          400       0%            0%            5%           15%           22%           58%
+         500        0%            0%             2%            9%            17%           72%
+
+         600        0%            0%             0%            1%             5%           94%
+
+
+Sometimes, there will be an uma banner with no rate up. This happened for New Year’s 2021 on
+the JP server. In this case, you can spark any uma.
+
+
+Legacies
+
+3 Star Spark Chance
+After finishing a run, the uma gets random sparks to pass down to its future children. The blue
+one is chosen randomly between the five stats, and then the stars are chosen based on how
+high that stat is. The pink is chosen randomly between all aptitudes the uma has at A or higher
+(so, avoid raising more to A if you’re targeting a specific pink). Here’s a chart of the chance to
+get a 3 star spark based on what the stat is.
+
+
+             Stat Value            <600                   600~1100                   >1100
+
+          1 Star Factor            ~90%                     ~50%                      ~20%
+
+          2 Star Factor            ~10%                     ~45%                      ~70%
+
+          3 Star Factor             0%                       ~6%                      ~10%
+
+
+After finishing an uma, a stat is randomly chosen, and then the stars for that stat are chosen.
+So, if you had 1200 Speed, the chance of getting a 3 star Speed spark would be 20% (the
+chance of it picking Speed) * 10% (the chance of it being 3 star) for a total of ~2%. It doesn’t
+matter if you win the run or not.
+
+
+Raising Aptitude
+During the initial inheritance, the amount the aptitude increases is based on the number of total
+stars among the pink sparks of the parents and grandparents. Raising it by one rank requires 1
+star, then each subsequent rank requires another three stars. You can raise each aptitude a
+total of four ranks in this way, so an F rank aptitude could only go to B during the initial
+inheritance, even with 18 total stars.
+
+As an example, Mayano Top Gun has an E rank Dirt aptitude and a D rank Mile aptitude. In
+order to raise her for Dirt PvP, you would need to raise both to A. Getting Mile to C takes one
+star, then 3 to get to B, and 3 more to get to A, for a total of 7. The Dirt aptitude requires one
+more step, so it requires 10 total stars.
+In total, this is 17, but it’s not possible to do all at the start since one uma can’t have two
+different pink aptitudes. You could do 7 Mile and 9 Dirt (3+3+1, 3+3+3), or 6 Mile and 10 Dirt
+(3+3, 1+3+3+3). One of them will have to be left at B and raised through an inspiration event.
+Chance of Inheriting Sparks
+The chance of inheriting sparks is influenced by your individual affinity with each uma and
+whether the uma is a parent or grandparent. Here’s a table I stole from Crazyfellow.
+
+
+Spark type↓ / Base chance→             ☆1 Rate              ☆2 Rate                 ☆3 Rate
+
+Blue                                    70%                  80%                     90%
+
+Pink                                    1%                   3%                      5%
+
+Green (Unique Skill)                    5%                   10%                     15%
+
+Race Whites                             1%                   2%                      3%
+
+Other Whites                            3%                   6%                      9%
+
+These numbers are then increased by a % equalling your affinity. So, if you had 30 affinity with
+your parent that had a 3 star skill white, you would have a 9% * 1.3 = ~12% chance of inheriting
+it instead of 9%.
+
+
+Chance of Getting White Sparks
+When you finish a run, you have a chance to get white sparks for each skill you have. If it’s a
+white skill, it’s a 20% chance. If it’s a ◎ skill, it’s 25%. If it’s a gold skill, it’s 40%. For each parent
+or grandparent that also has the spark, you add 2.5%, or 5% for the gold skills.
+
+Other white sparks, such as race and scenario sparks, follow the same pattern, counting as
+white skills (so 20% base chance).
+
+For stars, it’s 50% for 1 star, 45% for 2 stars, and 5% for 3 stars. These change to 20% for 1
+star, 70% for 2 star, and 10% for 3 star if the uma is SS rank or higher.
+Affinity
+The better the affinity, the higher the chance of getting a lot of inherited sparks during the two
+inspiration events during the training, which happen in early April Y2 & Y3.
+
+
+
+The affinity is decided by a variety of things. At a baseline, each uma has hard-coded affinity
+with every other uma, which is derived from various things usually related to the real-life umas.
+Dirt racers tend to have good affinity with other Dirt racers and such. This affinity applies
+between the uma you’re training and her parents, and between her and her grandparents. Every
+uma has 0 affinity with themselves, which is significant for grandparents. You can check these
+numbers on Gametora.
+
+Triangle is 50 or less affinity, double circle is greater than 150 affinity. There’s no significant jump
+here, 149 affinity isn’t massively worse than 151. Affinity is linearly useful, 149->150 is the same
+increase as 150->151. But, the double circle is a good target when you don’t want to bother
+calculating everything.
+
+You can increase this affinity by doing races. Currently, you get +1 affinity for each graded race
+you win on both the parent and the grandparent. So, if you won 10 graded races on Oguri, then
+trained a Teio with the Oguri as a parent and did those same 10 races, you would get +10
+affinity for the Teio parent, making it easier to get double circle affinity for your runs. If the other
+grandparent also did those 10 races, you would have +20 affinity.
+
+If both parents did the race, there’s another bonus. So, if the other parent was a Mayano who
+did those 10 races, it would be another +10 affinity, for +30 total. Doing races is also good since
+it gives you more SP, which means more skills, which means more chances for white sparks.
+
+However, later on this gets changed to be +3 per matching G1, with G2s and G3s no longer
+counting. This applies retroactively, so your parents’ affinities might change after that update. As
+such, just focus on the G1s when making your parents in this way. They give good stats
+anyway, you should be doing them with some frequency even on normal runs
+
+
+
+
+Stats
+Speed is always an important stat. You will want as much of it as possible, as it increases your
+top speed during the last spurt.
+BaseSpeed = (20 - (CourseLength - 2000) / 1000) * PhaseModifier
+FinalLegSpeed = BaseSpeed + sqrt(500 * Speed) * DistanceAptitude * 0.002
+MaxSpurtSpeed = (FinalLegSpeed + 0.01 * BaseSpeed) * 1.05 + sqrt(500 * Speed) *
+DistanceAptitude * 0.002
+Stamina is necessary up to a point, and then starts to fall off depending on distance. How much
+you need is based on a variety of factors. The lower your speed, the less you’ll need. Pace
+Chasers also receive an 11% Stamina penalty. For a target stamina for each style in each
+distance, see the Required Stamina Chart below.
+
+Long distance has a wide variety of distances, from 2500m up to 3600m. If you’re targeting
+ones on the shorter end, you can skimp more on stamina. They’re 2600m or lower over half of
+the time, with the other half being 3000+m in Team Trials.
+
+On top of causing you to lose Speed when you run out of HP, your remaining HP also affects
+how long and how fast your last spurt will be. If you lack Stamina, your uma will start her last
+spurt later or run slower to use her HP more efficiently. If you completely run out of HP, you’ll
+quickly decelerate.
+
+Power is more important in shorter distances, but always helps out. It affects how quickly you
+accelerate to your top speed. In longer races, you have more time to accelerate, so having a
+high acceleration doesn’t have as big of an impact. For the most part, if you meet your stamina
+goal, you’ll focus as much on speed as possible, then power second.
+
+BaseAcceleration = 0.0006 normally, 0.0004 on uphills.
+Acceleration = BaseAcceleration * sqrt(500 * Power) * PhaseModifier * SurfaceAptitude
+
+Power also affects your speed on uphills. When going uphill, you receive a speed penalty of
+|100 * tan(angle in radians)| * 200 / Power.
+
+It also affects how quickly you change lanes. Your lane change speed is 0.02 * (0.3 + 0.001 *
+Power) m/s.
+
+Guts isn’t useful in large numbers, but you need a small amount of it. Umas will want to have
+~300 guts, but rarely more than 400. Up to 400, it’s close to equivalent to stamina, while after, it
+falls off. See the Stamina vs Guts section for details.
+
+The Final Leg HP consumption modifier is 1.0 + 200/sqrt(600 * Guts).
+
+Wit, aka Wisdom affects your skill trigger rates, as well as some other things. Aim to have
+between 300 and 500 wisdom for any uma. Any more than that and it starts to fall off too much.
+You can see a chart of the skill proc chance based on your wisdom here.
+
+
+ Wisdom         200           300           400           500            600           700
+
+ Skill Proc     55%           70%           77.5%         82%            85%           87%
+Wit also affects the chance that the uma suffers from “Rushed” debuff. Whether the uma will
+suffer Rushed is determined at the start of the race based on a Wisdom check. The chance is
+(6.5 / log10(0.1*Wit+1))^2 percent.
+
+Rushed will occur at a mostly random point in the first half of the course. It lasts for 12 seconds,
+but you have a 55% chance to break free every 3 seconds. While under Rushed, the uma will
+consume HP 60% faster and switch their style to a more aggressive one (eg, a Late Surger
+might act as a Pace Chaser or a Front Runner, Front Runner acts like Twin Turbo).
+
+
+ Wisdom         200           300           400           500           600            700
+
+ Rushed         24.17%        19%           16.24%        14.49%        13.26%         12.32%
+
+
+Wit can also give you a chance to increase your speed on downhills. The speed boost you get
+from downhills is 0.3 + |100 * tan(angle in radians)| / 10, and the chance you receive it is 0.04%
+* Wisdom. So, 4% per 100 Wit. Every second, this has a 20% chance to end.
+
+Another other thing Wit does is help determine your target speed at each section of the race.
+There are 24 such sections, and in each of them, your uma applies a random modifier to her
+target speed, with the help of your Wit.
+
+The max modifier is Wit / 5500 * log10(Wit * 0.1)%
+The minimum modifier is the max speed minus 0.65.
+ Wisdom         200           300           400           500           600            700
+
+ Max Mod        0.047%        0.081%        0.117%        0.154%        0.194%         0.235%
+
+ Min Mod        -0.603%       -0.569%       -0.533%       -0.496%       -0.456%        -0.415%
+Stat Importance
+Assuming a perfect uma with 1200 in all stats, but no skills, here is how much faster that uma is
+than an uma with 1200 in all stats except one, measured in lengths. The “Long” track is Tenno
+Sho Spring, the “Medium” track is Derby, the “Sprint” is Sprinter’s Stakes.
+
+This table was made before the update that made Guts affect spurt speed.
+
+
+              Stat         400                 600                800                1000
+
+   Speed (Long)           21.29               14.48              8.92                4.18
+                                             (+6.81)            (+5.56)             (+4.74)
+
+  Speed (Sprint)           5.04               3.31               1.98                0.90
+                                             (+1.73)            (+1.33)             (+1.08)
+
+ Stamina (Long)           45.07               42.17               25.50              10.46
+                                             (+2.90)            (+16.67)           (+15.04)
+
+  Stamina (Med)           21.35               6.48               0.00                0.00
+                                            (+14.87)            (+6.48)
+
+   Power (Long)           19.64               10.03              5.12                2.10
+                                             (+9.61)            (+4.91)             (+3.02)
+
+  Power (Sprint)           7.92               4.61               2.53                1.10
+                                             (+3.31)            (+2.08)             (+1.43)
+
+     Guts (Long)          19.38               10.05              4.27                1.48
+                                             (+9.33)            (+5.78)             (+2.79)
+
+      Guts (Med)           0.00               0.00                0.00               0.00
+
+       Wit (Long)          5.58               4.30               2.93                1.49
+                                             (+1.28)            (+1.37)             (+1.44)
+
+
+Acceleration makes Power less important. For example, if the Sprint uma is Pasa, then Speed
+outperforms Power. And, training Speed raises Power, while training Power raises Stamina, so
+even in Sprint, Speed wins out in the end. Power is also stronger the more Speed you have, as
+the higher your top speed, the more you need to accelerate. And vice versa, since having higher
+Power lets you accelerate to your top speed faster, getting more out of your Speed stat.
+
+Stamina and Guts are extremely powerful when giving you more effective HP, but useless
+otherwise, with Guts being a spicy version of Stamina. (see next page) Wit also gets better
+when you lack Stamina, as it makes your spurts better and can reduce HP consumption on
+downhills, acting as bonus Stamina.
+
+From this, we can think of the stat importance as:
+Stamina/Guts up to the track’s requirement > Speed > Power > Wit
+
+
+Stamina vs Guts
+https://twitter.com/ottoh1112/status/1389344141172035585
+
+Each distance has a “target” Guts. Below this number, each point of Guts lost is worth more
+than losing a point of Stamina. Above, each point of Guts gained is worth less than gaining a
+point of Stamina.
+
+In Sprint, this threshold is at 210 Guts.
+In Mile and Dirt, 260 Guts.
+In Medium, 320 Guts.
+In Long, 3000m has a threshold of 380 Guts, while 3600m has one of 440.
+
+Guts is only slightly worse than Stamina while going 50 over this threshold point. Those 50
+points of Guts will be worth 43~46 Stamina. The next 50 will be worth 33~37 Stamina. The 50
+after that is only worth 30~31.
+
+On the other hand, Guts is better than Stamina when below the threshold. If you’re 50 below,
+then adding 50 Guts is like adding 55~62 Stamina. If you’re 100 below, adding 50 is like adding
+66~83. At 150 below, the 50 Guts would be worth 82~106 Stamina. It’s more impactful in the
+shorter distances.
+
+
+HP
+The HP calculation formula is (Track Distance) + (Stamina * 0.8) * (Style Modifier).
+
+Front Runners have a multiplier of 0.95, or 95%, while Pace Chasers have one of 0.89, Late
+Surgers have one of 1, and End Closers have one of 0.995.
+
+You might ask how Guts fits into this. Guts lowers your HP consumption at the end of the race.
+The multiplier for HP consumed is 1 + (200 / sqrt(600 * Guts)). More Guts means a lower HP
+consumption. You can see a graph of this here.
+
+The base HP consumption rate is 20 * (CurrentSpeed - BaseSpeed + 12)^2 / 144
+
+The track condition also affects this. The worst condition will give a 1.02 multiplier to HP
+consumed throughout the race, while the second worst gives 1.02 on Turf and 1.01 on Dirt.
+
+While in Rushed, HP consumed is multiplied by 1.6. When you trigger the downhill boost, it’s
+multiplied by 0.4. When the uma enters pace down mode, it’s multiplied by 0.6. Front umas
+never enter pace down.
+Recovery skills heal a percentage of your HP. A golden one will restore 5.5%, while a white will
+restore 1.5%. For Unique skills, if the uma is below 3 stars, it will restore 3.5%, otherwise, 5.5%.
+
+
+Stamina Calculator
+To determine whether your uma has enough stamina, use this spreadsheet, which isn’t
+track-specific but works fine. Most notably, it doesn’t consider hills, so will often overestimate
+your required stamina. You’ll want to leave the “consider skill proc rate” option off. Average
+doesn’t make sense for heals, you get them or you don’t, so the “chance of failure” is the
+important stat rather than your average.
+
+You could also plug their information into this calculator. The options, despite looking like they’re
+all off, actually default to on, so you’ll have to turn them on and back off again to get closer to
+Global. There are probably various differences in the code, from updated mechanics (like Guts)
+to updated course data, so it will be more accurate the more time passes.
+
+Or, you can use the Umalator, which is sometimes a bit more work. There’s a section on using it
+to check stamina here. All three will usually give results within 100-200 Stamina of each other.
+
+
+Required Stamina Chart
+These numbers are generated with the umalator, for quick reference. Downhills reduce the
+Stamina requirement, so some tracks will also be lower than this. Eg, Hanshin 3000m takes 150
+less stamina than Kyoto 3000m, due to having 1000m of downhills.
+
+The numbers seem extreme, but Stamina is more important than Speed if you lack Stamina.
+1200 Speed 500 Stamina is 3 seconds (~30 lengths) slower than 500 Speed 1200 Stamina on
+Tennosho Spring (3200m). You lose so much speed when out of stamina. In Career Mode, the
+invisible +400 All Stats bonus makes these much lower. See Stamina vs Speed.
+
+These numbers are calculated with 1200 Speed, 1200 Power, and 600 Wit, on tracks with no
+downhills, and with no skills other than heals. For Sprint/Mile, it uses 300 Guts, and for
+Med/Long, 400 Guts. See Stamina vs Guts. The existence of downhills can lower these
+numbers, and the existence of Debuffers can raise them. Skills can also cause you to spend
+more stamina due to running faster, but it tends to be minor, like 10-30 Stamina. Front Runner
+accounts for fighting to keep first place (Spot Struggle/Lead Comp), while Pace Chasers can be
+content with their positioning and enter pace down, which saves them stamina. So Front
+Runners use more stamina, even though Pace Chasers have the least.
+
+
+     Required Stamina        Front Runner       Pace Chaser         Late Surger        End Closer
+
+          Short - 1400m           570                540                500                510
+
+            Mile - 1800m          800                770                720                740
+  Mile - 1800m + 1 Gold          640               600               560               580
+
+  Mid - 2400m + 1 Gold           910               930               870               900
+
+  Mid - 2400m + 2 Gold           710               720               680               700
+
+ Long - 2600m + 1 Gold          1130              1110              1030               1060
+
+ Long - 2600m + 2 Gold           900               870               820               850
+
+ Long - 3200m + 2 Gold          1080              1060               990               1020
+
+ Long - 3200m + 3 Gold           830               800               750               780
+
+
+Note that the more gold recoveries you rely on, the less consistent you’ll be, as each one only
+has a roughly 70-80% chance to activate. Check out the chart below to judge how often your
+uma might end up failing due to missed skill activations.
+Recovery Consistency
+Required Stamina recommendations will list the required stamina based on the number of
+recoveries, but it assumes those recoveries activate. Here’s the chance of that happening based
+on your Wit stat and how many recoveries you have.
+
+
+                          Wit:      300       400         500        600        700         800
+
+             1 Gold Recovery      70.0%      77.5%      82.0%      85.0%       87.1%      88.8%
+
+       1 of 2 Gold Recoveries     91.0%      94.9%      96.8%      97.8%       98.3%      98.7%
+
+            2 Gold Recoveries     49.0%      60.1%      67.2%      72.3%       75.9%      78.9%
+
+       2 of 3 Gold Recoveries     78.4%      87.1%      91.4%      93.9%       95.4%      96.5%
+
+       2 of 4 Gold Recoveries     91.6%      96.2%      98.0%      98.8%       99.2%      99.5%
+
+            3 Gold Recoveries     34.4%      46.5%      55.1%      61.4%       66.1%      70.0%
+
+       3 of 4 Gold Recoveries     65.2%      78.0%      84.9%      89.0%       91.7%      93.6%
+
+            4 Gold Recoveries     24.0%      36.1%      45.2%      52.2%       57.6%      62.2%
+
+       4 of 5 Gold Recoveries     52.8%      68.5%      77.8%      83.5%       87.3%      90.0%
+
+
+Note that some recoveries are also inherently unreliable. For example, it’s very rare for Iron Will
+to trigger, Breath of Fresh Air can trigger too early or late to do anything, and Adrenaline Rush
+will always be too late. See Gold Recovery Rankings.
+Stamina vs Speed
+So, how important is reaching the Stamina requirement, really? Surely skimping on Stamina and
+increasing Speed will make the uma run faster, right? How bad could it be?
+
+Well, here are some comparisons. They assume both umas have 1200 Power, 250 Guts, and
+1000 Wit, and are verified over 100 1v1 races. The umas have no skills, other than recoveries
+when mentioned, and their uniques do not trigger. They race on tracks with no downhills, and
+are both Pace Chasers. There is one Front Runner to keep the pace, but it doesn’t influence
+anything else. The umas never get blocked or anything. It’s just Speed vs Stamina.
+
+Sprint (1400m, Recommendation: 500 Stamina)
+1200 Speed 450 Stamina loses to 1010 Speed 500 Stamina
+1200 Speed 350 Stamina loses to 470 Speed 500 Stamina
+1200 Speed 250 Stamina loses to 130 Speed 500 Stamina
+
+Mile (1800m, Recommendation: 800 Stamina)
+1200 Speed 700 Stamina loses to 920 Speed 800 Stamina
+1200 Speed 600 Stamina loses to 560 Speed 800 Stamina
+1200 Speed 500 Stamina loses to 270 Speed 800 Stamina
+
+Medium (2400m, Recommendation: 900 Stamina + Gold Recovery)
+1200 Speed 1000 Stamina loses to 710 Speed 1200 Stamina
+1200 Speed 900 Stamina loses to 470 Speed 900 Stamina + Gold (when it activates)
+1200 Speed 600 Stamina + Gold loses to 210 Speed 900 Stamina + Gold
+
+Overall with these three, we can roughly say that being 300 Stamina below the recommendation
+turns your Speed stat into a decoration when compared with healthy umas, and if you’re 100
+under, then each point of Stamina is worth three points of Speed. Going above the Stamina
+recommendation will do very little, except insulate you against Debuffers and Rushed, but
+reaching it is very important. On the flip side, this shows how strong Debuffers are. Reducing
+the enemy’s Stamina by 100 is like reducing their Speed by 300, and Nice Nature can reduce it
+by like 200~400.
+
+Long (3600m, just for fun. Very difficult to have too much Stamina here)
+1200 Speed 1000 Stamina loses to 200 Speed 1200 Stamina
+1200 Speed 1700 Stamina + 3 Golds loses to 1000 Speed 1700 Stamina + 4 Golds
+1200 Speed 1200 Stamina + 3 Golds loses to 700 Speed 1200 Stamina + 4 Golds
+1200 Speed 1150 Stamina + 2 Golds loses to 200 Speed 1200 Stamina + 4 Golds
+Aptitudes
+
+
+
+
+These letters mean different things depending on what row they’re in. An A is the baseline and
+gives no benefit or penalty. If you’re below A, you will be penalized, while if you’re at an S, you’ll
+receive a small bonus.
+
+The first row is for the surface type, either Turf or Dirt. This rank affects your acceleration. If you
+have an S, you’ll receive a 5% boost. B will give -10%.
+
+The second row is for distance. This rank affects your speed. The rates are the same as the
+surface type. If you have an S, you’ll receive a 5% boost. B will give -10%. If you have an E or
+lower, it will also reduce your acceleration by a significant amount, but you shouldn’t put an uma
+through that.
+
+The third row is for style. It affects your Wit. An S is a 10% boost, while a B gives -15%.
+However, this does not affect your chance of triggering skills, only all the other things Wit does.
+Getting S in style is fairly minor but does increase your team score in Team Trials.
+
+To be precise, here are the exact numbers for each rank.
+
+
+ Type       S           A          B           C          D           E          F           G
+
+ Surface    +5%         0%         -10%        -20%       -30%        -50%       -70%        -90%
+
+ Dist       +5%         0%         -10%        -20%       -40%        -60%       -80%        -90%
+
+ Style      +10%        0%         -15%        -25%       -40%        -60%       -80%        -90%
+
+
+The +5% to your raw speed or acceleration converts to +10.25% Speed/Power stat (about 120
+at 1200 Speed/Power). A -10% would convert to -19% Speed/Power (about -230 at 1200
+Speed/Power).
+Support Cards In Detail
+
+Stat Stick Passives
+Support cards will either be used for their skills or as stat sticks. Comparing skills is easy, but
+comparing their ability to be a stat stick is more complicated.
+
+Let’s look at what’s widely considered the best support card in the game, Kitasan Black, at max
+limit break.
+
+Typically the passives you’ll be interested in for a stat stick are “Friendship Bonus,” “Training
+Effectiveness,” “Mood Effect,” “<stat> Bonus” and “Specialty Priority.” “Initial Friendship Gauge”
+is also convenient as it reduces the time taken to get them to orange bond.
+
+The Mood Effect is added to the bonus you get from your current mood, which is +/- 10% per
+deviation from normal. So, with max mood, it’s +20%. With Kitasan’s +30% Mood Effect, this
+gets to +26%. This also applies negatively, so if you’re at bottom mood, it would go from -20% to
+-26%.
+
+Training Effectiveness and Friendship Bonus work multiplicatively with this. For unique skills,
+mood effect and training effectiveness are additive, while friendship bonus is multiplicative. She
+has a 5% training effectiveness from her unique skill, 10% training effectiveness, and 25%
+friendship effectiveness. All together, the stat gains will be multiplied by 1.26 * 1.15 * 1.25 for a
+total of +81% stats from these passives. Note that friendship and unique friendship will act
+multiplicatively with each other, not additively. A card with 25% Friendship Bonus and 10%
+unique friendship bonus will give you 37.5%, not 35%.
+
+Specialty Priority increases how often the card will land on its preferred training. Specialty
+adds to the weight, while specialty from the uniques multiplies it as if a percent, the same way
+Friendship Bonus works. Each stat has a base weight of 100, and not appearing has a weight of
+50. These are divided by the total to give the chance of appearing on each training, so 100/550
+= 18.18% rainbow rate with 0 specialty. For Kitasan, she has 80 base, so 100 + 80 = 180, then
+she has unique specialty, so 180 * 1.2 = 216, which is the same as having 116 base. Her Speed
+appearance rate would be 216/666, or 32.4%. (Theoretically, slightly lower due to the chance of
+the training being full?)
+
+<Stat> Bonus effects, like Kitasan’s Power Bonus, add 1 to how much the training will give you
+of that stat, before all the modifiers. Kitasan’s is Power rather than Speed, which means your big
+speed rainbows will also give a lot of power. This will also apply when she appears on Power or
+Guts trainings.
+Other Passives
+Initial <Stat> is somewhat self-explanatory. At the start of training, the number is added to that
+stat. This can save you a day or two of training and is particularly useful on cards of types that
+you’re only bringing 1 or 2 of, for example the Power cards in a 4 Speed 2 Power deck.
+
+Hint Frequency - increases the chance of there being hints for the support card (the !s that
+appear on trainings). Since a hint gives +5 bond, this can help you get rainbows quicker, in
+addition to making it easier to access the card’s skills.
+
+Hint Levels - increases the discount on the skills the hints give you, saving you some skill
+points if you buy them.
+
+Wit Friendship Recovery - a passive found on Wit (and later Group) cards. When there’s a
+rainbow on the Wit training, it will restore extra energy according to this stat (4 for a MLB SR, 5
+for a MLB SSR, except Ikuno SR has none).
+
+Race Bonus - increases the amount of stats and skill points you gain from finishing a race. This
+includes the +3 all stats from mandatory races and the +10 all stats from URA. No rounding, if
+you want to go from +3 all to +4 all you need 34% Race Bonus. On most umas, going from 33%
+to 34% would be +10 all stats.
+
+Fan Bonus - is similar, but applies to the fans gained. This is sometimes relevant for umas with
+early fan checkpoints, but can usually be ignored.
+
+
+Pal Card Passives
+Note that multiple Pal cards can’t appear on the same training, so none of these can stack.
+
+Failure Protection - reduces the chance of failing a training. With a 35% value, a 9% fail
+chance would go to 6%.
+
+Energy Cost Reduction - reduces the energy that the training the card is on costs. A level 5
+Speed training costs 25 energy, but with a 20% reduction, it would only be 20 energy.
+
+Event Recovery - increases the energy you gain from the card’s events, most notably the
+dates.
+
+Event Effectiveness - increases the other rewards, such as the number of skill points gained.
+Gold Skill Rates
+Some support cards only have a chance to give you a gold skill at the end of their chain, while
+others are guaranteed to. For example, Fine Motion can either give you Speed Star, or the white
+version of it. Us JP players called getting the white skill “agemasen” (“will not give”) for short,
+based on the anime scene where Special Week refuses to give McQueen a thing. “Card didn’t
+give me the gold” is a bit of a mouthful. The chance of it happening is dependent on how high
+your stat is of the card’s type. So, for Fine Motion, it would be based on your Wit. Since the final
+chains happen sort of randomly, you can’t really control this, but it’ll let you know if you’re
+justified in complaining at least?
+
+
+ Stat                     <400         400+       600+         700+         800+         1000+
+
+ Gold Skill Chance        30%          60%        65%          75%          80%          90%
+
+
+
+
+Race Bonus Benefits
+The “Race Bonus” passive on support cards increases the stats and skill points you receive
+from finishing races. This applies to both optional races and the mandatory races and URA
+Finals. Here’s a chart of how many stats and skill points you get from a run based on your total
+Race Bonus.
+
+
+  Bonus     0%       5%          10%     15%       20%       25%      30%         35%     40%
+
+  Stats     351      351         372     372       393       393      414         461     482
+
+  SP        870      906         946     991       1044      1080     1123        1165    1218
+
+
+There’s a big jump between 30% and 35% race bonus. In actuality, this jump happens at 34%. If
+you can pick your supports in a way that gets you to >=34% race bonus, you’ll get a good chunk
+of extra stats. You can use this as a way to break ties between cards that are otherwise similar.
+Calculating Training Stat Gain
+
+
+
+
+These charts give the base values for each training at each level. The energy cost also goes up
+by 1 at levels 2 and 3, and by 2 at levels 4 and 5. MANT uses the Unity Cup table.
+
+To get the result from training, it’s…
+
+(BaseValue + Sum of StatBonus) * (1 + MoodMultiplier * (Sum of MoodEffect)) * (Sum of
+TrainingBonus) * (Product of FriendshipBonus) * (1 + 0.05 * NumberOfSupportCards)
+
+Friendship Bonus will only be applied if the support is at orange or higher bond (aka
+rainbowing).
+The MoodMultiplier is 0 at neutral mood, and goes up or down by 0.1 per mood up/down.
+
+
+
+
+Skills
+
+Unity Skills
+The skills you get from the Unity scenario have effectiveness based on your team’s total stats.
+Unless you’re in a mode where you race alone or low in the Stadium rankings, you will usually
+have three umas on your team. The skill you get is picked from your team’s highest ranked
+stats, but you can also inherit them. And, yes, they do work outside of the Unity scenario.
+
+Green/Purple skills don’t count towards the stat total, but motivation does.
+
+
+     Total Stat       <1200              <1800        <2600            <3600         >=3600
+ Average Stat         <400             <600            <867            <1200           >=1200
+
+     Multiplier        0.8              0.9             1.0              1.1              1.2
+
+
+
+
+Unique Skills
+Unique Skills are unique to each uma. If the uma is 3 star or better, she can pass them down
+through inheritance. However, unique skills passed down this way are much worse, and their
+price prevents them from being an appealing option. They’re essentially white skills with weird
+conditions and longer durations.
+
+There are a few that retain some strength and are stronger than a normal white skill with a
+longer duration, so can be worth taking. These are Oguri Cap’s Triumphant Pulse(勝利の鼓動),
+Symboli Rudolf’s Behold Thine Emperor's Divine Might(汝、皇帝の神威を見よ), Tokai Teio’s
+Sky-High Teio Step(究極テイオーステップ), King Halo’s Prideful King(Pride of KING), and Fuji
+Kiseki’s Glittering Star Vaudeville(煌星のヴォードヴィル).
+
+The level of a unique skill increases its strength. For recovery skills, it’s increased by 2% per
+level. So, a level 4 Unique recovery would restore 5.83% HP instead of 5.5%. For other skills,
+it’s increased by 1% on the first level up, then 3% on each subsequent level up.
+
+
+
+Calculating Effectiveness of Skills
+
+Speed Skills
+Speed is simple to calculate. Distance is speed multiplied by time, so we can multiply the skill’s
+effectiveness by the duration. Note that the duration is multiplied by track length / 1000, so on
+longer tracks, the effectiveness will go up.
+
+ハヤテ一文字 / Beeline Burst - 0.35 over 0.9s
+0.35m/s * 0.9s = 0.315m
+In 2400m, * 2.4 = 0.756m
+
+全身全霊 / In Body and Mind - 0.35 over 1.8s
+0.35m/s * 1.8s = 0.63m
+In 2400m, * 2.4 = 1.512m
+
+中距離コーナー◎ / Medium Corners◎- 0.25 over 3s
+0.25m/s * 3s = 0.75m
+In 2400m, * 2.4 = 1.8m
+Acceleration Skills
+Acceleration is more complicated. You have to calculate how long you’d normally take to
+accelerate to top speed, as well as how much distance you cover in that time, then compare
+that to the numbers when accelerating. For these examples we’ll assume 1200 Speed and 1000
+Power, which is fairly realistic.
+
+With 1000 Power, the acceleration is 0.424m/s/s, ignoring Phase Multipliers..
+Time to get to top speed is (Top Speed - Starting Speed) / Acceleration.
+Distance is 0.5 * Time * (Top Speed + Starting Speed)
+Speed is Starting Speed + Acceleration * Time
+
+地固め / Groundwork - 0.2 over 3s
+We’ll use 17m/s as the starting speed and 20.3m/s as the top speed, which is about what a
+Front Runner has in Mile.
+
+Without Groundwork, the time taken is (20.3 - 17) / 0.424 = 7.78s
+The distance covered is 0.5 * 7.78 * (20.3 + 17) = 145.1m
+
+With Groundwork, the time taken is (20.3 - 17) / 0.624 = 5.29s
+The distance covered while accelerating is 0.5 * 5.29 * (20.3 + 17) = 98.66m
+The time spent at top speed is 7.78 - 5.29 = 2.49, which when multiplied by 20.3 = 50.55m
+98.66 + 50.55 = 149.21. Subtract the other number, 145.1, and we get 4.11m gained.
+
+アングリング×スキーミング / Angling and Scheming, Seiun unique - 0.4 over 4s
+This is similar to the Groundwork calculation, but the base speed will be 20m/s, and the top
+speed will be 24.2m/s, normal numbers for a Front Runner in Mile.
+
+Base Time = (24.2 - 20) / 0.424 = 9.9s
+Distance = 0.5 * 9.9 * (24.2 + 20) = 218.8m
+
+Angling Time = (24.2 - 20) / 0.842 = 4.99s
+Distance = 0.5 * 4.99 * (24.2 + 20) = 110.28m
+Top Speed Time = 9.9 - 4.99 = 4.91, times 24.2 = 118.82m
+Total = 229.1m, difference = 10.3m
+
+先手必勝 / Taking the Lead - 0.4 over 1.2s
+This skill triggers 5 seconds into the acceleration, so we need three steps.
+
+Base Time = (20.3 - 17) / 0.424 = 7.78s
+Distance = 0.5 * 7.78 * (20.3 + 17) = 145.1m
+
+Speed after 5s = 17 + 0.424 * 5 = 19.12m/s
+Distance after 5s = 0.5 * 5 * (19.12 + 17) = 90.3m
+Time With Skill = (20.3 - 19.12) / 0.824 = 1.43s
+Distance With Skill = 0.5 * 1.43 * (20.3 + 19.12) = 28.19m
+Top Speed Time = 7.78 - (5 + 1.43) = 1.35s, times 20.3 = 27.4m
+Total = 145.89m, difference = 0.79m
+
+
+迫る影 / Encroaching Shadow - 0.4 over 0.9s
+This skill doesn’t last long enough, so we have to do three steps again. Taishin gets this skill,
+and she’s used in Medium, so we’ll assume 2000m, making the duration 1.8s. As an End
+Closer, we’ll use 19.9m/s as the base speed, and 24.4m/s as the top speed.
+
+Base Time = (24.4 - 19.9) / 0.424 = 10.61s
+Distance = 0.5 * 10.61 * (24.4 + 19.9) = 235m
+
+Speed after 1.8s with skill = 19.9 + 0.824 * 1.8 = 21.38m/s
+Distance after 1.8s = 0.5 * 1.8 * (21.38 + 19.9) = 37.15m
+Time after Skill = (24.4 - 21.38) / 0.824 = 7.12s
+Distance after Skill = 0.5 * 7.12 * (24.4 + 21.38) = 162.98m
+Top Speed Time = 10.61 - (7.12 + 1.8) = 1.69s, times 24.4 = 41.24m
+Total = 241.37m, difference = 6.37m
+
+
+
+
+Races
+
+How do they work?
+
+
+
+
+Here’s an example image of a simple track from the simulator, of a Late Surger uma in the Ibis
+Summer Dash race. The red line is the uma’s current speed.
+
+There are four phases of a race, but for the most part we can combine the last two. These
+phases are: the Opening Leg, which lasts for the first 1/6th; the Middle Leg, which lasts for the
+next 3/6ths; the Final Leg, which is the next 1/6th; the Last Spurt, which is the final 1/6th. Skills
+refer to these phases, for example, On Your Left! triggers in the Final Leg, and In Body and
+Mind triggers in the Last Spurt.
+Each uma has a target speed during each phase. For the formulas, check the Technical Doc
+linked below. For the most part, you can simply know that umas will run faster in each phase,
+except for Front Runners who run slower in the Middle Leg than the Opening Leg. The Final Leg
+and Last Spurt use the same numbers, so they can be considered as one phase.
+
+Before the Final Leg, your Speed stat doesn’t affect your target speed. Only Wit affects it
+slightly. In the Final Leg, after your uma begins her spurt, both Speed and Guts affect your
+speed. The spurt is when your uma starts spending all her energy to try to finish the race.
+
+When you’re not at top speed, you’re accelerating. Power affects how fast you accelerate. Umas
+start out stationary at the start of the race, then accelerate to their Opening Leg speed. They
+then accelerate to the Middle Leg speed once that phase starts, and then to their Final Leg
+speed when that starts. If your uma doesn’t start her spurt immediately when the Final Leg
+starts, she’ll later accelerate to her spurt speed. During these periods, Acceleration skills are
+useful, but outside of them, Acceleration skills are useless. The reverse is also true. Speed skills
+are useless while accelerating, though they can last beyond the acceleration, and if they last
+into the accel, then your starting point is raised, saving time. (see Spurt Speed Carry-over)
+
+Your uma’s speed in the final leg is affected by her remaining HP. When the Final Leg starts,
+she will decide how fast to run and when to start running fast based on that HP, with higher
+Wisdom making her do more optimal decisions.
+
+Let’s see a chart with a late spurt to see the implications. Red will be the healthy uma, and the
+blue will be an uma without enough Stamina.
+
+
+
+
+This uma lacks the required Stamina for the track, so she had to delay her spurt. The dip in the
+speed at the end is what happens when an uma runs out of HP: their speed quickly drops. If
+your uma is severely lacking in HP, she might not spurt at all, making your Speed stat useless.
+
+If an uma uses a recovery during the last two phases, she’ll reconsider her strategy and might
+alter it. Here’s an example. (The blue recovery line is covering the red spurt start line)
+In the above graph, the uma didn’t have enough HP remaining to start her spurt immediately.
+However, the Breath of Fresh Air recovery triggered, restoring 5.5% of her HP. With the
+newfound HP, she decided to start her spurt right then. This isn’t as optimal as having the
+recovery trigger earlier. As you can see, there’s a plateau before the recovery, where she wasn’t
+accelerating. If the recovery had triggered earlier, she would have been accelerating all the time,
+like in the first graph. But, it’s still better than in the second graph.
+
+To show the impact of acceleration skills, let’s look at a well-timed Turbo Sprint.
+
+
+
+
+This increased acceleration resulted in the blue uma winning by 3.5 lengths. Acceleration skills
+are very powerful when they work and the meta tends to revolve around them for this reason.
+
+There are some other features of tracks.
+
+Corners: If you remember your high school math classes, the circumference of a circle is Pi * 2
+* radius. That means that, the closer you are to the inside of the corner, the less distance you
+have to run. Umas will naturally move inside for this reason. As a consequence, it’s harder to
+pass someone on a corner, as you have to run a bit more distance than them by going around.
+Note that each capsule-shaped track has four corners, not two.
+
+Uphills: It’s harder to run uphill. Umas will slow down when running uphill, though the higher
+their Power, the less they slow down. Power becomes more important if there are many uphills.
+Downhills: It’s easier to run downhill, but only if you know how. While running downhill, umas
+have a chance, based on their Wit, to get a speed boost and use less HP. On tracks with long
+downhills, this makes it so high Wit umas have lower Stamina requirements, as well as getting a
+lot of bonus speed. Wit becomes more important if there are many downhills.
+
+Final Corner: The final corner is what it says on the tin. It’s the last corner of the race. On the
+final corner, the umas will begin to spread out, which helps avoid blocking in the spurt.
+
+Final Straight: The final straight is the straight that comes after the final corner. There must be
+a corner for there to be a final straight. On Ibis Summer Dash, the track we were looking at,
+there is no corner, and therefore, no final straight.
+Gate Blocks
+There are eight gate blocks in a race that the umas start in. If there are more than eight umas,
+then multiple umas will go into some blocks, starting from the outside. If there are less than
+eight umas, then the later blocks don’t exist.
+
+For example, in CM where there are 9 umas, there are two umas in block 8. In the biggest
+races, where there are 18 umas, there are three umas in blocks 7 and 8 and two in the rest.
+Team Trials has twelve umas, so there are two in blocks 5~8.
+
+This adjusts the activation chance of some skills. For example, one might think that Lucky
+Seven is a 1/8 chance, but in CM, it’s 1/9, and in the biggest races, it’s 3/18 or 1/6. Outer Gate
+benefits from this quite a bit, being 4/9 in CM and 8/18 in large races, while Inner Gate is 3/9
+and 6/18 respectively.
+
+In Team Trials, Lucky Seven is 2/12, Outer Gate is 6/12, and Inner Gate is 3/12.
+
+Though, note that Lucky Seven is only a 50% chance to do something even if you are in gate
+seven.
+Uma Racing Styles
+There are five different styles in the game, if we count Runaway. These mostly dictate what
+parts of the race your uma tries the hardest in. Here’s a quick overview of their performance in
+each part:
+
+
+                               Opening Leg               Middle Leg                 Final Leg
+         Style                   ■□□□□□                   □■■■□□                     □□□□■■
+
+              Runaway           ★★★★★                     ★★☆☆☆                    ★☆☆☆☆
+
+          Front Runner          ★★★★☆                     ★★★☆☆                    ★★☆☆☆
+
+          Pace Chaser           ★★★☆☆                     ★★★★☆                    ★★★☆☆
+
+           Late Surger          ★★☆☆☆                     ★★★★☆                    ★★★★★
+
+            End Closer          ★☆☆☆☆                     ★★★★★                    ★★★★★
+
+
+For exact numbers, see the Phase Multipliers section below.
+
+During the first half of the race, the umas participate in a dark ritual known as “Position Keep.”
+Each style has a position they want to maintain relative to the furthest-ahead Front Runner. If
+they fall out of that position, they’ll speed up to return to it (Pace Up mode), and if they get too
+far ahead, they’ll slow down to return to it. (Pace Down mode) For the nitty gritty details, see
+the mechanics doc.
+
+
+
+
+The numbers are in meters, but the ones lower than -3 will scale based on the track’s length.
+
+Since the styles all base their position off the 1st uma, the better the uma in 1st is, the faster
+everyone else will run, dictating the pace. The better they are, the less likely Pace Down is, and
+the more Stamina is needed to finish the race. There’s one exception:
+    ●​ No Front Runner in the race, or the Front Runner is too bad to lead. In this case, a
+       random Pace Chaser will ignore Position Keep and start acting like a Front Runner, with
+       everyone else basing their positions off them. If there are no Pace Chasers too, then a
+       Late Surger, etc. They’ll use their normal multipliers, so when there’s no Front Runner in
+       the race, Pace Chasers become very scary.
+
+If this is hard to imagine, I made a quick video showing how it works, with the most cutting edge
+graphics available: https://www.youtube.com/watch?v=co09NS3BklI
+Phases
+There are four different phases in a race. The Opening Leg, which covers the first 1/6th, the
+Middle Leg, which covers the next 3/6ths, the Last Leg, which is the next 1/6th, and the Last
+Spurt, which is the final 1/6th.
+
+During each phase, there’s a multiplier on the uma’s speed and acceleration based on her style.
+
+
+                             Opening Leg              Middle Leg               Final Leg
+        Speed                  ■□□□□□                  □■■■□□                   □□□□■■
+
+             Runaway               1.063                 0.962                    0.95
+
+         Front Runner               1                     0.98                    0.962
+
+          Pace Chaser              0.978                 0.991                    0.975
+
+           Late Surger             0.938                 0.998                    0.994
+
+            End Closer             0.931                   1                        1
+
+
+
+                             Opening Leg              Middle Leg               Final Leg
+     Acceleration              ■□□□□□                  □■■■□□                   □□□□■■
+
+             Runaway               1.17                   0.94                    0.956
+
+         Front Runner               1                      1                      0.996
+
+          Pace Chaser              0.985                   1                      0.996
+
+           Late Surger             0.975                   1                        1
+
+            End Closer             0.945                   1                      0.997
+
+
+
+
+Secret Stat Checks
+There are secret stat checks on some courses. You will get a +5% speed bonus per 300 in said
+stat. There’s a list of these here
+https://twitter.com/umamusu_reveng/status/1377628403403272192. These aren’t mentioned in
+game and have never been officially alluded to, so you can only rely on third party sites for the
+information.
+
+
+                            Stat                     Speed Gain
+                                  1~300             +5% Speed stat
+
+                               301~600             +10% Speed stat
+
+                               601~900             +15% Speed stat
+
+                                    901+           +20% Speed stat
+                          * When there are two, the gain is halved for each
+
+Mood also affects this.
+
+
+                            Mood             Stats Needed for Boost
+
+                          Highest          290        578           867
+
+                             Good          296        590           884
+
+                           Normal          301        601           901
+
+                              Low          308        614           920
+
+                          Bottom           314        627           939
+
+
+
+
+Popularity
+This is the game’s way of evaluating an uma’s strength, although not entirely indicative, and is
+analogous to race betting odds. The basic explanation is that larger relative differences in stats
+make you more popular, so the more the better if you want a high popularity. The information in
+this section is based on this.
+
+
+
+
+The symbols from best to worst are ◎, ○, ▲, △. Symbols are only given to the top 5 in
+evaluations, △ is the only symbol that is shown twice.
+
+Popularity scores are calculated as such.
+                                                    0.5
+𝐿𝑒𝑓𝑡 𝑠𝑦𝑚𝑏𝑜𝑙 = ϕ𝑆𝑝𝑒𝑒𝑑(𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑠𝑝𝑒𝑒𝑑 × ϕ𝐺𝑢𝑡𝑠(𝐺𝑢𝑡𝑠) )
+                                                          0.8             0.6
+𝑀𝑖𝑑𝑑𝑙𝑒 𝑠𝑦𝑚𝑏𝑜𝑙 = ϕ𝑆𝑡𝑎𝑚(𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑠𝑡𝑎𝑚𝑖𝑛𝑎 × ϕ𝐺𝑢𝑡𝑠(𝐺𝑢𝑡𝑠)            × ϕ𝑊𝑖𝑡(𝑊𝑖𝑡) )
+                                                    0.6
+𝑅𝑖𝑔ℎ𝑡 𝑠𝑦𝑚𝑏𝑜𝑙 = ϕ𝑃𝑜𝑤𝑒𝑟(𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑝𝑜𝑤𝑒𝑟 × ϕ𝑤𝑖𝑡(𝑊𝑖𝑡) )
+
+
+ϕ𝑠𝑡𝑎𝑡 = 50 + 10(𝑠𝑡𝑎𝑡 − µ𝑠𝑡𝑎𝑡) ÷ σ𝑠𝑡𝑎𝑡
+σ𝑠𝑡𝑎𝑡 = 𝑠𝑡𝑎𝑛𝑑𝑎𝑟𝑑 𝑑𝑒𝑣𝑖𝑎𝑡𝑖𝑜𝑛 𝑜𝑓 𝑠𝑡𝑎𝑡​     µ𝑠𝑡𝑎𝑡 = 𝑚𝑒𝑎𝑛 𝑜𝑓 𝑠𝑡𝑎𝑡
+Scaled to have a mean of 50 and a standard deviation of 10, aka T-Score (偏差値).
+
+𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑠𝑝𝑒𝑒𝑑 = (𝑆𝑝𝑒𝑒𝑑 + Σ𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑠𝑝𝑒𝑒𝑑 𝑠𝑘𝑖𝑙𝑙 𝑣𝑎𝑙𝑢𝑒𝑠) × 𝑑𝑖𝑠𝑡𝑎𝑛𝑐𝑒 𝑎𝑝𝑡𝑖𝑡𝑢𝑑𝑒 × 𝑚𝑜𝑜𝑑
+𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑠𝑡𝑎𝑚 = (𝑆𝑡𝑎𝑚 + Σ𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑠𝑡𝑎𝑚 𝑠𝑘𝑖𝑙𝑙 𝑣𝑎𝑙𝑢𝑒𝑠) × 𝑚𝑜𝑜𝑑
+𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑝𝑜𝑤𝑒𝑟 = (𝑃𝑜𝑤𝑒𝑟 + Σ𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑝𝑜𝑤𝑒𝑟 𝑠𝑘𝑖𝑙𝑙 𝑣𝑎𝑙𝑢𝑒𝑠) × 𝑑𝑖𝑠𝑡𝑎𝑛𝑐𝑒 𝑎𝑝𝑡𝑖𝑡𝑢𝑑𝑒 × 𝑠𝑢𝑟𝑓𝑎𝑐𝑒 𝑎𝑝𝑡𝑖𝑡𝑢𝑑𝑒 × 𝑚𝑜𝑜𝑑
+
+𝐴𝑑𝑗𝑢𝑠𝑡𝑒𝑑 𝑠𝑡𝑎𝑡 𝑠𝑘𝑖𝑙𝑙 𝑣𝑎𝑙𝑢𝑒 = 𝑆𝑡𝑎𝑡 𝑣𝑎𝑙𝑢𝑒 𝑜𝑓 𝑡ℎ𝑒 𝑠𝑘𝑖𝑙𝑙 × 𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛 𝑟𝑎𝑡𝑒
+𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛 𝑟𝑎𝑡𝑒 𝑓𝑜𝑟 𝑤𝑖𝑡 𝑐ℎ𝑒𝑐𝑘 𝑠𝑘𝑖𝑙𝑙𝑠 = 1 − 90 ÷ 𝑊𝑖𝑡
+𝐴𝑐𝑡𝑖𝑣𝑎𝑡𝑖𝑜𝑛 𝑟𝑎𝑡𝑒 𝑓𝑜𝑟 𝑢𝑛𝑖𝑞𝑢𝑒 𝑎𝑛𝑑 𝑔𝑟𝑒𝑒𝑛 𝑠𝑘𝑖𝑙𝑙𝑠 = 1
+
+
+
+For example, Professor of Curvature’s adjusted speed skill value at 1200 wit is 55.5.
+Guts and wit skill values are not reflected in the evaluations.
+
+How final popularity is calculated concretely is still not fully understood but there are a few more
+factors to it.
+    ●​ There is a bonus for having any symbol displayed. The differences between the symbols
+        ◎、○、▲、△ are not that large but it's important that you have one.
+    ●​ Popularity values over 70 give a large bonus.
+    ●​ The effect of values that fall between the range of 55 and 70 largely drops off (within this
+        includes a lot of guessing), so your other evaluations that approach 55 or are over 70 will
+        have a greater impact.
+    ●​ Total popularity is the sum of the function of the three evaluations.
+       Graph of the function of popularity values.
+
+
+Manipulating Popularity
+The important concepts to understand are averages and deviation. For a high popularity you
+want stats that are above average, and below for lower popularity. The average stat line of an
+uma is relative to a single race but you should think about the stats that people want, how much
+of it they want, and what’s realistically achievable to the average player i.e. how much they can
+train it. There is no clear cut answer but if you assume everyone can achieve the same amount
+of speed, stamina, and power, then guts and wisdom are the stats you should pay attention to.
+Guts and wit are used twice for separate calculations in the evaluations as well. Here are my
+thoughts for each stat.
+
+Speed
+Anyone training a real racer will train speed and usually with the goal of reaching the latest
+scenario’s hard cap. Large deviations should be quite impactful since the left symbol is mostly
+based on speed.
+
+Stamina
+The incentives for having extra stamina are a safety net for kakari and the compete before spurt
+mechanic i.e. avoiding stamina keep. Stamina can vary between hard cap to the minimum
+amount for a full spurt. For tracks where both stamina and guts decks are viable, stamina has
+generally been favoured by popularity. Training stamina gives a bit of guts, while training guts
+gives a bit of speed and power, the same off stats as training speed.
+
+Power
+The general goal for all situations has been 1200. Training speed a bunch of times and
+inheriting power will usually net you around this amount. Achieving a high amount of power in
+most cases necessitates a sacrifice in at least one other stat either by replacing a would be guts
+or stamina card slot with a power card.
+Guts
+Guts is very difficult to raise without directly training guts. Training stamina gives guts but it’s
+merely a byproduct so the difference is usually seen through card strength, stat inherits, or
+growth bonuses. If you aren’t willing to sacrifice wisdom, guts is the next choice.
+
+Wit
+The goal is 1200 but most people are willing to sacrifice a bit of it since wit is essentially the
+RNG stat, which makes it the best stat for manipulating. There isn’t a hard number you can pin
+to wit that will always make a difference in a race such as a difference in speed or power. What
+matters most is whether your skills activate or not. Basically, you can’t see what a 1% difference
+in wit checks looks like. If most people want 1200, but are willing to settle for less, the relative
+differences could heavily swing in your favour e.g. the stat difference between 1700 vs 1600
+speed and 1300 vs 1200 wisdom are both 100 but wit is proportionally larger.
+
+
+Technical Information
+Refer to this doc, written by KuromiAK, for the nitty gritty details of how racing works:
+https://docs.google.com/document/d/15VzW9W2tXBBTibBRbZ8IVpW6HaMX8H0RP03kq6Az7X
+g/edit
+
