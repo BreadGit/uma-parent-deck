@@ -107,7 +107,7 @@ export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = 1
     if (choice.length) {
       const goldFirst = choice.find((s) => s.gold) ?? choice[0]!;
       const sk = ctx.data.skillById.get(goldFirst.skillId);
-      entries.push({ skillId: goldFirst.skillId, name: sk?.name ?? t.name, gated: true, weight: 1 + spark, reason: choice.map((s) => s.detail).join('; ') });
+      entries.push({ skillId: goldFirst.skillId, name: sk?.name ?? t.name, gated: true, weight: 1 + spark, reason: choice.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; ') });
     } else {
       const src = all.find((s) => s.gold) ?? all[0]!;
       const sk = ctx.data.skillById.get(src.skillId);

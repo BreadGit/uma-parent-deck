@@ -207,7 +207,7 @@ function renderDeck(c: Computed): Raw {
           const pGold = 1 - noGold, pWhite = Math.max(0, 1 - noAny - pGold);
           const spark = pGold * settings.goldSparkRate + pWhite * settings.whiteSparkRate;
           return html`<tr><td>${t.name}</td><td class="num">${pct(pGold)}</td><td class="num">${pct(pWhite)}</td><td class="num"><b>${pct(spark)}</b></td>
-            <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
+            <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
       <h3>Prioritized skills for the run (up to 10)</h3>

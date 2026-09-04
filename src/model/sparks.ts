@@ -37,7 +37,8 @@ export interface SkillSource {
   circle: boolean;
   pObtain: number;       // chance this source yields the skill during a run
   isChoice: boolean;     // event: the skill only comes from one of several choices (wishlist matters)
-  detail: string;
+  detail: string;        // where it comes from, e.g. 'Chain event 3 "We Walk Together"'
+  cardName?: string;     // the support card providing it (absent for trainee sources)
 }
 
 /** Expected number of hint events a card produces per run, from Hint Frequency. */
@@ -62,7 +63,7 @@ export function eventSources(card: Card, settings: Settings): SkillSource[] {
   const chainRates = card.rarity === 'SSR' ? settings.chainRatesSSR : card.rarity === 'SR' ? settings.chainRatesSR : [];
   const scan = (ev: CardEvent, pFire: number, kind: 'chain' | 'random') => {
     const nChoices = ev.choices.length;
-    ev.choices.forEach((choice, ci) => {
+    ev.choices.forEach((choice) => {
       const nOut = choice.outcomes.length;
       choice.outcomes.forEach((outcome, oi) => {
         // outcomes after a divider: [small, big]; with one outcome it's guaranteed
@@ -71,7 +72,7 @@ export function eventSources(card: Card, settings: Settings): SkillSource[] {
           // the same skill appearing in every choice is not a choice
           const inAll = ev.choices.every((c) => c.outcomes.some((o) => rewardSkills(o).some((x) => x.id === id)));
           out.push({ kind, skillId: id, gold: false, circle: false, pObtain: pFire * pOutcome * share, isChoice: nChoices > 1 && !inAll,
-            detail: `${kind === 'chain' ? 'Chain event' : 'Random event'} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}${nChoices > 1 ? `, choice ${ci + 1}` : ''}${nOut > 1 ? (oi === nOut - 1 ? ', big reward' : ', small reward') : ''}` });
+            detail: `${kind === 'chain' ? 'Chain event' : 'Random event'} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}${nOut > 1 ? (oi === nOut - 1 ? ', big reward' : ', small reward') : ''}` });
         }
       });
     });
@@ -94,10 +95,10 @@ export function cardSourcesForTarget(card: Card, lb: number, target: Target, rac
     const pool = Math.max(1, card.hintSkills.length);
     // P(at least one hint for this skill) with hints drawn uniformly from the pool
     const pEach = 1 - Math.pow(1 - 1 / pool, eh);
-    for (const id of hintsInFamily) out.push({ kind: 'hint', skillId: id, ...tag(id), pObtain: pEach, isChoice: false, detail: `Hint (${eh.toFixed(1)} hints/run over ${pool} skills)` });
+    for (const id of hintsInFamily) out.push({ kind: 'hint', skillId: id, ...tag(id), pObtain: pEach, isChoice: false, detail: `Hint (${eh.toFixed(1)} hints/run over ${pool} skills)`, cardName: card.name });
   }
   for (const src of eventSources(card, settings)) {
-    if (target.familyIds.has(src.skillId)) out.push({ ...src, ...tag(src.skillId) });
+    if (target.familyIds.has(src.skillId)) out.push({ ...src, ...tag(src.skillId), cardName: card.name });
   }
   return out;
 }
