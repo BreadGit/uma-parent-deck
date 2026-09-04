@@ -64344,17 +64344,20 @@
    {
     "kind": "chain",
     "index": 1,
-    "choices": []
+    "choices": [],
+    "name": "Diamonds in the Rough"
    },
    {
     "kind": "chain",
     "index": 2,
-    "choices": []
+    "choices": [],
+    "name": "We'll Get Stronger, Together"
    },
    {
     "kind": "chain",
     "index": 3,
-    "choices": []
+    "choices": [],
+    "name": "The Heroic Trio Running Side by Side"
    }
   ],
   "randomEvents": [
@@ -69966,27 +69969,32 @@
    {
     "kind": "chain",
     "index": 1,
-    "choices": []
+    "choices": [],
+    "name": "Every One of Us Has a Dream"
    },
    {
     "kind": "chain",
     "index": 2,
-    "choices": []
+    "choices": [],
+    "name": "A Second Serving of Training"
    },
    {
     "kind": "chain",
     "index": 3,
-    "choices": []
+    "choices": [],
+    "name": "Beyond the Horizon of Our Dreams"
    },
    {
     "kind": "chain",
     "index": 4,
-    "choices": []
+    "choices": [],
+    "name": "Another Day, Another Step Towards Our Dream"
    },
    {
     "kind": "chain",
     "index": 5,
-    "choices": []
+    "choices": [],
+    "name": "The Luckiest Racer in Japan"
    },
    {
     "kind": "chain",

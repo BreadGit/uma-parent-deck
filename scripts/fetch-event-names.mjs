@@ -43,7 +43,9 @@ if (todo.length) {
     let en = d.pageProps?.eventData?.en;
     if (typeof en === 'string') en = JSON.parse(en);
     const pick = (arr) => (arr ?? []).map((e) => e.n);
-    names[c.support_id] = { chain: pick(en?.arrows), random: pick(en?.random), special: pick(en?.special), dates: pick(en?.dates) };
+    // Group cards keep their chain events under "special" instead of "arrows".
+    const chain = en?.arrows?.length ? pick(en.arrows) : pick(en?.special);
+    names[c.support_id] = { chain, random: pick(en?.random), special: pick(en?.special), dates: pick(en?.dates) };
     if (++n % 20 === 0) { await fs.writeFile(OUT, JSON.stringify(names, null, 1)); console.log(`${n}/${todo.length}`); }
   }
   await fs.writeFile(OUT, JSON.stringify(names, null, 1));
