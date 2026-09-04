@@ -1,7 +1,7 @@
 import { loadData } from './data.ts';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from './settings.ts';
 import { effectiveLb, exportInventory, importInventory, loadInventory, saveInventory } from './inventory.ts';
-import { html, pct, num, type Raw } from './ui/html.ts';
+import { html, pct, pill, num, type Raw } from './ui/html.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlist, type CardScore, type Ctx } from './model/deck.ts';
 import { resolveTarget, whiteStarOdds, type Target } from './model/sparks.ts';
@@ -183,30 +183,30 @@ function renderDeck(c: Computed): Raw {
           <img src="${cardImg(cs.card)}" alt="" />
           <div class="name">${cs.card.name}</div>
           <div class="lb">${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select> ${typeTag(cs.card)}</div>
-          <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t ${x.own.pGold > 0 ? 'ok' : ''}" title="${x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${x.target.name} ${pct(x.spark)}</span>`)}</div>
+          <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t" title="${x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${x.target.name} ${pill(x.spark, x.own.pGold > 0 ? 'gold' : '')}</span>`)}</div>
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
       <h3>Predicted run (deck ${c.sum.count} races, ${settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">${STATS.map((s, i) => html`
         <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)}</div>
-          <div class="s">±${num(p.sd[i]!)} · ≥600 ${pct(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · ≥1100 ${pct(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div>
-          <div class="s">blue 1★/2★/3★ ${starsBlue[i]!.map((x) => pct(x)).join(' / ')}</div></div>`)}</div>
+          <div class="s">±${num(p.sd[i]!)} · reaches 600 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · 1100 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div>
+          <div class="s">blue spark 1★ ${pill(starsBlue[i]![0]!)} 2★ ${pill(starsBlue[i]![1]!)} 3★ ${pill(starsBlue[i]![2]!)}</div></div>`)}</div>
       <div class="kv">
         <div><span class="k">Rank score</span><span class="v">${num(c.score)} ± ${num(c.sdScore)}</span></div>
-        <div><span class="k">P(SS or better)</span><span class="v ${c.pSS > 0.5 ? 'ok' : 'warn'}">${pct(c.pSS)}</span></div>
-        <div><span class="k">White spark 1★/2★/3★ odds</span><span class="v">${starsWhite.map((x) => pct(x)).join(' / ')}</span></div>
+        <div><span class="k">SS or better</span><span class="v">${pill(c.pSS, c.pSS > 0.5 ? 'ok' : 'warn')}</span></div>
+        <div><span class="k">White spark stars</span><span class="v">1★ ${pill(starsWhite[0]!)} 2★ ${pill(starsWhite[1]!)} 3★ ${pill(starsWhite[2]!)}</span></div>
         <div><span class="k">Estimated SP</span><span class="v">${num(p.sp)}</span></div>
         <div><span class="k">Card / event / inherited stats</span><span class="v">${num(p.cardStats.reduce((a, b) => a + b, 0))} / ${num(p.eventStats.reduce((a, b) => a + b, 0))} / ${num(inheritedTotal)}</span></div>
       </div>
-      <div class="small muted">Blue spark stars depend on each stat's final value (a stat at 1100+ is rated SS on its own). White spark stars depend on the overall SS rank. Final stats include base stats and parent blue sparks with both inspiration events.</div>
+      <div class="small muted">Blue spark stars depend on each stat's final value (a stat at 1100+ is rated SS on its own). White spark stars depend on the overall SS rank. Gold-tinted chances mean a gold version of the skill is in reach. Final stats include base stats and parent blue sparks with both inspiration events.</div>
       <h3>Target coverage</h3>
-      <table><thead><tr><th>Skill</th><th class="num">P(own gold)</th><th class="num">P(own white)</th><th class="num">P(spark)</th><th>Sources</th></tr></thead><tbody>
+      <table><thead><tr><th>Skill</th><th class="num">Ends with gold</th><th class="num">Ends with white</th><th class="num">Spark chance</th><th>Sources</th></tr></thead><tbody>
         ${c.targets.map((t) => {
           const srcs = d.coverage.get(t.id) ?? [];
           let noGold = 1, noAny = 1;
           for (const s of srcs) { noAny *= 1 - s.pObtain; if (s.gold) noGold *= 1 - s.pObtain; }
           const pGold = 1 - noGold, pWhite = Math.max(0, 1 - noAny - pGold);
           const spark = pGold * settings.goldSparkRate + pWhite * settings.whiteSparkRate;
-          return html`<tr><td>${t.name}</td><td class="num">${pct(pGold)}</td><td class="num">${pct(pWhite)}</td><td class="num"><b>${pct(spark)}</b></td>
+          return html`<tr><td>${t.name}</td><td class="num">${pill(pGold, pGold > 0 ? 'gold' : '')}</td><td class="num">${pill(pWhite)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
@@ -250,7 +250,7 @@ function renderRanking(c: Computed): Raw {
     <section class="panel">
       <h2>Card ranking <span class="small muted">(${rows.length} cards · click a header to sort)</span></h2>
       <div class="small muted" style="margin-bottom:6px">Every card counts as owned at the default limit break (R ${settings.defaultLb.R}, SR ${settings.defaultLb.SR}, SSR ${settings.defaultLb.SSR}) until you change it here. ${marked} card${marked === 1 ? '' : 's'} adjusted. Rows in grey are marked not owned.</div>
-      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', 'Marginal sparks')}${th('spark', 'Sparks alone')}<th>Targets</th>${STATS.map((s) => th(s, s.slice(0, 3)))}${th('stats', 'Total')}${th('sp', 'SP')}<th>Basis</th></tr></thead><tbody>
+      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', 'Added spark chance')}${th('spark', 'Spark chance alone')}<th>Targets</th>${STATS.map((s) => th(s, s.slice(0, 3)))}${th('stats', 'Total')}${th('sp', 'SP')}<th>Basis</th></tr></thead><tbody>
         ${rows.map((x) => {
           const owned = !c.unowned.has(x.card.id);
           const explicit = inventory[String(x.card.id)] !== undefined;
@@ -258,9 +258,9 @@ function renderRanking(c: Computed): Raw {
             <td><img class="thumb" src="${cardImg(x.card)}" alt="" loading="lazy" /></td>
             <td>${x.card.name}<br/><span class="small">${x.card.rarity} ${typeTag(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html`<span class="tag warn">trainee's card</span>` : ''}</span></td>
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
-            <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pct(x.marginalValue, 1)}</td>
-            <td class="num">${pct(x.sparkValue, 1)}</td>
-            <td class="cover">${x.coverage.map((cv) => html`<span class="t" title="${cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${cv.own.pGold > 0 ? html`<span class="tag gold">gold</span>` : ''}${cv.target.name} ${pct(cv.spark)}</span>`)}</td>
+            <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
+            <td class="num">${pill(x.sparkValue, '', 1)}</td>
+            <td class="cover">${x.coverage.map((cv) => html`<span class="t" title="${cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${cv.target.name} ${pill(cv.spark, cv.own.pGold > 0 ? 'gold' : '')}</span>`)}</td>
             ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
             <td class="small muted">${x.source === 'observed' ? `observed (${x.runs} runs)` : x.source === 'observed+model' ? `observed at another LB` : 'model'}</td>

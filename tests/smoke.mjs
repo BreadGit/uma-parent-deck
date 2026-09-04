@@ -57,7 +57,7 @@ const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),
   stats: [...document.querySelectorAll('.stat .v')].map((n) => n.textContent.trim()),
-  pSS: document.querySelector('.kv .v.ok, .kv .v.warn')?.textContent,
+  pSS: document.querySelector('.kv .v .pill')?.textContent,
   wishlist: [...document.querySelectorAll('ol li')].slice(0, 10).map((n) => n.textContent.trim().slice(0, 80)),
   races: document.querySelector('h2:has(+ .scroll)')?.textContent,
   rankingRows: document.querySelectorAll('section.panel:last-child tbody tr').length,

@@ -14,3 +14,5 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]): Raw {
 }
 export const pct = (x: number, d = 0) => `${(x * 100).toFixed(d)}%`;
 export const num = (x: number, d = 0) => x.toFixed(d);
+/** Percentage in a rounded panel, e.g. [95%]. */
+export const pill = (x: number, cls = '', d = 0) => html`<span class="pill ${cls}">${pct(x, d)}</span>`;
