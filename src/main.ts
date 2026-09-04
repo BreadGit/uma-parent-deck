@@ -58,6 +58,16 @@ let traineeQuery = '';
 let cardQuery = '';
 let showAdvanced = false;
 let showAllRaces = false;
+type Theme = 'system' | 'light' | 'dark';
+const THEME_KEY = 'uma-parent-deck.theme';
+let theme: Theme = (localStorage.getItem(THEME_KEY) as Theme | null) ?? 'system';
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+function applyTheme() {
+  const dark = theme === 'dark' || (theme === 'system' && systemDark.matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+}
+systemDark.addEventListener('change', applyTheme);
+applyTheme();
 let activeInheritedStat = 0;
 
 const persist = () => { localStorage.setItem(STATE_KEY, JSON.stringify(state)); saveSettings(settings); saveInventory(inventory); };
@@ -90,6 +100,8 @@ const skillName = (id: number) => data.skillById.get(id)?.name ?? `#${id}`;
 const skillIcon = (s: Skill | undefined) => (s?.iconId ? `/assets/skills/${s.iconId}.png` : '');
 const cardImg = (c: Card) => `/assets/supports/${c.id}.png`;
 const charImg = (c: Character) => `/assets/characters/${c.cardId}.png`;
+/** Info icon that opens a custom tooltip on hover or focus. */
+const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
 const typeTag = (c: Card) => html`<span class="tag type-${c.type}">${c.type}</span>`;
 
 function targetableSkills(): Skill[] {
@@ -151,8 +163,8 @@ function renderTargets(c: Computed): Raw {
         })}</ul>` : ''}
       </div>
       <div class="chips">
-        ${c.targets.length ? c.targets.map((t) => html`<span class="chip ${t.gold ? 'gold' : ''}" title="${t.gold ? `Gold form: ${t.gold.name}` : 'No gold form'}">
-          <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" />${t.name}${t.gold ? html` <span class="muted small">(${t.gold.name})</span>` : ''}
+        ${c.targets.length ? c.targets.map((t) => html`<span class="chip ${t.gold ? 'gold' : ''}">
+          <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" />${t.name}${t.gold ? html` <span class="muted small">(${t.gold.name})</span>` : ''}${tip(t.gold ? `Gold form: ${t.gold.name}. Cards that give the gold count for this target, at the higher spark rate.` : 'This skill has no gold form.')}
           <button data-action="remove-target" data-id="${t.id}" title="Remove">✕</button></span>`)
         : html`<span class="muted small">Add the white skills you want to spark. Cards giving the gold version count too.</span>`}
       </div>
@@ -213,7 +225,7 @@ function renderRunSettings(c: Computed): Raw {
       <div class="chips">
         ${state.pinnedIds.length ? state.pinnedIds.map((id) => { const card = data.cardById.get(id); if (!card) return '';
           const owned = !c.unowned.has(id);
-          return html`<span class="chip" title="${owned ? 'Forced into the deck' : 'Marked not owned, so it is skipped'}"><img src="${cardImg(card)}" alt="" />${card.name}${owned ? '' : html` <span class="warn small">not owned</span>`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
+          return html`<span class="chip"><img src="${cardImg(card)}" alt="" />${card.name}${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
         : html`<span class="muted small">Nothing pinned. Light Hello is mandatory in Grand Concert, so pin one of her cards unless you have a reason not to.</span>`}
       </div>
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : ''}
@@ -244,7 +256,7 @@ function renderRunSettings(c: Computed): Raw {
         <span><output data-inherited-start>+${num(allGain.start)}</output> at start · <output data-inherited-inspiration>+${num(allGain.inspiration)}</output> from inspiration events</span>
       </div>
       <div class="blue-gain-summary">
-        ${STATS.map((s, i) => html`<span class="${i === activeInheritedStat ? 'active' : ''}" data-inherited-stat="${i}" title="+${num(c.inherited[i]!.start)} at start, +${num(c.inherited[i]!.inspiration)} from inspiration events">${s.charAt(0).toUpperCase() + s.slice(1)} <output>+${num(c.inherited[i]!.total)}</output></span>`)}
+        ${STATS.map((s, i) => html`<span class="${i === activeInheritedStat ? 'active' : ''}" data-inherited-stat="${i}">${s.charAt(0).toUpperCase() + s.slice(1)} <output>+${num(c.inherited[i]!.total)}</output>${tip(`+${num(c.inherited[i]!.start)} at the start, +${num(c.inherited[i]!.inspiration)} from the two inspiration events`)}</span>`)}
       </div>
       <label class="row"><span class="k">Show cards marked not owned</span><input type="checkbox" data-setting="showUnowned" ${settings.showUnowned ? 'checked' : ''} /></label>
     </section>`;
@@ -262,7 +274,7 @@ function renderDeck(c: Computed): Raw {
           <img src="${cardImg(cs.card)}" alt="" />
           <div class="name">${cs.card.name}</div>
           <div class="lb">${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select> ${typeTag(cs.card)}</div>
-          <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t" title="${x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${x.target.name} ${pill(x.spark)}</span>`)}</div>
+          <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</div>
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
       <h3>Predicted run (deck ${c.sum.count} races, ${settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">${STATS.map((s, i) => html`
@@ -323,7 +335,7 @@ function renderSchedule(c: Computed): Raw {
       <h2>G1 schedule <span class="small muted">(${c.sum.count} races · threshold ${pct(settings.winThreshold)})</span></h2>
       <div class="scroll" style="max-height:50vh"><table><thead><tr><th>Run</th><th>When</th><th>Race</th><th>Track</th><th class="num">Base win</th><th class="num">Adjusted</th><th>Streak</th></tr></thead><tbody>
         ${rows.map((s) => html`<tr class="${s.selected ? '' : 'dim'}">
-          <td><input type="checkbox" data-race="${s.race.calendarId}" ${s.selected ? 'checked' : ''} title="${state.raceOverrides[s.race.calendarId] != null ? 'manual override' : 'automatic'}" /></td>
+          <td><input type="checkbox" data-race="${s.race.calendarId}" ${s.selected ? 'checked' : ''} />${state.raceOverrides[s.race.calendarId] != null ? tip('Manual override. "Clear manual overrides" below returns it to the threshold rule.') : ''}</td>
           <td>${YEAR[s.race.year - 1]} ${s.race.month}/${s.race.half === 1 ? 'early' : 'late'}</td>
           <td>${s.race.name}</td><td>${s.race.surface} ${s.race.category} ${s.race.distance}m</td>
           <td class="num">${pct(s.base)}</td><td class="num">${pct(s.pWin)}</td><td>${s.consecutive > 2 ? html`<span class="warn">${s.consecutive} in a row</span>` : s.consecutive ? `${s.consecutive}` : ''}</td></tr>`)}
@@ -360,7 +372,7 @@ function renderRanking(c: Computed): Raw {
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
             <td class="num">${pill(x.sparkValue, '', 1)}</td>
-            <td class="cover">${x.coverage.map((cv) => html`<span class="t" title="${cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${cv.target.name} ${pill(cv.spark)}</span>`)}</td>
+            <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
             ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
             <td class="small muted">${x.source === 'observed' ? `observed (${x.runs} runs)` : x.source === 'observed+model' ? `observed at another LB` : 'model'}</td>
@@ -395,8 +407,8 @@ const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
 
 function renderSettingsPanel(): Raw {
   const help = (key: keyof Settings) => SETTING_HELP[key] ?? '';
-  const numField = (key: keyof Settings, label: string, step = 0.01, extra = '') => html`<label class="row" title="${help(key)}"><span class="k">${label}</span><input type="number" step="${step}" value="${String(settings[key] ?? '')}" data-setting="${key}" style="width:90px" placeholder="${extra}" title="${help(key)}" /></label>`;
-  const listField = (key: keyof Settings, label: string) => html`<label class="row" title="${help(key)}"><span class="k">${label}</span><input type="text" value="${(settings[key] as number[]).join(', ')}" data-setting-list="${key}" style="width:140px" title="${help(key)}" /></label>`;
+  const numField = (key: keyof Settings, label: string, step = 0.01, extra = '') => html`<label class="row"><span class="k">${label}${tip(help(key))}</span><input type="number" step="${step}" value="${String(settings[key] ?? '')}" data-setting="${key}" style="width:90px" placeholder="${extra}" /></label>`;
+  const listField = (key: keyof Settings, label: string) => html`<label class="row"><span class="k">${label}${tip(help(key))}</span><input type="text" value="${(settings[key] as number[]).join(', ')}" data-setting-list="${key}" style="width:140px" /></label>`;
   return html`
     <section class="panel">
       <h2>Inventory &amp; settings</h2>
@@ -407,7 +419,7 @@ function renderSettingsPanel(): Raw {
         <span class="small muted">Replace the repo's inventory.json with the export to make it the default.</span>
       </div>
       <details ${showAdvanced ? 'open' : ''} data-details="advanced"><summary>Advanced settings</summary>
-        <div class="small muted" style="margin:6px 0">These numbers override the tool's estimates. Each one is a rate or scale the model needs but the game does not tell us; the defaults come from community measurements where they exist and from guesses where they do not. Hover a field for what it does and why the default is what it is.</div>
+        <div class="small muted" style="margin:6px 0">These numbers override the tool's estimates. Each one is a rate or scale the model needs but the game does not tell us; the defaults come from community measurements where they exist and from guesses where they do not. Hover the ⓘ next to a field for what it does and why the default is what it is.</div>
         <h3>Rates</h3>
         <div class="grid2 settings-grid">
           ${numField('affinity', 'Legacy affinity (inspiration proc scaling)', 1)}
@@ -443,11 +455,13 @@ function render() {
   const activeId = active?.id; const sel = active?.selectionStart ?? null;
   const app = document.getElementById('app')!;
   app.innerHTML = html`
-    <header><h1>Uma parent deck</h1><span class="meta">Independent training deck builder for white-spark farming · data ${String(meta.fetchedAt).slice(0, 10)} from GameTora · ${data.cards.length} Global cards</span></header>
+    <header><h1>Uma parent deck</h1><span class="meta">Independent training deck builder for white-spark farming · data ${String(meta.fetchedAt).slice(0, 10)} from GameTora · ${data.cards.length} Global cards</span>
+      <span class="theme-toggle">Theme ${(['system', 'light', 'dark'] as Theme[]).map((t) => html`<button class="${theme === t ? 'active' : ''}" data-theme-pick="${t}">${t === 'system' ? 'OS' : t}</button>`)}</span></header>
     <main>
       <div>${renderTargets(c)}${renderTrainee(c)}${renderRunSettings(c)}${renderSettingsPanel()}</div>
       <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
+    <div id="tooltip" role="tooltip"></div>
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>. Independent training stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`.s;
   notchObserver.disconnect();
   for (const canvas of app.querySelectorAll<HTMLCanvasElement>('.blue-slider-notches')) {
@@ -526,6 +540,8 @@ app.addEventListener('change', (ev) => {
   }
 });
 app.addEventListener('click', (ev) => {
+  const pick = (ev.target as HTMLElement).closest<HTMLElement>('[data-theme-pick]');
+  if (pick) { theme = pick.dataset.themePick as Theme; localStorage.setItem(THEME_KEY, theme); applyTheme(); render(); return; }
   const t = (ev.target as HTMLElement).closest<HTMLElement>('[data-action],[data-sort]');
   if (!t) return;
   if (t.dataset.sort) { state.sortKey = t.dataset.sort; persist(); render(); return; }
@@ -546,6 +562,25 @@ app.addEventListener('click', (ev) => {
   if (a === 'reset-settings') { const keep = { winThreshold: settings.winThreshold, focus: settings.focus, showUnowned: settings.showUnowned, defaultLb: settings.defaultLb };
     settings = { ...DEFAULT_SETTINGS, ...keep }; persist(); render(); return; }
 });
+// custom tooltips: one floating box, positioned next to the hovered or focused ⓘ
+function showTip(el: HTMLElement) {
+  const box = document.getElementById('tooltip');
+  if (!box) return;
+  box.textContent = el.dataset.tip ?? '';
+  box.classList.add('show');
+  const r = el.getBoundingClientRect();
+  const w = box.offsetWidth, h = box.offsetHeight;
+  let left = r.left + r.width / 2 - w / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+  let top = r.bottom + 6;
+  if (top + h > window.innerHeight - 8) top = r.top - h - 6;
+  box.style.left = `${left}px`; box.style.top = `${top}px`;
+}
+function hideTip() { document.getElementById('tooltip')?.classList.remove('show'); }
+app.addEventListener('mouseover', (ev) => { const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]'); if (el) showTip(el); });
+app.addEventListener('mouseout', (ev) => { if ((ev.target as HTMLElement).closest('[data-tip]')) hideTip(); });
+app.addEventListener('focusin', (ev) => { const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]'); if (el) showTip(el); });
+app.addEventListener('focusout', (ev) => { if ((ev.target as HTMLElement).closest('[data-tip]')) hideTip(); });
 app.addEventListener('toggle', (ev) => { const el = ev.target as HTMLDetailsElement; if (el.dataset.details === 'advanced') showAdvanced = el.open; }, true);
 
 render();

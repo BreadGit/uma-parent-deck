@@ -1,6 +1,6 @@
 export type Stat = 'speed' | 'stamina' | 'power' | 'guts' | 'wit';
 export const STATS: Stat[] = ['speed', 'stamina', 'power', 'guts', 'wit'];
-export type CardType = Stat | 'friend' | 'group';
+export type CardType = Stat | 'pal' | 'group';
 export type Rarity = 'R' | 'SR' | 'SSR';
 export type Focus = 'balanced' | 'stamina' | 'sprint';
 

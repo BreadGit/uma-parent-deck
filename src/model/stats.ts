@@ -36,7 +36,7 @@ export function modelContribution(card: Card, lb: number, model: StatModel): { s
     }
     return v;
   });
-  const sp = model.sp.base + (card.type === 'wit' ? model.sp.wit : 0) + (card.type === 'friend' || card.type === 'group' ? model.sp.friend : 0)
+  const sp = model.sp.base + (card.type === 'wit' ? model.sp.wit : 0) + (card.type === 'pal' || card.type === 'group' ? model.sp.friend : 0)
     + model.sp.skillPointBonus * (p[EFFECT.skillPointBonus] ?? 0);
   return { stats, sp };
 }

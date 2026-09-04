@@ -78,7 +78,7 @@ const RARITY = { 1: 'R', 2: 'SR', 3: 'SSR' };
 const LEVELS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
 // Level reached at each limit break by rarity.
 const LB_LEVEL = { R: [20, 25, 30, 35, 40], SR: [25, 30, 35, 40, 45], SSR: [30, 35, 40, 45, 50] };
-const TYPE = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'friend', group: 'group' };
+const TYPE = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
 
 function fillForward(row) {
   const out = [];

@@ -5269,7 +5269,7 @@
   "title": "[Tracen Academy]",
   "name": "[Tracen Academy] Tazuna Hayakawa",
   "rarity": "R",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2025-06-26",
   "obtained": "gacha",
   "effects": {
@@ -5819,7 +5819,7 @@
   "title": "[Tracen Academy]",
   "name": "[Tracen Academy] Aoi Kiryuin",
   "rarity": "R",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2025-06-26",
   "obtained": "gacha",
   "effects": {
@@ -16533,7 +16533,7 @@
   "title": "[Tracen Academy]",
   "name": "[Tracen Academy] Riko Kashimoto",
   "rarity": "R",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2025-11-06",
   "obtained": "gacha",
   "effects": {
@@ -20613,7 +20613,7 @@
   "title": "[Acupuncturist]",
   "name": "[Acupuncturist] Sasami Anshinzawa",
   "rarity": "R",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2026-02-05",
   "obtained": "gacha",
   "effects": {
@@ -22962,7 +22962,7 @@
   "title": "[Event Producer]",
   "name": "[Event Producer] Light Hello",
   "rarity": "R",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2026-07-22",
   "obtained": "gacha",
   "effects": {
@@ -31497,7 +31497,7 @@
   "title": "[Trainers' Teamwork]",
   "name": "[Trainers' Teamwork] Aoi Kiryuin",
   "rarity": "SR",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2025-06-26",
   "obtained": "gacha",
   "effects": {
@@ -51954,7 +51954,7 @@
   "title": "[Tracen Reception]",
   "name": "[Tracen Reception] Tazuna Hayakawa",
   "rarity": "SSR",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2025-06-26",
   "obtained": "gacha",
   "effects": {
@@ -58259,7 +58259,7 @@
   "title": "[Planned Perfection]",
   "name": "[Planned Perfection] Riko Kashimoto",
   "rarity": "SSR",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2025-11-06",
   "obtained": "gacha",
   "effects": {
@@ -63750,7 +63750,7 @@
   "title": "[From the Ground Up]",
   "name": "[From the Ground Up] Light Hello",
   "rarity": "SSR",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2026-07-22",
   "obtained": "gacha",
   "effects": {
@@ -74892,7 +74892,7 @@
   "title": "[This Might Sting!]",
   "name": "[This Might Sting!] Sasami Anshinzawa",
   "rarity": "SSR",
-  "type": "friend",
+  "type": "pal",
   "releaseEn": "2026-02-05",
   "obtained": "gacha",
   "effects": {

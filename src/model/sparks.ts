@@ -91,8 +91,8 @@ export function eventSources(card: Card, settings: Settings): SkillSource[] {
   card.randomEvents.forEach((ev) => scan(ev, settings.randomEventRate * randomScale, EVENT_LABEL.random));
   const nRec = card.recreationEvents.length;
   card.recreationEvents.forEach((ev) => {
-    const rate = card.type === 'friend' ? settings.palChainRate : ev.index === nRec ? settings.groupFinaleRate : settings.groupOutingRate;
-    scan(ev, rate, card.type === 'friend' ? 'Date' : ev.index === nRec ? 'Group finale' : 'Member outing');
+    const rate = card.type === 'pal' ? settings.palChainRate : ev.index === nRec ? settings.groupFinaleRate : settings.groupOutingRate;
+    scan(ev, rate, card.type === 'pal' ? 'Date' : ev.index === nRec ? 'Group finale' : 'Member outing');
   });
   card.specialEvents.forEach((ev) => scan(ev, settings.specialEventRate, EVENT_LABEL.special));
   return out;

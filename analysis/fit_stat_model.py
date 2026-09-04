@@ -25,7 +25,7 @@ fuji = json.load(open(ROOT / 'docs/fujikiseki-card-table.json'))
 
 STATS = ['speed', 'stamina', 'power', 'guts', 'wit']
 LB = {'0LB': 0, '1LB': 1, '2LB': 2, '3LB': 3, 'MLB': 4}
-TYPE = {'Friend': 'friend', 'Group': 'group', 'Speed': 'speed', 'Stamina': 'stamina', 'Power': 'power', 'Guts': 'guts', 'Wit': 'wit', 'Pal': 'friend'}
+TYPE = {'Friend': 'pal', 'Group': 'group', 'Speed': 'speed', 'Stamina': 'stamina', 'Power': 'power', 'Guts': 'guts', 'Wit': 'wit', 'Pal': 'pal'}
 SECONDARY = {'speed': ['power'], 'stamina': ['guts'], 'power': ['stamina'], 'guts': ['speed', 'power'], 'wit': ['speed']}
 RACES_REF = 28
 
@@ -137,7 +137,7 @@ for o in observed:
     if o['source'] != 'loopacord' or not o['wellTested']: continue
     p = passives(o['card'], o['lb'])
     t = o['card']['type']
-    sp_recs.append(dict(sp=o['sp'], wit=t == 'wit', friend=t in ('friend', 'group'), spb=p[30], hf=p[18], hl=p[17], fr=p[1], te=p[8]))
+    sp_recs.append(dict(sp=o['sp'], wit=t == 'wit', friend=t in ('pal', 'group'), spb=p[30], hf=p[18], hl=p[17], fr=p[1], te=p[8]))
 Xs = np.array([[1, r['wit'], r['friend'], r['spb']] for r in sp_recs], float)
 ys = np.array([r['sp'] for r in sp_recs])
 cs_, *_ = np.linalg.lstsq(Xs, ys, rcond=None)

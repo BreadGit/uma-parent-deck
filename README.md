@@ -80,7 +80,7 @@ fit uses the Loopacord "Independent Training Research" sheet (`docs/`), 169 card
 - Where a card has 10+ observed runs at your LB the observed numbers are used directly;
   at another LB the observation is shifted by the model's delta.
 
-Pal and Group cards get their outings (five dates, or member outings plus a finale) from the
+Pal and Group cards (type "pal" and "group" in the data) get their outings (five dates, or member outings plus a finale) from the
 per-card page data, since the static feed does not carry them. In independent training the
 Pal date chain completes almost every run (97% default, matching Loopacord and observed
 runs), Group member outings default to 90% and the Group finale to 85% (unverified), and the
