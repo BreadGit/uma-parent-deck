@@ -43,16 +43,40 @@ await page.$eval('input[data-setting="winThreshold"]', (el) => {
   el.value = '0.8';
   el.dispatchEvent(new Event('change', { bubbles: true }));
 });
+assert.deepEqual(await page.$$eval('select[data-setting="focus"] option', (options) => options.map((option) => option.textContent)), ['Balanced', 'Stamina', 'Sprint']);
 
 await page.selectOption('select[data-default-lb="SSR"]', '4');
 const traineeVal = await page.$eval('select[data-select="trainee"]', (s) => [...s.options].find((o) => o.text.includes('Special Week [Special Dreamer]'))?.value);
 await page.selectOption('select[data-select="trainee"]', traineeVal);
+const aptitudePlacement = await page.evaluate(() => {
+  const traineePanel = [...document.querySelectorAll('section.panel')].find((panel) => panel.querySelector('h2')?.textContent === 'Trainee');
+  const advanced = document.querySelector('details[data-details="advanced"]');
+  return { trainee: traineePanel.querySelectorAll('select[data-apt]').length, advanced: advanced.querySelectorAll('select[data-apt]').length };
+});
+assert.deepEqual(aptitudePlacement, { trainee: 6, advanced: 0 });
+const baseTurf = await page.inputValue('select[data-apt="turf"]');
+const overrideTurf = baseTurf === 'G' ? 'A' : 'G';
+await page.selectOption('select[data-apt="turf"]', overrideTurf);
+const alternateSpecialWeek = await page.$eval('select[data-select="trainee"]', (s) => [...s.options].find((o) => o.text.includes('Special Week [Hopp'))?.value);
+await page.selectOption('select[data-select="trainee"]', alternateSpecialWeek);
+assert.equal(await page.inputValue('select[data-apt="turf"]'), baseTurf, 'selecting a trainee did not restore her default aptitude');
+await page.selectOption('select[data-select="trainee"]', traineeVal);
+await page.click('details[data-details="advanced"] > summary');
+const advancedOverflow = await page.$eval('details[data-details="advanced"]', (details) => {
+  const panelRight = details.closest('section.panel').getBoundingClientRect().right;
+  return Math.max(0, ...[...details.querySelectorAll('label, input, select')].map((el) => el.getBoundingClientRect().right - panelRight));
+});
+assert.ok(advancedOverflow <= 0.5, `advanced settings overflow their panel by ${advancedOverflow}px`);
 for (const q of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) {
   await page.fill('#target-search', q);
   await page.waitForSelector('li[data-action="add-target"]');
   await page.click('li[data-action="add-target"]');
 }
 await page.waitForTimeout(300);
+const bodyText = await page.textContent('body');
+assert.ok(!bodyText.includes('blue spark 1★'), 'predicted run still shows blue spark odds');
+assert.ok(!bodyText.includes('Card / event / inherited stats'), 'predicted run still shows stat-source totals');
+assert.ok(!bodyText.includes("Blue spark stars depend on each stat's final value"), 'predicted run still shows the removed explanatory blurb');
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),

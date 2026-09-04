@@ -56,6 +56,7 @@ tr.dim td { opacity: .55; }
 .small { font-size: 12px; }
 details > summary { cursor: pointer; color: var(--accent); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+.settings-grid { grid-template-columns: 1fr; }
 .apts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 10px; }
 .apts label { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
 .apts select { max-width: 60px; padding: 2px 4px; }

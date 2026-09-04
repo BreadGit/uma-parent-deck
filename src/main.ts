@@ -5,7 +5,7 @@ import { html, pct, pill, num, type Raw } from './ui/html.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlist, type CardScore, type Ctx } from './model/deck.ts';
 import { resolveTarget, whiteStarOdds, type Target } from './model/sparks.ts';
-import { blueStarOdds, pAbove, predictDeck, phi } from './model/stats.ts';
+import { pAbove, predictDeck, phi } from './model/stats.ts';
 import { buildSchedule, scheduleSummary, traineeAptitudes, type Aptitudes } from './model/races.ts';
 import { skillScore, statScore, thresholdFor } from './model/rank.ts';
 import { clampStars, inheritedStat, MAX_BLUE_STARS } from './model/inherit.ts';
@@ -136,7 +136,9 @@ function renderTrainee(c: Computed): Raw {
           <img class="thumb" src="${charImg(t)}" alt="" style="width:48px;height:48px" />
           <div><span class="k">Growth</span><span class="v small">${STATS.map((s, i) => `${s} ${t.growth[i]! > 0 ? '+' + t.growth[i] + '%' : '–'}`).join(' · ')}</span></div>
         </div>
-        <div class="small muted">Aptitudes: ${APT_SHOWN.map((k) => `${k} ${c.apt[k]}`).join(' · ')}${overridden ? ' (overridden in advanced settings)' : ''}</div>
+        <h3>Trainee aptitude overrides (match the legacy screen)</h3>
+        <div class="apts">${APT_SHOWN.map((k) => html`<label>${k}<select data-apt="${k}">${GRADES.map((g) => html`<option value="${g}" ${c.apt[k] === g ? 'selected' : ''}>${g}</option>`)}</select></label>`)}</div>
+        ${overridden ? html`<button class="small" data-action="reset-apts">Reset to base aptitudes</button>` : ''}
         <div class="small muted" style="margin-top:6px">Innate: ${t.innateSkills.map(skillName).join(', ')}<br/>Awakening: ${t.awakeningSkills.map(skillName).join(', ')}</div>
       ` : html`<div class="small muted">Pick the uma you'll train. Her own support cards are excluded from the deck and her innate skills count as covered.</div>`}
     </section>`;
@@ -156,7 +158,7 @@ function renderRunSettings(c: Computed): Raw {
         </select></label>
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : ''}
       <label class="row"><span class="k">Training focus</span>
-        <select data-setting="focus">${(['balanced', 'stamina', 'sprint'] as const).map((f) => html`<option value="${f}" ${settings.focus === f ? 'selected' : ''}>${f}</option>`)}</select></label>
+        <select data-setting="focus">${(['balanced', 'stamina', 'sprint'] as const).map((f) => html`<option value="${f}" ${settings.focus === f ? 'selected' : ''}>${f.charAt(0).toUpperCase() + f.slice(1)}</option>`)}</select></label>
       <label class="row"><span class="k">Win chance threshold</span>
         <span><input type="range" min="0" max="1" step="0.05" value="${settings.winThreshold}" data-setting="winThreshold" /> <output data-setting-output="winThreshold">${pct(settings.winThreshold)}</output></span></label>
       <div class="small muted">Races: ${c.sum.count} G1s selected, ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses.</div>
@@ -172,9 +174,7 @@ function renderRunSettings(c: Computed): Raw {
 function renderDeck(c: Computed): Raw {
   const d = c.deckResult;
   const p = c.pred;
-  const starsBlue = STATS.map((_, i) => blueStarOdds(c.finalMean[i]!, p.sd[i]!));
   const starsWhite = whiteStarOdds(c.pSS, settings);
-  const inheritedTotal = c.inherited.reduce((a, x) => a + x.total, 0);
   return html`
     <section class="panel">
       <h2>Suggested deck</h2>
@@ -188,16 +188,13 @@ function renderDeck(c: Computed): Raw {
       <h3>Predicted run (deck ${c.sum.count} races, ${settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">${STATS.map((s, i) => html`
         <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)}</div>
-          <div class="s">±${num(p.sd[i]!)} · reaches 600 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · 1100 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div>
-          <div class="s">blue spark 1★ ${pill(starsBlue[i]![0]!)} 2★ ${pill(starsBlue[i]![1]!)} 3★ ${pill(starsBlue[i]![2]!)}</div></div>`)}</div>
+          <div class="s">±${num(p.sd[i]!)} · reaches 600 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · 1100 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div></div>`)}</div>
       <div class="kv">
         <div><span class="k">Rank score</span><span class="v">${num(c.score)} ± ${num(c.sdScore)}</span></div>
         <div><span class="k">SS or better</span><span class="v">${pill(c.pSS, c.pSS > 0.5 ? 'ok' : 'warn')}</span></div>
         <div><span class="k">White spark stars</span><span class="v">1★ ${pill(starsWhite[0]!)} 2★ ${pill(starsWhite[1]!)} 3★ ${pill(starsWhite[2]!)}</span></div>
         <div><span class="k">Estimated SP</span><span class="v">${num(p.sp)}</span></div>
-        <div><span class="k">Card / event / inherited stats</span><span class="v">${num(p.cardStats.reduce((a, b) => a + b, 0))} / ${num(p.eventStats.reduce((a, b) => a + b, 0))} / ${num(inheritedTotal)}</span></div>
       </div>
-      <div class="small muted">Blue spark stars depend on each stat's final value (a stat at 1100+ is rated SS on its own). White spark stars depend on the overall SS rank. Gold-tinted chances mean a gold version of the skill is in reach. Final stats include base stats and parent blue sparks with both inspiration events.</div>
       <h3>Target coverage</h3>
       <table><thead><tr><th>Skill</th><th class="num">Ends with gold</th><th class="num">Ends with white</th><th class="num">Spark chance</th><th>Sources</th></tr></thead><tbody>
         ${c.targets.map((t) => {
@@ -270,10 +267,9 @@ function renderRanking(c: Computed): Raw {
     </section>`;
 }
 
-function renderSettingsPanel(c: Computed): Raw {
+function renderSettingsPanel(): Raw {
   const numField = (key: keyof Settings, label: string, step = 0.01, extra = '') => html`<label class="row"><span class="k">${label}</span><input type="number" step="${step}" value="${String(settings[key] ?? '')}" data-setting="${key}" style="width:90px" placeholder="${extra}" /></label>`;
   const listField = (key: keyof Settings, label: string) => html`<label class="row"><span class="k">${label}</span><input type="text" value="${(settings[key] as number[]).join(', ')}" data-setting-list="${key}" style="width:140px" /></label>`;
-  const t = c.trainee;
   return html`
     <section class="panel">
       <h2>Inventory &amp; settings</h2>
@@ -286,11 +282,8 @@ function renderSettingsPanel(c: Computed): Raw {
       <h3>Default limit break for unmarked cards</h3>
       <div class="grid2">${(['R', 'SR', 'SSR'] as const).map((r) => html`<label class="row"><span class="k">${r}</span><select data-default-lb="${r}">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${settings.defaultLb[r] === l ? 'selected' : ''}>${l}</option>`)}</select></label>`)}</div>
       <details ${showAdvanced ? 'open' : ''} data-details="advanced"><summary>Advanced estimates</summary>
-        ${t ? html`<h3>Trainee aptitude overrides (match the legacy screen)</h3>
-          <div class="apts">${APT_SHOWN.map((k) => html`<label>${k}<select data-apt="${k}">${GRADES.map((g) => html`<option value="${g}" ${c.apt[k] === g ? 'selected' : ''}>${g}</option>`)}</select></label>`)}</div>
-          ${Object.keys(state.aptOverrides).length ? html`<button class="small" data-action="reset-apts">Reset to base aptitudes</button>` : ''}` : ''}
         <h3>Rates</h3>
-        <div class="grid2">
+        <div class="grid2 settings-grid">
           ${numField('affinity', 'Legacy affinity (inspiration proc scaling)', 1)}
           ${numField('hintBase', 'Hint chance per card-turn (base)')}
           ${numField('hintScale', 'Hint model scale (independent training)')}
@@ -326,7 +319,7 @@ function render() {
   app.innerHTML = html`
     <header><h1>Uma parent deck</h1><span class="meta">Independent training deck builder for white-spark farming · data ${String(meta.fetchedAt).slice(0, 10)} from GameTora · ${data.cards.length} Global cards</span></header>
     <main>
-      <div>${renderTargets(c)}${renderTrainee(c)}${renderRunSettings(c)}${renderSettingsPanel(c)}</div>
+      <div>${renderTargets(c)}${renderTrainee(c)}${renderRunSettings(c)}${renderSettingsPanel()}</div>
       <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>. Independent training stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`.s;
@@ -362,7 +355,7 @@ app.addEventListener('change', (ev) => {
   if (el.dataset.select === 'trainee') { state.traineeCardId = el.value ? Number(el.value) : null; state.aptOverrides = {}; persist(); render(); return; }
   if (el.dataset.select === 'pinned') { state.pinnedId = el.value ? Number(el.value) : null; persist(); render(); return; }
   if (el.dataset.apt) { const k = el.dataset.apt as AptKey; const t = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) : null;
-    if (t && t.aptitudes[k] === el.value) delete state.aptOverrides[k]; else state.aptOverrides[k] = el.value as Grade; showAdvanced = true; persist(); render(); return; }
+    if (t && t.aptitudes[k] === el.value) delete state.aptOverrides[k]; else state.aptOverrides[k] = el.value as Grade; persist(); render(); return; }
   if (el.dataset.race) { const id = el.dataset.race; const c = compute(); const auto = c.schedule.find((s) => s.race.calendarId === id);
     const autoSel = auto ? auto.pWin >= settings.winThreshold : false;
     if (el.checked === autoSel) delete state.raceOverrides[id]; else state.raceOverrides[id] = el.checked; persist(); render(); return; }
