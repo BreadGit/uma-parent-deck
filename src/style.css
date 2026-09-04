@@ -86,10 +86,9 @@ details > summary { cursor: pointer; color: var(--accent); }
 .blue-parent-control input[type=range] { display: block; width: 100%; margin: 5px 0 0; }
 .blue-slider-notches { display: flex; justify-content: space-between; height: 6px; margin: -3px 7px 8px; }
 .blue-slider-notches i { display: block; width: 1px; height: 5px; background: #aeb6c1; }
-.blue-gains { display: grid; gap: 7px; margin-top: 9px; }
-.blue-gain-card { padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px; }
-.blue-gain-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.blue-gain-heading span { color: var(--muted); font-size: 11px; }
-.blue-gain-total { display: flex; align-items: baseline; justify-content: space-between; margin-top: 4px; color: var(--muted); }
-.blue-gain-total output { color: var(--text); font-size: 22px; font-weight: 700; }
-.blue-gain-breakdown { display: flex; justify-content: space-between; gap: 10px; padding-top: 6px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.blue-gain-compact { display: flex; flex-direction: column; gap: 1px; margin-top: 9px; padding: 8px 10px; border: 1px solid var(--accent); border-radius: 7px; }
+.blue-gain-compact strong { padding-top: 7px; border-top: 1px solid var(--line); color: var(--accent); font-size: 18px; }
+.blue-gain-compact span { color: var(--muted); font-size: 11px; }
+.blue-gain-summary { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 7px; color: var(--muted); font-size: 11px; }
+.blue-gain-summary span.active { color: var(--accent); }
+.blue-gain-summary output { font-weight: 700; }

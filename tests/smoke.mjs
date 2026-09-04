@@ -86,6 +86,8 @@ assert.ok(!bodyText.includes('White spark stars'), 'predicted run still shows wh
 assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'inventory settings still show default limit-break controls');
 assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
 assert.equal(await page.locator('.blue-slider-notches i').count(), 100, 'parent sliders do not show all ten positions');
+assert.equal(await page.locator('.blue-gain-compact').count(), 1, 'parent gain detail is not compact');
+assert.equal(await page.locator('.blue-gain-summary [data-inherited-stat]').count(), 5, 'parent gain summary does not include all stats');
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),

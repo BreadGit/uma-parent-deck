@@ -2,7 +2,6 @@ import { loadData } from './data.ts';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from './settings.ts';
 import { effectiveLb, exportInventory, importInventory, loadInventory, saveInventory } from './inventory.ts';
 import { html, pct, pill, num, type Raw } from './ui/html.ts';
-import { renderBlueSparksPrototypeB, showBlueSparksPrototypeB } from './ui/blue-sparks-prototype.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlist, type CardScore, type Ctx } from './model/deck.ts';
 import { resolveTarget, type Target } from './model/sparks.ts';
@@ -52,6 +51,7 @@ let query = '';
 let traineeQuery = '';
 let showAdvanced = false;
 let showAllRaces = false;
+let activeInheritedStat = 0;
 
 const persist = () => { localStorage.setItem(STATE_KEY, JSON.stringify(state)); saveSettings(settings); saveInventory(inventory); };
 
@@ -168,12 +168,7 @@ function renderTrainee(c: Computed): Raw {
 
 function renderRunSettings(c: Computed): Raw {
   const lhOptions = c.pool.filter((p) => LIGHT_HELLO_IDS.includes(p.card.id) && !c.unowned.has(p.card.id));
-  const showPrototypeB = showBlueSparksPrototypeB();
-  const prototypeStats = STATS.map((name, i) => ({
-    name: name.charAt(0).toUpperCase() + name.slice(1),
-    parentStars: [state.parentStars[0]![i]!, state.parentStars[1]![i]!] as [number, number],
-    ...c.inherited[i]!,
-  }));
+  const activeGain = c.inherited[activeInheritedStat]!;
   return html`
     <section class="panel">
       <h2>Run</h2>
@@ -190,7 +185,7 @@ function renderRunSettings(c: Computed): Raw {
         <span><input type="range" min="0" max="1" step="0.05" value="${settings.winThreshold}" data-setting="winThreshold" /> <output data-setting-output="winThreshold">${pct(settings.winThreshold)}</output></span></label>
       <div class="small muted">Races: ${c.sum.count} G1s selected, ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses.</div>
       <h3>Parent blue sparks</h3>
-      ${showPrototypeB ? renderBlueSparksPrototypeB(prototypeStats, MAX_PARENT_STARS) : html`<div class="blue-parents">
+      <div class="blue-parents">
         ${[0, 1].map((pi) => {
           const stars = state.parentStars[pi]!;
           const total = stars.reduce((a, b) => a + b, 0);
@@ -204,13 +199,13 @@ function renderRunSettings(c: Computed): Raw {
           </section>`;
         })}
       </div>
-      <div class="blue-gains">
-        ${STATS.map((s, i) => html`<div class="blue-gain-card" data-inherited-stat="${i}">
-          <div class="blue-gain-heading"><strong>${s.charAt(0).toUpperCase() + s.slice(1)}</strong><span>${state.parentStars[0]![i]! + state.parentStars[1]![i]!}★ combined</span></div>
-          <div class="blue-gain-total"><span>Total stat gain</span><output data-inherited-total>+${num(c.inherited[i]!.total)}</output></div>
-          <div class="blue-gain-breakdown"><span>At start <output data-inherited-start>+${num(c.inherited[i]!.start)}</output></span><span>Inspiration events <output data-inherited-inspiration>+${num(c.inherited[i]!.inspiration)}</output></span></div>
-        </div>`)}
-      </div>`}
+      <div class="blue-gain-compact" aria-live="polite">
+        <strong>Total gain <output data-inherited-total>+${num(activeGain.total)}</output></strong>
+        <span><output data-inherited-start>+${num(activeGain.start)}</output> at start · <output data-inherited-inspiration>+${num(activeGain.inspiration)}</output> from inspiration events</span>
+      </div>
+      <div class="blue-gain-summary">
+        ${STATS.map((s, i) => html`<span class="${i === activeInheritedStat ? 'active' : ''}" data-inherited-stat="${i}">${s.charAt(0).toUpperCase() + s.slice(1)} <output>+${num(c.inherited[i]!.total)}</output></span>`)}
+      </div>
       <label class="row"><span class="k">Show cards marked not owned</span><input type="checkbox" data-setting="showUnowned" ${settings.showUnowned ? 'checked' : ''} /></label>
     </section>`;
 }
@@ -375,29 +370,13 @@ app.addEventListener('input', (ev) => {
   const el = ev.target as HTMLInputElement;
   if (el.dataset.input === 'query') { query = el.value; render(); return; }
   if (el.dataset.input === 'traineeQuery') { traineeQuery = el.value; render(); return; }
-  if (el.dataset.prototypeParent != null) {
-    const parentIndex = Number(el.dataset.prototypeParent), statIndex = Number(el.dataset.prototypeStat);
-    const stars = [0, 0];
-    for (const slider of app.querySelectorAll<HTMLInputElement>(`input[data-prototype-stat="${statIndex}"]`)) stars[Number(slider.dataset.prototypeParent)] = Number(slider.value);
-    const parents = [Array(STATS.length).fill(0), Array(STATS.length).fill(0)];
-    parents[0]![statIndex] = stars[0]!; parents[1]![statIndex] = stars[1]!;
-    const gain = inheritedFromParents(parents, statIndex, settings);
-    const control = el.closest<HTMLElement>('[data-prototype-stat-group]');
-    const starOutput = control?.querySelector<HTMLOutputElement>(`[data-prototype-stars="${parentIndex}"]`);
-    if (starOutput) starOutput.value = `${el.value}★`;
-    const set = (selector: string, value: string) => { const output = control?.querySelector<HTMLOutputElement>(selector); if (output) output.value = value; };
-    set('[data-prototype-combined]', `${stars[0]! + stars[1]!}★ combined`);
-    set('[data-prototype-start]', `+${num(gain.start)}`);
-    set('[data-prototype-inspiration]', `+${num(gain.inspiration)}`);
-    set('[data-prototype-total]', `+${num(gain.total)}`);
-    return;
-  }
   if (el.dataset.setting === 'winThreshold') {
     const output = app.querySelector<HTMLOutputElement>('output[data-setting-output="winThreshold"]');
     if (output) output.value = pct(Number(el.value));
     return;
   }
   if (el.dataset.parent != null) { const pi = Number(el.dataset.parent), i = Number(el.dataset.stat); const next = state.parentStars[pi]!.slice(); next[i] = Number(el.value);
+    activeInheritedStat = i;
     const preview = clampStars(next, i, MAX_PARENT_STARS);
     el.value = String(preview[i]);
     const output = app.querySelector<HTMLOutputElement>(`output[data-parent-output="${pi}-${i}"]`);
@@ -406,10 +385,10 @@ app.addEventListener('input', (ev) => {
     if (total) total.value = String(preview.reduce((sum, stars) => sum + stars, 0));
     const previewParents = state.parentStars.map((parent, parentIndex) => parentIndex === pi ? preview : parent);
     const inherited = inheritedFromParents(previewParents, i, settings);
-    const gain = app.querySelector<HTMLElement>(`[data-inherited-stat="${i}"]`);
-    const setGain = (selector: string, value: string) => { const output = gain?.querySelector<HTMLOutputElement>(selector); if (output) output.value = value; };
-    const combined = gain?.querySelector<HTMLElement>('.blue-gain-heading span');
-    if (combined) combined.textContent = `${previewParents[0]![i]! + previewParents[1]![i]!}★ combined`;
+    for (const summary of app.querySelectorAll<HTMLElement>('[data-inherited-stat]')) summary.classList.toggle('active', Number(summary.dataset.inheritedStat) === i);
+    const summaryOutput = app.querySelector<HTMLOutputElement>(`[data-inherited-stat="${i}"] output`);
+    if (summaryOutput) summaryOutput.value = `+${num(inherited.total)}`;
+    const setGain = (selector: string, value: string) => { const output = app.querySelector<HTMLOutputElement>(`.blue-gain-compact ${selector}`); if (output) output.value = value; };
     setGain('[data-inherited-total]', `+${num(inherited.total)}`);
     setGain('[data-inherited-start]', `+${num(inherited.start)}`);
     setGain('[data-inherited-inspiration]', `+${num(inherited.inspiration)}`);
