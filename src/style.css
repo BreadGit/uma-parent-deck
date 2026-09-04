@@ -76,6 +76,18 @@ details > summary { cursor: pointer; color: var(--accent); }
 .pill.warn { background: #fbe6d1; color: #8a4a08; }
 .stat .s .pill { font-size: 11px; padding: 0 4px; }
 .cover .pill { font-size: 11px; padding: 0 4px; }
-.parents { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.parent .ph { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
-.parent .spark-row { grid-template-columns: 30px 1fr 28px; gap: 6px; margin: 2px 0; font-size: 12px; }
+.blue-parents { display: grid; gap: 8px; }
+.blue-parent-card { padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcfe; }
+.blue-parent-card .ph { font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+.blue-parent-control { margin: 7px 0; }
+.blue-parent-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.blue-parent-heading span { font-weight: 600; }
+.blue-parent-heading output { color: var(--muted); font-variant-numeric: tabular-nums; }
+.blue-parent-control input[type=range] { display: block; width: 100%; margin: 5px 0 8px; }
+.blue-gains { display: grid; gap: 7px; margin-top: 9px; }
+.blue-gain-card { padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px; }
+.blue-gain-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.blue-gain-heading span { color: var(--muted); font-size: 11px; }
+.blue-gain-total { display: flex; align-items: baseline; justify-content: space-between; margin-top: 4px; color: var(--muted); }
+.blue-gain-total output { color: var(--text); font-size: 22px; font-weight: 700; }
+.blue-gain-breakdown { display: flex; justify-content: space-between; gap: 10px; padding-top: 6px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }

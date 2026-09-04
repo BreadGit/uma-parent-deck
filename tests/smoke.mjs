@@ -45,7 +45,6 @@ await page.$eval('input[data-setting="winThreshold"]', (el) => {
 });
 assert.deepEqual(await page.$$eval('select[data-setting="focus"] option', (options) => options.map((option) => option.textContent)), ['Balanced', 'Stamina', 'Sprint']);
 
-await page.selectOption('select[data-default-lb="SSR"]', '4');
 await page.fill('#trainee-search', 'special dreamer');
 await page.waitForSelector('li[data-action="pick-trainee"]');
 await page.click('li[data-action="pick-trainee"]');
@@ -83,6 +82,9 @@ const bodyText = await page.textContent('body');
 assert.ok(!bodyText.includes('blue spark 1★'), 'predicted run still shows blue spark odds');
 assert.ok(!bodyText.includes('Card / event / inherited stats'), 'predicted run still shows stat-source totals');
 assert.ok(!bodyText.includes("Blue spark stars depend on each stat's final value"), 'predicted run still shows the removed explanatory blurb');
+assert.ok(!bodyText.includes('White spark stars'), 'predicted run still shows white spark odds');
+assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'inventory settings still show default limit-break controls');
+assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),
@@ -104,7 +106,9 @@ const afterUnown = await page.evaluate(() => [...document.querySelectorAll('.dec
 console.log('deck after marking Light Hello SSR not owned:', afterUnown);
 await page.$eval('input[data-parent="1"][data-stat="0"]', (el) => { el.value = '9'; el.dispatchEvent(new Event('change', { bubbles: true })); });
 await page.waitForTimeout(200);
-console.log('parent 2 stars after setting speed to 9 (should clamp to 0 with 9 already used):', await page.evaluate(() => [...document.querySelectorAll('input[data-parent="1"]')].map((e) => e.value)));
+const parent2Stars = await page.evaluate(() => [...document.querySelectorAll('input[data-parent="1"]')].map((e) => Number(e.value)));
+assert.ok(parent2Stars.reduce((sum, stars) => sum + stars, 0) <= 9, `parent 2 exceeded the 9-star cap: ${parent2Stars}`);
+console.log('parent 2 stars after setting speed to 9 (should clamp to 0 with 9 already used):', parent2Stars);
 console.log('errors:', errors);
 await browser.close();
 process.exit(errors.length ? 1 : 0);

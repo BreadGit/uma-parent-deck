@@ -4,7 +4,7 @@ import { effectiveLb, exportInventory, importInventory, loadInventory, saveInven
 import { html, pct, pill, num, type Raw } from './ui/html.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlist, type CardScore, type Ctx } from './model/deck.ts';
-import { resolveTarget, whiteStarOdds, type Target } from './model/sparks.ts';
+import { resolveTarget, type Target } from './model/sparks.ts';
 import { pAbove, predictDeck, phi } from './model/stats.ts';
 import { buildSchedule, scheduleSummary, traineeAptitudes, type Aptitudes } from './model/races.ts';
 import { skillScore, statScore, thresholdFor } from './model/rank.ts';
@@ -183,19 +183,26 @@ function renderRunSettings(c: Computed): Raw {
         <span><input type="range" min="0" max="1" step="0.05" value="${settings.winThreshold}" data-setting="winThreshold" /> <output data-setting-output="winThreshold">${pct(settings.winThreshold)}</output></span></label>
       <div class="small muted">Races: ${c.sum.count} G1s selected, ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses.</div>
       <h3>Parent blue sparks</h3>
-      <div class="parents">
+      <div class="blue-parents">
         ${[0, 1].map((pi) => {
           const stars = state.parentStars[pi]!;
           const total = stars.reduce((a, b) => a + b, 0);
-          return html`<div class="parent">
+          return html`<section class="blue-parent-card">
             <div class="ph">Parent ${pi + 1} <span class="muted">(<output data-parent-total="${pi}">${total}</output> / ${MAX_PARENT_STARS}★)</span></div>
-            ${STATS.map((s, i) => html`<div class="spark-row"><span class="muted">${s.slice(0, 3)}</span>
-              <input type="range" min="0" max="${MAX_PARENT_STARS}" step="1" value="${stars[i]}" data-parent="${pi}" data-stat="${i}" /><output data-parent-output="${pi}-${i}">${stars[i]}★</output></div>`)}
-          </div>`;
+            ${STATS.map((s, i) => html`<div class="blue-parent-control">
+              <div class="blue-parent-heading"><span>${s.charAt(0).toUpperCase() + s.slice(1)}</span><output data-parent-output="${pi}-${i}">${stars[i]}★</output></div>
+              <input type="range" min="0" max="${MAX_PARENT_STARS}" step="1" value="${stars[i]}" data-parent="${pi}" data-stat="${i}" aria-label="Parent ${pi + 1} ${s} blue stars" />
+            </div>`)}
+          </section>`;
         })}
       </div>
-      <div class="small muted">${STATS.map((s, i) => `${s} ${state.parentStars[0]![i]! + state.parentStars[1]![i]!}★: +${num(c.inherited[i]!.start)} start, +${num(c.inherited[i]!.inspiration)} inspiration`).join(' · ')}</div>
-      <div class="small muted">Each parent carries up to ${MAX_PARENT_STARS} stars (herself plus her two grandparents). A 3★ spark gives +21 at the start (2★ +12, 1★ +5) and the same again at each of the two inspiration events when it procs (70/80/90% by stars, scaled by affinity ${settings.affinity}).</div>
+      <div class="blue-gains">
+        ${STATS.map((s, i) => html`<div class="blue-gain-card" data-inherited-stat="${i}">
+          <div class="blue-gain-heading"><strong>${s.charAt(0).toUpperCase() + s.slice(1)}</strong><span>${state.parentStars[0]![i]! + state.parentStars[1]![i]!}★ combined</span></div>
+          <div class="blue-gain-total"><span>Total stat gain</span><output data-inherited-total>+${num(c.inherited[i]!.total)}</output></div>
+          <div class="blue-gain-breakdown"><span>At start <output data-inherited-start>+${num(c.inherited[i]!.start)}</output></span><span>Inspiration events <output data-inherited-inspiration>+${num(c.inherited[i]!.inspiration)}</output></span></div>
+        </div>`)}
+      </div>
       <label class="row"><span class="k">Show cards marked not owned</span><input type="checkbox" data-setting="showUnowned" ${settings.showUnowned ? 'checked' : ''} /></label>
     </section>`;
 }
@@ -203,7 +210,6 @@ function renderRunSettings(c: Computed): Raw {
 function renderDeck(c: Computed): Raw {
   const d = c.deckResult;
   const p = c.pred;
-  const starsWhite = whiteStarOdds(c.pSS, settings);
   return html`
     <section class="panel">
       <h2>Suggested deck</h2>
@@ -221,7 +227,6 @@ function renderDeck(c: Computed): Raw {
       <div class="kv">
         <div><span class="k">Rank score</span><span class="v">${num(c.score)} ± ${num(c.sdScore)}</span></div>
         <div><span class="k">SS or better</span><span class="v">${pill(c.pSS, c.pSS > 0.5 ? 'ok' : 'warn')}</span></div>
-        <div><span class="k">White spark stars</span><span class="v">1★ ${pill(starsWhite[0]!)} 2★ ${pill(starsWhite[1]!)} 3★ ${pill(starsWhite[2]!)}</span></div>
         <div><span class="k">Estimated SP</span><span class="v">${num(p.sp)}</span></div>
       </div>
       <h3>Target coverage</h3>
@@ -308,8 +313,6 @@ function renderSettingsPanel(): Raw {
         ${Object.keys(inventory).length ? html`<button data-action="reset-inventory">Reset all to defaults</button>` : ''}
         <span class="small muted">Replace the repo's inventory.json with the export to make it the default.</span>
       </div>
-      <h3>Default limit break for unmarked cards</h3>
-      <div class="grid2">${(['R', 'SR', 'SSR'] as const).map((r) => html`<label class="row"><span class="k">${r}</span><select data-default-lb="${r}">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${settings.defaultLb[r] === l ? 'selected' : ''}>${l}</option>`)}</select></label>`)}</div>
       <details ${showAdvanced ? 'open' : ''} data-details="advanced"><summary>Advanced estimates</summary>
         <h3>Rates</h3>
         <div class="grid2 settings-grid">
@@ -376,6 +379,15 @@ app.addEventListener('input', (ev) => {
     if (output) output.value = `${preview[i]}★`;
     const total = app.querySelector<HTMLOutputElement>(`output[data-parent-total="${pi}"]`);
     if (total) total.value = String(preview.reduce((sum, stars) => sum + stars, 0));
+    const previewParents = state.parentStars.map((parent, parentIndex) => parentIndex === pi ? preview : parent);
+    const inherited = inheritedFromParents(previewParents, i, settings);
+    const gain = app.querySelector<HTMLElement>(`[data-inherited-stat="${i}"]`);
+    const setGain = (selector: string, value: string) => { const output = gain?.querySelector<HTMLOutputElement>(selector); if (output) output.value = value; };
+    const combined = gain?.querySelector<HTMLElement>('.blue-gain-heading span');
+    if (combined) combined.textContent = `${previewParents[0]![i]! + previewParents[1]![i]!}★ combined`;
+    setGain('[data-inherited-total]', `+${num(inherited.total)}`);
+    setGain('[data-inherited-start]', `+${num(inherited.start)}`);
+    setGain('[data-inherited-inspiration]', `+${num(inherited.inspiration)}`);
     return; }
 });
 app.addEventListener('change', (ev) => {
@@ -393,7 +405,6 @@ app.addEventListener('change', (ev) => {
     else if (card && Number(el.value) === settings.defaultLb[card.rarity]) delete inventory[id];
     else inventory[id] = Number(el.value);
     persist(); render(); return; }
-  if (el.dataset.defaultLb) { settings.defaultLb = { ...settings.defaultLb, [el.dataset.defaultLb]: Number(el.value) }; persist(); render(); return; }
   if (el.dataset.setting) {
     const key = el.dataset.setting as keyof Settings;
     const cur = settings[key];
