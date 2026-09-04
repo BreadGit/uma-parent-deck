@@ -2,6 +2,7 @@ import { loadData } from './data.ts';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from './settings.ts';
 import { effectiveLb, exportInventory, importInventory, loadInventory, saveInventory } from './inventory.ts';
 import { html, pct, pill, num, type Raw } from './ui/html.ts';
+import { renderBlueSparksPrototypeB, showBlueSparksPrototypeB } from './ui/blue-sparks-prototype.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlist, type CardScore, type Ctx } from './model/deck.ts';
 import { resolveTarget, type Target } from './model/sparks.ts';
@@ -167,6 +168,12 @@ function renderTrainee(c: Computed): Raw {
 
 function renderRunSettings(c: Computed): Raw {
   const lhOptions = c.pool.filter((p) => LIGHT_HELLO_IDS.includes(p.card.id) && !c.unowned.has(p.card.id));
+  const showPrototypeB = showBlueSparksPrototypeB();
+  const prototypeStats = STATS.map((name, i) => ({
+    name: name.charAt(0).toUpperCase() + name.slice(1),
+    parentStars: [state.parentStars[0]![i]!, state.parentStars[1]![i]!] as [number, number],
+    ...c.inherited[i]!,
+  }));
   return html`
     <section class="panel">
       <h2>Run</h2>
@@ -183,7 +190,7 @@ function renderRunSettings(c: Computed): Raw {
         <span><input type="range" min="0" max="1" step="0.05" value="${settings.winThreshold}" data-setting="winThreshold" /> <output data-setting-output="winThreshold">${pct(settings.winThreshold)}</output></span></label>
       <div class="small muted">Races: ${c.sum.count} G1s selected, ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses.</div>
       <h3>Parent blue sparks</h3>
-      <div class="blue-parents">
+      ${showPrototypeB ? renderBlueSparksPrototypeB(prototypeStats, MAX_PARENT_STARS) : html`<div class="blue-parents">
         ${[0, 1].map((pi) => {
           const stars = state.parentStars[pi]!;
           const total = stars.reduce((a, b) => a + b, 0);
@@ -192,6 +199,7 @@ function renderRunSettings(c: Computed): Raw {
             ${STATS.map((s, i) => html`<div class="blue-parent-control">
               <div class="blue-parent-heading"><span>${s.charAt(0).toUpperCase() + s.slice(1)}</span><output data-parent-output="${pi}-${i}">${stars[i]}★</output></div>
               <input type="range" min="0" max="${MAX_PARENT_STARS}" step="1" value="${stars[i]}" data-parent="${pi}" data-stat="${i}" aria-label="Parent ${pi + 1} ${s} blue stars" />
+              <div class="blue-slider-notches" aria-hidden="true">${Array.from({ length: MAX_PARENT_STARS + 1 }, () => html`<i></i>`)}</div>
             </div>`)}
           </section>`;
         })}
@@ -202,7 +210,7 @@ function renderRunSettings(c: Computed): Raw {
           <div class="blue-gain-total"><span>Total stat gain</span><output data-inherited-total>+${num(c.inherited[i]!.total)}</output></div>
           <div class="blue-gain-breakdown"><span>At start <output data-inherited-start>+${num(c.inherited[i]!.start)}</output></span><span>Inspiration events <output data-inherited-inspiration>+${num(c.inherited[i]!.inspiration)}</output></span></div>
         </div>`)}
-      </div>
+      </div>`}
       <label class="row"><span class="k">Show cards marked not owned</span><input type="checkbox" data-setting="showUnowned" ${settings.showUnowned ? 'checked' : ''} /></label>
     </section>`;
 }
@@ -367,6 +375,23 @@ app.addEventListener('input', (ev) => {
   const el = ev.target as HTMLInputElement;
   if (el.dataset.input === 'query') { query = el.value; render(); return; }
   if (el.dataset.input === 'traineeQuery') { traineeQuery = el.value; render(); return; }
+  if (el.dataset.prototypeParent != null) {
+    const parentIndex = Number(el.dataset.prototypeParent), statIndex = Number(el.dataset.prototypeStat);
+    const stars = [0, 0];
+    for (const slider of app.querySelectorAll<HTMLInputElement>(`input[data-prototype-stat="${statIndex}"]`)) stars[Number(slider.dataset.prototypeParent)] = Number(slider.value);
+    const parents = [Array(STATS.length).fill(0), Array(STATS.length).fill(0)];
+    parents[0]![statIndex] = stars[0]!; parents[1]![statIndex] = stars[1]!;
+    const gain = inheritedFromParents(parents, statIndex, settings);
+    const control = el.closest<HTMLElement>('[data-prototype-stat-group]');
+    const starOutput = control?.querySelector<HTMLOutputElement>(`[data-prototype-stars="${parentIndex}"]`);
+    if (starOutput) starOutput.value = `${el.value}★`;
+    const set = (selector: string, value: string) => { const output = control?.querySelector<HTMLOutputElement>(selector); if (output) output.value = value; };
+    set('[data-prototype-combined]', `${stars[0]! + stars[1]!}★ combined`);
+    set('[data-prototype-start]', `+${num(gain.start)}`);
+    set('[data-prototype-inspiration]', `+${num(gain.inspiration)}`);
+    set('[data-prototype-total]', `+${num(gain.total)}`);
+    return;
+  }
   if (el.dataset.setting === 'winThreshold') {
     const output = app.querySelector<HTMLOutputElement>('output[data-setting-output="winThreshold"]');
     if (output) output.value = pct(Number(el.value));

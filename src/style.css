@@ -83,7 +83,9 @@ details > summary { cursor: pointer; color: var(--accent); }
 .blue-parent-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .blue-parent-heading span { font-weight: 600; }
 .blue-parent-heading output { color: var(--muted); font-variant-numeric: tabular-nums; }
-.blue-parent-control input[type=range] { display: block; width: 100%; margin: 5px 0 8px; }
+.blue-parent-control input[type=range] { display: block; width: 100%; margin: 5px 0 0; }
+.blue-slider-notches { display: flex; justify-content: space-between; height: 6px; margin: -3px 7px 8px; }
+.blue-slider-notches i { display: block; width: 1px; height: 5px; background: #aeb6c1; }
 .blue-gains { display: grid; gap: 7px; margin-top: 9px; }
 .blue-gain-card { padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px; }
 .blue-gain-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }

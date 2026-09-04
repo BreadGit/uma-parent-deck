@@ -85,6 +85,7 @@ assert.ok(!bodyText.includes("Blue spark stars depend on each stat's final value
 assert.ok(!bodyText.includes('White spark stars'), 'predicted run still shows white spark odds');
 assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'inventory settings still show default limit-break controls');
 assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
+assert.equal(await page.locator('.blue-slider-notches i').count(), 100, 'parent sliders do not show all ten positions');
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),
