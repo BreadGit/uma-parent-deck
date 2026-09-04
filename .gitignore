@@ -2,3 +2,4 @@ node_modules/
 dist/
 data/raw/page_*
 .DS_Store
+docs/screenshot.png
