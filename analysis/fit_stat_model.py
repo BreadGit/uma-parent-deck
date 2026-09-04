@@ -47,11 +47,28 @@ def passives(card, lb):
     return {i: e.get(str(i), 0) + e.get(f'u{i}', 0) for i in range(1, 32)}
 
 # ---------- observations ----------
+# The sheet identifies each card by a GameTora image formula in column B (support_card_s_<id>.png),
+# which disambiguates characters with two cards of the same rarity and type. Names are the fallback.
+wb_f = openpyxl.load_workbook(ROOT / 'docs/loopacord-independent-training-research.xlsx', read_only=True, data_only=False)
+sheet_ids = []
+for row in wb_f['Grand Live Card Data'].iter_rows():
+    cells = list(row) + [None] * 20
+    name = cells[2].value if cells[2] is not None else None
+    if not (isinstance(name, str) and re.search(r' (R|SR|SSR)$', name)): continue
+    formula = cells[1].value if cells[1] is not None else None
+    m = re.search(r'support_card_s_(\d+)\.png', str(formula or ''))
+    sheet_ids.append(int(m.group(1)) if m else None)
+if len(sheet_ids) != len(rows):
+    print(f'warning: {len(sheet_ids)} image ids vs {len(rows)} csv rows; falling back to names where they disagree')
+card_by_id = {c['id']: c for c in cards}
 observed = []   # {cardId, lb, source, runs, stats[5], sp}
 unmatched = []
-for r in rows:
+for i, r in enumerate(rows):
     m = re.match(r'(.*) (R|SR|SSR)$', r['name'])
     cs = find_card(m.group(1), m.group(2), TYPE[r['type']])
+    sid = sheet_ids[i] if i < len(sheet_ids) else None
+    if sid in card_by_id and card_by_id[sid]['rarity'] == m.group(2):
+        cs = [card_by_id[sid]]
     if len(cs) != 1:
         unmatched.append((r['name'], r['type'], len(cs))); continue
     runs = r['runs']
