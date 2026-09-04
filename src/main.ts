@@ -35,6 +35,7 @@ const state = loadState();
 let settings: Settings = loadSettings();
 let inventory: Inventory = loadInventory();
 let query = '';
+let traineeQuery = '';
 let showAdvanced = false;
 let showAllRaces = false;
 
@@ -120,27 +121,34 @@ function renderTargets(c: Computed): Raw {
 }
 
 function renderTrainee(c: Computed): Raw {
-  const chars = data.characters.slice().sort((a, b) => a.name.localeCompare(b.name) || a.cardId - b.cardId);
   const t = c.trainee;
+  const q = traineeQuery.trim().toLowerCase();
+  const words = q.split(/\s+/).filter(Boolean);
+  const matches = words.length
+    ? data.characters.filter((ch) => { const hay = `${ch.name} ${ch.title}`.toLowerCase(); return words.every((w) => hay.includes(w)); })
+      .sort((a, b) => a.name.localeCompare(b.name) || a.cardId - b.cardId).slice(0, 12)
+    : [];
   const overridden = Object.keys(state.aptOverrides).length > 0;
   return html`
     <section class="panel">
       <h2>Trainee</h2>
-      <label class="row"><span class="k">Uma</span>
-        <select data-select="trainee" style="max-width:240px">
-          <option value="">— none —</option>
-          ${chars.map((ch) => html`<option value="${ch.cardId}" ${ch.cardId === state.traineeCardId ? 'selected' : ''}>${ch.name} ${ch.title}</option>`)}
-        </select></label>
       ${t ? html`
-        <div class="kv">
-          <img class="thumb" src="${charImg(t)}" alt="" style="width:48px;height:48px" />
-          <div><span class="k">Growth</span><span class="v small">${STATS.map((s, i) => `${s} ${t.growth[i]! > 0 ? '+' + t.growth[i] + '%' : '–'}`).join(' · ')}</span></div>
+        <div class="kv" style="align-items:center">
+          <img class="thumb" src="${charImg(t)}" alt="" style="width:56px;height:56px" />
+          <div><span class="k">${t.title}</span><span class="v">${t.name}</span></div>
+          <button class="small" data-action="clear-trainee" style="margin-left:auto">Change</button>
         </div>
+        <div class="small muted">Growth: ${STATS.map((s, i) => `${s} ${t.growth[i]! > 0 ? '+' + t.growth[i] + '%' : '–'}`).join(' · ')}</div>
         <h3>Trainee aptitude overrides (match the legacy screen)</h3>
         <div class="apts">${APT_SHOWN.map((k) => html`<label>${k}<select data-apt="${k}">${GRADES.map((g) => html`<option value="${g}" ${c.apt[k] === g ? 'selected' : ''}>${g}</option>`)}</select></label>`)}</div>
         ${overridden ? html`<button class="small" data-action="reset-apts">Reset to base aptitudes</button>` : ''}
         <div class="small muted" style="margin-top:6px">Innate: ${t.innateSkills.map(skillName).join(', ')}<br/>Awakening: ${t.awakeningSkills.map(skillName).join(', ')}</div>
-      ` : html`<div class="small muted">Pick the uma you'll train. Her own support cards are excluded from the deck and her innate skills count as covered.</div>`}
+      ` : html`
+        <div class="suggest">
+          <input id="trainee-search" type="search" placeholder="Search uma name or outfit…" value="${traineeQuery}" data-input="traineeQuery" style="max-width:100%;width:100%" autocomplete="off" />
+          ${matches.length ? html`<ul>${matches.map((ch) => html`<li data-action="pick-trainee" data-id="${ch.cardId}"><img src="${charImg(ch)}" alt="" style="width:32px;height:32px" />${ch.name}<span class="r">${ch.title}</span></li>`)}</ul>` : ''}
+        </div>
+        <div class="small muted">Pick the uma you'll train. Her own support cards are excluded from the deck and her innate skills count as covered.</div>`}
     </section>`;
 }
 
@@ -183,7 +191,7 @@ function renderDeck(c: Computed): Raw {
           <img src="${cardImg(cs.card)}" alt="" />
           <div class="name">${cs.card.name}</div>
           <div class="lb">${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select> ${typeTag(cs.card)}</div>
-          <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t" title="${x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${x.target.name} ${pill(x.spark, x.own.pGold > 0 ? 'gold' : '')}</span>`)}</div>
+          <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t" title="${x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${x.target.name} ${pill(x.spark)}</span>`)}</div>
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
       <h3>Predicted run (deck ${c.sum.count} races, ${settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">${STATS.map((s, i) => html`
@@ -203,7 +211,7 @@ function renderDeck(c: Computed): Raw {
           for (const s of srcs) { noAny *= 1 - s.pObtain; if (s.gold) noGold *= 1 - s.pObtain; }
           const pGold = 1 - noGold, pWhite = Math.max(0, 1 - noAny - pGold);
           const spark = pGold * settings.goldSparkRate + pWhite * settings.whiteSparkRate;
-          return html`<tr><td>${t.name}</td><td class="num">${pill(pGold, pGold > 0 ? 'gold' : '')}</td><td class="num">${pill(pWhite)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
+          return html`<tr><td>${t.name}</td><td class="num">${pill(pGold)}</td><td class="num">${pill(pWhite)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
@@ -257,7 +265,7 @@ function renderRanking(c: Computed): Raw {
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
             <td class="num">${pill(x.sparkValue, '', 1)}</td>
-            <td class="cover">${x.coverage.map((cv) => html`<span class="t" title="${cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${cv.target.name} ${pill(cv.spark, cv.own.pGold > 0 ? 'gold' : '')}</span>`)}</td>
+            <td class="cover">${x.coverage.map((cv) => html`<span class="t" title="${cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n')}">${cv.target.name} ${pill(cv.spark)}</span>`)}</td>
             ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
             <td class="small muted">${x.source === 'observed' ? `observed (${x.runs} runs)` : x.source === 'observed+model' ? `observed at another LB` : 'model'}</td>
@@ -334,6 +342,7 @@ const app = document.getElementById('app')!;
 app.addEventListener('input', (ev) => {
   const el = ev.target as HTMLInputElement;
   if (el.dataset.input === 'query') { query = el.value; render(); return; }
+  if (el.dataset.input === 'traineeQuery') { traineeQuery = el.value; render(); return; }
   if (el.dataset.setting === 'winThreshold') {
     const output = app.querySelector<HTMLOutputElement>('output[data-setting-output="winThreshold"]');
     if (output) output.value = pct(Number(el.value));
@@ -352,7 +361,6 @@ app.addEventListener('change', (ev) => {
   const el = ev.target as HTMLInputElement & HTMLSelectElement;
   if (el.dataset.blue != null) { const i = Number(el.dataset.blue); const next = state.blueStars.slice(); next[i] = Number(el.value);
     state.blueStars = clampStars(next, i); persist(); render(); return; }
-  if (el.dataset.select === 'trainee') { state.traineeCardId = el.value ? Number(el.value) : null; state.aptOverrides = {}; persist(); render(); return; }
   if (el.dataset.select === 'pinned') { state.pinnedId = el.value ? Number(el.value) : null; persist(); render(); return; }
   if (el.dataset.apt) { const k = el.dataset.apt as AptKey; const t = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) : null;
     if (t && t.aptitudes[k] === el.value) delete state.aptOverrides[k]; else state.aptOverrides[k] = el.value as Grade; persist(); render(); return; }
@@ -391,6 +399,8 @@ app.addEventListener('click', (ev) => {
   const a = t.dataset.action;
   if (a === 'add-target') { const id = Number(t.dataset.id); const fam = resolveTarget(id, data); const base = fam?.id ?? id;
     if (!state.targets.includes(base)) state.targets.push(base); query = ''; persist(); render(); return; }
+  if (a === 'pick-trainee') { state.traineeCardId = Number(t.dataset.id); state.aptOverrides = {}; traineeQuery = ''; persist(); render(); return; }
+  if (a === 'clear-trainee') { state.traineeCardId = null; state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); persist(); render(); return; }
   if (a === 'reset-apts') { state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'reset-races') { state.raceOverrides = {}; persist(); render(); return; }

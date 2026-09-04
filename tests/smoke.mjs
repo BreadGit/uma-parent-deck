@@ -46,8 +46,9 @@ await page.$eval('input[data-setting="winThreshold"]', (el) => {
 assert.deepEqual(await page.$$eval('select[data-setting="focus"] option', (options) => options.map((option) => option.textContent)), ['Balanced', 'Stamina', 'Sprint']);
 
 await page.selectOption('select[data-default-lb="SSR"]', '4');
-const traineeVal = await page.$eval('select[data-select="trainee"]', (s) => [...s.options].find((o) => o.text.includes('Special Week [Special Dreamer]'))?.value);
-await page.selectOption('select[data-select="trainee"]', traineeVal);
+await page.fill('#trainee-search', 'special dreamer');
+await page.waitForSelector('li[data-action="pick-trainee"]');
+await page.click('li[data-action="pick-trainee"]');
 const aptitudePlacement = await page.evaluate(() => {
   const traineePanel = [...document.querySelectorAll('section.panel')].find((panel) => panel.querySelector('h2')?.textContent === 'Trainee');
   const advanced = document.querySelector('details[data-details="advanced"]');
@@ -57,10 +58,15 @@ assert.deepEqual(aptitudePlacement, { trainee: 6, advanced: 0 });
 const baseTurf = await page.inputValue('select[data-apt="turf"]');
 const overrideTurf = baseTurf === 'G' ? 'A' : 'G';
 await page.selectOption('select[data-apt="turf"]', overrideTurf);
-const alternateSpecialWeek = await page.$eval('select[data-select="trainee"]', (s) => [...s.options].find((o) => o.text.includes('Special Week [Hopp'))?.value);
-await page.selectOption('select[data-select="trainee"]', alternateSpecialWeek);
+const pickTrainee = async (q) => {
+  await page.click('button[data-action="clear-trainee"]');
+  await page.fill('#trainee-search', q);
+  await page.waitForSelector('li[data-action="pick-trainee"]');
+  await page.click('li[data-action="pick-trainee"]');
+};
+await pickTrainee('special week hopp');
 assert.equal(await page.inputValue('select[data-apt="turf"]'), baseTurf, 'selecting a trainee did not restore her default aptitude');
-await page.selectOption('select[data-select="trainee"]', traineeVal);
+await pickTrainee('special dreamer');
 await page.click('details[data-details="advanced"] > summary');
 const advancedOverflow = await page.$eval('details[data-details="advanced"]', (details) => {
   const panelRight = details.closest('section.panel').getBoundingClientRect().right;
