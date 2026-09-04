@@ -1,6 +1,7 @@
 import type { Settings } from '../settings.ts';
 
 export const MAX_BLUE_STARS = 18; // two parents and four grandparents, 3 stars each
+export const MAX_PARENT_STARS = 9; // one parent plus her two grandparents, 3 stars each
 const GAIN_BY_STARS = [0, 5, 12, 21];      // stat gain of one blue spark at career start
 const PROC_BY_STARS = [0, 0.7, 0.8, 0.9];  // inspiration-event proc chance at 0 affinity
 
@@ -27,10 +28,16 @@ export function inheritedStat(stars: number, settings: Settings): Inheritance {
   return { start, inspiration: insp, total: start + insp };
 }
 
-/** Clamp a per-stat star array so the total never exceeds 18, reducing the changed stat first. */
-export function clampStars(stars: number[], changed: number): number[] {
-  const out = stars.map((v) => Math.max(0, Math.min(MAX_BLUE_STARS, Math.round(v))));
+/** Clamp a per-stat star array so the total never exceeds `max`, reducing the changed stat first. */
+export function clampStars(stars: number[], changed: number, max = MAX_BLUE_STARS): number[] {
+  const out = stars.map((v) => Math.max(0, Math.min(max, Math.round(v))));
   const total = out.reduce((a, b) => a + b, 0);
-  if (total > MAX_BLUE_STARS) out[changed] = Math.max(0, out[changed]! - (total - MAX_BLUE_STARS));
+  if (total > max) out[changed] = Math.max(0, out[changed]! - (total - max));
   return out;
+}
+
+/** Sum of both parents' inheritance for one stat, each parent's stars packed into her own sparks. */
+export function inheritedFromParents(parents: number[][], statIndex: number, settings: Settings): Inheritance {
+  const parts = parents.map((p) => inheritedStat(p[statIndex] ?? 0, settings));
+  return { start: parts.reduce((a, x) => a + x.start, 0), inspiration: parts.reduce((a, x) => a + x.inspiration, 0), total: parts.reduce((a, x) => a + x.total, 0) };
 }

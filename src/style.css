@@ -76,3 +76,6 @@ details > summary { cursor: pointer; color: var(--accent); }
 .pill.warn { background: #fbe6d1; color: #8a4a08; }
 .stat .s .pill { font-size: 11px; padding: 0 4px; }
 .cover .pill { font-size: 11px; padding: 0 4px; }
+.parents { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.parent .ph { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+.parent .spark-row { grid-template-columns: 30px 1fr 28px; gap: 6px; margin: 2px 0; font-size: 12px; }

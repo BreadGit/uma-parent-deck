@@ -8,7 +8,7 @@ import { resolveTarget, whiteStarOdds, type Target } from './model/sparks.ts';
 import { pAbove, predictDeck, phi } from './model/stats.ts';
 import { buildSchedule, scheduleSummary, traineeAptitudes, type Aptitudes } from './model/races.ts';
 import { skillScore, statScore, thresholdFor } from './model/rank.ts';
-import { clampStars, inheritedStat, MAX_BLUE_STARS } from './model/inherit.ts';
+import { clampStars, inheritedFromParents, MAX_PARENT_STARS } from './model/inherit.ts';
 import meta from '../data/meta.json';
 
 const data = loadData();
@@ -22,13 +22,26 @@ interface PersistedState {
   aptOverrides: Partial<Aptitudes>;
   raceOverrides: Record<string, boolean>;
   pinnedId: number | null;
-  blueStars: number[];
+  parentStars: number[][]; // [parent 1, parent 2], five stats each, up to 9 stars per parent
   sortKey: string;
 }
 const STATE_KEY = 'uma-parent-deck.state';
 function loadState(): PersistedState {
-  const base: PersistedState = { targets: [], traineeCardId: null, aptOverrides: {}, raceOverrides: {}, pinnedId: null, blueStars: [9, 3, 3, 3, 0], sortKey: 'score' };
-  try { const raw = localStorage.getItem(STATE_KEY); if (raw) return { ...base, ...JSON.parse(raw) }; } catch { /* ignore */ }
+  const base: PersistedState = { targets: [], traineeCardId: null, aptOverrides: {}, raceOverrides: {}, pinnedId: null, parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw) as Partial<PersistedState> & { blueStars?: number[] };
+      const merged = { ...base, ...saved };
+      if (!saved.parentStars && saved.blueStars) {
+        // migrate the old combined sliders: fill parent 1 first, the rest goes to parent 2
+        let left = MAX_PARENT_STARS;
+        const p1 = saved.blueStars.map((v) => { const take = Math.min(v, left); left -= take; return take; });
+        merged.parentStars = [p1, saved.blueStars.map((v, i) => Math.min(MAX_PARENT_STARS, v - p1[i]!))];
+      }
+      return merged;
+    }
+  } catch { /* ignore */ }
   return base;
 }
 const state = loadState();
@@ -78,7 +91,7 @@ function compute() {
   }
   const deckResult = buildDeck(deckPool, targets, ctx, pinnedId != null ? [pinnedId] : []);
   const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings);
-  const inherited = state.blueStars.map((st) => inheritedStat(st, settings));
+  const inherited = STATS.map((_, i) => inheritedFromParents(state.parentStars, i, settings));
   const finalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
   // rank score: stats + skills (SP based estimate) + unique
   const statPts = finalMean.reduce((a, v) => a + statScore(v), 0);
@@ -154,7 +167,6 @@ function renderTrainee(c: Computed): Raw {
 
 function renderRunSettings(c: Computed): Raw {
   const lhOptions = c.pool.filter((p) => LIGHT_HELLO_IDS.includes(p.card.id) && !c.unowned.has(p.card.id));
-  const totalStars = state.blueStars.reduce((a, b) => a + b, 0);
   return html`
     <section class="panel">
       <h2>Run</h2>
@@ -170,11 +182,20 @@ function renderRunSettings(c: Computed): Raw {
       <label class="row"><span class="k">Win chance threshold</span>
         <span><input type="range" min="0" max="1" step="0.05" value="${settings.winThreshold}" data-setting="winThreshold" /> <output data-setting-output="winThreshold">${pct(settings.winThreshold)}</output></span></label>
       <div class="small muted">Races: ${c.sum.count} G1s selected, ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses.</div>
-      <h3>Parent blue sparks <span class="muted" style="text-transform:none">(<output data-blue-total>${totalStars}</output> / ${MAX_BLUE_STARS} stars)</span></h3>
-      ${STATS.map((s, i) => html`<div class="spark-row"><span class="muted">${s}</span>
-        <input type="range" min="0" max="${MAX_BLUE_STARS}" step="1" value="${state.blueStars[i]}" data-blue="${i}" /><output data-blue-output="${i}">${state.blueStars[i]}★</output>
-        <span class="g">+${num(c.inherited[i]!.start)} at start, +${num(c.inherited[i]!.inspiration)} from inspiration events</span></div>`)}
-      <div class="small muted">Stars across the two parents and four grandparents, capped at ${MAX_BLUE_STARS}. Each 3★ spark gives +21 at the start (2★ +12, 1★ +5) and the same again at each of the two inspiration events when it procs (70/80/90% by stars, scaled by affinity ${settings.affinity}).</div>
+      <h3>Parent blue sparks</h3>
+      <div class="parents">
+        ${[0, 1].map((pi) => {
+          const stars = state.parentStars[pi]!;
+          const total = stars.reduce((a, b) => a + b, 0);
+          return html`<div class="parent">
+            <div class="ph">Parent ${pi + 1} <span class="muted">(<output data-parent-total="${pi}">${total}</output> / ${MAX_PARENT_STARS}★)</span></div>
+            ${STATS.map((s, i) => html`<div class="spark-row"><span class="muted">${s.slice(0, 3)}</span>
+              <input type="range" min="0" max="${MAX_PARENT_STARS}" step="1" value="${stars[i]}" data-parent="${pi}" data-stat="${i}" /><output data-parent-output="${pi}-${i}">${stars[i]}★</output></div>`)}
+          </div>`;
+        })}
+      </div>
+      <div class="small muted">${STATS.map((s, i) => `${s} ${state.parentStars[0]![i]! + state.parentStars[1]![i]!}★: +${num(c.inherited[i]!.start)} start, +${num(c.inherited[i]!.inspiration)} inspiration`).join(' · ')}</div>
+      <div class="small muted">Each parent carries up to ${MAX_PARENT_STARS} stars (herself plus her two grandparents). A 3★ spark gives +21 at the start (2★ +12, 1★ +5) and the same again at each of the two inspiration events when it procs (70/80/90% by stars, scaled by affinity ${settings.affinity}).</div>
       <label class="row"><span class="k">Show cards marked not owned</span><input type="checkbox" data-setting="showUnowned" ${settings.showUnowned ? 'checked' : ''} /></label>
     </section>`;
 }
@@ -348,19 +369,19 @@ app.addEventListener('input', (ev) => {
     if (output) output.value = pct(Number(el.value));
     return;
   }
-  if (el.dataset.blue != null) { const i = Number(el.dataset.blue); const next = state.blueStars.slice(); next[i] = Number(el.value);
-    const preview = clampStars(next, i);
+  if (el.dataset.parent != null) { const pi = Number(el.dataset.parent), i = Number(el.dataset.stat); const next = state.parentStars[pi]!.slice(); next[i] = Number(el.value);
+    const preview = clampStars(next, i, MAX_PARENT_STARS);
     el.value = String(preview[i]);
-    const output = app.querySelector<HTMLOutputElement>(`output[data-blue-output="${i}"]`);
+    const output = app.querySelector<HTMLOutputElement>(`output[data-parent-output="${pi}-${i}"]`);
     if (output) output.value = `${preview[i]}★`;
-    const total = app.querySelector<HTMLOutputElement>('output[data-blue-total]');
+    const total = app.querySelector<HTMLOutputElement>(`output[data-parent-total="${pi}"]`);
     if (total) total.value = String(preview.reduce((sum, stars) => sum + stars, 0));
     return; }
 });
 app.addEventListener('change', (ev) => {
   const el = ev.target as HTMLInputElement & HTMLSelectElement;
-  if (el.dataset.blue != null) { const i = Number(el.dataset.blue); const next = state.blueStars.slice(); next[i] = Number(el.value);
-    state.blueStars = clampStars(next, i); persist(); render(); return; }
+  if (el.dataset.parent != null) { const pi = Number(el.dataset.parent), i = Number(el.dataset.stat); const next = state.parentStars[pi]!.slice(); next[i] = Number(el.value);
+    state.parentStars = state.parentStars.map((p, j) => (j === pi ? clampStars(next, i, MAX_PARENT_STARS) : p)); persist(); render(); return; }
   if (el.dataset.select === 'pinned') { state.pinnedId = el.value ? Number(el.value) : null; persist(); render(); return; }
   if (el.dataset.apt) { const k = el.dataset.apt as AptKey; const t = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) : null;
     if (t && t.aptitudes[k] === el.value) delete state.aptOverrides[k]; else state.aptOverrides[k] = el.value as Grade; persist(); render(); return; }

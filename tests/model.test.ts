@@ -104,6 +104,10 @@ test('blue spark inheritance packs stars and caps the total', async () => {
   const low = inheritedStat(3, { ...DEFAULT_SETTINGS, affinity: 0 });
   assert.ok(Math.abs(low.inspiration - 2 * 21 * 0.9) < 1e-9);
   assert.deepEqual(clampStars([9, 3, 3, 3, 6], 4), [9, 3, 3, 3, 0]);
+  assert.deepEqual(clampStars([3, 3, 3, 3, 0], 3, 9), [3, 3, 3, 0, 0]);
+  const { inheritedFromParents } = await import('../src/model/inherit.ts');
+  const two = inheritedFromParents([[9, 0, 0, 0, 0], [3, 0, 0, 0, 0]], 0, s);
+  assert.equal(two.start, 63 + 21);
 });
 
 test('Pal and Group outings are skill sources at their own rates', () => {
