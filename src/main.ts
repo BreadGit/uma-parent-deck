@@ -175,13 +175,23 @@ function computeUncached() {
   // Any Global card can be borrowed from a friend, assumed at LB4.
   const borrowPool = data.cards.map((card) => ({ card, lb: 4 }));
   const targetOf = (skillId: number) => targets.find((t) => t.familyIds.has(skillId))?.id;
-  const orderIndex = (w: WishlistEntry) => { const i = state.wishlistOrder.indexOf(w.key); return i < 0 ? Infinity : i; };
+  // A remembered position applies to the whole skill family (gold, ○ and normal forms), so an entry that flips form
+  // when the deck changes keeps its place instead of dropping to the bottom.
+  const familyOf = (key: number) => resolveTarget(key, data)?.id ?? key;
+  const orderFamilies = state.wishlistOrder.map(familyOf);
+  const orderIndex = (w: WishlistEntry) => { const exact = state.wishlistOrder.indexOf(w.key); if (exact >= 0) return exact; const fam = orderFamilies.indexOf(familyOf(w.key)); return fam < 0 ? Infinity : fam; };
   const orderCandidates = (cands: WishlistEntry[]) => cands.filter((w) => !state.wishlistExcluded.includes(w.key)).slice().sort((a, b) => orderIndex(a) - orderIndex(b) || (b.weight - a.weight));
   // Pass 1: build without conflict rules to get the prioritized-skill order; that order decides which target an
   // event's single choice goes to. Pass 2 rebuilds with those rules.
   const pass1 = buildDeck(deckPool, targets, baseCtx, pinnedIds, 6, borrowPool);
   const priority: number[] = [];
-  for (const w of orderCandidates(wishlistCandidates(pass1.deck, targets, baseCtx))) { const k = targetOf(w.skillId) ?? w.skillId; if (!priority.includes(k)) priority.push(k); }
+  for (const w of orderCandidates(wishlistCandidates(pass1.deck, targets, baseCtx))) {
+    const tid = targetOf(w.skillId);
+    if (tid != null) { if (!priority.includes(tid)) priority.push(tid); continue; }
+    // non-target option: rank every form of its family together so a gold/normal flip keeps the same rank
+    const fam = resolveTarget(w.skillId, data);
+    for (const id of fam ? [...fam.familyIds] : [w.skillId]) if (!priority.includes(id)) priority.push(id);
+  }
   for (const t of targets) if (!priority.includes(t.id)) priority.push(t.id);
   const ctx: Ctx = { ...baseCtx, priority };
   const existing = traineeCoverage(targets, ctx);
@@ -771,6 +781,7 @@ app.addEventListener('drop', (ev) => {
   const cur = compute().wl.map((w) => w.key);
   const from = cur.indexOf(dragKey), to = cur.indexOf(target);
   if (from >= 0 && to >= 0 && from !== to) { cur.splice(from, 1); cur.splice(to, 0, dragKey); state.wishlistOrder = cur; persist(); render(); }
+  else if (from < 0 || to < 0) { /* stale key after a re-render: ignore */ }
   dragKey = null;
 });
 app.addEventListener('dragend', () => { dragKey = null; for (const x of app.querySelectorAll('li.dragging, li.drop-target')) x.classList.remove('dragging', 'drop-target'); });

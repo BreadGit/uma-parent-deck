@@ -271,3 +271,17 @@ test('a non-target option ranked above a target takes the event and is reported'
   assert.equal(blocked.conflicts[0]!.keptSkill, lane.id);
   assert.equal(blocked.conflicts[0]!.keptIsTarget, false);
 });
+
+test('priority ranks every form of a non-target family together', () => {
+  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
+  const allIveGot = resolveTarget(skills.find((s) => s.name === "All I've Got" && !s.unreleasedEn)!.id, data)!;
+  const comeWhatMay = allIveGot.gold!.id;
+  const base: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  // Come What May ranked first as a non-target blocker; with Tachyon absent the event offers All I've Got instead,
+  // which must still outrank Focus because the whole family is ranked together
+  const pr = [...allIveGot.familyIds, focus.id];
+  const r = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: pr });
+  assert.equal(r.conflicts.length, 1);
+  assert.equal(r.conflicts[0]!.keptSkill, allIveGot.white!.id);
+  void comeWhatMay;
+});
