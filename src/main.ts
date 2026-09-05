@@ -380,7 +380,7 @@ function renderSchedule(c: Computed): Raw {
     const info = sel
       ? html`<div class="agenda-race ${sel.race.surface}">${sel.race.name}</div>
              <div class="agenda-meta">${sel.race.surface} ${({ sprint: 'spr', mile: 'mile', medium: 'med', long: 'long' } as Record<string, string>)[sel.race.category]} ${sel.race.distance}</div>
-             <div class="agenda-meta">win ${pill(sel.base)}${sel.pWin < sel.base ? html` → ${pill(sel.pWin, 'warn')}` : ''}${sel.consecutive > 2 ? html` <span class="tag warn">${sel.consecutive} in a row</span>` : ''}</div>`
+             <div class="agenda-meta">win ${pill(sel.base)}${sel.pWin < sel.base ? html` → ${pill(sel.pWin, 'warn')}` : ''}</div>${sel.consecutive > 2 ? html`<div class="agenda-meta"><span class="tag warn">${sel.consecutive} in a row</span></div>` : ''}`
       : html`<div class="agenda-meta muted agenda-avail">${entries.map((e) => `${e.race.name} ${pct(e.base)}`).join(' · ')}</div>`;
     const manual = entries.some((e) => state.raceOverrides[e.race.calendarId] != null);
     return html`<div class="agenda-cell ${sel ? 'sel' : 'avail'}">
