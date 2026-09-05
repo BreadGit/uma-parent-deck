@@ -173,27 +173,35 @@ const SCENARIO_EVENT_LABEL = "Our Grand Concert's live event in Senior November"
  * that character is present and its normal version otherwise; the unaffiliated option always yields its rare hint.
  * Only one option is taken per run, so every option is a choice-gated source sharing one event key.
  */
-export function scenarioSources(target: Target, data: Data, settings: Settings, present: Set<number>): SkillSource[] {
-  const out: SkillSource[] = [];
-  const tag = (id: number) => { const s = data.skillById.get(id); return { gold: !!s && isGold(s), circle: !!s && isCircle(s) }; };
+export interface ScenarioOption { skillId: number; eventKey: string; eventLabel: string; optionLabel: string; detail: string; linkedCharId?: number }
+
+/** Every option the scenario's linked events offer in a run with these characters present. */
+export function scenarioOptions(data: Data, settings: Settings, present: Set<number>): ScenarioOption[] {
+  const out: ScenarioOption[] = [];
   const charName = (id: number) => data.characters.find((c) => c.charId === id)?.name ?? 'linked character';
   for (const ev of data.scenarioEvents) {
     if (ev.scenarioId !== settings.scenarioId) continue;
-    const base = { kind: 'scenario' as const, pObtain: settings.scenarioPickRate, isChoice: true, eventKey: `scenario:${ev.eventId}`, eventLabel: SCENARIO_EVENT_LABEL };
+    const eventKey = `scenario:${ev.eventId}`;
     for (const ch of ev.choices) {
       if (ch.linkedCharId == null) {
-        if (ch.skill != null && target.familyIds.has(ch.skill)) out.push({ ...base, skillId: ch.skill, ...tag(ch.skill), optionLabel: 'unaffiliated option', detail: 'Scenario live event, unaffiliated option' });
+        if (ch.skill != null) out.push({ skillId: ch.skill, eventKey, eventLabel: SCENARIO_EVENT_LABEL, optionLabel: 'unaffiliated option', detail: 'Scenario live event, unaffiliated option' });
         continue;
       }
       const here = present.has(ch.linkedCharId);
       const skill = here ? ch.goldSkill : ch.whiteSkill;
-      if (skill == null || !target.familyIds.has(skill)) continue;
-      out.push({ ...base, skillId: skill, ...tag(skill), linkedCharId: ch.linkedCharId,
+      if (skill == null) continue;
+      out.push({ skillId: skill, eventKey, eventLabel: SCENARIO_EVENT_LABEL, linkedCharId: ch.linkedCharId,
         optionLabel: here ? `${charName(ch.linkedCharId)}'s option, gold version because she is in the run` : `${charName(ch.linkedCharId)}'s option, normal version because she is not in the run`,
         detail: here ? `Scenario live event, ${charName(ch.linkedCharId)}'s option (she is in the run)` : `Scenario live event, ${charName(ch.linkedCharId)}'s option (she is not in the run)` });
     }
   }
   return out;
+}
+
+export function scenarioSources(target: Target, data: Data, settings: Settings, present: Set<number>): SkillSource[] {
+  const tag = (id: number) => { const s = data.skillById.get(id); return { gold: !!s && isGold(s), circle: !!s && isCircle(s) }; };
+  return scenarioOptions(data, settings, present).filter((o) => target.familyIds.has(o.skillId))
+    .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...tag(o.skillId), pObtain: settings.scenarioPickRate, isChoice: true, eventKey: o.eventKey, eventLabel: o.eventLabel, optionLabel: o.optionLabel, detail: o.detail, ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
 }
 
 export interface Conflict { eventKey: string; label: string; kept: number; keptOption: string; keptSkill: number; dropped: number[]; droppedOptions: string[]; droppedSkills: number[] } // target ids and the skill each option gives

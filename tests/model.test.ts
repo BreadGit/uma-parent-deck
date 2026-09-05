@@ -246,3 +246,12 @@ test('regular card events keep both options listed and the order decides which i
   assert.ok(evalB.map.get(focus.id)!.some((s) => s.eventKey === key) && !evalB.map.get(groundwork.id)!.some((s) => s.eventKey === key), 'Focus keeps the event when first');
   assert.ok(evalA.sparks.get(groundwork.id)! > evalB.sparks.get(groundwork.id)!, 'Groundwork spark chance rises when it is first');
 });
+
+test('scenario options are listed as prioritized-skill candidates even with no targets', () => {
+  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const names = wishlistCandidates([], [], ctx).map((w) => w.name);
+  for (const n of ['Focus', "All I've Got", 'Full Tilt', 'Rosy Outlook', 'Lane Legerdemain']) assert.ok(names.includes(n), `${n} missing from ${names.join(', ')}`);
+  const bourbonUma = characters.find((c) => c.name === 'Mihono Bourbon')!;
+  const names2 = wishlistCandidates([], [], { ...ctx, trainee: bourbonUma }).map((w) => w.name);
+  assert.ok(names2.includes('Concentration') && !names2.includes('Focus'));
+});

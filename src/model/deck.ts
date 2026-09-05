@@ -2,7 +2,7 @@ import type { Card, Character, Data, Stat } from '../types.ts';
 import { STATS } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale } from './stats.ts';
-import { cardSourcesForTarget, combineSources, eventSources, lineageSources, lineageCount, pruneConflicts, scenarioSources, sparkChance, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, eventSources, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
 
 export interface Ctx {
   data: Data;
@@ -216,6 +216,15 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
       entries.push({ key: src.skillId, skillId: src.skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: false, isTarget: true, weight: spark, reason: 'Given without an event choice.' });
       seen.add(src.skillId);
     }
+  }
+  // The scenario's own options happen every run whoever is in the deck: list the ones that are not targets too.
+  const state = stateOf(deck, targets, ctx);
+  for (const o of scenarioOptions(ctx.data, ctx.settings, state.chars)) {
+    if (seen.has(o.skillId) || targetFamilies.has(o.skillId)) continue;
+    const sk = ctx.data.skillById.get(o.skillId);
+    if (!sk || sk.unreleasedEn) continue;
+    seen.add(o.skillId);
+    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 2 : 1), reason: o.detail });
   }
   // Other choice-gated skills from the deck's events (not targets): listing them steers the AI to that option.
   for (const d of deck) {
