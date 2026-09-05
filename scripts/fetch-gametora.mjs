@@ -250,6 +250,8 @@ function normalizeCharacters(raw) {
       aptitudes,
       growth: c.stat_bonus,
       baseStats: c.base_stats,
+      fourStarStats: c.four_star_stats ?? null,
+      fiveStarStats: c.five_star_stats ?? null,
       innateSkills: c.skills_innate ?? [],
       awakeningSkills: c.skills_awakening_en ?? c.skills_awakening ?? [],
       eventSkills: c.skills_event ?? [],

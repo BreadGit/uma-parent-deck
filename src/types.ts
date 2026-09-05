@@ -61,7 +61,9 @@ export interface Character {
   releaseEn: string;
   aptitudes: Record<AptKey, Grade>;
   growth: number[];
-  baseStats: number[];
+  baseStats: number[];       // at the card's base star rarity
+  fourStarStats: number[] | null;
+  fiveStarStats: number[] | null;
   innateSkills: number[];
   awakeningSkills: number[];
   eventSkills: number[];

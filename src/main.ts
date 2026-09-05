@@ -23,6 +23,8 @@ interface PersistedState {
   wishlistOrder: number[];    // skill ids the user arranged, in order
   wishlistExcluded: number[]; // skill ids the user removed from the list
   traineeCardId: number | null;
+  traineeLevel: number;   // potential level 1..5, unlocks awakening skills
+  traineeStars: number;   // 3..5, picks the base stat table
   aptOverrides: Partial<Aptitudes>;
   raceOverrides: Record<string, boolean>;
   pinnedIds: number[];       // support cards forced into the deck, in order
@@ -31,7 +33,7 @@ interface PersistedState {
 }
 const STATE_KEY = 'uma-parent-deck.state';
 function loadState(): PersistedState {
-  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
+  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeLevel: 3, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
   try {
     const raw = localStorage.getItem(STATE_KEY);
     if (raw) {
@@ -121,7 +123,13 @@ function targetableSkills(): Skill[] {
 }
 
 function compute() {
-  const trainee = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) ?? null : null;
+  const traineeCard = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) ?? null : null;
+  // Potential level unlocks awakening skills (level N makes the first N-1 available); stars pick the base stat table.
+  const trainee: Character | null = traineeCard ? {
+    ...traineeCard,
+    awakeningSkills: traineeCard.awakeningSkills.slice(0, Math.max(0, state.traineeLevel - 1)),
+    baseStats: state.traineeStars >= 5 && traineeCard.fiveStarStats ? traineeCard.fiveStarStats : state.traineeStars === 4 && traineeCard.fourStarStats ? traineeCard.fourStarStats : traineeCard.baseStats,
+  } : null;
   const apt = traineeAptitudes(trainee, state.aptOverrides);
   const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(state.raceOverrides)), RACE_POPULARITY);
   const sum = scheduleSummary(schedule);
@@ -218,11 +226,16 @@ function renderTrainee(c: Computed): Raw {
           <div><span class="k">${t.title}</span><span class="v">${t.name}</span></div>
           <button class="small" data-action="clear-trainee" style="margin-left:auto">Change</button>
         </div>
+        <div class="grid2" style="margin:6px 0">
+          <label class="row"><span class="k">Potential level${tip('Raised with shoes and sashes. Level N unlocks the first N−1 awakening skills, which then count as covered for your targets. Base stats do not change with it.')}</span><select data-select="trainee-level">${[1, 2, 3, 4, 5].map((l) => html`<option value="${l}" ${state.traineeLevel === l ? 'selected' : ''}>${l}</option>`)}</select></label>
+          <label class="row"><span class="k">Stars${tip('Raised with pieces. Picks the base stat table (3★, 4★ or 5★ values from GameTora).')}</span><select data-select="trainee-stars">${[3, 4, 5].map((k) => html`<option value="${k}" ${state.traineeStars === k ? 'selected' : ''}>${k}★</option>`)}</select></label>
+        </div>
+        <div class="small muted">Base stats: ${t.baseStats.join(' / ')}</div>
         <div class="small muted">Growth bonuses: ${t.growth.some((g) => g > 0) ? STATS.map((s, i) => t.growth[i]! > 0 ? `${s.charAt(0).toUpperCase() + s.slice(1)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</div>
         <h3>Trainee aptitude overrides (match the legacy screen)</h3>
         <div class="apts">${APT_SHOWN.map((k) => html`<label>${k}<select data-apt="${k}">${GRADES.map((g) => html`<option value="${g}" ${c.apt[k] === g ? 'selected' : ''}>${g}</option>`)}</select></label>`)}</div>
         ${overridden ? html`<button class="small" data-action="reset-apts">Reset to base aptitudes</button>` : ''}
-        <div class="small muted" style="margin-top:6px">Innate: ${t.innateSkills.map(skillName).join(', ')}<br/>Awakening: ${t.awakeningSkills.map(skillName).join(', ')}</div>
+        <div class="small muted" style="margin-top:6px">Innate: ${t.innateSkills.map(skillName).join(', ')}<br/>Awakening (unlocked): ${t.awakeningSkills.length ? t.awakeningSkills.map(skillName).join(', ') : 'none at this level'}${(data.charByCardId.get(t.cardId)?.awakeningSkills.length ?? 0) > t.awakeningSkills.length ? html`<br/><span class="muted">Locked: ${data.charByCardId.get(t.cardId)!.awakeningSkills.slice(t.awakeningSkills.length).map(skillName).join(', ')}</span>` : ''}</div>
       ` : html`
         <div class="suggest">
           <input id="trainee-search" type="search" placeholder="Search uma name or outfit…" value="${traineeQuery}" data-input="traineeQuery" style="max-width:100%;width:100%" autocomplete="off" />
