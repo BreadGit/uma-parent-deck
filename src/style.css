@@ -13,7 +13,7 @@ body { margin: 0; font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, s
 header { padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
 header h1 { font-size: 18px; margin: 0; }
 header .meta { color: var(--muted); font-size: 12px; }
-main { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px 20px; align-items: start; }
+main { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 16px; padding: 16px 20px; align-items: start; }
 @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
 section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
 section.panel h2 { font-size: 15px; margin: 0 0 10px; }
@@ -43,9 +43,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tr.dim td { opacity: .55; }
 .thumb { width: 36px; height: 36px; border-radius: 4px; vertical-align: middle; }
 .thumb.sm { width: 26px; height: 26px; }
-.deck { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
-@media (max-width: 1300px) { .deck { grid-template-columns: repeat(3, 1fr); } }
-.deck .slot { position: relative; border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; background: var(--soft2); }
+.deck { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1300px) { .deck { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.deck .slot { position: relative; min-width: 0; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; background: var(--soft2); }
 .deck .slot img { width: 72px; height: 72px; border-radius: 6px; }
 .deck .slot .name { font-size: 12px; margin-top: 4px; min-height: 32px; }
 .deck .slot .lb { font-size: 12px; color: var(--muted); }
@@ -72,7 +72,11 @@ details > summary { cursor: pointer; color: var(--accent); }
 .apts label { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
 .apts select { max-width: 60px; padding: 2px 4px; }
 .cover { font-size: 12px; }
-.cover .t { display: inline-block; margin-right: 8px; }
+.cover .t { display: inline-flex; align-items: center; gap: 3px; margin-right: 8px; white-space: nowrap; }
+td.cover { white-space: normal; max-width: 340px; min-width: 200px; }
+td.cover .t { display: inline-flex; margin: 1px 6px 1px 0; }
+.deck .slot .cover { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 6px; }
+.deck .slot .cover .t { margin: 0; }
 .bar { display: inline-block; height: 8px; background: var(--accent); border-radius: 4px; vertical-align: middle; }
 .scroll { max-height: 70vh; overflow: auto; }
 .warn { color: var(--warn); }
