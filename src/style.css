@@ -153,6 +153,18 @@ a.card-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .stat.outcome .k { text-transform: uppercase; letter-spacing: .03em; font-size: 11px; white-space: nowrap; }
 .stat.outcome .v { white-space: nowrap; }
 .stat.outcome .v .pill { font-size: 16px; padding: 1px 8px; }
-.tag.borrow { background: var(--ok); color: #fff; }
+.tag.borrow { background: #e0457b; color: #fff; }
 .chip .lineage { display: inline-flex; gap: 2px; margin-left: 4px; }
 .chip .lineage select { font-size: 11px; padding: 0 2px; max-width: 120px; }
+.chips .chip.target-row { display: grid; grid-template-columns: 22px 1fr 16px auto auto 18px; align-items: center; gap: 6px; width: 100%; border-radius: 8px; }
+.chip.target-row .tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip.target-row .tip { margin: 0; flex: none; }
+.chip.target-row select { font-size: 11px; padding: 1px 2px; max-width: 120px; }
+.chip.target-row select:disabled { opacity: .4; }
+.tip { flex: none; box-sizing: border-box; min-width: 14px; }
+.wishlist li { margin: 3px 0; }
+.wl-ctl { display: inline-flex; gap: 2px; margin-right: 6px; vertical-align: middle; }
+.wl-ctl button, .wl-x { padding: 0 5px; font-size: 10px; line-height: 16px; }
+.wl-x { margin-left: 6px; color: var(--muted); }
+.chip.small { font-size: 12px; padding: 1px 6px; margin: 2px 0; }
+.chip.small button { font-size: 13px; }

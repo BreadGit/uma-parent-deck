@@ -2,7 +2,7 @@ import type { Card, Character, Data, Stat } from '../types.ts';
 import { STATS } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale } from './stats.ts';
-import { cardSourcesForTarget, combineSources, lineageSources, sparkChance, traineeSources, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, eventSources, lineageSources, sparkChance, traineeSources, type Lineage, type SkillSource, type Target } from './sparks.ts';
 
 export interface Ctx {
   data: Data;
@@ -152,11 +152,16 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   return { deck, steps, coverage, borrow, borrowAlternatives: alternatives };
 }
 
-export interface WishlistEntry { skillId: number; name: string; gated: boolean; reason: string }
+export interface WishlistEntry { skillId: number; name: string; gated: boolean; isTarget: boolean; reason: string; weight: number }
 
-/** Up to 10 prioritized skills: targets gated behind an event choice first, then other covered targets. */
-export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = 10): WishlistEntry[] {
-  const entries: (WishlistEntry & { weight: number })[] = [];
+/**
+ * Candidates for the prioritized-skills list, best first: targets gated behind an event choice, then other
+ * choice-gated skills the deck's events offer, then targets given without a choice (fillers).
+ */
+export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ctx): WishlistEntry[] {
+  const entries: WishlistEntry[] = [];
+  const seen = new Set<number>();
+  const targetFamilies = new Set(targets.flatMap((t) => [...t.familyIds]));
   for (const t of targets) {
     const all = deck.flatMap((d) => d.coverage.filter((c) => c.target.id === t.id).flatMap((c) => c.sources));
     if (!all.length) continue;
@@ -165,14 +170,31 @@ export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = 1
     if (choice.length) {
       const goldFirst = choice.find((s) => s.gold) ?? choice[0]!;
       const sk = ctx.data.skillById.get(goldFirst.skillId);
-      entries.push({ skillId: goldFirst.skillId, name: sk?.name ?? t.name, gated: true, weight: 1 + spark, reason: choice.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; ') });
+      entries.push({ skillId: goldFirst.skillId, name: sk?.name ?? t.name, gated: true, isTarget: true, weight: 2 + spark, reason: choice.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; ') });
+      seen.add(goldFirst.skillId);
     } else {
       const src = all.find((s) => s.gold) ?? all[0]!;
       const sk = ctx.data.skillById.get(src.skillId);
-      entries.push({ skillId: src.skillId, name: sk?.name ?? t.name, gated: false, weight: spark, reason: 'Given without an event choice.' });
+      entries.push({ skillId: src.skillId, name: sk?.name ?? t.name, gated: false, isTarget: true, weight: spark, reason: 'Given without an event choice.' });
+      seen.add(src.skillId);
     }
   }
-  return entries.sort((a, b) => b.weight - a.weight).slice(0, max).map(({ weight, ...e }) => { void weight; return e; });
+  // Other choice-gated skills from the deck's events (not targets): listing them steers the AI to that option.
+  for (const d of deck) {
+    for (const src of eventSources(d.card, ctx.settings)) {
+      if (!src.isChoice || seen.has(src.skillId) || targetFamilies.has(src.skillId)) continue;
+      const sk = ctx.data.skillById.get(src.skillId);
+      if (!sk || sk.unreleasedEn) continue;
+      seen.add(src.skillId);
+      entries.push({ skillId: src.skillId, name: sk.name, gated: true, isTarget: false, weight: 1 + src.pObtain * (sk.rarity === 2 ? 2 : 1), reason: `${d.card.name}: ${src.detail}` });
+    }
+  }
+  return entries.sort((a, b) => b.weight - a.weight);
+}
+
+/** Up to 10 prioritized skills in the default order. */
+export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = 10): WishlistEntry[] {
+  return wishlistCandidates(deck, targets, ctx).slice(0, max);
 }
 
 export const statLabel = (s: Stat) => s[0]!.toUpperCase() + s.slice(1);

@@ -3,7 +3,7 @@ import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from './s
 import { effectiveLb, exportInventory, importInventory, loadInventory, saveInventory } from './inventory.ts';
 import { html, pct, pill, num, type Raw } from './ui/html.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
-import { buildDeck, rankCards, traineeCoverage, wishlist, type CardScore, type Ctx } from './model/deck.ts';
+import { buildDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type WishlistEntry } from './model/deck.ts';
 import { resolveTarget, sparkChance, type Lineage, type Target } from './model/sparks.ts';
 import { cardContribution, pAbove, predictDeck, phi, raceScale } from './model/stats.ts';
 import { buildSchedule, racePopularity, scheduleSummary, traineeAptitudes, SLOT_COUNT, type Aptitudes, type ScheduledRace } from './model/races.ts';
@@ -20,6 +20,8 @@ const APT_SHOWN: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long']
 interface PersistedState {
   targets: number[];
   targetLineage: Record<string, Lineage>; // target id -> existing lineage sparks
+  wishlistOrder: number[];    // skill ids the user arranged, in order
+  wishlistExcluded: number[]; // skill ids the user removed from the list
   traineeCardId: number | null;
   aptOverrides: Partial<Aptitudes>;
   raceOverrides: Record<string, boolean>;
@@ -29,7 +31,7 @@ interface PersistedState {
 }
 const STATE_KEY = 'uma-parent-deck.state';
 function loadState(): PersistedState {
-  const base: PersistedState = { targets: [], targetLineage: {}, traineeCardId: null, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
+  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
   try {
     const raw = localStorage.getItem(STATE_KEY);
     if (raw) {
@@ -149,8 +151,13 @@ function compute() {
   const sdScore = Math.sqrt(dScore.reduce((a, d) => a + d * d, 0) + Math.pow(settings.skillScoreSd, 2));
   const ssMin = thresholdFor('SS', data.ranks);
   const pSS = 1 - phi((ssMin - score) / Math.max(1, sdScore));
-  const wl = wishlist(deckResult.deck, targets, ctx);
-  return { trainee, apt, schedule, sum, ctx, targets, pool, unowned, ranking, deckResult, pred, inherited, finalMean, score, sdScore, pSS, ssMin, wl, existing, pinnedIds };
+  const wlAll = wishlistCandidates(deckResult.deck, targets, ctx).filter((w) => !state.wishlistExcluded.includes(w.skillId));
+  const orderIndex = (w: WishlistEntry) => { const i = state.wishlistOrder.indexOf(w.skillId); return i < 0 ? Infinity : i; };
+  const ordered = wlAll.slice().sort((a, b) => orderIndex(a) - orderIndex(b) || (b.weight - a.weight));
+  const wl = ordered.slice(0, 10);
+  const wlRest = ordered.slice(10);
+  const wlExcluded = wishlistCandidates(deckResult.deck, targets, ctx).filter((w) => state.wishlistExcluded.includes(w.skillId));
+  return { trainee, apt, schedule, sum, ctx, targets, pool, unowned, ranking, deckResult, pred, inherited, finalMean, score, sdScore, pSS, ssMin, wl, wlRest, wlExcluded, existing, pinnedIds };
 }
 type Computed = ReturnType<typeof compute>;
 
@@ -171,9 +178,10 @@ function renderTargets(c: Computed): Raw {
         })}</ul>` : ''}
       </div>
       <div class="chips">
-        ${c.targets.length ? c.targets.map((t) => html`<span class="chip ${t.gold ? 'gold' : ''}">
-          <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" />${t.name}${t.gold ? html` <span class="muted small">(${t.gold.name})</span>` : ''}${tip(t.gold ? `Gold form: ${t.gold.name}. Cards that give the gold count for this target, at the higher spark rate.` : 'This skill has no gold form.')}
-          <span class="lineage"><select data-lineage-n="${t.id}" title="How many umas in the lineage already carry this white spark">${[0, 1, 2, 3, 4, 5, 6].map((n) => html`<option value="${n}" ${(state.targetLineage[String(t.id)]?.n ?? 0) === n ? 'selected' : ''}>${n === 0 ? 'not in lineage' : `${n}× in lineage`}</option>`)}</select>${(state.targetLineage[String(t.id)]?.n ?? 0) > 0 ? html`<select data-lineage-stars="${t.id}">${[1, 2, 3].map((k) => html`<option value="${k}" ${(state.targetLineage[String(t.id)]?.stars ?? 3) === k ? 'selected' : ''}>${k}★</option>`)}</select>` : ''}</span>
+        ${c.targets.length ? c.targets.map((t) => html`<span class="chip target-row ${t.gold ? 'gold' : ''}">
+          <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" /><span class="tname">${t.name}</span>${tip(t.gold ? `Gold form: ${t.gold.name}. Cards that give the gold count for this target, at the higher spark rate.` : 'This skill has no gold form.')}
+          <select data-lineage-n="${t.id}">${[0, 1, 2, 3, 4, 5, 6].map((n) => html`<option value="${n}" ${(state.targetLineage[String(t.id)]?.n ?? 0) === n ? 'selected' : ''}>${n === 0 ? 'not in lineage' : `${n}× in lineage`}</option>`)}</select>
+          <select data-lineage-stars="${t.id}" ${(state.targetLineage[String(t.id)]?.n ?? 0) > 0 ? '' : 'disabled'}>${[1, 2, 3].map((k) => html`<option value="${k}" ${(state.targetLineage[String(t.id)]?.stars ?? 3) === k ? 'selected' : ''}>${k}★</option>`)}</select>
           <button data-action="remove-target" data-id="${t.id}" title="Remove">✕</button></span>`)
         : html`<span class="muted small">Add the white skills you want to spark. Cards giving the gold version count too.</span>`}
       </div>
@@ -334,7 +342,15 @@ function renderDeck(c: Computed): Raw {
         })}
       </tbody></table>
       <h3>Independent training prioritized skills (up to 10)</h3>
-      ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li>${w.name} ${w.gated ? html`<span class="tag gold">event choice</span>` : html`<span class="tag">filler</span>`} <span class="small muted">${w.reason}</span></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
+      ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w, i) => html`<li>
+          <span class="wl-ctl"><button class="small" data-action="wl-up" data-id="${w.skillId}" ${i === 0 ? 'disabled' : ''} title="Move up">▲</button><button class="small" data-action="wl-down" data-id="${w.skillId}" ${i === c.wl.length - 1 ? 'disabled' : ''} title="Move down">▼</button></span>
+          ${w.name} ${w.gated ? html`<span class="tag gold">event choice</span>` : html`<span class="tag">filler</span>`}${w.isTarget ? '' : html`<span class="tag">not a target</span>`} <span class="small muted">${w.reason}</span>
+          <button class="small wl-x" data-action="wl-exclude" data-id="${w.skillId}" title="Remove from the list">✕</button></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
+      ${c.wlRest.length || c.wlExcluded.length ? html`<div class="small muted">
+        ${c.wlRest.length ? html`Not listed: ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.skillId}" title="Add to the list">+</button></span>`)} ` : ''}
+        ${c.wlExcluded.length ? html`Removed: ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.skillId}" title="Put back">+</button></span>`)} ` : ''}
+        ${state.wishlistOrder.length || state.wishlistExcluded.length ? html`<button class="small" data-action="wl-reset">Reset order</button>` : ''}
+      </div>` : (state.wishlistOrder.length ? html`<div class="small muted"><button class="small" data-action="wl-reset">Reset order</button></div>` : '')}
       <details><summary>How the deck was built</summary><ol class="small">${d.steps.map((s) => html`<li>${s}</li>`)}</ol></details>
     </section>`;
 }
@@ -541,6 +557,9 @@ app.addEventListener('input', (ev) => {
 });
 app.addEventListener('change', (ev) => {
   const el = ev.target as HTMLInputElement & HTMLSelectElement;
+  if (el.dataset.lineageN != null) { const id = el.dataset.lineageN; const n = Number(el.value);
+    if (n <= 0) delete state.targetLineage[id]; else state.targetLineage[id] = { n, stars: state.targetLineage[id]?.stars ?? 3 }; persist(); render(); return; }
+  if (el.dataset.lineageStars != null) { const id = el.dataset.lineageStars; const cur = state.targetLineage[id]; if (cur) state.targetLineage[id] = { ...cur, stars: Number(el.value) }; persist(); render(); return; }
   if (el.dataset.parent != null) { const pi = Number(el.dataset.parent), i = Number(el.dataset.stat); const next = state.parentStars[pi]!.slice(); next[i] = Number(el.value);
     state.parentStars = state.parentStars.map((p, j) => (j === pi ? clampStars(next, i, MAX_PARENT_STARS) : p)); persist(); render(); return; }
   if (el.dataset.apt) { const k = el.dataset.apt as AptKey; const t = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) : null;
@@ -592,6 +611,15 @@ app.addEventListener('click', (ev) => {
   if (a === 'pick-trainee') { state.traineeCardId = Number(t.dataset.id); state.aptOverrides = {}; traineeQuery = ''; persist(); render(); return; }
   if (a === 'pin-card') { const id = Number(t.dataset.id); if (!state.pinnedIds.includes(id)) state.pinnedIds.push(id); cardQuery = ''; persist(); render(); return; }
   if (a === 'unpin-card') { state.pinnedIds = state.pinnedIds.filter((x) => x !== Number(t.dataset.id)); persist(); render(); return; }
+  if (a === 'wl-up' || a === 'wl-down') {
+    const cur = compute().wl.map((w) => w.skillId); const id = Number(t.dataset.id); const i = cur.indexOf(id);
+    const j = a === 'wl-up' ? i - 1 : i + 1;
+    if (i >= 0 && j >= 0 && j < cur.length) { cur.splice(i, 1); cur.splice(j, 0, id); state.wishlistOrder = cur; persist(); render(); }
+    return; }
+  if (a === 'wl-exclude') { const id = Number(t.dataset.id); state.wishlistExcluded = [...new Set([...state.wishlistExcluded, id])]; state.wishlistOrder = state.wishlistOrder.filter((x) => x !== id); persist(); render(); return; }
+  if (a === 'wl-restore') { const id = Number(t.dataset.id); state.wishlistExcluded = state.wishlistExcluded.filter((x) => x !== id); persist(); render(); return; }
+  if (a === 'wl-add') { const id = Number(t.dataset.id); const cur = compute().wl.map((w) => w.skillId).filter((x) => x !== id); cur.splice(9, cur.length, id); state.wishlistOrder = cur; persist(); render(); return; }
+  if (a === 'wl-reset') { state.wishlistOrder = []; state.wishlistExcluded = []; persist(); render(); return; }
   if (a === 'clear-trainee') { state.traineeCardId = null; state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); delete state.targetLineage[String(t.dataset.id)]; persist(); render(); return; }
   if (a === 'reset-apts') { state.aptOverrides = {}; persist(); render(); return; }
