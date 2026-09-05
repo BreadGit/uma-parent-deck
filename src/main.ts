@@ -5,7 +5,7 @@ import { html, pct, pill, num, type Raw } from './ui/html.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type WishlistEntry } from './model/deck.ts';
 import { lineageCount, resolveTarget, sparkChance, type Lineage, type Target } from './model/sparks.ts';
-import { cardContribution, pAbove, predictDeck, phi, raceScale } from './model/stats.ts';
+import { cardContribution, modelContribution, pAbove, predictDeck, phi, raceScale } from './model/stats.ts';
 import { buildSchedule, goalRaces, racePopularity, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './model/races.ts';
 import { skillScore, statScore, thresholdFor } from './model/rank.ts';
 import { clampStars, inheritedFromParents, MAX_PARENT_STARS } from './model/inherit.ts';
@@ -29,10 +29,11 @@ interface PersistedState {
   pinnedIds: number[];       // support cards forced into the deck, in order
   parentStars: number[][]; // [parent 1, parent 2], five stats each, up to 9 stars per parent
   sortKey: string;
+  conflictFormat: 'lines' | 'table' | 'prose';
 }
 const STATE_KEY = 'uma-parent-deck.state';
 function loadState(): PersistedState {
-  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
+  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score', conflictFormat: 'lines' };
   try {
     const raw = localStorage.getItem(STATE_KEY);
     if (raw) {
@@ -390,15 +391,28 @@ function renderDeck(c: Computed): Raw {
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
-      ${d.conflicts.length ? html`<h3>Choice conflicts</h3>
-        <ul class="small">${d.conflicts.map((cf) => { const name = (id: number) => c.targets.find((t) => t.id === id)?.name ?? `#${id}`;
-          const opt = (o: string) => (o ? ` (${o})` : '');
-          return html`<li>${cf.label} can give ${cf.dropped.map((id, i) => `${name(id)}${opt(cf.droppedOptions[i] ?? '')}`).join(', ')} or <b>${name(cf.kept)}</b>${opt(cf.keptOption)}, but the run can only take one option there. ${name(cf.kept)} sits higher in the prioritized list, so that option is taken and this event no longer counts toward ${cf.dropped.map(name).join(' or ')}.</li>`; })}</ul>
-        <div class="small muted">Drag the prioritized skills below into a different order to change which one wins.</div>` : ''}
+      ${d.conflicts.length ? html`<h3>Choice conflicts <span class="small muted" style="text-transform:none">· format ${(['lines', 'table', 'prose'] as const).map((f) => html`<button class="small ${state.conflictFormat === f ? 'active-fmt' : ''}" data-action="conflict-format" data-id="${f}">${f}</button>`)}</span></h3>
+        ${(() => {
+          const name = (id: number) => c.targets.find((t) => t.id === id)?.name ?? `#${id}`;
+          const opts = (cf: typeof d.conflicts[number]) => [{ id: cf.kept, opt: cf.keptOption, taken: true }, ...cf.dropped.map((id, i) => ({ id, opt: cf.droppedOptions[i] ?? '', taken: false }))];
+          if (state.conflictFormat === 'table') return html`<table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken</th><th>Not counted</th></tr></thead><tbody>
+            ${d.conflicts.map((cf) => html`<tr><td style="white-space:normal">${cf.label}</td>
+              <td style="white-space:normal">${opts(cf).map((o) => html`<div>${name(o.id)}${o.opt ? html` <span class="muted">${o.opt}</span>` : ''}</div>`)}</td>
+              <td><b>${name(cf.kept)}</b><br/><span class="muted">higher in the list</span></td><td>${cf.dropped.map(name).join(', ')}</td></tr>`)}
+            </tbody></table>`;
+          if (state.conflictFormat === 'prose') return html`<ul class="small">${d.conflicts.map((cf) => html`<li>Only one option at <b>${cf.label}</b>${tip(opts(cf).map((o) => `${name(o.id)}: ${o.opt || 'option'}`).join('\n'))}. ${name(cf.kept)} wins over ${cf.dropped.map(name).join(' and ')} because it is higher in the prioritized list, so ${cf.dropped.map(name).join(' and ')} no longer count${cf.dropped.length === 1 ? 's' : ''} this event.</li>`)}</ul>`;
+          return html`<div class="conflict-cards">${d.conflicts.map((cf) => html`<div class="conflict">
+            <div class="cl"><span class="k">Event</span>${cf.label}</div>
+            <div class="cl"><span class="k">Options</span><span>${opts(cf).map((o) => html`<span class="opt ${o.taken ? 'taken' : ''}">${name(o.id)}${o.opt ? html` <span class="muted">(${o.opt})</span>` : ''}</span>`)}</span></div>
+            <div class="cl"><span class="k">Taken</span><b>${name(cf.kept)}</b> <span class="muted">— higher in the prioritized list</span></div>
+            <div class="cl"><span class="k">Not counted</span>${cf.dropped.map(name).join(', ')} <span class="muted">— this event no longer contributes to ${cf.dropped.length === 1 ? 'it' : 'them'}</span></div>
+          </div>`)}</div>`;
+        })()}
+        <div class="small muted">Only one option can be taken per event. Drag the prioritized skills below into a different order to change which one wins.</div>` : ''}
       <h3>Independent training prioritized skills (up to 10)</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li draggable="true" data-wl-key="${w.key}">
           <span class="grip" title="Drag to reorder">⋮⋮</span>
-          ${w.gated && w.isTarget ? html`<span class="tag gold wl-kind">target skill</span>` : w.gated ? html`<span class="tag wl-kind">not a target</span>` : html`<span class="tag warn wl-kind">target but not a choice</span>`}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(as ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span>
+          ${w.gated && w.isTarget ? html`<span class="tag gold wl-kind">target skill</span>` : w.gated ? html`<span class="tag wl-kind">not a target</span>` : html`<span class="tag warn wl-kind">target but not a choice</span>`}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span>
           <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" title="Remove from the list">✕</button></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
       ${c.wlRest.length || c.wlExcluded.length ? html`<div class="small muted">
         ${c.wlRest.length ? html`Not listed: ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" title="Add to the list">+</button></span>`)} ` : ''}
@@ -456,6 +470,17 @@ function renderSchedule(c: Computed): Raw {
     </section>`;
 }
 
+/** Observed-vs-model note for the Basis column. */
+function basisTip(x: CardScore): string {
+  const obs = data.model.observed.filter((o) => o.cardId === x.card.id && o.wellTested);
+  const exact = obs.find((o) => o.lb === x.lb) ?? obs.reduce<typeof obs[number] | null>((a, b) => (!a || Math.abs(b.lb - x.lb) < Math.abs(a.lb - x.lb) ? b : a), null);
+  if (!exact) return 'Observed in the Loopacord logs.';
+  const m = modelContribution(x.card, exact.lb, data.model);
+  const deltas = STATS.map((st, i) => `${st} ${exact.stats[i]} vs ${m.stats[i]!.toFixed(0)} (${(exact.stats[i]! - m.stats[i]!) >= 0 ? '+' : ''}${(exact.stats[i]! - m.stats[i]!).toFixed(0)})`).join('\n');
+  const head = exact.lb === x.lb ? `Observed at LB${exact.lb} over ${exact.runs} logged runs (${exact.source}).` : `Observed at LB${exact.lb} over ${exact.runs} logged runs (${exact.source}); shifted to LB${x.lb} by the model's difference between the two limit breaks.`;
+  return `${head}\n\nObserved vs model at LB${exact.lb} (28 races):\n${deltas}\nSP ${exact.sp} vs ${m.sp.toFixed(0)}`;
+}
+
 function renderRanking(c: Computed): Raw {
   const keyFns: Record<string, (x: CardScore) => number> = {
     score: (x) => x.marginalValue * 1000 + x.statPower / 1000, spark: (x) => x.sparkValue, stats: (x) => x.statPower, sp: (x) => x.sp,
@@ -481,7 +506,7 @@ function renderRanking(c: Computed): Raw {
             <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
             ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
-            <td class="small muted">${x.source === 'observed' ? `observed (${x.runs} runs)` : x.source === 'observed+model' ? `observed at another LB` : 'model'}</td>
+            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}</td>
           </tr>`;
         })}
       </tbody></table></div>
@@ -688,6 +713,7 @@ app.addEventListener('click', (ev) => {
   if (a === 'wl-restore') { const id = Number(t.dataset.id); state.wishlistExcluded = state.wishlistExcluded.filter((x) => x !== id); persist(); render(); return; }
   if (a === 'wl-add') { const id = Number(t.dataset.id); const cur = compute().wl.map((w) => w.key).filter((x) => x !== id); cur.splice(9, cur.length, id); state.wishlistOrder = cur; persist(); render(); return; }
   if (a === 'reset-all') { if (confirm('Clear targets, trainee, pinned cards, parent sparks, agenda picks and the prioritized order? Inventory and settings are kept.')) { localStorage.removeItem(STATE_KEY); location.reload(); } return; }
+  if (a === 'conflict-format') { state.conflictFormat = t.dataset.id as 'lines' | 'table' | 'prose'; persist(); render(); return; }
   if (a === 'wl-reset') { state.wishlistOrder = []; state.wishlistExcluded = []; persist(); render(); return; }
   if (a === 'clear-trainee') { state.traineeCardId = null; state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); delete state.targetLineage[String(t.dataset.id)]; persist(); render(); return; }
@@ -713,11 +739,21 @@ function showTip(el: HTMLElement) {
   if (top + h > window.innerHeight - 8) top = r.top - h - 6;
   box.style.left = `${left}px`; box.style.top = `${top}px`;
 }
-function hideTip() { document.getElementById('tooltip')?.classList.remove('show'); }
-app.addEventListener('mouseover', (ev) => { const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]'); if (el) showTip(el); });
+let pinnedTip: HTMLElement | null = null; // a clicked ⓘ keeps its tooltip open until you click elsewhere
+function hideTip(force = false) { if (pinnedTip && !force) return; document.getElementById('tooltip')?.classList.remove('show'); if (force) { pinnedTip?.classList.remove('pinned'); pinnedTip = null; } }
+app.addEventListener('mouseover', (ev) => { if (pinnedTip) return; const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]'); if (el) showTip(el); });
 app.addEventListener('mouseout', (ev) => { if ((ev.target as HTMLElement).closest('[data-tip]')) hideTip(); });
-app.addEventListener('focusin', (ev) => { const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]'); if (el) showTip(el); });
+app.addEventListener('focusin', (ev) => { if (pinnedTip) return; const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]'); if (el) showTip(el); });
 app.addEventListener('focusout', (ev) => { if ((ev.target as HTMLElement).closest('[data-tip]')) hideTip(); });
+document.addEventListener('click', (ev) => {
+  const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]');
+  if (el) {
+    if (pinnedTip === el) { hideTip(true); return; }
+    hideTip(true); pinnedTip = el; el.classList.add('pinned'); showTip(el);
+    ev.stopPropagation(); return;
+  }
+  if (pinnedTip) hideTip(true);
+}, true);
 // drag-and-drop ordering of the prioritized skills
 let dragKey: number | null = null;
 app.addEventListener('dragstart', (ev) => { const li = (ev.target as HTMLElement).closest<HTMLElement>('li[data-wl-key]'); if (!li) return; dragKey = Number(li.dataset.wlKey); li.classList.add('dragging'); ev.dataTransfer?.setData('text/plain', String(dragKey)); });

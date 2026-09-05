@@ -188,14 +188,20 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
     const choice = all.filter((s) => s.isChoice);
     const spark = sparkChance(combineSources(all), ctx.settings, lineageN(ctx, t));
     if (choice.length) {
-      const goldFirst = choice.find((s) => s.gold) ?? choice[0]!;
-      const sk = ctx.data.skillById.get(goldFirst.skillId);
-      entries.push({ key: t.id, skillId: goldFirst.skillId, name: t.name, form: sk && sk.id !== t.id ? sk.name : null, gated: true, isTarget: true, weight: 2 + spark, reason: choice.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; ') });
-      seen.add(goldFirst.skillId);
+      // one entry per distinct skill the run can choose: the gold form and the white form are different picks
+      const bySkill = new Map<number, SkillSource[]>();
+      for (const s of choice) bySkill.set(s.skillId, [...(bySkill.get(s.skillId) ?? []), s]);
+      for (const [skillId, srcs] of [...bySkill].sort((a, b) => Number(!!b[1][0]?.gold) - Number(!!a[1][0]?.gold))) {
+        const sk = ctx.data.skillById.get(skillId);
+        const gold = !!srcs[0]?.gold;
+        entries.push({ key: skillId, skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: true, isTarget: true,
+          weight: 2 + spark + (gold ? 0.5 : 0), reason: srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; ') });
+        seen.add(skillId);
+      }
     } else {
       const src = all.find((s) => s.gold) ?? all[0]!;
       const sk = ctx.data.skillById.get(src.skillId);
-      entries.push({ key: t.id, skillId: src.skillId, name: t.name, form: sk && sk.id !== t.id ? sk.name : null, gated: false, isTarget: true, weight: spark, reason: 'Given without an event choice.' });
+      entries.push({ key: src.skillId, skillId: src.skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: false, isTarget: true, weight: spark, reason: 'Given without an event choice.' });
       seen.add(src.skillId);
     }
   }
