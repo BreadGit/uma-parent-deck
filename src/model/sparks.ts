@@ -209,7 +209,7 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
     const ordered = [...tids].sort((a, b) => rank(a) - rank(b) || a - b);
     const kept = ordered[0]!;
     drop.set(key, new Set(ordered.slice(1)));
-    const first = (tid: number) => [...map.entries()].flatMap(([t, ss]) => ss.filter((s) => s.eventKey === key && t === tid))[0];
+    const first = (tid: number) => { const ss = [...map.entries()].flatMap(([t, list]) => list.filter((s) => s.eventKey === key && t === tid)); return ss.find((s) => s.gold) ?? ss[0]; };
     const sample = first(kept);
     conflicts.push({ eventKey: key, label: sample?.eventLabel ?? `${sample?.cardName ? sample.cardName + ': ' : ''}${sample?.detail ?? key}`, kept, keptOption: sample?.optionLabel ?? '', dropped: ordered.slice(1), droppedOptions: ordered.slice(1).map((t) => first(t)?.optionLabel ?? '') });
   }

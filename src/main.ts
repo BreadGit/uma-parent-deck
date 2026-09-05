@@ -112,7 +112,7 @@ const skillIcon = (s: Skill | undefined) => (s?.iconId ? `/assets/skills/${s.ico
 const cardImg = (c: Card) => `/assets/supports/${c.id}.png`;
 const charImg = (c: Character) => `/assets/characters/${c.cardId}.png`;
 /** A skill name with an info icon showing its description. */
-const skillWithTip = (id: number, label?: string) => { const sk = data.skillById.get(id); return html`${label ?? sk?.name ?? `#${id}`}${sk?.desc ? tip(`${sk.name}${sk.rarity === 2 ? ' (gold)' : ''}: ${sk.desc}`) : ''}`; };
+const skillWithTip = (id: number, label?: string | Raw) => { const sk = data.skillById.get(id); return html`${label ?? sk?.name ?? `#${id}`}${sk?.desc ? tip(`${sk.name}${sk.rarity === 2 ? ' (gold)' : ''}: ${sk.desc}`) : ''}`; };
 /** Info icon that opens a custom tooltip on hover or focus. */
 const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
 const cardUrl = (c: Card) => `https://gametora.com/umamusume/supports/${c.urlName}`;
@@ -398,7 +398,7 @@ function renderDeck(c: Computed): Raw {
       <h3>Independent training prioritized skills (up to 10)</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li draggable="true" data-wl-key="${w.key}">
           <span class="grip" title="Drag to reorder">⋮⋮</span>
-          ${w.gated && w.isTarget ? html`<span class="tag gold wl-kind">target skill</span>` : w.gated ? html`<span class="tag wl-kind">not a target</span>` : html`<span class="tag warn wl-kind">target but not a choice</span>`}${skillWithTip(w.skillId, w.form ? `${w.name} <span class="muted">(as ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span>
+          ${w.gated && w.isTarget ? html`<span class="tag gold wl-kind">target skill</span>` : w.gated ? html`<span class="tag wl-kind">not a target</span>` : html`<span class="tag warn wl-kind">target but not a choice</span>`}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(as ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span>
           <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" title="Remove from the list">✕</button></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
       ${c.wlRest.length || c.wlExcluded.length ? html`<div class="small muted">
         ${c.wlRest.length ? html`Not listed: ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" title="Add to the list">+</button></span>`)} ` : ''}
