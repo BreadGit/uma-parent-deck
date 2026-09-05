@@ -81,7 +81,7 @@ function drawBlueSliderNotches(canvas: HTMLCanvasElement): void {
   if (canvas.height !== height) canvas.height = height;
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = '#aeb6c1';
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#aeb6c1';
   for (let tick = 0; tick <= MAX_PARENT_STARS; tick++) {
     const x = Math.round(tick * (width - 1) / MAX_PARENT_STARS);
     ctx.fillRect(x, 0, 1, height);
@@ -102,6 +102,7 @@ const cardImg = (c: Card) => `/assets/supports/${c.id}.png`;
 const charImg = (c: Character) => `/assets/characters/${c.cardId}.png`;
 /** Info icon that opens a custom tooltip on hover or focus. */
 const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
+const cardLink = (c: Card) => html`<a class="card-link" href="https://gametora.com/umamusume/supports/${c.urlName}" target="_blank" rel="noopener">${c.name}</a>`;
 const typeTag = (c: Card) => html`<span class="tag type-${c.type}">${c.type}</span>`;
 
 function targetableSkills(): Skill[] {
@@ -225,7 +226,7 @@ function renderRunSettings(c: Computed): Raw {
       <div class="chips">
         ${state.pinnedIds.length ? state.pinnedIds.map((id) => { const card = data.cardById.get(id); if (!card) return '';
           const owned = !c.unowned.has(id);
-          return html`<span class="chip"><img src="${cardImg(card)}" alt="" />${card.name}${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
+          return html`<span class="chip"><img src="${cardImg(card)}" alt="" />${cardLink(card)}${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
         : html`<span class="muted small">Nothing pinned. Light Hello is mandatory in Grand Concert, so pin one of her cards unless you have a reason not to.</span>`}
       </div>
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : ''}
@@ -272,7 +273,7 @@ function renderDeck(c: Computed): Raw {
         <div class="slot">
           ${state.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin pin-corner">pinned</span>` : ''}
           <img src="${cardImg(cs.card)}" alt="" />
-          <div class="name">${cs.card.name}</div>
+          <div class="name">${cardLink(cs.card)}</div>
           <div class="lb">${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select> ${typeTag(cs.card)}</div>
           <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</div>
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
@@ -292,7 +293,7 @@ function renderDeck(c: Computed): Raw {
           const row = (label: Raw | string, vals: number[], cls = '') => html`<tr class="${cls}"><td>${label}</td>${vals.map((v) => html`<td class="num">${num(v)}</td>`)}<td class="num">${num(vals.reduce((a, b) => a + b, 0))}</td></tr>`;
           const cardRows = d.deck.map((cs) => {
             const cc = cardContribution(cs.card, cs.lb, data.model);
-            return row(html`<img class="thumb sm" src="${cardImg(cs.card)}" alt="" /> ${cs.card.name} <span class="muted small">(${cc.source === 'model' ? 'model' : `observed${cc.source === 'observed+model' ? ', shifted to LB' + cs.lb : ''}`})</span>`, cc.stats.map((v, i) => v * scale * focusMul[i]!));
+            return row(html`<img class="thumb sm" src="${cardImg(cs.card)}" alt="" /> ${cardLink(cs.card)} <span class="muted small">(${cc.source === 'model' ? 'model' : `observed${cc.source === 'observed+model' ? ', shifted to LB' + cs.lb : ''}`})</span>`, cc.stats.map((v, i) => v * scale * focusMul[i]!));
           });
           const base = c.trainee?.baseStats ?? [0, 0, 0, 0, 0];
           const penalty = settings.lossPenalty * c.sum.expectedLosses;
@@ -321,7 +322,7 @@ function renderDeck(c: Computed): Raw {
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
-      <h3>Prioritized skills for the run (up to 10)</h3>
+      <h3>Independent training prioritized skills (up to 10)</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li>${w.name} ${w.gated ? html`<span class="tag gold">event choice</span>` : html`<span class="tag">filler</span>`} <span class="small muted">${w.reason}</span></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
       <details><summary>How the deck was built</summary><ol class="small">${d.steps.map((s) => html`<li>${s}</li>`)}</ol></details>
     </section>`;
@@ -368,7 +369,7 @@ function renderRanking(c: Computed): Raw {
           const explicit = inventory[String(x.card.id)] !== undefined;
           return html`<tr class="${owned ? '' : 'dim'}">
             <td><img class="thumb" src="${cardImg(x.card)}" alt="" loading="lazy" /></td>
-            <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}${x.card.name}<br/><span class="small">${x.card.rarity} ${typeTag(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html`<span class="tag warn">trainee's card</span>` : ''}</span></td>
+            <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}${cardLink(x.card)}<br/><span class="small">${x.card.rarity} ${typeTag(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html`<span class="tag warn">trainee's card</span>` : ''}</span></td>
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
             <td class="num">${pill(x.sparkValue, '', 1)}</td>

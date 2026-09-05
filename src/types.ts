@@ -10,6 +10,7 @@ export interface CardEvent { kind: 'chain' | 'random' | 'recreation' | 'special'
 
 export interface Card {
   id: number;
+  urlName: string; // GameTora page slug
   charId: number;
   charName: string;
   title: string;

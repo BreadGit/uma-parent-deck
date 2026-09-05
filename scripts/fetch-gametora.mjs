@@ -184,6 +184,7 @@ function normalizeCards(raw, eventNames, palGroupEvents) {
     }
     cards.push({
       id: c.support_id,
+      urlName: c.url_name,
       charId: c.char_id,
       charName: c.char_name,
       title: c.title_en ?? '',

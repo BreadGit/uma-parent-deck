@@ -1,6 +1,7 @@
 [
  {
   "id": 10001,
+  "urlName": "10001-special-week",
   "charId": 1001,
   "charName": "Special Week",
   "title": "[Tracen Academy]",
@@ -263,6 +264,7 @@
  },
  {
   "id": 10002,
+  "urlName": "10002-silence-suzuka",
   "charId": 1002,
   "charName": "Silence Suzuka",
   "title": "[Tracen Academy]",
@@ -523,6 +525,7 @@
  },
  {
   "id": 10003,
+  "urlName": "10003-tokai-teio",
   "charId": 1003,
   "charName": "Tokai Teio",
   "title": "[Tracen Academy]",
@@ -780,6 +783,7 @@
  },
  {
   "id": 10004,
+  "urlName": "10004-maruzensky",
   "charId": 1004,
   "charName": "Maruzensky",
   "title": "[Tracen Academy]",
@@ -1036,6 +1040,7 @@
  },
  {
   "id": 10005,
+  "urlName": "10005-oguri-cap",
   "charId": 1006,
   "charName": "Oguri Cap",
   "title": "[Tracen Academy]",
@@ -1297,6 +1302,7 @@
  },
  {
   "id": 10006,
+  "urlName": "10006-gold-ship",
   "charId": 1007,
   "charName": "Gold Ship",
   "title": "[Tracen Academy]",
@@ -1562,6 +1568,7 @@
  },
  {
   "id": 10007,
+  "urlName": "10007-vodka",
   "charId": 1008,
   "charName": "Vodka",
   "title": "[Tracen Academy]",
@@ -1822,6 +1829,7 @@
  },
  {
   "id": 10008,
+  "urlName": "10008-taiki-shuttle",
   "charId": 1010,
   "charName": "Taiki Shuttle",
   "title": "[Tracen Academy]",
@@ -2087,6 +2095,7 @@
  },
  {
   "id": 10009,
+  "urlName": "10009-grass-wonder",
   "charId": 1011,
   "charName": "Grass Wonder",
   "title": "[Tracen Academy]",
@@ -2348,6 +2357,7 @@
  },
  {
   "id": 10010,
+  "urlName": "10010-mejiro-mcqueen",
   "charId": 1013,
   "charName": "Mejiro McQueen",
   "title": "[Tracen Academy]",
@@ -2607,6 +2617,7 @@
  },
  {
   "id": 10011,
+  "urlName": "10011-el-condor-pasa",
   "charId": 1014,
   "charName": "El Condor Pasa",
   "title": "[Tracen Academy]",
@@ -2879,6 +2890,7 @@
  },
  {
   "id": 10012,
+  "urlName": "10012-tm-opera-o",
   "charId": 1015,
   "charName": "TM Opera O",
   "title": "[Tracen Academy]",
@@ -3141,6 +3153,7 @@
  },
  {
   "id": 10013,
+  "urlName": "10013-symboli-rudolf",
   "charId": 1017,
   "charName": "Symboli Rudolf",
   "title": "[Tracen Academy]",
@@ -3432,6 +3445,7 @@
  },
  {
   "id": 10014,
+  "urlName": "10014-seiun-sky",
   "charId": 1020,
   "charName": "Seiun Sky",
   "title": "[Tracen Academy]",
@@ -3693,6 +3707,7 @@
  },
  {
   "id": 10015,
+  "urlName": "10015-rice-shower",
   "charId": 1030,
   "charName": "Rice Shower",
   "title": "[Tracen Academy]",
@@ -3945,6 +3960,7 @@
  },
  {
   "id": 10016,
+  "urlName": "10016-winning-ticket",
   "charId": 1035,
   "charName": "Winning Ticket",
   "title": "[Tracen Academy]",
@@ -4219,6 +4235,7 @@
  },
  {
   "id": 10017,
+  "urlName": "10017-gold-city",
   "charId": 1040,
   "charName": "Gold City",
   "title": "[Tracen Academy]",
@@ -4473,6 +4490,7 @@
  },
  {
   "id": 10018,
+  "urlName": "10018-sakura-bakushin-o",
   "charId": 1041,
   "charName": "Sakura Bakushin O",
   "title": "[Tracen Academy]",
@@ -4754,6 +4772,7 @@
  },
  {
   "id": 10019,
+  "urlName": "10019-super-creek",
   "charId": 1045,
   "charName": "Super Creek",
   "title": "[Tracen Academy]",
@@ -5006,6 +5025,7 @@
  },
  {
   "id": 10020,
+  "urlName": "10020-haru-urara",
   "charId": 1052,
   "charName": "Haru Urara",
   "title": "[Tracen Academy]",
@@ -5264,6 +5284,7 @@
  },
  {
   "id": 10021,
+  "urlName": "10021-tazuna-hayakawa",
   "charId": 9001,
   "charName": "Tazuna Hayakawa",
   "title": "[Tracen Academy]",
@@ -5814,6 +5835,7 @@
  },
  {
   "id": 10022,
+  "urlName": "10022-aoi-kiryuin",
   "charId": 9004,
   "charName": "Aoi Kiryuin",
   "title": "[Tracen Academy]",
@@ -6405,6 +6427,7 @@
  },
  {
   "id": 10023,
+  "urlName": "10023-daiwa-scarlet",
   "charId": 1009,
   "charName": "Daiwa Scarlet",
   "title": "[Tracen Academy]",
@@ -6680,6 +6703,7 @@
  },
  {
   "id": 10024,
+  "urlName": "10024-hishi-amazon",
   "charId": 1012,
   "charName": "Hishi Amazon",
   "title": "[Tracen Academy]",
@@ -6944,6 +6968,7 @@
  },
  {
   "id": 10025,
+  "urlName": "10025-air-groove",
   "charId": 1018,
   "charName": "Air Groove",
   "title": "[Tracen Academy]",
@@ -7237,6 +7262,7 @@
  },
  {
   "id": 10026,
+  "urlName": "10026-agnes-digital",
   "charId": 1019,
   "charName": "Agnes Digital",
   "title": "[Tracen Academy]",
@@ -7532,6 +7558,7 @@
  },
  {
   "id": 10027,
+  "urlName": "10027-tamamo-cross",
   "charId": 1021,
   "charName": "Tamamo Cross",
   "title": "[Tracen Academy]",
@@ -7826,6 +7853,7 @@
  },
  {
   "id": 10028,
+  "urlName": "10028-fine-motion",
   "charId": 1022,
   "charName": "Fine Motion",
   "title": "[Tracen Academy]",
@@ -8104,6 +8132,7 @@
  },
  {
   "id": 10029,
+  "urlName": "10029-biwa-hayahide",
   "charId": 1023,
   "charName": "Biwa Hayahide",
   "title": "[Tracen Academy]",
@@ -8400,6 +8429,7 @@
  },
  {
   "id": 10030,
+  "urlName": "10030-mayano-top-gun",
   "charId": 1024,
   "charName": "Mayano Top Gun",
   "title": "[Tracen Academy]",
@@ -8653,6 +8683,7 @@
  },
  {
   "id": 10031,
+  "urlName": "10031-manhattan-cafe",
   "charId": 1025,
   "charName": "Manhattan Cafe",
   "title": "[Tracen Academy]",
@@ -8928,6 +8959,7 @@
  },
  {
   "id": 10032,
+  "urlName": "10032-mihono-bourbon",
   "charId": 1026,
   "charName": "Mihono Bourbon",
   "title": "[Tracen Academy]",
@@ -9191,6 +9223,7 @@
  },
  {
   "id": 10033,
+  "urlName": "10033-mejiro-ryan",
   "charId": 1027,
   "charName": "Mejiro Ryan",
   "title": "[Tracen Academy]",
@@ -9446,6 +9479,7 @@
  },
  {
   "id": 10034,
+  "urlName": "10034-yukino-bijin",
   "charId": 1029,
   "charName": "Yukino Bijin",
   "title": "[Tracen Academy]",
@@ -9709,6 +9743,7 @@
  },
  {
   "id": 10035,
+  "urlName": "10035-ines-fujin",
   "charId": 1031,
   "charName": "Ines Fujin",
   "title": "[Tracen Academy]",
@@ -10001,6 +10036,7 @@
  },
  {
   "id": 10036,
+  "urlName": "10036-agnes-tachyon",
   "charId": 1032,
   "charName": "Agnes Tachyon",
   "title": "[Tracen Academy]",
@@ -10288,6 +10324,7 @@
  },
  {
   "id": 10037,
+  "urlName": "10037-air-shakur",
   "charId": 1036,
   "charName": "Air Shakur",
   "title": "[Tracen Academy]",
@@ -10568,6 +10605,7 @@
  },
  {
   "id": 10038,
+  "urlName": "10038-eishin-flash",
   "charId": 1037,
   "charName": "Eishin Flash",
   "title": "[Tracen Academy]",
@@ -10820,6 +10858,7 @@
  },
  {
   "id": 10039,
+  "urlName": "10039-smart-falcon",
   "charId": 1046,
   "charName": "Smart Falcon",
   "title": "[Tracen Academy]",
@@ -11087,6 +11126,7 @@
  },
  {
   "id": 10040,
+  "urlName": "10040-narita-taishin",
   "charId": 1050,
   "charName": "Narita Taishin",
   "title": "[Tracen Academy]",
@@ -11381,6 +11421,7 @@
  },
  {
   "id": 10041,
+  "urlName": "10041-nishino-flower",
   "charId": 1051,
   "charName": "Nishino Flower",
   "title": "[Tracen Academy]",
@@ -11666,6 +11707,7 @@
  },
  {
   "id": 10042,
+  "urlName": "10042-biko-pegasus",
   "charId": 1054,
   "charName": "Biko Pegasus",
   "title": "[Tracen Academy]",
@@ -11920,6 +11962,7 @@
  },
  {
   "id": 10043,
+  "urlName": "10043-marvelous-sunday",
   "charId": 1055,
   "charName": "Marvelous Sunday",
   "title": "[Tracen Academy]",
@@ -12216,6 +12259,7 @@
  },
  {
   "id": 10044,
+  "urlName": "10044-matikanefukukitaru",
   "charId": 1056,
   "charName": "Matikanefukukitaru",
   "title": "[Tracen Academy]",
@@ -12497,6 +12541,7 @@
  },
  {
   "id": 10045,
+  "urlName": "10045-meisho-doto",
   "charId": 1058,
   "charName": "Meisho Doto",
   "title": "[Tracen Academy]",
@@ -12759,6 +12804,7 @@
  },
  {
   "id": 10046,
+  "urlName": "10046-mejiro-dober",
   "charId": 1059,
   "charName": "Mejiro Dober",
   "title": "[Tracen Academy]",
@@ -13065,6 +13111,7 @@
  },
  {
   "id": 10047,
+  "urlName": "10047-nice-nature",
   "charId": 1060,
   "charName": "Nice Nature",
   "title": "[Tracen Academy]",
@@ -13328,6 +13375,7 @@
  },
  {
   "id": 10048,
+  "urlName": "10048-king-halo",
   "charId": 1061,
   "charName": "King Halo",
   "title": "[Tracen Academy]",
@@ -13597,6 +13645,7 @@
  },
  {
   "id": 10049,
+  "urlName": "10049-fuji-kiseki",
   "charId": 1005,
   "charName": "Fuji Kiseki",
   "title": "[Tracen Academy]",
@@ -13871,6 +13920,7 @@
  },
  {
   "id": 10050,
+  "urlName": "10050-sweep-tosho",
   "charId": 1044,
   "charName": "Sweep Tosho",
   "title": "[Tracen Academy]",
@@ -14158,6 +14208,7 @@
  },
  {
   "id": 10051,
+  "urlName": "10051-twin-turbo",
   "charId": 1066,
   "charName": "Twin Turbo",
   "title": "[Tracen Academy]",
@@ -14407,6 +14458,7 @@
  },
  {
   "id": 10052,
+  "urlName": "10052-daitaku-helios",
   "charId": 1065,
   "charName": "Daitaku Helios",
   "title": "[Tracen Academy]",
@@ -14679,6 +14731,7 @@
  },
  {
   "id": 10053,
+  "urlName": "10053-ikuno-dictus",
   "charId": 1063,
   "charName": "Ikuno Dictus",
   "title": "[Tracen Academy]",
@@ -14927,6 +14980,7 @@
  },
  {
   "id": 10054,
+  "urlName": "10054-mejiro-palmer",
   "charId": 1064,
   "charName": "Mejiro Palmer",
   "title": "[Tracen Academy]",
@@ -15189,6 +15243,7 @@
  },
  {
   "id": 10055,
+  "urlName": "10055-kitasan-black",
   "charId": 1068,
   "charName": "Kitasan Black",
   "title": "[Tracen Academy]",
@@ -15481,6 +15536,7 @@
  },
  {
   "id": 10056,
+  "urlName": "10056-satono-diamond",
   "charId": 1067,
   "charName": "Satono Diamond",
   "title": "[Tracen Academy]",
@@ -15757,6 +15813,7 @@
  },
  {
   "id": 10057,
+  "urlName": "10057-matikanetannhauser",
   "charId": 1062,
   "charName": "Matikanetannhauser",
   "title": "[Tracen Academy]",
@@ -16013,6 +16070,7 @@
  },
  {
   "id": 10058,
+  "urlName": "10058-yaeno-muteki",
   "charId": 1072,
   "charName": "Yaeno Muteki",
   "title": "[Tracen Academy]",
@@ -16265,6 +16323,7 @@
  },
  {
   "id": 10059,
+  "urlName": "10059-zenno-rob-roy",
   "charId": 1047,
   "charName": "Zenno Rob Roy",
   "title": "[Tracen Academy]",
@@ -16528,6 +16587,7 @@
  },
  {
   "id": 10060,
+  "urlName": "10060-riko-kashimoto",
   "charId": 9006,
   "charName": "Riko Kashimoto",
   "title": "[Tracen Academy]",
@@ -17196,6 +17256,7 @@
  },
  {
   "id": 10061,
+  "urlName": "10061-seeking-the-pearl",
   "charId": 1042,
   "charName": "Seeking the Pearl",
   "title": "[Tracen Academy]",
@@ -17467,6 +17528,7 @@
  },
  {
   "id": 10062,
+  "urlName": "10062-sakura-chiyono-o",
   "charId": 1069,
   "charName": "Sakura Chiyono O",
   "title": "[Tracen Academy]",
@@ -17726,6 +17788,7 @@
  },
  {
   "id": 10063,
+  "urlName": "10063-kawakami-princess",
   "charId": 1039,
   "charName": "Kawakami Princess",
   "title": "[Tracen Academy]",
@@ -17973,6 +18036,7 @@
  },
  {
   "id": 10064,
+  "urlName": "10064-hishi-akebono",
   "charId": 1028,
   "charName": "Hishi Akebono",
   "title": "[Tracen Academy]",
@@ -18234,6 +18298,7 @@
  },
  {
   "id": 10065,
+  "urlName": "10065-bamboo-memory",
   "charId": 1053,
   "charName": "Bamboo Memory",
   "title": "[Tracen Academy]",
@@ -18495,6 +18560,7 @@
  },
  {
   "id": 10066,
+  "urlName": "10066-shinko-windy",
   "charId": 1043,
   "charName": "Shinko Windy",
   "title": "[Tracen Academy]",
@@ -18754,6 +18820,7 @@
  },
  {
   "id": 10067,
+  "urlName": "10067-nakayama-festa",
   "charId": 1049,
   "charName": "Nakayama Festa",
   "title": "[Tracen Academy]",
@@ -19026,6 +19093,7 @@
  },
  {
   "id": 10068,
+  "urlName": "10068-inari-one",
   "charId": 1034,
   "charName": "Inari One",
   "title": "[Tracen Academy]",
@@ -19285,6 +19353,7 @@
  },
  {
   "id": 10069,
+  "urlName": "10069-mejiro-ardan",
   "charId": 1071,
   "charName": "Mejiro Ardan",
   "title": "[Tracen Academy]",
@@ -19559,6 +19628,7 @@
  },
  {
   "id": 10070,
+  "urlName": "10070-tosen-jordan",
   "charId": 1048,
   "charName": "Tosen Jordan",
   "title": "[Tracen Academy]",
@@ -19798,6 +19868,7 @@
  },
  {
   "id": 10071,
+  "urlName": "10071-sirius-symboli",
   "charId": 1070,
   "charName": "Sirius Symboli",
   "title": "[Tracen Academy]",
@@ -20057,6 +20128,7 @@
  },
  {
   "id": 10072,
+  "urlName": "10072-narita-brian",
   "charId": 1016,
   "charName": "Narita Brian",
   "title": "[Tracen Academy]",
@@ -20334,6 +20406,7 @@
  },
  {
   "id": 10073,
+  "urlName": "10073-curren-chan",
   "charId": 1038,
   "charName": "Curren Chan",
   "title": "[Tracen Academy]",
@@ -20608,6 +20681,7 @@
  },
  {
   "id": 10074,
+  "urlName": "10074-sasami-anshinzawa",
   "charId": 9005,
   "charName": "Sasami Anshinzawa",
   "title": "[Acupuncturist]",
@@ -21224,6 +21298,7 @@
  },
  {
   "id": 10075,
+  "urlName": "10075-admire-vega",
   "charId": 1033,
   "charName": "Admire Vega",
   "title": "[Tracen Academy]",
@@ -21472,6 +21547,7 @@
  },
  {
   "id": 10076,
+  "urlName": "10076-mejiro-bright",
   "charId": 1074,
   "charName": "Mejiro Bright",
   "title": "[Tracen Academy]",
@@ -21714,6 +21790,7 @@
  },
  {
   "id": 10077,
+  "urlName": "10077-narita-top-road",
   "charId": 1077,
   "charName": "Narita Top Road",
   "title": "[Tracen Academy]",
@@ -21950,6 +22027,7 @@
  },
  {
   "id": 10078,
+  "urlName": "10078-mr-cb",
   "charId": 1057,
   "charName": "Mr. C.B.",
   "title": "[Tracen Academy]",
@@ -22240,6 +22318,7 @@
  },
  {
   "id": 10079,
+  "urlName": "10079-daiichi-ruby",
   "charId": 1085,
   "charName": "Daiichi Ruby",
   "title": "[Tracen Academy]",
@@ -22476,6 +22555,7 @@
  },
  {
   "id": 10080,
+  "urlName": "10080-ksmiracle",
   "charId": 1093,
   "charName": "K.S.Miracle",
   "title": "[Tracen Academy]",
@@ -22701,6 +22781,7 @@
  },
  {
   "id": 10081,
+  "urlName": "10081-tsurumaru-tsuyoshi",
   "charId": 1073,
   "charName": "Tsurumaru Tsuyoshi",
   "title": "[Tracen Academy]",
@@ -22957,6 +23038,7 @@
  },
  {
   "id": 10083,
+  "urlName": "10083-light-hello",
   "charId": 9008,
   "charName": "Light Hello",
   "title": "[Event Producer]",
@@ -23651,6 +23733,7 @@
  },
  {
   "id": 10084,
+  "urlName": "10084-tanino-gimlet",
   "charId": 1084,
   "charName": "Tanino Gimlet",
   "title": "[Tracen Academy]",
@@ -23904,6 +23987,7 @@
  },
  {
   "id": 20001,
+  "urlName": "20001-fuji-kiseki",
   "charId": 1005,
   "charName": "Fuji Kiseki",
   "title": "[Well, Look Who's Home]",
@@ -24279,6 +24363,7 @@
  },
  {
   "id": 20002,
+  "urlName": "20002-daiwa-scarlet",
   "charId": 1009,
   "charName": "Daiwa Scarlet",
   "title": "[Nothing Hard Work Can't Solve!]",
@@ -24660,6 +24745,7 @@
  },
  {
   "id": 20003,
+  "urlName": "20003-hishi-amazon",
   "charId": 1012,
   "charName": "Hishi Amazon",
   "title": "[Reach the Top!]",
@@ -25013,6 +25099,7 @@
  },
  {
   "id": 20004,
+  "urlName": "20004-air-groove",
   "charId": 1018,
   "charName": "Air Groove",
   "title": "[Nothing Escapes the Vice Prez]",
@@ -25446,6 +25533,7 @@
  },
  {
   "id": 20005,
+  "urlName": "20005-agnes-digital",
   "charId": 1019,
   "charName": "Agnes Digital",
   "title": "[Digital's Recharge Station]",
@@ -25825,6 +25913,7 @@
  },
  {
   "id": 20006,
+  "urlName": "20006-biwa-hayahide",
   "charId": 1023,
   "charName": "Biwa Hayahide",
   "title": "[Trial Initiation]",
@@ -26233,6 +26322,7 @@
  },
  {
   "id": 20007,
+  "urlName": "20007-mayano-top-gun",
   "charId": 1024,
   "charName": "Mayano Top Gun",
   "title": "[Cute + Cute = ?]",
@@ -26580,6 +26670,7 @@
  },
  {
   "id": 20008,
+  "urlName": "20008-manhattan-cafe",
   "charId": 1025,
   "charName": "Manhattan Cafe",
   "title": "[My Solo Drawn to Raindrop Drums]",
@@ -26961,6 +27052,7 @@
  },
  {
   "id": 20009,
+  "urlName": "20009-mihono-bourbon",
   "charId": 1026,
   "charName": "Mihono Bourbon",
   "title": "[Pal-Assisted Training]",
@@ -27350,6 +27442,7 @@
  },
  {
   "id": 20010,
+  "urlName": "20010-mejiro-ryan",
   "charId": 1027,
   "charName": "Mejiro Ryan",
   "title": "[On and Off the Court]",
@@ -27716,6 +27809,7 @@
  },
  {
   "id": 20011,
+  "urlName": "20011-yukino-bijin",
   "charId": 1029,
   "charName": "Yukino Bijin",
   "title": "[City Girl 101]",
@@ -28066,6 +28160,7 @@
  },
  {
   "id": 20012,
+  "urlName": "20012-agnes-tachyon",
   "charId": 1032,
   "charName": "Agnes Tachyon",
   "title": "[Experimental Studies on Subject A]",
@@ -28441,6 +28536,7 @@
  },
  {
   "id": 20013,
+  "urlName": "20013-eishin-flash",
   "charId": 1037,
   "charName": "Eishin Flash",
   "title": "[5:00 a.m.—Right on Schedule]",
@@ -28781,6 +28877,7 @@
  },
  {
   "id": 20014,
+  "urlName": "20014-narita-taishin",
   "charId": 1050,
   "charName": "Narita Taishin",
   "title": "[Poolside High Tides]",
@@ -29167,6 +29264,7 @@
  },
  {
   "id": 20015,
+  "urlName": "20015-marvelous-sunday",
   "charId": 1055,
   "charName": "Marvelous Sunday",
   "title": "[A Marvelous ☆ Plan]",
@@ -29562,6 +29660,7 @@
  },
  {
   "id": 20016,
+  "urlName": "20016-matikanefukukitaru",
   "charId": 1056,
   "charName": "Matikanefukukitaru",
   "title": "[Fate's Forecast]",
@@ -29977,6 +30076,7 @@
  },
  {
   "id": 20017,
+  "urlName": "20017-meisho-doto",
   "charId": 1058,
   "charName": "Meisho Doto",
   "title": "[Fighting for Fortune]",
@@ -30373,6 +30473,7 @@
  },
  {
   "id": 20018,
+  "urlName": "20018-mejiro-dober",
   "charId": 1059,
   "charName": "Mejiro Dober",
   "title": "[Ignore the Stares]",
@@ -30777,6 +30878,7 @@
  },
  {
   "id": 20019,
+  "urlName": "20019-nice-nature",
   "charId": 1060,
   "charName": "Nice Nature",
   "title": "[It's Just Water]",
@@ -31145,6 +31247,7 @@
  },
  {
   "id": 20020,
+  "urlName": "20020-king-halo",
   "charId": 1061,
   "charName": "King Halo",
   "title": "[First-Rate Plan]",
@@ -31492,6 +31595,7 @@
  },
  {
   "id": 20021,
+  "urlName": "20021-aoi-kiryuin",
   "charId": 9004,
   "charName": "Aoi Kiryuin",
   "title": "[Trainers' Teamwork]",
@@ -32127,6 +32231,7 @@
  },
  {
   "id": 20022,
+  "urlName": "20022-tamamo-cross",
   "charId": 1021,
   "charName": "Tamamo Cross",
   "title": "[Now Dat's What I Call Grilled Squid!]",
@@ -32531,6 +32636,7 @@
  },
  {
   "id": 20023,
+  "urlName": "20023-sweep-tosho",
   "charId": 1044,
   "charName": "Sweep Tosho",
   "title": "[Lamplit Training of a Witch-to-Be]",
@@ -32940,6 +33046,7 @@
  },
  {
   "id": 20024,
+  "urlName": "20024-daitaku-helios",
   "charId": 1065,
   "charName": "Daitaku Helios",
   "title": "[Let's Get This Party Lit!]",
@@ -33359,6 +33466,7 @@
  },
  {
   "id": 20025,
+  "urlName": "20025-ikuno-dictus",
   "charId": 1063,
   "charName": "Ikuno Dictus",
   "title": "[Never Skip Warm-Ups]",
@@ -33717,6 +33825,7 @@
  },
  {
   "id": 20026,
+  "urlName": "20026-nice-nature",
   "charId": 1060,
   "charName": "Nice Nature",
   "title": "[Messing Around]",
@@ -34081,6 +34190,7 @@
  },
  {
   "id": 20027,
+  "urlName": "20027-nishino-flower",
   "charId": 1051,
   "charName": "Nishino Flower",
   "title": "[Lifting Your Spirits]",
@@ -34484,6 +34594,7 @@
  },
  {
   "id": 20028,
+  "urlName": "20028-zenno-rob-roy",
   "charId": 1047,
   "charName": "Zenno Rob Roy",
   "title": "[The Perfect Book for You]",
@@ -34862,6 +34973,7 @@
  },
  {
   "id": 20029,
+  "urlName": "20029-seeking-the-pearl",
   "charId": 1042,
   "charName": "Seeking the Pearl",
   "title": "[The World's My Oyster]",
@@ -35277,6 +35389,7 @@
  },
  {
   "id": 20030,
+  "urlName": "20030-ines-fujin",
   "charId": 1031,
   "charName": "Ines Fujin",
   "title": "[You Earned It!]",
@@ -35685,6 +35798,7 @@
  },
  {
   "id": 20031,
+  "urlName": "20031-shinko-windy",
   "charId": 1043,
   "charName": "Shinko Windy",
   "title": "[///WARNING GATE///]",
@@ -36072,6 +36186,7 @@
  },
  {
   "id": 20032,
+  "urlName": "20032-inari-one",
   "charId": 1034,
   "charName": "Inari One",
   "title": "[Laughing through the Mud]",
@@ -36464,6 +36579,7 @@
  },
  {
   "id": 20033,
+  "urlName": "20033-el-condor-pasa",
   "charId": 1014,
   "charName": "El Condor Pasa",
   "title": "[Mud-Caked Compañero]",
@@ -36845,6 +36961,7 @@
  },
  {
   "id": 20034,
+  "urlName": "20034-mejiro-ardan",
   "charId": 1071,
   "charName": "Mejiro Ardan",
   "title": "[My Heart Will Go On]",
@@ -37229,6 +37346,7 @@
  },
  {
   "id": 20035,
+  "urlName": "20035-tosen-jordan",
   "charId": 1048,
   "charName": "Tosen Jordan",
   "title": "[Turf as Nails]",
@@ -37626,6 +37744,7 @@
  },
  {
   "id": 20037,
+  "urlName": "20037-fine-motion",
   "charId": 1022,
   "charName": "Fine Motion",
   "title": "[Grma, Ramen ♪]",
@@ -37973,6 +38092,7 @@
  },
  {
   "id": 20038,
+  "urlName": "20038-sirius-symboli",
   "charId": 1070,
   "charName": "Sirius Symboli",
   "title": "[The Brightest Star Shines On]",
@@ -38356,6 +38476,7 @@
  },
  {
   "id": 20039,
+  "urlName": "20039-vodka",
   "charId": 1008,
   "charName": "Vodka",
   "title": "[An Annoying Supervisor]",
@@ -38752,6 +38873,7 @@
  },
  {
   "id": 20040,
+  "urlName": "20040-mejiro-ryan",
   "charId": 1027,
   "charName": "Mejiro Ryan",
   "title": "[Hot Hearts and Cool Drinks]",
@@ -39097,6 +39219,7 @@
  },
  {
   "id": 20041,
+  "urlName": "20041-admire-vega",
   "charId": 1033,
   "charName": "Admire Vega",
   "title": "[Aim for the Brightest]",
@@ -39462,6 +39585,7 @@
  },
  {
   "id": 20042,
+  "urlName": "20042-sakura-bakushin-o",
   "charId": 1041,
   "charName": "Sakura Bakushin O",
   "title": "[The Perfect Morning Greeting!]",
@@ -39842,6 +39966,7 @@
  },
  {
   "id": 20043,
+  "urlName": "20043-special-week",
   "charId": 1001,
   "charName": "Special Week",
   "title": "[At the End of the Day]",
@@ -40196,6 +40321,7 @@
  },
  {
   "id": 20044,
+  "urlName": "20044-curren-chan",
   "charId": 1038,
   "charName": "Curren Chan",
   "title": "[Cozy Cute Memory ♪]",
@@ -40558,6 +40684,7 @@
  },
  {
   "id": 20045,
+  "urlName": "20045-smart-falcon",
   "charId": 1046,
   "charName": "Smart Falcon",
   "title": "[Almost... an Umadol?! ♡]",
@@ -40934,6 +41061,7 @@
  },
  {
   "id": 20046,
+  "urlName": "20046-sweep-tosho",
   "charId": 1044,
   "charName": "Sweep Tosho",
   "title": "[Reckless Witch Training]",
@@ -41339,6 +41467,7 @@
  },
  {
   "id": 20047,
+  "urlName": "20047-tokai-teio",
   "charId": 1003,
   "charName": "Tokai Teio",
   "title": "[Step! Smile! Wink!]",
@@ -41705,6 +41834,7 @@
  },
  {
   "id": 20048,
+  "urlName": "20048-oguri-cap",
   "charId": 1006,
   "charName": "Oguri Cap",
   "title": "[I Love You... Dear Food]",
@@ -42099,6 +42229,7 @@
  },
  {
   "id": 20049,
+  "urlName": "20049-gold-city",
   "charId": 1040,
   "charName": "Gold City",
   "title": "[Going for Gold]",
@@ -42492,6 +42623,7 @@
  },
  {
   "id": 20050,
+  "urlName": "20050-seiun-sky",
   "charId": 1020,
   "charName": "Seiun Sky",
   "title": "[Bobbing with the Waves]",
@@ -42885,6 +43017,7 @@
  },
  {
   "id": 20051,
+  "urlName": "20051-ksmiracle",
   "charId": 1093,
   "charName": "K.S.Miracle",
   "title": "[The 3rd Miracle]",
@@ -43240,6 +43373,7 @@
  },
  {
   "id": 20052,
+  "urlName": "20052-tsurumaru-tsuyoshi",
   "charId": 1073,
   "charName": "Tsurumaru Tsuyoshi",
   "title": "[Go, Go! Tsuyoshi!]",
@@ -43592,6 +43726,7 @@
  },
  {
   "id": 30001,
+  "urlName": "30001-special-week",
   "charId": 1001,
   "charName": "Special Week",
   "title": "[The Brightest Star in Japan!]",
@@ -44057,6 +44192,7 @@
  },
  {
   "id": 30002,
+  "urlName": "30002-silence-suzuka",
   "charId": 1002,
   "charName": "Silence Suzuka",
   "title": "[Beyond This Shining Moment]",
@@ -44450,6 +44586,7 @@
  },
  {
   "id": 30003,
+  "urlName": "30003-tokai-teio",
   "charId": 1003,
   "charName": "Tokai Teio",
   "title": "[Dream Big!]",
@@ -44841,6 +44978,7 @@
  },
  {
   "id": 30004,
+  "urlName": "30004-gold-ship",
   "charId": 1007,
   "charName": "Gold Ship",
   "title": "[Breakaway Battleship]",
@@ -45261,6 +45399,7 @@
  },
  {
   "id": 30005,
+  "urlName": "30005-vodka",
   "charId": 1008,
   "charName": "Vodka",
   "title": "[Wild Rider]",
@@ -45667,6 +45806,7 @@
  },
  {
   "id": 30006,
+  "urlName": "30006-grass-wonder",
   "charId": 1011,
   "charName": "Grass Wonder",
   "title": "[Fairest Fleur]",
@@ -46134,6 +46274,7 @@
  },
  {
   "id": 30007,
+  "urlName": "30007-el-condor-pasa",
   "charId": 1014,
   "charName": "El Condor Pasa",
   "title": "[Champion's Passion]",
@@ -46538,6 +46679,7 @@
  },
  {
   "id": 30008,
+  "urlName": "30008-seiun-sky",
   "charId": 1020,
   "charName": "Seiun Sky",
   "title": "[Foolproof Plan]",
@@ -47011,6 +47153,7 @@
  },
  {
   "id": 30009,
+  "urlName": "30009-tamamo-cross",
   "charId": 1021,
   "charName": "Tamamo Cross",
   "title": "[Split the Sky, White Lightning!]",
@@ -47444,6 +47587,7 @@
  },
  {
   "id": 30010,
+  "urlName": "30010-fine-motion",
   "charId": 1022,
   "charName": "Fine Motion",
   "title": "[Wave of Gratitude]",
@@ -47883,6 +48027,7 @@
  },
  {
   "id": 30011,
+  "urlName": "30011-ines-fujin",
   "charId": 1031,
   "charName": "Ines Fujin",
   "title": "[Watch My Star Fly!]",
@@ -48330,6 +48475,7 @@
  },
  {
   "id": 30012,
+  "urlName": "30012-winning-ticket",
   "charId": 1035,
   "charName": "Winning Ticket",
   "title": "[BNWinner!]",
@@ -48742,6 +48888,7 @@
  },
  {
   "id": 30013,
+  "urlName": "30013-air-shakur",
   "charId": 1036,
   "charName": "Air Shakur",
   "title": "[7 More Centimeters]",
@@ -49152,6 +49299,7 @@
  },
  {
   "id": 30014,
+  "urlName": "30014-gold-city",
   "charId": 1040,
   "charName": "Gold City",
   "title": "[Run(my)way]",
@@ -49560,6 +49708,7 @@
  },
  {
   "id": 30015,
+  "urlName": "30015-sakura-bakushin-o",
   "charId": 1041,
   "charName": "Sakura Bakushin O",
   "title": "[Eat Fast! Yum Fast!]",
@@ -49947,6 +50096,7 @@
  },
  {
   "id": 30016,
+  "urlName": "30016-super-creek",
   "charId": 1045,
   "charName": "Super Creek",
   "title": "[Piece of Mind]",
@@ -50309,6 +50459,7 @@
  },
  {
   "id": 30017,
+  "urlName": "30017-smart-falcon",
   "charId": 1046,
   "charName": "Smart Falcon",
   "title": "[My Umadol Way! ☆]",
@@ -50770,6 +50921,7 @@
  },
  {
   "id": 30018,
+  "urlName": "30018-nishino-flower",
   "charId": 1051,
   "charName": "Nishino Flower",
   "title": "[Even the Littlest Bud]",
@@ -51210,6 +51362,7 @@
  },
  {
   "id": 30019,
+  "urlName": "30019-haru-urara",
   "charId": 1052,
   "charName": "Haru Urara",
   "title": "[Urara's Day Off!]",
@@ -51581,6 +51734,7 @@
  },
  {
   "id": 30020,
+  "urlName": "30020-biko-pegasus",
   "charId": 1054,
   "charName": "Biko Pegasus",
   "title": "[Double Carrot Punch!]",
@@ -51949,6 +52103,7 @@
  },
  {
   "id": 30021,
+  "urlName": "30021-tazuna-hayakawa",
   "charId": 9001,
   "charName": "Tazuna Hayakawa",
   "title": "[Tracen Reception]",
@@ -52564,6 +52719,7 @@
  },
  {
   "id": 30022,
+  "urlName": "30022-mejiro-mcqueen",
   "charId": 1013,
   "charName": "Mejiro McQueen",
   "title": "[Your Team Ace]",
@@ -52954,6 +53110,7 @@
  },
  {
   "id": 30023,
+  "urlName": "30023-rice-shower",
   "charId": 1030,
   "charName": "Rice Shower",
   "title": "[Showered in Joy]",
@@ -53371,6 +53528,7 @@
  },
  {
   "id": 30024,
+  "urlName": "30024-oguri-cap",
   "charId": 1006,
   "charName": "Oguri Cap",
   "title": "[Get Lots of Hugs for Me]",
@@ -53821,6 +53979,7 @@
  },
  {
   "id": 30025,
+  "urlName": "30025-special-week",
   "charId": 1001,
   "charName": "Special Week",
   "title": "[The Setting Sun and Rising Stars]",
@@ -54232,6 +54391,7 @@
  },
  {
   "id": 30026,
+  "urlName": "30026-twin-turbo",
   "charId": 1066,
   "charName": "Twin Turbo",
   "title": "[Turbo Booooost!]",
@@ -54687,6 +54847,7 @@
  },
  {
   "id": 30027,
+  "urlName": "30027-mejiro-palmer",
   "charId": 1064,
   "charName": "Mejiro Palmer",
   "title": "[Go Ahead and Laugh]",
@@ -55198,6 +55359,7 @@
  },
  {
   "id": 30028,
+  "urlName": "30028-kitasan-black",
   "charId": 1068,
   "charName": "Kitasan Black",
   "title": "[Fire at My Heels]",
@@ -55665,6 +55827,7 @@
  },
  {
   "id": 30029,
+  "urlName": "30029-satono-diamond",
   "charId": 1067,
   "charName": "Satono Diamond",
   "title": "[The Will to Overtake]",
@@ -56124,6 +56287,7 @@
  },
  {
   "id": 30030,
+  "urlName": "30030-matikanetannhauser",
   "charId": 1062,
   "charName": "Matikanetannhauser",
   "title": "[Just Keep Going]",
@@ -56533,6 +56697,7 @@
  },
  {
   "id": 30031,
+  "urlName": "30031-yukino-bijin",
   "charId": 1029,
   "charName": "Yukino Bijin",
   "title": "[Hometown Cheers]",
@@ -57011,6 +57176,7 @@
  },
  {
   "id": 30032,
+  "urlName": "30032-yaeno-muteki",
   "charId": 1072,
   "charName": "Yaeno Muteki",
   "title": "[Fiery Discipline]",
@@ -57455,6 +57621,7 @@
  },
  {
   "id": 30033,
+  "urlName": "30033-winning-ticket",
   "charId": 1035,
   "charName": "Winning Ticket",
   "title": "[Dreams Do Come True!]",
@@ -57821,6 +57988,7 @@
  },
  {
   "id": 30034,
+  "urlName": "30034-rice-shower",
   "charId": 1030,
   "charName": "Rice Shower",
   "title": "[Happiness Just around the Bend]",
@@ -58254,6 +58422,7 @@
  },
  {
   "id": 30036,
+  "urlName": "30036-riko-kashimoto",
   "charId": 9006,
   "charName": "Riko Kashimoto",
   "title": "[Planned Perfection]",
@@ -58970,6 +59139,7 @@
  },
  {
   "id": 30038,
+  "urlName": "30038-sakura-chiyono-o",
   "charId": 1069,
   "charName": "Sakura Chiyono O",
   "title": "[Peak Sakura Season]",
@@ -59469,6 +59639,7 @@
  },
  {
   "id": 30039,
+  "urlName": "30039-kawakami-princess",
   "charId": 1039,
   "charName": "Kawakami Princess",
   "title": "[Princess Bride]",
@@ -59871,6 +60042,7 @@
  },
  {
   "id": 30040,
+  "urlName": "30040-hishi-akebono",
   "charId": 1028,
   "charName": "Hishi Akebono",
   "title": "[Who Wants the First Bite?]",
@@ -60302,6 +60474,7 @@
  },
  {
   "id": 30041,
+  "urlName": "30041-mejiro-dober",
   "charId": 1059,
   "charName": "Mejiro Dober",
   "title": "[My Thoughts, My Desires]",
@@ -60692,6 +60865,7 @@
  },
  {
   "id": 30042,
+  "urlName": "30042-bamboo-memory",
   "charId": 1053,
   "charName": "Bamboo Memory",
   "title": "[Head-on Fight!]",
@@ -61245,6 +61419,7 @@
  },
  {
   "id": 30043,
+  "urlName": "30043-nakayama-festa",
   "charId": 1049,
   "charName": "Nakayama Festa",
   "title": "[43, 8, 1]",
@@ -61726,6 +61901,7 @@
  },
  {
   "id": 30044,
+  "urlName": "30044-narita-brian",
   "charId": 1016,
   "charName": "Narita Brian",
   "title": "[Two Pieces]",
@@ -62088,6 +62264,7 @@
  },
  {
   "id": 30045,
+  "urlName": "30045-sweep-tosho",
   "charId": 1044,
   "charName": "Sweep Tosho",
   "title": "[It's All Mine!]",
@@ -62522,6 +62699,7 @@
  },
  {
   "id": 30046,
+  "urlName": "30046-winning-ticket",
   "charId": 1035,
   "charName": "Winning Ticket",
   "title": "[Full-Blown Tantrum]",
@@ -62937,6 +63115,7 @@
  },
  {
   "id": 30047,
+  "urlName": "30047-daiwa-scarlet",
   "charId": 1009,
   "charName": "Daiwa Scarlet",
   "title": "[Mini☆Vacation]",
@@ -63335,6 +63514,7 @@
  },
  {
   "id": 30048,
+  "urlName": "30048-mejiro-ryan",
   "charId": 1027,
   "charName": "Mejiro Ryan",
   "title": "[Winning Pitch]",
@@ -63745,6 +63925,7 @@
  },
  {
   "id": 30052,
+  "urlName": "30052-light-hello",
   "charId": 9008,
   "charName": "Light Hello",
   "title": "[From the Ground Up]",
@@ -64479,6 +64660,7 @@
  },
  {
   "id": 30053,
+  "urlName": "30053-taiki-shuttle",
   "charId": 1010,
   "charName": "Taiki Shuttle",
   "title": "[Hands Up, Crook!]",
@@ -64930,6 +65112,7 @@
  },
  {
   "id": 30054,
+  "urlName": "30054-nice-nature",
   "charId": 1060,
   "charName": "Nice Nature",
   "title": "[Daring to Dream]",
@@ -65377,6 +65560,7 @@
  },
  {
   "id": 30055,
+  "urlName": "30055-seiun-sky",
   "charId": 1020,
   "charName": "Seiun Sky",
   "title": "[Paint the Sky Red]",
@@ -65829,6 +66013,7 @@
  },
  {
   "id": 30056,
+  "urlName": "30056-king-halo",
   "charId": 1061,
   "charName": "King Halo",
   "title": "[Tonight, We Waltz]",
@@ -66284,6 +66469,7 @@
  },
  {
   "id": 30057,
+  "urlName": "30057-gold-ship",
   "charId": 1007,
   "charName": "Gold Ship",
   "title": "[That Time I Became the Strongest]",
@@ -66710,6 +66896,7 @@
  },
  {
   "id": 30062,
+  "urlName": "30062-silence-suzuka",
   "charId": 1002,
   "charName": "Silence Suzuka",
   "title": "[Winning Dream]",
@@ -67094,6 +67281,7 @@
  },
  {
   "id": 30063,
+  "urlName": "30063-ikuno-dictus",
   "charId": 1063,
   "charName": "Ikuno Dictus",
   "title": "[Warm Heart, Soft Steps]",
@@ -67519,6 +67707,7 @@
  },
  {
   "id": 30064,
+  "urlName": "30064-tamamo-cross",
   "charId": 1021,
   "charName": "Tamamo Cross",
   "title": "[Beware! Halloween Night!]",
@@ -67926,6 +68115,7 @@
  },
  {
   "id": 30065,
+  "urlName": "30065-zenno-rob-roy",
   "charId": 1047,
   "charName": "Zenno Rob Roy",
   "title": "[Magical Heroine]",
@@ -68331,6 +68521,7 @@
  },
  {
   "id": 30066,
+  "urlName": "30066-mihono-bourbon",
   "charId": 1026,
   "charName": "Mihono Bourbon",
   "title": "[The Ghost Finds Halloween Magic]",
@@ -68740,6 +68931,7 @@
  },
  {
   "id": 30067,
+  "urlName": "30067-the-thrones-assemblage",
   "charId": 1017,
   "charName": "The Throne's Assemblage",
   "title": "[Esteemed and Adored]",
@@ -69695,6 +69887,7 @@
  },
  {
   "id": 30068,
+  "urlName": "30068-curren-chan",
   "charId": 1038,
   "charName": "Curren Chan",
   "title": "[Cutie Pie with Shining Eyes]",
@@ -70146,6 +70339,7 @@
  },
  {
   "id": 30069,
+  "urlName": "30069-narita-brian",
   "charId": 1016,
   "charName": "Narita Brian",
   "title": "[The Whistling Arrow's Taunt]",
@@ -70586,6 +70780,7 @@
  },
  {
   "id": 30070,
+  "urlName": "30070-yukino-bijin",
   "charId": 1029,
   "charName": "Yukino Bijin",
   "title": "[Dancing Light into the Night]",
@@ -71012,6 +71207,7 @@
  },
  {
   "id": 30071,
+  "urlName": "30071-daitaku-helios",
   "charId": 1065,
   "charName": "Daitaku Helios",
   "title": "[Make! Some! NOISE!]",
@@ -71463,6 +71659,7 @@
  },
  {
   "id": 30072,
+  "urlName": "30072-mayano-top-gun",
   "charId": 1024,
   "charName": "Mayano Top Gun",
   "title": "[Party Formation]",
@@ -71925,6 +72122,7 @@
  },
  {
   "id": 30073,
+  "urlName": "30073-narita-taishin",
   "charId": 1050,
   "charName": "Narita Taishin",
   "title": "[Strict Shopper]",
@@ -72331,6 +72529,7 @@
  },
  {
   "id": 30074,
+  "urlName": "30074-marvelous-sunday",
   "charId": 1055,
   "charName": "Marvelous Sunday",
   "title": "[Dazzling Day in the Snow]",
@@ -72725,6 +72924,7 @@
  },
  {
   "id": 30075,
+  "urlName": "30075-manhattan-cafe",
   "charId": 1025,
   "charName": "Manhattan Cafe",
   "title": "[My Solo Spun in Spiraling Runs]",
@@ -73154,6 +73354,7 @@
  },
  {
   "id": 30076,
+  "urlName": "30076-silence-suzuka",
   "charId": 1002,
   "charName": "Silence Suzuka",
   "title": "[Searching for Unseen Sights]",
@@ -73490,6 +73691,7 @@
  },
  {
   "id": 30077,
+  "urlName": "30077-admire-vega",
   "charId": 1033,
   "charName": "Admire Vega",
   "title": "[Lucky Star in the Sky]",
@@ -73928,6 +74130,7 @@
  },
  {
   "id": 30078,
+  "urlName": "30078-matikanefukukitaru",
   "charId": 1056,
   "charName": "Matikanefukukitaru",
   "title": "[Touching Sleeves Is Good Luck! ♪]",
@@ -74469,6 +74672,7 @@
  },
  {
   "id": 30079,
+  "urlName": "30079-meisho-doto",
   "charId": 1058,
   "charName": "Meisho Doto",
   "title": "[Leaping into the Unknown]",
@@ -74887,6 +75091,7 @@
  },
  {
   "id": 30080,
+  "urlName": "30080-sasami-anshinzawa",
   "charId": 9005,
   "charName": "Sasami Anshinzawa",
   "title": "[This Might Sting!]",
@@ -75524,6 +75729,7 @@
  },
  {
   "id": 30081,
+  "urlName": "30081-team-sirius",
   "charId": 1001,
   "charName": "Team Sirius",
   "title": "[Passing the Dream On]",
@@ -76709,6 +76915,7 @@
  },
  {
   "id": 30082,
+  "urlName": "30082-nishino-flower",
   "charId": 1051,
   "charName": "Nishino Flower",
   "title": "[Little Cupcakes, Big Emotions]",
@@ -77124,6 +77331,7 @@
  },
  {
   "id": 30083,
+  "urlName": "30083-sakura-bakushin-o",
   "charId": 1041,
   "charName": "Sakura Bakushin O",
   "title": "[Super! Sonic! Flower Power!]",
@@ -77571,6 +77779,7 @@
  },
  {
   "id": 30084,
+  "urlName": "30084-tosen-jordan",
   "charId": 1048,
   "charName": "Tosen Jordan",
   "title": "[My Way]",
@@ -77988,6 +78197,7 @@
  },
  {
   "id": 30085,
+  "urlName": "30085-agnes-digital",
   "charId": 1019,
   "charName": "Agnes Digital",
   "title": "[A Fan's Joy]",
@@ -78466,6 +78676,7 @@
  },
  {
   "id": 30086,
+  "urlName": "30086-narita-top-road",
   "charId": 1077,
   "charName": "Narita Top Road",
   "title": "[Peachy Silhouette]",
@@ -78907,6 +79118,7 @@
  },
  {
   "id": 30087,
+  "urlName": "30087-mejiro-bright",
   "charId": 1074,
   "charName": "Mejiro Bright",
   "title": "[Little by Little]",
@@ -79277,6 +79489,7 @@
  },
  {
   "id": 30088,
+  "urlName": "30088-satono-diamond",
   "charId": 1067,
   "charName": "Satono Diamond",
   "title": "[Special Dreamers!]",
@@ -79718,6 +79931,7 @@
  },
  {
   "id": 30089,
+  "urlName": "30089-marvelous-sunday",
   "charId": 1055,
   "charName": "Marvelous Sunday",
   "title": "[A MORE MARVELOUS WORLD! ☆]",
@@ -80141,6 +80355,7 @@
  },
  {
   "id": 30090,
+  "urlName": "30090-symboli-rudolf",
   "charId": 1017,
   "charName": "Symboli Rudolf",
   "title": "[Enchaînement]",
@@ -80560,6 +80775,7 @@
  },
  {
   "id": 30091,
+  "urlName": "30091-sirius-symboli",
   "charId": 1070,
   "charName": "Sirius Symboli",
   "title": "[Escorte Étoile]",
@@ -81024,6 +81240,7 @@
  },
  {
   "id": 30092,
+  "urlName": "30092-air-shakur",
   "charId": 1036,
   "charName": "Air Shakur",
   "title": "[Mag!c Number]",
@@ -81441,6 +81658,7 @@
  },
  {
   "id": 30093,
+  "urlName": "30093-daiwa-scarlet",
   "charId": 1009,
   "charName": "Daiwa Scarlet",
   "title": "[Number 1 Outfit]",
@@ -81834,6 +82052,7 @@
  },
  {
   "id": 30094,
+  "urlName": "30094-bamboo-memory",
   "charId": 1053,
   "charName": "Bamboo Memory",
   "title": "[Make These Feelings Reach You!]",
@@ -82280,6 +82499,7 @@
  },
  {
   "id": 30095,
+  "urlName": "30095-seeking-the-pearl",
   "charId": 1042,
   "charName": "Seeking the Pearl",
   "title": "[Cheer that Changed the World]",
@@ -82745,6 +82965,7 @@
  },
  {
   "id": 30096,
+  "urlName": "30096-kawakami-princess",
   "charId": 1039,
   "charName": "Kawakami Princess",
   "title": "[Go Go☆Princess!]",
@@ -83095,6 +83316,7 @@
  },
  {
   "id": 30097,
+  "urlName": "30097-mr-cb",
   "charId": 1057,
   "charName": "Mr. C.B.",
   "title": "[Dear Mr. C.B.]",
@@ -83575,6 +83797,7 @@
  },
  {
   "id": 30098,
+  "urlName": "30098-haru-urara",
   "charId": 1052,
   "charName": "Haru Urara",
   "title": "[Sunny Passion ♪]",
@@ -83984,6 +84207,7 @@
  },
  {
   "id": 30099,
+  "urlName": "30099-ikuno-dictus",
   "charId": 1063,
   "charName": "Ikuno Dictus",
   "title": "[Beloved Orchid Bouquet]",
@@ -84418,6 +84642,7 @@
  },
  {
   "id": 30100,
+  "urlName": "30100-rice-shower",
   "charId": 1030,
   "charName": "Rice Shower",
   "title": "[Day I Dreamed Of]",
@@ -84837,6 +85062,7 @@
  },
  {
   "id": 30101,
+  "urlName": "30101-agnes-tachyon",
   "charId": 1032,
   "charName": "Agnes Tachyon",
   "title": "[Q≠0]",
@@ -85301,6 +85527,7 @@
  },
  {
   "id": 30102,
+  "urlName": "30102-el-condor-pasa",
   "charId": 1014,
   "charName": "El Condor Pasa",
   "title": "[Twinkle in Your Eyes ∞]",
@@ -85757,6 +85984,7 @@
  },
  {
   "id": 30103,
+  "urlName": "30103-matikanetannhauser",
   "charId": 1062,
   "charName": "Matikanetannhauser",
   "title": "[Machitan☆Adventure]",
@@ -86245,6 +86473,7 @@
  },
  {
   "id": 30104,
+  "urlName": "30104-zenno-rob-roy",
   "charId": 1047,
   "charName": "Zenno Rob Roy",
   "title": "[\"Rhodonite and the Dreamstone\"]",
@@ -86663,6 +86892,7 @@
  },
  {
   "id": 30105,
+  "urlName": "30105-special-week",
   "charId": 1001,
   "charName": "Special Week",
   "title": "[Take Hold of Our Dreams!]",
@@ -87118,6 +87348,7 @@
  },
  {
   "id": 30106,
+  "urlName": "30106-air-groove",
   "charId": 1018,
   "charName": "Air Groove",
   "title": "[Tailwind to My Goals]",
@@ -87539,6 +87770,7 @@
  },
  {
   "id": 30107,
+  "urlName": "30107-maruzensky",
   "charId": 1004,
   "charName": "Maruzensky",
   "title": "[Sentimental Flare ♪]",
@@ -87966,6 +88198,7 @@
  },
  {
   "id": 30108,
+  "urlName": "30108-nakayama-festa",
   "charId": 1049,
   "charName": "Nakayama Festa",
   "title": "[Trusting the Dice]",
@@ -88476,6 +88709,7 @@
  },
  {
   "id": 30109,
+  "urlName": "30109-sakura-chiyono-o",
   "charId": 1069,
   "charName": "Sakura Chiyono O",
   "title": "[A Good Heart Blossoms to Its Fullest]",
@@ -88876,6 +89110,7 @@
  },
  {
   "id": 30110,
+  "urlName": "30110-manhattan-cafe",
   "charId": 1025,
   "charName": "Manhattan Cafe",
   "title": "[It's on the House]",
@@ -89292,6 +89527,7 @@
  },
  {
   "id": 30111,
+  "urlName": "30111-tokai-teio",
   "charId": 1003,
   "charName": "Tokai Teio",
   "title": "[Teio-Oo-Oo!!!]",
@@ -89751,6 +89987,7 @@
  },
  {
   "id": 30112,
+  "urlName": "30112-twin-turbo",
   "charId": 1066,
   "charName": "Twin Turbo",
   "title": "[TT Ignition!]",
@@ -90229,6 +90466,7 @@
  },
  {
   "id": 30113,
+  "urlName": "30113-biwa-hayahide",
   "charId": 1023,
   "charName": "Biwa Hayahide",
   "title": "[Uchronia Architect]",
@@ -90660,6 +90898,7 @@
  },
  {
   "id": 30114,
+  "urlName": "30114-daiichi-ruby",
   "charId": 1085,
   "charName": "Daiichi Ruby",
   "title": "[Ah, Such Majesty]",
@@ -91048,6 +91287,7 @@
  },
  {
   "id": 30115,
+  "urlName": "30115-mejiro-palmer",
   "charId": 1064,
   "charName": "Mejiro Palmer",
   "title": "[Moonlit Devil ♪]",
@@ -91462,6 +91702,7 @@
  },
  {
   "id": 30116,
+  "urlName": "30116-daitaku-helios",
   "charId": 1065,
   "charName": "Daitaku Helios",
   "title": "[Sunlit Angel ♪]",
@@ -91915,6 +92156,7 @@
  },
  {
   "id": 30117,
+  "urlName": "30117-shinko-windy",
   "charId": 1043,
   "charName": "Shinko Windy",
   "title": "[Onwards, Demon Queen Lackeys!]",
@@ -92312,6 +92554,7 @@
  },
  {
   "id": 30118,
+  "urlName": "30118-symboli-kris-s",
   "charId": 1083,
   "charName": "Symboli Kris S",
   "title": "[A Win Foreshadowed]",
@@ -92750,6 +92993,7 @@
  },
  {
   "id": 30121,
+  "urlName": "30121-mihono-bourbon",
   "charId": 1026,
   "charName": "Mihono Bourbon",
   "title": "[U & Me]",
@@ -93148,6 +93392,7 @@
  },
  {
   "id": 30145,
+  "urlName": "30145-tanino-gimlet",
   "charId": 1084,
   "charName": "Tanino Gimlet",
   "title": "[Welcome to Umayuru]",
