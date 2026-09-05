@@ -281,12 +281,13 @@ function renderDeck(c: Computed): Raw {
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
       <h3>Predicted run (deck ${c.sum.count} races, ${settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">${STATS.map((s, i) => html`
-        <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)}</div>
-          <div class="s">±${num(p.sd[i]!)} · reaches 600 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · 1100 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div></div>`)}</div>
-      <div class="kv">
-        <div><span class="k">Rank score</span><span class="v">${num(c.score)} ± ${num(c.sdScore)}</span></div>
-        <div><span class="k">SS or better</span><span class="v">${pill(c.pSS, c.pSS > 0.5 ? 'ok' : 'warn')}</span></div>
-        <div><span class="k">Estimated SP</span><span class="v">${num(p.sp)}</span></div>
+        <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)} <span class="sd">±${num(p.sd[i]!)}</span></div>
+          <div class="s">reaches 600 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · 1100 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div></div>`)}
+        <div class="stat outcome">
+          <div class="outcome-item"><div class="k">SS or better</div><div class="v">${pill(c.pSS, c.pSS > 0.5 ? 'ok' : 'warn')}</div></div>
+          <div class="outcome-item"><div class="k">Rank score</div><div class="v">${num(c.score)} <span class="sd">±${num(c.sdScore)}</span></div></div>
+          <div class="outcome-item"><div class="k">Estimated SP</div><div class="v">${num(p.sp)}</div></div>
+        </div>
       </div>
       <details><summary>Where the stats come from</summary>
         ${(() => {
