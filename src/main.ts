@@ -379,19 +379,17 @@ function renderRanking(c: Computed): Raw {
   const fn = keyFns[state.sortKey] ?? keyFns.score!;
   const pinRank = (x: CardScore) => { const i = state.pinnedIds.indexOf(x.card.id); return i < 0 ? Infinity : i; };
   const rows = c.ranking.slice().sort((a, b) => pinRank(a) - pinRank(b) || fn(b) - fn(a));
-  const th = (k: string, label: string, cls = 'num') => html`<th class="${cls}" data-sort="${k}" style="cursor:pointer">${label}${state.sortKey === k ? ' ▾' : ''}</th>`;
-  const marked = Object.keys(inventory).length;
+  const th = (k: string, label: string | Raw, cls = 'num') => html`<th class="${cls}" data-sort="${k}" style="cursor:pointer">${label}${state.sortKey === k ? ' ▾' : ''}</th>`;
   return html`
     <section class="panel">
       <h2>Card ranking <span class="small muted">(${rows.length} cards · click a header to sort)</span></h2>
-      <div class="small muted" style="margin-bottom:6px">Every card counts as owned at the default limit break (R ${settings.defaultLb.R}, SR ${settings.defaultLb.SR}, SSR ${settings.defaultLb.SSR}) until you change it here. ${marked} card${marked === 1 ? '' : 's'} adjusted. Rows in grey are marked not owned.</div>
-      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', 'Added spark chance')}${th('spark', 'Spark chance alone')}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', 'Total')}${th('sp', 'SP')}<th>Basis</th></tr></thead><tbody>
+      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Added spark chance${tip('How much this card would raise the total expected white sparks over your targets if added to what is already covered by the trainee and the cards picked so far. Overlap with existing sources counts for less, so two cards giving the same skill do not both score full value.')}`)}${th('spark', html`Spark chance alone${tip('Expected white sparks over your targets from this card on its own: the chance it hands over each skill (hint, event, or outing) times the spark rate for the gold or white form.')}`)}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', 'Total')}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
         ${rows.map((x) => {
           const owned = !c.unowned.has(x.card.id);
           const explicit = inventory[String(x.card.id)] !== undefined;
           return html`<tr class="${owned ? '' : 'dim'}">
             <td>${cardThumb(x.card)}</td>
-            <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}${cardLink(x.card)}<br/><span class="small">${x.card.rarity} ${typeTag(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html`<span class="tag warn">trainee's card</span>` : ''}</span></td>
+            <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a> <span class="muted">(${x.card.rarity} ${x.card.type.charAt(0).toUpperCase() + x.card.type.slice(1)})</span>${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : ''}<br/><span class="small muted">${x.card.title}</span></td>
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
             <td class="num">${pill(x.sparkValue, '', 1)}</td>

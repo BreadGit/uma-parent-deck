@@ -32,7 +32,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   winThreshold: 0.8,
   focus: 'stamina',
-  showUnowned: false,
+  showUnowned: true,
   defaultLb: { R: 4, SR: 4, SSR: 4 },
   affinity: 150,
   hintBase: 0.07,
@@ -64,11 +64,12 @@ export function loadSettings(): Settings {
       const saved = JSON.parse(raw) as Partial<Settings> & { version?: number };
       const merged = { ...DEFAULT_SETTINGS, ...saved };
       if ((saved.version ?? 1) < 2) merged.defaultLb = { ...merged.defaultLb, SSR: 4 }; // default SSR LB changed from 0 to 4
+      if ((saved.version ?? 1) < 3) merged.showUnowned = true; // now shown by default
       return merged;
     }
   } catch { /* ignore */ }
   return { ...DEFAULT_SETTINGS };
 }
 export function saveSettings(s: Settings) {
-  localStorage.setItem(KEY, JSON.stringify({ ...s, version: 2 }));
+  localStorage.setItem(KEY, JSON.stringify({ ...s, version: 3 }));
 }
