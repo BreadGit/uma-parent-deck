@@ -282,7 +282,7 @@ function renderDeck(c: Computed): Raw {
       <h3>Predicted run (deck ${c.sum.count} races, ${settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">${STATS.map((s, i) => html`
         <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)} <span class="sd">±${num(p.sd[i]!)}</span></div>
-          <div class="s">reaches 600 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · 1100 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div></div>`)}
+          <div class="s">600+ ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · 1100+ ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div></div>`)}
         <div class="stat outcome">
           <div class="outcome-item"><div class="k">SS or better</div><div class="v">${pill(c.pSS, c.pSS > 0.5 ? 'ok' : 'warn')}</div></div>
           <div class="outcome-item"><div class="k">Rank score</div><div class="v">${num(c.score)} <span class="sd">±${num(c.sdScore)}</span></div></div>

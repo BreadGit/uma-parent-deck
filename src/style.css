@@ -59,7 +59,7 @@ tr.dim td { opacity: .55; }
 .stat .k { color: var(--muted); font-size: 12px; }
 .stat .v { font-size: 18px; font-weight: 600; }
 .stat .v .sd { font-size: 11px; font-weight: 400; color: var(--muted); }
-.stat .s { font-size: 11px; color: var(--muted); }
+.stat .s { font-size: 11px; color: var(--muted); white-space: nowrap; }
 .kv { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0; }
 .kv div span.k { color: var(--muted); font-size: 12px; display: block; }
 .kv div span.v { font-weight: 600; }
