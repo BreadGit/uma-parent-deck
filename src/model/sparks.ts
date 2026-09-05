@@ -29,7 +29,7 @@ export function resolveTarget(id: number, data: Data): Target | null {
   return { id: base.id, name: base.name.replace(/ ○$/, ''), white, circle, gold, familyIds };
 }
 
-export type SourceKind = 'hint' | 'chain' | 'random' | 'recreation' | 'special' | 'innate' | 'awakening' | 'char-event';
+export type SourceKind = 'hint' | 'chain' | 'random' | 'recreation' | 'special' | 'innate' | 'awakening' | 'char-event' | 'lineage';
 export interface SkillSource {
   kind: SourceKind;
   skillId: number;
@@ -128,6 +128,20 @@ export function traineeSources(trainee: Character, target: Target, data: Data): 
   return out;
 }
 
+/** How often a target already appears as a white spark in the lineage, and at what star level. */
+export interface Lineage { n: number; stars: number }
+
+/** Inherited white sparks roll at each of the two inspiration events and hand over the white hint. */
+export function lineageSources(target: Target, lineage: Lineage | undefined, settings: Settings): SkillSource[] {
+  if (!lineage || lineage.n <= 0) return [];
+  const rate = settings.whiteSparkInheritRates[Math.max(0, Math.min(2, lineage.stars - 1))] ?? 0.03;
+  const pOnce = Math.min(1, rate * (1 + settings.affinity / 100));
+  const pObtain = 1 - Math.pow(1 - pOnce, 2 * lineage.n);
+  return [{ kind: 'lineage', skillId: target.white?.id ?? target.id, gold: false, circle: false, pObtain, isChoice: false,
+    detail: `Lineage: ${lineage.n} × ${lineage.stars}★ white spark, ${pct1(pOnce)} per inspiration event` }];
+}
+const pct1 = (x: number) => `${(x * 100).toFixed(0)}%`;
+
 /** Combine independent sources into P(own gold) and P(own white) at run end. */
 export function combineSources(sources: SkillSource[]): { pGold: number; pWhite: number; pAny: number } {
   let noGold = 1, noAny = 1;
@@ -140,9 +154,10 @@ export function combineSources(sources: SkillSource[]): { pGold: number; pWhite:
   return { pGold, pWhite: Math.max(0, pAny - pGold), pAny };
 }
 
-/** Expected spark probability for a target given ownership odds. */
-export function sparkChance(own: { pGold: number; pWhite: number }, settings: Settings): number {
-  return own.pGold * settings.goldSparkRate + own.pWhite * settings.whiteSparkRate;
+/** Expected spark probability for a target given ownership odds; each lineage occurrence multiplies it (base × 1.1^n). */
+export function sparkChance(own: { pGold: number; pWhite: number }, settings: Settings, lineageN = 0): number {
+  const mult = Math.pow(settings.lineageSparkMultiplier, Math.max(0, lineageN));
+  return Math.min(1, (own.pGold * settings.goldSparkRate + own.pWhite * settings.whiteSparkRate) * mult);
 }
 
 /** Expected star distribution of a white spark given P(SS). */

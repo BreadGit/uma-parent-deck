@@ -2,7 +2,7 @@ import type { Card, Character, Data, Stat } from '../types.ts';
 import { STATS } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale } from './stats.ts';
-import { cardSourcesForTarget, combineSources, sparkChance, traineeSources, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, lineageSources, sparkChance, traineeSources, type Lineage, type SkillSource, type Target } from './sparks.ts';
 
 export interface Ctx {
   data: Data;
@@ -10,7 +10,9 @@ export interface Ctx {
   races: number;
   totalTurns: number;
   trainee: Character | null;
+  lineage?: Map<number, Lineage>; // target.id -> existing lineage sparks
 }
+const lineageN = (ctx: Ctx, t: Target) => ctx.lineage?.get(t.id)?.n ?? 0;
 
 export interface Coverage { target: Target; sources: SkillSource[]; own: { pGold: number; pWhite: number; pAny: number }; spark: number; marginal: number }
 export interface CardScore {
@@ -25,13 +27,14 @@ export interface CardScore {
   sparkValue: number;   // Σ spark chance over targets (card alone)
   marginalValue: number; // Σ spark gain over what is already covered
   score: number;
+  borrowed?: boolean;    // this slot is the friend's card, assumed at LB4
 }
 
 export type Existing = Map<number, SkillSource[]>; // target.id -> sources already in play (trainee + deck)
 
 export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
   const m: Existing = new Map();
-  for (const t of targets) m.set(t.id, ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data) : []);
+  for (const t of targets) m.set(t.id, [...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data) : []), ...lineageSources(t, ctx.lineage?.get(t.id), ctx.settings)]);
   return m;
 }
 
@@ -45,10 +48,11 @@ export function scoreCard(card: Card, lb: number, targets: Target[], existing: E
     const sources = cardSourcesForTarget(card, lb, t, ctx.races, ctx.totalTurns, ctx.data, ctx.settings);
     if (!sources.length) continue;
     const own = combineSources(sources);
-    const spark = sparkChance(own, ctx.settings);
+    const n = lineageN(ctx, t);
+    const spark = sparkChance(own, ctx.settings, n);
     const prior = existing.get(t.id) ?? [];
-    const before = sparkChance(combineSources(prior), ctx.settings);
-    const after = sparkChance(combineSources([...prior, ...sources]), ctx.settings);
+    const before = sparkChance(combineSources(prior), ctx.settings, n);
+    const after = sparkChance(combineSources([...prior, ...sources]), ctx.settings, n);
     const marginal = Math.max(0, after - before);
     coverage.push({ target: t, sources, own, spark, marginal });
     sparkValue += spark;
@@ -64,10 +68,24 @@ export function rankCards(pool: { card: Card; lb: number }[], targets: Target[],
   return pool.map((p) => scoreCard(p.card, p.lb, targets, existing, ctx)).sort(cmp);
 }
 
-export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Existing }
+export interface BorrowOption { card: Card; replaces: Card | null; gain: number; statGain: number }
+export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Existing; borrow: BorrowOption | null; borrowAlternatives: BorrowOption[] }
 
-/** Greedy deck: pinned cards first, then the best marginal card per slot, one card per character. */
-export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, pinnedIds: number[], size = 6): DeckResult {
+/** Total expected sparks over the targets for a set of cards, plus their stat power. */
+function deckValue(entries: CardScore[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
+  const existing = traineeCoverage(targets, ctx);
+  for (const e of entries) for (const c of e.coverage) existing.set(c.target.id, [...(existing.get(c.target.id) ?? []), ...c.sources]);
+  let sparks = 0;
+  for (const t of targets) sparks += sparkChance(combineSources(existing.get(t.id) ?? []), ctx.settings, lineageN(ctx, t));
+  return { sparks, stats: entries.reduce((a, e) => a + e.statPower, 0) };
+}
+
+/**
+ * Greedy deck: pinned cards first, then the best marginal card per slot, one card per character.
+ * One of the six must be a friend's card: `borrowPool` (every card at its borrowed limit break) is tried against
+ * each replaceable slot and the swap that adds the most expected sparks (then stats) becomes the borrow.
+ */
+export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, pinnedIds: number[], size = 6, borrowPool: { card: Card; lb: number }[] = []): DeckResult {
   const existing = traineeCoverage(targets, ctx);
   const deck: CardScore[] = [];
   const steps: string[] = [];
@@ -91,7 +109,47 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
       : `no uncovered targets left; best stat stick (+${best.statPower.toFixed(0)} stats)`;
     add(best, why);
   }
-  return { deck, steps, coverage: existing };
+
+  // Borrow slot.
+  let borrow: BorrowOption | null = null;
+  const alternatives: BorrowOption[] = [];
+  if (borrowPool.length && deck.length) {
+    const base = deckValue(deck, targets, ctx);
+    const emptyExisting = traineeCoverage(targets, ctx);
+    const options: { opt: BorrowOption; entries: CardScore[] }[] = [];
+    for (const b of borrowPool) {
+      if (ctx.trainee && b.card.charId === ctx.trainee.charId) continue;
+      const bs = scoreCard(b.card, b.lb, targets, emptyExisting, ctx);
+      const sameChar = deck.findIndex((d) => d.card.charId === b.card.charId);
+      const slots = sameChar >= 0 ? [sameChar] : deck.map((_, i) => i).filter((i) => !pinnedIds.includes(deck[i]!.card.id));
+      for (const i of slots) {
+        const cur = deck[i]!;
+        if (cur.card.id === b.card.id && cur.lb >= b.lb) {
+          // already yours at this LB: borrowing it gains nothing but is allowed
+          options.push({ opt: { card: b.card, replaces: cur.card, gain: 0, statGain: 0 }, entries: deck.map((d, j) => (j === i ? { ...bs, borrowed: true } : d)) });
+          continue;
+        }
+        const entries = deck.map((d, j) => (j === i ? { ...bs, borrowed: true } : d));
+        const v = deckValue(entries, targets, ctx);
+        options.push({ opt: { card: b.card, replaces: cur.card, gain: v.sparks - base.sparks, statGain: v.stats - base.stats }, entries });
+      }
+    }
+    options.sort((a, b) => (b.opt.gain - a.opt.gain) || (b.opt.statGain - a.opt.statGain));
+    const best = options[0];
+    if (best) {
+      const finalDeck = best.entries;
+      deck.splice(0, deck.length, ...finalDeck);
+      borrow = best.opt;
+      const seen = new Set<number>([best.opt.card.id]);
+      for (const o of options) { if (alternatives.length >= 5) break; if (seen.has(o.opt.card.id)) continue; seen.add(o.opt.card.id); alternatives.push(o.opt); }
+      steps.push(best.opt.gain > 1e-9
+        ? `Borrow ${best.opt.card.name} (LB4) in place of ${best.opt.replaces?.name ?? '—'}: +${(best.opt.gain * 100).toFixed(1)}% expected sparks`
+        : `Borrow ${best.opt.card.name} (LB4): your own six are already the best, so any of them can be the friend's card`);
+    }
+  }
+  const coverage = traineeCoverage(targets, ctx);
+  for (const e of deck) for (const c of e.coverage) coverage.set(c.target.id, [...(coverage.get(c.target.id) ?? []), ...c.sources]);
+  return { deck, steps, coverage, borrow, borrowAlternatives: alternatives };
 }
 
 export interface WishlistEntry { skillId: number; name: string; gated: boolean; reason: string }
@@ -103,7 +161,7 @@ export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = 1
     const all = deck.flatMap((d) => d.coverage.filter((c) => c.target.id === t.id).flatMap((c) => c.sources));
     if (!all.length) continue;
     const choice = all.filter((s) => s.isChoice);
-    const spark = sparkChance(combineSources(all), ctx.settings);
+    const spark = sparkChance(combineSources(all), ctx.settings, lineageN(ctx, t));
     if (choice.length) {
       const goldFirst = choice.find((s) => s.gold) ?? choice[0]!;
       const sk = ctx.data.skillById.get(goldFirst.skillId);

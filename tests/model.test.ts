@@ -5,7 +5,7 @@ import path from 'node:path';
 import type { Card, Character, Data, Race, Rank, Skill, StatModel } from '../src/types.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, modelContribution, predictDeck, raceScale } from '../src/model/stats.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources } from '../src/model/sparks.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, sparkChance } from '../src/model/sparks.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlist, type Ctx } from '../src/model/deck.ts';
 import { buildSchedule, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { statScore } from '../src/model/rank.ts';
@@ -134,4 +134,20 @@ test('Pal and Group outings are skill sources at their own rates', () => {
   const prudent = resolveTarget(200452, data)!;
   const m = cardSourcesForTarget(throne, 4, prudent, 20, data.model.races.totalTurns, data, settings).find((s) => s.kind === 'recreation')!;
   assert.ok(Math.abs(m.pObtain - settings.groupOutingRate) < 1e-9);
+});
+
+test('lineage sparks raise obtain and spark chances; the deck has exactly one borrow', () => {
+  const trainee = characters.find((c) => c.name === 'Special Week')!;
+  const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
+  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[targets[0]!.id, { n: 2, stars: 3 }]]) };
+  const cover = traineeCoverage(targets, ctx);
+  const lin = (cover.get(targets[0]!.id) ?? []).find((s) => s.kind === 'lineage')!;
+  assert.ok(lin && lin.pObtain > 0.6 && lin.pObtain < 0.7, `lineage obtain ${lin?.pObtain}`);
+  assert.ok(Math.abs(sparkChance({ pGold: 0, pWhite: 1 }, settings, 2) - 0.2 * 1.21) < 1e-9);
+  const pool = cards.filter((c) => c.rarity === 'SR').map((card) => ({ card, lb: 2 }));
+  const d = buildDeck(pool, targets, ctx, [], 6, cards.map((card) => ({ card, lb: 4 })));
+  assert.equal(d.deck.filter((x) => x.borrowed).length, 1);
+  assert.ok(d.borrow && d.borrow.gain >= 0);
+  assert.equal(d.deck.find((x) => x.borrowed)!.lb, 4);
+  assert.equal(new Set(d.deck.map((x) => x.card.charId)).size, 6);
 });

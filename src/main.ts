@@ -4,7 +4,7 @@ import { effectiveLb, exportInventory, importInventory, loadInventory, saveInven
 import { html, pct, pill, num, type Raw } from './ui/html.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlist, type CardScore, type Ctx } from './model/deck.ts';
-import { resolveTarget, type Target } from './model/sparks.ts';
+import { resolveTarget, sparkChance, type Lineage, type Target } from './model/sparks.ts';
 import { cardContribution, pAbove, predictDeck, phi, raceScale } from './model/stats.ts';
 import { buildSchedule, racePopularity, scheduleSummary, traineeAptitudes, SLOT_COUNT, type Aptitudes, type ScheduledRace } from './model/races.ts';
 import { skillScore, statScore, thresholdFor } from './model/rank.ts';
@@ -19,6 +19,7 @@ const APT_SHOWN: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long']
 
 interface PersistedState {
   targets: number[];
+  targetLineage: Record<string, Lineage>; // target id -> existing lineage sparks
   traineeCardId: number | null;
   aptOverrides: Partial<Aptitudes>;
   raceOverrides: Record<string, boolean>;
@@ -28,7 +29,7 @@ interface PersistedState {
 }
 const STATE_KEY = 'uma-parent-deck.state';
 function loadState(): PersistedState {
-  const base: PersistedState = { targets: [], traineeCardId: null, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
+  const base: PersistedState = { targets: [], targetLineage: {}, traineeCardId: null, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
   try {
     const raw = localStorage.getItem(STATE_KEY);
     if (raw) {
@@ -117,8 +118,10 @@ function compute() {
   const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(state.raceOverrides)), RACE_POPULARITY);
   const sum = scheduleSummary(schedule);
   const totalTurns = settings.totalTurnsOverride ?? data.model.races.totalTurns;
-  const ctx: Ctx = { data, settings, races: sum.count, totalTurns, trainee };
   const targets = state.targets.map((id) => resolveTarget(id, data)).filter((t): t is Target => !!t);
+  const lineage = new Map<number, Lineage>();
+  for (const t of targets) { const l = state.targetLineage[String(t.id)]; if (l && l.n > 0) lineage.set(t.id, l); }
+  const ctx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, lineage };
   // Every card is owned unless marked otherwise; unmarked cards sit at the rarity's default LB.
   const pool: { card: Card; lb: number }[] = [];
   const unowned = new Set<number>();
@@ -131,7 +134,9 @@ function compute() {
   const ranking = rankCards(pool.filter((p) => !unowned.has(p.card.id) || settings.showUnowned), targets, existing, ctx);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
   const pinnedIds = state.pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
-  const deckResult = buildDeck(deckPool, targets, ctx, pinnedIds);
+  // Any Global card can be borrowed from a friend, assumed at LB4.
+  const borrowPool = data.cards.map((card) => ({ card, lb: 4 }));
+  const deckResult = buildDeck(deckPool, targets, ctx, pinnedIds, 6, borrowPool);
   const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings);
   const inherited = STATS.map((_, i) => inheritedFromParents(state.parentStars, i, settings));
   const finalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
@@ -168,10 +173,11 @@ function renderTargets(c: Computed): Raw {
       <div class="chips">
         ${c.targets.length ? c.targets.map((t) => html`<span class="chip ${t.gold ? 'gold' : ''}">
           <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" />${t.name}${t.gold ? html` <span class="muted small">(${t.gold.name})</span>` : ''}${tip(t.gold ? `Gold form: ${t.gold.name}. Cards that give the gold count for this target, at the higher spark rate.` : 'This skill has no gold form.')}
+          <span class="lineage"><select data-lineage-n="${t.id}" title="How many umas in the lineage already carry this white spark">${[0, 1, 2, 3, 4, 5, 6].map((n) => html`<option value="${n}" ${(state.targetLineage[String(t.id)]?.n ?? 0) === n ? 'selected' : ''}>${n === 0 ? 'not in lineage' : `${n}× in lineage`}</option>`)}</select>${(state.targetLineage[String(t.id)]?.n ?? 0) > 0 ? html`<select data-lineage-stars="${t.id}">${[1, 2, 3].map((k) => html`<option value="${k}" ${(state.targetLineage[String(t.id)]?.stars ?? 3) === k ? 'selected' : ''}>${k}★</option>`)}</select>` : ''}</span>
           <button data-action="remove-target" data-id="${t.id}" title="Remove">✕</button></span>`)
         : html`<span class="muted small">Add the white skills you want to spark. Cards giving the gold version count too.</span>`}
       </div>
-      ${c.targets.length ? html`<div class="small muted">Trainee already covers: ${c.targets.filter((t) => (c.existing.get(t.id) ?? []).length).map((t) => t.name).join(', ') || 'nothing'}</div>` : ''}
+      ${c.targets.length ? html`<div class="small muted">Trainee already covers: ${c.targets.filter((t) => (c.existing.get(t.id) ?? []).some((s) => s.kind !== 'lineage')).map((t) => t.name).join(', ') || 'nothing'}. Lineage sparks raise both the chance of getting the hint (inspiration events) and the spark generation chance (×${settings.lineageSparkMultiplier} per occurrence).</div>` : ''}
     </section>`;
 }
 
@@ -273,12 +279,14 @@ function renderDeck(c: Computed): Raw {
       <h2>Suggested deck</h2>
       ${d.deck.length ? html`<div class="deck">${d.deck.map((cs) => html`
         <div class="slot">
-          ${state.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin pin-corner">pinned</span>` : ''}
+          ${cs.borrowed ? html`<span class="tag borrow pin-corner">borrow</span>` : state.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin pin-corner">pinned</span>` : ''}
           ${cardThumb(cs.card, 'slot-art')}
           <div class="name">${cardLink(cs.card)}</div>
-          <div class="lb">${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select> ${typeTag(cs.card)}</div>
+          <div class="lb">${cs.borrowed ? html`${cs.card.rarity} · LB4 (friend's)` : html`${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select>`} ${typeTag(cs.card)}</div>
           <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</div>
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
+      ${d.borrow ? html`<div class="small" style="margin-top:8px"><b>Borrow:</b> ${cardLink(d.borrow.card)} at LB4${d.borrow.gain > 1e-9 ? html` in place of your ${d.borrow.replaces?.name ?? ''} (${d.borrow.replaces?.id === d.borrow.card.id ? 'same card at a lower LB' : 'different card'}): +${(d.borrow.gain * 100).toFixed(1)}% expected sparks` : html` <span class="muted">(your own six are already the best; any of them can be the friend's card)</span>`}.
+        ${d.borrowAlternatives.length > 1 ? html`<span class="muted">Other borrows: ${d.borrowAlternatives.slice(1).map((o) => `${o.card.name} (+${(o.gain * 100).toFixed(1)}%)`).join(', ')}.</span>` : ''}</div>` : ''}
       <h3>Predicted run (deck ${c.sum.count} races, ${settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">${STATS.map((s, i) => html`
         <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)} <span class="sd">±${num(p.sd[i]!)}</span></div>
@@ -320,7 +328,7 @@ function renderDeck(c: Computed): Raw {
           let noGold = 1, noAny = 1;
           for (const s of srcs) { noAny *= 1 - s.pObtain; if (s.gold) noGold *= 1 - s.pObtain; }
           const pGold = 1 - noGold, pWhite = Math.max(0, 1 - noAny - pGold);
-          const spark = pGold * settings.goldSparkRate + pWhite * settings.whiteSparkRate;
+          const spark = sparkChance({ pGold, pWhite }, settings, c.ctx.lineage?.get(t.id)?.n ?? 0);
           return html`<tr><td>${t.name}</td><td class="num">${pill(pGold)}</td><td class="num">${pill(pWhite)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
@@ -418,6 +426,8 @@ const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   bigRewardRate: 'When an event outcome splits into a small and a big reward, the chance of the big one. Default 0.3, your estimate.',
   goldSparkRate: 'Chance a skill you own as gold becomes a white spark at run end. Default 0.4 from the mechanics document.',
   whiteSparkRate: 'Chance a skill you own as white becomes a white spark at run end. Default 0.2 from the mechanics document.',
+  whiteSparkInheritRates: 'Chance, per inspiration event, that a 1/2/3★ white spark already in the lineage gives you its hint, at 0 affinity; scaled by (1 + affinity/100). Defaults 3/6/9% from the mechanics document.',
+  lineageSparkMultiplier: 'Each time the same white spark already appears in the lineage, the chance of generating it again is multiplied by this. Default 1.1 from uma.guide (20% → 22% → 24.2% …).',
   ssStarOdds: 'White spark 1★ / 2★ / 3★ odds when the run ends SS or better. Defaults 0.2 / 0.7 / 0.1 from the mechanics document and uma.guide.',
   belowSsStarOdds: 'White spark star odds below SS. Defaults 0.45 / 0.5 / 0.05 from uma.guide.',
   lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. Default 0 because the effect of losses and conditions like Skin Outbreak has not been measured.',
@@ -457,6 +467,8 @@ function renderSettingsPanel(): Raw {
           ${numField('bigRewardRate', 'Big reward chance (split outcomes)')}
           ${numField('goldSparkRate', 'Spark chance with gold skill')}
           ${numField('whiteSparkRate', 'Spark chance with white skill')}
+          ${listField('whiteSparkInheritRates', 'Lineage white spark hint rate (1/2/3★)')}
+          ${numField('lineageSparkMultiplier', 'Spark chance multiplier per lineage occurrence')}
           ${listField('ssStarOdds', 'White star odds at SS (1/2/3★)')}
           ${listField('belowSsStarOdds', 'White star odds below SS')}
           ${numField('lossPenalty', 'Stat points lost per expected race loss', 1)}
@@ -581,7 +593,7 @@ app.addEventListener('click', (ev) => {
   if (a === 'pin-card') { const id = Number(t.dataset.id); if (!state.pinnedIds.includes(id)) state.pinnedIds.push(id); cardQuery = ''; persist(); render(); return; }
   if (a === 'unpin-card') { state.pinnedIds = state.pinnedIds.filter((x) => x !== Number(t.dataset.id)); persist(); render(); return; }
   if (a === 'clear-trainee') { state.traineeCardId = null; state.aptOverrides = {}; persist(); render(); return; }
-  if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); persist(); render(); return; }
+  if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); delete state.targetLineage[String(t.dataset.id)]; persist(); render(); return; }
   if (a === 'reset-apts') { state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'reset-races') { state.raceOverrides = {}; persist(); render(); return; }
   if (a === 'export') { exportInventory(inventory, data.cards, settings.defaultLb); return; }

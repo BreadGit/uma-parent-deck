@@ -21,6 +21,8 @@ export interface Settings {
   bigRewardRate: number;         // when an outcome is split into small/big rewards, chance of the big one
   goldSparkRate: number;         // white spark chance at run end when the gold skill is owned
   whiteSparkRate: number;        // ... when the white skill is owned
+  whiteSparkInheritRates: number[]; // chance per inspiration event that a 1/2/3★ white spark in the lineage gives its hint, at 0 affinity
+  lineageSparkMultiplier: number;   // spark generation chance multiplier per lineage occurrence of the same spark
   ssStarOdds: number[];          // white spark 1/2/3 star odds at SS+
   belowSsStarOdds: number[];
   lossPenalty: number;           // total stat points lost per expected race loss
@@ -48,6 +50,8 @@ export const DEFAULT_SETTINGS: Settings = {
   bigRewardRate: 0.3,
   goldSparkRate: 0.4,
   whiteSparkRate: 0.2,
+  whiteSparkInheritRates: [0.03, 0.06, 0.09],
+  lineageSparkMultiplier: 1.1,
   ssStarOdds: [0.2, 0.7, 0.1],
   belowSsStarOdds: [0.45, 0.5, 0.05],
   lossPenalty: 0,
