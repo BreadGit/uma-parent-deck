@@ -542,7 +542,7 @@ function render() {
     <header><h1>Uma parent deck</h1><span class="meta">Independent training deck builder for white-spark farming · data ${String(meta.fetchedAt).slice(0, 10)} from GameTora · ${data.cards.length} Global cards</span>
       <span class="theme-toggle">Theme ${(['system', 'light', 'dark'] as Theme[]).map((t) => html`<button class="${theme === t ? 'active' : ''}" data-theme-pick="${t}">${t === 'system' ? 'OS' : t}</button>`)}</span></header>
     <main>
-      <div>${renderTargets(c)}${renderTrainee(c)}${renderRunSettings(c)}${renderSettingsPanel()}</div>
+      <div><div class="reset-bar"><button class="small" data-action="reset-all">Reset all</button><span class="small muted">Targets, trainee, pins, sliders, agenda picks, and prioritized order. Inventory and settings stay.</span></div>${renderTargets(c)}${renderTrainee(c)}${renderRunSettings(c)}${renderSettingsPanel()}</div>
       <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div id="tooltip" role="tooltip"></div>
@@ -657,6 +657,7 @@ app.addEventListener('click', (ev) => {
   if (a === 'wl-exclude') { const id = Number(t.dataset.id); state.wishlistExcluded = [...new Set([...state.wishlistExcluded, id])]; state.wishlistOrder = state.wishlistOrder.filter((x) => x !== id); persist(); render(); return; }
   if (a === 'wl-restore') { const id = Number(t.dataset.id); state.wishlistExcluded = state.wishlistExcluded.filter((x) => x !== id); persist(); render(); return; }
   if (a === 'wl-add') { const id = Number(t.dataset.id); const cur = compute().wl.map((w) => w.skillId).filter((x) => x !== id); cur.splice(9, cur.length, id); state.wishlistOrder = cur; persist(); render(); return; }
+  if (a === 'reset-all') { if (confirm('Clear targets, trainee, pinned cards, parent sparks, agenda picks and the prioritized order? Inventory and settings are kept.')) { localStorage.removeItem(STATE_KEY); location.reload(); } return; }
   if (a === 'wl-reset') { state.wishlistOrder = []; state.wishlistExcluded = []; persist(); render(); return; }
   if (a === 'clear-trainee') { state.traineeCardId = null; state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); delete state.targetLineage[String(t.dataset.id)]; persist(); render(); return; }

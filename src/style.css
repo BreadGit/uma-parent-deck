@@ -180,3 +180,4 @@ a.card-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .agenda-meta .tag { font-size: 9px; padding: 0 4px; margin: 0; }
 .deck .slot .slot-top { height: 18px; text-align: right; margin-bottom: 6px; }
 .deck .slot .slot-top .tag { margin: 0; }
+.reset-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
