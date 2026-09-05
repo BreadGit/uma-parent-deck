@@ -166,7 +166,7 @@ export function lineageSources(target: Target, lineage: Lineage | undefined, set
 }
 const pct1 = (x: number) => `${(x * 100).toFixed(0)}%`;
 
-const SCENARIO_EVENT_LABEL = "Our Grand Concert's live event in Senior November";
+const SCENARIO_EVENT_LABEL = "Our Grand Concert's scenario skill event (Senior November)";
 /**
  * Scenario events with character-linked options (Our Grand Concert's Senior November live). Given the characters
  * actually in the run (the trainee plus every deck card's character), each linked option yields its gold skill when
@@ -184,7 +184,7 @@ export function scenarioOptions(data: Data, settings: Settings, present: Set<num
     const eventKey = `scenario:${ev.eventId}`;
     for (const ch of ev.choices) {
       if (ch.linkedCharId == null) {
-        if (ch.skill != null) out.push({ skillId: ch.skill, eventKey, eventLabel: SCENARIO_EVENT_LABEL, optionLabel: 'unaffiliated option', detail: 'Scenario live event, unaffiliated option' });
+        if (ch.skill != null) out.push({ skillId: ch.skill, eventKey, eventLabel: SCENARIO_EVENT_LABEL, optionLabel: 'unaffiliated option', detail: 'Scenario skill event, unaffiliated option' });
         continue;
       }
       const here = present.has(ch.linkedCharId);
@@ -192,7 +192,7 @@ export function scenarioOptions(data: Data, settings: Settings, present: Set<num
       if (skill == null) continue;
       out.push({ skillId: skill, eventKey, eventLabel: SCENARIO_EVENT_LABEL, linkedCharId: ch.linkedCharId,
         optionLabel: here ? `${charName(ch.linkedCharId)}'s option, gold version because she is in the run` : `${charName(ch.linkedCharId)}'s option, normal version because she is not in the run`,
-        detail: here ? `Scenario live event, ${charName(ch.linkedCharId)}'s option (she is in the run)` : `Scenario live event, ${charName(ch.linkedCharId)}'s option (she is not in the run)` });
+        detail: here ? `Scenario skill event, ${charName(ch.linkedCharId)}'s option (she is in the run)` : `Scenario skill event, ${charName(ch.linkedCharId)}'s option (she is not in the run)` });
     }
   }
   return out;

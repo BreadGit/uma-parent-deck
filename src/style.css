@@ -201,3 +201,6 @@ button.active-fmt { background: var(--accent); color: #fff; border-color: var(--
 .conflict .opt { display: inline-block; margin-right: 12px; }
 .conflict .opt.taken { font-weight: 600; }
 table.conflicts td { white-space: normal; vertical-align: top; }
+.conflicts-box { border: 1px solid color-mix(in srgb, #d9534f 45%, var(--line)); background: color-mix(in srgb, #d9534f 8%, var(--panel)); border-radius: 6px; padding: 6px 10px; margin: 4px 0 8px; }
+.conflicts-box h3 { margin-top: 2px; color: #d9534f; }
+.chip .type-icon { width: 18px; height: 18px; margin: 0 4px 0 0; }

@@ -125,6 +125,20 @@ function targetableSkills(): Skill[] {
   return data.skills.filter((s) => !s.unreleasedEn && (s.rarity === 1 || s.rarity === 2) && !s.name.includes('×'));
 }
 
+/** Base stats at a star count. GameTora lists the card's base rarity, 4★ and 5★; other star counts interpolate linearly between the nearest known tables. */
+function statsAtStars(ch: Character, stars: number): number[] {
+  const known: [number, number[]][] = [[ch.rarity, ch.baseStats]];
+  if (ch.fourStarStats) known.push([4, ch.fourStarStats]);
+  if (ch.fiveStarStats) known.push([5, ch.fiveStarStats]);
+  known.sort((a, b) => a[0] - b[0]);
+  const exact = known.find(([k]) => k === stars);
+  if (exact) return exact[1];
+  const lo = [...known].reverse().find(([k]) => k < stars) ?? known[0]!;
+  const hi = known.find(([k]) => k > stars) ?? known[known.length - 1]!;
+  if (lo[0] === hi[0]) return lo[1];
+  const f = (stars - lo[0]) / (hi[0] - lo[0]);
+  return lo[1].map((v, i) => Math.round(v + (hi[1][i]! - v) * f));
+}
 let computeCache: { key: string; value: ReturnType<typeof computeUncached> } | null = null;
 function compute() {
   const key = JSON.stringify([state, settings, inventory]);
@@ -138,7 +152,7 @@ function computeUncached() {
   // Stars pick the base stat table; potential level is assumed maxed (all awakening skills available).
   const trainee: Character | null = traineeCard ? {
     ...traineeCard,
-    baseStats: state.traineeStars >= 5 && traineeCard.fiveStarStats ? traineeCard.fiveStarStats : state.traineeStars === 4 && traineeCard.fourStarStats ? traineeCard.fourStarStats : traineeCard.baseStats,
+    baseStats: statsAtStars(traineeCard, state.traineeStars),
   } : null;
   const apt = traineeAptitudes(trainee, state.aptOverrides);
   const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(state.raceOverrides)), RACE_POPULARITY, goalRaces(traineeCard));
@@ -259,7 +273,7 @@ function renderTrainee(c: Computed): Raw {
           <button class="small" data-action="clear-trainee" style="margin-left:auto">Change</button>
         </div>
         <div class="grid2" style="margin:6px 0">
-          <label class="row"><span class="k">Stars${tip('Raised with pieces. Picks the base stat table (3★, 4★ or 5★ values from GameTora).')}</span><select data-select="trainee-stars">${[3, 4, 5].map((k) => html`<option value="${k}" ${state.traineeStars === k ? 'selected' : ''}>${k}★</option>`)}</select></label>
+          <label class="row"><span class="k">Stars${tip('Raised with pieces. Picks the base stats. GameTora lists the base rarity, 4★ and 5★ tables; other star counts are interpolated between them.')}</span><select data-select="trainee-stars">${[1, 2, 3, 4, 5].filter((k) => k >= (data.charByCardId.get(t.cardId)?.rarity ?? 1)).map((k) => html`<option value="${k}" ${state.traineeStars === k ? 'selected' : ''}>${k}★</option>`)}</select></label>
         </div>
         <div class="small muted">Base stats: ${t.baseStats.join(' / ')}</div>
         <div class="small muted">Growth bonuses: ${t.growth.some((g) => g > 0) ? STATS.map((s, i) => t.growth[i]! > 0 ? `${s.charAt(0).toUpperCase() + s.slice(1)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</div>
@@ -291,7 +305,7 @@ function renderRunSettings(c: Computed): Raw {
       <div class="chips">
         ${state.pinnedIds.length ? state.pinnedIds.map((id) => { const card = data.cardById.get(id); if (!card) return '';
           const owned = !c.unowned.has(id);
-          return html`<span class="chip">${cardThumb(card, 'chip-art')}${cardLink(card)}${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
+          return html`<span class="chip">${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} ${card.title}</a>${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
         : html`<span class="muted small">Nothing pinned. Light Hello is mandatory in Grand Concert, so pin one of her cards unless you have a reason not to.</span>`}
       </div>
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : ''}
@@ -390,7 +404,7 @@ function renderDeck(c: Computed): Raw {
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
-      ${d.conflicts.length ? html`<h3>Choice conflicts</h3>
+      ${d.conflicts.length ? html`<div class="conflicts-box"><h3>Choice conflicts</h3>
         ${(() => {
           const name = (id: number) => c.targets.find((t) => t.id === id)?.name ?? `#${id}`;
           const opts = (cf: typeof d.conflicts[number]) => [{ skill: cf.keptSkill, opt: cf.keptOption, taken: true }, ...cf.droppedSkills.map((skill, i) => ({ skill, opt: cf.droppedOptions[i] ?? '', taken: false }))];
@@ -400,7 +414,7 @@ function renderDeck(c: Computed): Raw {
               <td><b>${skillName(cf.keptSkill)}</b></td><td>${cf.droppedSkills.map(skillName).join(', ')}</td></tr>`)}
             </tbody></table>`;
         })()}
-        <div class="small muted">Only one option can be taken per event. Targets involved: ${[...new Set(d.conflicts.flatMap((cf) => [cf.kept, ...cf.dropped]))].map((id) => c.targets.find((t) => t.id === id)?.name ?? '').filter(Boolean).join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div>` : ''}
+        <div class="small muted">Only one option can be taken per event. Targets involved: ${[...new Set(d.conflicts.flatMap((cf) => [cf.kept, ...cf.dropped]))].map((id) => c.targets.find((t) => t.id === id)?.name ?? '').filter(Boolean).join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div></div>` : ''}
       <h3>Independent training prioritized skills (up to 10)</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li draggable="true" data-wl-key="${w.key}">
           <span class="grip" title="Drag to reorder">⋮⋮</span>
