@@ -65,9 +65,17 @@ test('schedule respects threshold and consecutive penalty', () => {
   const sched = buildSchedule(data.races, apt, 0.8, new Map());
   const sum = scheduleSummary(sched);
   assert.ok(sum.count > 5 && sum.count < 30, `count ${sum.count}`);
-  assert.ok(sched.filter((s) => s.selected).every((s) => s.pWin >= 0.8));
+  const sel = sched.filter((s) => s.selected);
+  assert.ok(sel.every((s) => s.pWin >= 0.8));
+  assert.equal(new Set(sel.map((s) => s.race.raceId)).size, sel.length, 'each G1 at most once');
+  assert.equal(new Set(sel.map((s) => s.slot)).size, sel.length, 'one race per slot');
   const dirt = sched.find((s) => s.race.surface === 'dirt');
   assert.ok(dirt && dirt.base <= 0.5);
+  // forcing a race in and excluding another
+  const arima = sched.filter((s) => s.race.name === 'Arima Kinen');
+  const forced = buildSchedule(data.races, apt, 0.8, new Map([[arima[0]!.race.calendarId, true], [arima[1]!.race.calendarId, false]]));
+  assert.ok(forced.find((s) => s.race.calendarId === arima[0]!.race.calendarId)!.selected);
+  assert.ok(!forced.find((s) => s.race.calendarId === arima[1]!.race.calendarId)!.selected);
 });
 
 test('greedy deck covers targets and produces a wishlist', () => {

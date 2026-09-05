@@ -21,29 +21,120 @@ export function baseWinChance(race: Race, apt: Aptitudes): number {
   return Math.min(1, WIN_TABLE[d]![s]!);
 }
 
-export interface ScheduledRace { race: Race; base: number; consecutive: number; pWin: number; selected: boolean }
+/** Turn index of a calendar slot: year (1..3), month, half. 0 = Junior early January, 71 = Senior late December. */
+export const slotOf = (r: Race) => (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1);
+export const SLOT_COUNT = 72;
 
-/** Turn index of a calendar slot: year (1..3), month, half. */
-export const slot = (r: Race) => (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1);
+export interface ScheduledRace {
+  race: Race;
+  slot: number;
+  base: number;        // win chance from aptitudes alone
+  pWin: number;        // after the consecutive-race penalty in the final schedule
+  consecutive: number; // position in a streak when selected (1 = fresh), 0 when not selected
+  selected: boolean;
+  reason: string;      // why it is or is not in the schedule
+  popularity: number;  // how many Global umas could run it comfortably (tiebreak between races in one slot)
+}
 
 /**
- * Walk the calendar, include races whose adjusted win chance clears the threshold.
- * `forced` overrides: true = always include, false = never.
+ * How many umas would comfortably run this race: base aptitude of B or better on both surface and distance.
+ * A rough stand-in for how common the race is on parents, used only to break ties between races that share a slot.
  */
-export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, forced: Map<string, boolean>): ScheduledRace[] {
-  const sorted = races.filter((r) => !r.unreleasedEn).slice().sort((a, b) => slot(a) - slot(b));
+export function racePopularity(race: Race, characters: Character[]): number {
+  return characters.filter((c) => (GRADE_INDEX[c.aptitudes[race.surface]] ?? 6) <= 1 && (GRADE_INDEX[c.aptitudes[race.category]] ?? 6) <= 1).length;
+}
+
+const penalty = (streak: number) => CONSECUTIVE_PENALTY[Math.min(6, streak)] ?? 0.5;
+
+/** Sequential pass: given a chosen race per slot, drop the ones the streak penalty pushes under the threshold (unless forced). */
+function settle(chosen: Map<number, Race>, bases: Map<string, number>, threshold: number, forced: Map<string, boolean>) {
+  const kept = new Map<number, { race: Race; pWin: number; consecutive: number }>();
+  let lastSlot = -10, streak = 0;
+  for (let s = 0; s < SLOT_COUNT; s++) {
+    const race = chosen.get(s);
+    if (!race) continue;
+    const next = s === lastSlot + 1 ? streak + 1 : 1;
+    const pWin = Math.max(0, (bases.get(race.calendarId) ?? 0) - penalty(next));
+    if (pWin < threshold && forced.get(race.calendarId) !== true) continue;
+    kept.set(s, { race, pWin, consecutive: next });
+    lastSlot = s; streak = next;
+  }
+  return kept;
+}
+const losses = (kept: Map<number, { pWin: number }>) => [...kept.values()].reduce((a, k) => a + (1 - Math.min(1, k.pWin)), 0);
+
+/**
+ * Build the G1 agenda: one race per half-month slot, each G1 at most once (a win only needs to happen once for
+ * affinity), races above the win-chance threshold, ties within a slot broken by popularity, and duplicate
+ * G1s (Classic and Senior runnings) placed in whichever year costs fewer expected losses.
+ * `forced` overrides by calendar id: true = always run, false = never.
+ */
+export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, forced: Map<string, boolean>, popularity: Map<number, number> = new Map()): ScheduledRace[] {
+  const all = races.filter((r) => !r.unreleasedEn).slice().sort((a, b) => slotOf(a) - slotOf(b) || (popularity.get(b.raceId) ?? 0) - (popularity.get(a.raceId) ?? 0));
+  const bases = new Map(all.map((r) => [r.calendarId, baseWinChance(r, apt)]));
+  const bySlot = new Map<number, Race[]>();
+  for (const r of all) bySlot.set(slotOf(r), [...(bySlot.get(slotOf(r)) ?? []), r]);
+
+  // First pass: pick a race per slot in calendar order, skipping G1s already taken.
+  const chosen = new Map<number, Race>();
+  const taken = new Set<number>();
+  const pick = (s: number, skip: Set<number>) => {
+    const cands = (bySlot.get(s) ?? []).filter((r) => forced.get(r.calendarId) !== false);
+    const forcedOne = cands.find((r) => forced.get(r.calendarId) === true);
+    if (forcedOne) return forcedOne;
+    return cands.filter((r) => !skip.has(r.raceId) && (bases.get(r.calendarId) ?? 0) >= threshold)
+      .sort((a, b) => (bases.get(b.calendarId)! - bases.get(a.calendarId)!) || ((popularity.get(b.raceId) ?? 0) - (popularity.get(a.raceId) ?? 0)))[0];
+  };
+  for (let s = 0; s < SLOT_COUNT; s++) {
+    const r = pick(s, taken);
+    if (r) { chosen.set(s, r); taken.add(r.raceId); }
+  }
+  let kept = settle(chosen, bases, threshold, forced);
+
+  // Repair pass: for each G1 that also runs in a later slot, try the later running instead if it costs fewer losses.
+  for (const [s, race] of [...chosen]) {
+    if (forced.get(race.calendarId) === true) continue;
+    const later = all.filter((r) => r.raceId === race.raceId && slotOf(r) > s && !chosen.has(slotOf(r)) && forced.get(r.calendarId) !== false && (bases.get(r.calendarId) ?? 0) >= threshold);
+    for (const alt of later) {
+      const trial = new Map(chosen); trial.delete(s); trial.set(slotOf(alt), alt);
+      // the freed slot may now take another race
+      const freed = pick(s, new Set([...trial.values()].map((r) => r.raceId)));
+      if (freed) trial.set(s, freed);
+      const settled = settle(trial, bases, threshold, forced);
+      if (settled.size > kept.size || (settled.size === kept.size && losses(settled) < losses(kept) - 1e-9)) {
+        chosen.clear(); for (const [k, v] of trial) chosen.set(k, v);
+        kept = settled;
+        break;
+      }
+    }
+  }
+
+  // Report every calendar race with its status.
+  const usedRaceIds = new Set([...kept.values()].map((k) => k.race.raceId));
   const out: ScheduledRace[] = [];
   let lastSlot = -10, streak = 0;
-  for (const race of sorted) {
-    const base = baseWinChance(race, apt);
-    const s = slot(race);
-    const nextStreak = s === lastSlot + 1 ? streak + 1 : 1;
-    const pWin = Math.max(0, base - (CONSECUTIVE_PENALTY[Math.min(6, nextStreak)] ?? 0.5));
-    const override = forced.get(race.calendarId);
-    const selected = override ?? pWin >= threshold;
-    if (selected && s === lastSlot) continue; // only one race per half-month
-    out.push({ race, base, consecutive: selected ? nextStreak : 0, pWin, selected });
-    if (selected) { lastSlot = s; streak = nextStreak; }
+  for (let s = 0; s < SLOT_COUNT; s++) {
+    const k = kept.get(s);
+    const nextIfRun = s === lastSlot + 1 ? streak + 1 : 1;
+    for (const race of bySlot.get(s) ?? []) {
+      const base = bases.get(race.calendarId) ?? 0;
+      const pop = popularity.get(race.raceId) ?? 0;
+      if (k && k.race.calendarId === race.calendarId) {
+        out.push({ race, slot: s, base, pWin: k.pWin, consecutive: k.consecutive, selected: true, popularity: pop,
+          reason: forced.get(race.calendarId) === true ? 'Manual pick' : 'Above the threshold' });
+        continue;
+      }
+      const pWin = Math.max(0, base - penalty(nextIfRun));
+      let reason: string;
+      if (forced.get(race.calendarId) === false) reason = 'Manually excluded';
+      else if (k) reason = `Slot taken by ${k.race.name}`;
+      else if (base < threshold) reason = 'Below the win threshold';
+      else if (usedRaceIds.has(race.raceId)) reason = 'Already run in another year (a win only counts once)';
+      else if (pWin < threshold) reason = 'Streak penalty pushes it under the threshold';
+      else reason = 'Not selected';
+      out.push({ race, slot: s, base, pWin, consecutive: 0, selected: false, reason, popularity: pop });
+    }
+    if (k) { lastSlot = s; streak = k.consecutive; }
   }
   return out;
 }
@@ -51,7 +142,9 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
 export function scheduleSummary(sched: ScheduledRace[]) {
   const sel = sched.filter((s) => s.selected);
   const wins = sel.reduce((a, s) => a + Math.min(1, s.pWin), 0);
-  return { count: sel.length, expectedWins: wins, expectedLosses: sel.length - wins };
+  const unique = new Set(sel.map((s) => s.race.raceId)).size;
+  const longestStreak = sel.reduce((a, s) => Math.max(a, s.consecutive), 0);
+  return { count: sel.length, unique, expectedWins: wins, expectedLosses: sel.length - wins, longestStreak };
 }
 
 export function traineeAptitudes(trainee: Character | null, overrides: Partial<Aptitudes>): Aptitudes {

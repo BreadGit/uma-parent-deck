@@ -162,7 +162,14 @@ const summary = await page.evaluate(() => ({
 console.log(JSON.stringify(summary, null, 1));
 await page.screenshot({ path: 'docs/screenshot.png', fullPage: true });
 // exercise a race override, an LB change, a "not owned" mark and a blue spark slider
-await page.click('input[data-race]');
+{
+  const firstSelected = await page.$('select[data-slot]:has(option[selected][value]:not([value=""]))');
+  const before = await page.$$eval('.agenda-cell.sel', (n) => n.length);
+  await firstSelected.selectOption('');
+  await page.waitForTimeout(200);
+  const after = await page.$$eval('.agenda-cell.sel', (n) => n.length);
+  assert.ok(after < before, `skipping a slot should remove a race (${before} -> ${after})`);
+}
 await page.selectOption('select[data-lb="30028"]', '2');
 await page.selectOption('select[data-lb="30052"]', 'none');
 await page.waitForTimeout(200);

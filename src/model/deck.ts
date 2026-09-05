@@ -111,7 +111,7 @@ export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = 1
     } else {
       const src = all.find((s) => s.gold) ?? all[0]!;
       const sk = ctx.data.skillById.get(src.skillId);
-      entries.push({ skillId: src.skillId, name: sk?.name ?? t.name, gated: false, weight: spark, reason: 'Not gated behind an event choice. Listing it costs nothing; whether the AI also chases its hints is unconfirmed.' });
+      entries.push({ skillId: src.skillId, name: sk?.name ?? t.name, gated: false, weight: spark, reason: 'Given without an event choice.' });
     }
   }
   return entries.sort((a, b) => b.weight - a.weight).slice(0, max).map(({ weight, ...e }) => { void weight; return e; });

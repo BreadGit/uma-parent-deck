@@ -6,7 +6,7 @@ import { STATS, type AptKey, type Card, type Character, type Grade, type Invento
 import { buildDeck, rankCards, traineeCoverage, wishlist, type CardScore, type Ctx } from './model/deck.ts';
 import { resolveTarget, type Target } from './model/sparks.ts';
 import { cardContribution, pAbove, predictDeck, phi, raceScale } from './model/stats.ts';
-import { buildSchedule, scheduleSummary, traineeAptitudes, type Aptitudes } from './model/races.ts';
+import { buildSchedule, racePopularity, scheduleSummary, traineeAptitudes, SLOT_COUNT, type Aptitudes, type ScheduledRace } from './model/races.ts';
 import { skillScore, statScore, thresholdFor } from './model/rank.ts';
 import { clampStars, inheritedFromParents, MAX_PARENT_STARS } from './model/inherit.ts';
 import meta from '../data/meta.json';
@@ -14,6 +14,7 @@ import meta from '../data/meta.json';
 const data = loadData();
 const LIGHT_HELLO_IDS = data.cards.filter((c) => c.charName === 'Light Hello').map((c) => c.id);
 const GRADES: Grade[] = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
+const RACE_POPULARITY = new Map(data.races.map((r) => [r.raceId, racePopularity(r, data.characters)]));
 const APT_SHOWN: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long'];
 
 interface PersistedState {
@@ -57,7 +58,6 @@ let query = '';
 let traineeQuery = '';
 let cardQuery = '';
 let showAdvanced = false;
-let showAllRaces = false;
 type Theme = 'system' | 'light' | 'dark';
 const THEME_KEY = 'uma-parent-deck.theme';
 let theme: Theme = (localStorage.getItem(THEME_KEY) as Theme | null) ?? 'system';
@@ -102,7 +102,9 @@ const cardImg = (c: Card) => `/assets/supports/${c.id}.png`;
 const charImg = (c: Character) => `/assets/characters/${c.cardId}.png`;
 /** Info icon that opens a custom tooltip on hover or focus. */
 const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
-const cardLink = (c: Card) => html`<a class="card-link" href="https://gametora.com/umamusume/supports/${c.urlName}" target="_blank" rel="noopener">${c.name}</a>`;
+const cardUrl = (c: Card) => `https://gametora.com/umamusume/supports/${c.urlName}`;
+const cardLink = (c: Card) => html`<a class="card-link" href="${cardUrl(c)}" target="_blank" rel="noopener">${c.name}</a>`;
+const cardThumb = (c: Card, cls = 'thumb') => html`<a href="${cardUrl(c)}" target="_blank" rel="noopener"><img class="${cls}" src="${cardImg(c)}" alt="" loading="lazy" /></a>`;
 const typeTag = (c: Card) => html`<span class="tag type-${c.type}">${c.type}</span>`;
 
 function targetableSkills(): Skill[] {
@@ -112,7 +114,7 @@ function targetableSkills(): Skill[] {
 function compute() {
   const trainee = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) ?? null : null;
   const apt = traineeAptitudes(trainee, state.aptOverrides);
-  const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(state.raceOverrides)));
+  const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(state.raceOverrides)), RACE_POPULARITY);
   const sum = scheduleSummary(schedule);
   const totalTurns = settings.totalTurnsOverride ?? data.model.races.totalTurns;
   const ctx: Ctx = { data, settings, races: sum.count, totalTurns, trainee };
@@ -226,7 +228,7 @@ function renderRunSettings(c: Computed): Raw {
       <div class="chips">
         ${state.pinnedIds.length ? state.pinnedIds.map((id) => { const card = data.cardById.get(id); if (!card) return '';
           const owned = !c.unowned.has(id);
-          return html`<span class="chip"><img src="${cardImg(card)}" alt="" />${cardLink(card)}${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
+          return html`<span class="chip">${cardThumb(card, 'chip-art')}${cardLink(card)}${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
         : html`<span class="muted small">Nothing pinned. Light Hello is mandatory in Grand Concert, so pin one of her cards unless you have a reason not to.</span>`}
       </div>
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : ''}
@@ -272,7 +274,7 @@ function renderDeck(c: Computed): Raw {
       ${d.deck.length ? html`<div class="deck">${d.deck.map((cs) => html`
         <div class="slot">
           ${state.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin pin-corner">pinned</span>` : ''}
-          <img src="${cardImg(cs.card)}" alt="" />
+          ${cardThumb(cs.card, 'slot-art')}
           <div class="name">${cardLink(cs.card)}</div>
           <div class="lb">${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select> ${typeTag(cs.card)}</div>
           <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</div>
@@ -293,7 +295,7 @@ function renderDeck(c: Computed): Raw {
           const row = (label: Raw | string, vals: number[], cls = '') => html`<tr class="${cls}"><td>${label}</td>${vals.map((v) => html`<td class="num">${num(v)}</td>`)}<td class="num">${num(vals.reduce((a, b) => a + b, 0))}</td></tr>`;
           const cardRows = d.deck.map((cs) => {
             const cc = cardContribution(cs.card, cs.lb, data.model);
-            return row(html`<img class="thumb sm" src="${cardImg(cs.card)}" alt="" /> ${cardLink(cs.card)} <span class="muted small">(${cc.source === 'model' ? 'model' : `observed${cc.source === 'observed+model' ? ', shifted to LB' + cs.lb : ''}`})</span>`, cc.stats.map((v, i) => v * scale * focusMul[i]!));
+            return row(html`${cardThumb(cs.card, 'thumb sm')} ${cardLink(cs.card)} <span class="muted small">(${cc.source === 'model' ? 'model' : `observed${cc.source === 'observed+model' ? ', shifted to LB' + cs.lb : ''}`})</span>`, cc.stats.map((v, i) => v * scale * focusMul[i]!));
           });
           const base = c.trainee?.baseStats ?? [0, 0, 0, 0, 0];
           const penalty = settings.lossPenalty * c.sum.expectedLosses;
@@ -328,23 +330,42 @@ function renderDeck(c: Computed): Raw {
     </section>`;
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const slotLabel = (slot: number) => `${slot % 2 === 0 ? 'Early' : 'Late'} ${MONTHS[Math.floor((slot % 24) / 2)]}`;
+
 function renderSchedule(c: Computed): Raw {
-  const rows = showAllRaces ? c.schedule : c.schedule.filter((s) => s.selected || s.base >= 0.5);
-  const YEAR = ['Junior', 'Classic', 'Senior'];
+  const bySlot = new Map<number, ScheduledRace[]>();
+  for (const r of c.schedule) bySlot.set(r.slot, [...(bySlot.get(r.slot) ?? []), r]);
+  const overridden = Object.keys(state.raceOverrides).length > 0;
+  const cell = (slot: number) => {
+    const entries = bySlot.get(slot) ?? [];
+    const sel = entries.find((e) => e.selected);
+    if (!entries.length) return html`<div class="agenda-cell empty"><div class="agenda-body"></div><div class="agenda-label">${slotLabel(slot)}</div></div>`;
+    const info = sel
+      ? html`<div class="agenda-race ${sel.race.surface}">${sel.race.name}</div>
+             <div class="agenda-meta">${sel.race.surface} ${sel.race.category} ${sel.race.distance}m</div>
+             <div class="agenda-meta">win ${pill(sel.base)}${sel.pWin < sel.base ? html` → ${pill(sel.pWin, 'warn')}` : ''}${sel.consecutive > 2 ? html` <span class="tag warn">${sel.consecutive} in a row</span>` : ''}</div>`
+      : html`<div class="agenda-plus">+</div><div class="agenda-meta muted">${entries.map((e) => `${e.race.name} ${pct(e.base)}`).join(' · ')}</div>`;
+    const manual = entries.some((e) => state.raceOverrides[e.race.calendarId] != null);
+    return html`<div class="agenda-cell ${sel ? 'sel' : 'avail'}">
+      <div class="agenda-body">${info}</div>
+      <div class="agenda-pick"><select data-slot="${slot}">
+        <option value="" ${sel ? '' : 'selected'}>— skip —</option>
+        ${entries.map((e) => html`<option value="${e.race.calendarId}" ${e.selected ? 'selected' : ''}>${e.race.name} (${pct(e.base)}${e.selected ? '' : `, ${e.reason.toLowerCase()}`})</option>`)}
+      </select>${manual ? tip('Manual pick for this slot. "Clear manual picks" returns it to the automatic rule.') : ''}</div>
+      <div class="agenda-label">${slotLabel(slot)}</div>
+    </div>`;
+  };
+  const YEARS = ['Junior year', 'Classic year', 'Senior year'];
   return html`
     <section class="panel">
-      <h2>G1 schedule <span class="small muted">(${c.sum.count} races · threshold ${pct(settings.winThreshold)})</span></h2>
-      <div class="scroll" style="max-height:50vh"><table><thead><tr><th>Run</th><th>When</th><th>Race</th><th>Track</th><th class="num">Base win</th><th class="num">Adjusted</th><th>Streak</th></tr></thead><tbody>
-        ${rows.map((s) => html`<tr class="${s.selected ? '' : 'dim'}">
-          <td><input type="checkbox" data-race="${s.race.calendarId}" ${s.selected ? 'checked' : ''} />${state.raceOverrides[s.race.calendarId] != null ? tip('Manual override. "Clear manual overrides" below returns it to the threshold rule.') : ''}</td>
-          <td>${YEAR[s.race.year - 1]} ${s.race.month}/${s.race.half === 1 ? 'early' : 'late'}</td>
-          <td>${s.race.name}</td><td>${s.race.surface} ${s.race.category} ${s.race.distance}m</td>
-          <td class="num">${pct(s.base)}</td><td class="num">${pct(s.pWin)}</td><td>${s.consecutive > 2 ? html`<span class="warn">${s.consecutive} in a row</span>` : s.consecutive ? `${s.consecutive}` : ''}</td></tr>`)}
-      </tbody></table></div>
-      <div class="small muted" style="margin-top:6px">
-        <button class="small" data-action="toggle-all-races">${showAllRaces ? 'Hide' : 'Show'} low-chance races</button>
-        ${Object.keys(state.raceOverrides).length ? html`<button class="small" data-action="reset-races">Clear manual overrides</button>` : ''}
-        Win chances from the uma.guide aptitude table with the consecutive-race penalty (3 in a row −10%, 4 −25%, 5 −35%, 6+ −50%).
+      <h2>G1 agenda <span class="small muted">(${c.sum.count} races, ${c.sum.unique} unique G1s · threshold ${pct(settings.winThreshold)} · ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses${c.sum.longestStreak > 2 ? ` · longest streak ${c.sum.longestStreak}` : ''})</span></h2>
+      <div class="agenda">
+        ${YEARS.map((y, yi) => html`<div class="agenda-year"><div class="agenda-year-head">${y}</div><div class="agenda-grid">${Array.from({ length: 24 }, (_, i) => cell(yi * 24 + i))}</div></div>`)}
+      </div>
+      <div class="small muted" style="margin-top:8px">
+        ${overridden ? html`<button class="small" data-action="reset-races">Clear manual picks</button> ` : ''}
+        Each G1 is scheduled once (a win only has to happen once for affinity) in the year that costs fewer expected losses. Where two G1s share a slot the one more umas can run comfortably wins the tie (B or better on both surface and distance across the ${data.characters.length} Global umas), a stand-in for how common the race is on parents. Win chances from the uma.guide aptitude table with the consecutive-race penalty (3 in a row −10%, 4 −25%, 5 −35%, 6+ −50%).
       </div>
     </section>`;
 }
@@ -368,7 +389,7 @@ function renderRanking(c: Computed): Raw {
           const owned = !c.unowned.has(x.card.id);
           const explicit = inventory[String(x.card.id)] !== undefined;
           return html`<tr class="${owned ? '' : 'dim'}">
-            <td><img class="thumb" src="${cardImg(x.card)}" alt="" loading="lazy" /></td>
+            <td>${cardThumb(x.card)}</td>
             <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}${cardLink(x.card)}<br/><span class="small">${x.card.rarity} ${typeTag(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html`<span class="tag warn">trainee's card</span>` : ''}</span></td>
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
@@ -513,9 +534,17 @@ app.addEventListener('change', (ev) => {
     state.parentStars = state.parentStars.map((p, j) => (j === pi ? clampStars(next, i, MAX_PARENT_STARS) : p)); persist(); render(); return; }
   if (el.dataset.apt) { const k = el.dataset.apt as AptKey; const t = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) : null;
     if (t && t.aptitudes[k] === el.value) delete state.aptOverrides[k]; else state.aptOverrides[k] = el.value as Grade; persist(); render(); return; }
-  if (el.dataset.race) { const id = el.dataset.race; const c = compute(); const auto = c.schedule.find((s) => s.race.calendarId === id);
-    const autoSel = auto ? auto.pWin >= settings.winThreshold : false;
-    if (el.checked === autoSel) delete state.raceOverrides[id]; else state.raceOverrides[id] = el.checked; persist(); render(); return; }
+  if (el.dataset.slot != null) {
+    const slot = Number(el.dataset.slot);
+    const inSlot = data.races.filter((r) => !r.unreleasedEn && (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1) === slot);
+    // what the automatic rule would pick for this slot with no manual picks in it
+    const auto = new Map(Object.entries(state.raceOverrides));
+    for (const r of inSlot) auto.delete(r.calendarId);
+    const autoPick = buildSchedule(data.races, compute().apt, settings.winThreshold, auto, RACE_POPULARITY).find((x) => x.slot === slot && x.selected)?.race.calendarId ?? '';
+    for (const r of inSlot) delete state.raceOverrides[r.calendarId];
+    if (el.value !== autoPick) for (const r of inSlot) state.raceOverrides[r.calendarId] = r.calendarId === el.value;
+    persist(); render(); return;
+  }
   if (el.dataset.lb != null) { const id = el.dataset.lb; const card = data.cardById.get(Number(id));
     if (el.value === 'none') inventory[id] = null;
     else if (card && Number(el.value) === settings.defaultLb[card.rarity]) delete inventory[id];
@@ -556,7 +585,6 @@ app.addEventListener('click', (ev) => {
   if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); persist(); render(); return; }
   if (a === 'reset-apts') { state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'reset-races') { state.raceOverrides = {}; persist(); render(); return; }
-  if (a === 'toggle-all-races') { showAllRaces = !showAllRaces; render(); return; }
   if (a === 'export') { exportInventory(inventory, data.cards, settings.defaultLb); return; }
   if (a === 'import-click') { (document.getElementById('import-file') as HTMLInputElement).click(); return; }
   if (a === 'reset-inventory') { if (confirm('Clear every card adjustment and go back to the defaults?')) { inventory = {}; persist(); render(); } return; }
