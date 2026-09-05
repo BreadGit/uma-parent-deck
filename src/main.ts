@@ -242,7 +242,7 @@ function renderTargets(c: Computed): Raw {
         </span>`; })
         : html`<span class="muted small">Add the white skills you want to spark. Cards giving the gold version count too.</span>`}
       </div>
-      ${c.targets.length ? html`<div class="small muted">Trainee already covers: ${c.targets.filter((t) => (c.existing.get(t.id) ?? []).some((s) => s.kind !== 'lineage')).map((t) => t.name).join(', ') || 'nothing'}. Lineage sparks raise both the chance of getting the hint (inspiration events) and the spark generation chance (×${settings.lineageSparkMultiplier} per occurrence).</div>` : ''}
+      ${c.targets.length ? html`<div class="small muted">Trainee already covers: ${c.targets.filter((t) => (c.existing.sources.get(t.id) ?? []).some((s) => s.kind !== 'lineage')).map((t) => t.name).join(', ') || 'nothing'}. Lineage sparks raise both the chance of getting the hint (inspiration events) and the spark generation chance (×${settings.lineageSparkMultiplier} per occurrence).</div>` : ''}
     </section>`;
 }
 
