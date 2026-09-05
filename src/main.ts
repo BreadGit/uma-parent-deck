@@ -38,6 +38,11 @@ function loadState(): PersistedState {
       const saved = JSON.parse(raw) as Partial<PersistedState> & { blueStars?: number[]; pinnedId?: number | null };
       const merged = { ...base, ...saved };
       if (!saved.pinnedIds) merged.pinnedIds = saved.pinnedId != null ? [saved.pinnedId] : defaultPins();
+      // lineage used to be {n, stars}; now {n, p1, p2} star totals per parent side
+      for (const [k, v] of Object.entries(merged.targetLineage ?? {})) {
+        const old = v as unknown as { n: number; stars?: number; p1?: number; p2?: number };
+        if (old.p1 == null) merged.targetLineage[k] = { n: old.n, p1: Math.min(9, (old.stars ?? 3) * Math.ceil(old.n / 2)), p2: Math.min(9, (old.stars ?? 3) * Math.floor(old.n / 2)) };
+      }
       if (!saved.parentStars && saved.blueStars) {
         // migrate the old combined sliders: fill parent 1 first, the rest goes to parent 2
         let left = MAX_PARENT_STARS;
@@ -108,6 +113,16 @@ const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${te
 const cardUrl = (c: Card) => `https://gametora.com/umamusume/supports/${c.urlName}`;
 const cardLink = (c: Card) => html`<a class="card-link" href="${cardUrl(c)}" target="_blank" rel="noopener">${c.name}</a>`;
 const cardThumb = (c: Card, cls = 'thumb') => html`<a href="${cardUrl(c)}" target="_blank" rel="noopener"><img class="${cls}" src="${cardImg(c)}" alt="" loading="lazy" /></a>`;
+const TYPE_ICON: Record<string, { bg: string; path: string }> = {
+  speed:   { bg: '#4a8ef0', path: 'M7 4h5v6l4 2v3H6v-3l1-2z' },                              // boot
+  stamina: { bg: '#f0564e', path: 'M10 17l-5.5-5.5a3.2 3.2 0 0 1 4.5-4.5l1 1 1-1a3.2 3.2 0 0 1 4.5 4.5z' }, // heart
+  power:   { bg: '#f09a2e', path: 'M4 12c2-4 5-6 8-6 2 0 4 1 4 3s-2 3-4 3l-1 3H7z' },        // flexed arm
+  guts:    { bg: '#f05d9c', path: 'M10 3c1 3 4 4 4 8a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-7z' }, // flame
+  wit:     { bg: '#2eb86e', path: 'M10 5l7 3-7 3-7-3zm-4 4.5v3c0 1.5 2 2.5 4 2.5s4-1 4-2.5v-3l-4 1.7z' }, // cap
+  pal:     { bg: '#f2b53a', path: 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm-2.5 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm5 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM6.5 12h7c-.5 1.5-2 2.5-3.5 2.5S7 13.5 6.5 12z' }, // smiley
+  group:   { bg: '#5fbf7a', path: 'M7 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm6 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM2 17c0-2.5 2.5-4 5-4s5 1.5 5 4zm8.5 0c.3-1.5 1.5-2.6 2.5-3 1.8 0 4 1.3 4 3z' }, // two heads
+};
+const typeIcon = (c: Card) => { const t = TYPE_ICON[c.type] ?? TYPE_ICON.pal!; return html`<svg class="type-icon" viewBox="0 0 20 20" role="img" aria-label="${c.type}"><title>${c.type}</title><rect width="20" height="20" rx="5" fill="${t.bg}"/><path d="${t.path}" fill="#fff"/></svg>`; };
 const typeTag = (c: Card) => html`<span class="tag type-${c.type}">${c.type}</span>`;
 
 function targetableSkills(): Skill[] {
@@ -178,11 +193,16 @@ function renderTargets(c: Computed): Raw {
         })}</ul>` : ''}
       </div>
       <div class="chips">
-        ${c.targets.length ? c.targets.map((t) => html`<span class="chip target-row ${t.gold ? 'gold' : ''}">
+        ${c.targets.length ? c.targets.map((t) => { const l = state.targetLineage[String(t.id)] ?? { n: 0, p1: 0, p2: 0 }; const k1 = Math.min(3, Math.ceil(l.n / 2)), k2 = Math.min(3, l.n - k1);
+          return html`<span class="chip target-row ${t.gold ? 'gold' : ''}">
           <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" /><span class="tname">${t.name}</span>${tip(t.gold ? `Gold form: ${t.gold.name}. Cards that give the gold count for this target, at the higher spark rate.` : 'This skill has no gold form.')}
-          <select data-lineage-n="${t.id}">${[0, 1, 2, 3, 4, 5, 6].map((n) => html`<option value="${n}" ${(state.targetLineage[String(t.id)]?.n ?? 0) === n ? 'selected' : ''}>${n === 0 ? 'not in lineage' : `${n}× in lineage`}</option>`)}</select>
-          <select data-lineage-stars="${t.id}" ${(state.targetLineage[String(t.id)]?.n ?? 0) > 0 ? '' : 'disabled'}>${[1, 2, 3].map((k) => html`<option value="${k}" ${(state.targetLineage[String(t.id)]?.stars ?? 3) === k ? 'selected' : ''}>${k}★</option>`)}</select>
-          <button data-action="remove-target" data-id="${t.id}" title="Remove">✕</button></span>`)
+          <select data-lineage-n="${t.id}">${[0, 1, 2, 3, 4, 5, 6].map((n) => html`<option value="${n}" ${l.n === n ? 'selected' : ''}>${n === 0 ? 'not in lineage' : `${n}× in lineage`}</option>`)}</select>
+          <button data-action="remove-target" data-id="${t.id}" title="Remove">✕</button>
+          ${l.n > 0 ? html`<span class="row2">
+            <span>P1 <select data-lineage-p="${t.id}" data-side="p1" ${k1 ? '' : 'disabled'}>${Array.from({ length: 3 * k1 + 1 }, (_, i) => i).filter((i) => i === 0 || i >= k1).map((i) => html`<option value="${i}" ${l.p1 === i ? 'selected' : ''}>${i}★</option>`)}</select></span>
+            <span>P2 <select data-lineage-p="${t.id}" data-side="p2" ${k2 ? '' : 'disabled'}>${Array.from({ length: 3 * k2 + 1 }, (_, i) => i).filter((i) => i === 0 || i >= k2).map((i) => html`<option value="${i}" ${l.p2 === i ? 'selected' : ''}>${i}★</option>`)}</select></span>
+            <span class="muted">${k1} on parent 1${k2 ? `, ${k2} on parent 2` : ''}</span></span>` : ''}
+        </span>`; })
         : html`<span class="muted small">Add the white skills you want to spark. Cards giving the gold version count too.</span>`}
       </div>
       ${c.targets.length ? html`<div class="small muted">Trainee already covers: ${c.targets.filter((t) => (c.existing.get(t.id) ?? []).some((s) => s.kind !== 'lineage')).map((t) => t.name).join(', ') || 'nothing'}. Lineage sparks raise both the chance of getting the hint (inspiration events) and the spark generation chance (×${settings.lineageSparkMultiplier} per occurrence).</div>` : ''}
@@ -344,7 +364,7 @@ function renderDeck(c: Computed): Raw {
       <h3>Independent training prioritized skills (up to 10)</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w, i) => html`<li>
           <span class="wl-ctl"><button class="small" data-action="wl-up" data-id="${w.skillId}" ${i === 0 ? 'disabled' : ''} title="Move up">▲</button><button class="small" data-action="wl-down" data-id="${w.skillId}" ${i === c.wl.length - 1 ? 'disabled' : ''} title="Move down">▼</button></span>
-          ${w.name} ${w.gated ? html`<span class="tag gold">event choice</span>` : html`<span class="tag">filler</span>`}${w.isTarget ? '' : html`<span class="tag">not a target</span>`} <span class="small muted">${w.reason}</span>
+          ${w.gated && w.isTarget ? html`<span class="tag gold wl-kind">target skill</span>` : w.gated ? html`<span class="tag wl-kind">not a target</span>` : html`<span class="tag warn wl-kind">target but not a choice</span>`}${w.name} <span class="small muted">${w.reason}</span>
           <button class="small wl-x" data-action="wl-exclude" data-id="${w.skillId}" title="Remove from the list">✕</button></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
       ${c.wlRest.length || c.wlExcluded.length ? html`<div class="small muted">
         ${c.wlRest.length ? html`Not listed: ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.skillId}" title="Add to the list">+</button></span>`)} ` : ''}
@@ -370,7 +390,7 @@ function renderSchedule(c: Computed): Raw {
       ? html`<div class="agenda-race ${sel.race.surface}">${sel.race.name}</div>
              <div class="agenda-meta">${sel.race.surface} ${sel.race.category} ${sel.race.distance}m</div>
              <div class="agenda-meta">win ${pill(sel.base)}${sel.pWin < sel.base ? html` → ${pill(sel.pWin, 'warn')}` : ''}${sel.consecutive > 2 ? html` <span class="tag warn">${sel.consecutive} in a row</span>` : ''}</div>`
-      : html`<div class="agenda-plus">+</div><div class="agenda-meta muted">${entries.map((e) => `${e.race.name} ${pct(e.base)}`).join(' · ')}</div>`;
+      : html`<div class="agenda-meta muted agenda-avail">${entries.map((e) => `${e.race.name} ${pct(e.base)}`).join(' · ')}</div>`;
     const manual = entries.some((e) => state.raceOverrides[e.race.calendarId] != null);
     return html`<div class="agenda-cell ${sel ? 'sel' : 'avail'}">
       <div class="agenda-body">${info}</div>
@@ -413,7 +433,7 @@ function renderRanking(c: Computed): Raw {
           const explicit = inventory[String(x.card.id)] !== undefined;
           return html`<tr class="${owned ? '' : 'dim'}">
             <td>${cardThumb(x.card)}</td>
-            <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a> <span class="muted">(${x.card.rarity} ${x.card.type.charAt(0).toUpperCase() + x.card.type.slice(1)})</span>${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : ''}<br/><span class="small muted">${x.card.title}</span></td>
+            <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a>${typeIcon(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : ''}<br/><span class="small muted">${x.card.title}</span></td>
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
             <td class="num">${pill(x.sparkValue, '', 1)}</td>
@@ -558,8 +578,11 @@ app.addEventListener('input', (ev) => {
 app.addEventListener('change', (ev) => {
   const el = ev.target as HTMLInputElement & HTMLSelectElement;
   if (el.dataset.lineageN != null) { const id = el.dataset.lineageN; const n = Number(el.value);
-    if (n <= 0) delete state.targetLineage[id]; else state.targetLineage[id] = { n, stars: state.targetLineage[id]?.stars ?? 3 }; persist(); render(); return; }
-  if (el.dataset.lineageStars != null) { const id = el.dataset.lineageStars; const cur = state.targetLineage[id]; if (cur) state.targetLineage[id] = { ...cur, stars: Number(el.value) }; persist(); render(); return; }
+    if (n <= 0) { delete state.targetLineage[id]; }
+    else { const k1 = Math.min(3, Math.ceil(n / 2)), k2 = Math.min(3, n - k1); const cur = state.targetLineage[id];
+      state.targetLineage[id] = { n, p1: Math.min(3 * k1, Math.max(k1, cur?.p1 ?? 3 * k1)), p2: k2 ? Math.min(3 * k2, Math.max(k2, cur?.p2 ?? 3 * k2)) : 0 }; }
+    persist(); render(); return; }
+  if (el.dataset.lineageP != null) { const id = el.dataset.lineageP; const cur = state.targetLineage[id]; if (cur) state.targetLineage[id] = { ...cur, [el.dataset.side as 'p1' | 'p2']: Number(el.value) }; persist(); render(); return; }
   if (el.dataset.parent != null) { const pi = Number(el.dataset.parent), i = Number(el.dataset.stat); const next = state.parentStars[pi]!.slice(); next[i] = Number(el.value);
     state.parentStars = state.parentStars.map((p, j) => (j === pi ? clampStars(next, i, MAX_PARENT_STARS) : p)); persist(); render(); return; }
   if (el.dataset.apt) { const k = el.dataset.apt as AptKey; const t = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) : null;

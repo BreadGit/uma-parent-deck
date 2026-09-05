@@ -139,7 +139,7 @@ test('Pal and Group outings are skill sources at their own rates', () => {
 test('lineage sparks raise obtain and spark chances; the deck has exactly one borrow', () => {
   const trainee = characters.find((c) => c.name === 'Special Week')!;
   const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
-  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[targets[0]!.id, { n: 2, stars: 3 }]]) };
+  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[targets[0]!.id, { n: 2, p1: 3, p2: 3 }]]) };
   const cover = traineeCoverage(targets, ctx);
   const lin = (cover.get(targets[0]!.id) ?? []).find((s) => s.kind === 'lineage')!;
   assert.ok(lin && lin.pObtain > 0.6 && lin.pObtain < 0.7, `lineage obtain ${lin?.pObtain}`);

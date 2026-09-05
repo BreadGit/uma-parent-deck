@@ -128,17 +128,35 @@ export function traineeSources(trainee: Character, target: Target, data: Data): 
   return out;
 }
 
-/** How often a target already appears as a white spark in the lineage, and at what star level. */
-export interface Lineage { n: number; stars: number }
+/** Existing copies of a target white spark in the lineage: how many umas carry it, and each parent side's star total. */
+export interface Lineage { n: number; p1: number; p2: number }
+
+/** Split a parent side's stars over its occurrences as evenly as possible (3★ max per spark). */
+export function lineageSparks(l: Lineage): number[] {
+  const k1 = Math.min(3, Math.ceil(l.n / 2)), k2 = Math.min(3, l.n - k1);
+  const spread = (stars: number, k: number) => {
+    if (k <= 0) return [] as number[];
+    const out = Array<number>(k).fill(0);
+    let left = Math.max(0, Math.min(3 * k, Math.round(stars)));
+    for (let i = 0; left > 0; i = (i + 1) % k) { out[i]! += 1; left -= 1; }
+    return out.map((v) => Math.max(1, v));
+  };
+  return [...spread(l.p1, k1), ...spread(l.p2, k2)];
+}
 
 /** Inherited white sparks roll at each of the two inspiration events and hand over the white hint. */
 export function lineageSources(target: Target, lineage: Lineage | undefined, settings: Settings): SkillSource[] {
   if (!lineage || lineage.n <= 0) return [];
-  const rate = settings.whiteSparkInheritRates[Math.max(0, Math.min(2, lineage.stars - 1))] ?? 0.03;
-  const pOnce = Math.min(1, rate * (1 + settings.affinity / 100));
-  const pObtain = 1 - Math.pow(1 - pOnce, 2 * lineage.n);
-  return [{ kind: 'lineage', skillId: target.white?.id ?? target.id, gold: false, circle: false, pObtain, isChoice: false,
-    detail: `Lineage: ${lineage.n} × ${lineage.stars}★ white spark, ${pct1(pOnce)} per inspiration event` }];
+  let miss = 1;
+  const parts: string[] = [];
+  for (const stars of lineageSparks(lineage)) {
+    const rate = settings.whiteSparkInheritRates[Math.max(0, Math.min(2, stars - 1))] ?? 0.03;
+    const pOnce = Math.min(1, rate * (1 + settings.affinity / 100));
+    miss *= Math.pow(1 - pOnce, 2);
+    parts.push(`${stars}★ ${pct1(pOnce)}/event`);
+  }
+  return [{ kind: 'lineage', skillId: target.white?.id ?? target.id, gold: false, circle: false, pObtain: 1 - miss, isChoice: false,
+    detail: `Lineage: ${lineage.n} spark${lineage.n === 1 ? '' : 's'} (${parts.join(', ')}) over two inspiration events` }];
 }
 const pct1 = (x: number) => `${(x * 100).toFixed(0)}%`;
 
