@@ -50,9 +50,9 @@ tr.dim td { opacity: .55; }
 .tag.gold { --tag-bg: #fbf3d6; --tag-fg: #8a6d0b; }
 .tag.type-speed { --tag-bg: #dceeff; --tag-fg: #1a5fb4; } .tag.type-stamina { --tag-bg: #ffe1e1; --tag-fg: #b42222; } .tag.type-power { --tag-bg: #ffedd3; --tag-fg: #a35a00; }
 .tag.type-guts { --tag-bg: #ffe0ef; --tag-fg: #b02a6a; } .tag.type-wit { --tag-bg: #dff5e8; --tag-fg: #1f7a45; } .tag.type-pal { --tag-bg: #efe4ff; --tag-fg: #6b3fb4; } .tag.type-group { --tag-bg: #efe4ff; --tag-fg: #6b3fb4; }
-.stats { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: 6px; margin: 8px 0; }
-@media (max-width: 1300px) { .stats { grid-template-columns: repeat(3, 1fr); } .stat.outcome { grid-column: 1 / -1; } }
-.stat { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+.stats { display: grid; grid-template-columns: 2fr repeat(5, minmax(0, 1fr)); gap: 6px; margin: 8px 0; }
+@media (max-width: 1550px) { .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stat.outcome { grid-column: 1 / -1; } }
+.stat { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; min-width: 0; overflow: hidden; }
 .stat .k { color: var(--muted); font-size: 12px; }
 .stat .v { font-size: 18px; font-weight: 600; }
 .stat .v .sd { font-size: 11px; font-weight: 400; color: var(--muted); }
@@ -131,11 +131,11 @@ a.card-link { color: inherit; text-decoration: none; border-bottom: 1px dotted v
 a.card-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* agenda */
-.agenda { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.agenda { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 1400px) { .agenda { grid-template-columns: 1fr; } }
 .agenda-year-head { background: var(--accent); color: #fff; text-align: center; font-weight: 600; padding: 5px; border-radius: 6px 6px 0 0; }
-.agenda-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 6px; border: 1px solid var(--line); border-top: none; border-radius: 0 0 6px 6px; background: var(--soft2); }
-.agenda-cell { display: flex; flex-direction: column; height: 112px; }
+.agenda-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding: 6px; border: 1px solid var(--line); border-top: none; border-radius: 0 0 6px 6px; background: var(--soft2); }
+.agenda-cell { display: flex; flex-direction: column; height: 112px; min-width: 0; }
 .agenda-body { flex: 1; min-height: 0; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 5px; padding: 4px; background: var(--panel); font-size: 11px; line-height: 1.25; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; text-align: center; gap: 1px; }
 .agenda-cell.empty .agenda-body { background: transparent; border-style: dashed; opacity: .6; }
 .agenda-cell.sel .agenda-body { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
@@ -146,10 +146,10 @@ a.card-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .agenda-meta { font-size: 10px; color: var(--muted); white-space: nowrap; }
 .agenda-meta .pill { font-size: 10px; padding: 0 4px; }
 .agenda-pick { display: flex; align-items: center; gap: 2px; margin-top: 2px; height: 20px; }
-.agenda-pick select { width: 100%; max-width: 100%; font-size: 10px; padding: 1px 2px; }
+.agenda-pick select { width: 100%; max-width: 100%; min-width: 0; font-size: 10px; padding: 1px 2px; }
 .agenda-cell.empty .agenda-pick { visibility: hidden; }
 .agenda-label { font-size: 10px; color: var(--muted); text-align: center; margin-top: 2px; height: 14px; }
-.agenda-avail { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.agenda-avail { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; }
 .slot-art { width: 72px; height: 72px; border-radius: 6px; }
 .chip-art { width: 20px; height: 20px; vertical-align: middle; }
 .stat.outcome { display: flex; gap: 14px; align-items: center; justify-content: space-around; background: var(--soft); border-color: var(--accent); border-width: 2px; }

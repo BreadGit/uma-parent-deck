@@ -180,6 +180,22 @@ await page.waitForTimeout(200);
 const parent2Stars = await page.evaluate(() => [...document.querySelectorAll('input[data-parent="1"]')].map((e) => Number(e.value)));
 assert.ok(parent2Stars.reduce((sum, stars) => sum + stars, 0) <= 9, `parent 2 exceeded the 9-star cap: ${parent2Stars}`);
 console.log('parent 2 stars after setting speed to 9 (should clamp to 0 with 9 already used):', parent2Stars);
+// layout check: no horizontal overflow at common widths, both themes
+for (const width of [1280, 1440, 1680, 1920]) {
+  for (const scheme of ['light', 'dark']) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.setViewportSize({ width, height: 1000 });
+    await page.waitForTimeout(100);
+    const over = await page.evaluate(() => {
+      const w = document.documentElement.clientWidth; const bad = [];
+      if (document.documentElement.scrollWidth > w + 1) bad.push(`document ${document.documentElement.scrollWidth} > ${w}`);
+      for (const el of document.querySelectorAll('section.panel, .agenda-year, .deck .slot')) { const r = el.getBoundingClientRect(); if (r.right > w + 1) bad.push(`${el.className} right=${Math.round(r.right)}`); }
+      return bad;
+    });
+    assert.deepEqual(over, [], `overflow at ${width}px ${scheme}: ${over.join('; ')}`);
+  }
+}
+console.log('layout ok at 1280-1920px in light and dark');
 console.log('errors:', errors);
 await browser.close();
 process.exit(errors.length ? 1 : 0);
