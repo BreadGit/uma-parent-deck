@@ -42,6 +42,8 @@ export interface SkillSource {
   eventKey?: string;     // choice-gated sources sharing a key come from one event: only one option can be taken
   eventLabel?: string;   // human name of that event
   optionLabel?: string;  // which option of it this is
+  linkedCharId?: number; // scenario option tied to a character
+  unlinked?: boolean;    // the normal-version outcome of a linked option; superseded when that character is present
 }
 
 /** Expected number of hint events a card produces per run, from Hint Frequency. */
@@ -186,19 +188,30 @@ export function scenarioSources(target: Target, data: Data, settings: Settings, 
       }
       const linked = linkedCharIds?.has(ch.linkedCharId) ?? false;
       if (linkedCharIds == null && ch.whiteSkill != null && target.familyIds.has(ch.whiteSkill)) out.push({ kind: 'scenario', skillId: ch.whiteSkill, ...tag(ch.whiteSkill), pObtain: settings.scenarioPickRate, isChoice: true, eventKey: `scenario:${ev.eventId}`, eventLabel: SCENARIO_EVENT_LABEL, optionLabel: `${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked'}'s option (normal version, her card not in the deck)`, detail: `Scenario live event, ${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked'}'s option without her card` });
-      if (linked && ch.goldSkill != null && target.familyIds.has(ch.goldSkill)) out.push({ kind: 'scenario', skillId: ch.goldSkill, ...tag(ch.goldSkill), pObtain: settings.scenarioPickRate, isChoice: true, eventKey: `scenario:${ev.eventId}`, eventLabel: SCENARIO_EVENT_LABEL, optionLabel: `${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked character'}'s option (gold version, her card present)`, cardName, detail: `Scenario live event, ${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked character'}'s option with her card present` });
+      if (linked && ch.goldSkill != null && target.familyIds.has(ch.goldSkill)) out.push({ kind: 'scenario', skillId: ch.goldSkill, ...tag(ch.goldSkill), pObtain: settings.scenarioPickRate, isChoice: true, eventKey: `scenario:${ev.eventId}`, eventLabel: SCENARIO_EVENT_LABEL, optionLabel: `${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked character'}'s option (gold version, she is in the run)`, linkedCharId: ch.linkedCharId, cardName, detail: `Scenario live event, ${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked character'}'s option with her in the run` });
     }
   }
   return out;
 }
 
-export interface Conflict { eventKey: string; label: string; kept: number; keptOption: string; dropped: number[]; droppedOptions: string[] } // target ids
+export interface Conflict { eventKey: string; label: string; kept: number; keptOption: string; keptSkill: number; dropped: number[]; droppedOptions: string[]; droppedSkills: number[] } // target ids and the skill each option gives
+
+/** A linked character in the run turns her scenario option into the gold version: drop the normal-version source. */
+export function dropSuperseded(map: Map<number, SkillSource[]>): Map<number, SkillSource[]> {
+  const present = new Set<string>();
+  for (const ss of map.values()) for (const s of ss) if (s.linkedCharId != null && !s.unlinked && s.eventKey) present.add(`${s.eventKey}:${s.linkedCharId}`);
+  if (!present.size) return map;
+  const out = new Map<number, SkillSource[]>();
+  for (const [tid, ss] of map) out.set(tid, ss.filter((s) => !(s.unlinked && s.eventKey && present.has(`${s.eventKey}:${s.linkedCharId}`))));
+  return out;
+}
 
 /**
  * One event yields one option. When choice-gated sources for different targets share an event, keep the target
  * that comes first in `priority` (target ids in prioritized-skill order) and drop the rest.
  */
-export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[]): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+export function pruneConflicts(input: Map<number, SkillSource[]>, priority: number[]): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+  const map = dropSuperseded(input);
   const byEvent = new Map<string, Set<number>>();
   for (const [tid, sources] of map) for (const s of sources) if (s.isChoice && s.eventKey) byEvent.set(s.eventKey, new Set([...(byEvent.get(s.eventKey) ?? []), tid]));
   const rank = (tid: number) => { const i = priority.indexOf(tid); return i < 0 ? Infinity : i; };
@@ -211,7 +224,8 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
     drop.set(key, new Set(ordered.slice(1)));
     const first = (tid: number) => { const ss = [...map.entries()].flatMap(([t, list]) => list.filter((s) => s.eventKey === key && t === tid)); return ss.find((s) => s.gold) ?? ss[0]; };
     const sample = first(kept);
-    conflicts.push({ eventKey: key, label: sample?.eventLabel ?? `${sample?.cardName ? sample.cardName + ': ' : ''}${sample?.detail ?? key}`, kept, keptOption: sample?.optionLabel ?? '', dropped: ordered.slice(1), droppedOptions: ordered.slice(1).map((t) => first(t)?.optionLabel ?? '') });
+    conflicts.push({ eventKey: key, label: sample?.eventLabel ?? `${sample?.cardName ? sample.cardName + ': ' : ''}${sample?.detail ?? key}`, kept, keptOption: sample?.optionLabel ?? '', keptSkill: sample?.skillId ?? kept,
+      dropped: ordered.slice(1), droppedOptions: ordered.slice(1).map((t) => first(t)?.optionLabel ?? ''), droppedSkills: ordered.slice(1).map((t) => first(t)?.skillId ?? t) });
   }
   if (!conflicts.length) return { map, conflicts };
   const out = new Map<number, SkillSource[]>();

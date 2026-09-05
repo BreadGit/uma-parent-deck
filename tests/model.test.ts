@@ -204,3 +204,17 @@ test('career goal races are fixed in the agenda and highlighted', () => {
   const arima = sched.filter((s) => s.race.name === 'Arima Kinen' && s.selected);
   assert.equal(arima.length, 2, 'both Arima goals run even though it is the same G1');
 });
+
+test('a linked character in the run replaces the normal scenario option with the gold one', () => {
+  const allIveGot = resolveTarget(skills.find((s) => s.name === "All I've Got" && !s.unreleasedEn)!.id, data)!;
+  const tachyon = cards.find((c) => c.charName === 'Agnes Tachyon' && c.rarity === 'SSR')!;
+  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const d = buildDeck([{ card: tachyon, lb: 4 }], [allIveGot], ctx, [tachyon.id], 1);
+  const srcs = d.coverage.get(allIveGot.id)!.filter((s) => s.kind === 'scenario');
+  assert.ok(srcs.some((s) => s.gold), 'gold option present');
+  assert.ok(!srcs.some((s) => s.unlinked), 'the normal-version option must be gone');
+  // the trainee herself counts as the linked character
+  const tachyonUma = characters.find((c) => c.name === 'Agnes Tachyon')!;
+  const cov = traineeCoverage([allIveGot], { ...ctx, trainee: tachyonUma }).get(allIveGot.id)!;
+  assert.ok(cov.some((s) => s.kind === 'scenario' && s.gold), 'trainee as linked character gives the gold option');
+});

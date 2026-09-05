@@ -29,11 +29,10 @@ interface PersistedState {
   pinnedIds: number[];       // support cards forced into the deck, in order
   parentStars: number[][]; // [parent 1, parent 2], five stats each, up to 9 stars per parent
   sortKey: string;
-  conflictFormat: 'lines' | 'table' | 'prose';
 }
 const STATE_KEY = 'uma-parent-deck.state';
 function loadState(): PersistedState {
-  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score', conflictFormat: 'lines' };
+  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
   try {
     const raw = localStorage.getItem(STATE_KEY);
     if (raw) {
@@ -391,24 +390,17 @@ function renderDeck(c: Computed): Raw {
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
-      ${d.conflicts.length ? html`<h3>Choice conflicts <span class="small muted" style="text-transform:none">· format ${(['lines', 'table', 'prose'] as const).map((f) => html`<button class="small ${state.conflictFormat === f ? 'active-fmt' : ''}" data-action="conflict-format" data-id="${f}">${f}</button>`)}</span></h3>
+      ${d.conflicts.length ? html`<h3>Choice conflicts</h3>
         ${(() => {
           const name = (id: number) => c.targets.find((t) => t.id === id)?.name ?? `#${id}`;
-          const opts = (cf: typeof d.conflicts[number]) => [{ id: cf.kept, opt: cf.keptOption, taken: true }, ...cf.dropped.map((id, i) => ({ id, opt: cf.droppedOptions[i] ?? '', taken: false }))];
-          if (state.conflictFormat === 'table') return html`<table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken</th><th>Not counted</th></tr></thead><tbody>
+          const opts = (cf: typeof d.conflicts[number]) => [{ skill: cf.keptSkill, opt: cf.keptOption, taken: true }, ...cf.droppedSkills.map((skill, i) => ({ skill, opt: cf.droppedOptions[i] ?? '', taken: false }))];
+          return html`<table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken${tip('Skills are taken when they are higher in the Independent training prioritized skills section below.')}</th><th>Not taken</th></tr></thead><tbody>
             ${d.conflicts.map((cf) => html`<tr><td style="white-space:normal">${cf.label}</td>
-              <td style="white-space:normal">${opts(cf).map((o) => html`<div>${name(o.id)}${o.opt ? html` <span class="muted">${o.opt}</span>` : ''}</div>`)}</td>
-              <td><b>${name(cf.kept)}</b><br/><span class="muted">higher in the list</span></td><td>${cf.dropped.map(name).join(', ')}</td></tr>`)}
+              <td style="white-space:normal">${opts(cf).map((o) => html`<div>${skillWithTip(o.skill)}${o.opt ? html` <span class="muted">${o.opt}</span>` : ''}</div>`)}</td>
+              <td><b>${skillName(cf.keptSkill)}</b></td><td>${cf.droppedSkills.map(skillName).join(', ')}</td></tr>`)}
             </tbody></table>`;
-          if (state.conflictFormat === 'prose') return html`<ul class="small">${d.conflicts.map((cf) => html`<li>Only one option at <b>${cf.label}</b>${tip(opts(cf).map((o) => `${name(o.id)}: ${o.opt || 'option'}`).join('\n'))}. ${name(cf.kept)} wins over ${cf.dropped.map(name).join(' and ')} because it is higher in the prioritized list, so ${cf.dropped.map(name).join(' and ')} no longer count${cf.dropped.length === 1 ? 's' : ''} this event.</li>`)}</ul>`;
-          return html`<div class="conflict-cards">${d.conflicts.map((cf) => html`<div class="conflict">
-            <div class="cl"><span class="k">Event</span><span>${cf.label}</span></div>
-            <div class="cl"><span class="k">Options</span><span>${opts(cf).map((o) => html`<span class="opt ${o.taken ? 'taken' : ''}">${name(o.id)}${o.opt ? html` <span class="muted">(${o.opt})</span>` : ''}</span>`)}</span></div>
-            <div class="cl"><span class="k">Taken</span><span><b>${name(cf.kept)}</b> <span class="muted">— higher in the prioritized list</span></span></div>
-            <div class="cl"><span class="k">Not counted</span><span>${cf.dropped.map(name).join(', ')} <span class="muted">— this event no longer contributes to ${cf.dropped.length === 1 ? 'it' : 'them'}</span></span></div>
-          </div>`)}</div>`;
         })()}
-        <div class="small muted">Only one option can be taken per event. Drag the prioritized skills below into a different order to change which one wins.</div>` : ''}
+        <div class="small muted">Only one option can be taken per event. Targets involved: ${[...new Set(d.conflicts.flatMap((cf) => [cf.kept, ...cf.dropped]))].map((id) => c.targets.find((t) => t.id === id)?.name ?? '').filter(Boolean).join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div>` : ''}
       <h3>Independent training prioritized skills (up to 10)</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li draggable="true" data-wl-key="${w.key}">
           <span class="grip" title="Drag to reorder">⋮⋮</span>
@@ -478,7 +470,7 @@ function basisTip(x: CardScore): string {
   const m = modelContribution(x.card, exact.lb, data.model);
   const deltas = STATS.map((st, i) => `${st} ${exact.stats[i]} vs ${m.stats[i]!.toFixed(0)} (${(exact.stats[i]! - m.stats[i]!) >= 0 ? '+' : ''}${(exact.stats[i]! - m.stats[i]!).toFixed(0)})`).join('\n');
   const head = exact.lb === x.lb ? `Observed at LB${exact.lb} over ${exact.runs} logged runs (${exact.source}).` : `Observed at LB${exact.lb} over ${exact.runs} logged runs (${exact.source}); shifted to LB${x.lb} by the model's difference between the two limit breaks.`;
-  return `${head}\n\nObserved vs model at LB${exact.lb} (28 races):\n${deltas}\nSP ${exact.sp} vs ${m.sp.toFixed(0)}`;
+  return `${head}\n\nObserved vs model at LB${exact.lb} (28 races):\n${deltas}\nSP ${exact.sp} vs ${m.sp.toFixed(0)} (${(exact.sp - m.sp) >= 0 ? '+' : ''}${(exact.sp - m.sp).toFixed(0)})`;
 }
 
 function renderRanking(c: Computed): Raw {
@@ -713,7 +705,6 @@ app.addEventListener('click', (ev) => {
   if (a === 'wl-restore') { const id = Number(t.dataset.id); state.wishlistExcluded = state.wishlistExcluded.filter((x) => x !== id); persist(); render(); return; }
   if (a === 'wl-add') { const id = Number(t.dataset.id); const cur = compute().wl.map((w) => w.key).filter((x) => x !== id); cur.splice(9, cur.length, id); state.wishlistOrder = cur; persist(); render(); return; }
   if (a === 'reset-all') { if (confirm('Clear targets, trainee, pinned cards, parent sparks, agenda picks and the prioritized order? Inventory and settings are kept.')) { localStorage.removeItem(STATE_KEY); location.reload(); } return; }
-  if (a === 'conflict-format') { state.conflictFormat = t.dataset.id as 'lines' | 'table' | 'prose'; persist(); render(); return; }
   if (a === 'wl-reset') { state.wishlistOrder = []; state.wishlistExcluded = []; persist(); render(); return; }
   if (a === 'clear-trainee') { state.traineeCardId = null; state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); delete state.targetLineage[String(t.dataset.id)]; persist(); render(); return; }
