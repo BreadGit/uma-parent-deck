@@ -542,7 +542,7 @@ function render() {
     <header><h1>Uma parent deck</h1><span class="meta">Independent training deck builder for white-spark farming · data ${String(meta.fetchedAt).slice(0, 10)} from GameTora · ${data.cards.length} Global cards</span>
       <span class="theme-toggle">Theme ${(['system', 'light', 'dark'] as Theme[]).map((t) => html`<button class="${theme === t ? 'active' : ''}" data-theme-pick="${t}">${t === 'system' ? 'OS' : t}</button>`)}</span></header>
     <main>
-      <div><div class="reset-bar"><button class="small" data-action="reset-all">Reset all</button><span class="small muted">Targets, trainee, pins, sliders, agenda picks, and prioritized order. Inventory and settings stay.</span></div>${renderTargets(c)}${renderTrainee(c)}${renderRunSettings(c)}${renderSettingsPanel()}</div>
+      <div><div class="reset-bar"><button class="danger" data-action="reset-all">Reset all</button>${tip('Clears targets, trainee, pinned cards, parent spark sliders, agenda picks, and the prioritized order. Inventory and settings stay.')}</div>${renderTargets(c)}${renderTrainee(c)}${renderRunSettings(c)}${renderSettingsPanel()}</div>
       <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div id="tooltip" role="tooltip"></div>
