@@ -402,10 +402,10 @@ function renderDeck(c: Computed): Raw {
             </tbody></table>`;
           if (state.conflictFormat === 'prose') return html`<ul class="small">${d.conflicts.map((cf) => html`<li>Only one option at <b>${cf.label}</b>${tip(opts(cf).map((o) => `${name(o.id)}: ${o.opt || 'option'}`).join('\n'))}. ${name(cf.kept)} wins over ${cf.dropped.map(name).join(' and ')} because it is higher in the prioritized list, so ${cf.dropped.map(name).join(' and ')} no longer count${cf.dropped.length === 1 ? 's' : ''} this event.</li>`)}</ul>`;
           return html`<div class="conflict-cards">${d.conflicts.map((cf) => html`<div class="conflict">
-            <div class="cl"><span class="k">Event</span>${cf.label}</div>
+            <div class="cl"><span class="k">Event</span><span>${cf.label}</span></div>
             <div class="cl"><span class="k">Options</span><span>${opts(cf).map((o) => html`<span class="opt ${o.taken ? 'taken' : ''}">${name(o.id)}${o.opt ? html` <span class="muted">(${o.opt})</span>` : ''}</span>`)}</span></div>
-            <div class="cl"><span class="k">Taken</span><b>${name(cf.kept)}</b> <span class="muted">— higher in the prioritized list</span></div>
-            <div class="cl"><span class="k">Not counted</span>${cf.dropped.map(name).join(', ')} <span class="muted">— this event no longer contributes to ${cf.dropped.length === 1 ? 'it' : 'them'}</span></div>
+            <div class="cl"><span class="k">Taken</span><span><b>${name(cf.kept)}</b> <span class="muted">— higher in the prioritized list</span></span></div>
+            <div class="cl"><span class="k">Not counted</span><span>${cf.dropped.map(name).join(', ')} <span class="muted">— this event no longer contributes to ${cf.dropped.length === 1 ? 'it' : 'them'}</span></span></div>
           </div>`)}</div>`;
         })()}
         <div class="small muted">Only one option can be taken per event. Drag the prioritized skills below into a different order to change which one wins.</div>` : ''}
