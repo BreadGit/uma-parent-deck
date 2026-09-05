@@ -151,7 +151,7 @@ a.card-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .agenda-label { font-size: 10px; color: var(--muted); text-align: center; margin-top: 2px; height: 14px; }
 .agenda-avail { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; }
 .slot-art { width: 72px; height: 72px; border-radius: 6px; }
-.chip-art { width: 20px; height: 20px; vertical-align: middle; }
+.chip-art { width: 22px; height: 22px; vertical-align: middle; border-radius: 3px; }
 .stat.outcome { display: flex; gap: 14px; align-items: center; justify-content: space-around; background: var(--soft); border-color: var(--accent); border-width: 2px; }
 .stat.outcome .outcome-item { text-align: center; }
 .stat.outcome .k { text-transform: uppercase; letter-spacing: .03em; font-size: 11px; white-space: nowrap; }
@@ -203,4 +203,4 @@ button.active-fmt { background: var(--accent); color: #fff; border-color: var(--
 table.conflicts td { white-space: normal; vertical-align: top; }
 .conflicts-box { border: 1px solid color-mix(in srgb, #d9534f 45%, var(--line)); background: color-mix(in srgb, #d9534f 8%, var(--panel)); border-radius: 6px; padding: 6px 10px; margin: 4px 0 8px; }
 .conflicts-box h3 { margin-top: 2px; color: #d9534f; }
-.chip .type-icon { width: 18px; height: 18px; margin: 0 4px 0 0; }
+.chip .type-icon { width: 18px; height: 18px; margin: 0 3px 0 8px; }
