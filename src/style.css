@@ -53,7 +53,7 @@ tr.dim td { opacity: .55; }
 .tag.gold { background: #fbf3d6; color: #8a6d0b; }
 .tag.type-speed { background: #dceeff; color: #1a5fb4; } .tag.type-stamina { background: #ffe1e1; color: #b42222; } .tag.type-power { background: #ffedd3; color: #a35a00; }
 .tag.type-guts { background: #ffe0ef; color: #b02a6a; } .tag.type-wit { background: #dff5e8; color: #1f7a45; } .tag.type-pal { background: #efe4ff; color: #6b3fb4; } .tag.type-group { background: #efe4ff; color: #6b3fb4; }
-.stats { display: grid; grid-template-columns: repeat(5, 1fr) 2fr; gap: 6px; margin: 8px 0; }
+.stats { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: 6px; margin: 8px 0; }
 @media (max-width: 1300px) { .stats { grid-template-columns: repeat(3, 1fr); } .stat.outcome { grid-column: 1 / -1; } }
 .stat { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
 .stat .k { color: var(--muted); font-size: 12px; }
