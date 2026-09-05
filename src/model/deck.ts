@@ -2,7 +2,7 @@ import type { Card, Character, Data, Stat } from '../types.ts';
 import { STATS } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale } from './stats.ts';
-import { cardSourcesForTarget, combineSources, eventSources, lineageSources, sparkChance, traineeSources, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, eventSources, lineageSources, scenarioSources, sparkChance, traineeSources, type Lineage, type SkillSource, type Target } from './sparks.ts';
 
 export interface Ctx {
   data: Data;
@@ -34,7 +34,11 @@ export type Existing = Map<number, SkillSource[]>; // target.id -> sources alrea
 
 export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
   const m: Existing = new Map();
-  for (const t of targets) m.set(t.id, [...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data) : []), ...lineageSources(t, ctx.lineage?.get(t.id), ctx.settings)]);
+  for (const t of targets) m.set(t.id, [
+    ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data, ctx.settings) : []),
+    ...lineageSources(t, ctx.lineage?.get(t.id), ctx.settings),
+    ...scenarioSources(t, ctx.data, ctx.settings, null), // options everyone gets: normal versions and the unaffiliated pick
+  ]);
   return m;
 }
 
@@ -162,8 +166,9 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
   const entries: WishlistEntry[] = [];
   const seen = new Set<number>();
   const targetFamilies = new Set(targets.flatMap((t) => [...t.familyIds]));
+  const baseline = traineeCoverage(targets, ctx);
   for (const t of targets) {
-    const all = deck.flatMap((d) => d.coverage.filter((c) => c.target.id === t.id).flatMap((c) => c.sources));
+    const all = [...deck.flatMap((d) => d.coverage.filter((c) => c.target.id === t.id).flatMap((c) => c.sources)), ...(baseline.get(t.id) ?? []).filter((s) => s.kind === 'scenario')];
     if (!all.length) continue;
     const choice = all.filter((s) => s.isChoice);
     const spark = sparkChance(combineSources(all), ctx.settings, lineageN(ctx, t));

@@ -86,6 +86,9 @@ export interface Race {
   unreleasedEn: boolean;
 }
 
+export interface ScenarioEventChoice { linkedCharId: number | null; goldSkill?: number; whiteSkill?: number; skill?: number }
+export interface ScenarioEvent { scenarioId: number; eventId: number; strId: string; choices: ScenarioEventChoice[] }
+
 export interface Rank { id: number; name: string; min: number; max: number }
 
 export interface StatModel {
@@ -112,6 +115,7 @@ export interface Data {
   characters: Character[];
   races: Race[];
   ranks: Rank[];
+  scenarioEvents: ScenarioEvent[];
   model: StatModel;
   cardById: Map<number, Card>;
   skillById: Map<number, Skill>;

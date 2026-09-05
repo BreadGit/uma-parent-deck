@@ -23,7 +23,6 @@ interface PersistedState {
   wishlistOrder: number[];    // skill ids the user arranged, in order
   wishlistExcluded: number[]; // skill ids the user removed from the list
   traineeCardId: number | null;
-  traineeLevel: number;   // potential level 1..5, unlocks awakening skills
   traineeStars: number;   // 3..5, picks the base stat table
   aptOverrides: Partial<Aptitudes>;
   raceOverrides: Record<string, boolean>;
@@ -33,7 +32,7 @@ interface PersistedState {
 }
 const STATE_KEY = 'uma-parent-deck.state';
 function loadState(): PersistedState {
-  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeLevel: 3, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
+  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
   try {
     const raw = localStorage.getItem(STATE_KEY);
     if (raw) {
@@ -124,10 +123,9 @@ function targetableSkills(): Skill[] {
 
 function compute() {
   const traineeCard = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) ?? null : null;
-  // Potential level unlocks awakening skills (level N makes the first N-1 available); stars pick the base stat table.
+  // Stars pick the base stat table; potential level is assumed maxed (all awakening skills available).
   const trainee: Character | null = traineeCard ? {
     ...traineeCard,
-    awakeningSkills: traineeCard.awakeningSkills.slice(0, Math.max(0, state.traineeLevel - 1)),
     baseStats: state.traineeStars >= 5 && traineeCard.fiveStarStats ? traineeCard.fiveStarStats : state.traineeStars === 4 && traineeCard.fourStarStats ? traineeCard.fourStarStats : traineeCard.baseStats,
   } : null;
   const apt = traineeAptitudes(trainee, state.aptOverrides);
@@ -227,7 +225,6 @@ function renderTrainee(c: Computed): Raw {
           <button class="small" data-action="clear-trainee" style="margin-left:auto">Change</button>
         </div>
         <div class="grid2" style="margin:6px 0">
-          <label class="row"><span class="k">Potential level${tip('Raised with shoes and sashes. Level N unlocks the first N−1 awakening skills, which then count as covered for your targets. Base stats do not change with it.')}</span><select data-select="trainee-level">${[1, 2, 3, 4, 5].map((l) => html`<option value="${l}" ${state.traineeLevel === l ? 'selected' : ''}>${l}</option>`)}</select></label>
           <label class="row"><span class="k">Stars${tip('Raised with pieces. Picks the base stat table (3★, 4★ or 5★ values from GameTora).')}</span><select data-select="trainee-stars">${[3, 4, 5].map((k) => html`<option value="${k}" ${state.traineeStars === k ? 'selected' : ''}>${k}★</option>`)}</select></label>
         </div>
         <div class="small muted">Base stats: ${t.baseStats.join(' / ')}</div>
@@ -235,7 +232,7 @@ function renderTrainee(c: Computed): Raw {
         <h3>Trainee aptitude overrides (match the legacy screen)</h3>
         <div class="apts">${APT_SHOWN.map((k) => html`<label>${k}<select data-apt="${k}">${GRADES.map((g) => html`<option value="${g}" ${c.apt[k] === g ? 'selected' : ''}>${g}</option>`)}</select></label>`)}</div>
         ${overridden ? html`<button class="small" data-action="reset-apts">Reset to base aptitudes</button>` : ''}
-        <div class="small muted" style="margin-top:6px">Innate: ${t.innateSkills.map(skillName).join(', ')}<br/>Awakening (unlocked): ${t.awakeningSkills.length ? t.awakeningSkills.map(skillName).join(', ') : 'none at this level'}${(data.charByCardId.get(t.cardId)?.awakeningSkills.length ?? 0) > t.awakeningSkills.length ? html`<br/><span class="muted">Locked: ${data.charByCardId.get(t.cardId)!.awakeningSkills.slice(t.awakeningSkills.length).map(skillName).join(', ')}</span>` : ''}</div>
+        <div class="small muted" style="margin-top:6px">Innate: ${t.innateSkills.map(skillName).join(', ')}<br/>Awakening: ${t.awakeningSkills.map(skillName).join(', ')}</div>
       ` : html`
         <div class="suggest">
           <input id="trainee-search" type="search" placeholder="Search uma name or outfit…" value="${traineeQuery}" data-input="traineeQuery" style="max-width:100%;width:100%" autocomplete="off" />
@@ -463,6 +460,7 @@ const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   groupOutingRate: 'Chance a Group card member outing happens. Default 0.9, assumed from the Pal chain behaviour; not measured.',
   groupFinaleRate: 'Chance the Group finale (the gold skill) happens. Default 0.85 is a guess; the finale needs every member outing first and nobody has counted it in independent training.',
   specialEventRate: 'Chance of the Pal/Group unlock and New Year events. Default 0 because Loopacord never saw the New Year event in independent training.',
+  scenarioPickRate: 'Our Grand Concert has a Senior November live event with one option per linked character (Smart Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Bringing that character or one of her cards upgrades her option to the gold skill. Loopacord logged the scenario pick at 100% in independent training, so the default is 1.',
   bigRewardRate: 'When an event outcome splits into a small and a big reward, the chance of the big one. Default 0.3, your estimate.',
   goldSparkRate: 'Chance a skill you own as gold becomes a white spark at run end. Default 0.4 from the mechanics document.',
   whiteSparkRate: 'Chance a skill you own as white becomes a white spark at run end. Default 0.2 from the mechanics document.',
@@ -504,6 +502,7 @@ function renderSettingsPanel(): Raw {
           ${numField('groupOutingRate', 'Group member outing happens')}
           ${numField('groupFinaleRate', 'Group finale happens (unverified)')}
           ${numField('specialEventRate', 'Pal/Group unlock and New Year events')}
+          ${numField('scenarioPickRate', 'Scenario linked-skill event fires')}
           ${numField('bigRewardRate', 'Big reward chance (split outcomes)')}
           ${numField('goldSparkRate', 'Spark chance with gold skill')}
           ${numField('whiteSparkRate', 'Spark chance with white skill')}

@@ -25,7 +25,7 @@ const STATIC_KEYS = [
   'support-cards', 'support_effects', 'skills', 'character-cards', 'characters',
   'races', 'ura-races', 'scenarios', 'en/db-files/single_mode_rank', 'en/db-files/support_card_level',
   'training_events/ssr', 'training_events/sr', 'training_events/friend', 'training_events/group',
-  'training_events/shared', 'training_events/char_card', 'dict/evrew', 'status-effects',
+  'training_events/shared', 'training_events/char_card', 'training_events/scenario', 'dict/evrew', 'status-effects',
 ];
 
 let lastRequest = 0;
@@ -306,6 +306,33 @@ function normalizeEffects(raw) {
   return raw.support_effects.map((e) => ({ id: e.id, name: e.name_en, symbol: e.symbol ?? 'none', calc: e.calc ?? 'add' }));
 }
 
+// Scenario events whose options are tied to a character: pick a linked option while training that character or
+// carrying one of her cards and the gold skill is hinted; otherwise the normal version. Codes: sl = linked
+// character id, nl/nsl = the not-linked branch.
+function normalizeScenarioEvents(raw) {
+  const evrew = raw['dict/evrew'];
+  const out = [];
+  for (const entry of raw['training_events/scenario']) {
+    const scenarioId = entry[0];
+    for (const group of entry.slice(1)) {
+      for (const e of group) {
+        if (!Array.isArray(e) || !Array.isArray(e[1])) continue;
+        const choices = [];
+        for (const ch of e[1]) {
+          if (!Array.isArray(ch) || !Array.isArray(ch[1])) continue;
+          const rw = ch[1].map((id) => decodeReward(evrew, id));
+          const linked = rw.find((r) => r.t === 'sl');
+          const skills = rw.filter((r) => r.t === 'sk').map((r) => r.d);
+          if (linked && skills.length >= 2) choices.push({ linkedCharId: linked.d, goldSkill: skills[0], whiteSkill: skills[1] });
+          else if (!linked && skills.length === 1 && e[1].some((c) => Array.isArray(c) && Array.isArray(c[1]) && c[1].map((id) => decodeReward(evrew, id)).some((r) => r.t === 'sl'))) choices.push({ linkedCharId: null, skill: skills[0] });
+        }
+        if (choices.some((c) => c.linkedCharId != null)) out.push({ scenarioId, eventId: e[0], strId: String(e[2]), choices });
+      }
+    }
+  }
+  return out;
+}
+
 function normalizeScenarios(raw) {
   return raw.scenarios.filter((s) => s.start_en).map((s) => ({
     id: s.id, name: s.name_en, fullName: s.name_en_full ?? s.name_en, urlName: s.url_name,
@@ -331,6 +358,8 @@ async function normalize() {
   const ranks = normalizeRanks(raw);
   const effects = normalizeEffects(raw);
   const scenarios = normalizeScenarios(raw);
+  const scenarioEvents = normalizeScenarioEvents(raw);
+  await writeJson(path.join(OUT, 'scenario-events.json'), scenarioEvents);
   await writeJson(path.join(OUT, 'cards.json'), cards);
   await writeJson(path.join(OUT, 'skills.json'), skills);
   await writeJson(path.join(OUT, 'characters.json'), characters);

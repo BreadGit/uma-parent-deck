@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Card, Character, Data, Race, Rank, Skill, StatModel } from '../src/types.ts';
+import type { Card, Character, Data, Race, Rank, ScenarioEvent, Skill, StatModel } from '../src/types.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, modelContribution, predictDeck, raceScale } from '../src/model/stats.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, sparkChance } from '../src/model/sparks.ts';
@@ -14,7 +14,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const J = <T,>(f: string): T => JSON.parse(fs.readFileSync(path.join(root, 'data', f), 'utf8')) as T;
 const cards = J<Card[]>('cards.json'), skills = J<Skill[]>('skills.json'), characters = J<Character[]>('characters.json');
 const data: Data = {
-  cards, skills, characters, races: J<Race[]>('races.json'), ranks: J<Rank[]>('ranks.json'), model: J<StatModel>('stat-model.json'),
+  cards, skills, characters, races: J<Race[]>('races.json'), ranks: J<Rank[]>('ranks.json'), scenarioEvents: J<ScenarioEvent[]>('scenario-events.json'), model: J<StatModel>('stat-model.json'),
   cardById: new Map(cards.map((c) => [c.id, c])), skillById: new Map(skills.map((s) => [s.id, s])), charByCardId: new Map(characters.map((c) => [c.cardId, c])),
 };
 const settings = { ...DEFAULT_SETTINGS };
@@ -150,4 +150,18 @@ test('lineage sparks raise obtain and spark chances; the deck has exactly one bo
   assert.ok(d.borrow && d.borrow.gain >= 0);
   assert.equal(d.deck.find((x) => x.borrowed)!.lb, 4);
   assert.equal(new Set(d.deck.map((x) => x.card.charId)).size, 6);
+});
+
+test('Grand Concert linked event: Mihono Bourbon cards give Concentration, everyone gets Focus', () => {
+  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
+  assert.equal(focus.gold?.name, 'Concentration');
+  const bourbon = cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit')!;
+  const srcs = cardSourcesForTarget(bourbon, 4, focus, 20, data.model.races.totalTurns, data, settings);
+  const sc = srcs.find((s) => s.kind === 'scenario');
+  assert.ok(sc && sc.gold && sc.isChoice && sc.pObtain === settings.scenarioPickRate, JSON.stringify(sc));
+  const kitasan = cards.find((c) => c.id === 30028)!;
+  assert.ok(!cardSourcesForTarget(kitasan, 4, focus, 20, data.model.races.totalTurns, data, settings).some((s) => s.kind === 'scenario'));
+  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const base = traineeCoverage([focus], ctx).get(focus.id)!;
+  assert.ok(base.some((s) => s.kind === 'scenario' && !s.gold), 'baseline white option');
 });

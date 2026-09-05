@@ -1,0 +1,446 @@
+[
+ {
+  "scenarioId": 1,
+  "eventId": 4673,
+  "strId": "400001017",
+  "choices": [
+   {
+    "linkedCharId": 9004,
+    "goldSkill": 200441,
+    "whiteSkill": 200441
+   }
+  ]
+ },
+ {
+  "scenarioId": 3,
+  "eventId": 4719,
+  "strId": "400003231",
+  "choices": [
+   {
+    "linkedCharId": 1046,
+    "goldSkill": 202281,
+    "whiteSkill": 202282
+   },
+   {
+    "linkedCharId": 1026,
+    "goldSkill": 200431,
+    "whiteSkill": 200432
+   },
+   {
+    "linkedCharId": 1002,
+    "goldSkill": 200711,
+    "whiteSkill": 200712
+   },
+   {
+    "linkedCharId": 1032,
+    "goldSkill": 201701,
+    "whiteSkill": 201702
+   },
+   {
+    "linkedCharId": null,
+    "skill": 200501
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4734,
+  "strId": "400006062",
+  "choices": [
+   {
+    "linkedCharId": 1014,
+    "goldSkill": 200461,
+    "whiteSkill": 200462
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4735,
+  "strId": "400006063",
+  "choices": [
+   {
+    "linkedCharId": 1049,
+    "goldSkill": 202031,
+    "whiteSkill": 202032
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4736,
+  "strId": "400006064",
+  "choices": [
+   {
+    "linkedCharId": 1007,
+    "goldSkill": 201701,
+    "whiteSkill": 201702
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4737,
+  "strId": "400006065",
+  "choices": [
+   {
+    "linkedCharId": 1067,
+    "goldSkill": 200451,
+    "whiteSkill": 200452
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4738,
+  "strId": "400006066",
+  "choices": [
+   {
+    "linkedCharId": 1025,
+    "goldSkill": 200751,
+    "whiteSkill": 200752
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4739,
+  "strId": "400006068",
+  "choices": [
+   {
+    "linkedCharId": 1070,
+    "goldSkill": 201103,
+    "whiteSkill": 201102
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4740,
+  "strId": "400006067",
+  "choices": [
+   {
+    "linkedCharId": 1107,
+    "goldSkill": 201141,
+    "whiteSkill": 201142
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4741,
+  "strId": "400006069",
+  "choices": [
+   {
+    "linkedCharId": 9043,
+    "goldSkill": 202734,
+    "whiteSkill": 202732
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4742,
+  "strId": "400006079",
+  "choices": [
+   {
+    "linkedCharId": 1115,
+    "goldSkill": 201211,
+    "whiteSkill": 202542
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4743,
+  "strId": "400006082",
+  "choices": [
+   {
+    "linkedCharId": 1128,
+    "goldSkill": 201131,
+    "whiteSkill": 201132
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4744,
+  "strId": "400006085",
+  "choices": [
+   {
+    "linkedCharId": 1133,
+    "goldSkill": 200571,
+    "whiteSkill": 200572
+   }
+  ]
+ },
+ {
+  "scenarioId": 6,
+  "eventId": 4745,
+  "strId": "400006088",
+  "choices": [
+   {
+    "linkedCharId": 1143,
+    "goldSkill": 203331,
+    "whiteSkill": 203332
+   }
+  ]
+ },
+ {
+  "scenarioId": 8,
+  "eventId": 4777,
+  "strId": "400008022",
+  "choices": [
+   {
+    "linkedCharId": 1104,
+    "goldSkill": 201261,
+    "whiteSkill": 201262
+   },
+   {
+    "linkedCharId": 1001,
+    "goldSkill": 201351,
+    "whiteSkill": 201352
+   },
+   {
+    "linkedCharId": 1051,
+    "goldSkill": 200361,
+    "whiteSkill": 200362
+   },
+   {
+    "linkedCharId": 1028,
+    "goldSkill": 203011,
+    "whiteSkill": 203012
+   },
+   {
+    "linkedCharId": 1030,
+    "goldSkill": 201341,
+    "whiteSkill": 201342
+   },
+   {
+    "linkedCharId": 9002,
+    "goldSkill": 203021,
+    "whiteSkill": 203022
+   }
+  ]
+ },
+ {
+  "scenarioId": 9,
+  "eventId": 4778,
+  "strId": "400009027",
+  "choices": [
+   {
+    "linkedCharId": 1023,
+    "goldSkill": 203301,
+    "whiteSkill": 203302
+   },
+   {
+    "linkedCharId": 1050,
+    "goldSkill": 201453,
+    "whiteSkill": 201452
+   },
+   {
+    "linkedCharId": 1036,
+    "goldSkill": 200331,
+    "whiteSkill": 200332
+   },
+   {
+    "linkedCharId": 1083,
+    "goldSkill": 200591,
+    "whiteSkill": 200592
+   },
+   {
+    "linkedCharId": 1084,
+    "goldSkill": 203311,
+    "whiteSkill": 203312
+   },
+   {
+    "linkedCharId": null,
+    "skill": 200721
+   }
+  ]
+ },
+ {
+  "scenarioId": 10,
+  "eventId": 4779,
+  "strId": "400010018",
+  "choices": [
+   {
+    "linkedCharId": 1115,
+    "goldSkill": 202901,
+    "whiteSkill": 202902
+   },
+   {
+    "linkedCharId": 1086,
+    "goldSkill": 202501,
+    "whiteSkill": 202502
+   },
+   {
+    "linkedCharId": 1116,
+    "goldSkill": 201103,
+    "whiteSkill": 201102
+   },
+   {
+    "linkedCharId": 1070,
+    "goldSkill": 202471,
+    "whiteSkill": 202472
+   },
+   {
+    "linkedCharId": 1046,
+    "goldSkill": 203101,
+    "whiteSkill": 203103
+   },
+   {
+    "linkedCharId": 30241,
+    "goldSkill": 202801,
+    "whiteSkill": 202802
+   }
+  ]
+ },
+ {
+  "scenarioId": 11,
+  "eventId": 4780,
+  "strId": "400011023",
+  "choices": [
+   {
+    "linkedCharId": 1031,
+    "goldSkill": 203111,
+    "whiteSkill": 203112
+   },
+   {
+    "linkedCharId": 1040,
+    "goldSkill": 202661,
+    "whiteSkill": 202662
+   },
+   {
+    "linkedCharId": 1027,
+    "goldSkill": 202451,
+    "whiteSkill": 202452
+   },
+   {
+    "linkedCharId": 1069,
+    "goldSkill": 203221,
+    "whiteSkill": 203222
+   },
+   {
+    "linkedCharId": 1021,
+    "goldSkill": 201612,
+    "whiteSkill": 201611
+   },
+   {
+    "linkedCharId": 9049,
+    "goldSkill": 200461,
+    "whiteSkill": 200462
+   }
+  ]
+ },
+ {
+  "scenarioId": 12,
+  "eventId": 4781,
+  "strId": "400012020",
+  "choices": [
+   {
+    "linkedCharId": 1100,
+    "goldSkill": 202471,
+    "whiteSkill": 202472
+   },
+   {
+    "linkedCharId": 1080,
+    "goldSkill": 200431,
+    "whiteSkill": 200432
+   },
+   {
+    "linkedCharId": 1099,
+    "goldSkill": 203601,
+    "whiteSkill": 203602
+   },
+   {
+    "linkedCharId": 1026,
+    "goldSkill": 202461,
+    "whiteSkill": 202462
+   },
+   {
+    "linkedCharId": 1003,
+    "goldSkill": 202371,
+    "whiteSkill": 202372
+   },
+   {
+    "linkedCharId": 9050,
+    "goldSkill": 200511,
+    "whiteSkill": 200512
+   }
+  ]
+ },
+ {
+  "scenarioId": 13,
+  "eventId": 4782,
+  "strId": "400013027",
+  "choices": [
+   {
+    "linkedCharId": 1081,
+    "goldSkill": 202951,
+    "whiteSkill": 202952
+   },
+   {
+    "linkedCharId": 1132,
+    "goldSkill": 204111,
+    "whiteSkill": 204112
+   },
+   {
+    "linkedCharId": 1136,
+    "goldSkill": 202091,
+    "whiteSkill": 202092
+   },
+   {
+    "linkedCharId": 1138,
+    "goldSkill": 203501,
+    "whiteSkill": 203502
+   },
+   {
+    "linkedCharId": 1140,
+    "goldSkill": 203101,
+    "whiteSkill": 203103
+   },
+   {
+    "linkedCharId": 1139,
+    "goldSkill": 201662,
+    "whiteSkill": 201661
+   }
+  ]
+ },
+ {
+  "scenarioId": 14,
+  "eventId": 4783,
+  "strId": "400014016",
+  "choices": [
+   {
+    "linkedCharId": 1022,
+    "goldSkill": 201313,
+    "whiteSkill": 201312
+   },
+   {
+    "linkedCharId": 1077,
+    "goldSkill": 201173,
+    "whiteSkill": 201172
+   },
+   {
+    "linkedCharId": 1120,
+    "goldSkill": 203871,
+    "whiteSkill": 203872
+   },
+   {
+    "linkedCharId": 1058,
+    "goldSkill": 202721,
+    "whiteSkill": 202722
+   },
+   {
+    "linkedCharId": 1060,
+    "goldSkill": 201103,
+    "whiteSkill": 201102
+   },
+   {
+    "linkedCharId": null,
+    "skill": 203501
+   }
+  ]
+ }
+]

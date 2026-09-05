@@ -86,6 +86,14 @@ Pal date chain completes almost every run (97% default, matching Loopacord and o
 runs), Group member outings default to 90% and the Group finale to 85% (unverified), and the
 unlock and New Year events never fire (0%).
 
+Our Grand Concert's Senior November live event offers one option per linked character (Smart
+Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Picking a linked
+option while training that character or carrying one of her cards hints the gold skill (for
+example Concentration instead of Focus). The tool treats every option as a choice-gated source
+that fires at the scenario pick rate (100% by default, per Loopacord), so a card of the linked
+character is credited with the gold form. Data: `data/scenario-events.json`, decoded from
+GameTora's scenario events for every scenario.
+
 Numbers with no measurement behind them (chain completion rates in independent training,
 random event rate, big/small reward split, Group outing rates, hint acquisition scaling,
 loss penalty) are defaults in the advanced settings panel.

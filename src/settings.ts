@@ -18,6 +18,8 @@ export interface Settings {
   groupOutingRate: number;       // Group card member outing happens
   groupFinaleRate: number;       // Group card finale (gold skill) happens
   specialEventRate: number;      // Pal/Group unlock and New Year events (never seen in independent training)
+  scenarioPickRate: number;      // the scenario's linked-skill event fires and the prioritized option is taken
+  scenarioId: number;            // career scenario (3 = Our Grand Concert)
   bigRewardRate: number;         // when an outcome is split into small/big rewards, chance of the big one
   goldSparkRate: number;         // white spark chance at run end when the gold skill is owned
   whiteSparkRate: number;        // ... when the white skill is owned
@@ -47,6 +49,8 @@ export const DEFAULT_SETTINGS: Settings = {
   groupOutingRate: 0.9,
   groupFinaleRate: 0.85,
   specialEventRate: 0,
+  scenarioPickRate: 1,
+  scenarioId: 3,
   bigRewardRate: 0.3,
   goldSparkRate: 0.4,
   whiteSparkRate: 0.2,

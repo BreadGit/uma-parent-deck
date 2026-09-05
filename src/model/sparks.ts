@@ -29,7 +29,7 @@ export function resolveTarget(id: number, data: Data): Target | null {
   return { id: base.id, name: base.name.replace(/ ○$/, ''), white, circle, gold, familyIds };
 }
 
-export type SourceKind = 'hint' | 'chain' | 'random' | 'recreation' | 'special' | 'innate' | 'awakening' | 'char-event' | 'lineage';
+export type SourceKind = 'hint' | 'chain' | 'random' | 'recreation' | 'special' | 'innate' | 'awakening' | 'char-event' | 'lineage' | 'scenario';
 export interface SkillSource {
   kind: SourceKind;
   skillId: number;
@@ -116,15 +116,17 @@ export function cardSourcesForTarget(card: Card, lb: number, target: Target, rac
   for (const src of eventSources(card, settings)) {
     if (target.familyIds.has(src.skillId)) out.push({ ...src, ...tag(src.skillId), cardName: card.name });
   }
+  out.push(...scenarioSources(target, data, settings, new Set([card.charId]), card.name));
   return out;
 }
 
-export function traineeSources(trainee: Character, target: Target, data: Data): SkillSource[] {
+export function traineeSources(trainee: Character, target: Target, data: Data, settings?: Settings): SkillSource[] {
   const out: SkillSource[] = [];
   const tag = (id: number) => { const s = data.skillById.get(id); return { gold: !!s && isGold(s), circle: !!s && isCircle(s) }; };
   for (const id of trainee.innateSkills) if (target.familyIds.has(id)) out.push({ kind: 'innate', skillId: id, ...tag(id), pObtain: 1, isChoice: false, detail: 'Innate skill' });
   for (const id of trainee.awakeningSkills) if (target.familyIds.has(id)) out.push({ kind: 'awakening', skillId: id, ...tag(id), pObtain: 1, isChoice: false, detail: 'Awakening skill' });
   for (const id of trainee.eventSkills) if (target.familyIds.has(id)) out.push({ kind: 'char-event', skillId: id, ...tag(id), pObtain: 0.5, isChoice: false, detail: 'Character event' });
+  if (settings) out.push(...scenarioSources(target, data, settings, new Set([trainee.charId]), `${trainee.name} (trainee)`));
   return out;
 }
 
@@ -159,6 +161,31 @@ export function lineageSources(target: Target, lineage: Lineage | undefined, set
     detail: `Lineage: ${lineage.n} spark${lineage.n === 1 ? '' : 's'} (${parts.join(', ')}) over two inspiration events` }];
 }
 const pct1 = (x: number) => `${(x * 100).toFixed(0)}%`;
+
+/**
+ * Scenario events with character-linked options (Our Grand Concert's Senior November live): the linked option gives
+ * the gold skill when the trainee is that character or one of her cards is in the deck, the normal skill otherwise,
+ * and the unaffiliated option always gives its rare hint. Only one option is taken per run; the prioritized-skill
+ * list decides which, so every option is a choice-gated source.
+ * `linkedCharIds` = characters present (trainee plus deck cards); pass null for the baseline (unlinked) sources.
+ */
+export function scenarioSources(target: Target, data: Data, settings: Settings, linkedCharIds: Set<number> | null, cardName?: string): SkillSource[] {
+  const out: SkillSource[] = [];
+  const tag = (id: number) => { const s = data.skillById.get(id); return { gold: !!s && isGold(s), circle: !!s && isCircle(s) }; };
+  for (const ev of data.scenarioEvents) {
+    if (ev.scenarioId !== settings.scenarioId) continue;
+    for (const ch of ev.choices) {
+      if (ch.linkedCharId == null) {
+        if (linkedCharIds == null && ch.skill != null && target.familyIds.has(ch.skill)) out.push({ kind: 'scenario', skillId: ch.skill, ...tag(ch.skill), pObtain: settings.scenarioPickRate, isChoice: true, detail: 'Scenario event, unaffiliated option' });
+        continue;
+      }
+      const linked = linkedCharIds?.has(ch.linkedCharId) ?? false;
+      if (linkedCharIds == null && ch.whiteSkill != null && target.familyIds.has(ch.whiteSkill)) out.push({ kind: 'scenario', skillId: ch.whiteSkill, ...tag(ch.whiteSkill), pObtain: settings.scenarioPickRate, isChoice: true, detail: `Scenario event, ${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked'} option without her card` });
+      if (linked && ch.goldSkill != null && target.familyIds.has(ch.goldSkill)) out.push({ kind: 'scenario', skillId: ch.goldSkill, ...tag(ch.goldSkill), pObtain: settings.scenarioPickRate, isChoice: true, cardName, detail: `Scenario event, linked option (${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked character'} present)` });
+    }
+  }
+  return out;
+}
 
 /** Combine independent sources into P(own gold) and P(own white) at run end. */
 export function combineSources(sources: SkillSource[]): { pGold: number; pWhite: number; pAny: number } {
