@@ -2,7 +2,7 @@ import type { Card, Character, Data, Stat } from '../types.ts';
 import { STATS } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale } from './stats.ts';
-import { cardSourcesForTarget, combineSources, eventSources, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, eventSources, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
 
 export interface Ctx {
   data: Data;
@@ -14,13 +14,22 @@ export interface Ctx {
   priority?: number[];            // target ids in prioritized-skill order, decides which option an event's choice goes to
 }
 /** Everything already in play for the run: non-scenario sources per target, and which characters are present. */
-export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number> }
+export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: Card[] }
 const lineageN = (ctx: Ctx, t: Target) => { const l = ctx.lineage?.get(t.id); return l ? lineageCount(l) : 0; };
-const cloneExisting = (e: Existing): Existing => ({ sources: new Map([...e.sources].map(([k, v]) => [k, v.slice()])), chars: new Set(e.chars) });
-function addTo(e: Existing, add: Map<number, SkillSource[]>, chars: Iterable<number>): Existing {
+const cloneExisting = (e: Existing): Existing => ({ sources: new Map([...e.sources].map(([k, v]) => [k, v.slice()])), chars: new Set(e.chars), cards: e.cards.slice() });
+function addTo(e: Existing, add: Map<number, SkillSource[]>, card: Card): Existing {
   const out = cloneExisting(e);
   for (const [t, ss] of add) out.sources.set(t, [...(out.sources.get(t) ?? []), ...ss]);
-  for (const c of chars) out.chars.add(c);
+  out.chars.add(card.charId);
+  out.cards.push(card);
+  return out;
+}
+/** Non-target choice-gated options in the run (scenario options and card event options) that could outrank a target in the prioritized list. */
+function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
+  const families = new Set(targets.flatMap((t) => [...t.familyIds]));
+  const out: Blocker[] = [];
+  for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ eventKey: o.eventKey, skillId: o.skillId, eventLabel: o.eventLabel, optionLabel: o.optionLabel });
+  for (const card of e.cards) for (const s of eventSources(card, ctx.settings)) if (s.isChoice && s.eventKey && !families.has(s.skillId)) out.push({ eventKey: s.eventKey, skillId: s.skillId, eventLabel: s.eventLabel ?? '', optionLabel: s.optionLabel ?? '' });
   return out;
 }
 
@@ -31,7 +40,7 @@ function addTo(e: Existing, add: Map<number, SkillSource[]>, chars: Iterable<num
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const full = new Map<number, SkillSource[]>();
   for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars)]);
-  const { map, conflicts } = pruneConflicts(full, ctx.priority ?? []);
+  const { map, conflicts } = pruneConflicts(full, ctx.priority ?? [], blockersOf(e, targets, ctx));
   const sparks = new Map(targets.map((t) => [t.id, sparkChance(combineSources(map.get(t.id) ?? []), ctx.settings, lineageN(ctx, t))]));
   return { full, map, sparks, conflicts };
 }
@@ -60,7 +69,7 @@ export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
     ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data, ctx.settings) : []),
     ...lineageSources(t, ctx.lineage?.get(t.id), ctx.settings),
   ]);
-  return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []) };
+  return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [] };
 }
 
 export function scoreCard(card: Card, lb: number, targets: Target[], existing: Existing, ctx: Ctx): CardScore {
@@ -72,9 +81,9 @@ export function scoreCard(card: Card, lb: number, targets: Target[], existing: E
     const sources = cardSourcesForTarget(card, lb, t, ctx.races, ctx.totalTurns, ctx.data, ctx.settings);
     if (sources.length) mine.set(t.id, sources);
   }
-  const alone = evaluate({ sources: mine, chars: new Set([card.charId]) }, targets, ctx);
+  const alone = evaluate({ sources: mine, chars: new Set([card.charId]), cards: [card] }, targets, ctx);
   const before = evaluate(existing, targets, ctx);
-  const after = evaluate(addTo(existing, mine, [card.charId]), targets, ctx);
+  const after = evaluate(addTo(existing, mine, card), targets, ctx);
   const coverage: Coverage[] = [];
   let sparkValue = 0, marginalValue = 0;
   for (const t of targets) {
@@ -102,7 +111,7 @@ export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Map<
 /** Run state for a set of cards on top of the trainee. */
 function stateOf(entries: CardScore[], targets: Target[], ctx: Ctx): Existing {
   let e = traineeCoverage(targets, ctx);
-  for (const x of entries) e = addTo(e, x.mine, [x.card.charId]);
+  for (const x of entries) e = addTo(e, x.mine, x.card);
   return e;
 }
 /** Total expected sparks over the targets for a set of cards, plus their stat power. */
@@ -123,7 +132,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   if (ctx.trainee) usedChars.add(ctx.trainee.charId);
   const add = (cs: CardScore, why: string) => {
     deck.push(cs); usedChars.add(cs.card.charId);
-    existing = addTo(existing, cs.mine, [cs.card.charId]);
+    existing = addTo(existing, cs.mine, cs.card);
     steps.push(`${cs.card.name} (LB${cs.lb}): ${why}`);
   };
   for (const id of pinnedIds) {
@@ -224,7 +233,7 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
     const sk = ctx.data.skillById.get(o.skillId);
     if (!sk || sk.unreleasedEn) continue;
     seen.add(o.skillId);
-    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 2 : 1), reason: o.detail });
+    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 1.2 : 1), reason: o.detail });
   }
   // Other choice-gated skills from the deck's events (not targets): listing them steers the AI to that option.
   for (const d of deck) {
@@ -233,7 +242,7 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
       const sk = ctx.data.skillById.get(src.skillId);
       if (!sk || sk.unreleasedEn) continue;
       seen.add(src.skillId);
-      entries.push({ key: src.skillId, skillId: src.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + src.pObtain * (sk.rarity === 2 ? 2 : 1), reason: `${d.card.name}: ${src.detail}` });
+      entries.push({ key: src.skillId, skillId: src.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * src.pObtain * (sk.rarity === 2 ? 1.2 : 1), reason: `${d.card.name}: ${src.detail}` });
     }
   }
   return entries.sort((a, b) => b.weight - a.weight);

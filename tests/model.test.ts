@@ -239,8 +239,8 @@ test('regular card events keep both options listed and the order decides which i
   const a = buildDeck([{ card: falcon, lb: 4 }], [groundwork, focus], mk([groundwork.id, focus.id]), [], 1);
   const namesA = wishlistCandidates(a.deck, [groundwork, focus], mk([groundwork.id, focus.id])).map((w) => w.name);
   assert.ok(namesA.includes('Groundwork') && namesA.includes('Focus'), `both options listed: ${namesA.join(', ')}`);
-  const evalA = evaluate({ sources: a.deck[0]!.mine, chars: new Set([falcon.charId]) }, [groundwork, focus], mk([groundwork.id, focus.id]));
-  const evalB = evaluate({ sources: a.deck[0]!.mine, chars: new Set([falcon.charId]) }, [groundwork, focus], mk([focus.id, groundwork.id]));
+  const evalA = evaluate({ sources: a.deck[0]!.mine, chars: new Set([falcon.charId]), cards: [falcon] }, [groundwork, focus], mk([groundwork.id, focus.id]));
+  const evalB = evaluate({ sources: a.deck[0]!.mine, chars: new Set([falcon.charId]), cards: [falcon] }, [groundwork, focus], mk([focus.id, groundwork.id]));
   const key = evalA.conflicts[0]!.eventKey;
   assert.ok(evalA.map.get(groundwork.id)!.some((s) => s.eventKey === key) && !evalA.map.get(focus.id)!.some((s) => s.eventKey === key), 'Groundwork keeps the event when first');
   assert.ok(evalB.map.get(focus.id)!.some((s) => s.eventKey === key) && !evalB.map.get(groundwork.id)!.some((s) => s.eventKey === key), 'Focus keeps the event when first');
@@ -254,4 +254,20 @@ test('scenario options are listed as prioritized-skill candidates even with no t
   const bourbonUma = characters.find((c) => c.name === 'Mihono Bourbon')!;
   const names2 = wishlistCandidates([], [], { ...ctx, trainee: bourbonUma }).map((w) => w.name);
   assert.ok(names2.includes('Concentration') && !names2.includes('Focus'));
+});
+
+test('a non-target option ranked above a target takes the event and is reported', () => {
+  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
+  const lane = skills.find((s) => s.name === 'Lane Legerdemain' && !s.unreleasedEn)!;
+  const base: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const names = wishlistCandidates([], [focus], base);
+  assert.ok(names[0]!.isTarget, `targets come first: ${names.map((w) => w.name).join(', ')}`);
+  const normal = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [focus.id, lane.id] });
+  assert.ok(normal.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Focus keeps the scenario event when ranked first');
+  assert.equal(normal.conflicts.length, 0);
+  const blocked = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [lane.id, focus.id] });
+  assert.ok(!blocked.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Lane Legerdemain ranked first takes the event');
+  assert.equal(blocked.conflicts.length, 1);
+  assert.equal(blocked.conflicts[0]!.keptSkill, lane.id);
+  assert.equal(blocked.conflicts[0]!.keptIsTarget, false);
 });

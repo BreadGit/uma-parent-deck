@@ -181,7 +181,7 @@ function computeUncached() {
   // event's single choice goes to. Pass 2 rebuilds with those rules.
   const pass1 = buildDeck(deckPool, targets, baseCtx, pinnedIds, 6, borrowPool);
   const priority: number[] = [];
-  for (const w of orderCandidates(wishlistCandidates(pass1.deck, targets, baseCtx))) { const tid = targetOf(w.skillId); if (tid != null && !priority.includes(tid)) priority.push(tid); }
+  for (const w of orderCandidates(wishlistCandidates(pass1.deck, targets, baseCtx))) { const k = targetOf(w.skillId) ?? w.skillId; if (!priority.includes(k)) priority.push(k); }
   for (const t of targets) if (!priority.includes(t.id)) priority.push(t.id);
   const ctx: Ctx = { ...baseCtx, priority };
   const existing = traineeCoverage(targets, ctx);
@@ -305,7 +305,7 @@ function renderRunSettings(c: Computed): Raw {
       <div class="chips">
         ${state.pinnedIds.length ? state.pinnedIds.map((id) => { const card = data.cardById.get(id); if (!card) return '';
           const owned = !c.unowned.has(id);
-          return html`<span class="chip">${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} ${card.title}</a>${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
+          return html`<span class="chip">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} ${card.title}</a>${owned ? '' : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin">✕</button></span>`; })
         : html`<span class="muted small">Nothing pinned. Light Hello is mandatory in Grand Concert, so pin one of her cards unless you have a reason not to.</span>`}
       </div>
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : ''}
@@ -411,10 +411,10 @@ function renderDeck(c: Computed): Raw {
           return html`<table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken${tip('Skills are taken when they are higher in the Independent training prioritized skills section below.')}</th><th>Not taken</th></tr></thead><tbody>
             ${d.conflicts.map((cf) => html`<tr><td style="white-space:normal">${cf.label}</td>
               <td style="white-space:normal">${opts(cf).map((o) => html`<div>${skillWithTip(o.skill)}${o.opt ? html` <span class="muted">${o.opt}</span>` : ''}</div>`)}</td>
-              <td><b>${skillName(cf.keptSkill)}</b></td><td>${cf.droppedSkills.map(skillName).join(', ')}</td></tr>`)}
+              <td><b>${skillName(cf.keptSkill)}</b>${cf.keptIsTarget ? '' : html` <span class="muted">(not a target)</span>`}</td><td>${cf.droppedSkills.map(skillName).join(', ')}</td></tr>`)}
             </tbody></table>`;
         })()}
-        <div class="small muted">Only one option can be taken per event. Targets involved: ${[...new Set(d.conflicts.flatMap((cf) => [cf.kept, ...cf.dropped]))].map((id) => c.targets.find((t) => t.id === id)?.name ?? '').filter(Boolean).join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div></div>` : ''}
+        <div class="small muted">Only one option can be taken per event. Targets involved: ${[...new Set(d.conflicts.flatMap((cf) => [...(cf.keptIsTarget ? [cf.kept] : []), ...cf.dropped]))].map((id) => c.targets.find((t) => t.id === id)?.name ?? '').filter(Boolean).join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div></div>` : ''}
       <h3>Independent training prioritized skills (up to 10)</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li draggable="true" data-wl-key="${w.key}">
           <span class="grip" title="Drag to reorder">⋮⋮</span>
@@ -679,6 +679,7 @@ app.addEventListener('change', (ev) => {
     if (el.value !== autoPick) for (const r of inSlot) state.raceOverrides[r.calendarId] = r.calendarId === el.value;
     persist(); render(); return;
   }
+  if (el.dataset.select === 'trainee-stars') { state.traineeStars = Number(el.value); persist(); render(); return; }
   if (el.dataset.lb != null) { const id = el.dataset.lb; const card = data.cardById.get(Number(id));
     if (el.value === 'none') inventory[id] = null;
     else if (card && Number(el.value) === settings.defaultLb[card.rarity]) delete inventory[id];

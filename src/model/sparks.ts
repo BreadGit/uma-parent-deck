@@ -204,26 +204,37 @@ export function scenarioSources(target: Target, data: Data, settings: Settings, 
     .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...tag(o.skillId), pObtain: settings.scenarioPickRate, isChoice: true, eventKey: o.eventKey, eventLabel: o.eventLabel, optionLabel: o.optionLabel, detail: o.detail, ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
 }
 
-export interface Conflict { eventKey: string; label: string; kept: number; keptOption: string; keptSkill: number; dropped: number[]; droppedOptions: string[]; droppedSkills: number[] } // target ids and the skill each option gives
+export interface Conflict { eventKey: string; label: string; kept: number; keptIsTarget: boolean; keptOption: string; keptSkill: number; dropped: number[]; droppedOptions: string[]; droppedSkills: number[] } // target ids (or a non-target skill id when keptIsTarget is false) and the skill each option gives
+/** A choice-gated option that is not a target but sits in the prioritized list: if ranked above the targets sharing its event, it takes the event. */
+export interface Blocker { eventKey: string; skillId: number; eventLabel: string; optionLabel: string }
 
 /**
  * One event yields one option. When choice-gated sources for different targets share an event, keep the target
  * that comes first in `priority` (target ids in prioritized-skill order) and drop the rest.
  */
-export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[]): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[], blockers: Blocker[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
   for (const [tid, sources] of map) for (const s of sources) if (s.isChoice && s.eventKey) byEvent.set(s.eventKey, new Set([...(byEvent.get(s.eventKey) ?? []), tid]));
-  const rank = (tid: number) => { const i = priority.indexOf(tid); return i < 0 ? Infinity : i; };
+  const rank = (key: number) => { const i = priority.indexOf(key); return i < 0 ? Infinity : i; };
   const drop = new Map<string, Set<number>>();
   const conflicts: Conflict[] = [];
   for (const [key, tids] of byEvent) {
-    if (tids.size < 2) continue;
+    const first = (tid: number) => { const ss = [...map.entries()].flatMap(([t, list]) => list.filter((s) => s.eventKey === key && t === tid)); return ss.find((s) => s.gold) ?? ss[0]; };
     const ordered = [...tids].sort((a, b) => rank(a) - rank(b) || a - b);
+    // a non-target option of this event that the user ranked above every target option wins the event outright
+    const blocker = blockers.filter((b) => b.eventKey === key && rank(b.skillId) < rank(ordered[0]!)).sort((a, b) => rank(a.skillId) - rank(b.skillId))[0];
+    if (blocker) {
+      drop.set(key, new Set(ordered));
+      const sample = first(ordered[0]!);
+      conflicts.push({ eventKey: key, label: blocker.eventLabel || sample?.eventLabel || key, kept: blocker.skillId, keptIsTarget: false, keptOption: blocker.optionLabel, keptSkill: blocker.skillId,
+        dropped: ordered, droppedOptions: ordered.map((t) => first(t)?.optionLabel ?? ''), droppedSkills: ordered.map((t) => first(t)?.skillId ?? t) });
+      continue;
+    }
+    if (tids.size < 2) continue;
     const kept = ordered[0]!;
     drop.set(key, new Set(ordered.slice(1)));
-    const first = (tid: number) => { const ss = [...map.entries()].flatMap(([t, list]) => list.filter((s) => s.eventKey === key && t === tid)); return ss.find((s) => s.gold) ?? ss[0]; };
     const sample = first(kept);
-    conflicts.push({ eventKey: key, label: sample?.eventLabel ?? `${sample?.cardName ? sample.cardName + ': ' : ''}${sample?.detail ?? key}`, kept, keptOption: sample?.optionLabel ?? '', keptSkill: sample?.skillId ?? kept,
+    conflicts.push({ eventKey: key, label: sample?.eventLabel ?? `${sample?.cardName ? sample.cardName + ': ' : ''}${sample?.detail ?? key}`, kept, keptIsTarget: true, keptOption: sample?.optionLabel ?? '', keptSkill: sample?.skillId ?? kept,
       dropped: ordered.slice(1), droppedOptions: ordered.slice(1).map((t) => first(t)?.optionLabel ?? ''), droppedSkills: ordered.slice(1).map((t) => first(t)?.skillId ?? t) });
   }
   if (!conflicts.length) return { map, conflicts };
