@@ -347,6 +347,8 @@ async function fetchImages({ cards, skills, characters }) {
   for (const c of characters) jobs.push([`/images/umamusume/characters/thumb/chara_stand_${c.charId}_${c.cardId}.png`, `characters/${c.cardId}.png`]);
   for (const r of [1, 2, 3]) jobs.push([`/images/umamusume/icons/utx_txt_rarity_0${r}.png`, `icons/rarity_${r}.png`]);
   jobs.push(['/images/umamusume/icons/hint.png', 'icons/hint.png']);
+  // support card type icons: 00 speed, 01 stamina, 02 power, 03 guts, 04 wit, 05 pal, 06 group
+  for (const [i, t] of ['speed', 'stamina', 'power', 'guts', 'wit', 'pal', 'group'].entries()) jobs.push([`/images/umamusume/icons/utx_ico_obtain_0${i}.png`, `icons/type_${t}.png`]);
   jobs.push(['/images/umamusume/ui/sp.png', 'icons/sp.png']);
   // Skill icons only for skills that some Global card or character can give.
   const usedIcons = new Set();

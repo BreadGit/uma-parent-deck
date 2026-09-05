@@ -113,16 +113,7 @@ const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${te
 const cardUrl = (c: Card) => `https://gametora.com/umamusume/supports/${c.urlName}`;
 const cardLink = (c: Card) => html`<a class="card-link" href="${cardUrl(c)}" target="_blank" rel="noopener">${c.name}</a>`;
 const cardThumb = (c: Card, cls = 'thumb') => html`<a href="${cardUrl(c)}" target="_blank" rel="noopener"><img class="${cls}" src="${cardImg(c)}" alt="" loading="lazy" /></a>`;
-const TYPE_ICON: Record<string, { bg: string; path: string }> = {
-  speed:   { bg: '#4a8ef0', path: 'M7 4h5v6l4 2v3H6v-3l1-2z' },                              // boot
-  stamina: { bg: '#f0564e', path: 'M10 17l-5.5-5.5a3.2 3.2 0 0 1 4.5-4.5l1 1 1-1a3.2 3.2 0 0 1 4.5 4.5z' }, // heart
-  power:   { bg: '#f09a2e', path: 'M4 12c2-4 5-6 8-6 2 0 4 1 4 3s-2 3-4 3l-1 3H7z' },        // flexed arm
-  guts:    { bg: '#f05d9c', path: 'M10 3c1 3 4 4 4 8a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-7z' }, // flame
-  wit:     { bg: '#2eb86e', path: 'M10 5l7 3-7 3-7-3zm-4 4.5v3c0 1.5 2 2.5 4 2.5s4-1 4-2.5v-3l-4 1.7z' }, // cap
-  pal:     { bg: '#f2b53a', path: 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm-2.5 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm5 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM6.5 12h7c-.5 1.5-2 2.5-3.5 2.5S7 13.5 6.5 12z' }, // smiley
-  group:   { bg: '#5fbf7a', path: 'M7 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm6 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM2 17c0-2.5 2.5-4 5-4s5 1.5 5 4zm8.5 0c.3-1.5 1.5-2.6 2.5-3 1.8 0 4 1.3 4 3z' }, // two heads
-};
-const typeIcon = (c: Card) => { const t = TYPE_ICON[c.type] ?? TYPE_ICON.pal!; return html`<svg class="type-icon" viewBox="0 0 20 20" role="img" aria-label="${c.type}"><title>${c.type}</title><rect width="20" height="20" rx="5" fill="${t.bg}"/><path d="${t.path}" fill="#fff"/></svg>`; };
+const typeIcon = (c: Card) => html`<img class="type-icon" src="/assets/icons/type_${c.type}.png" alt="${c.type}" title="${c.type}" />`;
 const typeTag = (c: Card) => html`<span class="tag type-${c.type}">${c.type}</span>`;
 
 function targetableSkills(): Skill[] {
@@ -307,7 +298,7 @@ function renderDeck(c: Computed): Raw {
       <h2>Suggested deck</h2>
       ${d.deck.length ? html`<div class="deck">${d.deck.map((cs) => html`
         <div class="slot">
-          ${cs.borrowed ? html`<span class="tag borrow pin-corner">borrow</span>` : state.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin pin-corner">pinned</span>` : ''}
+          <div class="slot-top">${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : state.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin">pinned</span>` : ''}</div>
           ${cardThumb(cs.card, 'slot-art')}
           <div class="name">${cardLink(cs.card)}</div>
           <div class="lb">${cs.borrowed ? html`${cs.card.rarity} · LB4 (friend's)` : html`${cs.card.rarity} · LB <select data-lb="${cs.card.id}" class="small">${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${cs.lb === l ? 'selected' : ''}>${l}</option>`)}<option value="none">not owned</option></select>`} ${typeTag(cs.card)}</div>
@@ -388,7 +379,7 @@ function renderSchedule(c: Computed): Raw {
     if (!entries.length) return html`<div class="agenda-cell empty"><div class="agenda-body"></div><div class="agenda-label">${slotLabel(slot)}</div></div>`;
     const info = sel
       ? html`<div class="agenda-race ${sel.race.surface}">${sel.race.name}</div>
-             <div class="agenda-meta">${sel.race.surface} ${sel.race.category} ${sel.race.distance}m</div>
+             <div class="agenda-meta">${sel.race.surface} ${({ sprint: 'spr', mile: 'mile', medium: 'med', long: 'long' } as Record<string, string>)[sel.race.category]} ${sel.race.distance}</div>
              <div class="agenda-meta">win ${pill(sel.base)}${sel.pWin < sel.base ? html` → ${pill(sel.pWin, 'warn')}` : ''}${sel.consecutive > 2 ? html` <span class="tag warn">${sel.consecutive} in a row</span>` : ''}</div>`
       : html`<div class="agenda-meta muted agenda-avail">${entries.map((e) => `${e.race.name} ${pct(e.base)}`).join(' · ')}</div>`;
     const manual = entries.some((e) => state.raceOverrides[e.race.calendarId] != null);
@@ -433,7 +424,7 @@ function renderRanking(c: Computed): Raw {
           const explicit = inventory[String(x.card.id)] !== undefined;
           return html`<tr class="${owned ? '' : 'dim'}">
             <td>${cardThumb(x.card)}</td>
-            <td>${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a>${typeIcon(x.card)}${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : ''}<br/><span class="small muted">${x.card.title}</span></td>
+            <td>${typeIcon(x.card)}${state.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : ''}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a>${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : ''}<br/><span class="small muted">${x.card.title}</span></td>
             <td><select data-lb="${x.card.id}" class="${explicit ? '' : 'muted'}"><option value="none" ${owned ? '' : 'selected'}>not owned</option>${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ${owned && x.lb === l ? 'selected' : ''}>${l}${!explicit && x.lb === l ? ' (default)' : ''}</option>`)}</select></td>
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
             <td class="num">${pill(x.sparkValue, '', 1)}</td>
