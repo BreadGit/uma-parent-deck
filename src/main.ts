@@ -135,7 +135,7 @@ function compute() {
   const targets = state.targets.map((id) => resolveTarget(id, data)).filter((t): t is Target => !!t);
   const lineage = new Map<number, Lineage>();
   for (const t of targets) { const l = state.targetLineage[String(t.id)]; if (l && l.n > 0) lineage.set(t.id, l); }
-  const ctx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, lineage };
+  const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, lineage };
   // Every card is owned unless marked otherwise; unmarked cards sit at the rarity's default LB.
   const pool: { card: Card; lb: number }[] = [];
   const unowned = new Set<number>();
@@ -144,12 +144,22 @@ function compute() {
     if (lb != null) pool.push({ card, lb });
     else { unowned.add(card.id); if (settings.showUnowned) pool.push({ card, lb: settings.defaultLb[card.rarity] }); }
   }
-  const existing = traineeCoverage(targets, ctx);
-  const ranking = rankCards(pool.filter((p) => !unowned.has(p.card.id) || settings.showUnowned), targets, existing, ctx);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
   const pinnedIds = state.pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
   // Any Global card can be borrowed from a friend, assumed at LB4.
   const borrowPool = data.cards.map((card) => ({ card, lb: 4 }));
+  const targetOf = (skillId: number) => targets.find((t) => t.familyIds.has(skillId))?.id;
+  const orderIndex = (w: WishlistEntry) => { const i = state.wishlistOrder.indexOf(w.skillId); return i < 0 ? Infinity : i; };
+  const orderCandidates = (cands: WishlistEntry[]) => cands.filter((w) => !state.wishlistExcluded.includes(w.skillId)).slice().sort((a, b) => orderIndex(a) - orderIndex(b) || (b.weight - a.weight));
+  // Pass 1: build without conflict rules to get the prioritized-skill order; that order decides which target an
+  // event's single choice goes to. Pass 2 rebuilds with those rules.
+  const pass1 = buildDeck(deckPool, targets, baseCtx, pinnedIds, 6, borrowPool);
+  const priority: number[] = [];
+  for (const w of orderCandidates(wishlistCandidates(pass1.deck, targets, baseCtx))) { const tid = targetOf(w.skillId); if (tid != null && !priority.includes(tid)) priority.push(tid); }
+  for (const t of targets) if (!priority.includes(t.id)) priority.push(t.id);
+  const ctx: Ctx = { ...baseCtx, priority };
+  const existing = traineeCoverage(targets, ctx);
+  const ranking = rankCards(pool.filter((p) => !unowned.has(p.card.id) || settings.showUnowned), targets, existing, ctx);
   const deckResult = buildDeck(deckPool, targets, ctx, pinnedIds, 6, borrowPool);
   const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings);
   const inherited = STATS.map((_, i) => inheritedFromParents(state.parentStars, i, settings));
@@ -163,9 +173,7 @@ function compute() {
   const sdScore = Math.sqrt(dScore.reduce((a, d) => a + d * d, 0) + Math.pow(settings.skillScoreSd, 2));
   const ssMin = thresholdFor('SS', data.ranks);
   const pSS = 1 - phi((ssMin - score) / Math.max(1, sdScore));
-  const wlAll = wishlistCandidates(deckResult.deck, targets, ctx).filter((w) => !state.wishlistExcluded.includes(w.skillId));
-  const orderIndex = (w: WishlistEntry) => { const i = state.wishlistOrder.indexOf(w.skillId); return i < 0 ? Infinity : i; };
-  const ordered = wlAll.slice().sort((a, b) => orderIndex(a) - orderIndex(b) || (b.weight - a.weight));
+  const ordered = orderCandidates(wishlistCandidates(deckResult.deck, targets, ctx));
   const wl = ordered.slice(0, 10);
   const wlRest = ordered.slice(10);
   const wlExcluded = wishlistCandidates(deckResult.deck, targets, ctx).filter((w) => state.wishlistExcluded.includes(w.skillId));
@@ -362,6 +370,10 @@ function renderDeck(c: Computed): Raw {
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
+      ${d.conflicts.length ? html`<h3>Choice conflicts</h3>
+        <ul class="small">${d.conflicts.map((cf) => { const name = (id: number) => c.targets.find((t) => t.id === id)?.name ?? `#${id}`;
+          return html`<li>${cf.label}: one option only. <b>${name(cf.kept)}</b> is taken (higher in the prioritized list); ${cf.dropped.map(name).join(', ')} ${cf.dropped.length === 1 ? 'is' : 'are'} not counted from this event.</li>`; })}</ul>
+        <div class="small muted">Reorder the prioritized skills below to change which one wins.</div>` : ''}
       <h3>Independent training prioritized skills (up to 10)</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w, i) => html`<li>
           <span class="wl-ctl"><button class="small" data-action="wl-up" data-id="${w.skillId}" ${i === 0 ? 'disabled' : ''} title="Move up">▲</button><button class="small" data-action="wl-down" data-id="${w.skillId}" ${i === c.wl.length - 1 ? 'disabled' : ''} title="Move down">▼</button></span>

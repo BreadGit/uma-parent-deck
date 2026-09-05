@@ -165,3 +165,30 @@ test('Grand Concert linked event: Mihono Bourbon cards give Concentration, every
   const base = traineeCoverage([focus], ctx).get(focus.id)!;
   assert.ok(base.some((s) => s.kind === 'scenario' && !s.gold), 'baseline white option');
 });
+
+test('one option per event: Smart Falcon chain 1 offers Groundwork or Focus, priority decides', () => {
+  const groundwork = resolveTarget(201601, data)!;
+  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
+  const falcon = cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!;
+  const targets = [groundwork, focus];
+  const mk = (priority: number[]): Ctx => ({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null, priority });
+  const a = buildDeck([{ card: falcon, lb: 4 }], targets, mk([groundwork.id, focus.id]), [], 1);
+  assert.equal(a.conflicts.length, 1);
+  assert.equal(a.conflicts[0]!.kept, groundwork.id);
+  const focusSources = a.coverage.get(focus.id)!.filter((s) => s.eventKey === a.conflicts[0]!.eventKey);
+  assert.equal(focusSources.length, 0, 'Focus should not be counted from the shared event');
+  assert.ok(a.coverage.get(groundwork.id)!.some((s) => s.eventKey === a.conflicts[0]!.eventKey));
+  const b = buildDeck([{ card: falcon, lb: 4 }], targets, mk([focus.id, groundwork.id]), [], 1);
+  assert.equal(b.conflicts[0]!.kept, focus.id);
+});
+
+test('a pinned card is never swapped for another card of the same character', () => {
+  const ghost = cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit')!;
+  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
+  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const pool = cards.map((card) => ({ card, lb: 2 }));
+  const d = buildDeck(pool, [focus], ctx, [ghost.id], 6, cards.map((card) => ({ card, lb: 4 })));
+  const bourbons = d.deck.filter((x) => x.card.charId === ghost.charId);
+  assert.equal(bourbons.length, 1);
+  assert.equal(bourbons[0]!.card.id, ghost.id, 'the pinned Bourbon card must be the one in the deck');
+});

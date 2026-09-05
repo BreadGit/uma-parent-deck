@@ -39,6 +39,7 @@ export interface SkillSource {
   isChoice: boolean;     // event: the skill only comes from one of several choices (wishlist matters)
   detail: string;        // where it comes from, e.g. 'Chain event 3 "We Walk Together"'
   cardName?: string;     // the support card providing it (absent for trainee sources)
+  eventKey?: string;     // choice-gated sources sharing a key come from one event: only one option can be taken
 }
 
 /** Expected number of hint events a card produces per run, from Hint Frequency. */
@@ -82,7 +83,7 @@ export function eventSources(card: Card, settings: Settings): SkillSource[] {
         const inAll = ev.choices.every((c) => c.outcomes.some((o) => rewardSkills(o).some((x) => x.id === id)));
         const both = where.size === 2 ? '' : where.size === 1 ? `, ${[...where][0]}` : '';
         out.push({ kind: ev.kind, skillId: id, gold: false, circle: false, pObtain: pFire * p, isChoice: nChoices > 1 && !inAll,
-          detail: `${label} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}${both}` });
+          eventKey: `${card.id}:${ev.kind}:${ev.index}`, detail: `${label} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}${both}` });
       }
     });
   };
@@ -176,15 +177,41 @@ export function scenarioSources(target: Target, data: Data, settings: Settings, 
     if (ev.scenarioId !== settings.scenarioId) continue;
     for (const ch of ev.choices) {
       if (ch.linkedCharId == null) {
-        if (linkedCharIds == null && ch.skill != null && target.familyIds.has(ch.skill)) out.push({ kind: 'scenario', skillId: ch.skill, ...tag(ch.skill), pObtain: settings.scenarioPickRate, isChoice: true, detail: 'Scenario event, unaffiliated option' });
+        if (linkedCharIds == null && ch.skill != null && target.familyIds.has(ch.skill)) out.push({ kind: 'scenario', skillId: ch.skill, ...tag(ch.skill), pObtain: settings.scenarioPickRate, isChoice: true, eventKey: `scenario:${ev.eventId}`, detail: 'Scenario event, unaffiliated option' });
         continue;
       }
       const linked = linkedCharIds?.has(ch.linkedCharId) ?? false;
-      if (linkedCharIds == null && ch.whiteSkill != null && target.familyIds.has(ch.whiteSkill)) out.push({ kind: 'scenario', skillId: ch.whiteSkill, ...tag(ch.whiteSkill), pObtain: settings.scenarioPickRate, isChoice: true, detail: `Scenario event, ${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked'} option without her card` });
-      if (linked && ch.goldSkill != null && target.familyIds.has(ch.goldSkill)) out.push({ kind: 'scenario', skillId: ch.goldSkill, ...tag(ch.goldSkill), pObtain: settings.scenarioPickRate, isChoice: true, cardName, detail: `Scenario event, linked option (${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked character'} present)` });
+      if (linkedCharIds == null && ch.whiteSkill != null && target.familyIds.has(ch.whiteSkill)) out.push({ kind: 'scenario', skillId: ch.whiteSkill, ...tag(ch.whiteSkill), pObtain: settings.scenarioPickRate, isChoice: true, eventKey: `scenario:${ev.eventId}`, detail: `Scenario event, ${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked'} option without her card` });
+      if (linked && ch.goldSkill != null && target.familyIds.has(ch.goldSkill)) out.push({ kind: 'scenario', skillId: ch.goldSkill, ...tag(ch.goldSkill), pObtain: settings.scenarioPickRate, isChoice: true, eventKey: `scenario:${ev.eventId}`, cardName, detail: `Scenario event, linked option (${data.characters.find((c) => c.charId === ch.linkedCharId)?.name ?? 'linked character'} present)` });
     }
   }
   return out;
+}
+
+export interface Conflict { eventKey: string; label: string; kept: number; dropped: number[] } // target ids
+
+/**
+ * One event yields one option. When choice-gated sources for different targets share an event, keep the target
+ * that comes first in `priority` (target ids in prioritized-skill order) and drop the rest.
+ */
+export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[]): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+  const byEvent = new Map<string, Set<number>>();
+  for (const [tid, sources] of map) for (const s of sources) if (s.isChoice && s.eventKey) byEvent.set(s.eventKey, new Set([...(byEvent.get(s.eventKey) ?? []), tid]));
+  const rank = (tid: number) => { const i = priority.indexOf(tid); return i < 0 ? Infinity : i; };
+  const drop = new Map<string, Set<number>>();
+  const conflicts: Conflict[] = [];
+  for (const [key, tids] of byEvent) {
+    if (tids.size < 2) continue;
+    const ordered = [...tids].sort((a, b) => rank(a) - rank(b) || a - b);
+    const kept = ordered[0]!;
+    drop.set(key, new Set(ordered.slice(1)));
+    const sample = [...map.entries()].flatMap(([tid, ss]) => ss.filter((s) => s.eventKey === key && tid === kept))[0];
+    conflicts.push({ eventKey: key, label: `${sample?.cardName ? sample.cardName + ': ' : ''}${sample?.detail ?? key}`, kept, dropped: ordered.slice(1) });
+  }
+  if (!conflicts.length) return { map, conflicts };
+  const out = new Map<number, SkillSource[]>();
+  for (const [tid, sources] of map) out.set(tid, sources.filter((s) => !(s.isChoice && s.eventKey && drop.get(s.eventKey)?.has(tid))));
+  return { map: out, conflicts };
 }
 
 /** Combine independent sources into P(own gold) and P(own white) at run end. */

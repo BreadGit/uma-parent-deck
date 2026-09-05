@@ -2,7 +2,7 @@ import type { Card, Character, Data, Stat } from '../types.ts';
 import { STATS } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale } from './stats.ts';
-import { cardSourcesForTarget, combineSources, eventSources, lineageSources, scenarioSources, sparkChance, traineeSources, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, eventSources, lineageSources, pruneConflicts, scenarioSources, sparkChance, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
 
 export interface Ctx {
   data: Data;
@@ -11,6 +11,13 @@ export interface Ctx {
   totalTurns: number;
   trainee: Character | null;
   lineage?: Map<number, Lineage>; // target.id -> existing lineage sparks
+  priority?: number[];            // target ids in prioritized-skill order, decides which option an event's choice goes to
+}
+const withSources = (existing: Existing, add: Map<number, SkillSource[]>) => { const m = new Map(existing); for (const [t, ss] of add) m.set(t, [...(m.get(t) ?? []), ...ss]); return m; };
+/** Spark chance per target after enforcing one option per event. */
+function sparkMap(map: Map<number, SkillSource[]>, targets: Target[], ctx: Ctx): Map<number, number> {
+  const pruned = pruneConflicts(map, ctx.priority ?? []).map;
+  return new Map(targets.map((t) => [t.id, sparkChance(combineSources(pruned.get(t.id) ?? []), ctx.settings, lineageN(ctx, t))]));
 }
 const lineageN = (ctx: Ctx, t: Target) => ctx.lineage?.get(t.id)?.n ?? 0;
 
@@ -48,16 +55,20 @@ export function scoreCard(card: Card, lb: number, targets: Target[], existing: E
   const stats = contrib.stats.map((v) => v * scale);
   const coverage: Coverage[] = [];
   let sparkValue = 0, marginalValue = 0;
+  const mine = new Map<number, SkillSource[]>();
   for (const t of targets) {
     const sources = cardSourcesForTarget(card, lb, t, ctx.races, ctx.totalTurns, ctx.data, ctx.settings);
-    if (!sources.length) continue;
-    const own = combineSources(sources);
-    const n = lineageN(ctx, t);
-    const spark = sparkChance(own, ctx.settings, n);
-    const prior = existing.get(t.id) ?? [];
-    const before = sparkChance(combineSources(prior), ctx.settings, n);
-    const after = sparkChance(combineSources([...prior, ...sources]), ctx.settings, n);
-    const marginal = Math.max(0, after - before);
+    if (sources.length) mine.set(t.id, sources);
+  }
+  const alone = sparkMap(mine, targets, ctx);
+  const before = sparkMap(existing, targets, ctx);
+  const after = sparkMap(withSources(existing, mine), targets, ctx);
+  for (const t of targets) {
+    const sources = mine.get(t.id);
+    if (!sources) continue;
+    const own = combineSources(pruneConflicts(mine, ctx.priority ?? []).map.get(t.id) ?? []);
+    const spark = alone.get(t.id) ?? 0;
+    const marginal = Math.max(0, (after.get(t.id) ?? 0) - (before.get(t.id) ?? 0));
     coverage.push({ target: t, sources, own, spark, marginal });
     sparkValue += spark;
     marginalValue += marginal;
@@ -73,14 +84,13 @@ export function rankCards(pool: { card: Card; lb: number }[], targets: Target[],
 }
 
 export interface BorrowOption { card: Card; replaces: Card | null; gain: number; statGain: number }
-export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Existing; borrow: BorrowOption | null; borrowAlternatives: BorrowOption[] }
+export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Existing; conflicts: Conflict[]; borrow: BorrowOption | null; borrowAlternatives: BorrowOption[] }
 
 /** Total expected sparks over the targets for a set of cards, plus their stat power. */
 function deckValue(entries: CardScore[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
   const existing = traineeCoverage(targets, ctx);
   for (const e of entries) for (const c of e.coverage) existing.set(c.target.id, [...(existing.get(c.target.id) ?? []), ...c.sources]);
-  let sparks = 0;
-  for (const t of targets) sparks += sparkChance(combineSources(existing.get(t.id) ?? []), ctx.settings, lineageN(ctx, t));
+  const sparks = [...sparkMap(existing, targets, ctx).values()].reduce((a, b) => a + b, 0);
   return { sparks, stats: entries.reduce((a, e) => a + e.statPower, 0) };
 }
 
@@ -125,6 +135,8 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
       if (ctx.trainee && b.card.charId === ctx.trainee.charId) continue;
       const bs = scoreCard(b.card, b.lb, targets, emptyExisting, ctx);
       const sameChar = deck.findIndex((d) => d.card.charId === b.card.charId);
+      // A pinned card stays: only the same card at a higher LB may replace it.
+      if (sameChar >= 0 && pinnedIds.includes(deck[sameChar]!.card.id) && deck[sameChar]!.card.id !== b.card.id) continue;
       const slots = sameChar >= 0 ? [sameChar] : deck.map((_, i) => i).filter((i) => !pinnedIds.includes(deck[i]!.card.id));
       for (const i of slots) {
         const cur = deck[i]!;
@@ -151,9 +163,10 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
         : `Borrow ${best.opt.card.name} (LB4): your own six are already the best, so any of them can be the friend's card`);
     }
   }
-  const coverage = traineeCoverage(targets, ctx);
-  for (const e of deck) for (const c of e.coverage) coverage.set(c.target.id, [...(coverage.get(c.target.id) ?? []), ...c.sources]);
-  return { deck, steps, coverage, borrow, borrowAlternatives: alternatives };
+  const raw = traineeCoverage(targets, ctx);
+  for (const e of deck) for (const c of e.coverage) raw.set(c.target.id, [...(raw.get(c.target.id) ?? []), ...c.sources]);
+  const { map: coverage, conflicts } = pruneConflicts(raw, ctx.priority ?? []);
+  return { deck, steps, coverage, conflicts, borrow, borrowAlternatives: alternatives };
 }
 
 export interface WishlistEntry { skillId: number; name: string; gated: boolean; isTarget: boolean; reason: string; weight: number }
@@ -166,9 +179,11 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
   const entries: WishlistEntry[] = [];
   const seen = new Set<number>();
   const targetFamilies = new Set(targets.flatMap((t) => [...t.familyIds]));
-  const baseline = traineeCoverage(targets, ctx);
+  const raw = traineeCoverage(targets, ctx);
+  for (const d of deck) for (const c of d.coverage) raw.set(c.target.id, [...(raw.get(c.target.id) ?? []), ...c.sources]);
+  const pruned = pruneConflicts(raw, ctx.priority ?? []).map;
   for (const t of targets) {
-    const all = [...deck.flatMap((d) => d.coverage.filter((c) => c.target.id === t.id).flatMap((c) => c.sources)), ...(baseline.get(t.id) ?? []).filter((s) => s.kind === 'scenario')];
+    const all = (pruned.get(t.id) ?? []).filter((s) => s.kind !== 'lineage' && s.kind !== 'innate' && s.kind !== 'awakening');
     if (!all.length) continue;
     const choice = all.filter((s) => s.isChoice);
     const spark = sparkChance(combineSources(all), ctx.settings, lineageN(ctx, t));
