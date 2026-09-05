@@ -24,7 +24,8 @@ export function baseWinChance(race: Race, apt: Aptitudes): number {
 
 /** Turn index of a calendar slot: year (1..3), month, half. 0 = Junior early January, 71 = Senior late December. */
 export const slotOf = (r: Race) => (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1);
-export const SLOT_COUNT = 72;
+import { SLOT_COUNT } from './rules.ts';
+export { SLOT_COUNT };
 
 export interface ScheduledRace {
   race: Race;

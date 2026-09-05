@@ -8,7 +8,8 @@ import { lineageCount, resolveTarget, sparkChance, type Lineage, type Target } f
 import { cardContribution, modelContribution, pAbove, predictDeck, phi, raceScale } from './model/stats.ts';
 import { buildSchedule, goalRaces, racePopularity, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './model/races.ts';
 import { skillScore, statScore, thresholdFor } from './model/rank.ts';
-import { clampStars, inheritedFromParents, MAX_PARENT_STARS } from './model/inherit.ts';
+import { clampStars, inheritedFromParents } from './model/inherit.ts';
+import { BORROWED_LB, DECK_SIZE, LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, PRIORITIZED_SKILLS_MAX, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import meta from '../data/meta.json';
 
 const data = loadData();
@@ -43,8 +44,8 @@ function loadState(): PersistedState {
       for (const [k, v] of Object.entries(merged.targetLineage ?? {})) {
         const old = v as unknown as { n?: number; stars?: number; p1?: number; p2?: number; k1?: number; k2?: number };
         if (old.k1 != null) continue;
-        const n = old.n ?? 0, k1 = Math.min(3, Math.ceil(n / 2)), k2 = Math.min(3, n - k1);
-        merged.targetLineage[k] = { k1, k2, p1: Math.min(3 * k1, old.p1 ?? (old.stars ?? 3) * k1), p2: Math.min(3 * k2, old.p2 ?? (old.stars ?? 3) * k2) };
+        const n = old.n ?? 0, k1 = Math.min(LINEAGE_MAX_PER_SIDE, Math.ceil(n / 2)), k2 = Math.min(LINEAGE_MAX_PER_SIDE, n - k1);
+        merged.targetLineage[k] = { k1, k2, p1: Math.min(STARS_PER_SPARK_MAX * k1, old.p1 ?? (old.stars ?? STARS_PER_SPARK_MAX) * k1), p2: Math.min(STARS_PER_SPARK_MAX * k2, old.p2 ?? (old.stars ?? STARS_PER_SPARK_MAX) * k2) };
       }
       if (!saved.parentStars && saved.blueStars) {
         // migrate the old combined sliders: fill parent 1 first, the rest goes to parent 2
@@ -173,7 +174,7 @@ function computeUncached() {
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
   const pinnedIds = state.pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
   // Any Global card can be borrowed from a friend, assumed at LB4.
-  const borrowPool = data.cards.map((card) => ({ card, lb: 4 }));
+  const borrowPool = data.cards.map((card) => ({ card, lb: BORROWED_LB }));
   const targetOf = (skillId: number) => targets.find((t) => t.familyIds.has(skillId))?.id;
   // A remembered position applies to the whole skill family (gold, ○ and normal forms), so an entry that flips form
   // when the deck changes keeps its place instead of dropping to the bottom.
@@ -183,7 +184,7 @@ function computeUncached() {
   const orderCandidates = (cands: WishlistEntry[]) => cands.filter((w) => !state.wishlistExcluded.includes(w.key)).slice().sort((a, b) => orderIndex(a) - orderIndex(b) || (b.weight - a.weight));
   // Pass 1: build without conflict rules to get the prioritized-skill order; that order decides which target an
   // event's single choice goes to. Pass 2 rebuilds with those rules.
-  const pass1 = buildDeck(deckPool, targets, baseCtx, pinnedIds, 6, borrowPool);
+  const pass1 = buildDeck(deckPool, targets, baseCtx, pinnedIds, DECK_SIZE, borrowPool);
   const priority: number[] = [];
   for (const w of orderCandidates(wishlistCandidates(pass1.deck, targets, baseCtx))) {
     const tid = targetOf(w.skillId);
@@ -196,7 +197,7 @@ function computeUncached() {
   const ctx: Ctx = { ...baseCtx, priority };
   const existing = traineeCoverage(targets, ctx);
   const ranking = rankCards(pool.filter((p) => !unowned.has(p.card.id) || settings.showUnowned), targets, existing, ctx);
-  const deckResult = buildDeck(deckPool, targets, ctx, pinnedIds, 6, borrowPool);
+  const deckResult = buildDeck(deckPool, targets, ctx, pinnedIds, DECK_SIZE, borrowPool);
   const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings);
   const inherited = STATS.map((_, i) => inheritedFromParents(state.parentStars, i, settings));
   const finalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
@@ -210,8 +211,8 @@ function computeUncached() {
   const ssMin = thresholdFor('SS', data.ranks);
   const pSS = 1 - phi((ssMin - score) / Math.max(1, sdScore));
   const ordered = orderCandidates(wishlistCandidates(deckResult.deck, targets, ctx));
-  const wl = ordered.slice(0, 10);
-  const wlRest = ordered.slice(10);
+  const wl = ordered.slice(0, PRIORITIZED_SKILLS_MAX);
+  const wlRest = ordered.slice(PRIORITIZED_SKILLS_MAX);
   const wlExcluded = wishlistCandidates(deckResult.deck, targets, ctx).filter((w) => state.wishlistExcluded.includes(w.key));
   return { trainee, apt, schedule, sum, ctx, targets, pool, unowned, ranking, deckResult, pred, inherited, finalMean, score, sdScore, pSS, ssMin, wl, wlRest, wlExcluded, existing, pinnedIds };
 }
@@ -254,14 +255,14 @@ function renderTargets(c: Computed): Raw {
       <div class="chips">
         ${c.targets.length ? c.targets.map((t) => { const l = state.targetLineage[String(t.id)] ?? { k1: 0, k2: 0, p1: 0, p2: 0 };
           const desc = (t.white ?? t.gold)?.desc ?? '';
-          const starOpts = (k: number, cur: number, side: 'p1' | 'p2') => html`<select data-lineage-p="${t.id}" data-side="${side}" ${k ? '' : 'disabled'}>${Array.from({ length: 3 * k + 1 }, (_, i) => i).filter((i) => i >= k).map((i) => html`<option value="${i}" ${cur === i ? 'selected' : ''}>${i}★</option>`)}</select>`;
+          const starOpts = (k: number, cur: number, side: 'p1' | 'p2') => html`<select data-lineage-p="${t.id}" data-side="${side}" ${k ? '' : 'disabled'}>${Array.from({ length: STARS_PER_SPARK_MAX * k + 1 }, (_, i) => i).filter((i) => i >= k).map((i) => html`<option value="${i}" ${cur === i ? 'selected' : ''}>${i}★</option>`)}</select>`;
           return html`<span class="chip target-row ${t.gold ? 'gold' : ''}">
           <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" /><span class="tname">${t.name}</span>${tip(`${desc}${desc ? '\n\n' : ''}${t.gold ? `Gold form: ${t.gold.name}. Cards that give the gold count for this target, at the higher spark rate.` : 'This skill has no gold form.'}`)}
           <span class="muted small">${lineageCount(l) ? `${lineageCount(l)}× in lineage` : 'not in lineage'}</span>
           <button data-action="remove-target" data-id="${t.id}" title="Remove">✕</button>
           <span class="row2">
-            <span>P1 <select data-lineage-k="${t.id}" data-side="k1">${[0, 1, 2, 3].map((k) => html`<option value="${k}" ${l.k1 === k ? 'selected' : ''}>${k}×</option>`)}</select> ${starOpts(l.k1, l.p1, 'p1')}</span>
-            <span>P2 <select data-lineage-k="${t.id}" data-side="k2">${[0, 1, 2, 3].map((k) => html`<option value="${k}" ${l.k2 === k ? 'selected' : ''}>${k}×</option>`)}</select> ${starOpts(l.k2, l.p2, 'p2')}</span>
+            <span>P1 <select data-lineage-k="${t.id}" data-side="k1">${Array.from({ length: LINEAGE_MAX_PER_SIDE + 1 }, (_, k) => k).map((k) => html`<option value="${k}" ${l.k1 === k ? 'selected' : ''}>${k}×</option>`)}</select> ${starOpts(l.k1, l.p1, 'p1')}</span>
+            <span>P2 <select data-lineage-k="${t.id}" data-side="k2">${Array.from({ length: LINEAGE_MAX_PER_SIDE + 1 }, (_, k) => k).map((k) => html`<option value="${k}" ${l.k2 === k ? 'selected' : ''}>${k}×</option>`)}</select> ${starOpts(l.k2, l.p2, 'p2')}</span>
             ${tip('How many umas on each parent side (the parent plus her two grandparents, up to 3) already carry this white spark, and the star total on that side. Each spark rolls at both inspiration events to hand over the hint, and every occurrence multiplies the spark generation chance.')}</span>
         </span>`; })
         : html`<span class="muted small">Add the white skills you want to spark. Cards giving the gold version count too.</span>`}
@@ -425,7 +426,7 @@ function renderDeck(c: Computed): Raw {
             </tbody></table>`;
         })()}
         <div class="small muted">Only one option can be taken per event. Targets involved: ${[...new Set(d.conflicts.flatMap((cf) => [...(cf.keptIsTarget ? [cf.kept] : []), ...cf.dropped]))].map((id) => c.targets.find((t) => t.id === id)?.name ?? '').filter(Boolean).join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div></div>` : ''}
-      <h3>Independent training prioritized skills (up to 10)</h3>
+      <h3>Independent training prioritized skills (up to ${PRIORITIZED_SKILLS_MAX})</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li draggable="true" data-wl-key="${w.key}">
           <span class="grip" title="Drag to reorder">⋮⋮</span>
           ${w.gated && w.isTarget ? html`<span class="tag gold wl-kind">target skill</span>` : w.gated ? html`<span class="tag wl-kind">not a target</span>` : html`<span class="tag warn wl-kind">target but not a choice</span>`}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span>
@@ -669,7 +670,7 @@ app.addEventListener('change', (ev) => {
     const cur = state.targetLineage[id] ?? { k1: 0, k2: 0, p1: 0, p2: 0 };
     const next = { ...cur, [side]: k } as Lineage;
     const pSide = side === 'k1' ? 'p1' : 'p2';
-    next[pSide] = k === 0 ? 0 : Math.min(3 * k, Math.max(k, cur[pSide] || 3 * k));
+    next[pSide] = k === 0 ? 0 : Math.min(STARS_PER_SPARK_MAX * k, Math.max(k, cur[pSide] || STARS_PER_SPARK_MAX * k));
     if (lineageCount(next) === 0) delete state.targetLineage[id]; else state.targetLineage[id] = next;
     persist(); render(); return; }
   if (el.dataset.lineageP != null) { const id = el.dataset.lineageP; const cur = state.targetLineage[id]; if (cur) state.targetLineage[id] = { ...cur, [el.dataset.side as 'p1' | 'p2']: Number(el.value) }; persist(); render(); return; }
@@ -728,7 +729,7 @@ app.addEventListener('click', (ev) => {
   if (a === 'unpin-card') { state.pinnedIds = state.pinnedIds.filter((x) => x !== Number(t.dataset.id)); persist(); render(); return; }
   if (a === 'wl-exclude') { const id = Number(t.dataset.id); state.wishlistExcluded = [...new Set([...state.wishlistExcluded, id])]; state.wishlistOrder = state.wishlistOrder.filter((x) => x !== id); persist(); render(); return; }
   if (a === 'wl-restore') { const id = Number(t.dataset.id); state.wishlistExcluded = state.wishlistExcluded.filter((x) => x !== id); persist(); render(); return; }
-  if (a === 'wl-add') { const id = Number(t.dataset.id); const cur = compute().wl.map((w) => w.key).filter((x) => x !== id); cur.splice(9, cur.length, id); state.wishlistOrder = cur; persist(); render(); return; }
+  if (a === 'wl-add') { const id = Number(t.dataset.id); const cur = compute().wl.map((w) => w.key).filter((x) => x !== id); cur.splice(PRIORITIZED_SKILLS_MAX - 1, cur.length, id); state.wishlistOrder = cur; persist(); render(); return; }
   if (a === 'reset-all') { if (confirm('Clear targets, trainee, pinned cards, parent sparks, agenda picks and the prioritized order? Inventory and settings are kept.')) { localStorage.removeItem(STATE_KEY); location.reload(); } return; }
   if (a === 'wl-reset') { state.wishlistOrder = []; state.wishlistExcluded = []; persist(); render(); return; }
   if (a === 'clear-trainee') { state.traineeCardId = null; state.aptOverrides = {}; persist(); render(); return; }

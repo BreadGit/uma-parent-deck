@@ -1,6 +1,7 @@
 import type { Card, CardEvent, Character, Data, Reward, Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { EFFECT, passives } from './stats.ts';
+import { INSPIRATION_EVENTS, LINEAGE_MAX_PER_SIDE, STARS_PER_SPARK_MAX } from './rules.ts';
 
 /** A target as the user picked it, resolved to its skill family. */
 export interface Target {
@@ -137,13 +138,13 @@ export function traineeSources(trainee: Character, target: Target, data: Data, s
 export interface Lineage { k1: number; p1: number; k2: number; p2: number }
 export const lineageCount = (l: Lineage) => l.k1 + l.k2;
 
-/** Split a parent side's stars over its occurrences as evenly as possible (3★ max per spark). */
+/** Split a parent side's stars over its copies of the spark as evenly as possible, at most STARS_PER_SPARK_MAX each. */
 export function lineageSparks(l: Lineage): number[] {
-  const k1 = Math.max(0, Math.min(3, l.k1)), k2 = Math.max(0, Math.min(3, l.k2));
+  const k1 = Math.max(0, Math.min(LINEAGE_MAX_PER_SIDE, l.k1)), k2 = Math.max(0, Math.min(LINEAGE_MAX_PER_SIDE, l.k2));
   const spread = (stars: number, k: number) => {
     if (k <= 0) return [] as number[];
     const out = Array<number>(k).fill(0);
-    let left = Math.max(0, Math.min(3 * k, Math.round(stars)));
+    let left = Math.max(0, Math.min(STARS_PER_SPARK_MAX * k, Math.round(stars)));
     for (let i = 0; left > 0; i = (i + 1) % k) { out[i]! += 1; left -= 1; }
     return out.map((v) => Math.max(1, v));
   };
@@ -158,7 +159,7 @@ export function lineageSources(target: Target, lineage: Lineage | undefined, set
   for (const stars of lineageSparks(lineage)) {
     const rate = settings.whiteSparkInheritRates[Math.max(0, Math.min(2, stars - 1))] ?? 0.03;
     const pOnce = Math.min(1, rate * (1 + settings.affinity / 100));
-    miss *= Math.pow(1 - pOnce, 2);
+    miss *= Math.pow(1 - pOnce, INSPIRATION_EVENTS);
     parts.push(`${stars}★ ${pct1(pOnce)}/event`);
   }
   return [{ kind: 'lineage', skillId: target.white?.id ?? target.id, gold: false, circle: false, pObtain: 1 - miss, isChoice: false,

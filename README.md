@@ -25,9 +25,13 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
   repo root to make it the default.
-- Parent blue sparks: one slider per stat, 0 to 18 stars, capped at 18 across all stats. A
-  3★ spark gives +21 at the start (2★ +12, 1★ +5) and the same again at each of the two
-  inspiration events when it procs (70/80/90% by stars, scaled by the affinity setting).
+- Parent blue sparks: per parent, one slider per stat, up to 9 stars a side. A 3★ blue spark
+  gives +21 to its stat at the start (2★ +12, 1★ +5) and the same again at each of the two
+  inspiration events when it procs (70/80/90% by stars, scaled by the affinity setting). White
+  spark star odds depend on the run's SS rank instead.
+
+Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live in
+`src/model/rules.ts`, tunable estimates in `src/settings.ts`.
 
 ## Running
 
@@ -97,6 +101,16 @@ GameTora's scenario events for every scenario.
 Numbers with no measurement behind them (chain completion rates in independent training,
 random event rate, big/small reward split, Group outing rates, hint acquisition scaling,
 loss penalty) are defaults in the advanced settings panel.
+
+## Known gaps
+
+- Independent-training hint pickup, random event rates, and the Group finale rate are unmeasured;
+  the defaults are guesses marked as such in the advanced settings.
+- Forfeited stat rewards from the event option not taken are not modelled.
+- Slot tiebreaks use how many umas can run a race comfortably, not how common it is on parents.
+- Career goals come per character, so an alternate outfit shows the base outfit's goals.
+- The two Group cards' random events and Team Sirius's sixth chain event are incomplete in the data.
+- Exclusivity is enforced per event only; two targets on different events are independent.
 
 ## Credits
 

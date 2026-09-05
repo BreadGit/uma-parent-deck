@@ -2,6 +2,7 @@ import type { Card, Character, Data, Stat } from '../types.ts';
 import { STATS } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale } from './stats.ts';
+import { DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
 import { cardSourcesForTarget, combineSources, eventSources, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
 
 export interface Ctx {
@@ -124,7 +125,7 @@ function deckValue(entries: CardScore[], targets: Target[], ctx: Ctx): { sparks:
  * One of the six must be a friend's card: `borrowPool` (every card at its borrowed limit break) is tried against
  * each replaceable slot and the swap that adds the most expected sparks (then stats) becomes the borrow.
  */
-export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, pinnedIds: number[], size = 6, borrowPool: { card: Card; lb: number }[] = []): DeckResult {
+export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, pinnedIds: number[], size = DECK_SIZE, borrowPool: { card: Card; lb: number }[] = []): DeckResult {
   let existing = traineeCoverage(targets, ctx);
   const deck: CardScore[] = [];
   const steps: string[] = [];
@@ -249,7 +250,7 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
 }
 
 /** Up to 10 prioritized skills in the default order. */
-export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = 10): WishlistEntry[] {
+export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = PRIORITIZED_SKILLS_MAX): WishlistEntry[] {
   return wishlistCandidates(deck, targets, ctx).slice(0, max);
 }
 

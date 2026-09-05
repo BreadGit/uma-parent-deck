@@ -1,29 +1,27 @@
 import type { Settings } from '../settings.ts';
 
-export const MAX_BLUE_STARS = 18; // two parents and four grandparents, 3 stars each
-export const MAX_PARENT_STARS = 9; // one parent plus her two grandparents, 3 stars each
-const GAIN_BY_STARS = [0, 5, 12, 21];      // stat gain of one blue spark at career start
-const PROC_BY_STARS = [0, 0.7, 0.8, 0.9];  // inspiration-event proc chance at 0 affinity
+import { BLUE_SPARK_GAIN_BY_STARS, BLUE_SPARK_INSPIRATION_PROC_BY_STARS, INSPIRATION_EVENTS, MAX_BLUE_STARS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './rules.ts';
+export { MAX_BLUE_STARS, MAX_PARENT_STARS };
 
 /** Stars packed into 3-star sparks with one remainder spark. */
 export function sparksFromStars(stars: number): number[] {
   const out: number[] = [];
   let n = Math.max(0, Math.min(MAX_BLUE_STARS, Math.round(stars)));
-  while (n >= 3) { out.push(3); n -= 3; }
+  while (n >= STARS_PER_SPARK_MAX) { out.push(STARS_PER_SPARK_MAX); n -= STARS_PER_SPARK_MAX; }
   if (n > 0) out.push(n);
   return out;
 }
 
 export interface Inheritance { start: number; inspiration: number; total: number }
 
-/** Stat gained from the blue sparks of one stat: at career start, plus two inspiration events. */
+/** Stat gained from one parent side's blue sparks in one stat: at career start, plus each inspiration event it procs at. */
 export function inheritedStat(stars: number, settings: Settings): Inheritance {
   const mult = 1 + settings.affinity / 100;
   let start = 0, insp = 0;
   for (const s of sparksFromStars(stars)) {
-    const g = GAIN_BY_STARS[s]!;
+    const g = BLUE_SPARK_GAIN_BY_STARS[s]!;
     start += g;
-    insp += 2 * g * Math.min(1, PROC_BY_STARS[s]! * mult);
+    insp += INSPIRATION_EVENTS * g * Math.min(1, BLUE_SPARK_INSPIRATION_PROC_BY_STARS[s]! * mult);
   }
   return { start, inspiration: insp, total: start + insp };
 }
