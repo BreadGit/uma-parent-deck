@@ -25,7 +25,7 @@ const STATIC_KEYS = [
   'support-cards', 'support_effects', 'skills', 'character-cards', 'characters',
   'races', 'ura-races', 'scenarios', 'en/db-files/single_mode_rank', 'en/db-files/support_card_level',
   'training_events/ssr', 'training_events/sr', 'training_events/friend', 'training_events/group',
-  'training_events/shared', 'training_events/char_card', 'training_events/scenario', 'dict/evrew', 'status-effects',
+  'training_events/shared', 'training_events/char_card', 'training_events/scenario', 'dict/evrew', 'status-effects', 'ura-objectives',
 ];
 
 let lastRequest = 0;
@@ -235,6 +235,16 @@ function normalizeSkills(raw) {
 
 const APT_KEYS = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 function normalizeCharacters(raw) {
+  // Career goals per character: race objectives with their calendar slot (turn 1 = Junior early January).
+  const goalsByChar = new Map();
+  for (const entry of raw['ura-objectives'] ?? []) {
+    const goals = [];
+    for (const o of entry.objectives ?? []) {
+      if (o.cond_type !== 1 || !o.races?.length || o.turn > 72) continue;
+      goals.push({ slot: o.turn - 1, races: o.races.map((r) => ({ raceId: r.id, name: r.name_en, distance: r.distance, surface: r.terrain === 2 ? 'dirt' : 'turf', grade: r.grade, fansNeeded: r.fans_needed ?? 0 })) });
+    }
+    goalsByChar.set(entry.char_id, goals);
+  }
   const out = [];
   for (const c of raw['character-cards']) {
     if (!c.release_en) continue;
@@ -256,6 +266,7 @@ function normalizeCharacters(raw) {
       awakeningSkills: c.skills_awakening_en ?? c.skills_awakening ?? [],
       eventSkills: c.skills_event ?? [],
       uniqueSkills: c.skills_unique ?? [],
+      goals: goalsByChar.get(c.char_id) ?? [],
     });
   }
   return out.sort((a, b) => a.cardId - b.cardId);

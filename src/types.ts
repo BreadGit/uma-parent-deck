@@ -68,7 +68,10 @@ export interface Character {
   awakeningSkills: number[];
   eventSkills: number[];
   uniqueSkills: number[];
+  goals: CareerGoal[];
 }
+export interface GoalRace { raceId: number; name: string; distance: number; surface: 'turf' | 'dirt'; grade: number; fansNeeded: number }
+export interface CareerGoal { slot: number; races: GoalRace[] } // slot 0 = Junior early January
 
 export interface Race {
   calendarId: string;
@@ -84,6 +87,7 @@ export interface Race {
   fansNeeded: number;
   fansGain: number;
   unreleasedEn: boolean;
+  goal?: boolean;       // a career objective of the trainee: run regardless
 }
 
 export interface ScenarioEventChoice { linkedCharId: number | null; goldSkill?: number; whiteSkill?: number; skill?: number }

@@ -7,7 +7,7 @@ import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, modelContribution, predictDeck, raceScale } from '../src/model/stats.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, sparkChance } from '../src/model/sparks.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlist, type Ctx } from '../src/model/deck.ts';
-import { buildSchedule, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
+import { buildSchedule, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { statScore } from '../src/model/rank.ts';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -139,7 +139,7 @@ test('Pal and Group outings are skill sources at their own rates', () => {
 test('lineage sparks raise obtain and spark chances; the deck has exactly one borrow', () => {
   const trainee = characters.find((c) => c.name === 'Special Week')!;
   const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
-  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[targets[0]!.id, { n: 2, p1: 3, p2: 3 }]]) };
+  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[targets[0]!.id, { k1: 1, k2: 1, p1: 3, p2: 3 }]]) };
   const cover = traineeCoverage(targets, ctx);
   const lin = (cover.get(targets[0]!.id) ?? []).find((s) => s.kind === 'lineage')!;
   assert.ok(lin && lin.pObtain > 0.6 && lin.pObtain < 0.7, `lineage obtain ${lin?.pObtain}`);
@@ -191,4 +191,16 @@ test('a pinned card is never swapped for another card of the same character', ()
   const bourbons = d.deck.filter((x) => x.card.charId === ghost.charId);
   assert.equal(bourbons.length, 1);
   assert.equal(bourbons[0]!.card.id, ghost.id, 'the pinned Bourbon card must be the one in the deck');
+});
+
+test('career goal races are fixed in the agenda and highlighted', () => {
+  const seiun = characters.find((c) => c.name === 'Seiun Sky')!;
+  const goals = goalRaces(seiun);
+  assert.ok(goals.some((g) => g.name.includes('Tokyo Yushun')));
+  const sched = buildSchedule(data.races, traineeAptitudes(seiun, {}), 0.8, new Map(), new Map(), goals);
+  const derbySlot = sched.find((s) => s.race.name.includes('Tokyo Yushun') && s.selected)!;
+  assert.ok(derbySlot && derbySlot.goal, 'the Derby should be a selected goal');
+  assert.ok(!sched.some((s) => s.race.name === 'Japanese Oaks' && s.selected), 'the Oaks cannot be run in the Derby slot');
+  const arima = sched.filter((s) => s.race.name === 'Arima Kinen' && s.selected);
+  assert.equal(arima.length, 2, 'both Arima goals run even though it is the same G1');
 });

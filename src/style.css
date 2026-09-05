@@ -183,3 +183,11 @@ a.card-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .reset-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
 .reset-bar button.danger { flex: 1; background: #d9534f; border-color: #d9534f; color: #fff; font-weight: 600; }
 .reset-bar button.danger:hover { background: #c0392b; border-color: #c0392b; }
+.tag.goal { --tag-bg: #c9a227; --tag-fg: #fff; }
+.agenda-cell.goal .agenda-body { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--panel)); }
+.wishlist li { cursor: grab; padding: 2px 4px; border-radius: 4px; }
+.wishlist li.dragging { opacity: .5; }
+.wishlist li.drop-target { outline: 2px dashed var(--accent); }
+.wishlist .grip { color: var(--muted); margin-right: 6px; user-select: none; }
+.chip.target-row { grid-template-columns: 22px 1fr 16px auto 18px; }
+.chip.target-row .row2 select { max-width: 64px; }

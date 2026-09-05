@@ -125,3 +125,5 @@ export function blueStarOdds(mean: number, sd: number): number[] {
 }
 
 export const statIndex = (s: Stat) => STATS.indexOf(s);
+
+export const distanceCategory = (m: number): 'sprint' | 'mile' | 'medium' | 'long' => (m <= 1400 ? 'sprint' : m <= 1800 ? 'mile' : m <= 2400 ? 'medium' : 'long');

@@ -1,4 +1,5 @@
 import type { AptKey, Character, Grade, Race } from '../types.ts';
+import { distanceCategory } from './stats.ts';
 
 const GRADE_INDEX: Record<Grade, number> = { S: 0, A: 0, B: 1, C: 2, D: 3, E: 4, F: 5, G: 6 };
 // uma.guide independent-training table: rows distance aptitude, columns surface aptitude.
@@ -32,6 +33,7 @@ export interface ScheduledRace {
   pWin: number;        // after the consecutive-race penalty in the final schedule
   consecutive: number; // position in a streak when selected (1 = fresh), 0 when not selected
   selected: boolean;
+  goal: boolean;       // career objective: always run
   reason: string;      // why it is or is not in the schedule
   popularity: number;  // how many Global umas could run it comfortably (tiebreak between races in one slot)
 }
@@ -55,7 +57,7 @@ function settle(chosen: Map<number, Race>, bases: Map<string, number>, threshold
     if (!race) continue;
     const next = s === lastSlot + 1 ? streak + 1 : 1;
     const pWin = Math.max(0, (bases.get(race.calendarId) ?? 0) - penalty(next));
-    if (pWin < threshold && forced.get(race.calendarId) !== true) continue;
+    if (pWin < threshold && forced.get(race.calendarId) !== true && !race.goal) continue;
     kept.set(s, { race, pWin, consecutive: next });
     lastSlot = s; streak = next;
   }
@@ -69,8 +71,22 @@ const losses = (kept: Map<number, { pWin: number }>) => [...kept.values()].reduc
  * G1s (Classic and Senior runnings) placed in whichever year costs fewer expected losses.
  * `forced` overrides by calendar id: true = always run, false = never.
  */
-export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, forced: Map<string, boolean>, popularity: Map<number, number> = new Map()): ScheduledRace[] {
-  const all = races.filter((r) => !r.unreleasedEn).slice().sort((a, b) => slotOf(a) - slotOf(b) || (popularity.get(b.raceId) ?? 0) - (popularity.get(a.raceId) ?? 0));
+/** The trainee's race objectives as calendar entries (grade may be below G1). */
+export function goalRaces(trainee: Character | null): Race[] {
+  if (!trainee) return [];
+  const out: Race[] = [];
+  for (const g of trainee.goals) {
+    const r = g.races[0]; // objectives with several race options are rare; take the first
+    if (!r) continue;
+    out.push({ calendarId: `goal:${g.slot}:${r.raceId}`, raceInstanceId: 0, raceId: r.raceId, name: r.name, distance: r.distance, category: distanceCategory(r.distance),
+      surface: r.surface, year: Math.floor(g.slot / 24) + 1, month: Math.floor((g.slot % 24) / 2) + 1, half: (g.slot % 2) + 1, fansNeeded: r.fansNeeded, fansGain: 0, unreleasedEn: false, goal: true });
+  }
+  return out;
+}
+
+export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, forced: Map<string, boolean>, popularity: Map<number, number> = new Map(), goals: Race[] = []): ScheduledRace[] {
+  const goalSlots = new Set(goals.map(slotOf));
+  const all = [...goals, ...races.filter((r) => !r.unreleasedEn && !goalSlots.has(slotOf(r)))].sort((a, b) => slotOf(a) - slotOf(b) || (popularity.get(b.raceId) ?? 0) - (popularity.get(a.raceId) ?? 0));
   const bases = new Map(all.map((r) => [r.calendarId, baseWinChance(r, apt)]));
   const bySlot = new Map<number, Race[]>();
   for (const r of all) bySlot.set(slotOf(r), [...(bySlot.get(slotOf(r)) ?? []), r]);
@@ -79,12 +95,15 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
   const chosen = new Map<number, Race>();
   const taken = new Set<number>();
   const pick = (s: number, skip: Set<number>) => {
+    const goal = (bySlot.get(s) ?? []).find((r) => r.goal);
+    if (goal) return goal;
     const cands = (bySlot.get(s) ?? []).filter((r) => forced.get(r.calendarId) !== false);
     const forcedOne = cands.find((r) => forced.get(r.calendarId) === true);
     if (forcedOne) return forcedOne;
     return cands.filter((r) => !skip.has(r.raceId) && (bases.get(r.calendarId) ?? 0) >= threshold)
       .sort((a, b) => (bases.get(b.calendarId)! - bases.get(a.calendarId)!) || ((popularity.get(b.raceId) ?? 0) - (popularity.get(a.raceId) ?? 0)))[0];
   };
+  for (const g of goals) taken.add(g.raceId); // a goal already covers that G1's affinity win
   for (let s = 0; s < SLOT_COUNT; s++) {
     const r = pick(s, taken);
     if (r) { chosen.set(s, r); taken.add(r.raceId); }
@@ -93,7 +112,7 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
 
   // Repair pass: for each G1 that also runs in a later slot, try the later running instead if it costs fewer losses.
   for (const [s, race] of [...chosen]) {
-    if (forced.get(race.calendarId) === true) continue;
+    if (forced.get(race.calendarId) === true || race.goal) continue;
     const later = all.filter((r) => r.raceId === race.raceId && slotOf(r) > s && !chosen.has(slotOf(r)) && forced.get(r.calendarId) !== false && (bases.get(r.calendarId) ?? 0) >= threshold);
     for (const alt of later) {
       const trial = new Map(chosen); trial.delete(s); trial.set(slotOf(alt), alt);
@@ -120,8 +139,8 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
       const base = bases.get(race.calendarId) ?? 0;
       const pop = popularity.get(race.raceId) ?? 0;
       if (k && k.race.calendarId === race.calendarId) {
-        out.push({ race, slot: s, base, pWin: k.pWin, consecutive: k.consecutive, selected: true, popularity: pop,
-          reason: forced.get(race.calendarId) === true ? 'Manual pick' : 'Above the threshold' });
+        out.push({ race, slot: s, base, pWin: k.pWin, consecutive: k.consecutive, selected: true, goal: !!race.goal, popularity: pop,
+          reason: race.goal ? 'Career goal' : forced.get(race.calendarId) === true ? 'Manual pick' : 'Above the threshold' });
         continue;
       }
       const pWin = Math.max(0, base - penalty(nextIfRun));
@@ -132,7 +151,7 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
       else if (usedRaceIds.has(race.raceId)) reason = 'Already run in another year (a win only counts once)';
       else if (pWin < threshold) reason = 'Streak penalty pushes it under the threshold';
       else reason = 'Not selected';
-      out.push({ race, slot: s, base, pWin, consecutive: 0, selected: false, reason, popularity: pop });
+      out.push({ race, slot: s, base, pWin, consecutive: 0, selected: false, goal: !!race.goal, reason, popularity: pop });
     }
     if (k) { lastSlot = s; streak = k.consecutive; }
   }
@@ -143,8 +162,9 @@ export function scheduleSummary(sched: ScheduledRace[]) {
   const sel = sched.filter((s) => s.selected);
   const wins = sel.reduce((a, s) => a + Math.min(1, s.pWin), 0);
   const unique = new Set(sel.map((s) => s.race.raceId)).size;
+  const goals = sel.filter((s) => s.goal).length;
   const longestStreak = sel.reduce((a, s) => Math.max(a, s.consecutive), 0);
-  return { count: sel.length, unique, expectedWins: wins, expectedLosses: sel.length - wins, longestStreak };
+  return { count: sel.length, unique, goals, expectedWins: wins, expectedLosses: sel.length - wins, longestStreak };
 }
 
 export function traineeAptitudes(trainee: Character | null, overrides: Partial<Aptitudes>): Aptitudes {

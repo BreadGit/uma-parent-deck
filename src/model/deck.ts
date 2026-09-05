@@ -2,7 +2,7 @@ import type { Card, Character, Data, Stat } from '../types.ts';
 import { STATS } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale } from './stats.ts';
-import { cardSourcesForTarget, combineSources, eventSources, lineageSources, pruneConflicts, scenarioSources, sparkChance, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, eventSources, lineageSources, lineageCount, pruneConflicts, scenarioSources, sparkChance, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
 
 export interface Ctx {
   data: Data;
@@ -19,7 +19,7 @@ function sparkMap(map: Map<number, SkillSource[]>, targets: Target[], ctx: Ctx):
   const pruned = pruneConflicts(map, ctx.priority ?? []).map;
   return new Map(targets.map((t) => [t.id, sparkChance(combineSources(pruned.get(t.id) ?? []), ctx.settings, lineageN(ctx, t))]));
 }
-const lineageN = (ctx: Ctx, t: Target) => ctx.lineage?.get(t.id)?.n ?? 0;
+const lineageN = (ctx: Ctx, t: Target) => { const l = ctx.lineage?.get(t.id); return l ? lineageCount(l) : 0; };
 
 export interface Coverage { target: Target; sources: SkillSource[]; own: { pGold: number; pWhite: number; pAny: number }; spark: number; marginal: number }
 export interface CardScore {
@@ -169,7 +169,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   return { deck, steps, coverage, conflicts, borrow, borrowAlternatives: alternatives };
 }
 
-export interface WishlistEntry { skillId: number; name: string; gated: boolean; isTarget: boolean; reason: string; weight: number }
+export interface WishlistEntry { key: number; skillId: number; name: string; form: string | null; gated: boolean; isTarget: boolean; reason: string; weight: number }
 
 /**
  * Candidates for the prioritized-skills list, best first: targets gated behind an event choice, then other
@@ -190,12 +190,12 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
     if (choice.length) {
       const goldFirst = choice.find((s) => s.gold) ?? choice[0]!;
       const sk = ctx.data.skillById.get(goldFirst.skillId);
-      entries.push({ skillId: goldFirst.skillId, name: sk?.name ?? t.name, gated: true, isTarget: true, weight: 2 + spark, reason: choice.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; ') });
+      entries.push({ key: t.id, skillId: goldFirst.skillId, name: t.name, form: sk && sk.id !== t.id ? sk.name : null, gated: true, isTarget: true, weight: 2 + spark, reason: choice.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; ') });
       seen.add(goldFirst.skillId);
     } else {
       const src = all.find((s) => s.gold) ?? all[0]!;
       const sk = ctx.data.skillById.get(src.skillId);
-      entries.push({ skillId: src.skillId, name: sk?.name ?? t.name, gated: false, isTarget: true, weight: spark, reason: 'Given without an event choice.' });
+      entries.push({ key: t.id, skillId: src.skillId, name: t.name, form: sk && sk.id !== t.id ? sk.name : null, gated: false, isTarget: true, weight: spark, reason: 'Given without an event choice.' });
       seen.add(src.skillId);
     }
   }
@@ -206,7 +206,7 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
       const sk = ctx.data.skillById.get(src.skillId);
       if (!sk || sk.unreleasedEn) continue;
       seen.add(src.skillId);
-      entries.push({ skillId: src.skillId, name: sk.name, gated: true, isTarget: false, weight: 1 + src.pObtain * (sk.rarity === 2 ? 2 : 1), reason: `${d.card.name}: ${src.detail}` });
+      entries.push({ key: src.skillId, skillId: src.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + src.pObtain * (sk.rarity === 2 ? 2 : 1), reason: `${d.card.name}: ${src.detail}` });
     }
   }
   return entries.sort((a, b) => b.weight - a.weight);
