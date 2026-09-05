@@ -28,12 +28,12 @@ function addTo(e: Existing, add: Map<number, SkillSource[]>, chars: Iterable<num
  * Evaluate a run state: add the scenario options implied by the characters present, enforce one option per event
  * (by prioritized order), and give each target's spark chance.
  */
-export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
+export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const full = new Map<number, SkillSource[]>();
   for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars)]);
   const { map, conflicts } = pruneConflicts(full, ctx.priority ?? []);
   const sparks = new Map(targets.map((t) => [t.id, sparkChance(combineSources(map.get(t.id) ?? []), ctx.settings, lineageN(ctx, t))]));
-  return { map, sparks, conflicts };
+  return { full, map, sparks, conflicts };
 }
 const total = (m: Map<number, number>) => [...m.values()].reduce((a, b) => a + b, 0);
 
@@ -192,12 +192,13 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
   const entries: WishlistEntry[] = [];
   const seen = new Set<number>();
   const targetFamilies = new Set(targets.flatMap((t) => [...t.familyIds]));
-  const pruned = evaluate(stateOf(deck, targets, ctx), targets, ctx).map;
+  const ev = evaluate(stateOf(deck, targets, ctx), targets, ctx);
   for (const t of targets) {
-    const all = (pruned.get(t.id) ?? []).filter((s) => s.kind !== 'lineage' && s.kind !== 'innate' && s.kind !== 'awakening');
+    // every option the run could pick, including ones currently losing a conflict, so the order can be changed
+    const all = (ev.full.get(t.id) ?? []).filter((s) => s.kind !== 'lineage' && s.kind !== 'innate' && s.kind !== 'awakening');
     if (!all.length) continue;
     const choice = all.filter((s) => s.isChoice);
-    const spark = sparkChance(combineSources(all), ctx.settings, lineageN(ctx, t));
+    const spark = ev.sparks.get(t.id) ?? 0;
     if (choice.length) {
       // one entry per distinct skill the run can choose: the gold form and the white form are different picks
       const bySkill = new Map<number, SkillSource[]>();

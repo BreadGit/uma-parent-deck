@@ -221,6 +221,11 @@ test('a linked character in the run replaces the normal scenario option with the
   assert.ok(srcs[0]!.gold, 'and it is the gold one');
   const wl = wishlistCandidates(d.deck, [allIveGot], ctx).map((w) => w.name);
   assert.ok(wl.includes('Come What May') && !wl.includes("All I've Got"), `list: ${wl.join(', ')}`);
+  // with Focus also targeted, both scenario options stay listed even though only one can be taken
+  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
+  const both = buildDeck([{ card: tachyon, lb: 4 }], [allIveGot, focus], { ...ctx, priority: [focus.id, allIveGot.id] }, [tachyon.id], 1);
+  const names = wishlistCandidates(both.deck, [allIveGot, focus], { ...ctx, priority: [focus.id, allIveGot.id] }).map((w) => w.name);
+  assert.ok(names.includes('Come What May') && names.includes('Focus'), `both options listed: ${names.join(', ')}`);
   const tachyonUma = characters.find((c) => c.name === 'Agnes Tachyon')!;
   const cov = evaluate(traineeCoverage([allIveGot], { ...ctx, trainee: tachyonUma }), [allIveGot], { ...ctx, trainee: tachyonUma }).map.get(allIveGot.id)!;
   assert.ok(cov.some((s) => s.kind === 'scenario' && s.gold), 'trainee as linked character gives the gold option');
