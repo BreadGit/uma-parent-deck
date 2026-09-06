@@ -3,33 +3,22 @@ import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from './s
 import { effectiveLb, exportInventory, importInventory, loadInventory, saveInventory } from './inventory.ts';
 import { html, pct, pill, num, type Raw } from './ui/html.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
-import { buildDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type WishlistEntry } from './model/deck.ts';
-import { lineageCount, resolveTarget, sparkChance, type Lineage, type Target } from './model/sparks.ts';
-import { cardContribution, modelContribution, pAbove, predictDeck, phi, raceScale } from './model/stats.ts';
-import { buildSchedule, goalRaces, racePopularity, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './model/races.ts';
-import { skillScore, statScore, thresholdFor } from './model/rank.ts';
+import type { CardScore } from './model/deck.ts';
+import { combineSources, lineageCount, resolveTarget, type Lineage } from './model/sparks.ts';
+import { cardContribution, modelContribution, pAbove, raceScale } from './model/stats.ts';
+import { buildSchedule, goalRaces, slotOf, type ScheduledRace } from './model/races.ts';
 import { clampStars, inheritedFromParents } from './model/inherit.ts';
-import { BORROWED_LB, DECK_SIZE, LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, PRIORITIZED_SKILLS_MAX, STARS_PER_SPARK_MAX } from './model/rules.ts';
+import { planRun, racePopularityMap, type RunInput, type RunPlan } from './model/run.ts';
+import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, PRIORITIZED_SKILLS_MAX, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import meta from '../data/meta.json';
 
 const data = loadData();
 const LIGHT_HELLO_IDS = data.cards.filter((c) => c.charName === 'Light Hello').map((c) => c.id);
 const GRADES: Grade[] = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
-const RACE_POPULARITY = new Map(data.races.map((r) => [r.raceId, racePopularity(r, data.characters)]));
 const APT_SHOWN: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long'];
 
-interface PersistedState {
-  targets: number[];
-  targetLineage: Record<string, Lineage>; // target id -> existing lineage sparks
-  wishlistOrder: number[];    // skill ids the user arranged, in order
-  wishlistExcluded: number[]; // skill ids the user removed from the list
-  traineeCardId: number | null;
-  traineeStars: number;   // 3..5, picks the base stat table
-  aptOverrides: Partial<Aptitudes>;
-  raceOverrides: Record<string, boolean>;
-  pinnedIds: number[];       // support cards forced into the deck, in order
-  parentStars: number[][]; // [parent 1, parent 2], five stats each, up to 9 stars per parent
-  sortKey: string;
+interface PersistedState extends RunInput {
+  sortKey: string; // card ranking column
 }
 const STATE_KEY = 'uma-parent-deck.state';
 function loadState(): PersistedState {
@@ -126,97 +115,15 @@ function targetableSkills(): Skill[] {
   return data.skills.filter((s) => !s.unreleasedEn && (s.rarity === 1 || s.rarity === 2) && !s.name.includes('×'));
 }
 
-/** Base stats at a star count. GameTora lists the card's base rarity, 4★ and 5★; other star counts interpolate linearly between the nearest known tables. */
-function statsAtStars(ch: Character, stars: number): number[] {
-  const known: [number, number[]][] = [[ch.rarity, ch.baseStats]];
-  if (ch.fourStarStats) known.push([4, ch.fourStarStats]);
-  if (ch.fiveStarStats) known.push([5, ch.fiveStarStats]);
-  known.sort((a, b) => a[0] - b[0]);
-  const exact = known.find(([k]) => k === stars);
-  if (exact) return exact[1];
-  const lo = [...known].reverse().find(([k]) => k < stars) ?? known[0]!;
-  const hi = known.find(([k]) => k > stars) ?? known[known.length - 1]!;
-  if (lo[0] === hi[0]) return lo[1];
-  const f = (stars - lo[0]) / (hi[0] - lo[0]);
-  return lo[1].map((v, i) => Math.round(v + (hi[1][i]! - v) * f));
-}
-let computeCache: { key: string; value: ReturnType<typeof computeUncached> } | null = null;
-function compute() {
+let computeCache: { key: string; value: RunPlan } | null = null;
+function compute(): RunPlan {
   const key = JSON.stringify([state, settings, inventory]);
   if (computeCache && computeCache.key === key) return computeCache.value;
-  const value = computeUncached();
+  const value = planRun(state, settings, inventory, data);
   computeCache = { key, value };
   return value;
 }
-function computeUncached() {
-  const traineeCard = state.traineeCardId != null ? data.charByCardId.get(state.traineeCardId) ?? null : null;
-  // Stars pick the base stat table; potential level is assumed maxed (all awakening skills available).
-  const trainee: Character | null = traineeCard ? {
-    ...traineeCard,
-    baseStats: statsAtStars(traineeCard, state.traineeStars),
-  } : null;
-  const apt = traineeAptitudes(trainee, state.aptOverrides);
-  const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(state.raceOverrides)), RACE_POPULARITY, goalRaces(traineeCard));
-  const sum = scheduleSummary(schedule);
-  const totalTurns = settings.totalTurnsOverride ?? data.model.races.totalTurns;
-  const targets = state.targets.map((id) => resolveTarget(id, data)).filter((t): t is Target => !!t);
-  const lineage = new Map<number, Lineage>();
-  for (const t of targets) { const l = state.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
-  const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, lineage };
-  // Every card is owned unless marked otherwise; unmarked cards sit at the rarity's default LB.
-  const pool: { card: Card; lb: number }[] = [];
-  const unowned = new Set<number>();
-  for (const card of data.cards) {
-    const lb = effectiveLb(inventory, card, settings.defaultLb);
-    if (lb != null) pool.push({ card, lb });
-    else { unowned.add(card.id); if (settings.showUnowned) pool.push({ card, lb: settings.defaultLb[card.rarity] }); }
-  }
-  const deckPool = pool.filter((p) => !unowned.has(p.card.id));
-  const pinnedIds = state.pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
-  // Any Global card can be borrowed from a friend, assumed at LB4.
-  const borrowPool = data.cards.map((card) => ({ card, lb: BORROWED_LB }));
-  const targetOf = (skillId: number) => targets.find((t) => t.familyIds.has(skillId))?.id;
-  // A remembered position applies to the whole skill family (gold, ○ and normal forms), so an entry that flips form
-  // when the deck changes keeps its place instead of dropping to the bottom.
-  const familyOf = (key: number) => resolveTarget(key, data)?.id ?? key;
-  const orderFamilies = state.wishlistOrder.map(familyOf);
-  const orderIndex = (w: WishlistEntry) => { const exact = state.wishlistOrder.indexOf(w.key); if (exact >= 0) return exact; const fam = orderFamilies.indexOf(familyOf(w.key)); return fam < 0 ? Infinity : fam; };
-  const orderCandidates = (cands: WishlistEntry[]) => cands.filter((w) => !state.wishlistExcluded.includes(w.key)).slice().sort((a, b) => orderIndex(a) - orderIndex(b) || (b.weight - a.weight));
-  // Pass 1: build without conflict rules to get the prioritized-skill order; that order decides which target an
-  // event's single choice goes to. Pass 2 rebuilds with those rules.
-  const pass1 = buildDeck(deckPool, targets, baseCtx, pinnedIds, DECK_SIZE, borrowPool);
-  const priority: number[] = [];
-  for (const w of orderCandidates(wishlistCandidates(pass1.deck, targets, baseCtx))) {
-    const tid = targetOf(w.skillId);
-    if (tid != null) { if (!priority.includes(tid)) priority.push(tid); continue; }
-    // non-target option: rank every form of its family together so a gold/normal flip keeps the same rank
-    const fam = resolveTarget(w.skillId, data);
-    for (const id of fam ? [...fam.familyIds] : [w.skillId]) if (!priority.includes(id)) priority.push(id);
-  }
-  for (const t of targets) if (!priority.includes(t.id)) priority.push(t.id);
-  const ctx: Ctx = { ...baseCtx, priority };
-  const existing = traineeCoverage(targets, ctx);
-  const ranking = rankCards(pool.filter((p) => !unowned.has(p.card.id) || settings.showUnowned), targets, existing, ctx);
-  const deckResult = buildDeck(deckPool, targets, ctx, pinnedIds, DECK_SIZE, borrowPool);
-  const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings);
-  const inherited = STATS.map((_, i) => inheritedFromParents(state.parentStars, i, settings));
-  const finalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
-  // rank score: stats + skills (SP based estimate) + unique
-  const statPts = finalMean.reduce((a, v) => a + statScore(v), 0);
-  const skillPts = pred.sp * settings.skillScorePerSp + (trainee ? 510 : 0)
-    + (trainee ? trainee.innateSkills.reduce((a, id) => a + (data.skillById.get(id) ? skillScore(data.skillById.get(id)!, trainee) * 0.5 : 0), 0) : 0);
-  const score = statPts + skillPts;
-  const dScore = finalMean.map((v, i) => (statScore(v + 10) - statScore(v - 10)) / 20 * pred.sd[i]!);
-  const sdScore = Math.sqrt(dScore.reduce((a, d) => a + d * d, 0) + Math.pow(settings.skillScoreSd, 2));
-  const ssMin = thresholdFor('SS', data.ranks);
-  const pSS = 1 - phi((ssMin - score) / Math.max(1, sdScore));
-  const ordered = orderCandidates(wishlistCandidates(deckResult.deck, targets, ctx));
-  const wl = ordered.slice(0, PRIORITIZED_SKILLS_MAX);
-  const wlRest = ordered.slice(PRIORITIZED_SKILLS_MAX);
-  const wlExcluded = wishlistCandidates(deckResult.deck, targets, ctx).filter((w) => state.wishlistExcluded.includes(w.key));
-  return { trainee, apt, schedule, sum, ctx, targets, pool, unowned, ranking, deckResult, pred, inherited, finalMean, score, sdScore, pSS, ssMin, wl, wlRest, wlExcluded, existing, pinnedIds };
-}
-type Computed = ReturnType<typeof computeUncached>;
+
 
 // ---------- rendering ----------
 /** Suggestion dropdown for one of the three search boxes, from the current query strings. */
@@ -244,7 +151,7 @@ function suggestionList(which: string): Raw | null {
   return null;
 }
 
-function renderTargets(c: Computed): Raw {
+function renderTargets(c: RunPlan): Raw {
   return html`
     <section class="panel">
       <h2>Target white sparks</h2>
@@ -271,7 +178,7 @@ function renderTargets(c: Computed): Raw {
     </section>`;
 }
 
-function renderTrainee(c: Computed): Raw {
+function renderTrainee(c: RunPlan): Raw {
   const t = c.trainee;
   const overridden = Object.keys(state.aptOverrides).length > 0;
   return html`
@@ -301,7 +208,7 @@ function renderTrainee(c: Computed): Raw {
     </section>`;
 }
 
-function renderRunSettings(c: Computed): Raw {
+function renderRunSettings(c: RunPlan): Raw {
   const lhOptions = c.pool.filter((p) => LIGHT_HELLO_IDS.includes(p.card.id) && !c.unowned.has(p.card.id));
   const allGain = c.inherited.reduce((a, x) => ({ start: a.start + x.start, inspiration: a.inspiration + x.inspiration, total: a.total + x.total }), { start: 0, inspiration: 0, total: 0 });
   return html`
@@ -353,7 +260,7 @@ function renderRunSettings(c: Computed): Raw {
     </section>`;
 }
 
-function renderDeck(c: Computed): Raw {
+function renderDeck(c: RunPlan): Raw {
   const d = c.deckResult;
   const p = c.pred;
   return html`
@@ -374,8 +281,8 @@ function renderDeck(c: Computed): Raw {
         <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)} <span class="sd">±${num(p.sd[i]!)}</span></div>
           <div class="s">≥600 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 600))} · ≥1100 ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, 1100))}</div></div>`)}
         <div class="stat outcome" style="order:-1">
-          <div class="outcome-item"><div class="k">SS or better</div><div class="v">${pill(c.pSS, c.pSS > 0.5 ? 'ok' : 'warn')}</div></div>
-          <div class="outcome-item"><div class="k">Rank score</div><div class="v">${num(c.score)} <span class="sd">±${num(c.sdScore)}</span></div></div>
+          <div class="outcome-item"><div class="k">SS or better</div><div class="v">${pill(c.rank.pSS, c.rank.pSS > 0.5 ? 'ok' : 'warn')}</div></div>
+          <div class="outcome-item"><div class="k">Rank score</div><div class="v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
           <div class="outcome-item"><div class="k">Estimated SP</div><div class="v">${num(p.sp)}</div></div>
         </div>
       </div>
@@ -407,11 +314,9 @@ function renderDeck(c: Computed): Raw {
       <table><thead><tr><th>Skill</th><th class="num">Ends with gold</th><th class="num">Ends with white</th><th class="num">Spark chance</th><th>Sources</th></tr></thead><tbody>
         ${c.targets.map((t) => {
           const srcs = d.coverage.get(t.id) ?? [];
-          let noGold = 1, noAny = 1;
-          for (const s of srcs) { noAny *= 1 - s.pObtain; if (s.gold) noGold *= 1 - s.pObtain; }
-          const pGold = 1 - noGold, pWhite = Math.max(0, 1 - noAny - pGold);
-          const spark = sparkChance({ pGold, pWhite }, settings, lineageCount(c.ctx.lineage?.get(t.id) ?? { k1: 0, k2: 0, p1: 0, p2: 0 }));
-          return html`<tr><td>${skillWithTip(t.white?.id ?? t.id, t.name)}</td><td class="num">${pill(pGold)}</td><td class="num">${pill(pWhite)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
+          const own = combineSources(srcs);
+          const spark = d.sparks.get(t.id) ?? 0;
+          return html`<tr><td>${skillWithTip(t.white?.id ?? t.id, t.name)}</td><td class="num">${pill(own.pGold)}</td><td class="num">${pill(own.pWhite)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
             <td class="small" style="white-space:normal">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
@@ -442,7 +347,7 @@ function renderDeck(c: Computed): Raw {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const slotLabel = (slot: number) => `${slot % 2 === 0 ? 'Early' : 'Late'} ${MONTHS[Math.floor((slot % 24) / 2)]}`;
 
-function renderSchedule(c: Computed): Raw {
+function renderSchedule(c: RunPlan): Raw {
   const bySlot = new Map<number, ScheduledRace[]>();
   for (const r of c.schedule) bySlot.set(r.slot, [...(bySlot.get(r.slot) ?? []), r]);
   const overridden = Object.keys(state.raceOverrides).length > 0;
@@ -497,7 +402,7 @@ function basisTip(x: CardScore): string {
   return `${head}\n\nObserved vs model at LB${exact.lb} (28 races):\n${deltas}\nSP ${exact.sp} vs ${m.sp.toFixed(0)} (${(exact.sp - m.sp) >= 0 ? '+' : ''}${(exact.sp - m.sp).toFixed(0)})`;
 }
 
-function renderRanking(c: Computed): Raw {
+function renderRanking(c: RunPlan): Raw {
   const keyFns: Record<string, (x: CardScore) => number> = {
     score: (x) => x.marginalValue * 1000 + x.statPower / 1000, spark: (x) => x.sparkValue, stats: (x) => x.statPower, sp: (x) => x.sp,
     speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
@@ -679,12 +584,12 @@ app.addEventListener('change', (ev) => {
     if (t && t.aptitudes[k] === el.value) delete state.aptOverrides[k]; else state.aptOverrides[k] = el.value as Grade; persist(); render(); return; }
   if (el.dataset.slot != null) {
     const slot = Number(el.dataset.slot);
-    const inSlot = data.races.filter((r) => !r.unreleasedEn && (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1) === slot);
+    const inSlot = data.races.filter((r) => !r.unreleasedEn && slotOf(r) === slot);
     // what the automatic rule would pick for this slot with no manual picks in it
     const auto = new Map(Object.entries(state.raceOverrides));
     for (const r of inSlot) auto.delete(r.calendarId);
     const cc = compute();
-    const autoPick = buildSchedule(data.races, cc.apt, settings.winThreshold, auto, RACE_POPULARITY, goalRaces(cc.trainee)).find((x) => x.slot === slot && x.selected)?.race.calendarId ?? '';
+    const autoPick = buildSchedule(data.races, cc.apt, settings.winThreshold, auto, racePopularityMap(data), goalRaces(cc.trainee)).find((x) => x.slot === slot && x.selected)?.race.calendarId ?? '';
     for (const r of inSlot) delete state.raceOverrides[r.calendarId];
     if (el.value !== autoPick) for (const r of inSlot) state.raceOverrides[r.calendarId] = r.calendarId === el.value;
     persist(); render(); return;

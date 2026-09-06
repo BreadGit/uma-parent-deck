@@ -1,5 +1,7 @@
 import type { Card, Inventory } from './types.ts';
-import defaultInventory from '../inventory.json';
+import defaultInventory from '../inventory.json' with { type: 'json' };
+import { effectiveLb } from './model/run.ts';
+export { effectiveLb };
 
 const KEY = 'uma-parent-deck.inventory';
 
@@ -12,13 +14,6 @@ export function loadInventory(): Inventory {
 }
 export function saveInventory(inv: Inventory) {
   localStorage.setItem(KEY, JSON.stringify(inv));
-}
-/** Effective limit break for a card, or null when marked not owned. */
-export function effectiveLb(inv: Inventory, card: Card, defaults: { R: number; SR: number; SSR: number }): number | null {
-  const v = inv[String(card.id)];
-  if (v === null) return null;
-  if (typeof v === 'number') return v;
-  return defaults[card.rarity];
 }
 /** Writes every card explicitly so the file stands on its own: id -> lb or null. */
 export function exportInventory(inv: Inventory, cards: Card[], defaults: { R: number; SR: number; SSR: number }) {

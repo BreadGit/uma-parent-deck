@@ -107,7 +107,7 @@ export function rankCards(pool: { card: Card; lb: number }[], targets: Target[],
 }
 
 export interface BorrowOption { card: Card; replaces: Card | null; gain: number; statGain: number }
-export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Map<number, SkillSource[]>; conflicts: Conflict[]; borrow: BorrowOption | null; borrowAlternatives: BorrowOption[] }
+export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[]; borrow: BorrowOption | null; borrowAlternatives: BorrowOption[] }
 
 /** Run state for a set of cards on top of the trainee. */
 function stateOf(entries: CardScore[], targets: Target[], ctx: Ctx): Existing {
@@ -188,8 +188,8 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
         : `Borrow ${best.opt.card.name} (LB4): your own six are already the best, so any of them can be the friend's card`);
     }
   }
-  const { map: coverage, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);
-  return { deck, steps, coverage, conflicts, borrow, borrowAlternatives: alternatives };
+  const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);
+  return { deck, steps, coverage, sparks, conflicts, borrow, borrowAlternatives: alternatives };
 }
 
 export interface WishlistEntry { key: number; skillId: number; name: string; form: string | null; gated: boolean; isTarget: boolean; reason: string; weight: number }
