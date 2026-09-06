@@ -204,3 +204,17 @@ table.conflicts td { white-space: normal; vertical-align: top; }
 .conflicts-box { border: 1px solid color-mix(in srgb, #d9534f 45%, var(--line)); background: color-mix(in srgb, #d9534f 8%, var(--panel)); border-radius: 6px; padding: 6px 10px; margin: 4px 0 8px; }
 .conflicts-box h3 { margin-top: 2px; color: #d9534f; }
 .chip .type-icon { width: 18px; height: 18px; margin: 0 3px 0 8px; }
+
+/* layout utilities, replacing inline styles in the templates */
+.wide { width: 100%; max-width: 100%; }
+.w-90 { width: 90px; }
+.w-140 { width: 140px; }
+.hidden { display: none; }
+.wrap { white-space: normal; }
+.gap-v { margin: 6px 0; }
+.gap-top { margin-top: 8px; }
+.kv-center { align-items: center; }
+.push-right { margin-left: auto; }
+.thumb-sm { width: 32px; height: 32px; }
+.thumb-lg { width: 56px; height: 56px; }
+th.sortable { cursor: pointer; }
