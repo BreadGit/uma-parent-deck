@@ -9,7 +9,11 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   upgrade, or its ◎ form all count; gold counts more because a gold skill has a base 40% spark
   chance at run end vs 20% for a white.
 - You pick the trainee. Her own support cards are excluded, her innate and awakening skills
-  count as already covered, and her growth rates and aptitudes feed the stat and race models.
+  count as already covered, and her growth rates and aptitudes feed the stat and race models. Her own
+  events count as sources too: story and choice events at a set rate, outings at another, and secret
+  events scored from the agenda (a "win the Derby and the Kikuka Sho" event is worth the product of
+  those win chances, and nothing if a required race is not scheduled). Choice-gated ones take part in
+  the one-option-per-event rule like card events.
 - The G1 schedule is built from a win table (surface x distance aptitude, consecutive-race penalty) with a win-chance threshold you set
   on the main page, plus per-race checkboxes.
 - Each card gets a spark score (expected sparks over the targets, given how likely the card
@@ -57,7 +61,7 @@ npm run build
 
 ## Data
 
-`npm run fetch` runs `scripts/fetch-gametora.mjs` and `scripts/fetch-event-names.mjs`. The first reads GameTora's static JSON feed
+`npm run fetch` runs `scripts/fetch-gametora.mjs` and `scripts/fetch-event-names.mjs` (`--offline` on the first re-normalizes without any request). The first reads GameTora's static JSON feed
 (manifest at `/data/manifests/umamusume.json`), normalizes it into `data/*.json`, and
 downloads card, character and skill thumbnails into `public/assets/`. It makes one request
 at a time about a second apart, with a plain browser user agent and no identifying headers,
@@ -68,7 +72,8 @@ and only re-downloads files whose manifest hash changed. Run it when a new card 
   come from the per-card page JSON (the static feed scrambles them), fetched once per card.
 - `data/skills.json`: all skills with rarity (1 white, 2 gold), SP cost, family links.
 - `data/characters.json`: Global character cards with aptitudes, growth, innate and
-  awakening skills.
+  awakening skills, career goals, and her own events (story, choice, outing, secret with conditions)
+  from the per-character page JSON, on the content version Global runs.
 - `data/races.json`: the G1 career calendar.
 - `data/ranks.json`: rank score thresholds.
 - `data/stat-model.json`: fitted independent-training stat model, produced by
@@ -114,8 +119,9 @@ loss penalty) are defaults in the advanced settings panel.
 
 ## Known gaps
 
-- Independent-training hint pickup, random event rates, and the Group finale rate are unmeasured;
-  the defaults are guesses marked as such in the advanced settings.
+- Independent-training hint pickup, random event rates, the Group finale rate, the trainee's outing rate
+  and the fallback for secret-event conditions the tool cannot score (rival results, streaks, strategy)
+  are unmeasured; the defaults are guesses marked as such in the advanced settings.
 - Forfeited stat rewards from the event option not taken are not modelled.
 - Slot tiebreaks use how many umas can run a race comfortably, not how common it is on parents.
 - Career goals come per character, so an alternate outfit shows the base outfit's goals.

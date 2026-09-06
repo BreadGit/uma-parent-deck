@@ -5,7 +5,8 @@
 // no identifying headers. Files already on disk are never re-downloaded unless
 // the manifest hash changed (data) or --force is passed (images).
 //
-// Usage: node scripts/fetch-gametora.mjs [--force] [--no-images]
+// Usage: node scripts/fetch-gametora.mjs [--force] [--no-images] [--offline]
+// --offline skips every request and only re-normalizes what is already in data/raw.
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -19,13 +20,14 @@ const OUT = path.join(ROOT, 'data');
 const ASSETS = path.join(ROOT, 'public', 'assets');
 const args = new Set(process.argv.slice(2));
 const FORCE = args.has('--force');
-const IMAGES = !args.has('--no-images');
+const OFFLINE = args.has('--offline');
+const IMAGES = !args.has('--no-images') && !OFFLINE;
 
 const STATIC_KEYS = [
   'support-cards', 'support_effects', 'skills', 'character-cards', 'characters',
   'races', 'ura-races', 'scenarios', 'en/db-files/single_mode_rank', 'en/db-files/support_card_level',
   'training_events/ssr', 'training_events/sr', 'training_events/friend', 'training_events/group',
-  'training_events/shared', 'training_events/char_card', 'training_events/scenario', 'dict/evrew', 'status-effects', 'ura-objectives',
+  'training_events/shared', 'training_events/char', 'training_events/char_card', 'training_events/scenario', 'dict/evrew', 'status-effects', 'ura-objectives',
 ];
 
 let lastRequest = 0;
@@ -128,7 +130,8 @@ function decodePageEvent(ev, kind, index) {
       if (r.t === 'di') { outcomes.push([]); continue; }
       const out = { t: r.t };
       if (r.v != null) out.v = r.v;
-      if (r.d != null) out.d = r.d;
+      // skill ids can arrive as strings in page data (Super Creek's 201352); the model matches them as numbers
+      if (r.d != null) out.d = r.t === 'sk' ? Number(r.d) : r.t === 'sr' && Array.isArray(r.d) ? r.d.map((x) => ({ ...x, d: Number(x.d) })) : r.d;
       outcomes[outcomes.length - 1].push(out);
     }
     return { outcomes };
@@ -237,7 +240,82 @@ const APT_KEYS = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', '
 // The feed occasionally carries a skill id as a string (Super Creek's event skill 201352); ids are numbers here.
 const ids = (list) => (list ?? []).map(Number);
 
-function normalizeCharacters(raw) {
+// ---------- character events (from the per-character page JSON, data/raw/char-events.json) ----------
+
+// GameTora tags events whose data differs on older JP builds with a `history` of periods, and events that did
+// not exist yet with `did_not_exist`. Global runs the content JP had between its 1st and 2nd anniversary (Our
+// Grand Concert is JP's Grand Live from that window), so entries from these periods apply and earlier ones do not.
+const GLOBAL_PERIODS = new Set(['pre_2nd_anni', 'pre_3rd_anni']);
+const PERIOD_ORDER = ['pre_first_anni', 'pre_nar', 'pre_2nd_anni', 'pre_3rd_anni'];
+/** The event as it is on Global: the newest history entry from an applicable period, else the current data. */
+function eventOnGlobal(ev) {
+  if (ev.did_not_exist && GLOBAL_PERIODS.has(ev.did_not_exist)) return null;
+  const applicable = (ev.history ?? []).filter((h) => GLOBAL_PERIODS.has(h.period)).sort((a, b) => PERIOD_ORDER.indexOf(a.period) - PERIOD_ORDER.indexOf(b.period));
+  return applicable[0]?.data ?? ev;
+}
+
+// Sets of races behind GameTora's crown shorthands, by Global race name and career year.
+const CROWNS = {
+  triple_crown: [['Satsuki Sho', 2], ['Tokyo Yushun (Japanese Derby)', 2], ['Kikuka Sho', 2]],
+  triple_tiara: [['Oka Sho', 2], ['Japanese Oaks', 2], ['Shuka Sho', 2]],
+  spring_triple_crown: [['Osaka Hai', 3], ['Tenno Sho (Spring)', 3], ['Takarazuka Kinen', 3]],
+  autumn_triple_crown_senior: [['Tenno Sho (Autumn)', 3], ['Japan Cup', 3], ['Arima Kinen', 3]],
+};
+/**
+ * A page condition -> a form the model can evaluate against the agenda. Race references are instance ids with an
+ * optional "|year"; they become { raceId, year? } via the raw races table. Anything else is kept verbatim as
+ * { type: 'unknown', raw } so the model can apply its fallback rate.
+ */
+function normalizeCondition(cond, instances, raceIdByName) {
+  // Only G1s are on the tool's calendar; a condition naming any other race cannot be scored, so it stays unknown.
+  const ref = (v) => {
+    const [id, year] = String(v).split('|');
+    const race = instances.get(Number(id));
+    if (!race || race.grade !== 100) return null;
+    return year ? { raceId: race.race_id, year: Number(year) } : { raceId: race.race_id };
+  };
+  const refs = (list) => { const out = list.map(ref); return out.every(Boolean) ? out : null; };
+  const unknown = { type: 'unknown', raw: cond };
+  const [type, ...args] = cond;
+  switch (type) {
+    case 'win': case 'pick_and_win': { const r = ref(args[0]); return r ? { type: 'win', races: [r] } : unknown; }
+    case 'participate': { const r = ref(args[0]); return r ? { type: 'participate', race: r } : unknown; }
+    case 'do_not_participate': { const r = ref(args[0]); return r ? { type: 'do_not_participate', race: r } : unknown; }
+    case 'win_or': { const r = refs(args); return r ? { type: 'win_any', races: r } : unknown; }
+    case 'win_all': { const r = refs(args[0] ?? []); return r ? { type: 'win_all', races: r } : unknown; }
+    case 'win_n_of': { const r = refs(args[1] ?? []); return r ? { type: 'win_n_of', n: Number(args[0]), races: r } : unknown; }
+    case 'date': return { type: 'date' }; // a timing condition: always satisfiable
+    default: {
+      const crown = CROWNS[type];
+      if (crown) {
+        const races = crown.map(([name, year]) => ({ raceId: raceIdByName.get(name), year })).filter((r) => r.raceId != null);
+        if (races.length === crown.length) return { type: 'win_all', races };
+      }
+      return unknown;
+    }
+  }
+}
+const PAGE_GROUPS = [['nochoice', 'story'], ['wchoice', 'choice'], ['outings', 'outing'], ['secret', 'secret']];
+/** A character's events on Global, grouped by kind, with skill rewards decoded like card events. */
+function normalizeCharEvents(pageEvents, instances, raceIdByName) {
+  const out = [];
+  for (const [group, kind] of PAGE_GROUPS) {
+    let index = 0;
+    for (const raw of pageEvents?.[group] ?? []) {
+      if (!raw || typeof raw !== 'object') continue;
+      const ev = eventOnGlobal(raw);
+      if (!ev) continue;
+      const event = decodePageEvent(ev, kind, ++index);
+      if (kind === 'secret') event.conditions = (ev.conditions ?? []).map((c) => normalizeCondition(c, instances, raceIdByName));
+      out.push(event);
+    }
+  }
+  return out;
+}
+
+function normalizeCharacters(raw, charEvents, races) {
+  const instances = new Map(raw.races.map((r) => [r.id, r]));
+  const raceIdByName = new Map(races.map((r) => [r.name, r.raceId]));
   // Career goals per character: race objectives with their calendar slot (turn 1 = Junior early January).
   const goalsByChar = new Map();
   for (const entry of raw['ura-objectives'] ?? []) {
@@ -269,6 +347,7 @@ function normalizeCharacters(raw) {
       awakeningSkills: ids(c.skills_awakening_en ?? c.skills_awakening),
       eventSkills: ids(c.skills_event),
       uniqueSkills: ids(c.skills_unique),
+      events: normalizeCharEvents(charEvents[c.char_id], instances, raceIdByName),
       goals: goalsByChar.get(c.char_id) ?? [],
     });
   }
@@ -367,8 +446,12 @@ async function normalize() {
   const kitaLast = kita?.chainEvents[2]?.choices[0]?.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331);
   if (!kitaLast) throw new Error('event reward decoding self-check failed (Kitasan Black chain 3 should hint 200331)');
   const skills = normalizeSkills(raw);
-  const characters = normalizeCharacters(raw);
   const races = normalizeRaces(raw);
+  const ceFile = path.join(RAW, 'char-events.json');
+  const charEvents = (await exists(ceFile)) ? await readJson(ceFile) : {};
+  const characters = normalizeCharacters(raw, charEvents, races);
+  const sw = characters.find((c) => c.charId === 1001);
+  if (!sw?.events.some((e) => e.kind === 'secret' && e.conditions.some((c) => c.type === 'win'))) throw new Error('character event decoding self-check failed (Special Week should have a secret event with a win condition)');
   const ranks = normalizeRanks(raw);
   const effects = normalizeEffects(raw);
   const scenarios = normalizeScenarios(raw);
@@ -413,7 +496,7 @@ async function fetchImages({ cards, skills, characters }) {
   console.log(`images: downloaded ${done}, already present ${skipped}, missing ${missing}`);
 }
 
-await fetchStatic();
+if (!OFFLINE) await fetchStatic();
 const norm = await normalize();
 if (IMAGES) await fetchImages(norm);
 console.log(`requests made: ${requestCount}`);

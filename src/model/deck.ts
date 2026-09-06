@@ -2,7 +2,8 @@ import type { Card, Character, Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale, type Contribution } from './stats.ts';
 import { DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
-import { cardSourcesForTarget, combineSources, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
+import type { RaceWins } from './races.ts';
+import { cardSourcesForTarget, combineSources, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
 
 /** Everything a run evaluation needs besides the cards: the data, the settings and the run's fixed choices. */
 export interface Ctx {
@@ -11,12 +12,13 @@ export interface Ctx {
   races: number;
   totalTurns: number;
   trainee: Character | null;
+  raceWins: RaceWins;            // win chance per agenda race, for the trainee's secret events
   lineage: Map<number, Lineage>; // target.id -> existing lineage sparks
   priority: number[];            // skill ids in prioritized-skill order (every form of a family); decides which option an event's choice goes to
 }
-/** A Ctx with no lineage and no priority unless given; for tests and scripts. */
+/** A Ctx with no agenda, lineage or priority unless given; for tests and scripts. */
 export function makeCtx(base: Pick<Ctx, 'data' | 'settings' | 'races' | 'totalTurns' | 'trainee'> & Partial<Ctx>): Ctx {
-  return { lineage: new Map(), priority: [], ...base };
+  return { raceWins: new Map(), lineage: new Map(), priority: [], ...base };
 }
 /** Everything already in play for the run: non-scenario sources per target, and which characters are present. */
 export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: Card[] }
@@ -35,6 +37,7 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
   const out: Blocker[] = [];
   for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
   for (const card of e.cards) for (const s of eventSources(card, ctx.settings)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
+  if (ctx.trainee) for (const s of traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
   return out;
 }
 
@@ -71,7 +74,7 @@ export interface CardScore {
 export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
   const sources = new Map<number, SkillSource[]>();
   for (const t of targets) sources.set(t.id, [
-    ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data) : []),
+    ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data, ctx.settings, ctx.raceWins) : []),
     ...lineageSources(t, ctx.lineage.get(t.id), ctx.settings),
   ]);
   return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [] };
@@ -240,14 +243,15 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
     seen.add(o.skillId);
     entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 1.2 : 1), reason: o.detail });
   }
-  // Other choice-gated skills from the deck's events (not targets): listing them steers the AI to that option.
-  for (const d of deck) {
-    for (const src of eventSources(d.card, ctx.settings)) {
+  // Other choice-gated skills from the deck's and the trainee's events (not targets): listing them steers the AI to that option.
+  const offered = [...deck.map((d) => ({ owner: d.card.name, sources: eventSources(d.card, ctx.settings) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings) }] : [])];
+  for (const { owner, sources } of offered) {
+    for (const src of sources) {
       if (!src.isChoice || seen.has(src.skillId) || targetFamilies.has(src.skillId)) continue;
       const sk = ctx.data.skillById.get(src.skillId);
       if (!sk || sk.unreleasedEn) continue;
       seen.add(src.skillId);
-      entries.push({ key: src.skillId, skillId: src.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * src.pObtain * (sk.rarity === 2 ? 1.2 : 1), reason: `${d.card.name}: ${src.detail}` });
+      entries.push({ key: src.skillId, skillId: src.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * src.pObtain * (sk.rarity === 2 ? 1.2 : 1), reason: `${owner}: ${src.detail}` });
     }
   }
   return entries.sort((a, b) => b.weight - a.weight);

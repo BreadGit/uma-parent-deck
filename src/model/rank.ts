@@ -25,8 +25,6 @@ export function statScore(value: number): number {
 }
 
 const UNIQUE_SKILL_SCORE = 170 * 3;      // the trainee's unique skill at level 3
-/** Share of an innate skill's rating the run is assumed to buy; this tool's assumption, not measured. */
-const INNATE_SKILL_BUY_SHARE = 0.5;
 const SS_FALLBACK_MIN = 17500;           // used only if ranks.json lacks an SS row
 
 /** Approximate rating points for a skill by rarity; aptitude scaling is ignored. */
@@ -45,12 +43,12 @@ export interface RankEstimate { score: number; sd: number; pSS: number; ssMin: n
 
 /**
  * Rank score of a predicted run: stat rating over the final stats, plus skills bought with the estimated SP,
- * the trainee's unique skill and half of her innate skills. The spread comes from the per-stat run-to-run
+ * the trainee's unique skill and a share of her innate skills (settings.innateSkillBuyShare). The spread comes from the per-stat run-to-run
  * spread pushed through the rating curve, plus the skill uncertainty setting.
  */
 export function rankEstimate(finalMean: number[], sd: number[], sp: number, trainee: Character | null, data: Data, settings: Settings): RankEstimate {
   const statPts = finalMean.reduce((a, v) => a + statScore(v), 0);
-  const innate = trainee ? trainee.innateSkills.reduce((a, id) => { const sk = data.skillById.get(id); return a + (sk ? skillScore(sk) * INNATE_SKILL_BUY_SHARE : 0); }, 0) : 0;
+  const innate = trainee ? trainee.innateSkills.reduce((a, id) => { const sk = data.skillById.get(id); return a + (sk ? skillScore(sk) * settings.innateSkillBuyShare : 0); }, 0) : 0;
   const skillPts = sp * settings.skillScorePerSp + (trainee ? UNIQUE_SKILL_SCORE : 0) + innate;
   const score = statPts + skillPts;
   const dScore = finalMean.map((v, i) => (statScore(v + 10) - statScore(v - 10)) / 20 * (sd[i] ?? 0));

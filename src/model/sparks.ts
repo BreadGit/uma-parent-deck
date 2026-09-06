@@ -1,6 +1,7 @@
-import type { Card, CardEvent, Character, Data, Reward, Skill } from '../types.ts';
+import type { Card, CardEvent, Character, Data, EventCondition, RaceRef, Reward, Skill, TraineeEvent } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { EFFECT, passives } from './stats.ts';
+import type { RaceWins } from './races.ts';
 import { INSPIRATION_EVENTS, LINEAGE_MAX_PER_SIDE, STARS_PER_SPARK_MAX } from './rules.ts';
 
 /** A target as the user picked it, resolved to its skill family. */
@@ -48,8 +49,8 @@ interface SourceBase extends SkillForm {
 }
 /** A source that is not tied to an event choice. */
 export interface PlainSource extends SourceBase { kind: 'hint' | 'innate' | 'awakening' | 'char-event' | 'lineage'; isChoice: false }
-/** A source from a card event or the scenario's skill event. Choice-gated when the skill comes from one option among several. */
-export interface EventSource extends SourceBase { kind: CardEvent['kind'] | 'scenario'; isChoice: boolean; event: EventRef; linkedCharId?: number }
+/** A source from a card event, one of the trainee's own events, or the scenario's skill event. Choice-gated when the skill comes from one option among several. */
+export interface EventSource extends SourceBase { kind: CardEvent['kind'] | TraineeEvent['kind'] | 'scenario'; isChoice: boolean; event: EventRef; linkedCharId?: number }
 export type SkillSource = PlainSource | EventSource;
 export type SourceKind = SkillSource['kind'];
 /** Narrow to a choice-gated source, which always has its event. */
@@ -89,34 +90,43 @@ export function eventSources(card: Card, settings: Settings): EventSource[] {
   return value;
 }
 
+/**
+ * Skill sources of one event that fires with chance `pFire`: one per skill per option. A skill offered by only
+ * some of several options is choice-gated. `owner` names the card or trainee in labels, `keyPrefix` groups the
+ * event's options under one key for conflict resolution.
+ */
+function scanEvent(ev: CardEvent | TraineeEvent, pFire: number, label: string, owner: string, keyPrefix: string, settings: Settings, extra: Partial<EventSource> = {}): EventSource[] {
+  const out: EventSource[] = [];
+  const nChoices = ev.choices.length;
+  const name = `${label} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}`;
+  ev.choices.forEach((choice, ci) => {
+    const nOut = choice.outcomes.length;
+    // Outcomes of one choice are mutually exclusive: add up the chance per skill across outcomes.
+    const perSkill = new Map<number, { p: number; where: Set<string> }>();
+    choice.outcomes.forEach((outcome, oi) => {
+      const pOutcome = nOut === 1 ? 1 : oi === nOut - 1 ? settings.bigRewardRate : (1 - settings.bigRewardRate) / (nOut - 1);
+      for (const { id, share } of rewardSkills(outcome)) {
+        const cur = perSkill.get(id) ?? { p: 0, where: new Set<string>() };
+        cur.p += pOutcome * share;
+        if (nOut > 1) cur.where.add(oi === nOut - 1 ? 'big reward' : 'small reward');
+        perSkill.set(id, cur);
+      }
+    });
+    for (const [id, { p, where }] of perSkill) {
+      const inAll = ev.choices.every((c) => c.outcomes.some((o) => rewardSkills(o).some((x) => x.id === id)));
+      const both = where.size === 1 ? `, ${[...where][0]}` : '';
+      out.push({ kind: ev.kind, skillId: id, gold: false, circle: false, pObtain: pFire * p, isChoice: nChoices > 1 && !inAll,
+        event: { key: `${keyPrefix}:${ev.kind}:${ev.index}`, label: `${owner}'s ${name.charAt(0).toLowerCase()}${name.slice(1)}`, option: `option ${ci + 1}` },
+        detail: `${name}${both}`, ...extra });
+    }
+  });
+  return out;
+}
+
 function computeEventSources(card: Card, settings: Settings): EventSource[] {
   const out: EventSource[] = [];
   const chainRates = card.rarity === 'SSR' ? settings.chainRatesSSR : card.rarity === 'SR' ? settings.chainRatesSR : [];
-  const scan = (ev: CardEvent, pFire: number, label: string) => {
-    const nChoices = ev.choices.length;
-    const name = `${label} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}`;
-    ev.choices.forEach((choice, ci) => {
-      const nOut = choice.outcomes.length;
-      // Outcomes of one choice are mutually exclusive: add up the chance per skill across outcomes.
-      const perSkill = new Map<number, { p: number; where: Set<string> }>();
-      choice.outcomes.forEach((outcome, oi) => {
-        const pOutcome = nOut === 1 ? 1 : oi === nOut - 1 ? settings.bigRewardRate : (1 - settings.bigRewardRate) / (nOut - 1);
-        for (const { id, share } of rewardSkills(outcome)) {
-          const cur = perSkill.get(id) ?? { p: 0, where: new Set<string>() };
-          cur.p += pOutcome * share;
-          if (nOut > 1) cur.where.add(oi === nOut - 1 ? 'big reward' : 'small reward');
-          perSkill.set(id, cur);
-        }
-      });
-      for (const [id, { p, where }] of perSkill) {
-        const inAll = ev.choices.every((c) => c.outcomes.some((o) => rewardSkills(o).some((x) => x.id === id)));
-        const both = where.size === 1 ? `, ${[...where][0]}` : '';
-        out.push({ kind: ev.kind, skillId: id, gold: false, circle: false, pObtain: pFire * p, isChoice: nChoices > 1 && !inAll,
-          event: { key: `${card.id}:${ev.kind}:${ev.index}`, label: `${card.name}'s ${name.charAt(0).toLowerCase()}${name.slice(1)}`, option: `option ${ci + 1}` },
-          detail: `${name}${both}`, cardName: card.name });
-      }
-    });
-  };
+  const scan = (ev: CardEvent, pFire: number, label: string) => out.push(...scanEvent(ev, pFire, label, card.name, String(card.id), settings, { cardName: card.name }));
   card.chainEvents.forEach((ev) => scan(ev, chainRates[ev.index - 1] ?? 0, EVENT_LABEL.chain));
   const randomScale = Math.min(1, 2 / Math.max(1, card.randomEvents.length));
   card.randomEvents.forEach((ev) => scan(ev, settings.randomEventRate * randomScale, EVENT_LABEL.random));
@@ -146,13 +156,55 @@ export function cardSourcesForTarget(card: Card, lb: number, target: Target, rac
   return out;
 }
 
-const CHAR_EVENT_RATE = 0.5; // chance the trainee's own event hands over its skill; not measured
+// ----- the trainee's own events -----
 
-export function traineeSources(trainee: Character, target: Target, data: Data): SkillSource[] {
+const winOf = (r: RaceRef, wins: RaceWins) => wins.get(r.year != null ? `${r.raceId}|${r.year}` : String(r.raceId)) ?? 0;
+const scheduled = (r: RaceRef, wins: RaceWins) => wins.has(r.year != null ? `${r.raceId}|${r.year}` : String(r.raceId));
+/** P(at least n of independent events with chances ps). */
+function atLeast(n: number, ps: number[]): number {
+  let dist = [1]; // dist[k] = P(exactly k so far)
+  for (const p of ps) { const next = Array<number>(dist.length + 1).fill(0); dist.forEach((d, k) => { next[k]! += d * (1 - p); next[k + 1]! += d * p; }); dist = next; }
+  return dist.slice(n).reduce((a, b) => a + b, 0);
+}
+/** Chance one secret-event condition is met, given the agenda's win chances. */
+export function conditionChance(c: EventCondition, wins: RaceWins, settings: Settings): number {
+  switch (c.type) {
+    case 'win': return c.races.reduce((a, r) => a * winOf(r, wins), 1);
+    case 'win_all': return c.races.reduce((a, r) => a * winOf(r, wins), 1);
+    case 'win_any': return 1 - c.races.reduce((a, r) => a * (1 - winOf(r, wins)), 1);
+    case 'win_n_of': return atLeast(c.n, c.races.map((r) => winOf(r, wins)));
+    case 'participate': return scheduled(c.race, wins) ? 1 : 0;
+    case 'do_not_participate': return scheduled(c.race, wins) ? 0 : 1;
+    case 'date': return 1;
+    case 'unknown': return settings.charConditionFallbackRate;
+  }
+}
+const TRAINEE_EVENT_LABEL: Record<TraineeEvent['kind'], string> = { story: 'Story event', choice: 'Choice event', outing: 'Outing', secret: 'Secret event' };
+/** Chance one of the trainee's events fires in a run, before any option choice. */
+function traineeEventRate(ev: TraineeEvent, wins: RaceWins, settings: Settings): number {
+  if (ev.kind === 'secret') return (ev.conditions ?? []).reduce((a, c) => a * conditionChance(c, wins, settings), 1);
+  return ev.kind === 'outing' ? settings.charOutingRate : settings.charStoryEventRate;
+}
+/** Every skill source from the trainee's own events (form untagged), given the agenda. Secret events are scored by their race conditions. */
+export function traineeEventSources(trainee: Character, wins: RaceWins, settings: Settings): EventSource[] {
+  const out: EventSource[] = [];
+  const offered = new Set<number>(); // every skill some event gives, whether or not it can fire under this agenda
+  for (const ev of trainee.events) {
+    for (const c of ev.choices) for (const { id } of c.outcomes.flatMap(rewardSkills)) offered.add(id);
+    const rate = traineeEventRate(ev, wins, settings);
+    if (rate <= 0) continue;
+    out.push(...scanEvent(ev, rate, TRAINEE_EVENT_LABEL[ev.kind], trainee.name, 'trainee', settings));
+  }
+  // skills GameTora lists for her events but no decoded event gives (a handful of characters): a plain source at the story rate
+  for (const id of trainee.eventSkills) if (!offered.has(id)) out.push({ kind: 'story', skillId: id, gold: false, circle: false, pObtain: settings.charStoryEventRate, isChoice: false, event: { key: `trainee:flat:${id}`, label: `${trainee.name}'s event`, option: '' }, detail: 'Character event (not decoded)' });
+  return out;
+}
+
+export function traineeSources(trainee: Character, target: Target, data: Data, settings: Settings, wins: RaceWins): SkillSource[] {
   const out: SkillSource[] = [];
   for (const id of trainee.innateSkills) if (target.familyIds.has(id)) out.push({ kind: 'innate', skillId: id, ...formOf(id, data), pObtain: 1, isChoice: false, detail: 'Innate skill' });
   for (const id of trainee.awakeningSkills) if (target.familyIds.has(id)) out.push({ kind: 'awakening', skillId: id, ...formOf(id, data), pObtain: 1, isChoice: false, detail: 'Awakening skill' });
-  for (const id of trainee.eventSkills) if (target.familyIds.has(id)) out.push({ kind: 'char-event', skillId: id, ...formOf(id, data), pObtain: CHAR_EVENT_RATE, isChoice: false, detail: 'Character event' });
+  for (const src of traineeEventSources(trainee, wins, settings)) if (target.familyIds.has(src.skillId)) out.push({ ...src, ...formOf(src.skillId, data) });
   return out;
 }
 

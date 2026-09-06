@@ -50,6 +50,27 @@ test('characters have aptitudes, growth, base stats and resolvable skills', () =
   }
 });
 
+test('trainee events are decoded with resolvable skills and race references', () => {
+  const raceIds = new Set(data.races.map((r) => r.raceId));
+  const kinds = new Set(['story', 'choice', 'outing', 'secret']);
+  let secrets = 0, choiceEvents = 0;
+  for (const ch of data.characters) {
+    assert.ok(Array.isArray(ch.events) && ch.events.length > 0, `${ch.name} has events`);
+    for (const ev of ch.events) {
+      assert.ok(kinds.has(ev.kind), `${ch.name} event kind ${ev.kind}`);
+      for (const c of ev.choices) for (const o of c.outcomes) for (const r of o) if (r.t === 'sk') assert.ok(typeof r.d === 'number' && skillExists(r.d), `${ch.name} event skill ${String(r.d)}`);
+      if (ev.kind === 'secret') { secrets++; assert.ok(Array.isArray(ev.conditions), `${ch.name} secret event has conditions`); }
+      if (ev.kind === 'choice') choiceEvents++;
+      for (const cond of ev.conditions ?? []) {
+        const refs = 'races' in cond ? cond.races : 'race' in cond ? [cond.race] : [];
+        for (const r of refs) { assert.ok(raceIds.has(r.raceId), `${ch.name} condition race ${r.raceId} is a calendar G1`); if (r.year != null) assert.ok(r.year >= 1 && r.year <= 3); }
+        if (cond.type === 'win_n_of') assert.ok(cond.n >= 1 && cond.n <= cond.races.length);
+      }
+    }
+  }
+  assert.ok(secrets > 100 && choiceEvents > 200, `secret ${secrets}, choice ${choiceEvents}`);
+});
+
 test('races sit on the three-year calendar and ranks include SS', () => {
   for (const r of data.races) {
     assert.ok(r.year >= 1 && r.year <= 3 && r.month >= 1 && r.month <= 12 && (r.half === 1 || r.half === 2), `${r.name} calendar`);

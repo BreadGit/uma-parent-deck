@@ -48,6 +48,9 @@ export function renderSettings() {
           ${numField('groupFinaleRate', 'Group finale happens (unverified)')}
           ${numField('specialEventRate', 'Pal/Group unlock and New Year events')}
           ${numField('scenarioPickRate', 'Scenario linked-skill event fires')}
+          ${numField('charStoryEventRate', "Trainee's story and choice events play")}
+          ${numField('charOutingRate', "Trainee's outing event happens")}
+          ${numField('charConditionFallbackRate', 'Secret-event condition the tool cannot score')}
           ${numField('bigRewardRate', 'Big reward chance (split outcomes)')}
           ${numField('goldSparkRate', 'Spark chance with gold skill')}
           ${numField('whiteSparkRate', 'Spark chance with white skill')}
@@ -58,6 +61,7 @@ export function renderSettings() {
           ${numField('lossPenalty', 'Stat points lost per expected race loss', 1)}
           ${numField('skillScorePerSp', 'Rank points per SP (skills bought)')}
           ${numField('skillScoreSd', 'Rank score sd from skills', 10)}
+          ${numField('innateSkillBuyShare', 'Share of innate skills counted in the rank score')}
           ${numField('totalTurnsOverride', 'Total turns (blank = fitted)', 1, data.model.races.totalTurns.toFixed(1))}
         </div>
         <button class="small" data-action="reset-settings" @click=${resetAdvanced}>Reset advanced settings</button>

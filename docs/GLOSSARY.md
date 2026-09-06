@@ -29,6 +29,9 @@ names differ they are noted.
 - **Chain events**: a support card's scripted event sequence (SSR: 3, SR: 2, R: 0). **Random
   events**: a list of events that can happen randomly during a run. **Outings** (recreation, dates): pal and group
   cards' own sequence; the last one is the **finale**.
+- **Trainee events**: the Trainee's own events. **Story events** play in every career; **choice events** offer
+  two or three options; her **outings** happen when the run takes her out; **secret events** (hidden events)
+  fire only once their conditions are met, usually winning specific G1s in a given year, and often give a skill.
 - **Scenario**: the career mode. This tool models **Our Grand Concert** (Global 2026-07-22).
   **Scenario-linked card**: A card that has a special effect in a scenario, for example giving a special scenario skill during the scenario skil event. **Scenario skill event**: an event that takes place Senior year in early November where each option is tied to a character (Smart Falcon, Mihono Bourbon, Silence Suzuka, Agnes
   Tachyon); picking that option with her in the run (trainee or card) gives the gold skill, otherwise the
@@ -58,8 +61,9 @@ names differ they are noted.
 
 - **Target** (target white spark): a white skill you want the finished parent to carry as a spark.
 - **Source**: a way the run can end up owning a target skill: hint, chain event, random event,
-  outing, scenario option, trainee event, innate/awakening skill, or lineage. Each has an obtain
-  chance.
+  outing, scenario option, trainee event (story, choice, outing or secret), innate/awakening skill, or
+  lineage. Each has an obtain chance. A secret event's chance is the product of its conditions' chances,
+  with race wins scored from the agenda and conditions the tool cannot score given the fallback rate.
 - **Choice-gated**: a source that only happens if the run picks that option at an event. Only one
   option per event can be taken.
 - **Prioritized skills**: the tool's suggested 10-entry list for independent training. Entry types:

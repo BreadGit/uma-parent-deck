@@ -19,6 +19,9 @@ export interface Settings {
   groupFinaleRate: number;       // Group card finale (gold skill) happens
   specialEventRate: number;      // Pal/Group unlock and New Year events (never seen in independent training)
   scenarioPickRate: number;      // the scenario's linked-skill event fires and the prioritized option is taken
+  charStoryEventRate: number;    // the trainee's own story and choice events play during the run
+  charOutingRate: number;        // one of the trainee's own outing events happens
+  charConditionFallbackRate: number; // a secret-event condition the tool cannot evaluate (rival results, streaks) is met
   scenarioId: number;            // career scenario (3 = Our Grand Concert)
   bigRewardRate: number;         // when an outcome is split into small/big rewards, chance of the big one
   goldSparkRate: number;         // white spark chance at run end when the gold skill is owned
@@ -30,6 +33,7 @@ export interface Settings {
   lossPenalty: number;           // total stat points lost per expected race loss
   skillScorePerSp: number;       // rank points bought per skill point (a white is 217 pts for ~150 SP after hint discounts)
   skillScoreSd: number;          // uncertainty of the skill part of the rank score
+  innateSkillBuyShare: number;   // share of the trainee's innate skill rating counted as bought by run end
   totalTurnsOverride: number | null;
 }
 
@@ -50,6 +54,9 @@ export const DEFAULT_SETTINGS: Settings = {
   groupFinaleRate: 0.85,
   specialEventRate: 0,
   scenarioPickRate: 1,
+  charStoryEventRate: 1,
+  charOutingRate: 0.5,
+  charConditionFallbackRate: 0.5,
   scenarioId: 3,
   bigRewardRate: 0.3,
   goldSparkRate: 0.4,
@@ -61,6 +68,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lossPenalty: 0,
   skillScorePerSp: 1.4,
   skillScoreSd: 400,
+  innateSkillBuyShare: 0.5,
   totalTurnsOverride: null,
 };
 
@@ -93,6 +101,9 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   groupFinaleRate: rate,
   specialEventRate: rate,
   scenarioPickRate: rate,
+  charStoryEventRate: rate,
+  charOutingRate: rate,
+  charConditionFallbackRate: rate,
   scenarioId: { kind: 'number', min: 1, max: 99 },
   bigRewardRate: rate,
   goldSparkRate: rate,
@@ -104,6 +115,7 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   lossPenalty: { kind: 'number', min: 0, max: 10000 },
   skillScorePerSp: { kind: 'number', min: 0, max: 100 },
   skillScoreSd: { kind: 'number', min: 0, max: 100000 },
+  innateSkillBuyShare: rate,
   totalTurnsOverride: { kind: 'number-or-null', min: 1, max: 200 },
 };
 
@@ -164,6 +176,9 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   groupFinaleRate: 'Chance the Group finale (the gold skill) happens. Default 0.85 is a guess; the finale needs every member outing first and nobody has counted it in independent training.',
   specialEventRate: 'Chance of the Pal/Group unlock and New Year events. Default 0 because Loopacord never saw the New Year event in independent training.',
   scenarioPickRate: 'Our Grand Concert has a Senior November live event with one option per linked character (Smart Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Bringing that character or one of her cards upgrades her option to the gold skill. Loopacord logged the scenario pick at 100% in independent training, so the default is 1.',
+  charStoryEventRate: "Chance the trainee's own story events and choice events play during an independent-training run. Default 1: they are fixed parts of every career and nothing suggests the AI skips them. Unmeasured.",
+  charOutingRate: "Chance a given one of the trainee's own outing events happens. It needs the run to take her out at the right time, which nobody has counted in independent training, so 0.5 is a placeholder.",
+  charConditionFallbackRate: "Secret events fire once their conditions are met. Race wins and participation are scored from the agenda; conditions the tool cannot evaluate (beating a named rival, win streaks, strategy used) get this chance instead. 0.5 is a placeholder.",
   bigRewardRate: 'When an event outcome splits into a small and a big reward, the chance of the big one. Default 0.3, your estimate.',
   goldSparkRate: 'Chance a skill you own as gold becomes a white spark at run end. Default 0.4 from the mechanics document.',
   whiteSparkRate: 'Chance a skill you own as white becomes a white spark at run end. Default 0.2 from the mechanics document.',
@@ -174,5 +189,6 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. Default 0 because the effect of losses and conditions like Skin Outbreak has not been measured.',
   skillScorePerSp: 'Rank-score points bought per skill point at the end of the run. Default 1.4: a white skill is 217 points for about 150 SP after hint discounts.',
   skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. Default 400, roughly two skills either way.',
+  innateSkillBuyShare: "Share of the trainee's innate skill rating counted in the rank score, on the idea that the run buys some but not all of them. Default 0.5 is an assumption, not a measurement, and part of this SP is already inside the skills-bought term, so it double counts a little. Fitting it needs logged rank scores.",
   totalTurnsOverride: 'Total career turns used to scale card stats by races run. Blank uses the fitted 71.7 from decks run at 28 and 23 races.',
 };

@@ -8,6 +8,24 @@ export interface Reward { t: string; v?: string; d?: number | { d: number; v: st
 export interface EventChoice { outcomes: Reward[][] }
 export interface CardEvent { kind: 'chain' | 'random' | 'recreation' | 'special'; index: number; name?: string; choices: EventChoice[] }
 
+/** A race the trainee must run or win: the calendar race id, in a given career year or any year. */
+export interface RaceRef { raceId: number; year?: number }
+/** What a secret event needs before it fires. Evaluated against the agenda; 'unknown' keeps GameTora's raw condition. */
+export type EventCondition =
+  | { type: 'win'; races: RaceRef[] }
+  | { type: 'win_any'; races: RaceRef[] }
+  | { type: 'win_all'; races: RaceRef[] }
+  | { type: 'win_n_of'; n: number; races: RaceRef[] }
+  | { type: 'participate'; race: RaceRef }
+  | { type: 'do_not_participate'; race: RaceRef }
+  | { type: 'date' }
+  | { type: 'unknown'; raw: unknown[] };
+/**
+ * A trainee's own event. Story events play in every career, choice events offer two or three options, outings
+ * happen when the run takes her out, and secret events fire once their race conditions are met.
+ */
+export interface TraineeEvent { kind: 'story' | 'choice' | 'outing' | 'secret'; index: number; name?: string; choices: EventChoice[]; conditions?: EventCondition[] }
+
 export interface Card {
   id: number;
   urlName: string; // GameTora page slug
@@ -66,8 +84,9 @@ export interface Character {
   fiveStarStats: number[] | null;
   innateSkills: number[];
   awakeningSkills: number[];
-  eventSkills: number[];
+  eventSkills: number[];         // every skill her events can give (GameTora's flat list); the events below carry the structure
   uniqueSkills: number[];
+  events: TraineeEvent[];
   goals: CareerGoal[];
 }
 export interface GoalRace { raceId: number; name: string; distance: number; surface: 'turf' | 'dirt'; grade: number; fansNeeded: number }

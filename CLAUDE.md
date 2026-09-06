@@ -37,8 +37,9 @@ else. A theme block may set variables; it may not restyle a base class such as `
 outranks every variant and has bitten us twice). No inline styles in templates; add a utility class.
 
 Data: `npm run fetch` is the only thing that talks to GameTora (one request a second, generic user
-agent, no identifying headers, manifest-hash cached). Refit the stat model with `npm run fit` after a
-data change. Skill names use the official Global name (`name`) with GameTora's translation as `altName`.
+agent, no identifying headers, manifest-hash cached; per-card and per-character page JSON cached in
+`data/raw`). `node scripts/fetch-gametora.mjs --offline` re-normalizes `data/*.json` from `data/raw`
+without a request. Refit the stat model with `npm run fit` after a data change. Skill names use the official Global name (`name`) with GameTora's translation as `altName`.
 
 Git: one commit per change, message in the imperative, trailer
 `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`. Don't commit `docs/screenshot.png`.

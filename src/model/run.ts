@@ -3,7 +3,7 @@ import type { Settings } from '../settings.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { lineageCount, resolveTarget, type Lineage, type Target } from './sparks.ts';
 import { predictDeck, type Prediction } from './stats.ts';
-import { buildSchedule, goalRaces, racePopularity, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
+import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { rankEstimate, type RankEstimate } from './rank.ts';
 import { inheritedFromParents, type Inheritance } from './inherit.ts';
 import { traineeAt } from './trainee.ts';
@@ -119,7 +119,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const targets = input.targets.map((id) => resolveTarget(id, data)).filter((t): t is Target => !!t);
   const lineage = new Map<number, Lineage>();
   for (const t of targets) { const l = input.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
-  const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, lineage, priority: [] };
+  const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, raceWins: raceWinChances(schedule), lineage, priority: [] };
   const { pool, unowned } = cardPool(data, inventory, settings);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
   const pinnedIds = input.pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));

@@ -161,6 +161,23 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
   return out;
 }
 
+/**
+ * Win chance per race in the agenda, for secret-event conditions: keyed "raceId|year" for one running and "raceId"
+ * for any running (a G1 run in two years counts if either is won). Races not in the agenda are absent.
+ */
+export type RaceWins = Map<string, number>;
+export function raceWinChances(sched: ScheduledRace[]): RaceWins {
+  const out: RaceWins = new Map();
+  for (const s of sched) {
+    if (!s.selected) continue;
+    const p = Math.min(1, s.pWin);
+    out.set(`${s.race.raceId}|${s.race.year}`, Math.max(out.get(`${s.race.raceId}|${s.race.year}`) ?? 0, p));
+    const any = out.get(String(s.race.raceId)) ?? 0;
+    out.set(String(s.race.raceId), 1 - (1 - any) * (1 - p));
+  }
+  return out;
+}
+
 export function scheduleSummary(sched: ScheduledRace[]) {
   const sel = sched.filter((s) => s.selected);
   const wins = sel.reduce((a, s) => a + Math.min(1, s.pWin), 0);
