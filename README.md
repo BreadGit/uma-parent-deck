@@ -6,21 +6,20 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 ## What it does
 
 - You pick the white skills you want to spark. Cards that hint or give the skill, its gold
-  upgrade, or its ◎ form all count; gold counts more because a gold skill has a 40% spark
+  upgrade, or its ◎ form all count; gold counts more because a gold skill has a base 40% spark
   chance at run end vs 20% for a white.
 - You pick the trainee. Her own support cards are excluded, her innate and awakening skills
   count as already covered, and her growth rates and aptitudes feed the stat and race models.
-- The G1 schedule is built from the uma.guide independent-training win table
-  (surface x distance aptitude, consecutive-race penalty) with a win-chance threshold you set
+- The G1 schedule is built from a win table (surface x distance aptitude, consecutive-race penalty) with a win-chance threshold you set
   on the main page, plus per-race checkboxes.
 - Each card gets a spark score (expected sparks over the targets, given how likely the card
   is to actually hand over the skill) and a stat score (predicted contribution in independent
   training at your limit break). Ranking is by marginal spark gain, tie-broken by stats.
-- A greedy builder pins Light Hello (mandatory in Our Grand Concert), then adds the card with
+- A greedy builder first pins chosen cards (with Light Hello added as a default for Our Grand Concert), then adds the card with
   the largest marginal spark gain per slot, one card per character.
-- The predicted run shows expected stats, P(≥600) and P(≥1100) per stat (blue spark star
-  bands), P(SS rank) (white spark star odds), estimated SP, and the 10-skill priority list
-  with the skills that are gated behind an event choice first.
+- The predicted run shows expected stats, chance of ≥600 and ≥1100 per stat (blue spark star
+  bands), chance of SS rank (which increase white spark star odds), estimated SP, and a 10-skill priority list used by independent training
+  with the skills that are gated behind an event choice listed first.
 - Every card counts as owned at a default limit break (4 for every rarity, editable) until you
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
@@ -90,7 +89,7 @@ Pal date chain completes almost every run (97% default, matching Loopacord and o
 runs), Group member outings default to 90% and the Group finale to 85% (unverified), and the
 unlock and New Year events never fire (0%).
 
-Our Grand Concert's Senior November live event offers one option per linked character (Smart
+Our Grand Concert's Senior November event offers one option per linked character (Smart
 Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Picking a linked
 option while training that character or carrying one of her cards hints the gold skill (for
 example Concentration instead of Focus). The tool treats every option as a choice-gated source
