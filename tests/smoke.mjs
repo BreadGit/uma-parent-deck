@@ -1,6 +1,6 @@
-// Drives the dev server in Chromium and checks zoom-sensitive slider rendering in Firefox.
+// Drives the dev server in Chromium through the main flows and checks layout at four widths in both themes.
 import assert from 'node:assert/strict';
-import { chromium, firefox } from 'playwright';
+import { chromium } from 'playwright';
 const url = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
@@ -11,43 +11,6 @@ await page.goto(url);
 await page.waitForSelector('h1');
 await page.evaluate(() => localStorage.clear());
 await page.reload();
-
-// Tick marks must occupy exactly one backing-store pixel each. CSS and SVG strokes
-// can cover different numbers of device pixels when browser zoom puts them between pixels.
-const readTickPixels = (targetPage) => targetPage.$$eval('.blue-slider-notches', (canvases) => canvases.map((canvas) => {
-  const ctx = canvas.getContext('2d');
-  const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-  const columns = [];
-  for (let x = 0; x < canvas.width; x++) {
-    let painted = false;
-    for (let y = 0; y < canvas.height; y++) painted ||= pixels[(y * canvas.width + x) * 4 + 3] > 0;
-    if (painted) columns.push(x);
-  }
-  const widths = [];
-  for (const x of columns) {
-    if (!widths.length || x > widths.at(-1).end + 1) widths.push({ start: x, end: x });
-    else widths.at(-1).end = x;
-  }
-  return widths.map(({ start, end }) => end - start + 1);
-}));
-const tickPixels = await readTickPixels(page);
-assert.equal(tickPixels.length, 10, 'not every parent slider has a tick canvas');
-assert.ok(tickPixels.every((widths) => widths.length === 10 && widths.every((width) => width === 1)), `slider tick widths vary: ${JSON.stringify(tickPixels)}`);
-
-const firefoxBrowser = await firefox.launch();
-try {
-  for (const deviceScaleFactor of [1, 1.25, 1.5]) {
-    const context = await firefoxBrowser.newContext({ viewport: { width: 1000, height: 900 }, deviceScaleFactor });
-    const firefoxPage = await context.newPage();
-    await firefoxPage.goto(url);
-    await firefoxPage.waitForSelector('.blue-slider-notches');
-    const widthsAtScale = await readTickPixels(firefoxPage);
-    assert.ok(widthsAtScale.every((widths) => widths.length === 10 && widths.every((width) => width === 1)), `Firefox slider tick widths vary at ${deviceScaleFactor}x: ${JSON.stringify(widthsAtScale)}`);
-    await context.close();
-  }
-} finally {
-  await firefoxBrowser.close();
-}
 
 // A range input must stay mounted while it is dragged. Replacing it on each input event
 // breaks pointer capture and prevents the thumb from reaching the pointer.
@@ -85,12 +48,12 @@ assert.deepEqual(await page.$$eval('select[data-setting="focus"] option', (optio
 await page.fill('#trainee-search', 'special dreamer');
 await page.waitForSelector('li[data-action="pick-trainee"]');
 await page.click('li[data-action="pick-trainee"]');
-const aptitudePlacement = await page.evaluate(() => {
-  const traineePanel = [...document.querySelectorAll('section.panel')].find((panel) => panel.querySelector('h2')?.textContent === 'Trainee');
-  const advanced = document.querySelector('details[data-details="advanced"]');
-  return { trainee: traineePanel.querySelectorAll('select[data-apt]').length, advanced: advanced.querySelectorAll('select[data-apt]').length };
+// the legacy screen mirrors the game: aptitude overrides and per-parent start gains live there, not in the Trainee panel
+const legacyPlacement = await page.evaluate(() => {
+  const panelOf = (title) => [...document.querySelectorAll('section.panel')].find((panel) => panel.querySelector('h2')?.textContent.startsWith(title));
+  return { traineeApts: panelOf('Trainee').querySelectorAll('select[data-apt]').length, legacyApts: panelOf('Legacy screen').querySelectorAll('select[data-apt]').length, gains: panelOf('Legacy screen').querySelectorAll('select[data-gain]').length, styleSelects: [...panelOf('Legacy screen').querySelectorAll('select[data-apt]')].filter((s) => ['front', 'pace', 'late', 'end'].includes(s.dataset.apt)).length };
 });
-assert.deepEqual(aptitudePlacement, { trainee: 6, advanced: 0 });
+assert.deepEqual(legacyPlacement, { traineeApts: 0, legacyApts: 6, gains: 10, styleSelects: 0 });
 const baseTurf = await page.inputValue('select[data-apt="turf"]');
 const overrideTurf = baseTurf === 'G' ? 'A' : 'G';
 await page.selectOption('select[data-apt="turf"]', overrideTurf);
@@ -134,21 +97,12 @@ assert.ok(!bodyText.includes("Blue spark stars depend on each stat's final value
 assert.ok(!bodyText.includes('White spark stars'), 'predicted run still shows white spark odds');
 assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'inventory settings still show default limit-break controls');
 assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
-const sliderTicks = await page.$eval('.blue-slider', (wrapper) => {
-  const input = wrapper.querySelector('input');
-  const ticks = wrapper.querySelector('.blue-slider-notches');
-  const inputRect = input.getBoundingClientRect();
-  const tickRect = ticks.getBoundingClientRect();
-  return {
-    inputZ: Number(getComputedStyle(input).zIndex),
-    ticksZ: Number(getComputedStyle(ticks).zIndex),
-    leftInset: tickRect.left - inputRect.left,
-    rightInset: inputRect.right - tickRect.right,
-  };
-});
-assert.deepEqual(sliderTicks, { inputZ: 2, ticksZ: 1, leftInset: 10, rightInset: 10 }, 'slider tick geometry is not stable');
-assert.equal(await page.locator('.blue-gain-compact').count(), 1, 'parent gain detail is not compact');
-assert.equal(await page.locator('.blue-gain-summary [data-inherited-stat]').count(), 5, 'parent gain summary does not include all stats');
+// picking a start gain colours the bubble by parent and raises the start value
+await page.selectOption('select[data-gain="1-2"]', '54');
+await page.waitForTimeout(200);
+const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start: Number(el.querySelector('.body .v').textContent), base: Number(el.querySelector('.body .sub').textContent.replace(/\D/g, '')), p1: Number(el.querySelector('select[data-gain="0-2"]').value), bubbles: [...el.querySelectorAll('.bubbles span')].map((b) => b.className + ':' + b.textContent) }));
+assert.equal(powerCell.start, powerCell.base + powerCell.p1 + 54, 'the start value is base plus both parents');
+assert.deepEqual(powerCell.bubbles, ['p2:+54'], 'the +54 above Power carries parent 2 colour');
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),
@@ -175,11 +129,10 @@ await page.selectOption('select[data-lb="30052"]', 'none');
 await page.waitForTimeout(200);
 const afterUnown = await page.evaluate(() => [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()));
 console.log('deck after marking Light Hello SSR not owned:', afterUnown);
-await page.$eval('input[data-parent="1"][data-stat="0"]', (el) => { el.value = '9'; el.dispatchEvent(new Event('change', { bubbles: true })); });
+await page.selectOption('select[data-gain="0-0"]', '0');
 await page.waitForTimeout(200);
-const parent2Stars = await page.evaluate(() => [...document.querySelectorAll('input[data-parent="1"]')].map((e) => Number(e.value)));
-assert.ok(parent2Stars.reduce((sum, stars) => sum + stars, 0) <= 9, `parent 2 exceeded the 9-star cap: ${parent2Stars}`);
-console.log('parent 2 stars after setting speed to 9 (should clamp to 0 with 9 already used):', parent2Stars);
+const speedAfter = await page.$eval('.legacy-stat:nth-child(1)', (el) => ({ bubbles: el.querySelectorAll('.bubbles span').length, gainOptions: el.querySelectorAll('select[data-gain="0-0"] option').length }));
+assert.deepEqual(speedAfter, { bubbles: 0, gainOptions: 20 }, 'clearing a gain removes its bubble; every possible +XX is offered');
 // layout check: no horizontal overflow at common widths, both themes
 for (const width of [1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {

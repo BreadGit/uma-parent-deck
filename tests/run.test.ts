@@ -11,7 +11,7 @@ import type { WishlistEntry } from '../src/model/deck.ts';
 const data = loadData();
 const settings = { ...DEFAULT_SETTINGS };
 const byName = (n: string) => data.skills.find((s) => s.name === n && !s.unreleasedEn)!;
-const empty: RunInput = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] };
+const empty: RunInput = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentGains: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] };
 const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight });
 
 test('star tables: exact star counts use the listed table, others interpolate and clamp', () => {

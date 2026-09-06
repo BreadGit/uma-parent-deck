@@ -110,7 +110,7 @@ test("a trainee's non-target choice option appears in the prioritized candidates
 
 test('planRun feeds the agenda into secret events: forcing the needed runnings raises the spark chance', () => {
   const stamina = resolveTarget(byName('Stamina to Spare').id, data)!;
-  const base: RunInput = { targets: [stamina.id], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] };
+  const base: RunInput = { targets: [stamina.id], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentGains: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] };
   const plain = planRun(base, settings, {}, data);
   const { forced } = specialWeekAgenda(true);
   const withRuns = planRun({ ...base, raceOverrides: Object.fromEntries(forced) }, settings, {}, data);

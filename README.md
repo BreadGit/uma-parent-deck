@@ -28,10 +28,11 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
   repo root to make it the default.
-- Parent blue sparks: per parent, one slider per stat, up to 9 stars a side. A 3★ blue spark
-  gives +21 to its stat at the start (2★ +12, 1★ +5) and the same again at each of the two
-  inspiration events when it procs (70/80/90% by stars, scaled by the affinity setting). White
-  spark star odds depend on the run's SS rank instead.
+- Legacy screen: a copy of the game's pre-run screen. Above each stat you pick the "+XX" each
+  parent side adds at the start, as the game shows it; the 20 possible values each decode to one
+  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5), which then proc again at the two inspiration
+  events (70/80/90% by stars, scaled by the affinity setting). The aptitude overrides sit under the
+  stats like the game's table. White spark star odds depend on the run's SS rank instead.
 
 Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live in
 `src/model/rules.ts`, tunable estimates in `src/settings.ts`.

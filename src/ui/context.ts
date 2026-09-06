@@ -14,9 +14,6 @@ export const view = {
   traineeQuery: '',
   cardQuery: '',
   showAdvanced: false,
-  activeInheritedStat: 0,
-  /** Parent star sliders mid-drag: the clamped stars for one parent, shown before the change is committed. */
-  parentPreview: null as { parent: number; stars: number[] } | null,
 };
 
 let renderer: () => void = () => {};

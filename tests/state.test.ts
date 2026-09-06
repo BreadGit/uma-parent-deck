@@ -20,7 +20,7 @@ test('v1 run state: single pin, combined blue stars and {n, stars} lineage migra
   const v1 = { targets: [200352], pinnedId: 30028, blueStars: [9, 9, 3, 0, 0], targetLineage: { '200352': { n: 3, stars: 3 } }, sortKey: 'stats' };
   const s = migrate({ state: v1 }, data);
   assert.deepEqual(s.run.pinnedIds, [30028]);
-  assert.deepEqual(s.run.parentStars, [[9, 0, 0, 0, 0], [0, 9, 3, 0, 0]], 'parent 1 fills first, the rest goes to parent 2');
+  assert.deepEqual(s.run.parentGains, [[63, 0, 0, 0, 0], [0, 63, 21, 0, 0]], 'parent 1 fills first, the rest goes to parent 2, stars become start gains');
   assert.deepEqual(s.run.targetLineage['200352'], { k1: 2, k2: 1, p1: 6, p2: 3 });
   assert.equal(s.ui.sortKey, 'stats');
 });
@@ -30,7 +30,7 @@ test('v2 run state passes through and malformed fields fall back', () => {
   const s = migrate({ state: v2 }, data);
   assert.deepEqual(s.run.targets, [200352]);
   assert.deepEqual(s.run.pinnedIds, [30052, 30028]);
-  assert.deepEqual(s.run.parentStars, [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]]);
+  assert.deepEqual(s.run.parentGains, [[5, 12, 21, 0, 0], [0, 0, 0, 26, 33]], 'v2 stars per stat pack into sparks: 4★ is 3★+1★ (+26), 5★ is 3★+2★ (+33)');
   assert.deepEqual(s.run.targetLineage, { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } });
   assert.deepEqual(s.run.raceOverrides, { a: true });
   assert.equal(s.run.traineeStars, 3);
@@ -45,6 +45,15 @@ test('legacy settings blobs: version bumps apply and invalid values are dropped'
   const s3 = migrate({ settings: { version: 3, showUnowned: false, defaultLb: { R: 2, SR: 3, SSR: 1 } } }, data);
   assert.equal(s3.settings.showUnowned, false);
   assert.deepEqual(s3.settings.defaultLb, { R: 2, SR: 3, SSR: 1 });
+});
+
+test('v4 saves (stars per parent) become v5 start gains; v5 gains that the screen cannot show are dropped', () => {
+  const v4 = { version: 4, run: { parentStars: [[9, 3, 0, 0, 0], [0, 0, 0, 0, 0]] }, settings: {}, inventory: {}, ui: { sortKey: 'score', theme: 'light' } };
+  const s = migrate({ current: v4 }, data);
+  assert.equal(s.version, 5);
+  assert.deepEqual(s.run.parentGains, [[63, 21, 0, 0, 0], [0, 0, 0, 0, 0]]);
+  const v5 = { version: 5, run: { parentGains: [[26, 7, 0, 0, 0], [0, 0, 0, 0, 63]] } };
+  assert.deepEqual(migrate({ current: v5 }, data).run.parentGains, [[26, 0, 0, 0, 0], [0, 0, 0, 0, 63]], '+7 is not a possible sum');
 });
 
 test('the current shape round-trips and wins over legacy keys', () => {

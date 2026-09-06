@@ -151,21 +151,24 @@ test('rank score matches published anchors', () => {
   assert.ok(Math.abs(statScore(600) - 1143) < 20);
 });
 
-test('blue spark inheritance packs stars and caps the total', async () => {
-  const { inheritedStat, clampStars, sparksFromStars } = await import('../src/model/inherit.ts');
-  assert.deepEqual(sparksFromStars(9), [3, 3, 3]);
-  assert.deepEqual(sparksFromStars(7), [3, 3, 1]);
+test('blue spark start gains: 20 distinct sums, each decoding to one star combination, and the inheritance behind them', async () => {
+  const { START_GAINS, MAX_START_GAIN, sparksFromGain, gainOfSparks, inheritedFromGain, inheritedFromParents, sparksFromStars } = await import('../src/model/inherit.ts');
+  assert.equal(START_GAINS.length, 20);
+  assert.equal(MAX_START_GAIN, 63);
+  assert.equal(new Set(START_GAINS.map((g) => g.gain)).size, 20, 'no two star combinations show the same +XX');
+  for (const g of START_GAINS) assert.equal(gainOfSparks(g.stars), g.gain);
+  assert.deepEqual(sparksFromGain(26), [1, 3], '+26 is a 1★ and a 3★');
+  assert.deepEqual(sparksFromGain(63), [3, 3, 3]);
+  assert.deepEqual(sparksFromGain(7), [], 'a value the screen cannot show has no sparks');
   const s = { ...DEFAULT_SETTINGS, affinity: 150 };
-  const r = inheritedStat(9, s);
-  assert.equal(r.start, 63);
-  assert.equal(r.inspiration, 126); // 3★ sparks proc at 100% with 150 affinity
-  const low = inheritedStat(3, { ...DEFAULT_SETTINGS, affinity: 0 });
-  assert.ok(Math.abs(low.inspiration - 2 * 21 * 0.9) < 1e-9);
-  assert.deepEqual(clampStars([9, 3, 3, 3, 6], 4), [9, 3, 3, 3, 0]);
-  assert.deepEqual(clampStars([3, 3, 3, 3, 0], 3, 9), [3, 3, 3, 0, 0]);
-  const { inheritedFromParents } = await import('../src/model/inherit.ts');
-  const two = inheritedFromParents([[9, 0, 0, 0, 0], [3, 0, 0, 0, 0]], 0, s);
+  const full = inheritedFromGain(63, s);
+  assert.equal(full.start, 63);
+  assert.equal(full.inspiration, 126, '3★ sparks proc at 100% with 150 affinity, twice');
+  const mixed = inheritedFromGain(26, { ...DEFAULT_SETTINGS, affinity: 0 });
+  assert.ok(Math.abs(mixed.inspiration - 2 * (21 * 0.9 + 5 * 0.7)) < 1e-9, 'each spark rolls at its own star odds');
+  const two = inheritedFromParents([[63, 0, 0, 0, 0], [21, 0, 0, 0, 0]], 0, s);
   assert.equal(two.start, 63 + 21);
+  assert.deepEqual(sparksFromStars(7), [3, 3, 1], 'old slider totals still pack into sparks for migration');
 });
 
 test('Pal and Group outings are skill sources at their own rates', () => {

@@ -6,7 +6,7 @@
   --soft: #eef2f8; --soft2: #fbfcfe; --input: #fff; --shadow: rgba(0,0,0,.08);
   --pill: #e6eaf0; --pill-ok-bg: #d8f0e1; --pill-ok: #1d6b3d; --pill-warn-bg: #fbe6d1; --pill-warn: #8a4a08;
   --tag-gold-bg: #fbf3d6; --tag-gold-fg: #8a6d0b; --tag-warn-bg: #fbe6d1; --tag-warn-fg: #8a4a08; --tag-pin-fg: #fff;
-  --tag-borrow-bg: #e0457b; --tag-goal-bg: #c9a227; --dirt: #a35a00;
+  --tag-borrow-bg: #e0457b; --tag-goal-bg: #c9a227; --dirt: #a35a00; --parent1: #2f6fed; --parent2: #e0457b; --stat-head: #2e9e5b;
   --type-speed-bg: #dceeff; --type-speed-fg: #1a5fb4; --type-stamina-bg: #ffe1e1; --type-stamina-fg: #b42222; --type-power-bg: #ffedd3; --type-power-fg: #a35a00;
   --type-guts-bg: #ffe0ef; --type-guts-fg: #b02a6a; --type-wit-bg: #dff5e8; --type-wit-fg: #1f7a45; --type-pal-bg: #efe4ff; --type-pal-fg: #6b3fb4;
 }
@@ -15,12 +15,11 @@
   --gold: #e0b93a; --ok: #4cc47f; --warn: #f0a050;
   --soft: #262c36; --soft2: #20252d; --input: #161a20; --shadow: rgba(0,0,0,.5);
   --pill: #2c333e; --pill-ok-bg: #1f3a2b; --pill-ok: #7fdca4; --pill-warn-bg: #3f2e1a; --pill-warn: #f2b56e;
-  --tag-gold-bg: #45391a; --tag-gold-fg: #f2d377; --tag-warn-bg: #4a3316; --tag-warn-fg: #ffc37a; --tag-pin-fg: #14171c; --dirt: #ffc37a;
+  --tag-gold-bg: #45391a; --tag-gold-fg: #f2d377; --tag-warn-bg: #4a3316; --tag-warn-fg: #ffc37a; --tag-pin-fg: #14171c; --dirt: #ffc37a; --parent1: #6b9cff; --parent2: #ff6fa0; --stat-head: #2e9e5b;
   --type-speed-bg: #1f3550; --type-speed-fg: #8fc1ff; --type-stamina-bg: #4a2323; --type-stamina-fg: #ff9c9c; --type-power-bg: #4a3316; --type-power-fg: #ffc37a;
   --type-guts-bg: #4a2238; --type-guts-fg: #ff9ccc; --type-wit-bg: #1e3d2b; --type-wit-fg: #8ee0ad; --type-pal-bg: #352a4d; --type-pal-fg: #c9aeff;
 }
 :root[data-theme="dark"] img.thumb, :root[data-theme="dark"] .deck .slot img { filter: brightness(.92); }
-:root[data-theme="dark"] .blue-parent-control input[type=range] { accent-color: var(--accent); }
 
 /* base */
 * { box-sizing: border-box; }
@@ -138,28 +137,36 @@ table.conflicts td { white-space: normal; vertical-align: top; }
 #tooltip { position: fixed; z-index: 50; max-width: 340px; padding: 8px 10px; border-radius: 6px; background: var(--panel); color: var(--text); border: 1px solid var(--line); font-size: 12px; line-height: 1.4; box-shadow: 0 6px 18px var(--shadow); pointer-events: none; white-space: pre-line; display: none; }
 #tooltip.show { display: block; }
 
-/* trainee panel */
-.apts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 10px; }
-.apts label { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-.apts select { max-width: 60px; padding: 2px 4px; }
-
-/* parent blue spark sliders */
-.blue-parents { display: grid; gap: 6px; }
-.blue-parent-card { padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--soft2); }
-.blue-parent-card .ph { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.blue-parent-control { margin: 3px 0; }
-.blue-parent-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.blue-parent-heading span { font-weight: 600; }
-.blue-parent-heading output { color: var(--muted); font-variant-numeric: tabular-nums; }
-.blue-slider { position: relative; height: 23px; }
-.blue-parent-control input[type=range] { position: relative; z-index: 2; display: block; width: 100%; margin: 0; background: transparent; }
-.blue-slider-notches { position: absolute; z-index: 1; top: 15px; right: 10px; left: 10px; width: calc(100% - 20px); height: 5px; overflow: visible; pointer-events: none; }
-.blue-gain-compact { display: flex; flex-direction: column; gap: 1px; margin-top: 9px; padding: 8px 10px; border: 1px solid var(--accent); border-radius: 7px; }
-.blue-gain-compact strong { color: var(--accent); font-size: 18px; }
-.blue-gain-compact span { color: var(--muted); font-size: 11px; }
-.blue-gain-summary { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 7px; color: var(--muted); font-size: 11px; }
-.blue-gain-summary span.active { color: var(--accent); }
-.blue-gain-summary output { font-weight: 700; }
+/* legacy screen: per-parent start gains above the game's stat boxes, aptitudes below */
+.legacy-legend { display: flex; gap: 10px; font-size: 10px; color: var(--muted); margin: 2px 0 4px; }
+.legacy-legend .p1 { color: var(--parent1); font-weight: 600; }
+.legacy-legend .p2 { color: var(--parent2); font-weight: 600; }
+.legacy-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.legacy-stat { display: flex; flex-direction: column; min-width: 0; }
+.legacy-stat .gains { display: flex; flex-direction: column; gap: 2px; padding: 0 1px; }
+.legacy-stat select.gain { font: inherit; font-size: 11px; padding: 1px 0; border: 1px solid var(--line); border-radius: 4px; background: var(--input); color: var(--text); width: 100%; max-width: 100%; text-align: center; }
+.legacy-stat select.gain.p1 { border-color: var(--parent1); color: var(--parent1); }
+.legacy-stat select.gain.p2 { border-color: var(--parent2); color: var(--parent2); }
+.legacy-stat select.gain.p1.set { background: var(--parent1); color: var(--on-accent); }
+.legacy-stat select.gain.p2.set { background: var(--parent2); color: var(--on-accent); }
+.legacy-stat .bubbles { display: flex; justify-content: center; gap: 4px; min-height: 15px; font-size: 11px; font-weight: 700; }
+.legacy-stat .bubbles .p1 { color: var(--parent1); }
+.legacy-stat .bubbles .p2 { color: var(--parent2); }
+.legacy-stat .head { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; padding: 2px 0; background: var(--stat-head); color: var(--on-accent); border-right: 1px solid var(--panel); }
+.legacy-stat:first-child .head { border-radius: 5px 0 0 0; }
+.legacy-stat:last-child .head { border-radius: 0 5px 0 0; border-right: none; }
+.legacy-stat .head img { width: 14px; height: 14px; }
+.legacy-stat .body { border: 1px solid var(--line); border-left: none; padding: 3px 2px; text-align: center; background: var(--soft2); }
+.legacy-stat:first-child .body { border-left: 1px solid var(--line); border-radius: 0 0 0 5px; }
+.legacy-stat:last-child .body { border-radius: 0 0 5px 0; }
+.legacy-stat .body .v { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.legacy-stat .body .sub { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.legacy-apts { display: grid; grid-template-columns: 54px 1fr; gap: 3px 5px; margin-top: 8px; font-size: 11px; align-items: center; }
+.legacy-apts .rowlbl { background: var(--soft); border-radius: 4px; padding: 3px 4px; font-weight: 600; text-align: center; white-space: nowrap; }
+.legacy-apts .cells { display: flex; flex-wrap: wrap; gap: 3px 5px; }
+.legacy-apts .cell { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.legacy-apts .cell select { font-size: 11px; padding: 1px 0; width: 34px; }
+.legacy-apts .cell.over select { border-color: var(--warn); }
 
 /* deck and predicted run */
 .deck { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }

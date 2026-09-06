@@ -20,7 +20,7 @@ export interface RunInput {
   aptOverrides: Partial<Aptitudes>;
   raceOverrides: Record<string, boolean>;  // calendar id -> forced in (true) or out (false)
   pinnedIds: number[];                     // support cards forced into the deck, in order
-  parentStars: number[][];                 // [parent 1, parent 2], five stats each
+  parentGains: number[][];                 // [parent 1, parent 2], five stats each: the start gain the legacy screen shows
 }
 
 export interface RunPlan {
@@ -135,7 +135,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const ranking = rankCards(pool, targets, existing, ctx);
   const deckResult = buildDeck(deckPool, targets, ctx, pinnedIds, DECK_SIZE, borrowPool);
   const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings);
-  const inherited = STATS.map((_, i) => inheritedFromParents(input.parentStars, i, settings));
+  const inherited = STATS.map((_, i) => inheritedFromParents(input.parentGains, i, settings));
   const finalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
   const rank = rankEstimate(finalMean, pred.sd, pred.sp, trainee, data, settings);
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);

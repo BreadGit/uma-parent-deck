@@ -1,13 +1,11 @@
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
-import { STATS, type AptKey, type Grade } from '../../types.ts';
+import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { capitalize, charImg, skillName } from '../format.ts';
 import { tip } from '../tooltip.ts';
 
-const GRADES: Grade[] = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
-const APT_SHOWN: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long'];
 
 function suggestions() {
   const words = view.traineeQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -19,17 +17,9 @@ function pickTrainee(cardId: number | null) {
   view.traineeQuery = '';
   update((s) => { s.run.traineeCardId = cardId; s.run.aptOverrides = {}; });
 }
-/** An override equal to the trainee's own grade is just the base again. */
-function setAptitude(k: AptKey, grade: Grade) {
-  update((s) => {
-    const t = s.run.traineeCardId != null ? data.charByCardId.get(s.run.traineeCardId) : null;
-    if (t && t.aptitudes[k] === grade) delete s.run.aptOverrides[k]; else s.run.aptOverrides[k] = grade;
-  });
-}
 
 export function renderTrainee(c: RunPlan) {
   const t = c.trainee;
-  const overridden = Object.keys(store.run.aptOverrides).length > 0;
   return html`
     <section class="panel">
       <h2>Trainee</h2>
@@ -46,9 +36,6 @@ export function renderTrainee(c: RunPlan) {
         </div>
         <div class="small muted">Base stats: ${t.baseStats.join(' / ')}</div>
         <div class="small muted">Growth bonuses: ${t.growth.some((g) => g > 0) ? STATS.map((s, i) => t.growth[i]! > 0 ? `${capitalize(s)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</div>
-        <h3>Trainee aptitude overrides (match the legacy screen)</h3>
-        <div class="apts">${APT_SHOWN.map((k) => html`<label>${k}<select data-apt="${k}" @change=${(e: Event) => setAptitude(k, (e.target as HTMLSelectElement).value as Grade)}>${GRADES.map((g) => html`<option value="${g}" ?selected=${c.apt[k] === g}>${g}</option>`)}</select></label>`)}</div>
-        ${overridden ? html`<button class="small" data-action="reset-apts" @click=${() => update((s) => { s.run.aptOverrides = {}; })}>Reset to base aptitudes</button>` : nothing}
         <div class="small muted gap-top">Innate: ${t.innateSkills.map(skillName).join(', ')}<br/>Awakening: ${t.awakeningSkills.map(skillName).join(', ')}</div>
       ` : html`
         <div class="suggest">

@@ -50,6 +50,10 @@ names differ they are noted.
 - **Spark** (JP factor): a trait a finished Trainee carries. **Blue** = stat (1★ +5, 2★ +12, 3★ +21 at
   career start and again per inspiration proc), **pink/red** = aptitude, **green** = unique skill,
   **white** = skill, race, or scenario. **Stars** on a spark: 1 to 3.
+- **Legacy screen**: the game's pre-run screen with the trainee's stats after inheritance, a "+XX" above each
+  stat per parent side, and her aptitudes. In the tool, the **Legacy screen** panel copies it: the **start
+  gain** per parent (one of the 20 sums three sparks can make, +0 to +63) and the surface and distance
+  aptitudes after pink sparks.
 - **Inspiration events**: early April of Classic and Senior year, when sparks may proc again.
 - **White spark generation**: at run end each owned skill may become a white spark: 20% for a white
   skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage.
