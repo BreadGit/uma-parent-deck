@@ -32,6 +32,17 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live in
 `src/model/rules.ts`, tunable estimates in `src/settings.ts`.
 
+## Code layout
+
+- `src/model/`: the game and tool logic, with no DOM. `run.ts` turns the user's choices into the plan
+  the page shows (schedule, deck, prediction, rank estimate, prioritized skills); `sparks.ts` finds skill
+  sources and resolves event conflicts; `deck.ts` scores cards and builds the deck; `stats.ts`,
+  `races.ts`, `rank.ts`, `inherit.ts` and `trainee.ts` are the individual models.
+- `src/state.ts`: the persisted state and its migration from older saves.
+- `src/ui/`: lit-html templates, one module per panel.
+- `tests/`: model rules, the run pipeline, state migration, and data-shape checks; `smoke.mjs` drives
+  the page in a browser.
+
 ## Running
 
 ```

@@ -7,13 +7,34 @@ overflow at 1280, 1440, 1680 and 1920 px in both themes). Layout bugs only ever 
 Edits: never rely on an anchor string matching. Assert that a replacement applied. Three fixes in this
 project's history silently did nothing because the surrounding text had changed.
 
-Facts about the game belong in code, not prose: named constants in `src/model/rules.ts`, tunable
-estimates with their provenance in `src/settings.ts` (`SETTING_HELP` in `src/main.ts` is the user-facing
-source note), and a test per rule in `tests/model.test.ts`. Terms are defined in `docs/GLOSSARY.md`;
-keep it in sync when a term is added or renamed.
+## Layout
 
-Styling: colours come from CSS variables only. A theme block may set variables; it may not restyle a
-base class such as `.tag` (that override outranks every variant and has bitten us twice).
+- `src/model/`: pure game and tool logic, no DOM. `run.ts` has `planRun()`, the whole pipeline from the
+  user's choices to the plan the page shows. Named game constants in `rules.ts`; tunable estimates with
+  their provenance in `src/settings.ts` (`SETTING_HELP` there is the user-facing source note, and
+  `SETTING_SPEC` is what each value accepts).
+- `src/state.ts`: the one persisted object and the one migration path from every older shape. Nothing
+  else touches localStorage.
+- `src/ui/`: lit-html templates. `context.ts` holds the data, the store, view state and the memoized plan;
+  panels change persisted state only through `update()`. One module per panel under `panels/`.
+- `tests/`: `model.test.ts` has a test per rule, `run.test.ts` covers the pipeline and the family-aware
+  ordering, `state.test.ts` covers migration and setting specs, `data.test.ts` checks `data/*.json` shape
+  and references (run it after a fetch or a refit). Tests are type-checked with the app.
+
+Facts about the game belong in code, not prose, with a test per rule. Terms are defined in
+`docs/GLOSSARY.md`; keep it in sync when a term is added or renamed.
+
+## lit-html
+
+lit owns the children of everything it renders: never set `innerHTML` or `textContent` inside the app
+root. An element a handler writes to directly (the threshold `<output>`) is bound by property
+(`.value=`), not by a child expression. Boolean attributes use `?selected=`, `?open=`, `?disabled=`;
+inputs the user types into bind `.value=${live(...)}` so a state reset reaches the field. Keep the
+`data-*` attributes on interactive elements: the smoke test selects by them.
+
+Styling: colours come from CSS variables in the two theme blocks at the top of `src/style.css`, nothing
+else. A theme block may set variables; it may not restyle a base class such as `.tag` (that override
+outranks every variant and has bitten us twice). No inline styles in templates; add a utility class.
 
 Data: `npm run fetch` is the only thing that talks to GameTora (one request a second, generic user
 agent, no identifying headers, manifest-hash cached). Refit the stat model with `npm run fit` after a
