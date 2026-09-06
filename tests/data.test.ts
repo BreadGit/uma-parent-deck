@@ -28,6 +28,10 @@ test('cards carry the fields the stat and spark models read', () => {
     }
     if (c.rarity === 'SSR') assert.ok(c.chainEvents.length <= 3, `${c.name} chain events`);
   }
+  // decoding canary: Kitasan Black's third chain event hands out Professor of Curvature in both options
+  const kitasan = data.cardById.get(30028)!;
+  assert.equal(kitasan.chainEvents.length, 3);
+  assert.ok(kitasan.chainEvents[2]!.choices.every((ch) => ch.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331)));
 });
 
 test('skills have rarity, cost and resolvable version links', () => {

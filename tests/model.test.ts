@@ -2,8 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
-import { cardContribution, modelContribution, predictDeck, raceScale } from '../src/model/stats.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, sparkChance } from '../src/model/sparks.ts';
+import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale } from '../src/model/stats.ts';
+import type { Card } from '../src/types.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, sparkChance } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { buildSchedule, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { statScore } from '../src/model/rank.ts';
@@ -12,13 +13,6 @@ const data = loadData();
 const { cards, skills, characters } = data;
 const settings = { ...DEFAULT_SETTINGS };
 const kitasan = data.cardById.get(30028)!;
-
-test('data is Global only and decoded', () => {
-  assert.ok(cards.every((c) => c.releaseEn));
-  assert.equal(kitasan.chainEvents.length, 3);
-  assert.ok(kitasan.chainEvents[2]!.choices[0]!.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331));
-  assert.equal(kitasan.randomEvents.length, 2);
-});
 
 test('skill families resolve gold and white forms', () => {
   const t = resolveTarget(200352, data)!; // Corner Recovery ○
@@ -44,12 +38,49 @@ test('race scaling grows card stats with fewer races', () => {
   assert.equal(raceScale(28, data.model, settings), 1);
 });
 
-test('kitasan provides Corner Recovery via hint and Arc Maestro via event skill list', () => {
-  const t = resolveTarget(200352, data)!;
-  const srcs = cardSourcesForTarget(kitasan, 4, t, 28, data.model.races.totalTurns, data, settings);
-  assert.ok(srcs.some((s) => s.kind === 'hint' && s.skillId === 200352));
-  const own = combineSources(srcs);
-  assert.ok(own.pAny > 0 && own.pAny <= 1);
+test('a card is a hint source for its hint skills and a chain-event source for the skill an event gives', () => {
+  const corner = resolveTarget(200352, data)!; // Corner Recovery ○, on Kitasan's hint list
+  const hints = cardSourcesForTarget(kitasan, 4, corner, 28, data.model.races.totalTurns, data, settings);
+  const hint = hints.find((s) => s.kind === 'hint' && s.skillId === 200352)!;
+  assert.ok(hint && hint.pObtain > 0 && hint.pObtain < 1);
+  const eh = expectedHints(kitasan, 4, 28, data.model.races.totalTurns, settings);
+  assert.ok(Math.abs(hint.pObtain - (1 - Math.pow(1 - 1 / kitasan.hintSkills.length, eh))) < 1e-9, 'P(at least one hint) over a uniform pool');
+  const professor = resolveTarget(200331, data)!; // Professor of Curvature, given by chain event 3
+  const chain = cardSourcesForTarget(kitasan, 4, professor, 28, data.model.races.totalTurns, data, settings).find((s) => s.kind === 'chain')!;
+  assert.ok(chain && chain.gold, 'chain 3 gives the gold form');
+  assert.ok(Math.abs(chain.pObtain - settings.chainRatesSSR[2]!) < 1e-9, 'at the SSR chain-3 completion rate');
+  assert.equal(chain.isChoice, false, 'both options give it, so it is not choice-gated');
+});
+
+test('expected hints scale with turns off the track and Hint Frequency', () => {
+  const hf = (c: Card) => passives(c, 4)[EFFECT.hintFreq] ?? 0;
+  const noHf = cards.find((c) => c.rarity === 'SSR' && hf(c) === 0)!;
+  const withHf = cards.find((c) => hf(c) >= 30)!;
+  const T = data.model.races.totalTurns;
+  const base = expectedHints(noHf, 4, 20, T, settings);
+  assert.ok(Math.abs(base - (T - 20) * settings.hintTurnsShare * settings.hintBase * settings.hintScale) < 1e-9);
+  assert.ok(expectedHints(noHf, 4, 28, T, settings) < base, 'more races, fewer training turns, fewer hints');
+  assert.ok(Math.abs(expectedHints(withHf, 4, 20, T, settings) / base - (1 + hf(withHf) / 100)) < 1e-9);
+});
+
+test('event rewards decode: split outcomes use the big-reward rate, random skill lists share, an all-option skill is not gated, many random events scale', () => {
+  const riko = data.cardById.get(10060)!; // random 2, option 1: small reward Ramp Up, big reward Maverick ○
+  const rikoEv = eventSources(riko, settings).filter((s) => s.kind === 'random' && s.event.key.endsWith(':random:2'));
+  const rampUp = rikoEv.find((s) => data.skillById.get(s.skillId)?.name === 'Ramp Up')!;
+  const maverick = rikoEv.find((s) => data.skillById.get(s.skillId)?.name === 'Maverick ○')!;
+  const pFire = settings.randomEventRate * Math.min(1, 2 / riko.randomEvents.length);
+  assert.ok(Math.abs(rampUp.pObtain - pFire * (1 - settings.bigRewardRate)) < 1e-9 && rampUp.detail.includes('small reward'));
+  assert.ok(Math.abs(maverick.pObtain - pFire * settings.bigRewardRate) < 1e-9 && maverick.detail.includes('big reward'));
+  const fine = data.cardById.get(30010)!; // chain 3 hands out one of two skills at random
+  const shared = eventSources(fine, settings).filter((s) => s.event.key.endsWith(':chain:3'));
+  assert.equal(shared.length, 2);
+  for (const s of shared) assert.ok(Math.abs(s.pObtain - settings.chainRatesSSR[2]! / 2) < 1e-9, 'each gets half the event chance');
+  const diamond = data.cardById.get(30029)!; // chain 3: Iron Will in every option
+  const ironWill = eventSources(diamond, settings).find((s) => s.event.key.endsWith(':chain:3') && data.skillById.get(s.skillId)?.name === 'Iron Will')!;
+  assert.equal(ironWill.isChoice, false);
+  const sirius = data.cardById.get(30081)!; // 14 random events: scaled so two fire on average
+  const one = eventSources(sirius, settings).find((s) => s.kind === 'random')!;
+  assert.ok(one.pObtain <= settings.randomEventRate * 2 / sirius.randomEvents.length + 1e-9);
 });
 
 test('schedule respects threshold and consecutive penalty', () => {
@@ -69,6 +100,32 @@ test('schedule respects threshold and consecutive penalty', () => {
   const forced = buildSchedule(data.races, apt, 0.8, new Map([[arima[0]!.race.calendarId, true], [arima[1]!.race.calendarId, false]]));
   assert.ok(forced.find((s) => s.race.calendarId === arima[0]!.race.calendarId)!.selected);
   assert.ok(!forced.find((s) => s.race.calendarId === arima[1]!.race.calendarId)!.selected);
+});
+
+test('the consecutive-race penalty drops the fourth race of a streak under a 90% threshold and reports why', () => {
+  const allA = traineeAptitudes(null, { turf: 'A', dirt: 'A', sprint: 'A', mile: 'A', medium: 'A', long: 'A' });
+  const sched = buildSchedule(data.races, allA, 0.9, new Map());
+  const sel = sched.filter((s) => s.selected);
+  assert.ok(sel.length > 10, 'with every aptitude at A most G1s are runnable');
+  assert.ok(sel.every((s) => s.consecutive <= 3), 'a fourth race in a row would sit at 0.75 and fail the threshold');
+  assert.ok(sel.some((s) => s.consecutive === 3), 'three in a row is still allowed (1.0 - 0.1 >= 0.9)');
+  assert.ok(sched.some((s) => !s.selected && s.reason.startsWith('Streak penalty')), 'the dropped race says so');
+  const loose = buildSchedule(data.races, allA, 0.5, new Map());
+  assert.ok(loose.filter((s) => s.selected).some((s) => s.consecutive >= 4), 'a lower threshold lets longer streaks through');
+});
+
+test('prediction: focus multiplies the split, growth raises event stats, race losses cost stat points', () => {
+  const grown = characters.find((c) => c.growth.some((g) => g >= 20))!;
+  const gi = grown.growth.findIndex((g) => g >= 20);
+  const deck = cards.filter((c) => c.rarity === 'SSR').slice(0, 6).map((card) => ({ card, lb: 4 }));
+  const balanced = predictDeck(deck, grown, 20, 'balanced', 0, data.model, settings);
+  const sprint = predictDeck(deck, grown, 20, 'sprint', 0, data.model, settings);
+  const f = data.model.focus;
+  balanced.mean.forEach((v, i) => assert.ok(Math.abs(sprint.mean[i]! / v - f.sprint[i]! / f.balanced[i]!) < 1e-6, `focus ratio on stat ${i}`));
+  const flat = predictDeck(deck, { ...grown, growth: [0, 0, 0, 0, 0] }, 20, 'balanced', 0, data.model, settings);
+  assert.ok(Math.abs(balanced.eventStats[gi]! / flat.eventStats[gi]! - (1 + data.model.growthEffect * grown.growth[gi]! / 100)) < 1e-9, 'growth scales the event stats');
+  const penalised = predictDeck(deck, grown, 20, 'balanced', 2, data.model, { ...settings, lossPenalty: 50 });
+  balanced.mean.forEach((v, i) => assert.ok(Math.abs(v - penalised.mean[i]! - 100 / 5) < 1e-9, 'each expected loss removes lossPenalty points spread over five stats'));
 });
 
 test('greedy deck covers targets and produces a wishlist', () => {
@@ -129,14 +186,21 @@ test('Pal and Group outings are skill sources at their own rates', () => {
   assert.ok(Math.abs(m.pObtain - settings.groupOutingRate) < 1e-9);
 });
 
-test('lineage sparks raise obtain and spark chances; the deck has exactly one borrow', () => {
+test('lineage sparks: two 3★ copies hand over the hint about two thirds of the time, and each copy multiplies the spark chance', () => {
+  const trainee = characters.find((c) => c.name === 'Special Week')!;
+  const target = resolveTarget(200352, data)!;
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[target.id, { k1: 1, k2: 1, p1: 3, p2: 3 }]]) });
+  const lin = (traineeCoverage([target], ctx).sources.get(target.id) ?? []).find((s) => s.kind === 'lineage')!;
+  const perEvent = Math.min(1, settings.whiteSparkInheritRates[2]! * (1 + settings.affinity / 100));
+  assert.ok(Math.abs(lin.pObtain - (1 - Math.pow(1 - perEvent, 4))) < 1e-9, 'two sparks, two inspiration events each');
+  assert.ok(Math.abs(sparkChance({ pGold: 0, pWhite: 1 }, settings, 2) - settings.whiteSparkRate * 1.21) < 1e-9);
+  assert.ok(Math.abs(sparkChance({ pGold: 1, pWhite: 0 }, settings, 0) - settings.goldSparkRate) < 1e-9);
+});
+
+test('the deck has exactly one borrowed slot at the borrowed limit break, six distinct characters', () => {
   const trainee = characters.find((c) => c.name === 'Special Week')!;
   const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[targets[0]!.id, { k1: 1, k2: 1, p1: 3, p2: 3 }]]) });
-  const cover = traineeCoverage(targets, ctx).sources;
-  const lin = (cover.get(targets[0]!.id) ?? []).find((s) => s.kind === 'lineage')!;
-  assert.ok(lin && lin.pObtain > 0.6 && lin.pObtain < 0.7, `lineage obtain ${lin?.pObtain}`);
-  assert.ok(Math.abs(sparkChance({ pGold: 0, pWhite: 1 }, settings, 2) - 0.2 * 1.21) < 1e-9);
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee });
   const pool = cards.filter((c) => c.rarity === 'SR').map((card) => ({ card, lb: 2 }));
   const d = buildDeck(pool, targets, ctx, [], 6, cards.map((card) => ({ card, lb: 4 })));
   assert.equal(d.deck.filter((x) => x.borrowed).length, 1);
@@ -160,7 +224,6 @@ test('Grand Concert linked event: Bourbon present gives Concentration, otherwise
   assert.equal(asTrainee.length, 1); assert.ok(asTrainee[0]!.gold, 'Concentration when Bourbon is the trainee');
   const names = wishlistCandidates(d.deck, [focus], ctx).map((w) => w.name);
   assert.ok(names.includes('Concentration'));
-  assert.ok(!names.some((n) => n === 'Focus' && false));
   const kitasan = cards.find((c) => c.id === 30028)!;
   assert.ok(!cardSourcesForTarget(kitasan, 4, focus, 20, data.model.races.totalTurns, data, settings).some((s) => s.kind === 'scenario'));
 });
@@ -268,7 +331,6 @@ test('a non-target option ranked above a target takes the event and is reported'
 test('priority ranks every form of a non-target family together', () => {
   const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
   const allIveGot = resolveTarget(skills.find((s) => s.name === "All I've Got" && !s.unreleasedEn)!.id, data)!;
-  const comeWhatMay = allIveGot.gold!.id;
   const base: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
   // Come What May ranked first as a non-target blocker; with Tachyon absent the event offers All I've Got instead,
   // which must still outrank Focus because the whole family is ranked together
@@ -276,5 +338,4 @@ test('priority ranks every form of a non-target family together', () => {
   const r = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: pr });
   assert.equal(r.conflicts.length, 1);
   assert.equal(r.conflicts[0]!.taken.skillId, allIveGot.white!.id);
-  void comeWhatMay;
 });

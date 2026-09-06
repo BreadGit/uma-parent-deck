@@ -24,7 +24,7 @@ test('star tables: exact star counts use the listed table, others interpolate an
   assert.deepEqual(statsAtStars(only, 5), ch.baseStats, 'one known table is used for every star count');
 });
 
-test('rank estimate: unique skill and half the innate skills count, and P(SS) rises with score', () => {
+test('rank estimate: the unique skill and a share of the innate skills count, and P(SS) rises with score', () => {
   const sw = data.characters.find((c) => c.name === 'Special Week')!;
   const low = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, data, settings);
   const high = rankEstimate([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, data, settings);
