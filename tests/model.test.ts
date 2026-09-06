@@ -342,3 +342,58 @@ test('priority ranks every form of a non-target family together', () => {
   assert.equal(r.conflicts.length, 1);
   assert.equal(r.conflicts[0]!.taken.skillId, allIveGot.white!.id);
 });
+
+test('pins are a shortlist: eight pins give six cards, the five best pins owned and a borrow from everything', () => {
+  const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+  const pool = cards.map((card) => ({ card, lb: 2 }));
+  const seen = new Set<number>(); const pins: number[] = [];
+  for (const c of cards.filter((c) => c.rarity === 'SSR')) { if (!seen.has(c.charId)) { seen.add(c.charId); pins.push(c.id); } if (pins.length === 8) break; }
+  const d = buildDeck(pool, targets, ctx, pins, 6, cards.map((card) => ({ card, lb: 4 })));
+  assert.equal(d.deck.length, 6);
+  assert.equal(d.deck.filter((x) => x.borrowed).length, 1);
+  const owned = d.deck.filter((x) => !x.borrowed);
+  assert.equal(owned.length, 5);
+  assert.ok(owned.every((x) => pins.includes(x.card.id)), 'every owned slot is a pin');
+  assert.equal(d.steps.filter((s) => s.includes('pinned but not chosen')).length, 3, 'the three left-out pins are reported');
+  // the chosen five are the best five pins by the greedy order: none of the left-out pins would have scored higher than the last chosen one
+  const lastChosen = owned[owned.length - 1]!;
+  const leftOut = pins.filter((id) => !owned.some((x) => x.card.id === id));
+  const before = traineeCoverage(targets, ctx);
+  for (const id of leftOut) assert.ok(rankCards([{ card: data.cardById.get(id)!, lb: 2 }], targets, before, ctx)[0]!.marginalValue <= rankCards([{ card: lastChosen.card, lb: 2 }], targets, before, ctx)[0]!.marginalValue + 1e-9);
+});
+
+test('two pins of one character: the better one is kept and the other is reported as the same character', () => {
+  const targets = [resolveTarget(200352, data)!];
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+  const kitas = cards.filter((c) => c.charName === 'Kitasan Black').map((c) => c.id);
+  assert.ok(kitas.length >= 2);
+  const d = buildDeck(cards.map((card) => ({ card, lb: 4 })), targets, ctx, kitas, 6, cards.map((card) => ({ card, lb: 4 })));
+  assert.equal(d.deck.filter((x) => x.card.charName === 'Kitasan Black').length, 1);
+  assert.ok(d.steps.some((s) => s.includes('pinned but not chosen, same character as')));
+});
+
+test('a pinned card that is the best card overall can be the borrow', () => {
+  const corner = resolveTarget(200352, data)!;
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+  // six pins whose owned copies are at LB0; Kitasan Black at LB4 is the best card overall for Corner Recovery
+  const others = cards.filter((c) => c.rarity === 'SSR' && c.charName !== 'Kitasan Black').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 5).map((c) => c.id);
+  const pins = [...others, 30028];
+  const d = buildDeck(cards.map((card) => ({ card, lb: 0 })), [corner], ctx, pins, 6, cards.map((card) => ({ card, lb: 4 })));
+  const kita = d.deck.find((x) => x.card.id === 30028)!;
+  assert.ok(kita, 'Kitasan is in the deck');
+  assert.ok(kita.borrowed && kita.lb === 4, 'as the friend\'s LB4 card');
+  assert.equal(d.deck.length, 6);
+});
+
+test('a pin owned at a low limit break is upgraded to its LB4 borrow when that frees a slot worth more', () => {
+  const corner = resolveTarget(200352, data)!;
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+  // only Kitasan is owned (at LB0) and only Kitasan can be borrowed: the borrow step has nothing free to take, so
+  // the upgrade step should swap the owned copy for the LB4 borrow
+  const d = buildDeck([{ card: kitasan, lb: 0 }], [corner], ctx, [30028], 6, [{ card: kitasan, lb: 4 }]);
+  const k = d.deck.find((x) => x.card.id === 30028)!;
+  assert.ok(k.borrowed && k.lb === 4, 'the LB4 borrow replaced the LB0 copy');
+  assert.equal(d.borrow?.replaces?.id, 30028);
+  assert.equal(d.deck.length, 1);
+});

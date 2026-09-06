@@ -81,8 +81,9 @@ names differ they are noted.
 - **Coverage**: which targets the run can obtain and through which sources.
 - **Lineage** (per target): copies of that white spark already on each parent side (count and star
   total), which raise both hint and generation chances.
-- **Pinned card**: forced into the deck. **Inventory**: your cards' limit breaks; unmarked cards count
-  as owned at the default LB.
+- **Pinned card**: a card shortlisted for the deck's five owned slots. Up to five pins all go in; with
+  more, the builder keeps the best five and may borrow one of the rest. **Inventory**: your cards' limit
+  breaks; unmarked cards count as owned at the default LB.
 - **Observed / model** (basis): whether a card's stat contribution comes from logged runs or our estimated fitted
   formula.
 - **Event stats**: the deck-independent part of a run's stat gain (training events, races, scenario),

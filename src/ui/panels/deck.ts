@@ -94,8 +94,8 @@ export function renderDeck(c: RunPlan) {
           <div class="lb">${cs.borrowed ? html`${cs.card.rarity} · LB4 (friend's)` : html`${cs.card.rarity} · LB ${lbSelect(cs.card, cs.lb, 'small')}`} ${typeTag(cs.card)}</div>
           <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</div>
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
-      ${d.borrow ? html`<div class="small gap-top"><b>Borrow:</b> ${cardLink(d.borrow.card)} at LB4${d.borrow.gain > 1e-9 ? html` in place of your ${d.borrow.replaces?.name ?? ''} (${d.borrow.replaces?.id === d.borrow.card.id ? 'same card at a lower LB' : 'different card'}): +${(d.borrow.gain * 100).toFixed(1)}% expected sparks` : html` <span class="muted">(your own six are already the best; any of them can be the friend's card)</span>`}.
-        ${d.borrowAlternatives.length > 1 ? html`<span class="muted">Other borrows: ${d.borrowAlternatives.slice(1).map((o) => `${o.card.name} (+${(o.gain * 100).toFixed(1)}%)`).join(', ')}.</span>` : nothing}</div>` : nothing}
+      ${d.borrow ? html`<div class="small gap-top"><b>Borrow:</b> ${cardLink(d.borrow.card)} at LB4${d.borrow.replaces ? html` instead of your own copy at a lower LB` : nothing}${d.borrow.gain > 1e-9 ? html`: +${(d.borrow.gain * 100).toFixed(1)}% expected sparks` : html` <span class="muted">(adds nothing to the targets; the best stat stick)</span>`}.
+        ${d.borrowAlternatives.length ? html`<span class="muted">Other borrows: ${d.borrowAlternatives.map((o) => `${o.card.name} (+${(o.gain * 100).toFixed(1)}%)`).join(', ')}.</span>` : nothing}</div>` : nothing}
       <h3>Predicted run (deck ${c.sum.count} races, ${store.settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">
         <div class="stat outcome">

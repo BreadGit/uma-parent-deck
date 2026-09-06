@@ -1,7 +1,7 @@
 import type { Card, Character, Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale, type Contribution } from './stats.ts';
-import { DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
+import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import { cardSourcesForTarget, combineSources, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
 
@@ -113,6 +113,7 @@ export function rankCards(pool: { card: Card; lb: number }[], targets: Target[],
   return pool.map((p) => scoreCard(p.card, p.lb, targets, existing, ctx)).sort(cmp);
 }
 
+/** The friend's card: `replaces` is set when it is the LB4 version of a card the deck had at a lower limit break. */
 export interface BorrowOption { card: Card; replaces: Card | null; gain: number; statGain: number }
 export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[]; borrow: BorrowOption | null; borrowAlternatives: BorrowOption[] }
 
@@ -126,75 +127,99 @@ function stateOf(entries: CardScore[], targets: Target[], ctx: Ctx): Existing {
 function deckValue(entries: CardScore[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
   return { sparks: total(evaluate(stateOf(entries, targets, ctx), targets, ctx).sparks), stats: entries.reduce((a, e) => a + e.statPower, 0) };
 }
+const why = (cs: CardScore) => (cs.marginalValue > 0
+  ? `+${(cs.marginalValue * 100).toFixed(1)}% expected sparks (${cs.coverage.filter((c) => c.marginal > 0).map((c) => c.target.name).join(', ')})`
+  : `no uncovered targets left; best stat stick (+${cs.statPower.toFixed(0)} stats)`);
 
 /**
- * Greedy deck: pinned cards first, then the best marginal card per slot, one card per character.
- * One of the six must be a friend's card: `borrowPool` (every card at its borrowed limit break) is tried against
- * each replaceable slot and the swap that adds the most expected sparks (then stats) becomes the borrow.
+ * Greedy deck. Pinned cards are a shortlist for the owned slots: they are scored against what is already covered
+ * and taken best first, one per character, until the owned slots are full; unchosen pins are reported. The
+ * friend's slot then takes the best card overall at the borrowed limit break, from every card in `borrowPool`.
+ * Remaining owned slots fill from the rest of the pool. Finally, if a deck card's LB4 version would serve
+ * better as the borrow than the borrow chosen (freeing that card's slot for the next best owned card), swap.
  */
 export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, pinnedIds: number[], size = DECK_SIZE, borrowPool: { card: Card; lb: number }[] = []): DeckResult {
+  const ownedSlots = borrowPool.length ? size - BORROWED_SLOTS : size;
   let existing = traineeCoverage(targets, ctx);
   const deck: CardScore[] = [];
   const steps: string[] = [];
   const usedChars = new Set<number>();
   if (ctx.trainee) usedChars.add(ctx.trainee.charId);
-  const add = (cs: CardScore, why: string) => {
+  const ownedCount = () => deck.filter((d) => !d.borrowed).length;
+  const add = (cs: CardScore, note: string) => {
     deck.push(cs); usedChars.add(cs.card.charId);
     existing = addTo(existing, cs.mine, cs.card);
-    steps.push(`${cs.card.name} (LB${cs.lb}): ${why}`);
+    steps.push(`${cs.card.name} (LB${cs.lb})${cs.borrowed ? ', borrowed' : ''}: ${note}`);
   };
-  for (const id of pinnedIds) {
-    const p = pool.find((x) => x.card.id === id);
-    if (p && !usedChars.has(p.card.charId)) add(scoreCard(p.card, p.lb, targets, existing, ctx), 'pinned');
+  const free = (p: { card: Card }) => !usedChars.has(p.card.charId);
+  /** Best candidate by marginal spark gain, then stats, against the current deck. */
+  const best = (cands: { card: Card; lb: number }[]) => cands.filter(free).map((p) => scoreCard(p.card, p.lb, targets, existing, ctx)).sort(cmp)[0];
+
+  // 1. pins: the shortlist for the owned slots
+  const pins = pinnedIds.map((id) => pool.find((x) => x.card.id === id)).filter((x): x is { card: Card; lb: number } => !!x);
+  const chosenPins = new Set<number>();
+  while (ownedCount() < ownedSlots) {
+    const pick = best(pins.filter((p) => !chosenPins.has(p.card.id)));
+    if (!pick) break;
+    chosenPins.add(pick.card.id);
+    add(pick, `pinned, ${why(pick)}`);
   }
-  while (deck.length < size) {
-    const candidates = pool.filter((p) => !usedChars.has(p.card.charId)).map((p) => scoreCard(p.card, p.lb, targets, existing, ctx)).sort(cmp);
-    const best = candidates[0];
-    if (!best) break;
-    const why = best.marginalValue > 0
-      ? `+${(best.marginalValue * 100).toFixed(1)}% expected sparks (${best.coverage.filter((c) => c.marginal > 0).map((c) => c.target.name).join(', ')})`
-      : `no uncovered targets left; best stat stick (+${best.statPower.toFixed(0)} stats)`;
-    add(best, why);
+  for (const p of pins) {
+    if (chosenPins.has(p.card.id)) continue;
+    const same = deck.find((d) => d.card.charId === p.card.charId);
+    steps.push(`${p.card.name} (LB${p.lb}): pinned but not chosen, ${same ? `same character as ${same.card.name}` : `lower added spark chance than the ${ownedSlots} chosen`}`);
   }
 
-  // Borrow slot.
+  // 2. the friend's card: best overall against the pins
   let borrow: BorrowOption | null = null;
   const alternatives: BorrowOption[] = [];
-  if (borrowPool.length && deck.length) {
-    const base = deckValue(deck, targets, ctx);
-    const options: { opt: BorrowOption; entries: CardScore[] }[] = [];
-    for (const b of borrowPool) {
-      if (ctx.trainee && b.card.charId === ctx.trainee.charId) continue;
-      const bs = scoreCard(b.card, b.lb, targets, traineeCoverage(targets, ctx), ctx);
-      const sameChar = deck.findIndex((d) => d.card.charId === b.card.charId);
-      // A pinned card stays: only the same card at a higher LB may replace it.
-      if (sameChar >= 0 && pinnedIds.includes(deck[sameChar]!.card.id) && deck[sameChar]!.card.id !== b.card.id) continue;
-      const slots = sameChar >= 0 ? [sameChar] : deck.map((_, i) => i).filter((i) => !pinnedIds.includes(deck[i]!.card.id));
-      for (const i of slots) {
-        const cur = deck[i]!;
-        if (cur.card.id === b.card.id && cur.lb >= b.lb) {
-          // already yours at this LB: borrowing it gains nothing but is allowed
-          options.push({ opt: { card: b.card, replaces: cur.card, gain: 0, statGain: 0 }, entries: deck.map((d, j) => (j === i ? { ...bs, borrowed: true } : d)) });
-          continue;
-        }
-        const entries = deck.map((d, j) => (j === i ? { ...bs, borrowed: true } : d));
-        const v = deckValue(entries, targets, ctx);
-        options.push({ opt: { card: b.card, replaces: cur.card, gain: v.sparks - base.sparks, statGain: v.stats - base.stats }, entries });
-      }
-    }
-    options.sort((a, b) => (b.opt.gain - a.opt.gain) || (b.opt.statGain - a.opt.statGain));
-    const best = options[0];
-    if (best) {
-      const finalDeck = best.entries;
-      deck.splice(0, deck.length, ...finalDeck);
-      borrow = best.opt;
-      const seen = new Set<number>([best.opt.card.id]);
-      for (const o of options) { if (alternatives.length >= 5) break; if (seen.has(o.opt.card.id)) continue; seen.add(o.opt.card.id); alternatives.push(o.opt); }
-      steps.push(best.opt.gain > 1e-9
-        ? `Borrow ${best.opt.card.name} (LB4) in place of ${best.opt.replaces?.name ?? '—'}: +${(best.opt.gain * 100).toFixed(1)}% expected sparks`
-        : `Borrow ${best.opt.card.name} (LB4): your own six are already the best, so any of them can be the friend's card`);
+  if (borrowPool.length && deck.length + 1 <= size) {
+    const ranked = borrowPool.filter(free).map((p) => scoreCard(p.card, p.lb, targets, existing, ctx)).sort(cmp);
+    const top = ranked[0];
+    if (top) {
+      add({ ...top, borrowed: true }, why(top));
+      borrow = { card: top.card, replaces: null, gain: top.marginalValue, statGain: top.statPower };
+      for (const r of ranked.slice(1, 6)) alternatives.push({ card: r.card, replaces: null, gain: r.marginalValue, statGain: r.statPower });
     }
   }
+
+  // 3. fill the owned slots left from the rest of the pool
+  while (ownedCount() < ownedSlots) {
+    const pick = best(pool.filter((p) => !chosenPins.has(p.card.id)));
+    if (!pick) break;
+    add(pick, why(pick));
+  }
+
+  // 4. upgrade: a deck card's higher-LB version as the borrow instead (replacing the borrow, if any), its slot refilled
+  if (borrowPool.length) {
+    const base = deckValue(deck, targets, ctx);
+    let bestSwap: { entries: CardScore[]; opt: BorrowOption; value: { sparks: number; stats: number }; from: CardScore; to: CardScore; refill: CardScore | undefined } | null = null;
+    for (const d of deck) {
+      if (d.borrowed) continue;
+      const up = borrowPool.find((b) => b.card.id === d.card.id && b.lb > d.lb);
+      if (!up) continue;
+      const without = deck.filter((x) => x !== d && !x.borrowed);
+      const used = new Set(without.map((x) => x.card.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
+      const stateNow = stateOf(without, targets, ctx);
+      const upScore = { ...scoreCard(up.card, up.lb, targets, stateNow, ctx), borrowed: true };
+      const after = addTo(stateNow, upScore.mine, up.card);
+      used.add(up.card.charId);
+      const refill = pool.filter((p) => !used.has(p.card.charId)).map((p) => scoreCard(p.card, p.lb, targets, after, ctx)).sort(cmp)[0];
+      const entries = [...without, upScore, ...(refill ? [refill] : [])];
+      const value = deckValue(entries, targets, ctx);
+      if (value.sparks > base.sparks + 1e-9 || (Math.abs(value.sparks - base.sparks) <= 1e-9 && value.stats > base.stats)) {
+        if (!bestSwap || value.sparks > bestSwap.value.sparks || (value.sparks === bestSwap.value.sparks && value.stats > bestSwap.value.stats)) {
+          bestSwap = { entries, value, from: d, to: upScore, refill, opt: { card: up.card, replaces: d.card, gain: value.sparks - base.sparks, statGain: value.stats - base.stats } };
+        }
+      }
+    }
+    if (bestSwap) {
+      steps.push(`Borrow ${bestSwap.to.card.name} (LB${bestSwap.to.lb}) instead of your own copy at LB${bestSwap.from.lb}, which frees a slot${bestSwap.refill ? ` for ${bestSwap.refill.card.name}` : ''}: +${(bestSwap.opt.gain * 100).toFixed(1)}% expected sparks`);
+      deck.splice(0, deck.length, ...bestSwap.entries);
+      borrow = bestSwap.opt;
+    }
+  }
+
   const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);
   return { deck, steps, coverage, sparks, conflicts, borrow, borrowAlternatives: alternatives };
 }

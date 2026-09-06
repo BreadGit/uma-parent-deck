@@ -3,10 +3,12 @@ import { live } from 'lit-html/directives/live.js';
 import type { RunPlan } from '../../model/run.ts';
 import { effectiveLb } from '../../model/run.ts';
 import { parseSetting } from '../../settings.ts';
+import { BORROWED_SLOTS, DECK_SIZE } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { capitalize, cardImg, cardThumb, cardUrl, num, pct, typeIcon } from '../format.ts';
 import { tip } from '../tooltip.ts';
 
+const OWNED_SLOTS = DECK_SIZE - BORROWED_SLOTS;
 const LIGHT_HELLO_IDS = data.cards.filter((c) => c.charName === 'Light Hello').map((c) => c.id);
 
 function suggestions() {
@@ -47,6 +49,7 @@ export function renderRun(c: RunPlan) {
           return html`<span class="chip">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} ${card.title}</a>${owned ? nothing : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin" @click=${() => unpinCard(id)}>✕</button></span>`;
         }) : html`<span class="muted small">Nothing pinned. Light Hello is mandatory in Grand Concert, so pin one of her cards unless you have a reason not to.</span>`}
       </div>
+      ${c.pinnedIds.length > OWNED_SLOTS ? html`<div class="small muted">${c.pinnedIds.length} pinned: the builder keeps the ${OWNED_SLOTS} with the best added spark chance and may borrow one of the rest.</div>` : nothing}
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : nothing}
       <label class="row"><span class="k">Training focus</span>
         <select data-setting="focus" @change=${(e: Event) => setSetting('focus', (e.target as HTMLSelectElement).value)}>${(['balanced', 'stamina', 'sprint'] as const).map((f) => html`<option value="${f}" ?selected=${store.settings.focus === f}>${capitalize(f)}</option>`)}</select></label>
