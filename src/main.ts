@@ -1,14 +1,16 @@
 import { loadData } from './data.ts';
-import { DEFAULT_SETTINGS, SETTING_HELP, loadSettings, saveSettings, type Settings } from './settings.ts';
-import { effectiveLb, exportInventory, importInventory, loadInventory, saveInventory } from './inventory.ts';
+import { DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, SETTING_HELP, parseSetting, type Settings } from './settings.ts';
+import { effectiveLb, exportInventory, importInventory } from './inventory.ts';
+import { loadState, resetRun, saveState, type Theme } from './state.ts';
+import defaultInventory from '../inventory.json' with { type: 'json' };
 import { capitalize, html, pct, pill, num, type Raw } from './ui/html.ts';
-import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
+import { STATS, type AptKey, type Card, type Character, type Grade, type Skill } from './types.ts';
 import type { CardScore } from './model/deck.ts';
 import { combineSources, lineageCount, NO_LINEAGE, resolveTarget, type Conflict, type Lineage } from './model/sparks.ts';
 import { cardContribution, modelContribution, pAbove, raceScale } from './model/stats.ts';
 import { buildSchedule, goalRaces, slotOf, type ScheduledRace } from './model/races.ts';
 import { clampStars, inheritedFromParents } from './model/inherit.ts';
-import { planRun, racePopularityMap, type RunInput, type RunPlan } from './model/run.ts';
+import { planRun, racePopularityMap, type RunPlan } from './model/run.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, PRIORITIZED_SKILLS_MAX, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import meta from '../data/meta.json';
 
@@ -17,61 +19,24 @@ const LIGHT_HELLO_IDS = data.cards.filter((c) => c.charName === 'Light Hello').m
 const GRADES: Grade[] = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 const APT_SHOWN: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long'];
 
-interface PersistedState extends RunInput {
-  sortKey: string; // card ranking column
-}
-const STATE_KEY = 'uma-parent-deck.state';
-function loadState(): PersistedState {
-  const base: PersistedState = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentStars: [[9, 0, 0, 0, 0], [0, 3, 3, 3, 0]], sortKey: 'score' };
-  try {
-    const raw = localStorage.getItem(STATE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw) as Partial<PersistedState> & { blueStars?: number[]; pinnedId?: number | null };
-      const merged = { ...base, ...saved };
-      if (!saved.pinnedIds) merged.pinnedIds = saved.pinnedId != null ? [saved.pinnedId] : defaultPins();
-      // lineage used to be {n, stars}; now {n, p1, p2} star totals per parent side
-      for (const [k, v] of Object.entries(merged.targetLineage ?? {})) {
-        const old = v as unknown as { n?: number; stars?: number; p1?: number; p2?: number; k1?: number; k2?: number };
-        if (old.k1 != null) continue;
-        const n = old.n ?? 0, k1 = Math.min(LINEAGE_MAX_PER_SIDE, Math.ceil(n / 2)), k2 = Math.min(LINEAGE_MAX_PER_SIDE, n - k1);
-        merged.targetLineage[k] = { k1, k2, p1: Math.min(STARS_PER_SPARK_MAX * k1, old.p1 ?? (old.stars ?? STARS_PER_SPARK_MAX) * k1), p2: Math.min(STARS_PER_SPARK_MAX * k2, old.p2 ?? (old.stars ?? STARS_PER_SPARK_MAX) * k2) };
-      }
-      if (!saved.parentStars && saved.blueStars) {
-        // migrate the old combined sliders: fill parent 1 first, the rest goes to parent 2
-        let left = MAX_PARENT_STARS;
-        const p1 = saved.blueStars.map((v) => { const take = Math.min(v, left); left -= take; return take; });
-        merged.parentStars = [p1, saved.blueStars.map((v, i) => Math.min(MAX_PARENT_STARS, v - p1[i]!))];
-      }
-      return merged;
-    }
-  } catch { /* ignore */ }
-  return { ...base, pinnedIds: defaultPins() };
-}
-/** Light Hello is mandatory in Our Grand Concert, so she starts pinned (SSR if present, else R). */
-function defaultPins(): number[] {
-  const lh = LIGHT_HELLO_IDS.slice().sort((a, b) => b - a)[0];
-  return lh ? [lh] : [];
-}
-const state = loadState();
-let settings: Settings = loadSettings();
-let inventory: Inventory = loadInventory();
+let store = loadState(data, defaultInventory);
+const state = store.run;           // run choices; mutated in place, then persisted
+let settings = store.settings;
+let inventory = store.inventory;
 let query = '';
 let traineeQuery = '';
 let cardQuery = '';
 let showAdvanced = false;
-type Theme = 'system' | 'light' | 'dark';
-const THEME_KEY = 'uma-parent-deck.theme';
-let theme: Theme = (localStorage.getItem(THEME_KEY) as Theme | null) ?? 'system';
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 function applyTheme() {
-  const dark = theme === 'dark' || (theme === 'system' && systemDark.matches);
+  const dark = store.ui.theme === 'dark' || (store.ui.theme === 'system' && systemDark.matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
 }
 systemDark.addEventListener('change', applyTheme);
 applyTheme();
 let activeInheritedStat = 0;
 
-const persist = () => { localStorage.setItem(STATE_KEY, JSON.stringify(state)); saveSettings(settings); saveInventory(inventory); };
+const persist = () => { store = { ...store, run: state, settings, inventory }; saveState(store); };
 
 function drawBlueSliderNotches(canvas: HTMLCanvasElement): void {
   const rect = canvas.getBoundingClientRect();
@@ -407,10 +372,10 @@ function renderRanking(c: RunPlan): Raw {
     score: (x) => x.marginalValue * 1000 + x.statPower / 1000, spark: (x) => x.sparkValue, stats: (x) => x.statPower, sp: (x) => x.sp,
     speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
   };
-  const fn = keyFns[state.sortKey] ?? keyFns.score!;
+  const fn = keyFns[store.ui.sortKey] ?? keyFns.score!;
   const pinRank = (x: CardScore) => { const i = state.pinnedIds.indexOf(x.card.id); return i < 0 ? Infinity : i; };
   const rows = c.ranking.slice().sort((a, b) => pinRank(a) - pinRank(b) || fn(b) - fn(a));
-  const th = (k: string, label: string | Raw, cls = 'num') => html`<th class="${cls}" data-sort="${k}" style="cursor:pointer">${label}${state.sortKey === k ? ' ▾' : ''}</th>`;
+  const th = (k: string, label: string | Raw, cls = 'num') => html`<th class="${cls}" data-sort="${k}" style="cursor:pointer">${label}${store.ui.sortKey === k ? ' ▾' : ''}</th>`;
   return html`
     <section class="panel">
       <h2>Card ranking <span class="small muted">(${rows.length} cards · click a header to sort)</span></h2>
@@ -489,7 +454,7 @@ function render() {
   const app = document.getElementById('app')!;
   app.innerHTML = html`
     <header><h1>Uma parent deck</h1><span class="meta">Independent training deck builder for white-spark farming · data ${String(meta.fetchedAt).slice(0, 10)} from GameTora · ${data.cards.length} Global cards</span>
-      <span class="theme-toggle">Theme ${(['system', 'light', 'dark'] as Theme[]).map((t) => html`<button class="${theme === t ? 'active' : ''}" data-theme-pick="${t}">${t === 'system' ? 'OS' : t}</button>`)}</span></header>
+      <span class="theme-toggle">Theme ${(['system', 'light', 'dark'] as Theme[]).map((t) => html`<button class="${store.ui.theme === t ? 'active' : ''}" data-theme-pick="${t}">${t === 'system' ? 'OS' : t}</button>`)}</span></header>
     <main>
       <div><div class="reset-bar"><button class="danger" data-action="reset-all">Reset all</button></div>${renderTargets(c)}${renderTrainee(c)}${renderRunSettings(c)}${renderSettingsPanel()}</div>
       <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
@@ -575,20 +540,12 @@ app.addEventListener('change', (ev) => {
     else if (card && Number(el.value) === settings.defaultLb[card.rarity]) delete inventory[id];
     else inventory[id] = Number(el.value);
     persist(); render(); return; }
-  if (el.dataset.setting) {
-    const key = el.dataset.setting as keyof Settings;
-    const cur = settings[key];
-    let v: unknown;
-    if ((el as HTMLInputElement).type === 'checkbox') v = (el as HTMLInputElement).checked;
-    else if (key === 'totalTurnsOverride') v = el.value === '' ? null : Number(el.value);
-    else if (typeof cur === 'number' || cur === null) v = Number(el.value);
-    else v = el.value;
-    (settings as unknown as Record<string, unknown>)[key] = v; persist(); render(); return;
-  }
-  if (el.dataset.settingList) {
-    const key = el.dataset.settingList as keyof Settings;
-    const arr = el.value.split(/[,\s]+/).filter(Boolean).map(Number).filter((x) => !Number.isNaN(x));
-    (settings as unknown as Record<string, unknown>)[key] = arr; persist(); render(); return;
+  if (el.dataset.setting || el.dataset.settingList) {
+    const key = (el.dataset.setting ?? el.dataset.settingList) as keyof Settings;
+    const v = parseSetting(key, (el as HTMLInputElement).type === 'checkbox' ? (el as HTMLInputElement).checked : el.value);
+    // an invalid value keeps the current one; the re-render puts it back in the field
+    if (v !== undefined) (settings as unknown as Record<string, unknown>)[key] = v;
+    persist(); render(); return;
   }
   if (el.id === 'import-file' && el.files?.[0]) {
     importInventory(el.files[0]).then((inv) => { inventory = inv; persist(); render(); }).catch((e) => alert(`Import failed: ${e}`));
@@ -596,10 +553,10 @@ app.addEventListener('change', (ev) => {
 });
 app.addEventListener('click', (ev) => {
   const pick = (ev.target as HTMLElement).closest<HTMLElement>('[data-theme-pick]');
-  if (pick) { theme = pick.dataset.themePick as Theme; localStorage.setItem(THEME_KEY, theme); applyTheme(); render(); return; }
+  if (pick) { store.ui.theme = pick.dataset.themePick as Theme; persist(); applyTheme(); render(); return; }
   const t = (ev.target as HTMLElement).closest<HTMLElement>('[data-action],[data-sort]');
   if (!t) return;
-  if (t.dataset.sort) { state.sortKey = t.dataset.sort; persist(); render(); return; }
+  if (t.dataset.sort) { store.ui.sortKey = t.dataset.sort; persist(); render(); return; }
   const a = t.dataset.action;
   if (a === 'add-target') { const id = Number(t.dataset.id); const fam = resolveTarget(id, data); const base = fam?.id ?? id;
     if (!state.targets.includes(base)) state.targets.push(base); query = ''; persist(); render(); return; }
@@ -609,7 +566,7 @@ app.addEventListener('click', (ev) => {
   if (a === 'wl-exclude') { const id = Number(t.dataset.id); state.wishlistExcluded = [...new Set([...state.wishlistExcluded, id])]; state.wishlistOrder = state.wishlistOrder.filter((x) => x !== id); persist(); render(); return; }
   if (a === 'wl-restore') { const id = Number(t.dataset.id); state.wishlistExcluded = state.wishlistExcluded.filter((x) => x !== id); persist(); render(); return; }
   if (a === 'wl-add') { const id = Number(t.dataset.id); const cur = compute().wl.map((w) => w.key).filter((x) => x !== id); cur.splice(PRIORITIZED_SKILLS_MAX - 1, cur.length, id); state.wishlistOrder = cur; persist(); render(); return; }
-  if (a === 'reset-all') { if (confirm('Clear targets, trainee, pinned cards, parent sparks, agenda picks and the prioritized order? Inventory and settings are kept.')) { localStorage.removeItem(STATE_KEY); location.reload(); } return; }
+  if (a === 'reset-all') { if (confirm('Clear targets, trainee, pinned cards, parent sparks, agenda picks and the prioritized order? Inventory and settings are kept.')) { saveState(resetRun(store, data)); location.reload(); } return; }
   if (a === 'wl-reset') { state.wishlistOrder = []; state.wishlistExcluded = []; persist(); render(); return; }
   if (a === 'clear-trainee') { state.traineeCardId = null; state.aptOverrides = {}; persist(); render(); return; }
   if (a === 'remove-target') { state.targets = state.targets.filter((x) => x !== Number(t.dataset.id)); delete state.targetLineage[String(t.dataset.id)]; persist(); render(); return; }
@@ -618,7 +575,7 @@ app.addEventListener('click', (ev) => {
   if (a === 'export') { exportInventory(inventory, data.cards, settings.defaultLb); return; }
   if (a === 'import-click') { (document.getElementById('import-file') as HTMLInputElement).click(); return; }
   if (a === 'reset-inventory') { if (confirm('Clear every card adjustment and go back to the defaults?')) { inventory = {}; persist(); render(); } return; }
-  if (a === 'reset-settings') { const keep = { winThreshold: settings.winThreshold, focus: settings.focus, showUnowned: settings.showUnowned, defaultLb: settings.defaultLb };
+  if (a === 'reset-settings') { const keep = Object.fromEntries(MAIN_PAGE_SETTINGS.map((k) => [k, settings[k]]));
     settings = { ...DEFAULT_SETTINGS, ...keep }; persist(); render(); return; }
 });
 // custom tooltips: one floating box, positioned next to the hovered or focused ⓘ

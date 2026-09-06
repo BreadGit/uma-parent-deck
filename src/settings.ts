@@ -64,22 +64,90 @@ export const DEFAULT_SETTINGS: Settings = {
   totalTurnsOverride: null,
 };
 
-const KEY = 'uma-parent-deck.settings';
-export function loadSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const saved = JSON.parse(raw) as Partial<Settings> & { version?: number };
-      const merged = { ...DEFAULT_SETTINGS, ...saved };
-      if ((saved.version ?? 1) < 2) merged.defaultLb = { ...merged.defaultLb, SSR: 4 }; // default SSR LB changed from 0 to 4
-      if ((saved.version ?? 1) < 3) merged.showUnowned = true; // now shown by default
-      return merged;
-    }
-  } catch { /* ignore */ }
-  return { ...DEFAULT_SETTINGS };
+/** Settings kept when the advanced panel is reset: the ones on the main page. */
+export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'showUnowned', 'defaultLb'] as const satisfies readonly (keyof Settings)[];
+
+/** What each setting accepts. Values that fail the spec are rejected in favour of the current value. */
+export type SettingSpec =
+  | { kind: 'number'; min: number; max: number }
+  | { kind: 'number-or-null'; min: number; max: number }
+  | { kind: 'list'; length: number; min: number; max: number }
+  | { kind: 'enum'; values: readonly string[] }
+  | { kind: 'boolean' }
+  | { kind: 'lb-defaults' };
+const rate: SettingSpec = { kind: 'number', min: 0, max: 1 };
+export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
+  winThreshold: rate,
+  focus: { kind: 'enum', values: ['balanced', 'stamina', 'sprint'] },
+  showUnowned: { kind: 'boolean' },
+  defaultLb: { kind: 'lb-defaults' },
+  affinity: { kind: 'number', min: 0, max: 1000 },
+  hintBase: rate,
+  hintScale: { kind: 'number', min: 0, max: 10 },
+  hintTurnsShare: rate,
+  chainRatesSSR: { kind: 'list', length: 3, min: 0, max: 1 },
+  chainRatesSR: { kind: 'list', length: 2, min: 0, max: 1 },
+  randomEventRate: rate,
+  palChainRate: rate,
+  groupOutingRate: rate,
+  groupFinaleRate: rate,
+  specialEventRate: rate,
+  scenarioPickRate: rate,
+  scenarioId: { kind: 'number', min: 1, max: 99 },
+  bigRewardRate: rate,
+  goldSparkRate: rate,
+  whiteSparkRate: rate,
+  whiteSparkInheritRates: { kind: 'list', length: 3, min: 0, max: 1 },
+  lineageSparkMultiplier: { kind: 'number', min: 0, max: 10 },
+  ssStarOdds: { kind: 'list', length: 3, min: 0, max: 1 },
+  belowSsStarOdds: { kind: 'list', length: 3, min: 0, max: 1 },
+  lossPenalty: { kind: 'number', min: 0, max: 10000 },
+  skillScorePerSp: { kind: 'number', min: 0, max: 100 },
+  skillScoreSd: { kind: 'number', min: 0, max: 100000 },
+  totalTurnsOverride: { kind: 'number-or-null', min: 1, max: 200 },
+};
+
+const inRange = (v: unknown, min: number, max: number): v is number => typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
+
+/** True when `value` satisfies the setting's spec. */
+export function isValidSetting(key: keyof Settings, value: unknown): boolean {
+  const spec = SETTING_SPEC[key];
+  switch (spec.kind) {
+    case 'number': return inRange(value, spec.min, spec.max);
+    case 'number-or-null': return value === null || inRange(value, spec.min, spec.max);
+    case 'list': return Array.isArray(value) && value.length === spec.length && value.every((v) => inRange(v, spec.min, spec.max));
+    case 'enum': return typeof value === 'string' && spec.values.includes(value);
+    case 'boolean': return typeof value === 'boolean';
+    case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => inRange((value as Record<string, unknown>)[r], 0, 4));
+  }
 }
-export function saveSettings(s: Settings) {
-  localStorage.setItem(KEY, JSON.stringify({ ...s, version: 3 }));
+
+/**
+ * Parse a form value (text or checkbox state) for a setting. Returns undefined when it does not satisfy the spec,
+ * so the caller keeps the current value.
+ */
+export function parseSetting(key: keyof Settings, raw: string | boolean): Settings[keyof Settings] | undefined {
+  const spec = SETTING_SPEC[key];
+  let value: unknown;
+  switch (spec.kind) {
+    case 'boolean': value = typeof raw === 'boolean' ? raw : raw === 'true'; break;
+    case 'enum': value = raw; break;
+    case 'number-or-null': value = raw === '' ? null : Number(raw); break;
+    case 'number': value = Number(raw); break;
+    case 'list': value = String(raw).split(/[,\s]+/).filter(Boolean).map(Number); break;
+    case 'lb-defaults': return undefined; // not editable from a single field
+  }
+  return isValidSetting(key, value) ? (value as Settings[keyof Settings]) : undefined;
+}
+
+/** Merge saved settings over the defaults, dropping any saved value that fails its spec. */
+export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>): Settings {
+  const out: Settings = { ...DEFAULT_SETTINGS };
+  for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
+    const v = saved[key];
+    if (v !== undefined && isValidSetting(key, v)) (out as unknown as Record<string, unknown>)[key] = v;
+  }
+  return out;
 }
 
 /** User-facing note per advanced setting: what it does and where the default comes from. */
