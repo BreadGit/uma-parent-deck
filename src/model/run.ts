@@ -91,20 +91,20 @@ export function applyUserOrder(cands: WishlistEntry[], order: number[], excluded
 }
 
 /**
- * The priority list an event's single choice is resolved by: target family ids and non-target skill ids in
- * prioritized-skill order. A non-target option contributes every form of its family, so a gold/normal flip
- * keeps the same rank. Targets absent from the list go last.
+ * The priority list an event's single choice is resolved by: skill ids in prioritized-skill order, with every
+ * form of a family ranked together at the family's first appearance, so a gold/normal flip keeps the same rank.
+ * Targets absent from the list go last.
  */
 export function derivePriority(ordered: WishlistEntry[], targets: Target[], data: Data): number[] {
   const priority: number[] = [];
-  const push = (id: number) => { if (!priority.includes(id)) priority.push(id); };
+  const pushFamily = (ids: Iterable<number>) => { for (const id of ids) if (!priority.includes(id)) priority.push(id); };
   for (const w of ordered) {
     const target = targets.find((t) => t.familyIds.has(w.skillId));
-    if (target) { push(target.id); continue; }
+    if (target) { pushFamily(target.familyIds); continue; }
     const fam = resolveTarget(w.skillId, data);
-    for (const id of fam ? [...fam.familyIds] : [w.skillId]) push(id);
+    pushFamily(fam ? fam.familyIds : [w.skillId]);
   }
-  for (const t of targets) push(t.id);
+  for (const t of targets) pushFamily(t.familyIds);
   return priority;
 }
 
@@ -119,7 +119,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const targets = input.targets.map((id) => resolveTarget(id, data)).filter((t): t is Target => !!t);
   const lineage = new Map<number, Lineage>();
   for (const t of targets) { const l = input.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
-  const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, lineage };
+  const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, lineage, priority: [] };
   const { pool, unowned } = cardPool(data, inventory, settings);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
   const pinnedIds = input.pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, modelContribution, predictDeck, raceScale } from '../src/model/stats.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, sparkChance } from '../src/model/sparks.ts';
-import { buildDeck, evaluate, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, sparkChance } from '../src/model/sparks.ts';
+import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { buildSchedule, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { statScore } from '../src/model/rank.ts';
 
@@ -73,7 +73,7 @@ test('schedule respects threshold and consecutive penalty', () => {
 
 test('greedy deck covers targets and produces a wishlist', () => {
   const trainee = characters.find((c) => c.name === 'Special Week')!;
-  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee };
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee });
   const targets = [200352, 200762].map((id) => resolveTarget(id, data)!);
   const pool = cards.filter((c) => c.rarity === 'SSR').map((card) => ({ card, lb: 4 }));
   const r = rankCards(pool, targets, traineeCoverage(targets, ctx), ctx);
@@ -132,7 +132,7 @@ test('Pal and Group outings are skill sources at their own rates', () => {
 test('lineage sparks raise obtain and spark chances; the deck has exactly one borrow', () => {
   const trainee = characters.find((c) => c.name === 'Special Week')!;
   const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
-  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[targets[0]!.id, { k1: 1, k2: 1, p1: 3, p2: 3 }]]) };
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[targets[0]!.id, { k1: 1, k2: 1, p1: 3, p2: 3 }]]) });
   const cover = traineeCoverage(targets, ctx).sources;
   const lin = (cover.get(targets[0]!.id) ?? []).find((s) => s.kind === 'lineage')!;
   assert.ok(lin && lin.pObtain > 0.6 && lin.pObtain < 0.7, `lineage obtain ${lin?.pObtain}`);
@@ -148,7 +148,7 @@ test('lineage sparks raise obtain and spark chances; the deck has exactly one bo
 test('Grand Concert linked event: Bourbon present gives Concentration, otherwise Focus', () => {
   const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
   assert.equal(focus.gold?.name, 'Concentration');
-  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
   const bourbon = cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit')!;
   const without = evaluate(traineeCoverage([focus], ctx), [focus], ctx).map.get(focus.id)!.filter((s) => s.kind === 'scenario');
   assert.equal(without.length, 1); assert.ok(!without[0]!.gold, 'Focus (normal) when Bourbon is absent');
@@ -170,21 +170,21 @@ test('one option per event: Smart Falcon chain 1 offers Groundwork or Focus, pri
   const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
   const falcon = cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!;
   const targets = [groundwork, focus];
-  const mk = (priority: number[]): Ctx => ({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null, priority });
+  const mk = (priority: number[]): Ctx => makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null, priority });
   const a = buildDeck([{ card: falcon, lb: 4 }], targets, mk([groundwork.id, focus.id]), [], 1);
   assert.equal(a.conflicts.length, 1);
-  assert.equal(a.conflicts[0]!.kept, groundwork.id);
-  const focusSources = a.coverage.get(focus.id)!.filter((s) => s.eventKey === a.conflicts[0]!.eventKey);
+  assert.equal(a.conflicts[0]!.taken.target, groundwork.id);
+  const focusSources = a.coverage.get(focus.id)!.filter((s) => eventKeyOf(s) === a.conflicts[0]!.eventKey);
   assert.equal(focusSources.length, 0, 'Focus should not be counted from the shared event');
-  assert.ok(a.coverage.get(groundwork.id)!.some((s) => s.eventKey === a.conflicts[0]!.eventKey));
+  assert.ok(a.coverage.get(groundwork.id)!.some((s) => eventKeyOf(s) === a.conflicts[0]!.eventKey));
   const b = buildDeck([{ card: falcon, lb: 4 }], targets, mk([focus.id, groundwork.id]), [], 1);
-  assert.equal(b.conflicts[0]!.kept, focus.id);
+  assert.equal(b.conflicts[0]!.taken.target, focus.id);
 });
 
 test('a pinned card is never swapped for another card of the same character', () => {
   const ghost = cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit')!;
   const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
-  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
   const pool = cards.map((card) => ({ card, lb: 2 }));
   const d = buildDeck(pool, [focus], ctx, [ghost.id], 6, cards.map((card) => ({ card, lb: 4 })));
   const bourbons = d.deck.filter((x) => x.card.charId === ghost.charId);
@@ -207,7 +207,7 @@ test('career goal races are fixed in the agenda and highlighted', () => {
 test('a linked character in the run replaces the normal scenario option with the gold one', () => {
   const allIveGot = resolveTarget(skills.find((s) => s.name === "All I've Got" && !s.unreleasedEn)!.id, data)!;
   const tachyon = cards.find((c) => c.charName === 'Agnes Tachyon' && c.rarity === 'SSR')!;
-  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
   const d = buildDeck([{ card: tachyon, lb: 4 }], [allIveGot], ctx, [tachyon.id], 1);
   const srcs = d.coverage.get(allIveGot.id)!.filter((s) => s.kind === 'scenario');
   assert.equal(srcs.length, 1, 'exactly one scenario option for this target');
@@ -228,20 +228,20 @@ test('regular card events keep both options listed and the order decides which i
   const groundwork = resolveTarget(201601, data)!;
   const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
   const falcon = cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!;
-  const mk = (priority: number[]): Ctx => ({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null, priority });
+  const mk = (priority: number[]): Ctx => makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null, priority });
   const a = buildDeck([{ card: falcon, lb: 4 }], [groundwork, focus], mk([groundwork.id, focus.id]), [], 1);
   const namesA = wishlistCandidates(a.deck, [groundwork, focus], mk([groundwork.id, focus.id])).map((w) => w.name);
   assert.ok(namesA.includes('Groundwork') && namesA.includes('Focus'), `both options listed: ${namesA.join(', ')}`);
   const evalA = evaluate({ sources: a.deck[0]!.mine, chars: new Set([falcon.charId]), cards: [falcon] }, [groundwork, focus], mk([groundwork.id, focus.id]));
   const evalB = evaluate({ sources: a.deck[0]!.mine, chars: new Set([falcon.charId]), cards: [falcon] }, [groundwork, focus], mk([focus.id, groundwork.id]));
   const key = evalA.conflicts[0]!.eventKey;
-  assert.ok(evalA.map.get(groundwork.id)!.some((s) => s.eventKey === key) && !evalA.map.get(focus.id)!.some((s) => s.eventKey === key), 'Groundwork keeps the event when first');
-  assert.ok(evalB.map.get(focus.id)!.some((s) => s.eventKey === key) && !evalB.map.get(groundwork.id)!.some((s) => s.eventKey === key), 'Focus keeps the event when first');
+  assert.ok(evalA.map.get(groundwork.id)!.some((s) => eventKeyOf(s) === key) && !evalA.map.get(focus.id)!.some((s) => eventKeyOf(s) === key), 'Groundwork keeps the event when first');
+  assert.ok(evalB.map.get(focus.id)!.some((s) => eventKeyOf(s) === key) && !evalB.map.get(groundwork.id)!.some((s) => eventKeyOf(s) === key), 'Focus keeps the event when first');
   assert.ok(evalA.sparks.get(groundwork.id)! > evalB.sparks.get(groundwork.id)!, 'Groundwork spark chance rises when it is first');
 });
 
 test('scenario options are listed as prioritized-skill candidates even with no targets', () => {
-  const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
   const names = wishlistCandidates([], [], ctx).map((w) => w.name);
   for (const n of ['Focus', "All I've Got", 'Full Tilt', 'Rosy Outlook', 'Lane Legerdemain']) assert.ok(names.includes(n), `${n} missing from ${names.join(', ')}`);
   const bourbonUma = characters.find((c) => c.name === 'Mihono Bourbon')!;
@@ -252,7 +252,7 @@ test('scenario options are listed as prioritized-skill candidates even with no t
 test('a non-target option ranked above a target takes the event and is reported', () => {
   const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
   const lane = skills.find((s) => s.name === 'Lane Legerdemain' && !s.unreleasedEn)!;
-  const base: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const base: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
   const names = wishlistCandidates([], [focus], base);
   assert.ok(names[0]!.isTarget, `targets come first: ${names.map((w) => w.name).join(', ')}`);
   const normal = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [focus.id, lane.id] });
@@ -261,20 +261,20 @@ test('a non-target option ranked above a target takes the event and is reported'
   const blocked = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [lane.id, focus.id] });
   assert.ok(!blocked.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Lane Legerdemain ranked first takes the event');
   assert.equal(blocked.conflicts.length, 1);
-  assert.equal(blocked.conflicts[0]!.keptSkill, lane.id);
-  assert.equal(blocked.conflicts[0]!.keptIsTarget, false);
+  assert.equal(blocked.conflicts[0]!.taken.skillId, lane.id);
+  assert.equal(blocked.conflicts[0]!.taken.target, null);
 });
 
 test('priority ranks every form of a non-target family together', () => {
   const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
   const allIveGot = resolveTarget(skills.find((s) => s.name === "All I've Got" && !s.unreleasedEn)!.id, data)!;
   const comeWhatMay = allIveGot.gold!.id;
-  const base: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null };
+  const base: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
   // Come What May ranked first as a non-target blocker; with Tachyon absent the event offers All I've Got instead,
   // which must still outrank Focus because the whole family is ranked together
   const pr = [...allIveGot.familyIds, focus.id];
   const r = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: pr });
   assert.equal(r.conflicts.length, 1);
-  assert.equal(r.conflicts[0]!.keptSkill, allIveGot.white!.id);
+  assert.equal(r.conflicts[0]!.taken.skillId, allIveGot.white!.id);
   void comeWhatMay;
 });

@@ -1,5 +1,9 @@
 import type { AptKey, Character, Grade, Race } from '../types.ts';
-import { distanceCategory } from './stats.ts';
+import { SLOT_COUNT } from './rules.ts';
+export { SLOT_COUNT };
+
+/** Race distance category by metres, the same bands the game uses for distance aptitude. */
+export const distanceCategory = (m: number): Race['category'] => (m <= 1400 ? 'sprint' : m <= 1800 ? 'mile' : m <= 2400 ? 'medium' : 'long');
 
 const GRADE_INDEX: Record<Grade, number> = { S: 0, A: 0, B: 1, C: 2, D: 3, E: 4, F: 5, G: 6 };
 // uma.guide independent-training table: rows distance aptitude, columns surface aptitude.
@@ -24,8 +28,6 @@ export function baseWinChance(race: Race, apt: Aptitudes): number {
 
 /** Turn index of a calendar slot: year (1..3), month, half. 0 = Junior early January, 71 = Senior late December. */
 export const slotOf = (r: Race) => (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1);
-import { SLOT_COUNT } from './rules.ts';
-export { SLOT_COUNT };
 
 export interface ScheduledRace {
   race: Race;

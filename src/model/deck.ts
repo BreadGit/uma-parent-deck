@@ -1,22 +1,26 @@
-import type { Card, Character, Data, Stat } from '../types.ts';
-import { STATS } from '../types.ts';
+import type { Card, Character, Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { cardContribution, raceScale } from './stats.ts';
+import { cardContribution, raceScale, type Contribution } from './stats.ts';
 import { DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
-import { cardSourcesForTarget, combineSources, eventSources, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeSources, type Conflict, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
 
+/** Everything a run evaluation needs besides the cards: the data, the settings and the run's fixed choices. */
 export interface Ctx {
   data: Data;
   settings: Settings;
   races: number;
   totalTurns: number;
   trainee: Character | null;
-  lineage?: Map<number, Lineage>; // target.id -> existing lineage sparks
-  priority?: number[];            // target ids in prioritized-skill order, decides which option an event's choice goes to
+  lineage: Map<number, Lineage>; // target.id -> existing lineage sparks
+  priority: number[];            // skill ids in prioritized-skill order (every form of a family); decides which option an event's choice goes to
+}
+/** A Ctx with no lineage and no priority unless given; for tests and scripts. */
+export function makeCtx(base: Pick<Ctx, 'data' | 'settings' | 'races' | 'totalTurns' | 'trainee'> & Partial<Ctx>): Ctx {
+  return { lineage: new Map(), priority: [], ...base };
 }
 /** Everything already in play for the run: non-scenario sources per target, and which characters are present. */
 export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: Card[] }
-const lineageN = (ctx: Ctx, t: Target) => { const l = ctx.lineage?.get(t.id); return l ? lineageCount(l) : 0; };
+const lineageN = (ctx: Ctx, t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
 const cloneExisting = (e: Existing): Existing => ({ sources: new Map([...e.sources].map(([k, v]) => [k, v.slice()])), chars: new Set(e.chars), cards: e.cards.slice() });
 function addTo(e: Existing, add: Map<number, SkillSource[]>, card: Card): Existing {
   const out = cloneExisting(e);
@@ -29,8 +33,8 @@ function addTo(e: Existing, add: Map<number, SkillSource[]>, card: Card): Existi
 function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
   const families = new Set(targets.flatMap((t) => [...t.familyIds]));
   const out: Blocker[] = [];
-  for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ eventKey: o.eventKey, skillId: o.skillId, eventLabel: o.eventLabel, optionLabel: o.optionLabel });
-  for (const card of e.cards) for (const s of eventSources(card, ctx.settings)) if (s.isChoice && s.eventKey && !families.has(s.skillId)) out.push({ eventKey: s.eventKey, skillId: s.skillId, eventLabel: s.eventLabel ?? '', optionLabel: s.optionLabel ?? '' });
+  for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
+  for (const card of e.cards) for (const s of eventSources(card, ctx.settings)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
   return out;
 }
 
@@ -41,20 +45,20 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const full = new Map<number, SkillSource[]>();
   for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars)]);
-  const { map, conflicts } = pruneConflicts(full, ctx.priority ?? [], blockersOf(e, targets, ctx));
+  const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx));
   const sparks = new Map(targets.map((t) => [t.id, sparkChance(combineSources(map.get(t.id) ?? []), ctx.settings, lineageN(ctx, t))]));
   return { full, map, sparks, conflicts };
 }
 const total = (m: Map<number, number>) => [...m.values()].reduce((a, b) => a + b, 0);
 
-export interface Coverage { target: Target; sources: SkillSource[]; own: { pGold: number; pWhite: number; pAny: number }; spark: number; marginal: number }
+export interface Coverage { target: Target; sources: SkillSource[]; own: Ownership; spark: number; marginal: number }
 export interface CardScore {
   card: Card;
   lb: number;
   stats: number[];      // contribution at the chosen race count
   sp: number;
   statPower: number;    // sum of stat contribution
-  source: string;
+  source: Contribution['source'];
   runs?: number;
   coverage: Coverage[];
   sparkValue: number;   // Σ spark chance over targets (card alone)
@@ -67,8 +71,8 @@ export interface CardScore {
 export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
   const sources = new Map<number, SkillSource[]>();
   for (const t of targets) sources.set(t.id, [
-    ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data, ctx.settings) : []),
-    ...lineageSources(t, ctx.lineage?.get(t.id), ctx.settings),
+    ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data) : []),
+    ...lineageSources(t, ctx.lineage.get(t.id), ctx.settings),
   ]);
   return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [] };
 }
@@ -253,6 +257,3 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
 export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = PRIORITIZED_SKILLS_MAX): WishlistEntry[] {
   return wishlistCandidates(deck, targets, ctx).slice(0, max);
 }
-
-export const statLabel = (s: Stat) => s[0]!.toUpperCase() + s.slice(1);
-export const STAT_KEYS = STATS;

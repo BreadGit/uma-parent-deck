@@ -53,10 +53,9 @@ test('priority ranks targets by family id and non-target families as every form'
   const pr = derivePriority(ordered, [focus], data);
   // the non-target family comes first in every form, then the target as its family id
   for (const id of allIveGot.familyIds) assert.ok(pr.indexOf(id) < pr.indexOf(focus.id), `form ${id} outranks the target`);
-  assert.ok(pr.includes(focus.id));
-  assert.ok(!pr.includes(focus.gold!.id), 'a target is ranked by its family id only');
+  for (const id of focus.familyIds) assert.ok(pr.includes(id), 'the target is ranked in every form too');
   const missing = derivePriority([], [focus], data);
-  assert.deepEqual(missing, [focus.id], 'targets absent from the list still get a rank');
+  assert.deepEqual(new Set(missing), focus.familyIds, 'targets absent from the list still get a rank');
 });
 
 test('planRun with nothing chosen still builds a full deck and lists scenario options', () => {
@@ -98,6 +97,6 @@ test('planRun: the prioritized order decides which target wins a shared event', 
   const a = planRun({ ...base, wishlistOrder: [groundwork.id, focus.id] }, settings, {}, data);
   const b = planRun({ ...base, wishlistOrder: [focus.id, groundwork.id] }, settings, {}, data);
   const falconEvent = (p: typeof a) => p.deckResult.conflicts.find((c) => c.eventKey.startsWith(`${falcon.id}:chain`));
-  assert.equal(falconEvent(a)?.kept, groundwork.id);
-  assert.equal(falconEvent(b)?.kept, focus.id);
+  assert.equal(falconEvent(a)?.taken.target, groundwork.id);
+  assert.equal(falconEvent(b)?.taken.target, focus.id);
 });

@@ -1,4 +1,4 @@
-import { STATS, type Card, type Character, type Focus, type Stat, type StatModel } from '../types.ts';
+import { STATS, type Card, type Character, type Focus, type StatModel } from '../types.ts';
 import type { Settings } from '../settings.ts';
 
 export const EFFECT = {
@@ -69,7 +69,6 @@ export interface Prediction {
   sd: number[];
   cardStats: number[];
   eventStats: number[];
-  raceStats: number[];
   sp: number;
   cardSp: number;
   finalMean: number[];   // + trainee base stats (no inheritance)
@@ -96,14 +95,13 @@ export function predictDeck(deck: DeckInput[], trainee: Character | null, races:
   // Event stats (which include race rewards) are only measured at 28 and 23 races; extrapolate linearly but clamp the range.
   const r = Math.max(8, Math.min(40, races));
   const eventStats = (interp(model, 'eventBase', r) as number[]).map((v, i) => v * (1 + model.growthEffect * (growth[i] ?? 0) / 100));
-  const raceStats = STATS.map(() => 0);
   const focusMul = model.focus[focus] ?? [1, 1, 1, 1, 1];
   const penalty = settings.lossPenalty * expectedLosses;
   const mean = STATS.map((_, i) => Math.max(0, (cardStats[i]! + eventStats[i]!) * focusMul[i]! - penalty / 5));
   const sd = model.sigma.map((s) => s);
   const sp = cardSp + (interp(model, 'eventSp', r) as number);
   const base = trainee?.baseStats ?? [0, 0, 0, 0, 0];
-  return { mean, sd, cardStats, eventStats, raceStats, sp, cardSp, finalMean: mean.map((v, i) => v + (base[i] ?? 0)) };
+  return { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: mean.map((v, i) => v + (base[i] ?? 0)) };
 }
 
 /** Standard normal CDF. */
@@ -115,15 +113,5 @@ export function phi(z: number): number {
 }
 export const pAbove = (mean: number, sd: number, threshold: number) => 1 - phi((threshold - mean) / Math.max(1, sd));
 
-/** Blue spark star odds by the stat's final value band (uma.guide). */
-export const BLUE_STAR_ODDS: Record<'low' | 'mid' | 'high', number[]> = { low: [0.9, 0.1, 0], mid: [0.45, 0.5, 0.05], high: [0.2, 0.7, 0.1] };
-export function blueStarOdds(mean: number, sd: number): number[] {
-  const pHigh = pAbove(mean, sd, 1100);
-  const pMid = Math.max(0, pAbove(mean, sd, 600) - pHigh);
-  const pLow = Math.max(0, 1 - pHigh - pMid);
-  return [0, 1, 2].map((k) => pLow * BLUE_STAR_ODDS.low[k]! + pMid * BLUE_STAR_ODDS.mid[k]! + pHigh * BLUE_STAR_ODDS.high[k]!);
-}
-
-export const statIndex = (s: Stat) => STATS.indexOf(s);
-
-export const distanceCategory = (m: number): 'sprint' | 'mile' | 'medium' | 'long' => (m <= 1400 ? 'sprint' : m <= 1800 ? 'mile' : m <= 2400 ? 'medium' : 'long');
+/** Blue spark star bands: a stat at or above these values at run end raises the odds of 2★ and 3★ blue sparks. */
+export const BLUE_STAR_BANDS = { mid: 600, high: 1100 } as const;

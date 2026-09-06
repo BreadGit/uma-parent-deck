@@ -2,13 +2,13 @@
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { resolveTarget } from '../src/model/sparks.ts';
-import { buildDeck, rankCards, traineeCoverage, wishlist, type Ctx } from '../src/model/deck.ts';
+import { buildDeck, makeCtx, rankCards, traineeCoverage, wishlist, type Ctx } from '../src/model/deck.ts';
 import { predictDeck } from '../src/model/stats.ts';
 const data = loadData();
 const { cards, skills, characters } = data;
 const settings = { ...DEFAULT_SETTINGS };
 const trainee = characters.find((c) => c.name === 'Special Week')!;
-const ctx: Ctx = { data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee };
+const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee });
 const byName = (n: string) => skills.find((s) => s.name === n && !s.unreleasedEn)!;
 const targets = ['Corner Recovery ○', 'Groundwork', 'Pace Strategy'].map((n) => resolveTarget(byName(n).id, data)!);
 console.log('targets', targets.map((t) => `${t.name} [white ${t.white?.id} gold ${t.gold?.name ?? '-'}]`));

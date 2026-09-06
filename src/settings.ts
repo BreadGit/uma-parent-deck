@@ -81,3 +81,30 @@ export function loadSettings(): Settings {
 export function saveSettings(s: Settings) {
   localStorage.setItem(KEY, JSON.stringify({ ...s, version: 3 }));
 }
+
+/** User-facing note per advanced setting: what it does and where the default comes from. */
+export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
+  affinity: 'Legacy affinity score with the parents. Inspiration procs scale by (1 + affinity/100), so 150 (double circle) makes blue sparks proc every time. Default 150 because that is the usual target when picking parents.',
+  hintBase: 'Chance per turn that a card standing on a facility shows a hint, before Hint Frequency. Default 0.07 from a 1,024-turn manual-play sample (GameWith measured 6 to 9%).',
+  hintScale: 'Multiplier on the whole hint model for independent training, where hint pickup is unmeasured. Default 0.75 so a 0% Hint Frequency card lands near 0.9 hints per run, in line with the 8 hints per deck fujikiseki measured in manual runs.',
+  hintTurnsShare: 'Fraction of training turns a given card is on the facility being trained. Default 0.4 as a rough blend of the ~18% appearance rate with the AI favouring facilities where cards are.',
+  chainRatesSSR: 'Chance that an SSR card completes chain event 1, 2 and 3 in an independent-training run. Defaults 0.69 / 0.36 / 0.12 from Loopacord counts.',
+  chainRatesSR: 'Chance that an SR card completes chain event 1 and 2. Defaults 0.74 / 0.35 from Loopacord counts.',
+  randomEventRate: 'Chance a given random event fires during a run. Nobody has measured this, so 0.5 is a placeholder. Cards with more than two random events are scaled so two fire on average.',
+  palChainRate: 'Chance a Pal card runs its whole date chain, which hands over the finale skill. Default 0.97: Loopacord saw 100% and See Ya Later! shows up in nearly every logged run.',
+  groupOutingRate: 'Chance a Group card member outing happens. Default 0.9, assumed from the Pal chain behaviour; not measured.',
+  groupFinaleRate: 'Chance the Group finale (the gold skill) happens. Default 0.85 is a guess; the finale needs every member outing first and nobody has counted it in independent training.',
+  specialEventRate: 'Chance of the Pal/Group unlock and New Year events. Default 0 because Loopacord never saw the New Year event in independent training.',
+  scenarioPickRate: 'Our Grand Concert has a Senior November live event with one option per linked character (Smart Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Bringing that character or one of her cards upgrades her option to the gold skill. Loopacord logged the scenario pick at 100% in independent training, so the default is 1.',
+  bigRewardRate: 'When an event outcome splits into a small and a big reward, the chance of the big one. Default 0.3, your estimate.',
+  goldSparkRate: 'Chance a skill you own as gold becomes a white spark at run end. Default 0.4 from the mechanics document.',
+  whiteSparkRate: 'Chance a skill you own as white becomes a white spark at run end. Default 0.2 from the mechanics document.',
+  whiteSparkInheritRates: 'Chance, per inspiration event, that a 1/2/3★ white spark already in the lineage gives you its hint, at 0 affinity; scaled by (1 + affinity/100). Defaults 3/6/9% from the mechanics document.',
+  lineageSparkMultiplier: 'Each time the same white spark already appears in the lineage, the chance of generating it again is multiplied by this. Default 1.1 from uma.guide (20% → 22% → 24.2% …).',
+  ssStarOdds: 'White spark 1★ / 2★ / 3★ odds when the run ends SS or better. Defaults 0.2 / 0.7 / 0.1 from the mechanics document and uma.guide.',
+  belowSsStarOdds: 'White spark star odds below SS. Defaults 0.45 / 0.5 / 0.05 from uma.guide.',
+  lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. Default 0 because the effect of losses and conditions like Skin Outbreak has not been measured.',
+  skillScorePerSp: 'Rank-score points bought per skill point at the end of the run. Default 1.4: a white skill is 217 points for about 150 SP after hint discounts.',
+  skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. Default 400, roughly two skills either way.',
+  totalTurnsOverride: 'Total career turns used to scale card stats by races run. Blank uses the fitted 71.7 from decks run at 28 and 23 races.',
+};

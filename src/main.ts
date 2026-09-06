@@ -1,10 +1,10 @@
 import { loadData } from './data.ts';
-import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from './settings.ts';
+import { DEFAULT_SETTINGS, SETTING_HELP, loadSettings, saveSettings, type Settings } from './settings.ts';
 import { effectiveLb, exportInventory, importInventory, loadInventory, saveInventory } from './inventory.ts';
-import { html, pct, pill, num, type Raw } from './ui/html.ts';
+import { capitalize, html, pct, pill, num, type Raw } from './ui/html.ts';
 import { STATS, type AptKey, type Card, type Character, type Grade, type Inventory, type Skill } from './types.ts';
 import type { CardScore } from './model/deck.ts';
-import { combineSources, lineageCount, resolveTarget, type Lineage } from './model/sparks.ts';
+import { combineSources, lineageCount, NO_LINEAGE, resolveTarget, type Conflict, type Lineage } from './model/sparks.ts';
 import { cardContribution, modelContribution, pAbove, raceScale } from './model/stats.ts';
 import { buildSchedule, goalRaces, slotOf, type ScheduledRace } from './model/races.ts';
 import { clampStars, inheritedFromParents } from './model/inherit.ts';
@@ -146,7 +146,7 @@ function suggestionList(which: string): Raw | null {
         .sort((a, b) => b.rarity.length - a.rarity.length || a.charName.localeCompare(b.charName) || a.id - b.id).slice(0, 12)
       : [];
     return matches.length ? html`<ul>${matches.map((card) => { const lb = effectiveLb(inventory, card, settings.defaultLb);
-      return html`<li data-action="pin-card" data-id="${card.id}"><img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${card.type.charAt(0).toUpperCase() + card.type.slice(1)})</span></span><span class="muted small">${card.title}</span></span><span class="r">${lb == null ? 'not owned' : `LB${lb}`}</span></li>`; })}</ul>` : null;
+      return html`<li data-action="pin-card" data-id="${card.id}"><img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="r">${lb == null ? 'not owned' : `LB${lb}`}</span></li>`; })}</ul>` : null;
   }
   return null;
 }
@@ -160,7 +160,7 @@ function renderTargets(c: RunPlan): Raw {
         ${suggestionList('query') ?? ''}
       </div>
       <div class="chips">
-        ${c.targets.length ? c.targets.map((t) => { const l = state.targetLineage[String(t.id)] ?? { k1: 0, k2: 0, p1: 0, p2: 0 };
+        ${c.targets.length ? c.targets.map((t) => { const l = state.targetLineage[String(t.id)] ?? NO_LINEAGE;
           const desc = (t.white ?? t.gold)?.desc ?? '';
           const starOpts = (k: number, cur: number, side: 'p1' | 'p2') => html`<select data-lineage-p="${t.id}" data-side="${side}" ${k ? '' : 'disabled'}>${Array.from({ length: STARS_PER_SPARK_MAX * k + 1 }, (_, i) => i).filter((i) => i >= k).map((i) => html`<option value="${i}" ${cur === i ? 'selected' : ''}>${i}★</option>`)}</select>`;
           return html`<span class="chip target-row ${t.gold ? 'gold' : ''}">
@@ -194,7 +194,7 @@ function renderTrainee(c: RunPlan): Raw {
           <label class="row"><span class="k">Stars${tip('Raised with pieces. Picks the base stats. GameTora lists the base rarity, 4★ and 5★ tables; other star counts are interpolated between them.')}</span><select data-select="trainee-stars">${[1, 2, 3, 4, 5].filter((k) => k >= (data.charByCardId.get(t.cardId)?.rarity ?? 1)).map((k) => html`<option value="${k}" ${state.traineeStars === k ? 'selected' : ''}>${k}★</option>`)}</select></label>
         </div>
         <div class="small muted">Base stats: ${t.baseStats.join(' / ')}</div>
-        <div class="small muted">Growth bonuses: ${t.growth.some((g) => g > 0) ? STATS.map((s, i) => t.growth[i]! > 0 ? `${s.charAt(0).toUpperCase() + s.slice(1)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</div>
+        <div class="small muted">Growth bonuses: ${t.growth.some((g) => g > 0) ? STATS.map((s, i) => t.growth[i]! > 0 ? `${capitalize(s)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</div>
         <h3>Trainee aptitude overrides (match the legacy screen)</h3>
         <div class="apts">${APT_SHOWN.map((k) => html`<label>${k}<select data-apt="${k}">${GRADES.map((g) => html`<option value="${g}" ${c.apt[k] === g ? 'selected' : ''}>${g}</option>`)}</select></label>`)}</div>
         ${overridden ? html`<button class="small" data-action="reset-apts">Reset to base aptitudes</button>` : ''}
@@ -228,7 +228,7 @@ function renderRunSettings(c: RunPlan): Raw {
       </div>
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : ''}
       <label class="row"><span class="k">Training focus</span>
-        <select data-setting="focus">${(['balanced', 'stamina', 'sprint'] as const).map((f) => html`<option value="${f}" ${settings.focus === f ? 'selected' : ''}>${f.charAt(0).toUpperCase() + f.slice(1)}</option>`)}</select></label>
+        <select data-setting="focus">${(['balanced', 'stamina', 'sprint'] as const).map((f) => html`<option value="${f}" ${settings.focus === f ? 'selected' : ''}>${capitalize(f)}</option>`)}</select></label>
       <label class="row"><span class="k">Win chance threshold</span>
         <span><input type="range" min="0" max="1" step="0.05" value="${settings.winThreshold}" data-setting="winThreshold" /> <output data-setting-output="winThreshold">${pct(settings.winThreshold)}</output></span></label>
       <div class="small muted">Races: ${c.sum.count} G1s selected, ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses.</div>
@@ -240,7 +240,7 @@ function renderRunSettings(c: RunPlan): Raw {
           return html`<section class="blue-parent-card">
             <div class="ph">Parent ${pi + 1} <span class="muted">(<output data-parent-total="${pi}">${total}</output> / ${MAX_PARENT_STARS}★)</span></div>
             ${STATS.map((s, i) => html`<div class="blue-parent-control">
-              <div class="blue-parent-heading"><span>${s.charAt(0).toUpperCase() + s.slice(1)}</span><output data-parent-output="${pi}-${i}">${stars[i]}★</output></div>
+              <div class="blue-parent-heading"><span>${capitalize(s)}</span><output data-parent-output="${pi}-${i}">${stars[i]}★</output></div>
               <div class="blue-slider">
                 <input type="range" min="0" max="${MAX_PARENT_STARS}" step="1" value="${stars[i]}" data-parent="${pi}" data-stat="${i}" aria-label="Parent ${pi + 1} ${s} blue stars" />
                 <canvas class="blue-slider-notches" aria-hidden="true"></canvas>
@@ -254,7 +254,7 @@ function renderRunSettings(c: RunPlan): Raw {
         <span><output data-inherited-start>+${num(allGain.start)}</output> at start · <output data-inherited-inspiration>+${num(allGain.inspiration)}</output> from inspiration events</span>
       </div>
       <div class="blue-gain-summary">
-        ${STATS.map((s, i) => html`<span class="${i === activeInheritedStat ? 'active' : ''}" data-inherited-stat="${i}">${s.charAt(0).toUpperCase() + s.slice(1)} <output>+${num(c.inherited[i]!.total)}</output>${tip(`+${num(c.inherited[i]!.start)} at the start, +${num(c.inherited[i]!.inspiration)} from the two inspiration events`)}</span>`)}
+        ${STATS.map((s, i) => html`<span class="${i === activeInheritedStat ? 'active' : ''}" data-inherited-stat="${i}">${capitalize(s)} <output>+${num(c.inherited[i]!.total)}</output>${tip(`+${num(c.inherited[i]!.start)} at the start, +${num(c.inherited[i]!.inspiration)} from the two inspiration events`)}</span>`)}
       </div>
       <label class="row"><span class="k">Show cards marked not owned</span><input type="checkbox" data-setting="showUnowned" ${settings.showUnowned ? 'checked' : ''} /></label>
     </section>`;
@@ -322,14 +322,14 @@ function renderDeck(c: RunPlan): Raw {
       </tbody></table>
       ${d.conflicts.length ? html`<div class="conflicts-box"><h3>Choice conflicts</h3>
         ${(() => {
-          const opts = (cf: typeof d.conflicts[number]) => [{ skill: cf.keptSkill, opt: cf.keptOption, taken: true }, ...cf.droppedSkills.map((skill, i) => ({ skill, opt: cf.droppedOptions[i] ?? '', taken: false }))];
+          const opts = (cf: Conflict) => [cf.taken, ...cf.dropped];
           return html`<table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken${tip('Skills are taken when they are higher in the Independent training prioritized skills section below.')}</th><th>Not taken</th></tr></thead><tbody>
             ${d.conflicts.map((cf) => html`<tr><td style="white-space:normal">${cf.label}</td>
-              <td style="white-space:normal">${opts(cf).map((o) => html`<div>${skillWithTip(o.skill)}${o.opt ? html` <span class="muted">${o.opt}</span>` : ''}</div>`)}</td>
-              <td><b>${skillName(cf.keptSkill)}</b>${cf.keptIsTarget ? '' : html` <span class="muted">(not a target)</span>`}</td><td>${cf.droppedSkills.map(skillName).join(', ')}</td></tr>`)}
+              <td style="white-space:normal">${opts(cf).map((o) => html`<div>${skillWithTip(o.skillId)}${o.option ? html` <span class="muted">${o.option}</span>` : ''}</div>`)}</td>
+              <td><b>${skillName(cf.taken.skillId)}</b>${cf.taken.target != null ? '' : html` <span class="muted">(not a target)</span>`}</td><td>${cf.dropped.map((o) => skillName(o.skillId)).join(', ')}</td></tr>`)}
             </tbody></table>`;
         })()}
-        <div class="small muted">Only one option can be taken per event. Targets involved: ${[...new Set(d.conflicts.flatMap((cf) => [...(cf.keptIsTarget ? [cf.kept] : []), ...cf.dropped]))].map((id) => c.targets.find((t) => t.id === id)?.name ?? '').filter(Boolean).join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div></div>` : ''}
+        <div class="small muted">Only one option can be taken per event. Targets involved: ${[...new Set(d.conflicts.flatMap((cf) => [cf.taken, ...cf.dropped].flatMap((o) => (o.target != null ? [o.target] : []))))].map((id) => c.targets.find((t) => t.id === id)?.name ?? '').filter(Boolean).join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div></div>` : ''}
       <h3>Independent training prioritized skills (up to ${PRIORITIZED_SKILLS_MAX})</h3>
       ${c.wl.length ? html`<ol class="wishlist">${c.wl.map((w) => html`<li draggable="true" data-wl-key="${w.key}">
           <span class="grip" title="Drag to reorder">⋮⋮</span>
@@ -434,31 +434,6 @@ function renderRanking(c: RunPlan): Raw {
     </section>`;
 }
 
-const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
-  affinity: 'Legacy affinity score with the parents. Inspiration procs scale by (1 + affinity/100), so 150 (double circle) makes blue sparks proc every time. Default 150 because that is the usual target when picking parents.',
-  hintBase: 'Chance per turn that a card standing on a facility shows a hint, before Hint Frequency. Default 0.07 from a 1,024-turn manual-play sample (GameWith measured 6 to 9%).',
-  hintScale: 'Multiplier on the whole hint model for independent training, where hint pickup is unmeasured. Default 0.75 so a 0% Hint Frequency card lands near 0.9 hints per run, in line with the 8 hints per deck fujikiseki measured in manual runs.',
-  hintTurnsShare: 'Fraction of training turns a given card is on the facility being trained. Default 0.4 as a rough blend of the ~18% appearance rate with the AI favouring facilities where cards are.',
-  chainRatesSSR: 'Chance that an SSR card completes chain event 1, 2 and 3 in an independent-training run. Defaults 0.69 / 0.36 / 0.12 from Loopacord counts.',
-  chainRatesSR: 'Chance that an SR card completes chain event 1 and 2. Defaults 0.74 / 0.35 from Loopacord counts.',
-  randomEventRate: 'Chance a given random event fires during a run. Nobody has measured this, so 0.5 is a placeholder. Cards with more than two random events are scaled so two fire on average.',
-  palChainRate: 'Chance a Pal card runs its whole date chain, which hands over the finale skill. Default 0.97: Loopacord saw 100% and See Ya Later! shows up in nearly every logged run.',
-  groupOutingRate: 'Chance a Group card member outing happens. Default 0.9, assumed from the Pal chain behaviour; not measured.',
-  groupFinaleRate: 'Chance the Group finale (the gold skill) happens. Default 0.85 is a guess; the finale needs every member outing first and nobody has counted it in independent training.',
-  specialEventRate: 'Chance of the Pal/Group unlock and New Year events. Default 0 because Loopacord never saw the New Year event in independent training.',
-  scenarioPickRate: 'Our Grand Concert has a Senior November live event with one option per linked character (Smart Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Bringing that character or one of her cards upgrades her option to the gold skill. Loopacord logged the scenario pick at 100% in independent training, so the default is 1.',
-  bigRewardRate: 'When an event outcome splits into a small and a big reward, the chance of the big one. Default 0.3, your estimate.',
-  goldSparkRate: 'Chance a skill you own as gold becomes a white spark at run end. Default 0.4 from the mechanics document.',
-  whiteSparkRate: 'Chance a skill you own as white becomes a white spark at run end. Default 0.2 from the mechanics document.',
-  whiteSparkInheritRates: 'Chance, per inspiration event, that a 1/2/3★ white spark already in the lineage gives you its hint, at 0 affinity; scaled by (1 + affinity/100). Defaults 3/6/9% from the mechanics document.',
-  lineageSparkMultiplier: 'Each time the same white spark already appears in the lineage, the chance of generating it again is multiplied by this. Default 1.1 from uma.guide (20% → 22% → 24.2% …).',
-  ssStarOdds: 'White spark 1★ / 2★ / 3★ odds when the run ends SS or better. Defaults 0.2 / 0.7 / 0.1 from the mechanics document and uma.guide.',
-  belowSsStarOdds: 'White spark star odds below SS. Defaults 0.45 / 0.5 / 0.05 from uma.guide.',
-  lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. Default 0 because the effect of losses and conditions like Skin Outbreak has not been measured.',
-  skillScorePerSp: 'Rank-score points bought per skill point at the end of the run. Default 1.4: a white skill is 217 points for about 150 SP after hint discounts.',
-  skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. Default 400, roughly two skills either way.',
-  totalTurnsOverride: 'Total career turns used to scale card stats by races run. Blank uses the fitted 71.7 from decks run at 28 and 23 races.',
-};
 
 function renderSettingsPanel(): Raw {
   const help = (key: keyof Settings) => SETTING_HELP[key] ?? '';
@@ -571,7 +546,7 @@ app.addEventListener('input', (ev) => {
 app.addEventListener('change', (ev) => {
   const el = ev.target as HTMLInputElement & HTMLSelectElement;
   if (el.dataset.lineageK != null) { const id = el.dataset.lineageK; const side = el.dataset.side as 'k1' | 'k2'; const k = Number(el.value);
-    const cur = state.targetLineage[id] ?? { k1: 0, k2: 0, p1: 0, p2: 0 };
+    const cur = state.targetLineage[id] ?? NO_LINEAGE;
     const next = { ...cur, [side]: k } as Lineage;
     const pSide = side === 'k1' ? 'p1' : 'p2';
     next[pSide] = k === 0 ? 0 : Math.min(STARS_PER_SPARK_MAX * k, Math.max(k, cur[pSide] || STARS_PER_SPARK_MAX * k));
