@@ -1,0 +1,3680 @@
+Source: Crazyfellow's Parenting & Gene guide
+Original: https://docs.google.com/document/d/1Q3IJKbtkplmuY-PAJMNjYiLtasv0eU0aIBEqp8_C3tg
+Exported: 2026-09-06
+Format: Google Docs plain-text export. Images and visual table formatting are not preserved.
+Terminology note: This source uses JP-community terms. Project code and reports should use Global terms; see ../new-player-info.txt.
+
+IMPORTANT MODE DISTINCTION FOR PROJECT AGENTS
+
+This guide discusses two separate game features:
+
+- Independent Training, which the guide usually calls Background Auto or BG auto.
+- Auto-Train / おまかせ, which the guide usually calls Auto-kun.
+
+The guide says these modes are assumed to share much of their decision logic, but that is an inference rather than proof that every mechanic is identical. Do not transfer an Auto-kun claim to Independent Training without mode-specific evidence. In particular, the guide's statement that prioritized skills make Auto-kun choose support-card "!" hints does not establish that Independent Training does the same. Independent Training support-hint prioritization remains unverified.
+
+Crazyfellow's Parenting & Gene guide
+Welcome to my Parenting/Gene guide!
+
+
+
+
+
+
+________________
+
+
+Introduction
+The main aim of this guide is to provide an understanding about the inheritance breeding system and the strategies involved for creating optimal parent Umas for breeding.
+
+
+Sources: My sources are mainly from myself, otherwise, sources will be cited if it is externally obtained, example: Aoneko uma & other crowd sourced sites.
+
+
+Prerequisites & Expectations
+This guide is written with the assumption that you already know the basics about the game. If anything is foreign to you, you may not be ready for this guide.
+
+
+While Parent farming is not strictly mandatory for the game, it does significantly enhance your runs. Think of it as an optional meta-progression roguelike feature. You are the one to decide for yourself how far/deep you want to delve into the parenting mines.
+Author’s Notes & other stuff:
+Terminology: This guide utilises JP server terminology exclusively. I personally have no plans to play global and I have no idea what terms are used in global. I guess I could figure it out.
+
+
+Updates: While I won’t update the core text unless new information or errors are found, I will provide a mini scenario update and an auto parent farm guide with the release of each new scenario.
+
+Community/Circle: If you’re looking for a circle, drop me a message on discord or also check out our recruitment post for Umaconnect (in the unofficial Umacord). We’ve also welcomed Peak Sweek as a casual sister circle with no fan goals. You can also follow me in-game for CM/LoH-oriented borrows.
+Contact me, Kofi and Support: Someone asked if they could send a token of thanks, so I have set up a Ko-fi Page.
+https://ko-fi.com/crazyfellow
+Feel free to ask me questions either on Ko-fi or send me some support for my Uma Musume Stables. Maybe if I get motivated enough I’ll write other/more in depth stuff.
+If you are in desperate need of help, my consulting services are mysteriously activated by Ko-fi contributions.
+Contact: Drop me a message on discord (Discord ID:crazyfellow) if you find inconsistencies or interesting things to expand on here.
+Follow me in the game for good parents at 436363145! I’ll usually rotate parents for each month’s race event. (Screenshot from Feb 2025)
+
+
+
+________________
+
+Other stuff
+Race planner:
+I’ve launched a race planner app at https://uma.pwnation.net/ to help plan your race rotations for hidden events. It supports JP server hidden events and also MANT titles & Epithets for global server too.
+Content Use: I’m happy for people to use this info, but if you’re planning to recreate or lift content from this guide for other platforms, please credit the guide and reach out to ask me first. I’d appreciate knowing where my work is being shared!
+Sources/Collaborators:
+Most of the sources are credited in their individual sections. Most data has been collected from JP madlads who have done the legwork on data collection and research into the various mechanics.
+
+
+Aya who runs https://hakuraku.moe/ has been very helpful in verifying/confirming/ investigating the information put forth by the JP team to refine the guide further.
+
+
+Shoutout:
+Do check this youtuber, Rednu out, we aren't affiliated but he's done a great job with converting/presenting the guide in a video format!
+His video condenses most of the information in the guide while using Global server’s terminology. Definitely easier than reading this entire document for you illiterates!
+
+
+
+
+PS:I only endorse this video and not any other content.
+
+________________
+Changelog
+4 June 2021 - Version 1 of Blue/Red/Green gene explanation
+5 June 2021 - White gene theories / data and farming strategies
+18 June 2021 - Red gene appearance rates and strategies
+7 Jan 2022 - Tidying up the guide and adding in some new info
+* Added some notes about aoharu genes
+* Seen first hand that it is possible for only 4 blue gene to proc in a 〇 compatibility run        (Check bonus chapter on proc rates)
+25 Jan 2022 - Discovered new Red gene mechanics and added to the guide
+14 June 2022 - Updated green gene data, devs said it depends on skill level
+20 June 2023 - Refreshed the guide to take into account 2023 compatibility changes & scenario refresh updates. Also released to the public. Previously only circulated among circle members.
+19 October 2023 - Reformatted the guide to be more readable and updated information.
+2025
+5 Jan 2025 - Added some info about UAF / Farming scenario / Mecha scenario & included a new individual compatibility explanation
+8 March 2025 - Cygames added new white genes on its 4th Anniversary.
+28 June 2025 - Added Design your island stuff, Re-added early compatibility stuff for global, tidied up a little bit around the guide & summary section
+1-7 July 2025 updates - Linked Rednu’s video - Uses Global terms and condenses majority of the guide into a digestible format.
+- Updated DYI parent run construction guide, tidied up general readability for the guide, added glossary page, added ko fi page. Added a how to begin section chapter 8.
+3 August 2025 - Added Gene proc rate in chapter 2
+12 August 2025 - I got linked some inheritance proc rate data and added a Bonus chapter below.
+30 Oct 2025 - Updated section for Onsen Scenario
+1 - 10 Nov 2025 - Updated Onsen scenario & auto stuff, added Calculating compatibility to chapter 2 for better visualisations. Wrote a lil bit about Aoharu for the global crowd.
+2026
+22-25 Feb 2026 - 5th anniversary Uma Plan update & parenting in Breeder cup scenario.
+2 April 2026 - Updated some clarity about Gene generation rates
+28 April 2026 - Updated Green gene mechanics and shifted its chapter order , thanks Aya for actually looking it up!
+20 May 2026 - Cygames made changes for the green Ticket inheritance only uma systems.
+17 June 2026 - 29 June 2026 Update Breeders cup section and skeleton for Ramen scenario
+29 June 2026 - Tracen-ken / Ramen Scenario auto settings section updated / Cleaned up the current up to date Scenarios.
+6 July - Added Background Auto
+12 August 2026 - Added some information on hint proc rates from cygame’s patent
+End August 2026 -
+A new QOL has been added to the JP version which now shows FULL compatibility numbers and individual breakdowns. Updated a small note in the compatibility section.
+________________
+
+
+Terminologies
+
+
+Running Strategies
+JP
+	逃げ/Nige
+	先行/Senkou
+	差し/Sashi
+	追込/Oikomi
+	Unofficial Fan terms used for JP
+	Runner
+	Leader
+	Betweener
+	Chaser
+	Official Global terms
+	Front Runner
+	Pace Chaser
+	Late Surger
+	End Closer
+
+
+Table of Key Terms & Localisations
+
+
+JP/REAL Terms
+	Global Terms
+	Rentals
+	Guests
+	Compatibility
+	Affinity
+	Parents
+	Legacy
+	Grandparents
+	Sub-Llegacies
+	Genes/Factors/Inshi/Idenshi
+	Sparks
+	Mid run - Inheritance event
+	Inspiration event
+	Uma / Umnya
+	Uma musume / HorseGirls
+
+
+________________
+
+
+Chapter 1: Compatibility & Inheritance effects
+
+When starting a run, both your parents' overall compatibility score will be displayed using the ◎ / 〇 / △ symbols.
+
+Overall Compatibility
+◎ Great compatibility (>150 points)
+〇 Good compatibility  (51 – 150 points)
+△ Poor compatibility ( <50 points)
+
+
+This overall compatibility is calculated based on the relationship of all parents & grandparents with your target horse, added with the total number of overlapping races that each of them has run.
+
+
+However, the exact compatibility numbers are hidden in the game and you will need to use external tools to figure out the number if you want to min max it.
+
+
+**August 2026 update JP version only | 5.5 Anniversary update
+A new QOL has been added to the JP version. Compatibility numbers are now displayed and individual breakdowns can be shown. I'm not going to retroactively tweak the rest of my guide to accommodate this visibility update, so all you get will be this note.
+While the game displays a single cumulative symbol (◎/〇/△), the underlying math is actually the sum of several Individual Compatibility links.
+Individual Compatibility is the hidden point value assigned to a specific parent or grandparent in your lineage. The "Overall" symbol is simply the final result of these separate individual links being added together. This will be visited in greater detail in later chapters.
+Why it matters: You might see a ◎  "Overall" rating and think the parents are a perfect match,but it may just be the sum of poor compatibilities, ie 50 +25 +25 + 50 + 25 + 25 = 150. You should definitely worry if you do not see ◎ before starting a run.
+Ideally you’d want your overall compatibility above 300, optimally around 500.
+
+
+There is no bonus compatibility from running any same race a second time. For example, winning Arima Kinen in Classic or Senior contributes the same compatibility as winning it once.
+
+
+PS: The effects of compatibility and inheritance genes stop at the grandparent level. There is no hidden mechanic for having a parent Uma Musume with 100 generations behind her.
+How can you control these points?
+*24 June 2026. Global is now using the updated compatibility system.
+The Current System (JP Post-2.0 anniversary / Grand Masters and beyond scenarios)
+The compatibility system has been revamped to only count racing G1 races.
+* G1 Only: Only overlapping G1 races now grant bonus compatibility.
+* Simplified Gains: G2/G3 races and Title bonuses (Triple Crown/Tiara) no longer contribute.
+* Increased Value: G1 races now grant +3 points each (previously +1), and the base compatibility for Umas has been boosted across the board.
+* Parent to Parent overlapping races now count towards compatibility.
+General Parenting Strategy
+You should always run the maximum number of G1s available to you, as achieving ◎ compatibility is now significantly more straightforward than before. This also means that you should modify your aptitudes to be able to race in mile and dirt races if possible.
+
+
+As a rule of thumb, overlap as many G1s as possible for a respectable compatibility bonus. The ideal race count is between 22 to 26 when including dirt rotations. With enough overlapping races, it is entirely possible to achieve ◎ compatibility using only one side of the parentage line. Sample Urara below with ◎ from just ONE side.
+
+
+Recommendations:
+Ever since the 2.0 anniversary compatibility overhaul, I think it is overkill to place too much emphasis on Uma to Uma compatibility. Bonus races already account for the bulk of your compatibility.
+
+Just race every G1 race, 20~ if you do turf only, 26+ with dirt. Take care about mixing Tiara and Crown race rotation Umas as this means less races overlap and reduces compatibility from the ideal max.
+
+The ideal way to bridge the compatibility loss with Tiara vs Triple Crown rotations is by enabling dirt racing via raising dirt aptitudes, or alternatively on modern scenarios that do not have objective races.
+________________
+
+Global Section (URA to GL scenario) - Legacy Compatibility
+** This legacy compatibility system is currently obsolete for all different server region versions of the game as of 24 June 2026
+Apparently Cygames (Global) decided to push the compatibility system earlier and it is no longer delayed till the 2.0 Anniversary patch (GM scenario)
+
+⚠️The Global server currently uses the "Legacy" compatibility system. However, once the 2.0 anniversary update arrives, G2 and G3 races will stop providing compatibility bonuses. The compatibility for parents created using mainly G2/G3 races will significantly drop in the future.
+
+Take note: Because the current system counts G1, G2, and G3 races, you can currently build "Super Parents" with insane compatibility scores, preferably while in MANT scenario, by stacking everyone in your lineage with 60+ overlapping wins.
+Raising Compatibility
+In the legacy compatibility system, bonus compatibility is created via stacking overlapping races across your parenting lineage with bonuses from assembling titles/epithets.
+* Races: For every identical race win (G1, G2, or G3) shared between a parent/grandparent and the target horse, you gain +1 compatibility point.
+* Title Bonuses: Obtaining specific title/epithets (e.g., Triple Crown or Triple Tiara) grants an additional +1 point per title.
+* Individual Links: These points are calculated individually for every connection in your family tree (Left side vs. Right side).
+*Reminder that there is no bonus compatibility from running any same race a second time.
+It is entirely possible that you may build super parents by running and winning the same 63 races for both parents A & B for a bonus of over 150 points to compatibility.
+
+
+________________
+
+
+List of Titles/Epithets (Legacy Compatibility only)
+
+
+
+
+
+
+
+
+* Our sub lead Yukino made this in 2021
+
+
+Other Obtainable titles
+日本語 (Original JP)
+	English / Translated
+	クラシック三冠（皐月賞、日本ダービー、菊花賞）
+	Classic Triple Crown (Satsuki Shō, Tokyo Yūshun [Japanese Derby], Kikuka Shō)
+	トリプルティアラ（桜花賞、オークス、秋華賞）
+	Triple Tiara (Oka Shō [Japanese 1000 Guineas], Yūshun Himba [Japanese Oaks], Shūka Shō)
+	春シニア三冠（大阪杯、天皇賞（春）、宝塚記念）
+	Spring Senior Triple Crown (Ōsaka Hai, Tenno Shō [Spring], Takarazuka Kinen)
+	秋シニア三冠（天皇賞（秋）、ジャパンカップ、有馬記念）
+	Autumn Senior Triple Crown (Tenno Shō [Autumn], Japan Cup, Arima Kinen)
+	天皇賞春秋連覇（天皇賞（春）、天皇賞（秋））
+	Tenno Sweep (Tenno Shō [Spring], Tenno Shō [Autumn])
+	春秋グランプリ（宝塚記念、有馬記念）
+	Dual Grand Prix
+Spring–Autumn Grand Prix (Takarazuka Kinen, Arima Kinen)
+	春秋マイル（安田記念、マイルCS）
+	Dual Miles
+Spring–Autumn Mile (Yasuda Kinen, Mile Championship)
+	春秋スプリント（高松宮記念、スプリンターズS）
+	Dual Sprints
+Spring–Autumn Sprint (Takamatsunomiya Kinen, Sprinters Stakes)
+	春秋ダート（チャンピオンズC、フェブラリーS）
+	Dual Dirt
+Spring–Autumn Dirt (Champions Cup, February Stakes)
+	The list of titles above which give compatibility bonuses is not exhaustive, U-tools has a more comprehensive list @ https://xn--gck1f423k.xn--1bvt37a.tools/announcements/3
+Thanks @derpiederp for pointing this out.
+
+
+He's also made a great spreadsheet tool for compatibility planning using the legacy system for global players.
+Calculating Compatibility
+
+
+Back to compatibility calculations.
+
+
+Screenshotted below is a reference from derpiederp’s sheet for better visualisation of how compatibility is calculated.
+The individual compatibility of each Parent/ GP is calculated based on their compatibility with the other respective Uma (P1->gp1) + respective bonuses, visualised by the + in between each relevant link.
+
+
+(I’ve been told that the parent to parent race compatibility in the screenshot shouldn’t exist in the legacy compatibility yet and has been removed in his calculator, so this screenshot might be outdated)
+
+
+As you can see each side of the Individual compatibility on the parent side has 3 bonus relationships that depend on the race and uma to uma compatibility, hence maxing out your races has much more weightage on compatibility than the uma to uma bonuses.
+
+My take on compatibility values is: You don’t need to know how to calculate any of this unless you really really NEED to feed the knowledge for hunger of the exact numbers that go into calculating your odds of inheriting the different genes.
+________________
+Useful tools and Links
+https://mee1080.github.io/umaishow/ You can refer to this compatibility table for the base compatibility between each parent.
+
+
+A Note for Global Players: The Global server currently follows the original Japanese schedule and utilises the "legacy" system, where compatibility values are significantly lower. These values only apply from the Grand Masters (GM) scenario onwards; for earlier gameplay, please consult an older compatibility source.
+
+
+https://gametora.com/umamusume/compatibility Gametora also has a rudimentary base compatibility planner. Switch servers at the top left of the page to view the respective server’s data.
+
+
+https://xn--gck1f423k.xn--1bvt37a.tools/  U-tools is the go to all in 1 JP resource. The URL looks like this because it's a Japanese url/site.
+
+
+https://design.u-ma.org/
+Very cute lineage planner website, highly recommended for planning an overall lineage.
+________________
+自主トレ育成 / Background auto / Independant training
+Cygames has introduced background auto to JP servers on 30 June 2026 and announced that its coming to Global servers too in early July 2026.
+
+
+Screenshots will be from the JP version unless someone who plays global wants to feed me the relevant screenshots.
+
+
+I originally thought a guide wasn't necessary for background auto since it's so straightforward, but I realised people kept asking the same questions or just didn't understand how it works so… Here I am.
+
+
+What is this new function?
+Background auto is a new function that allows you to schedule an automated run in the background. This is an updated QOL for the auto-kun function released for JP server but it is a completely fresh new feature for Global server.
+
+
+What this does is it runs auto training in the background over a fixed time of 50 minutes per run. Unlike auto-kun who can be summoned to take the wheel in certain scenarios, you are allowed to use background auto in EVERY scenario without restrictions.
+
+
+What are the pros and cons of using normal auto-kun or Background auto?
+Both of them are assumed to use the same auto-logic and will suck for certain scenarios with heavy mechanics.
+
+
+Auto-kun:
+Pros
+* Faster than BG auto, as fast as 15mins for URA, 25-35 mins on ramen scenario.
+* You can win races at better odds especially when parent farming with large consecutive race stretches.
+Cons
+* Requires your device to be active for the duration of the run.
+* Requires manual intervention if you enabled certain options such as manual inheritance picking (Umaplan users only) or pause during x event.
+
+
+Background auto:
+Pros
+* Can be done in the background and you can actually watch the Uma Musume bond stories, live theatre and other game events you normally wouldn’t be able to do while playing.
+* Can never fail the run, all objective races are automatically won.
+* Guaranteed wins against difficult opponents during objective races, but has a dual-edged edge problem, elaborated below..
+Cons
+* Winning races is chance-based. Your aptitude (ranked A to G) affects win probability — higher is better. However, certain Umas can still win races reliably even with low (C or D) aptitudes. Since background auto tends to pick up random race losses, using auto-kun may give much better overall compatibility
+* All runs are fixed at 50 minutes and cannot be interrupted nor influenced. If you somehow decide u want to play the game manually, you cant intervene and will need to wait or delete the run.
+
+
+Special race win chance mechanics
+Races in this mode use a completely different mechanic to determine if you win the race or not.
+
+
+1. You can bypass races with overpowered opponents via rolling the race winning odds. For example - Umas like Narita Brian, Sakura Laurel, Verxina, or Curren Bouquet’dor who normally face Gorilla’s, bears or extinction tier threats during their respective races will have no problem can still come in 1st as they will be rolling a 110% chance to win these races.
+2. Objective races - You will only auto win all objective races that if failed, will end the run. For example, this doesn’t mean u’ll win Urara’s objective race for Arima Kinen, if you have her default aptitudes - as this objective does not fail her run.
+3. Non objective races
+Your stats will not be factored into the odds of winning races. Instead, the win chances of entering races are purely percentage-based, following the same odds as the Green Ticket/Inheritance-only Umas. If you are interested to learn more about this system, it has its own section later in the guide found here.
+
+
+Your odds of winning a race begins at 110% if you have A/A distance and ground aptitude for the corresponding race you are entering. (Cygames provided this number)
+S aptitude has been known to function the same as A aptitude, also beginning at 110%
+
+
+The odds will be lowered for each aptitude below A, and will drop even further for every consecutive race you run starting from the 4th turn. Cygames did not provide any details on the exact odds it will be lowered by. However, our trusty lad Shoppo_ura has spent the time investigating the odds.
+
+
+Shoppo’s tweet here https://x.com/shoppo_ura/status/2071769445605999036?s=20 with his table of results.
+
+
+Tabled sample data of race wins (from his tweet)
+Apt = Aptitude
+Ground Apt
+	Distance Apt
+	Consecutive races
+	Number of Races won
+	Number of trials
+	Win rate
+	95% CL
+	A
+	A
+	<3
+	1404
+	1404
+	100.00%
+	0.00%
+	A
+	A
+	3
+	420
+	420
+	100.00%
+	0.00%
+	A
+	A
+	4
+	180
+	210
+	85.70%
+	4.73%
+	A
+	A
+	5
+	79
+	105
+	75.20%
+	8.26%
+	A
+	A
+	>5
+	309
+	525
+	58.90%
+	4.21%
+	A
+	B
+	<3
+	741
+	741
+	100.00%
+	0.00%
+	A
+	B
+	3
+	194
+	210
+	92.40%
+	3.59%
+	A
+	B
+	4
+	161
+	210
+	76.70%
+	5.72%
+	A
+	B
+	5
+	227
+	315
+	72.10%
+	4.96%
+	A
+	B
+	>5
+	230
+	420
+	54.80%
+	4.76%
+	A
+	C
+	<3
+	18
+	20
+	90.00%
+	13.15%
+	A
+	C
+	3
+	7
+	10
+	70.00%
+	28.40%
+	A
+	C
+	4
+	6
+	10
+	60.00%
+	30.36%
+	A
+	C
+	5
+	5
+	10
+	50.00%
+	30.99%
+	A
+	C
+	>5
+	186
+	510
+	36.50%
+	4.18%
+	A
+	D
+	<3
+	55
+	68
+	80.90%
+	9.35%
+	A
+	D
+	3
+	20
+	32
+	62.50%
+	16.77%
+	A
+	D
+	4
+	11
+	20
+	55.00%
+	21.80%
+	A
+	D
+	5
+	9
+	16
+	56.30%
+	24.31%
+	A
+	D
+	>5
+	33
+	88
+	37.50%
+	10.12%
+	G
+	A
+	<3
+	32
+	121
+	26.40%
+	7.86%
+	G
+	A
+	3
+	4
+	10
+	40.00%
+	30.36%
+	G
+	A
+	4
+	0
+	25
+	0.00%
+	0.00%
+	G
+	A
+	5
+	0
+	5
+	0.00%
+	0.00%
+	G
+	A
+	>5
+	0
+	10
+	0.00%
+	0.00%
+	G
+	B
+	<3
+	16
+	105
+	15.20%
+	6.87%
+
+
+If you look closely at the data, the win rate is actually completely unaffected at less than 3 (<3) and at exactly 3. For example, at A/A aptitude, both "<3" and "3" consecutive races maintain a perfect 100% win rate. The penalty only starts dropping the odds once you hit 4 or more consecutive races.
+
+
+Shoppo also investigated win rate reduction for running consecutive races @
+https://x.com/shoppo_ura/status/2077988949495279684?s=20
+
+
+Essentially aptitudes for ground and distance have the same weightage. Meaning AG = GA = DD
+
+
+26 July 2026
+He has posted a further update and correction to his data since he previously interpolated points for E and F:
+https://x.com/shoppo_ura/status/2081262516790010068
+
+
+Full spreadsheet at: https://docs.google.com/spreadsheets/d/1e6KPdIXPM7-8e9So3Bd3Pl3arO0aTeFdjI0P_1-4iFo/edit?gid=1621158841#gid=1621158841
+________________
+How to set up a Background Auto / Independent training ?
+Simplified guide! (Credits to Patties)
+
+
+
+
+________________
+
+
+Deeper explanations for setting it up
+
+
+Left: Original screenshot
+Right: AI generated (gemini) translated version
+
+
+This screen is located just before you begin your run and you can select between normal training or background auto.
+
+
+________________
+
+
+If you expand on the deck details it will just show you your selected uma and the parents/deck you had set up before coming to this screen, sample on the right.
+
+
+For the first set of options, you’ll need to specify which kind of stats to focus on.
+Balanced = balanced stat distribution, Stamina - higher stamina focus, Sprint - no stamina focus.
+
+
+Next is Skill Hint Prioritization.
+Note: BG Auto will NOT buy skills during your run.
+These settings simply force Auto-kun to:
+1. Click on support cards with an active "!" hint event if they offer these specific skills.
+2. Pick event choices that grant the corresponding skill.
+*While Cygames hasn’t explicitly explained how background runs are simulated, post-run data suggests they follow the same decision-making system as Auto-kun.
+
+
+In my screenshot above you can see that I’ve placed straight line recovery in the hint priority list. I recommend always including Straight Line Recovery to your hint priority list. By default, Auto-kun gambles on the top option for the random Anshinzawa event, which has a massive 80% failure rate and devastating penalties (-2 mood, lost stats, or Insomnia)
+
+
+Doing this forces Auto-kun to pick her second option instead. This safer route rewards Corner/Straight Recovery and has a much better 50% success rate, drastically reducing the penalties if it fails.
+Ideally if you don’t wish to gamble on 50% odds, the better choice would be the 3rd or 4th option for Anshinzawa’s event. However this cannot be conveyed to auto-kun as no skills are attached to these options.
+
+
+________________
+
+
+So what can I really do with Background auto ?
+
+
+1. Parent farm - refer to to the next chapter and the rest of the guide
+2. Fan/Jewel farming
+Many people have great ideas on how to use this scenario to farm for Fans/Jewels.
+
+
+Here are some samples from some lads with their findings on fan/jewel farming.
+They are self explanatory, so I won’t be elaborating.
+1. From Bourbon_Polaris https://x.com/BourBon_Polaris/status/2073718632816005278?s=20
+
+
+
+
+________________
+
+
+
+
+2. From NottinTV
+
+
+https://x.com/nottinjpn/status/2073743503570731239
+
+
+
+
+3. From: Uma Musume note
+https://x.com/umamusume_note/status/2073958157110637042
+
+
+________________
+Scenario Parent Farming Recommendations
+Here I’ll rate individual scenarios for parent runs.
+* I’ll use stars to rate each scenario for parent farming.
+* The maximum stars is 5
+* Scenarios will be rated on how easy it is to raise stats, ease of gameplay mechanics and amount of SP you can gain.
+You can jump to the TL;DR section for a quick final summary of the scenarios.
+
+
+Preface: Ever since auto has been added to the game, all scenario guides will be written in mind that auto-kun will be controlling the wheel. Guides will only be focused on parenting and Ace runs should not be following my guides.
+
+URA [Auto enabled 2025]
+Post 2.0 remake, you can get nice unique scenario genes but it is still difficult to consistently roll SS grade or above Umas.
+With the 4th Anniversary update, this scenario now has the auto-run function.
+
+
+Auto time: 15-20 minutes
+Manual time: 20-30 minutes
+
+Launch of Scenario: Expect 1k+ skill points
+Post rework: Expect around 2k Skill points
+Rating (Launch): It's the only scenario so what can you do? It becomes obsolete once Aoharu launches. Don’t bother too much here. Just get your own first 3 star blue with URA genes. Ura Genes give Speed (7/10 Good) + Stamina(10/10 Excellent)
+Rating (After rework): ☆ - only if you want the new scenario skill genes.
+Essence skiills are great to inherit especially レースの真髄・体  is a top tier gene for every uma
+________________
+Aoharu / Unity Cup
+- Fast with huge race RNG but you won’t be consistently rolling SS grade or above Umas.
+Max is S+ rank with mega whale cards./ SS only possible post rework.
+
+
+Launch: Expect around 1-1.5k Skill points
+Post rework: Expect 2k Skill points or less
+Launch of Scenario: ☆☆☆
+Rating (After rework but before GM): ☆☆
+Rating (2025): ☆ - Only if you want the scenario genes, (Aoharu - int gene is still relevant and part of nige meta)
+Scenario gene gives pow & int
+
+
+Why choose Aoharu over URA?
+You get more random hints from bursting the gauges. Your average stat lines are higher than URA, having Riko in your deck gives ~ 150 Stamina/100 Guts for free from her dates, events and end of run bonuses. You hit the rest button way less than URA if you play it right, bring INT cards / burst on Int for energy. Base energy consumption is lower too.
+Make a New Track
+Runs here take close to over an hour to do, 45 minutes if you are a god. Run times are cut by 33% faster after the event speed up QOL is implemented. Originally this QOL was added together with GL’s launch but Global may get it earlier. I don’t work for cygames so I dont know what they would do.
+Take note that the G2/G3 races will be useless for compatibility after the compatibility rework.
+This is a “racist” scenario - If the uma cannot run mile races, they cannot play this scenario well. Rip Tamamo and Eishin flash (released just before this scenario)
+
+Launch of Scenario: ☆☆☆☆☆ The perfect scenario for farming the next half of the year.
+* Compatibility: It is incredibly easy to stack 50–63 bonus race points for all Umas, provided they can run mile/mid races.
+* Stats & Factors: You gain significant "free" stats just by progressing the run. Furthermore, the scenario’s Climax genes give Stamina and Guts—the best possible combination. (I personally favour Stamina as a bonus stat, you will find out why when GL comes)
+* Longevity:  This is a God-tier scenario for parenting, though the honeymoon period will not last forever. While it currently provides "mega" compatibility, it will eventually be phased out with the compatibility overhaul when GM arrives
+Expected SP: Around 2k~ 2.5k  Depends on deck but there's not a lot of variance.
+
+
+Current Rating: Obsolete
+Grand Live
+This scenario does not exist.😡
+Grand Masters
+You get easy access to some good skills like Uma Konomi / ウマ好み from the Goddess card.
+Expect 3k Skill points
+
+Launch of Scenario: ☆☆☆ 3/5, Not all Umas benefit from mechanics and Stamp collection RNG hurts it.
+Current Rating: Obsolete / No longer worth running.
+LARC
+- LARC is fast and pretty easy. It introduces new Mini-scenario Genes in addition to the main Scenario Gene, both of which provide individual stat bonuses. Bonus: This is a shortened scenario so you can complete runs in as fast as 15 minutes.
+
+
+Launch of Scenario: ☆☆☆☆, not 5 because max compatibility is MUCH lower compared to any other scenario.
+Current Rating: ☆☆ (pre 2026) / Superseded & obsolete
+I’m recommending this scenario ONLY to bridge the compatibility gap for Umas with extremely limited aptitudes such as Short only, mile only, dirt only, see notes below.
+
+Expect about 2.5-3.5k SP depending on deck & luck, this scenario is not suited for weak parent decks. Bring at least 2 speed cards + Mei’s friend card or you WILL lose the scenario races!
+
+*Special LARC Notes: Keep in mind that L'Arc modifies the aptitudes of all Umas to A-rank for Turf and Mid-distance. This allows you to bridge compatibility between Umas who usually have incompatible ranges—such as pairing a Turf,Short-distance specialist like Curren Chan with Mid-distance parents like Narita Brian. This also applies to bridging Umas who only have Dirt aptitudes.
+However, if you want to roll for Turf or Mid-distance Factors at the end of the run, you must still naturally raise those aptitudes to A-rank. The scenario buff is temporary and does not make these Turf or Mid red genes eligible for gene generation.
+Mini Scenario Whites: In order for the new scenario whites to have a chance to appear, you will need to have maxed out the relevant debuff level ups during the run.
+
+
+However, this shortened scenario limits the total races you can do as compared to a regular length scenario. Your compatibility will be significantly limited here compared to the others.
+
+
+If you want to farm for parents here I would recommend you train your parent lineages from the same scenario, ie. Using LARC’s grandparents to train your LARC parents to overlap the same LARC race rotations, but you will need to defeat Venus & Montjeu in their respective races to unlock the LARC debuff! Remember to buy skills.
+________________
+2024’s Scenarios Foreword:
+2024 Scenarios (UAF / GFF / Mecha) The three scenarios launched in 2024 significantly changed the inheritance meta. Unlike previous scenarios, this set does not generate "Big" Scenario Genes (which traditionally grant up to +30/+30 stats). Instead, they produce scenario-specific genes:
+* UAF: Generates 3 unique genes with a mix of stats.
+* GFF & Mecha: Generate 5 unique genes (one for each individual stat).
+* These Mini scenario genes are the only genes that can directly give Skill points.
+
+
+If you inherit at least 3 of the corresponding scenario’s genes mid run, they will grant you a new unique skill, unique to each scenario. PS: These skills are underwhelming and not worth the effort of target-farming the genes. Crucially, these special skills cannot be passed down as genes themselves.
+
+
+Cygames has also changed the scenario launch schedule here, future scenarios now will come out every 4 months instead of 6.
+________________
+UAF
+Initially better than LARC, but the GFF and Mecha scenarios immediately superseded this scenario.
+
+Launch of Scenario: ☆☆☆☆
+Rating (2025): Superseded & obsolete
+
+
+**This Scenario does not have a main Gene. The possible genes are split across 3 unique stat specific mini genes that grants you a unique skill mid run if you proc at least 3 of them across both inheritances. Sadly, the skill isn't worth taking.
+Grand Food Festival / Farming scenario
+Expect to get up to 4.0 to 5k skill points when running this scenario depending on the deck used.
+Advanced Strategy: Hint Pool Manipulation If you "prune" your skills by exhausting the available skill hint list early in a run, you can force the game to provide random hints from outside your current deck. The new hints that appear are determined by your Uma’s A-rank aptitudes (Distance, Surface, and Strategy).
+
+Average runs in GFF take 45 minutes to 1 hour, longer if your device takes longer to load new scenes/menus.
+Mandatory card: Director Akikawa Yayoi
+Initial rating: ☆☆☆☆
+Current Rating: Superseded & obsolete
+
+
+**This Scenario does not have a main Gene. The possible genes are split across 5 unique stat specific mini genes that grants you a unique skill mid run if you proc at least 3 of them across both inheritances. Sadly, the skill isn't worth taking.
+Mecha Scenario
+Expect almost equal or slighter lesser SP as compared to GFF but this scenario is MUCH faster as there are less scenario specific menu items to click through.
+Note: You are unable to generate extra skills outside of your deck in this scenario. Do GFF instead if you want that.
+
+Average time: 30 to 45 minutes
+Mandatory card: Scenario [Stamina card: Air shakur] or any Biwa hayahide card
+Initial rating: ☆☆☆☆
+Current Rating: Superseded & obsolete
+
+
+**This Scenario does not have a main Gene. The possible genes are split across 5 unique stat specific mini genes that grants you a unique skill mid run if you proc at least 3 of them across both inheritances. Sadly, the skill isn't worth taking.
+Feb 2025, Auto-run function released
+Starting from  all future scenarios listed below, Auto-runs are enabled and parenting isn’t a chore anymore!
+It's actually normal to run out of 10 or 15 rentals depending if the ½ tp campaign is running.  The downside of auto is, if you happen to be a mobile-only player, you can’t use your phone while auto-running, unless you are a fold screen phone user with adhd.
+
+
+You can also turn on auto clocking for failed races. Take note that the June 2025 update gives you the option to turn off clocking for bad aptitude races. Ie dober running for Arima Kinen will no longer kill your clocks. What's determined as bad aptitude is C and below. However, C still has a very good chance of winning so turning this on may possibly lead to wasted races that could have been won.
+
+
+Twinkle Legends: [Auto enabled]
+Added on the 4th Anniversary, this Scenario was the new gold standard for parenting since previous ones are ineligible for auto runs.
+
+
+Auto makes parenting fun again as you don’t need to guide your uma through a run and get disappointed with the final Gene rolls. Instead, you can just get disappointed after going afk for 20 minutes.
+
+
+Auto parenting runs here should only be done on Green or Pink(preferred) route, blue route is only playable with manual input.
+
+
+Auto time: 20~ minutes give or take
+Manual time: 30 to 45 minutes - Since there's scenario menus to click through.
+
+
+This scenario is shortened and DOES not have any races beyond Year 3 December, so you will not gain additional race compatibility from overlapping URA races. (Aug 25 misinfo update - URA races are not counted as G1s)  Special events for each Umas are also limited, not all of them will function, but some Uma’s quirks still apply.
+
+(Not relevant to parenting) Oonige's condition is to just win against 3 Legends or Almond Eye.
+
+
+Mandatory card: Scenario Twinkle Legends card, any LB
+Initial rating: ☆☆☆☆☆☆☆ 7/5
+The more manual input u have for the run the better, full auto final results have a huge range (UG to UD ratings) since it is very stamp & route RNG dependent and this scenario also does not have mood up events.
+Current Rating: Obsoleted because Cygames broke the game with the next DYI scenario with an emergency patch
+* Lowered because it is no longer the only auto scenario & does not have URA races for a tiny bit more compatibility. The stats are not spread out and highly dependent on your deck choice.
+
+Twinkle Legends scenario genes give Power & Guts
+This Scenario does not have any extra scenario specific genes
+________________
+Design your island: [Auto enabled]
+Tim Nook’s counterpart Tucker Bryne is here.
+
+
+You can set the facility buildings to focus on Parameters or hints in this scenario. Ideally you want Parameters for uma grading (above UE) and Blue gene generation. The skill route buildings are weaker but have lower construction costs. These focus on bonuses for getting hints, but they are rarely used, average for manual runs, horrible for auto runs.
+
+
+Sample auto run setup (twitter source)
+Translation: The idea of this setup is to simply to set all training options to "Weak." to try forcing it to use island tickets.
+Update: Auto-kun is still dumb and this setting doesn't seem to work to force island training tickets.
+
+Average auto run SP - 4k - 5k depending on how whale your parenting deck is. End grade has a higher floor and is WAY much more stable than doing auto in Twinkle Legends’
+For reference, with manual play with strong decks, your SP can end higher at 6k-7k
+
+
+Auto time: ~30 minutes just from DYI scenario animations
+Manual time: 25 - 45 minutes give or take
+(Possibly faster because u’ll be manually skipping past animations)
+
+
+DYI Main Scenario genes give Stamina and Int
+This Scenario does not have any extra scenario specific genes.
+Mandatory card: Scenario LB3 SSR Tucker
+Key note: a minimum of *IMPORTANT* LB3 SSR Tucker must always be present in the deck for the +1 construction slot.
+
+
+________________
+
+
+
+
+Initial Rating: ☆☆☆☆☆☆☆☆ 8/5
+So good that you can lick the plate clean. This scenario broke my rating system and I can't see how this becomes obsolete for parenting in the future.
+High rating because stats are spread out due to the scenario Island training mechanics. Off-stats can also be raised even if you didn't bring that specific stat card.
+
+
+2025- May 2026 Rating: ☆☆☆☆☆ 5/5 - Only relevant because of deck and race flexibility, just run another modern scenario instead if your deck allows it. I personally don't use this scenario anymore.
+Current : Superceded by Tracen-ken , higher SP ceiling & stronger hint mechanics
+
+
+The hidden factors mainly give extra small stats which is moot in this current economy.
+
+I made a mini tutorial for Auto setups for the run> linked here.
+Deck choices: ☆☆☆ Extremely flexible Other than Tucker, the other 5 cards can be anything. If 5 speed works, anything else works too. Image source: wanwan_nyan
+________________
+Yukoma Hot springs / Onsen Scenario [Auto enabled]
+It's time to start digging holes
+
+Got the idea of Mr Digger from celery->
+
+
+This scenario kind of hates racing. Preliminary auto testing from the JP community has shown a huge variance (4000-6500+ SP). Your results from auto running are dependent on your onsen route and the number of races you run. The more races you run, the worse it becomes. This is highly detrimental for turf + dirt race rotations AND parents that aim for bonus secret genes, ie. >30 races.
+
+
+Sample runs linked below from JP players, although most of them are using full fledged decks meant for real training instead of parenting.
+https://x.com/teioupawa/status/1983410358430884256
+6k SP nige deck: https://x.com/alice8544/status/1983574452257608160
+6.5ksp: https://x.com/takekozou_nova/status/1983590469318930534
+6.6k sp: https://x.com/granphic2014/status/1983746187904864481
+
+
+JP bro with 7k SP,  but I don't think you should do parent runs with decks like this.
+: https://x.com/kyalumamusume/status/1983506465261498453
+
+
+Hint Mechanics: Triggering Super Onsen gives you hints from your deck. There are no random hint mechanics like the GFF scenario and you will be unable to generate extra skills outside of your deck. It is also possible to hit the dreaded stats/sp instead of hints from super onsen activations too. On super onsen procs, a card will be selected at random and hints will be generated from that SINGLE card only.
+* I’d recommend the rarely used technique of skill pruning here.
+
+
+Auto time: ~ 30 to 40  minutes
+Manual time: 30 to 40  minutes
+
+Onsen Scenario gene gives: Guts and Int
+
+
+________________
+
+
+Split ratings for Onsen scenario :
+☆ 0 / 5 - If you are using a weak parenting deck & or racing more than G1s (I do this because of hidden factors)
+I’ve tested race presets that go into the 30s, however, high race counts beyond 28 can lead to poor runs ending with 4k sp and UF-UG ranks.
+You will find it nearly impossible to generate skill hints while maintaining a heavy race rotation, leaving you with both low SP and nothing to spend it on.
+
+
+☆ 9 / 5 - If only running G1s, 5 different card types / not-cope deck
+Minus 2 stars for each condition not met.
+* Can hit 6-7k SP on auto, for manual runs its possible to peak at 8k.
+Some JP bros have linked their runs above, you can see if it works for you.
+
+
+2026 ratings: ☆6
+Onsen is still a good parenting scenario but I think Tracen-ken has superseded this scenario purely because of the superior hint mechanics.
+
+
+Current : Superceded by Tracen-ken , higher SP ceiling & stronger hint mechanics
+
+
+Early DYI VS Onsen scenario comparisons:
+I’m not sure if I'm doing it wrong but I don't see how this scenario is good for parenting. This could be my first recommendation to avoid a new scenario for parenting runs.
+
+
+Eyeballing the results from auto-running both scenarios, targeting a minimum of UE rank, both DYI and Onsen scenarios yield comparable results when running approximately 28 races, (only G1s, with no secret genes chasing.
+
+
+This performance parity quickly disappears as the race count increases: Onsen scenario will start to fall behind DYI on SP/hints. Above 30 races, the runs will completely start to break down due to slower digging speeds. While Onsen potentially can generate more Skill Points, it suffers from a significantly lower rate of hint generation from random ! hints and hints from super onsen procs. Don’t count on auto-kun to effectively utilise Onsen's mechanics, especially Onsen activations.
+
+
+For your auto runs to effectively generate 6k and above SP, you will need to complete the 2 Onsens that generate extra support on onsen ticket uses. Ie, Yukoma Onsen before Senior summer, AND Legendary Onsen before URA finals (preferably 4 turns after it first appears).
+________________
+If your deck contains more than 3 0LB-2LB stuff, runs on DYI may fare better, go test it.
+
+
+Auto Run Setup
+The setup on the right is the JP community’s agreed upon most optimal priority list. If your run does not complete the legendary onsen, it's going to suffer for hints. You can swap the int/event one from 5 - > 4 for +20-30 SP on debut race but auto-kun doesn't always proc the onsen ticket on races  when required.
+
+
+Deck choice: Extremely inflexible - you require 5 different card types for scenario mechanic bonuses for 3 of your supports to appear in training after digging the   onsen. This mechanic is similar to Mecha scenario’s and probably not so relevant if you are racing hard in senior year.
+
+
+Note: It doesn't matter whether you use SSR or R Kiyoko here - since Auto-kun doesn't use the onsen mechanics effectively in the first place.
+
+
+Mid-November 2025 update: Actually >30 races can also be done, but they need to be strategically planned. Racing works well on parts of the run where the onsen digging speed doesn't matter. Examples; The entirety of Junior year, since you only need 2 onsens there to advance the onsen level. Or inserting a race into an onsen dig that does not make you finish it slower. However this is mainly geared towards G2/G3 races that don’t add to compatibility, but may trigger some hidden genes.
+
+
+This Scenario does not have any extra scenario specific gene.
+________________
+
+
+Breeders Cup Scenario [Auto enabled]
+Beyond Dreams: Moving Forward Together, Towards the Light Together
+
+
+Listen to the “THE LIBERATION OF GRACEMERIA” track & then the training BGM here to get the reference.
+
+
+This is the second shortened scenario released so far, the earlier one was L’ARC scenario.
+The scenario ends runs on the early November turn which means you lose access to a bunch of G1s, pictured below.
+
+
+
+
+
+
+
+
+Pic Source - my race planner web app at https://uma.pwnation.net/
+________________
+
+
+
+
+Despite the scenario mechanics for the stat gains, hitting the minimum rank of UE is kind of difficult for auto-kun. Below, I will go through the different nuances of the scenario below with Auto in mind.
+
+
+Compatibility considerations: Good 4/5
+There can be race mismatches due to differing objective races depending on which end race you pick. So make sure you plan your parents with the same end objective race.
+A benefit from this scenario: Tiara route Umas can now be forced onto triple Crown routes. The ideal path would be aligning them all to either BC Turf’s route (Runs Nippon derby, Japan Cup and Takarazuka Kinen) Or BC Filly & Mare Turf where you can fit in Tiara AND more total races.
+
+
+Under any breeders cup route, while you do lose 2-3 standard G1 races worth of compatibility when paired with other scenarios, you do have an additional 1 G1 gain from the Breeder cup objective race when pairing parents who have also been trained under BC scenario.
+
+
+Sample BC Turf route
+
+
+________________
+
+
+Sample BC Fillies and Mares Turf Route
+
+
+Running the Fillies and Mares route has a benefit over the BC Turf route; You are able to fit Takarazuka Kinen AND Teio shou as compared to only Takarazuka Kinen for higher compatibility..
+
+
+It's your choice if you want to align it to the Tiara route or the triple crown route depending on who you are parenting and their lineage.
+
+
+Hints: Auto: 1/5 | Manual : 3 / 5
+The hint mechanics are excellent and sould normally be rated 5/5 but you have no ability to make use of it well in auto parent runs.
+
+
+10 March 2026- I just docked 2 points off the manual score because there's no mood recovery mechanic like the Onsen scenario. As you are already going to stack many consecutive races, you will surely run into the dry skin bad status and massive mood debuffs from your race spams. That's a lot of turns lost to heal and fix mood. Sample RIP training turn below
+
+
+
+The scenario’s hint mechanic is similar to Mecha Scenario where you can obtain ALL hints that are present in the same training facility once you reach technique level 5. This is only available in the later half of the classic year.  However, it is severely hampered by the sheer amount of races you need to do in parenting runs.
+
+
+Note that you can also get free hints at each scenario checkpoint! Just extrapolating here, if you max out all your hints early you could even get hints outside of your deck if all obtainable skills are exhausted. However, this seems highly impossible without heavy pruning due to your inability to generate enough hints by senior year unless your decks are majorly scuffed. Example: Your total skill count in the deck is less than 30, aka. your deck mainly consists of Year 1 release cards and we shouldn't even be parenting here.
+
+
+Stat gains: Ok 3/5
+Main stat gains are high while off stats gains are really low, if you do not bring a certain card type, that stat will suffer. The highs are high and the lows are really low. Stamina, I’m looking at you.
+
+
+Mandatory card:   [Casino Drive / Aimi], any Limit break SSR.
+R is much weaker but acceptable if you don’t have access to SSR Casino drive.
+
+
+Deck choices: Not that flexible, You need to run highlander decks where there's at least 5 different cards to activate the effects of the Physical plan for DT turns (increasing your sub-stats gains). The friend card already counts as 1 type so you need 4 other types.
+Auto-kun also has no idea how to make use of DT turns.
+
+
+Sample decks
+
+
+
+
+
+
+
+
+
+
+Uma Special Events: DISABLED, Umas do not have their secret events nor objectives races.
+
+
+Sample parenting attempts below.
+5 different card type deck
+Auto   Manual
+
+
+Shared below are other players’ auto HIGHROLL samples, most of the time it's between 4000 to just below 6000.
+
+
+
+Heartrabbit                                 Flandoru
+
+
+Auto time: 20-25 minutes
+Manual time : 25-40 minutes There’s many menus to click through so your mileage may vary.
+
+
+Expected SP count:        4-6k ? Auto (Mostly skewed to lower end)
+5-8k ? Manual (Should be normally distributed here)
+SP Gains: ?? Severely limited due to heavy racing requirements and Auto-kun is not smart enough to make use of scenario mechanics.
+
+
+Scenario Genes: Dreams Scenario, Speed and Guts. No unique mini scenario genes.
+
+
+________________
+
+
+I have conflicted feelings about this scenario. Originally I recommended against auto in this scenario as the mechanics are beyond Auto-kun’s ability. However this is the only modern scenario for free race rotations which allow the benefit of bridging compatibility between Triple Crown and Triple Tiara route parents.
+
+
+This became extremely relevant as more people began parenting here, although some people still pick strange routes.
+Community’s recommended routes: BC Turf for Triple crown, BC Fillies and Mares for Tiara routes.
+
+
+Split rating: ☆ 5/5 - For auto, you could consider other  scenarios.
+This scenario doesn't do great in Auto parenting since it's too mechanic heavy for auto-kun. There is some hope with manual parenting, but you might as well be doing other scenarios as the SP gain here has an abysmal distribution. The only benefit you get from this scenario would be free race planning and the scenario unique genes such as American Dream / アメリカンドリーム since its a 200 base cost skill.
+
+
+Split rating: ☆ 7/5 -  Partial Manual & Auto! (Deck should be above rental tier)
+Play the first year like you would a proper run for stable DT gains, then allow auto to take over.
+Your runs will end at least 5 grades higher and with 500-1k more SP.
+
+
+Note that the bulk of BC’s auto guide was written early into scenario release. For now, Onsen/DYI would be better for auto parenting but I highly doubt this will change due to how the scenario works.
+
+Update: Little change in opinion, but I’ve updated an auto guide below
+________________
+Auto settings (June 26 update)
+
+
+Take note that the image doesn't match what I will share below. These are 2 different 2 plans with different priorities.
+The text prioritises stats/sp gain for the UE threshold, the image prioritises hints
+
+
+Mental 3
+Physical 3 <- can be removed
+Physical 4
+Mental 5
+Technique 8
+Physical 6
+(Physical is optional, to help stat and sp gain slightly)
+Mental 7
+
+
+Expected DT planning route
+113
+313
+415
+445
+565
+586
+
+
+The basis of this plan is that you are using weaker cards skills and expecting Auto-kun to be bad.
+DT turns in auto runs never never hits the max sp cap of mental 6 to 8 anyway, so you can expect your plan to finalise at the 4/8/6 level or lower..
+________________
+Sample deck and results here.
+
+
+
+
+
+
+You can afford to use up to 3 scuffed low LB cards and still scrap by runs above UE.
+* If you have the willpower to run the first year manually and continue the rest with, the run instantly improves by 300-700 sp and at least 5 grades just by not wasting the early DT gauges.
+
+
+
+
+
+
+
+
+________________
+
+
+
+
+Thoughts from the Japanese twitter sphere
+Heres a sample manual run below from ヌボー’s Tweet
+
+
+
+
+Umamusume_note mentions he finds the Breeders Cup scenario bad for parenting. Source: https://x.com/umamusume_note/status/2029838137384734866?s=20
+
+
+✅The hot spring scenario is generally recommended, but some Uma Musume’scenarios offer more flexibility due to BC scenario removing fixed events.
+
+
+The deck composition has a lot of restrictions, and SP changes significantly based on support card power, so you really need a Highlander or semi-Highlander setup 💦
+or you won't win in the end 😭
+
+
+
+
+________________
+
+
+Tracen-ken / Ramen Scenario [Auto enabled]
+
+
+『らっしゃい！トレセン軒！ ～恩返し、始めました～』
+TL: ("Welcome to Tresen-ken! ~We've started to repay our debts~" )
+I hope you guys like Narutomakis
+Reminder: All scenario guides are written in mind that auto-kun will be controlling the wheel & will be focused on parenting. Ace runs should not be following my guide.
+
+
+Scenario mechanics
+This scenario doesn’t reward racing, similar to the Onsen Scenario where extra races are highly discouraged. Each turn you spend racing you will lag behind on building up the Learning Gauge, which starves you of the "Tricks" needed to fuel your next Tasting Party.
+隠し味の秘訣/ Secret ingredients help to cover this gap but you can only stock up to 4 of these in the first place.
+However…. Spamming races in Junior could work too to account for weak turns.
+
+
+Currently its more forgiving than the Onsen scenario for parent runs, the scenario favours racing mainly the G1s: Racing all the mile/mid/long turf and dirt G1s for up to 24 races is okay. With G2/G3s, we might see a breakdown below UE if you try to fit additional races in the 30-38 range.
+________________
+
+
+Deck building choices
+Scenario cards :
+* Best tier: Tazuna (Alt)
+* Weaker tier: OG Tazuna or OG Light hello
+* Weakest tier: No friend card
+Technically Tazuna is non-mandatory if you don't mind suffering!
+This is the first scenario to feature multiple scenario linked friend cards.
+
+
+The latest Tazuna (alt) card provides the largest bonuses to the technique gauge compared to the OG cards and also has a unique effect for summer.
+Summer Effects : All trick gauges will fill to MAX every turn
+
+
+Compatibility considerations: Standard
+Race schedule follows your Uma’s standard objective races, nothing new here.
+
+
+Hints: Epic 10/5☆
+Year 1 and 2 hint generation:
+When activating a Tasting Party: Hints are triggered for the corresponding region’s specific CARD type that you selected.
+This means +1 or +2 hints per tasting party AND up to 1 hint from the trained node
+Year 3 Hint generation: The Tasting Party forces hint events to appear and trigger for all support cards on the selected training node (excluding trainer/group cards). Up to 5 hints if your cards align.
+Do take note that random non support card team members can even appear and take up support card space on the nodes.
+There are NO race bonuses on any ramen, so auto won’t cook on race turns.
+
+
+Scenario Genes: Power & Guts
+________________
+Example of a good hint turn.
+
+
+
+
+Stat gains: Very strong but doubtful that Auto-kun knows how to use the activations well.
+
+
+You also get to pick ala Grand Master’s scenario 3 goddesses route for the final URA segment depending on the deck you brought and the skill you want.
+
+
+
+You should specify which gold skill you want to obtain in the auto settings menu if this thing matters to you. (This heal is bad btw)
+
+
+White versions of these skills: 別腹タンク / スリップストリーム / 心惹かれて
+________________
+
+
+Support Setup Nuances
+To activate the scenario mechanics and add cloned support cards to your training nodes, you must bring at least 4 distinct Support Card types
+
+
+Heres some typical setup examples here that fulfill the 4 type requirements. Its parenting runs, use your imagination and you can go beyond these boring standard setups.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Year 1: Singular stat ramen options
+Year 2: Double stat ramen options appear
+Year 3: There are ramens that give stacked bonuses on a singular type of stat.
+The benefit of the solo bonus ramens is that they give LARGER bonuses than the multi-type ones.
+For simplicity you can pick the multi bonus ramens for auto-kun, OR you could pile in on the 3 single stat ones if you are feeling lucky for good turns to behave like DT turns in BC scenario.
+
+
+Both target different goals, a mix of multi bonus and single(s) are ok too.
+________________
+
+
+Subway/Dubai/Hongkong Scenario
+Preamble
+
+
+Icon templates for myself
+
+
+
+
+
+
+
+________________
+
+Auto Run Setup
+Very simple, just pick the ramen locations based on the deck you are bringing.
+
+
+Sample multi bonus ramen settings
+
+
+I think it's better to keep all settings low as auto-kun will seek out strong turns regardless. However if you want to be sure, raise the training priority to Mid or high. There’s little point to putting priority on hints since the scenario hint mechanic is already epic enough, and the 3rd option for G1s don't mean anything when you follow your own race rotations.
+
+
+Year 3 multi bonus ramen options are selected for simplicity. Singular ramen bonus should fare much better for stat/sp if you stack certain types (ie. speed), experiment yourself depending on the deck!
+DO NOT blindly follow the ramen location selections, your choice must depend on what deck you are using. Do not pick ramen locations for unused cards types.
+
+
+
+
+JUST COOK IT.
+-Chr*stophe Lem****
+
+
+Sample parenting attempt
+
+
+
+The scenario is fine if you do only G1 runs
+
+
+Ratings:
+Initial rating : ☆☆☆☆☆☆☆☆☆ 9/5
+
+
+Expect about 5-9k SP depending on the strength of your cards
+
+
+Highly rated and outclasses all the 2025 scenarios. The hint gain here is stable and procs as long as you are able to host tasting parties. This is better than Onsen scenario’s hint mechanics which were highly dependent on proccing super Onsens for hints.
+
+
+Split rating: No split ratings.
+
+
+Auto time: 25-40 minutes Depends if you disabled/shortened the animations.
+Manual time: 30-50 minutes / Heavy menu navigation extends run times
+Scenario genes:  Power   & Guts - Very good
+
+
+Ramen bonuses quick view
+Art is hard :(
+
+
+________________
+
+
+Uma Plan users
+*this is repeated in the 5th Anniversary chapter too*
+Note for Uma Plan users, since the Uma Plan was added together with this scenario, there is a new setting for auto-kun. Please note that if you want to pick your re-rolled inheritance during auto runs, you will need to check this box to pause the run mid way or the picked inheritance will also be autoed.
+
+
+
+
+
+
+
+
+________________
+
+
+Summary / TL;DR section
+Previously there was the notion that the newest scenario would always be the best scenario to do parent farming on. However, as of 2025 this has changed drastically and there are several scenarios that remain very relevant to do parent farming even as new scenarios come out.
+Anything else not listed here is obsolete or there's little reason to be used.
+
+
+Check out my race planner website at https://uma.pwnation.net/ for race rotation planning or for hidden gene conditions.
+
+
+Still Relevant scenarios as of June 2026
+
+
+Breeders Cup Scenario
+
+
+**Special considerations: Free reign to pick your race schedule without limitations. HOWEVER, this scenario is shortened and has a lower max compatibility ceiling compared to other scenarios.
+
+
+Mandatory card: Casino drive
+
+
+Pros: Allows forcing standardised race rotations for any Umas.
+Cons:
+1. Lower overall compatibility (4 Less G1s than normal) from a shortened scenario.
+2. Produces lower SP than Onsen Scenario for auto, SP will end at around 5-6k
+
+
+Split rating: ☆ 5/5 - Full Auto
+Average 5k sp
+
+
+Split rating: ☆ 7/5 - Partial Manual & Auto!
+Play the first year like you would a proper run for stable DT gains, then allow auto to take over.
+Your runs will end at least 5 grades higher and with 500-1k more SP than a full auto run.
+
+
+Auto time: 30-40 minutes
+
+
+Scenario genes: Speed and Guts
+________________
+Tracen-ken / Ramen Scenario
+
+
+Scenario cards :
+* Best tier: Tazuna (Alt)
+* Weaker tier: OG Tazuna or OG Light hello
+* Weakest tier: No friend card
+Technically Tazuna is non mandatory if you don't mind suffering!
+
+
+
+
+Initial rating : ☆☆☆☆☆☆☆☆☆ 9/5
+
+
+This scenario highly outclasses the 2025 scenarios. The hint gain mechanic here is much more stable than earlier scenarios. This is better than Onsen’s scenarios which were highly dependent on which support card it pulled hints from AND also dependent on procc-ing super Onsens for hints.
+
+
+Auto time: 25-40 minutes / Depends if you disabled/shortened the animations.
+Manual time: 30-50 minutes / Heavy menu navigation extends run times
+Expected SP: 6k-7k
+Scenario genes:  Power   & Guts - Very good
+
+
+________________
+No longer relevant as of June 2026
+
+
+
+
+1. Design your island
+
+
+Mandatory card: at least LB3 SSR Tucker Bryne.
+
+
+Who is it for?
+* Mainly for returning/older players that own LB3 Tucker Bryne’s card but missed rolling for later scenarios
+* Secret factor chasing; This is the only modern scenario that supports hardcore racing of up to 35 extra races. All G1s and + 10 g2/g3s for hidden scenario factors.
+
+
+Expected SP: 5k-6k
+Rating: ☆☆☆☆☆ 5/5 - Mainly only for hidden factor chasing max race flexibility, it used to be at a higher rating now docked down to 5 Stars because of LB3 Tucker’s card.
+
+
+Auto time: ~30 minutes just from DYI scenario animations
+Manual time: 25 - 45 minutes give or take
+(Possibly faster because u’ll be manually skipping past animations)
+Current : Superceded by Tracen-ken , higher SP ceiling & stronger hint mechanics
+90% of Hidden factors only gave additional stats so it wasn't actually important to chase extra races.
+Scenario gene: Stamina and Int
+
+
+
+
+2. Yukoma Hot springs / Onsen Scenario
+
+
+Who is it for?
+   * Everyone that owns Hoshino Kiyoko’s card
+
+
+Split ratings for Onsen scenario :
+☆ 0 / 5 - If you are using a weak parenting deck & or racing >34 races, DYI will be better if you want to maximise the hidden race factors, but you do have to contend with lesser SP.
+
+
+☆ 9 / 5 - If only running G1s, 5 different card types / not-cope deck, minus 2 stars for each condition not met. 30 races is a good sweet spot.
+   * Can hit 6-7k SP on auto, for manual runs its possible to peak at 8k.
+Current : Superceded by Tracen-ken , higher SP ceiling & stronger hint mechanics
+________________
+Other notes for scenario evaluations
+The G1 classification of races also applies for each scenario’s specific races.
+* This portion of the guide was written in early 2021 and will need additional verification, U-Tools says Ura finales doesnt count though.
+
+URA/Aoharu/UAF/GFF/Mecha/DYI  have shared URA races during the final turns while MANT, LARC, GL & GM, have their own individual scenario races that do not aid compatibility cross scenarios. Take this into account when mixing parents across scenarios!
+Twinkle Series has no extra races.
+
+
+11 Sept 2025 update/correction.
+Woops! Apparently I had used a wrong source back in 2021 when writing this bit and didn’t fact check after that.
+URA finals do not count for compatibility calculations as these are scenario races and not G1s. - source: cygames
+
+
+
+
+
+
+Source https://support.umamusume.jp/faq/.
+
+Breeders Cup Scenario Races
+
+
+These are true G1 races and give compatibility!
+
+
+
+
+________________
+
+
+Quick summary of Stats from scenario genes
+Green = Good, Yellow = Average , Red = Weak
+Scenario
+	Speed
+	Stamina
+	Power
+	Guts
+	Int
+	Skill points
+	URA
+	Y
+	Y
+
+
+
+
+
+
+
+
+	Aoharu
+
+
+
+
+	Y
+
+
+	Y
+
+
+	MANT
+
+
+	Y
+
+
+	Y
+
+
+
+
+	Grand Live
+	Y
+
+
+
+
+	Y
+
+
+
+
+	Grand Master
+	Y
+
+
+	Y
+
+
+
+
+
+
+	Larc main genes
+
+
+	Y
+	Y
+
+
+
+
+
+
+	Larc mini genes
+	y
+	y
+	y
+	y
+	y
+
+
+
+
+	UAF Mini genes
+	y
+
+
+	y
+	y
+
+
+	Y (all)
+	GFF individual stat Genes
+	y
+	y
+	y
+	y
+	y
+	Y (all)
+	Mecha individual stat Genes
+	y
+	y
+	y
+	y
+	y
+	Y (all)
+	Twinkle Legends
+
+
+
+
+	Y
+	Y
+
+
+
+
+	Design Your Island
+
+
+	Y
+
+
+
+
+	Y
+
+
+	Onsen
+
+
+
+
+
+
+	Y
+	Y
+
+
+	Dreams
+	Y
+
+
+
+
+	Y
+
+
+
+
+	^ small y = low , Big Y = 10/20/30
+
+
+________________
+
+
+
+
+Chapter 2:  What does each gene do and how does compatibility affect these?
+
+
+
+
+	Blue genes
+	Blue genes
+	Scenario Genes
+(Two different unique stats)
+	Race genes
+(G1 races)
+	Green Genes
+(Unique skills)
+	White skills
+	Gene grade
+	Stat bonus (Initial)
+	Stat gains during inheritance
+(Mid run)
+	Stat bonuses when inherited ^
+	Stat gains during inheritance
+(Mid run)
+	Unique Skill Hint
+(Initial)
+	Skills Hint
+(Mid run)
+	☆
+	5
+	1～10
+	10/20/30
+	3,6,9
+	Lv+1～3
+	Lv+1～5
+	☆☆
+	12
+	1～16
+	10/20/30
+	3,6,9
+	Lv+1～3
+	Lv+1～5
+	☆☆☆
+	21
+	1～28
+	10/20/30
+	3,6,9
+	Lv+1～3
+	Lv+1～5
+	^ Stat bonuses are rolled independent of each other. For example: URA scenario genes may have a roll of +10 stamina and + 30 speed.
+
+
+This table lists the stats you may get during each phase of the inheritance.
+
+Higher ☆ benefits you in two ways:
+   1. You have a higher chance of proccing the upper end of the possible ranges, view table above for each range.
+   2. Increased chances of the gene proccing, higher chance per ☆
+   3. (outdated : the previous theory was 1 ☆ = 5% / 2☆ = 10% / 3☆ = 15%)
+The chances are ~ halved compared to the main parent if the gene belongs to a grandparent (rough maths, based on how GP compatibility is calculated)
+The % chance of procs supposedly increases when you get a gold inheritance event, exact effects are unknown, if by some chance you have data, link me.
+Exact chances : View the bonus chapter below for new data about this.
+
+
+________________
+Stat Uncap Mechanics
+(For Global players: This section does not apply to you until the stat cap is raised beyond 1200)
+
+Stat Uncap refers to the increase in maximum stat limits gained by inheriting certain genes.
+
+Stat uncaps are affected by the quality of your blue genes during both the initial and mid-run inheritance stages. In the middle of a run, inheriting a green gene also increases the stat cap based on bonuses from the source Uma Musume. For example, Seiun's "Angling" uncaps Stamina and Intelligence following her Uma’s bonus in Stamina & Int , while Kitasan Black's "Wasshoi" uncaps Speed and Stamina. The precise amount of the stat uncap is currently unknown, but not a significant number (usually single digits).
+
+
+Update: You can view which stat will be increased by clicking on their Green Genes. Agnes digital’s unique raises speed/stam/power (int is not raised even though she also has bonus there)
+Mid run inheritance table
+
+
+
+
+	◎ Great compatibility
+(>150 points)
+	〇 Good compatibility
+	△ Poor compatibility
+	Blue Gene
+
+
+	All 6 blue stats *
+	On average 4-6 blue stats
+
+
+	On average a floor of 4. But 0 is theoretically possible.
+	White Gene (Skills)
+(1 hint per ☆)
+	1 to 5 hint bonus
+Minimum of +1 hint
+	?? range
+Minimum of +1 hint
+	?? range
+Minimum of +1 hint
+	Green gene (Unique skills)
+(1 hint per ☆)
+	1 to 5 hint bonus
+Minimum of +1 hint
+	?? range
+Minimum of +1 hint
+	Negative hints at beginning of run, ie 3 ☆ Gene but only get +1 hint
+	Red gene
+	1-5 points^
+	1-5 points^
+	1-5 points^
+	*It's possible to witness a missing blue in the inheritance due to the individual compatibility theory below, check the bonus chapter for details.
+^Will be explained in chapter 3, hidden Red Gene values.
+
+
+Note: This chart illustrates how compatibility affects the inheritance events. However, the initial inheritance of green is an exception and remains unaffected by compatibility.
+
+
+Special case: The initial green inheritance occurs during the run, just before turn 1, so it is affected by compatibility. Take note that even though this isn't applied before the run starts, the roll is not RNG and the hint grade obtained will always be the same for any run. Ie. you will see the same lowered green hint level for △ compatibilities.
+
+
+Inheritance caps
+Whites: No limit
+Red: No limit
+Scenario genes: No limit, theoretically max stats u can get from these would be 60 stats x 6procs = 360 total.
+(Thanks @333752 for sharing confirmation that it isn’t capped at max of 3 scenario genes)
+Good/Poor Compatibility
+I don't have data and do not want to investigate the data for poor compatibility, there is no merit to running △ parents at all, 〇 compatibility should be the lowest you are willing to go for Champion Meeting whacky builds.
+
+
+What do you mean by whacky build?
+A prime example of a "whacky build" is trying to re-engineer Halloween Super Creek to be able to run for short distance races. This was a popular (but highly unsuccessful) strategy to allow her to run as an ace for a Short CM, or to generate Short Red genes. However raising the Short Distance aptitude to A or S rank, despite her initial G rating is extremely challenging. Players did this as her unique skill is highly effective in short races. Which surfaces a new problem, as goal typically necessitates using parents of lower compatibility, such as △ or 〇. The cause of this is that Umas who naturally have a chance to pass on short aptitude follow different race rotations and also have poor base compatibility with her. As you can see, raising G aptitude is a tough wall to climb, especially for Halloween Super Creek.
+*12 Aug 2025 update
+I now have data on compatibility values, check out the bonus chapter at the end for the proc rates, the proc rates follow an individual compatibility theory and the base numbers at 0 compatibility are actually pretty damn low.
+________________
+Effects of compatibility on Gene inheritance
+(**see update below)
+There are unconfirmed theories that using high compatibility (overall) parents will influence the quality of a Gene’s proc from the side of the super parent. (Ie. Single circle compatibility vs Double circle compatibility).
+
+
+Example 1: inheriting a 1☆ white skill may lead to a +3 hint instead of +1 for a double circle compatibility run.
+Example 2: 3☆ Green unique skill may lead to +1 hint instead of a +3 expected hint on a poor compatibility run.
+
+
+**2025 Update
+I believe the above overall theory was just misattributing causality observed from the individual compatibility theory, read below.
+The poor procs (example 2) is likely from a single low compatibility parent.
+Individual compatibility theory
+There's some minor empirical concrete evidence that the individual compatibility is how it works instead of the overall compatibility theory. - View bonus chapter below for the full breakdown.
+
+
+Hidden compatibility example:
+
+    Parent 1 : ◎                                Parent 2: ◯
+/                \                                         /                 \
+Gp1.1 ◯        GP1.2 △                GP2.1:◯                Gp2.2: ◯
+
+
+Even if your initial compatibility rating is excellent (◎), you might encounter significantly lower-than-expected gene proc rates due to poor gene inheritance from Grandparent 1.2 and a reduced proc chance in the entire Parent 2 lineage.
+
+This means that despite a seemingly perfect starting point ◎, the actual outcome of the gene inheritance turn could be negatively impacted by the hidden compatibility factors.
+
+
+________________
+
+
+Example 1:
+Base compatibility numbers are displayed, without overlapping races bonuses.
+Fuji Kiseki is the weakest link here as she has poor base compatibility with Kitasan (and most other Mid/long Umas). So her genes would likely have the lowest proc rate among the entire lineage if the overlapping races are low.
+
+Fuji Kiseki also has E aptitude in long distances as compared to the rest in this family tree, and also different mandatory objective races.. This means a mismatch of at least 3 races of compatibility, Kikkasho + Arima + Haruten, if you do not adjust for long distance (which is a new hassle on its own too)
+
+
+________________
+
+
+Personal Example 2 (no maths data)
+
+
+
+
+
+
+Fuji Kiseki’s genes (shortened)
+
+
+
+
+An example of this was observed when playing approximately 20 runs with the above setup.
+
+Fuji Kiseki had a 3 star green gene which means inheriting her unique skill should provide +3 hints more often than not. However I realised she tended to give me +1-2 hints whenever her green inheritance proc-ed during the 20 ish runs.
+
+
+Disclaimer: This particular example is empirical evidence so don't read too much into it. Not a concern if you are maxing out compatibility as you should be in the first place.
+Gold Inheritance (Lucky proc)
+The gold inheritance event has a flat chance of occurring (20%? I forgot where this data was from) and the results will differ for each grade of compatibility (◎ > 〇 > △ ). Gold inheritance supposedly raises the overall % chance of inheriting genes but does not guarantee X amount of inherited genes, meaning it is still possible with horrible luck that you only inherit 6 blue genes and zero white genes during the gold inheritance event.
+
+
+Gold Inheritances
+New data suggests it's only a placebo and it is just an indicator that a 3 star gene procc-ed, and there are no additional mechanics at play. Elaborated further in the the bonus chapter below.
+Gene proc rates (without compatibility)
+Proc rates are determined by the ★ of the gene & compatibility (◎ > 〇 > △) .
+3★ genes have higher proc rates and should give better quality (hint levels) than 1★ or 2★ genes
+
+
+View the bonus chapter below for how compatibility further affects the chances of procc-ing the respective genes.
+
+
+Misinformation update: I don’t know why people are saying nonsense like each gene can only proc once in the entire run. You CAN see the same gene proc again in the second inheritance event..
+
+For those wondering why my guide doesn’t go in depth into the exact proc rates*, remember that my guide primarily focuses on gene generation. It's important to note that data collection on gene proc rates is often muddled and subject to bias. This stems from concerns regarding data collection reliability and the sheer number of variables involved, compounded by the hidden compatibility numbers, which makes accurate data collection particularly challenging to verify.
+
+Furthermore, readers should be wary of guides from certain individuals who lack a deep understanding of the game, yet present obscure information as definitive insights.
+Lastly and most importantly, it shouldn’t matter what the proc rate is because you cannot influence it beyond just going for max compatibility, which should already be done.
+
+*12 August 2025 keynote: I’ve just been made aware of very reliable data for gene inheritance rates which has now been collated in the Bonus chapter below.
+________________
+
+
+Chapter 3: Red Gene mechanics
+
+Red Genes
+
+
+S aptitude can only be obtained from the mid run inheritance and also follows the above chart in terms of points needed, explained below. A -> S is treated as a grade increase.
+
+
+Grade of gene
+	Aptitude change
+(beginning of run)
+	Strength of Inheritance
+(Halfway through training)
+	☆
+	Refer to the chart above
+Value of inheritance is the same as the ☆ of the gene
+	Value of inheritance ranges from 1-5 with higher ☆ having better chance of proccing higher values
+	☆☆
+	☆☆☆
+
+
+Extreme factor modification example
+Where you are trying to raise your uma’s aptitude from G to A/S.
+Using Agnes Digital below as an example for raising G -> S for long distance.
+
+
+For the best odds:
+1: You will need at least 10* Red genes in long to push her initial inheritance from G to C at the start of the run.
+2: In the middle of the run, you would need to proc enough genes to hit A/S within the 2 inheritance turns.
+For C -> S in 1 go, you’ll need at least 7 hidden points (elaborated later)
+In another case, you may also raise C->B on the first inheritance with at least 1 proc, and then during the second inheritance, you’d only need 1 point for B->A or at least 4points for B -> S.
+What do Red Genes do and why do you want them?
+Red genes will raise the aptitude of your Uma in the following respective areas
+Ground: Turf or Dirt
+Distance: Short, Mile , Mid , Long
+Strategy:        Nige , Senkou , Sashi , Oiko
+Runner , Leader , Betweener , Chaser
+
+
+Your stats are affected by the aptitude that your uma has.
+Look below for the table of how each aptitude affects the stats
+
+
+Data sourced from early 2021:
+
+
+Aptitudes
+	G
+	F
+	E
+	D
+	C
+	B
+	A
+	S
+	Ground
+	10.00%
+	30.00%
+	50.00%
+	70.00%
+	80.00%
+	90.00%
+	100.00%
+	105.00%
+	Distance
+	10.00%
+	20.00%
+	40.00%
+	60.00%
+	80.00%
+	90.00%
+	100.00%
+	105.00%
+	Strategy
+	10.00%
+	20.00%
+	40.00%
+	60.00%
+	75.00%
+	85.00%
+	100.00%
+	110.00%
+	At aptitudes E and below you also get negative Acceleration debuffs.
+While most people prioritise getting S-rank distance aptitudes, a lesser-known fact is that an S-rank strategy aptitude provides more benefits for Runners (Nige) than for other styles. This is primarily due to how the INT stat governs the "Position Keep" and "Fight for the Lead" mechanics.
+The Fight for lead mechanic was only added after 2.0 anniversary? Don’t remember the exact date. Nige umas consume more stamina at the opening leg - also dependent on guts to fight for the lead.
+
+Meanwhile, Oonige just puts speed & stam consumption into overdrive as compared to Nige counterparts.
+
+
+Feb 2026, As an added bonus to aiming for S-ranked strategy, there is now an overINT mechanic where having INT over will increase the skill power to Unique/Gold/Pink skills, inherited ults are not counted.
+Hidden Red Gene values:
+Original research, I’ve chanced upon this on 25th January 2022 while attempting to do some 魔改造 (Extreme modification) for the Short Champions meeting at that time.
+**This really only matters when trying to raise extreme aptitudes beginning from G and F.
+
+
+Red genes have been discovered to also follow some hidden value proc. For easier visualisation, my theory is that it follows the same +1 to +5 value mechanics as the Green/white genes. This means that you may end up rolling the lower end of +1 value even if you proc a 3☆ Red Gene.
+
+
+Example 1 High Roll : Starting at G > C initially with cumulative 10☆ Red genes on your lineage. During inheritance, it is possible to reach A from C with ONE inheritance of the Red gene if you roll a hidden +4 or 5 value. Since C > A requires at least 4 red gene points
+
+
+Example 2 High roll : Starting at F > B initially with cumulative 10☆ Red genes on your lineage. This could also allow you to hit S aptitude with only ONE red gene proc Since B > A > S could happen if you roll 4 points and above.
+
+
+Example 3 Low roll/Standard roll : G > C initially It is possible that you only reach B aptitude even if two red 3* inheritances were rolled on the same inherit turn.
+
+This is what it looks like (mid run inherits only)
+
+
+
+
+Unfortunately as the red gene value is hidden, all of this data is from inference rather than actual empirical data and I do not have any statistics.
+________________
+
+
+Chapter 4: Gene generation mechanics & farming strategies for the different grades of genes
+Red Genes ( Strategy, Ground ability, Distance)
+
+
+The red gene can only be randomly generated from aptitudes the Uma Musume has scored A in; Dirt/turf, distance and strategy.
+So if you wish to target certain red genes, you will need to raise the target aptitude to an A grade or above while not raising any unwanted aptitude to A.
+
+
+Example 1: Mayano Topgun has B grade running strategies in Sashi/Betweener & Oikomi/Chaser, these last 2 aptitudes will never be picked for inheritance unless you raise it to A grade.
+
+
+Example 2: El condor pasa has B grade in Dirt tracks, and will not generate the Dirt gene unless it has been boosted to A or above.
+
+
+Fun facts: At the initial launch of the game, the only way to initially obtain dirt genes was to roll a dirt gene on Haru Urara since she was the only Umnya to have dirt at A and then use her to pass the dirt gene down to another parent.
+Example of a failed/bad red inheritance
+
+
+Using Symboli Rudolph as an example, she is generally sought after as a strong stallion for breeding parent for 先行/差し/追込 Leader/betweener/chaser mainly because of her unique skill.
+
+
+Her unique skill activates if she overtakes 3 other horses during the last leg.
+However, her unique skill will be useless when paired with Runner / 逃げ horses since they won't be doing any overtaking. Therefore, you would normally not want her to inherit nor pass down the Runner red gene since it is basically useless for her offspring.
+
+But mistakes can happen..
+
+
+
+
+So how did this happen?
+Symboli Rudolph’s base Runner / 逃げ aptitude is B so it would normally not be generated.
+My Mayano had a red Nige gene, causing Rudolf's 逃げ aptitude to grow from B -> A & therefore made Rudolph eligible for the gene generation.
+This happened during the early stages of my account as Mayano was my second 3☆, so I used her in the hopes of making my first 9☆. I succeeded in creating my first 9☆ but ended up with undesirable red genes.
+
+
+What should you actually do?
+Given the luxury of choice, do not pair your target girl with parents that may lead to a generation of conflicting strategies. Do not get tricked into pairing conflicting strategies into parenting lineages even if they have the matching red gene ie. 6 Mid gene but unusable white genes.
+________________
+
+
+Bad Example 2. Producing Goldship with Senkou as her red gene because her aptitude was raised to A (unless that's what you want for whatever weird reason)
+
+
+Why is 先行/Leader bad for her in this specific example? Because Goldship's unique skill only activates when she is in the back, later 50% of the race, a good chance that this only occurs if you run sashi/oiko 差し/追込.
+Secondly, the skills available to her are all backrow or Oiko focused. Even if you have many whites, most of them will be useless and unusable when you try to use her for senkou parenting.
+
+
+The ideal parent strategy
+Try to pair Uma museums with similar running style and distance together so that there are more common genes in the lineage. This allows you to
+   1. Have a higher chance of producing a large white pool due to increased generation chances.
+   2. Have usable inherited ults when using the parent
+Runner/Nige Example.
+
+Kitasan is being paired with two other runners with useful and overlapping skill genes for bonus gene generation & inheritance chances.
+Generating Blue Genes
+
+
+At the end of each run, 1 stat will be picked among your 5 stats and a roll will be done to determine what ★ you receive.
+This means that you will have a 1 in 5 or 20% chance of rolling for any individual stat as your generated blue gene.
+
+
+Next, the game checks under which grade your selected stat is and a 2nd roll is conducted according to the chart below.
+In order to be able to be eligible to obtain a 3★ blue gene, the selected status must be at least B rank or higher, above 600 stats.
+
+
+Blue Gene Chart
+Blue gene appearance rates
+	Source https://umamusustation.com/blue_factor_analysis.html
+
+
+
+
+
+
+	Ability score (ability rank)
+	1 ★
+Number of appearances
+	2★
+Number of appearances
+	3★
+Number of appearances
+	3★ % chances
+	1200 (SS+)
+	287
+	1033
+	153
+	10.39%
+	1150~1200 (SS+)
+	254
+	820
+	128
+	10.65%
+	1100~1149 (SS)
+	218
+	740
+	118
+	10.97%
+	1050~1099 (S+)
+	451
+	400
+	40
+	4.49%
+	1000~1049 (S)
+	482
+	444
+	51
+	5.22%
+	900~999 (A+)
+	750
+	669
+	97
+	6.40%
+	800~899 (A)
+	802
+	731
+	98
+	6.01%
+	700~799 (B+)
+	792
+	740
+	106
+	6.47%
+	600~699 (B)
+	1081
+	1033
+	123
+	5.50%
+	500~599 (C+)
+	2232
+	225
+	0
+	0%
+	400~499 (C)
+	3119
+	330
+	0
+	0%
+	300~399 (D,D+)
+	2875
+	329
+	0
+	0%
+	~299 (E+ and below)
+	590
+	70
+	0
+	0%
+
+
+Methods of farming for 3★ blue stats
+By combining all of the the theories above, your adjusted odds of receiving a 3★ are listed in the chart below.
+For example, ending your run with the stats listed below will mean you have approximately overall 3% chance of obtaining a 3★ blue stat in either speed or power.
+
+
+1 SS stat + 1 B stat
+(10% * 20%) + (5% * 20%) = (speed)2% + (power)1% = 3%
+
+
+When I first created this guide, Aoharu scenario was the newest scenario. It was previously impossible to get SS in all 5 stats for the maximum chance of 10%, and the average person's odds were around 3-6%.
+
+However with the introduction of the Grand Masters & LARC scenarios and later scenarios, an all SS statline is actually possible now, elaborated more at the end of this chapter.
+________________
+White gene theories and farming methods
+
+
+References : China Discussion Board
+NottinTV's channel
+https://www.youtube.com/watch?v=WWKhpI3gQk0
+https://twitter.com/aoneko_uma
+https://x.com/aoneko_pochi (he changed his handle)
+
+
+Basic information about skill genes:
+
+
+You can only generate a skill gene if you learnt the skill during the run. Even if all 6 of your parents/grandparents have the skill, but you did not pick the skill, it will not be generated / passed down.
+
+
+You may only generate the basic version of any skill, no Gold version can ever be passed down. However, it is still advisable to buy gold skills if you really want to pass down that specific skill, the why will be explained further below.
+
+
+Take note that unique skills (green) that have been inherited cannot be passed down as a white gene. Unless you are buying it for a very specific reason, to help win races mid run, it ultimately is a waste of skill points during a parent farm run.
+
+
+Special note: If you inherit a skill which you have already learnt during an inheritance event, that skill's hint will be converted into stats.
+I have no data as to which stat and what amount will be given in place of the hint but from experience it is usually a small value between 1-9.
+
+
+Example situation: You have already learnt 良バ場 ○ and receive an inheritance for 良バ場. Even though you can still learn 良バ場◎, you will be given stats instead of additional hint discounts since it’s treated as a skill that you’ve already bought.
+
+However do take note of another aspect of skill hint mechanics:
+Example 2: You have already learnt 良バ場 ○, ! skill hints or end of race hints will never proc this skill for additional hints. The only way to gain additional hints for it now is to trigger the hint from a unique event with choices or a card event.
+
+________________
+Gene generation chances for skills with gold versions
+Learned corner recovery
+	Learned Arc Maestro
+	Number of parents with corner recovery gene
+	Data count
+	Chance of Corner recovery gene
+	3★ chance
+
+
+
+The chart above is the data collected for Arc Maestro, arguably the bestest most popular stamina recovery skill to learn.
+
+
+This chart shows if there is a common gene among the lineage of the parents/grandparents, you will receive a higher chance of generating the skill gene post run.
+
+Learning the gold version of a skill will increase the odds of your gene generation to a minimum of 40% and maximum of 70%
+
+
+Skill generation odds
+
+
+	Min
+	Max
+	Approx bonus odds per lineage
+	White skill
+	20%
+	35%
+	+2.5%
+	Gold skill
+	40%
+	70%
+	+5%
+
+
+
+
+________________
+
+
+
+
+Skills with 〇 and ◎ versions
+
+
+
+
+Learned 〇
+	Learned ◎
+	Number of parents with same gene
+	Data count
+	Appearance rate of gene
+	3★ chance
+
+
+Learning ◎ of said skill gives better chances for a min/max of 25%/30% from this data set and so on. By extrapolation, if 6 parent/gp owns it in the linage, it caps off at 40%
+(same 2.5% increase in proc rate per lineage that has it)
+
+
+Summary of this section
+
+The lowest chance of generating the gene is 20% for the basic version of any skill.
+
+
+All skills have a flat 5% chance of being a 3★, so it means you have a 95% chance to roll a 1-2 ★. However, you can increase the chance for 2★ and above with higher grades, explained later in the last section of this chapter.
+Race genes
+
+
+Winning G1 races in first place allows you to generate race genes, which provide different bonuses, such as stats, skills, or both.
+Certain G1 races also grant skill hints when inherited. For example, the Queen Elizabeth Cup race gene grants both stats and the non-400m skill 非根幹距離.
+
+
+
+
+Aoharu update: Aoharu scenario gene is a bit special.
+The Aoharu Scenario gene can still appear even if you
+1. fail your Aoharu races.
+2. Fail to complete the final URA portion of the run.
+
+
+Regarding the number of race factors generated at the end of the run, this is tied to the number of GI races won and mentioned during a magazine interview with the development staff.
+
+
+But whether they meant the total number of race factors OR if the particular G1 factor only appears if the G1 was run is unknown since Japanese is a very fickle language and could mean either. I’d assume they are just being vague and the race gene generation chances depend purely on luck (data below).
+
+Race gene data
+
+The data below uses Satsuki-sho and Hopeful Stakes as comparisons to see if there are any differences in each race's chance of inheritance.
+
+Source : Aoneko Uma’s data and NottinTV’s explanations https://www.youtube.com/watch?v=WWKhpI3gQk0&ab_channel=NottinTV
+
+
+The data shows that there is no bias in different G1 races, meaning all races will follow the  same gene proc rates.
+Based on the data above you will have between 20% to 30% to inherit a G1/Race gene per run, with 5% chance for a 3★★★ version
+
+
+
+
+The data above is collected for Arima Kinen race genes, also comparing running 2 duplicate races vs 1.
+
+
+Reminder: To generate a G1 race gene, you must have won the G1 race by coming in First place.
+
+
+For example, the Arima Kinen gene will never appear if you lost or didn't participate in Arima Kinen even if all 6 of your parents had the gene in their lineage.
+
+
+You only need to win any given G1 race once and there is no benefit for racing the same race again a second time, the odds of generation do not improve.
+
+
+Looking at a combination of all the above skill hints & race data, it's safe to say that all other race genes should follow the same formula. This would probably apply to the scenario genes too, but no indepth data has been collected on scenario gene rates.
+
+
+________________
+Scenario genes
+Scenario genes are probably the most sought after stat-based race gene, providing the biggest stat boost among any of the race genes. They are mainly generated from finishing in the Scenario’s race that everyone should be winning.
+
+
+For example inheriting the URA scenario gene adds a range of [10/20/30 & 10/20/30] to [Speed & Stamina] when proc-ed.
+
+
+Generation chances
+No data on if scenario genes has a higher chance to proc if the parent lineage has it, or even what rates they follow. For now I’d assume it follows the same logic as race genes.
+Aya has helped investigate the scenario genes below and its data to suggest it probably follows the same mechanics as skill and race genes.
+
+
+Common Linage
+	Data points
+	Has Scenario Gene
+	No Scenario Gene
+	Hit %
+	0
+	13311
+	2647
+	10664
+	19.89%
+	1
+	9390
+	2042
+	7348
+	21.75%
+	2
+	5684
+	1417
+	4267
+	24.93%
+	3
+	2690
+	748
+	1942
+	27.81%
+	4
+	895
+	272
+	623
+	30.39%
+	5
+	277
+	80
+	197
+	28.88%
+	6
+	-
+	-
+	-
+	-
+	Findings:
+   1. Common lineages increase odds of generation
+   2. Same min and max.
+   3. The anomaly datapoint on 5 common linages can be attributed to the low sample size.
+
+
+***I haven't been able to find any data to confirm the % chances of how the ★ grade affects the stat rolls but the most logical theory is that the higher the ★ the better the chance of it rolling the higher stat.
+ie. 3★★★ URA should have better chance of rolling 30/30 to speed & stamina as compared to 1 ★☆☆URA
+***Edit: Gamewith has data with a sample size of less than 30 samples which is small and doesn't provide a highly accurate investigation into the exact % chances. But it is enough to prove that the gene inheritance follows this ascending chance principle.
+https://gamewith.jp/uma-musume/article/show/270279
+
+Bonus Scenario Genes
+
+
+Larc Scenario & later scenarios update
+LARC scenario has introduced a bunch of new Scenario Genes which are tied to the LARC scenario debuffs. These genes will only be generated if you have maxed out (Level 3) on  the respective overseas aptitudes.
+
+
+
+
+The generated gene will also provide stats according to their respective bonuses.
+For eg. The stamina aptitude will grant stamina if inherited. (The stat gains from these genes are very small in the single digits as compared to the the main Scenario gene)
+
+UAF, GFF & Mecha Scenario also introduce new scenario genes but no longer generate the Big scenario genes. These are micro genes that give single digit stat or skill points, and if at least 3 of these skills get inherited mid run, you will get a unique scenario specific skill, it does not need to be in the same inheritance turn to trigger the scenario specific skill..
+
+Chance of appearance for Mini scenario genes
+
+
+Based on the above data. I assume it follows the same appearance rate according to white skill genes since these are not linked to races. With a base chance of 20% to appear and up to a max of 30% if every parent has the same gene.
+________________
+Summarising the white gene generation rates
+Simplified linear interpretation
+
+
+	Min
+	Max
+	Approx bonus odds per lineage
+	White skills
+	20%
+	35%
+	+2.5%
+	White skills ◎
+	25%
+	40%
+	+2.5%
+	Gold skills
+	40%
+	70%
+	+5%
+	Race skills
+	20%
+	35%
+	+2.5%
+
+
+Simple explanation: having common genes in your lineage increases your odds of generating the gene.
+Advanced explanation for the data purists
+Please take note that I’ve been treating the white skill generation rates as a linear growth function for ease of explanation and understanding for everyone thus far. However, aoneko_uma has a different conclusion of the gene generation based on his data collection at https://x.com/aoneko_pochi/status/1775048834328195556. The exponential relationship of this growth has also been confirmed with data obtained from Uma.moe & aya. N= 26,532,199 Team Trials Umas.
+
+
+While I’ve used the same min and max chances above to simplify the relationship, aoneko proposes that the additional chances per lineage follows an exponential growth instead.
+
+
+
+
+Gene generation probability = Base probability × 1.1^(N)
+N = Number of parents/grandparents possessing the target gene
+The base probability would be the min chance as below
+White skills
+	20%
+	White skills ◎
+	25%
+	Gold skills
+	40%
+	Race skills
+	20%
+	White skills / White skills ◎ / Gold skills - Cropped from the tweet
+Therefore the expected per lineage jump in chances is tabled below.
+
+
+
+
+More recent data confirmation (March 2026)
+I’ve been consulting with Aya, who has also noticed the peculiarity and has gone forth to verify it using self collected data. You can read Aya’s findings in fuller detail on the matter linked here. https://hakuraku.moe/notes/spark_generation.
+
+
+Based on the independent data collected, Aya’s main concern with the simplified linear model I used is that they both overestimate low lineage and underestimate high lineage.
+________________
+
+
+Generation chances vs number of parents with common genes, Aya’s data
+
+
+Lines = linear model, Actual data = points A-N
+
+
+________________
+
+
+Uma grading and how it affects genes
+
+
+Referenced source: https://aoneko-uma.fanbox.cc/posts/4359075
+
+After the introduction of Make a new track scenario in 2022, it had become possible for trainers to train Umas above the SS grade.
+
+
+It was here where we learnt that there was a hidden mechanic for how Uma grades affect the odds of gene generation.
+Completing a run where your end grade is SS or above will increase the star QUALITY of your green/white genes.  Blue and Red genes are not affected by this mechanic and the chance of the particular genes appearing post run do not get boosted.
+
+
+2023 data
+Source: https://aoneko-uma.fanbox.cc/posts/3891258
+In the above article, Aoneko investigates whether the new rating ceiling of UG/UF has any effect on white genes, and whether going above 1300 for stats affects blue genes.
+Answer: No, the increased gene quality stops at SS grade for the Uma and SS for stats.
+2024 Update
+https://twitter.com/aoneko_pochi/status/1774676602628301180
+
+
+
+Star vs End grade  Zoomed in graph (UF -> UE portion)
+Aoneko has discovered that ending your grade above UE has additional benefits to white gene generation, namely for 3* Genes.
+
+
+________________
+The gene quality chances be tabled as below
+
+
+Chance of Stars for white genes
+	★
+	★★
+	★★★
+	Below B
+	90%
+	10%
+	0%
+	Below SS grade (less than 17500 score)
+	50%
+	45%
+	5%
+	Above SS grade  , Below UE (More than 17500 score)
+	20%
+	70%
+	10%
+	UE and Above
+	17.5%
+	70%
+	12.5%
+
+
+
+
+Jan 2025 update: Ending the run at UB and above does not increase the rates any further. So UE is the current ceiling for boosted gene quality.
+
+
+March 2026 Update -
+EXLuckPlz just shared some interesting information about a possibility of differing rates for white genes appearing if you target for Umas of low grades, ie B and below. While people normally don’t aim for such low grades, the rationale for doing so is to just aim for as many runs as possible in a minimum amount of time. Ie. failing the run midway to spend more TP, while still getting something out of it.
+
+
+Thank you anonymous person for providing a tiny sample set to investigate this data.
+
+
+
+
+
+
+
+
+I’m done with investigating this as
+   1. There's not enough samples to prove the actual rates.
+   2. There's no practicality for this data.
+
+
+Turns out the data existed all along in 2022-23, thanks to @shoppo_ura and @U__tools
+
+
+
+
+
+
+________________
+Green genes (Unique skills)
+Green genes represent a character's inherited Unique Skill. These genes are guaranteed to generate, provided the Uma Musume has been upgraded to 3 stars (☆☆☆) or higher.
+
+
+A famitsu magazine interview with the dev team claims that the ult level affects the % chance of the green gene generated. This has now been debunked.
+
+
+Source: https://hakuraku.moe/notes/spark_generation
+
+
+28 April 2026 update. Aya who runs hakuraku has investigated the mechanics behind the green genes.
+
+
+Aya has found that the green genes follow the same mechanics as white gene generation
+
+
+Table of Uma’s grade vs the ☆Star generation of the green genes.
+
+
+As screencapped from Aya’s website
+
+
+Do note that the data used for this was from global Umamusume servers at the point of time where the latest scenario is MANT / TRACKBLAZER and the upper tier of Uma grading only went up to SS/SS+/UG.
+
+
+Therefore it is only showing the mechanics up to the SS grade. I expect that there is one more banding above, for the UE grade; same as the white gene mechanics as elaborated on in the previous section above.
+
+
+Extrapolated
+UE and Above
+	17.5%
+	70%
+	12.5%
+
+
+
+
+________________
+
+
+Chapter 5 : Recommended supergene mummy strategy
+
+
+Combining the above Compatibility & Gene generation theories, Its time to aim for a high compatibility uma with stacked skills.
+
+
+Two examples are here: (Outdated screenshots from Early 2023) https://imgur.com/a/wfZaafj
+
+
+2024 Update: I’ve included a small snapshot for one example of what constitutes a strong parent. Order of importance, 3 Red > good skills not found in your training deck > 3 blue
+
+
+
+
+As you can see above this Sirius was created for use in Mid distance & 差し/Betweener in mind.
+She lost Tennoushou Spring (lower compatibility with others who won it) and other g2 races(Doesn't matter)
+
+
+When building parents it would be best to follow this strategy of using the same support deck and running the same races as your parents for the following reasons.
+
+
+1. The same support deck means you have access to buying up the same skills, which increases the chance of the same skills appearing in your run generation for up to 70% chance of the gene being generated.
+2.  Other than compatibility reasons, running the same races further leads to a higher chance of the common G1 genes being generated, allowing reinforcement of the genes, for up to 30% chance of passing it down.
+As a reminder, there is no benefit for repeating any G1s that appear during the Classic or Senior years. Ie Arima Kinen on both years.
+
+
+Do note: you MUST win the G1 race or it will not be eligible for gene appearance
+Reccomendation: Do NOT learn unique skills passed down from inheritance if you do not need it to win races, this is just a waste of skill points since they do not lead to any skill gene generation. (More applicable to Umas pre MANT scenario as SP is extremely limited)
+
+
+It also helps to save your race preset so that you can consistently run the same races and don't run into a situation where you forget to run races or forget which races you've already ran.
+
+
+When planning your gene farming runs, consider between 2 philosophies, being a jack of all trades or specialising?
+Will you aim wide, aiming for a wide versatile spread of different skills in your uma’s lineage?
+Or will you focus, committing to the long and arduous grind of finding and reinforcing loops to create a parent with specific skill focuses and 3-star factors?
+________________
+Examples of both philosophies here.
+
+Jack of all trades with many different skills vs URA essence skills specialist
+
+________________
+
+
+Chapter 6: Red Gene deeper dive
+In this chapter we will be revisiting the Red Genes and diving a little deeper into strategies.
+
+
+Take a look at the referenced uma musu station website if you wish to see the exact data.
+https://umamusustation.com/factor/red_factor_analysis.html
+
+
+Using the data provided by umamusu station, the probability of the red genes are summarised as follows.
+   * Aptitude must be A rank or higher in order for the gene to be generated.
+   * Chance of Aptitude to be chosen as the Red Gene is selected at random, the chance is spread equally among aptitudes of A rank or higher
+   * S rank does not increase the probability of the specific gene appearing.
+
+
+The gene rarity generated is fixed does not depend on the rank of aptitude chosen as the red factor, meaning S rank doesn't affect ☆ rates
+・ 3 star ★★★ appearance rate is 10%
+・ 2 star ★★☆ appearance rate is 70%
+・ 1 star ★☆☆ appearance rate is 20%.
+
+
+Strategy for Red Gene planning
+This will not be updated since it's just here to illustrate the point.
+
+The chart has been color coded if you are a visual person and just want to get a quick view, (brownish theme for dirt, green theme for turf)
+
+
+Number of A stats
+	Chance of inheriting desired red gene when unmodified
+
+
+	芝
+	ダート
+	短距離
+	マイル
+	中距離
+	長距離
+	逃げ
+	先行
+	差し
+	追込
+	3
+	33.33%
+	Agnes Tachyon
+	A
+	G
+	G
+	D
+	A
+	B
+	E
+	A
+	B
+	F
+	3
+	33.33%
+	Winning Ticket
+	A
+	G
+	G
+	F
+	A
+	B
+	G
+	B
+	A
+	G
+	4
+	25.00%
+	Vodka
+	A
+	G
+	F
+	A
+	A
+	F
+	C
+	B
+	A
+	F
+	3
+	33.33%
+	King Halo
+	A
+	G
+	A
+	B
+	B
+	C
+	G
+	B
+	A
+	D
+	3
+	33.33%
+	Haru Urara
+	G
+	A
+	A
+	B
+	G
+	G
+	G
+	G
+	A
+	B
+	6
+	16.67%
+	Agnes Digital
+	A
+	A
+	F
+	A
+	A
+	G
+	G
+	A
+	A
+	B
+	4
+	25.00%
+	Sakura Bakushin O
+	A
+	G
+	A
+	B
+	G
+	G
+	A
+	A
+	F
+	G
+	5
+	20.00%
+	Grass Wonder
+	A
+	G
+	G
+	A
+	B
+	A
+	F
+	A
+	A
+	F
+	4
+	25.00%
+	Gold Ship
+	A
+	G
+	G
+	C
+	A
+	A
+	G
+	B
+	B
+	A
+	4
+	25.00%
+	Smart Falcon
+	E
+	A
+	B
+	A
+	A
+	E
+	A
+	D
+	G
+	G
+	3
+	33.33%
+	Curren Chan
+	A
+	F
+	A
+	D
+	G
+	G
+	B
+	A
+	E
+	G
+	5
+	20.00%
+	Symboli Rudolf
+	A
+	G
+	E
+	C
+	A
+	A
+	B
+	A
+	A
+	C
+	4
+	25.00%
+	Super Creek
+	A
+	G
+	G
+	G
+	A
+	A
+	D
+	A
+	B
+	G
+	5
+	20.00%
+	Special Week
+	A
+	G
+	F
+	C
+	A
+	A
+	G
+	A
+	A
+	C
+	3
+	33.33%
+	Hishi Akebono
+	A
+	F
+	A
+	B
+	F
+	G
+	B
+	A
+	C
+	G
+	5
+	20.00%
+	Daiwa Scarlet
+	A
+	G
+	F
+	A
+	A
+	B
+	A
+	A
+	E
+	G
+	4
+	25.00%
+	Haru Urara
+	G
+	A
+	A
+	A
+	G
+	G
+	G
+	G
+	A
+	B
+	3
+	33.33%
+	Tokai Teio
+	A
+	G
+	F
+	E
+	A
+	B
+	D
+	A
+	C
+	E
+	4
+	25.00%
+	Nice Nature
+	A
+	G
+	G
+	C
+	A
+	A
+	F
+	B
+	A
+	D
+	4
+	25.00%
+	Biwa Hayahide
+	A
+	F
+	F
+	C
+	A
+	A
+	E
+	A
+	B
+	E
+	4
+	25.00%
+	Machikane Fukukitaru
+	A
+	F
+	F
+	C
+	A
+	A
+	G
+	B
+	A
+	F
+	This chart is a small snapshot of some of the uma museums in game.
+
+Ideally you want to reduce the RNG factor for Red Gene selection by training someone with lesser native A stats
+
+Example 1: Using Urara as an example if you are hunting for the Dirt gene, she only has 3 native A aptitudes, Sashi, Dirt and Short distance, as long as you do not raise any additional aptitude to A, you will have a good chance (33%) of generating a dirt red gene.
+
+
+Example 2 : Using a second example on the other side of the spectrum,
+Mayano Top Gun has 5 A aptitudes and 2 Bs (sashi/oiko) or (betweener/chaser), carelessly raising these stats can potentially lead to a 7 way probability (17%) of inheriting a random red factor, ending up with a higher chance of an unwanted red gene.
+Ideal strategy when farming specifically for red genes.
+Start off with a parent that has red genes neutral to your intended uma, ie. same red gene pool as your target daughter so it doesn't raise any additional unwanted B stat to A.
+
+
+Personal picks for the ideal uma to be used for parents (end of your loop, anything above will be referred as grandparent GP/GGP):
+(Take in mind this section was created in 2021 during the Aoharu scenario, there are definitely better choices now and this section is extremely outdated)
+
+
+Mile: Vodka/ Daiwa Scarlet - I like their unique skills
+Mid/Long: Maruzensky (Mid only) The ideal acceleration for a ton of mid tracks.
+Symboli Rudolf - excellent compatibility and arguably the best unique skill to pass down for 先行/leader and further positions
+Dirt: Smart falcon OR any of the B dirt umas (after you somehow get their dirt to A)
+Unfortunately Urara has too poor compatibility to be recommended once better options appear
+
+
+2022 update
+Accel ult parents are the meta parents for winning races and should be your focus since they are useful everywhere.
+Classic examples are OG maruzensky, OG Seiun Sky / Dance Seiun Sky, Mejiro Ryan , Mejiro Dober, OG Kitasan Black / Kitasan White
+Obsolete older & once viable inherits: Other potential candidates, Meisho doto, gold city (Risky random ult), Monk El condor Pasa, Bridal Mayano Top Gun
+
+
+Here is my recommendation on the ideal priority list of Red genes for a parent.
+
+
+1-2 Ground type genes - Turf or Dirt - because these are versatile to be used to parent for EVERY uma you train - S ground type gives 5% bonus to Power stat.
+2-3 Distance type genes - These allow you to focus on what distance you want to inherit - S Distance type gives 5% bonus to Speed stat.
+This is always a major deciding factor in winning any champions meeting, especially in longer distances, due to the length of the track.
+
+
+I would not suggest more than 1 position related gene - this is so you don't run into an accident in future parent runs like my Nige gene rudolf, a really bad choice for a parent since if you are parenting using rudolf, it is unlikely that your target character will be using nige strategy or want it to be in the inheritance pool.
+
+________________
+Chapter 7: 4th Anniversary new white genes
+
+
+The 4th Anniversary updates added a bunch of new genes to the gene pool. You can view and access the list of these genes from the in game filter menu here.
+
+
+Scroll down on the right tab and hit this to filter by genes.
+
+
+Look at the magnificent new selection of genes to mald over!
+
+________________
+Good news! The genes we're discussing, which we'll refer to as Aptitude genes or 遺伝子  (Idenshi), are incredibly straightforward to acquire and don't pose any significant hurdles.
+If your Uma Musume's lineage, parents & grandparents, possess the relevant Red genes, it increases the chance of the associated Aptitude gene appearing in your Uma Musume's gene rolls. These genes activate at the same rates as the other white genes, making it much simpler to aim for S-rank in multiple stats like Distance, Turf, and Strategy simultaneously since you get extra chances to roll for them.
+The total number of stars on Red genes within your lineage will boost the appearance rate of these new Aptitude genes. For instance, if you accumulate 12 stars on a particular Red gene, its corresponding Aptitude gene is guaranteed to appear in your rolls. Refer to the table below for more details.
+Source: https://x.com/shoppo_ura/status/1901091492976062553?
+
+
+Aptitude factors (genes) of parents
+	Sample Size
+	Number of acquisitions
+	Acquisition rate
+	95% CI
+	Aptitude factor ★ 18 (6 genes)
+	215
+	215
+	100.00%
+	±0.00%
+	Aptitude factor ★ 12 (1 gene)
+	338
+	338
+	100.00%
+	±0.00%
+	Aptitude factor ★ 11 (6 genes)
+	226
+	87
+	38.50%
+	±6.34%
+	Aptitude factor ★ 9 (3 genes)
+	899
+	380
+	42.27%
+	±3.23%
+	Aptitude factor ★ 9 (0 genes)
+	899
+	364
+	40.49%
+	±3.21%
+	Aptitude factor ★ 6 (5 genes)
+	338
+	145
+	42.90%
+	±5.28%
+	Aptitude factor ★ 6 (4 genes)
+	397
+	154
+	38.79%
+	±4.79%
+	Aptitude factor ★ 6 (2 genes)
+	397
+	152
+	38.29%
+	±4.78%
+	Aptitude factor ★ 6 (0 genes)
+	623
+	249
+	39.97%
+	±3.85%
+
+
+As you can see, the proc rate only depends on the available ★ in the Umya’s parent lineage.
+Minimum of 6 ★ at 40%
+Maximum 12 ★ at 100%
+Example Mcqueen below, the parents are a mix of 9★ Long (3★x 3) and 9★Mile (3★x 3)  Reds, allowing the creation of these 2 underlined genes on the parent.
+
+
+If you're aiming to maximize your chances for three specific Aptitude genes, a potent strategy involves ensuring the parent contributes six different Red genes. For example, you could focus on two Red genes of 3 stars each for Distance, Turf, and Strategy, effectively utilising all six gene slots on the parent to generate the respective 3 whites.
+________________
+Hah! Did you think that was it? There’s more!
+You can also generate Seasonal / Directional / Stat genes. (目覚め/Awakening)
+
+
+
+
+
+
+
+
+
+
+Source data taken from: https://x.com/foxtail_mofu/status/1897965116483875179 &
+https://x.com/foxtail_mofu/status/1896041023018844520
+
+
+Our JP bro has done his own research and summarised his findings on these sets of genes, I’m using his findings word for word translated, so when he says Awakening he just refers to all 3 types of the above genes.
+ Acquisition Conditions for Stat Genes:
+   * The new awakening genes for Speed, Stamina, Power, Guts, and Wisdom are obtained by "successfully completing 12 or more trainings" of each respective stat.
+   * Only "successful" Training counts are considered; failed training turns do not contribute.
+   * Simultaneously acquiring three types of stat genes within 1 training run due to the limited number of turns is difficult, and realistically, aiming for two types is more feasible than three. Less or none if you are racing heavily.
+   * In auto-training, focusing on two types of stats makes it easier to obtain the corresponding stat genes.
+Victory Conditions:
+   * To obtain a directional gene (left or right turns) or seasonal (spring, summer, autumn, winter), you need to win at least 6 races that meet the specific condition.
+   * Summer white only needs 5 additional races since the Debut race is ran in summer
+   * This applies regardless of whether the race is a G1, OP, or any other type.
+   * Total number of wins is irrelevant, it is about the number of wins under each specific condition.
+Seasonal Genes:
+   * Spring, autumn, and winter genes are relatively easy to obtain due to the presence of fixed scenario races.
+   * The summer factor is more challenging, as it requires careful planning of race schedules.
+   * To get the summer awakening gene, you need to win 5 summer races outside of the debut race since the debut race is always in summer. This may be difficult to fit into a training schedule.
+________________
+
+
+Summer Race Considerations:
+   * When aiming for the summer factor, consider including OP races in the junior season, as they tend to have lower chances of failure.
+   * Other summer races include: JDD, Ibis SDx2, Late July through early September junior races, early September Classic/Senior races, and summer training camp races.
+Directional Genes:
+   * If your umnya can run both dirt and turf races, or all distances on turf, you can likely obtain the left and right turn genes by participating in each G1 race once.
+   * If the horse has limitations, you might need to run additional races.
+Key takeaway:
+   * The key to getting the seasonal and directional awakening genes is to win at least six races that meet the specific conditions. Summer races are the most difficult to obtain.
+There’s also random parameter genes that have not been explained or mentioned here. I’m too lazy to update it since it's a huge chunk of information.
+Some people figured it out
+
+
+Source: https://x.com/shoppo_ura/status/1903269452176925136
+隠し因子 (Hidden Factors):
+   * Affected Stats: Random 1 type
+   * Increase Amount (per star level): +6, +12, +18
+Read the full stats here by 2 JP madlads
+
+https://note.com/200000is/n/n72a5755dfb5c
+
+
+https://note.com/kinako__uma/n/n7cddfef7be63
+
+
+________________
+My take about the new genes:
+
+
+All these stat genes may not exactly be worth focusing your time and effort into getting them as the I suspect the stat gains are single digit gains, similar to the extra genes introduced during LARC scenario.
+
+
+I’ve changed my mind and I now think these genes are very strong for the low amount of effort needed to get them (auto parent runs)
+
+
+In Summary:
+The genes listed above are only obtainable by fulfilling specific conditions during a run. They are not inheritable through lineage like standard skill genes as they are not tied to learnable skills.
+
+
+Generation & Propagation Conditions:
+
+
+   * These new white genes only appear if certain conditions are met during a run.
+   * They are not inheritable.
+   * Having them in the parent lineage does not increase the chance of passing them on.
+
+
+________________
+
+
+
+
+Chapter 8: I’ve read all this, what do i do now?
+Strategic Gene Farming Decisions
+
+
+Before you even start a training run, plan your setup:
+
+
+   * What is this parent used for? Ie. CM / LOH, GGP, GP, main parent?
+   * Plan your parent route before starting any training run, identify the Umamusume with the right aptitude mix to generate the desired Red Genes.
+   * Eg. Can my uma generate Mid distance red gene?
+   * Do I have the parenting pass to lock a gene? Am I going to let RNG decide if I get an unwanted gene? (see end of chapter 6)
+   * Figure out your rental - does it raise the aptitudes you need for your run? Ie. dirt, mile, mid.
+      * For example if you want to make a TM opera parent that is racing Dirt, mile, mid , long races. You will need to create your own parent with dirt/mile and rent another that can fulfill these conditions. C grade is usually the bare minimum to win a race with minimal difficulty.
+For example using TMopera on the right, I had to make up for D apt on mile by buying up as many skills as I could.
+
+
+         * For global players and F2Ps who have no access to Gene passes.
+While you do want to raise dirt and mile for racing the maximum G1 races for compatibility, you will need to be careful not to accidentally raise unwanted aptitudes to A that will lower your chances during gene rolls.
+________________
+
+
+
+
+            * Plan your support card deck to achieve the specific stat roll/skill pool you want for the run. Ie If you are looking for better odds of rolling stamina Blues - U’d want at least a stamina card in the deck for higher odds. See below’s screenshot from U-tools (JP website only), they also have a great tool for planning your cards.
+
+
+
+
+            1. Strategic Gene Prioritisation
+
+
+Focus on the chance of generating the Red Genes first. These genes are the most crucial for upcoming competitive events (Champions Meeting, League of Heroes). For example, targeting for Turf inheritance can enable Smart Falcon to run turf events, or Mid-distance genes can boost Maruzensky's Mid-red proc rate (since she starts off at B Mid).
+
+
+Prioritisation Order for Red Genes: When farming Red Genes, always prioritise in this order: Distance > Ground Type > Strategy. Making your distance aptitude S is always the most critical for pvp events.
+
+
+The "S" Distance Advantage:
+Achieving "S" rank in Distance is vital for competitive monthly race events. Without it, your Umamusume will be at a significant speed disadvantage against nearly every other opponent who had the foresight to prepare "S" Distance umas.
+
+
+            2. Plan your support card deck to push desired stats to the highest possible grade.
+
+
+The "Chicken and Egg" Problem with Blue Genes:
+While it's ideal to farm Blue Genes for stats which your deck lacks, this can be challenging if you don't already have strong support cards for those specific stats. I’d figure most players initially aim for 9-star blues as a target for their first parent.
+This means rolling a 3 star blue grandparent and then pairing it with a second uma with a 3 star blue, usually from rental Uma or another strong internal parent
+
+The current favourite blue gene to have for Design Your Island scenario is Guts., Speed/power for Onsen scenario.
+For global, it will be Speed/Stamina/Power for a very long time, especially under URA/Aoharu/MANT
+
+
+            3. White Genes (Skills)
+Support cards: Plan your support cards to acquire relevant skills.
+Internal parent / Rentals: You want to make parents or use rentals to hunt for skills normally unobtainable in your deck.
+
+
+            4. Compatibility
+Make sure your parent route has good compatibility with the Uma you wanted to train. Try to pair Classic crown racers with Classic crown, Tiara with Tiara routes. If you need to, use dirt races to bridge the compatibility gap.
+Alternatively, LARC works as a smooth brained method to bridge the compatibility of short/mile umas with mid/long umas, Dirt & turf since the scenario naturally gives them natural turf  + Mid aptitude.
+However, as the scenario is shortened and the total number of overlapping races is capped out at 16. There is a hardcapped ceiling on the max compatibility. Very low skill points compared to current scenarios.
+
+
+For global (Pre-affinity rework): prioritise ◎ (Double Circle) Compatibility when pairing Umamusume. Use the in-game compatibility checker, or gametora’s compatibility tool for numbers to plan. To maximise compatibility, plan your parents to run the same overlapping races. Only G1, G2, and G3 races contribute to affinity before the rework; "OP" races do not count.
+
+
+To summarise the entire thing above
+Set up a run / Fix your odds -> Spin the wheel -> Keep spinning till you get what you want.
+________________
+Key Takeaways for New Players:
+
+
+Parenting is probably an optional choice, you can get by most content with minimally viable parents such as aligned red genes with peepeepoopoo Blue genes + 1 strong borrow.
+
+
+            * Don't need to chase for perfect genes early. "Good enough"  is fine for your first batch of internal parents.
+            * It's up to you how to define “Good enough”. Although personally. I think running a conflicting strategy parent with ZERO usable whites just because she has the red genes is absolutely stupid.
+            * You are better off just doing 1 run with a strong rental and accepting whatever gene that comes out than employing a parent with a lineage of completely conflicting strategy genes just solely for the red genes you want.
+            * This also applies to renting junk parents who have 100 white genes but only 10 of them are usable.
+
+
+Borrowing is your best friend. Always use a strong the strongest borrowable parent. If it's not in your follow list, make an effort to find it. https://uma.pure-db.com/#/search (they have a global version too now, https://uma-global.pure-db.com/#/search )
+There's no excuse for renting a random junk parent when you only need 5 minutes or less to find a good parent, otherwise you’ll just end up wasting your own time building mediocre crap when instead, by borrowing 1 good parent, you will always end up with something that is good on 1 half of the parent linage.
+
+
+Blue Genes (stats) are great foundations for shoring up weak stats but CM specific white genes are more important now. Look to inherit and generate rare genes like Essence of stamina / レースの真髄・体 which is unobtainable from cards.
+(Shortly after writing this section, Speed Eishin flash and Power Fine motion exist with access to these.)
+
+
+Red Genes (aptitudes) are important for specific races. Focus on getting what your main Umamusume needs to run (e.g., Mile, Turf).
+Personally I think it's better to focus on getting your first 3 star red gene + preferably at least 2 Blue gene with the new aptitude genes
+Global: Prolly better off just getting your first 9 star blue + at least 2 star in Distance on main parent.
+
+
+________________
+
+
+White Skill Genes
+These get more important as the game progresses and introduces more skills. There will be very strong speed/accel skills you would want to inherit for some PVP events.
+
+
+
+
+
+
+PVP events - Champions meeting / League of Heroes / Monthly Matching Beta version (only existed for 1 month before being canned)
+PvE content doesn't really require using strong parents, maybe only Master challenges.
+PvE refers to - Stadium(Team Trials) / Legend races / Daily races / Master challenges.
+
+
+________________
+
+
+Bonus Chapter: Inheritance chances!
+12 August 2025 addition.
+This is a bonus chapter because this guide was originally meant to only deal with Gene generation rates.
+
+
+Huge credit goes to these 2 Japanese powerhouses; Polaris (@BourBon_Polaris) and しょっぽ (@shoppo_ura), who have spent a massive amount of time collating data on inheritance odds. Thanks DipstickPinez for sharing their tweet with me.
+
+
+Polarisさん、しょっぽさん、もしこれを見ていたら──相性との関係を証明するために、たった一人で何千件ものデータポイントをまとめてくれたことに感謝します！
+
+
+Basically, they discovered that Cygames filed a patent for compatibility back in 2021 during the game’s initial launch. Shoppo surfaced it here and these 2 lads went to research if it held weight. Polaris's full testing data is can be found across his X (Twitter) and I won't be linking all of them as it's a whole boatload of data that he went to test using different game scenarios. Further, his data was collected very well with highly controlled settings so it can be trusted.
+Effects of compatibility:
+Polaris started off his baseline with a bunch of tests using 0 compatibility Umas & also repeated the tests using Umas with some level of compatibility against the inheritance formula in the patent. Source: https://x.com/BourBon_Polaris/status/1819346545810235714
+
+
+Polaris's tests showed results that were "roughly close" to predictions. Coincidentally he also remarked that the inheritance rate for grandparents is roughly half compared to the parent’s uma. This is just due to how GP compatibility is calculated at a lower weightage as compared to the parent Uma. Source: https://x.com/BourBon_Polaris/status/1846520715794882863
+
+
+Just a snapshot of his inheritance data.
+
+
+
+
+In conclusion: The effects of compatibility have been proven to be the same throughout all scenarios and can be assumed to follow the formula below.
+Inheritance formula:
+base_inheritance_odds_per_type * (1 + individual_compatibility_score/ 100) = inheritance_odds_per_type
+3☆ Green Gene example: 15% * (1 + 200/100) -> 15% * (1 + 2) = 45%
+Reminder: Chapter 1 explains how individual compatibility is calculated.
+
+
+Base proc rates (without compatibility)
+Gene type↓ / Base chance→
+	☆1 Rate
+	☆2 Rate
+	☆3 Rate
+	Blue Stats
+	70%
+	80%
+	90%
+	Red Genes & Aptitude whites (遺伝子)
+	1%
+	3%
+	5%
+	Green (Unique Skill)
+	5%
+	10%
+	15%
+	Race
+	1%
+	2%
+	3%
+	Whites
+Skills, Scenario , Hidden whites
+(目覚め& 隠し)
+	3%
+	6%
+	9%
+	The table is based on his data from 0 compatibility Umas.
+
+
+Source is : https://x.com/BourBon_Polaris/status/1952727338547814695
+
+In essence, he basically confirmed the individual inheritance theory at the same time while he was collecting these other data. Based on the formula above, you can see extremely high chances of your genes procc-ing for really high compatibility parents. If you want to maximise compatibility, you might want to consider adapting your parents to be able to do dirt races as well.
+
+Further data verification
+Source: https://x.com/BourBon_Polaris/status/1846520715794882863
+
+He compared his expected values to the actual inheritances he achieved here with a 100 run sample set. This data confirms that inheritance rates for compatibility largely align with the theoretical formula, and any minor discrepancies can simply be attributed to the small sample size.
+
+
+Another pic (this time only expected values and not actual data)
+
+
+
+
+
+
+________________
+
+
+
+
+Findings for the effects of Gold inheritance events
+
+
+            1. There doesn't seem to be a distinction for activation rates between gold and normal inheritance events.
+
+
+            2. He further wrote that he noticed that there was a flat zero occurrence of gold inheritance events when he tested a full 1 star set of parents and suspects that Gold inheritance is just an indication that a 2☆ or 3☆ procc-ed.
+
+
+            3. I’d personally say it only indicates 3☆ procs and also behaves similar to how gacha animations show up as an indicator and not really as an indication of an additional bonus chance. Personally - this fits well with my own experience since I’ve not felt anything special in a gold inheritance playing since launch.
+
+
+Screenshot below from a friend. Thanks illusia!
+
+
+
+Conclusion: Gold event just means at least 1 3☆ procc-ed.
+
+
+________________
+
+
+5th Anniversary news (24 Feb 2026)
+5th Anniversary new Subscription plan [Uma Plan] has been announced for sale
+
+
+
+
+
+
+
+
+
+________________
+
+
+            1. Now if you own the plan, you will get an additional roll on your mid run inheritance event where you’d get to pick between 2 rolls.
+            1. Other than the obvious benefit to Ace runs, this also helps parenting runs such as those double G cups aptitudes that you are trying to raise.
+            2. Cygames has obviously tailored this for Stay Gold parenting and other umas that have double G when it comes to mile/dirt.
+
+
+
+
+________________
+
+
+
+
+
+
+
+
+               2. You also gain access to the bulk inheritance farming system that lets players automate parenting generation, 5 rolls normally, 10 rolls if you also buy the gene/factor pack.
+               1. Umas generated from this new function will be separate from your usual hall of fame Umas. These will not be considered as candidates that you can use for daily races, trainer exchange or other events.
+               2. Important, this is meant to make parent farming more accessible for everyone BUT at the same time not obsolete auto parent farming, circle fans.
+               3. There is a daily limit on this and YOU SHOULD take MUCH more care in planning your run and deck beforehand. What is the point of doing a “random bullshit go” if all of your products are gonna be trash?
+               3. +5 Rentals a day
+               4. +100 follow slots for first time purchase.
+
+
+________________
+Inheritance-only Uma Musume / 継承専用ウマ娘
+The official text is Inheritance, not legacies. Global localisation is bad >:(
+
+
+Bulk Inheritance System
+*Cygames understands how effective the “first hit is free” can be. Each player gets one set of 10 free tickets to test the new bulk inherit system post 5th Anniversary — so don’t burn it without proper planning.
+This is a PREMIUM only feature. There is no indication any additional free tickets will be given out in the future, do let me know if your uncle works at cygames and if there will be.
+
+
+Note that the bulk inheritance works on its own rules and none of any of the content in my guide above can be used for the bulk inheritance plan. However, if you rent/use any inheritance-only uma for STANDARD parenting, the usual genes generation/acquisition rules apply for the next generation of umas.
+
+How the inheritance planning works:
+
+
+Before you dive in, see that button just before you start your bulk inheritance? That’s the Trainer Guide, which most players have been ignoring like a "Terms of Service" pop-up.
+Cygames stealthily added some fine print to the help page on 27 February 2026, regarding this feature. When enabled, all recommended hints for the selected PVP event will actually have enhanced chances to appear as factors on your inheritance-only Umas.
+
+
+
+
+Inheritance-only Click™ Remote instruction manual.
+
+
+               1. Create a Plan, up to 5 can be saved
+               2. Choose a training scenario
+               3. Pick an Uma
+               4. Set up the parents you are renting
+               * Using a friend's inheritance-only Uma Musume will not consume rentals nor money.
+               5. Plan your race rotation settings for the Uma Musume to be acquired in bulk
+               * The win rate for a race is calculated based on the aptitude of the target Uma Musume. (Patched on May 20) and their trophy acquisition status.
+               * If the distance and ground aptitude is A, the base win rate will be 110%.
+               * If the distance and ground aptitude is B or lower, the win rate will be reduced according to the suitability. (no rates declared by Cygames)
+               * If you have raced for three or more consecutive turns, your win rate will be reduced.
+               * The more consecutive turns a uma races, the greater the reduction in its win rate.
+               6. Set up to 10 prioritised genes
+               * The chances of the skill genes appearing depends on your support card’s limit break. The higher the LB the better. No rates known yet.
+               * However, genes from parent lineage can too be selected. ~5% chance.
+               * Turning the training guide to [ON] extra-increases your chances of these SUPER - recommended genes appearing. Rates are 1.1x.
+               * Sample screenshot of SUPER recommended genes based on the tracks.
+               * Rental decks are not allowed.
+                  7. If you have the Factor lock or combined parenting pass, you get to pick the gene to lock when generating parents.
+                  * Blue genes: Unknown how its determined
+                  * Red Genes: Same random pick among all the A aptitudes
+                  8. Execute Bulk Acquisition via the Click™ remote for high-speed breeding.
+                  9. Cry because the rolls and the fast forwarded experience was bad anyway, just like in the movie.
+
+
+17 July update
+
+
+Shoppo also investigated win rate reduction for running consecutive races @
+https://x.com/shoppo_ura/status/2077988949495279684?s=20
+
+
+Essentially aptitudes for ground and distance have the same weightage. Meaning AG = GA = DD
+________________
+Patched out on May 20 2026
+                     * The win rate rate will be increased by 30% if the uma already has a trophy for the race they are competing in.
+                     * Trophies cannot be earned by Umas created in this mode and you are advised to do at least ONE normal run with the Uma to win the races you are planning to send them on.
+                     1. If aptitudes are at A, you will have a base win rate of 110%
+
+
+Other stuff
+Inheritance only uma cannot be used for additional contents that require you to send an Uma to race, such as daily races, legend races etc.
+
+
+All the above data has been obtained from Cygames’ official website. https://www.games.umamusume.jp/#/help?p=3
+
+
+Uma Plan users
+Since this feature launched alongside the current scenario, a new automation setting is available. To manually select your re-rolled inheritance during auto-runs, you must check the "Pause at the inheritance turn" box. Otherwise, auto-kun will automatically select the inheritance for you.
+
+
+Other notes:
+We all currently know that the Breeder’s Cup Scenario that was released together with this system is an absolute dumpster fire for parenting. However, if you use this Bulk Inheritance tool specifically for the BC scenario, you actually end up with better results than both auto and manual play.
+Here is the breakdown of why this is stronger:
+                     * The SP Gap: Under a standard BC scenario auto-run, your runs usually end with a measly 4–6k skill points.
+                     * Whereas you already get a stable 5-6k in DYI or 6-7k in Onsen.
+                     * The Skill Pool: Realistically, you’re rolling for 30–50 skills worth of inheritance factors with grades ranging from UF to UD. (You’d want a minimum of UE grades.)
+                     * The Efficiency Fix: By using Mass Inheritance, you’ll net more factors from bulk inheritance than you ever could as compared to an auto or manual run (for BC).
+                     * Deck flexibility : I’ve heard mentions that you can ignore scenario friend cards to run 6 stat cards instead and from my own testing it looks like the case.
+Essentially, Cygames did a “create a problem and sell the fix” to deal with the miserable farmability of the BC scenario.
+________________
+Inheritance-only rates
+
+
+Our trusty lad Shoppu_ura is currently setting out to try to map out the white skill rates of the inheritance-only plan. Here are his early provisional data as of 7 March 2026.
+Source: https://x.com/shoppo_ura/status/2030161715745411216?s=20
+
+
+
+
+
+
+16 March update, Shoppu has finalised his data mainly in these sheets.
+https://docs.google.com/spreadsheets/d/141Gy8utysMUFYUemjLdoRlfiW0X9smBj1io16VBl_j4/edit?gid=0#gid=0
+
+
+
+
+*Recommended multiplier is 1.05x, and highly recommended multiplier is 1.1x.
+________________
+
+
+Shoppo summarised his findings here. Tweet thread linked here: https://x.com/shoppo_ura/status/2033476508719956453
+
+
+Gene appearance rates
+Arranging the results by groups of priority, rare (Gold skill), Trainer guide, and inheritance. The results are quite close to the expected values of a normal run.
+
+
+
+
+Race factors, awakening, and hidden factors are also within the expected range.
+
+
+
+Just like a normal parenting run, the base acquisition rate is 20% plus the standard bonus from the common genes in your uma’s lineage.
+When it comes to races, even if you win the Arima Kinen twice or win 18 right-handed races, the gene acquisition rate doesn't double or triple. This is in-line with expectations.
+
+
+Scenario gene:
+He found that the Onsen scenario factor seems to be around 40% appearance rate, but it is a mystery as the expected value of scenario factor up till the Island scenario was supposed to be around 30%.
+
+
+He can’t tell if it's because the hot spring resort has a higher acquisition rate or if it was a bonus specifically for the designated uma, or just a lucky streak?
+
+
+★ Rarity of genes
+The star rate for priority factors is the upper end of the rates. (UE and above)
+
+
+★3:★2:★1 = 10%:70%:20%
+
+
+According to the help section of the Inheritance-only, these seem to depend on support cards, but in his tests, all support cards were fully enhanced SSR and had the same star rate, so hes wondering if this is the maximum tier of rates?
+
+
+So he tested and significantly reduced the support card power and noted that his white rarity rates were following the SS to UF banding.
+★3:★2:★1 = 5%:45%:50% was used.
+
+
+My take is: Don’t use too scuffed a deck with too many low LBs. The hidden end grade of the inheritance-only uma is likely following what your deck might produce in an Auto run on the chosen scenario.
+
+
+For reference these are the Upper, middle, lower bands he refers to. Not particularly sure what these S to F ranks are referring to.
+
+
+
+
+________________
+
+
+Extra reading: https://x.com/shoppo_ura/status/2034940511891640497
+
+
+Shoppo expands more on his data collected and how setting a priority skill affects the simulation of your inheritance only runs. His uma setup here:
+https://x.com/shoppo_ura/status/2029781499952890241
+
+
+It’s a lot to go through but here’s something interesting.
+ Sources of Factors
+                     * Inheritance Skills: Skills gained solely through inheritance (not from the training Uma, Support Cards, or scenario hints) showed a consistent acquisition rate of about 5%.
+                     * Race Factors: Factors like "Nakayama Racecourse" or "Non-Core Distance" appeared even without hints or inheritance, likely originating from the race results themselves.
+                     * Scenario Links: Simply having a Scenario Link Support Card (e.g., Mihono Bourbon) does not mean all its skills are automatically prioritised for factor generation.
+                     *   ________________
+What is not covered in the guide!
+
+
+                        1. How compatibility or ☆ affects hint levels. This should just be pure RNG with more ☆ having a better chance of higher hint levels Stop looking for answers nobody can give!
+                           1. Extra note: Based on the patent filed by cygames, there's some hints on what the hint proc rates are, assuming they have not been changed since the filing of the patent.
+                           2. PS: It’s pretty impossible to investigate if the rates were changed for the live service since this was patented way before the game launch. And.. data collection for these values is too difficult.
+                           3. Factor Level
+	Hint Level 1
+	Hint Level 2
+	Hint Level 3
+	Hint Level 4
+	Hint Level 5
+	Level 1
+	40%
+	30%
+	15%
+	10%
+	5%
+	Level 2
+	15%
+	20%
+	40%
+	15%
+	10%
+	Level 3
+	5%
+	15%
+	25%
+	40%
+	15%
+	                           4. Source: https://www.goveda.com/patent/JP-2026020163-A
+
+
+
+
+Gameplay
+                           2. I don't understand why I am getting messages asking me to handhold, evaluate your deck or teach how to play the game when this is a guide catered to PARENTING.
+If you are really in desperate need of help, my consulting services are mysteriously activated by Ko-fi contributions.
+________________
+
+
+Final Summary: I don't want to read, just give me the numbers
+
+
+-Aoneko Uma’s twitter
+Blue Genes
+
+
+Highest chance of getting ★★★ for your target stat after a run (SS or higher stat): (10% * 20%) = 2%
+Lowest chances of getting ★★★ for your target stat after a run (B stat): (5% * 20%) = 1%
+
+
+Blue Gene farm strategy
+In scenarios before MANT, you will need to use strong support cards, plan for good training bonuses & high Speciality rate/tokui cards in your run with an aim of at least 600 (B) in your target stat. After LARC: Unga bunga lol
+
+Red farm Strategy
+Equally random chance to be rolled among all your A and above aptitudes, some Uma are worse off in trying to roll your intended gene since they have more A aptitudes.
+・ 3 star ★★★ appearance rate is 10%
+・ 2 star ★★☆ appearance rate is 70%
+・ 1 star ★☆☆ appearance rate is 20%.
+
+
+Don't raise proficiencies that you do not want to rank A
+________________
+
+
+Green Genes farming strategy
+The gene generation chances follow the same principle as white genes, thanks Aya!
+
+
+Rank score band
+	Samples
+	1-star
+	2-star
+	3-star
+	1000 <= score < 6500
+	1,546,921
+	89.99%
+	10.01%
+	0.00%
+	6500 <= score < 17500
+	14,274,987
+	49.97%
+	45.01%
+	5.02%
+	score >= 17500
+	460,910
+	19.94%
+	70.05%
+	10.00%
+
+
+
+
+Race genes/White skills explained
+You have between 20% to 30% chance to inherit a G1 race gene per run. (And you must win that particular G1 Race too)
+White skill chance of inheritance: [20-30% / 40-70%]    [White skill/Gold skill]
+
+All white skills have a flat 5% chance of being a 3★, so it means a 95% chance to be 1-2 ★
+This % is doubled if your uma’s grade is SS and above, increases further if you end at UE and above.
+
+
+Chance of Stars for white genes
+	★
+	★★
+	★★★
+	Below B
+	90%
+	10%
+	0%
+	Below SS grade (less than 17500 score)
+	50%
+	45%
+	5%
+	Above SS grade  , Below UE (More than 17500 score)
+	20%
+	70%
+	10%
+	UE and Above
+	17.5%
+	70%
+	12.5%
+
+
+
+
+Race genes/White skills farming strategy
+Having the same white gene in your parentage increases the chance of receiving the same white gene & you must also learn the respective skill AND win the same race if you want it to appear.
+
+
+4th Anniversary new White genes
+The chapter is already as miniaturised as possible, go read it.
+
+Effects of compatibility on parents:
+Higher compatibility raises the odds of inheriting genes from said lineage.
+
+
+For the best compatibility overlap all the races you can, raise dirt aptitude for dirt races increased compatibility and/or bridging other rotations.
+-Dirt rotations are not for you Global gremlins. yet
+
+Conclusion: At the end of the day it's up to you as to how greedy you are for genes, what you wish to target for your ideal breeding parent and what combination of strategies you use in training/picking choices.
+
+It is in your best interest to plan your red genes early before you commit to any farming strategy, otherwise 1 bad red gene can potentially ruin your perfect parent (look at my early Rudolf for example)
+
+
+"All it takes is one bad day Gene to reduce the sanest man alive to lunacy. That's how far the world is from where I am. Just one bad day gene.”
+
+
+-Joker, Batman: The killing joke "
+
+
+Final reminder: Readers should be wary of guides from individuals who lack a deep understanding of the game, yet present obscure information as definitive insights.
+________________
+
+
+
+
+Thank you for reading this long long guide!
+Someone asked if they could send me a token of thanks, so I’ve gotten around to setting up a Ko-fi Page here:
+https://ko-fi.com/crazyfellow
+Feel free to ask me questions there if you like, or just to support my Uma Musume Stables. Maybe if i get motivated enough I’ll write other in depth stuff.
+You can also follow me in game (JP only) if you liked this guide or want some CM/LoH parents!
