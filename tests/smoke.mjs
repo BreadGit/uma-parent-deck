@@ -97,12 +97,12 @@ assert.ok(!bodyText.includes("Blue spark stars depend on each stat's final value
 assert.ok(!bodyText.includes('White spark stars'), 'predicted run still shows white spark odds');
 assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'inventory settings still show default limit-break controls');
 assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
-// picking a start gain colours the bubble by parent and raises the start value
+// picking a start gain fills the dropdown in its parent's colour and raises the start value
 await page.selectOption('select[data-gain="1-2"]', '54');
 await page.waitForTimeout(200);
-const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start: Number(el.querySelector('.body .v').textContent), base: Number(el.querySelector('.body .sub').textContent.replace(/\D/g, '')), p1: Number(el.querySelector('select[data-gain="0-2"]').value), bubbles: [...el.querySelectorAll('.bubbles span')].map((b) => b.className + ':' + b.textContent) }));
+const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start: Number(el.querySelector('.body .v').textContent), base: Number(el.querySelector('.body .sub').textContent.replace(/\D/g, '')), p1: Number(el.querySelector('select[data-gain="0-2"]').value), p2Class: el.querySelector('select[data-gain="1-2"]').className }));
 assert.equal(powerCell.start, powerCell.base + powerCell.p1 + 54, 'the start value is base plus both parents');
-assert.deepEqual(powerCell.bubbles, ['p2:+54'], 'the +54 above Power carries parent 2 colour');
+assert.ok(/\bp2\b/.test(powerCell.p2Class) && /\bset\b/.test(powerCell.p2Class), 'a picked gain is shown filled in parent 2 colour');
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),
@@ -129,10 +129,14 @@ await page.selectOption('select[data-lb="30052"]', 'none');
 await page.waitForTimeout(200);
 const afterUnown = await page.evaluate(() => [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()));
 console.log('deck after marking Light Hello SSR not owned:', afterUnown);
-await page.selectOption('select[data-gain="0-0"]', '0');
+// the header Reset clears every gain and aptitude override at once
+await page.selectOption('select[data-apt="turf"]', 'G');
+await page.click('button[data-action="reset-legacy"]');
 await page.waitForTimeout(200);
-const speedAfter = await page.$eval('.legacy-stat:nth-child(1)', (el) => ({ bubbles: el.querySelectorAll('.bubbles span').length, gainOptions: el.querySelectorAll('select[data-gain="0-0"] option').length }));
-assert.deepEqual(speedAfter, { bubbles: 0, gainOptions: 20 }, 'clearing a gain removes its bubble; every possible +XX is offered');
+const afterReset = await page.evaluate(() => ({ gains: [...document.querySelectorAll('select[data-gain]')].map((s) => s.value).join(','), turf: document.querySelector('select[data-apt="turf"]').value, options: document.querySelectorAll('select[data-gain="0-0"] option').length }));
+assert.equal(afterReset.gains, Array(10).fill('0').join(','), 'every start gain is back to +0');
+assert.equal(afterReset.turf, baseTurf, 'the aptitude override is gone');
+assert.equal(afterReset.options, 20, 'every possible +XX is offered');
 // layout check: no horizontal overflow at common widths, both themes
 for (const width of [1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {

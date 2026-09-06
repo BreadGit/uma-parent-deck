@@ -31,6 +31,7 @@ main { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 16px; pa
 @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
 section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
 section.panel h2 { font-size: 15px; margin: 0 0 10px; }
+section.panel h2.h-row { display: flex; align-items: center; gap: 6px; }
 section.panel h3 { font-size: 13px; margin: 12px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
 label.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0; }
 label.row span.k { color: var(--muted); }
@@ -143,15 +144,12 @@ table.conflicts td { white-space: normal; vertical-align: top; }
 .legacy-legend .p2 { color: var(--parent2); font-weight: 600; }
 .legacy-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .legacy-stat { display: flex; flex-direction: column; min-width: 0; }
-.legacy-stat .gains { display: flex; flex-direction: column; gap: 2px; padding: 0 1px; }
+.legacy-stat .gains { display: flex; flex-direction: column; gap: 2px; padding: 0 1px 3px; }
 .legacy-stat select.gain { font: inherit; font-size: 11px; padding: 1px 0; border: 1px solid var(--line); border-radius: 4px; background: var(--input); color: var(--text); width: 100%; max-width: 100%; text-align: center; }
 .legacy-stat select.gain.p1 { border-color: var(--parent1); color: var(--parent1); }
 .legacy-stat select.gain.p2 { border-color: var(--parent2); color: var(--parent2); }
 .legacy-stat select.gain.p1.set { background: var(--parent1); color: var(--on-accent); }
 .legacy-stat select.gain.p2.set { background: var(--parent2); color: var(--on-accent); }
-.legacy-stat .bubbles { display: flex; justify-content: center; gap: 4px; min-height: 15px; font-size: 11px; font-weight: 700; }
-.legacy-stat .bubbles .p1 { color: var(--parent1); }
-.legacy-stat .bubbles .p2 { color: var(--parent2); }
 .legacy-stat .head { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; padding: 2px 0; background: var(--stat-head); color: var(--on-accent); border-right: 1px solid var(--panel); }
 .legacy-stat:first-child .head { border-radius: 5px 0 0 0; }
 .legacy-stat:last-child .head { border-radius: 0 5px 0 0; border-right: none; }

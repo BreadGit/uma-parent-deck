@@ -18,7 +18,7 @@ const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck
 
 export const DEFAULT_RUN: RunInput = {
   targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
-  aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentGains: [[63, 0, 0, 0, 0], [0, 21, 21, 21, 0]],
+  aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentGains: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
 };
 export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system' };
 
