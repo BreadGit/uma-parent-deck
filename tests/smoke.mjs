@@ -127,8 +127,11 @@ await page.screenshot({ path: 'docs/screenshot.png', fullPage: true });
 await page.selectOption('select[data-lb="30028"]', '2');
 await page.selectOption('select[data-lb="30052"]', 'none');
 await page.waitForTimeout(200);
-const afterUnown = await page.evaluate(() => [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()));
-console.log('deck after marking Light Hello SSR not owned:', afterUnown);
+// the default Light Hello pin, once marked not owned, becomes a borrow request and takes the friend's slot
+const afterUnown = await page.evaluate(() => ({ borrow: document.querySelector('.deck .slot:has(.tag.borrow) .name')?.textContent.trim(), chip: document.querySelector('.chip:has(button[data-id="30052"]) .tag.borrow')?.textContent }));
+assert.ok(afterUnown.borrow?.includes('Light Hello'), `the unowned pin should be the borrow, got ${afterUnown.borrow}`);
+assert.equal(afterUnown.chip, 'borrow', 'the pinned chip says borrow');
+console.log('deck after marking Light Hello SSR not owned: borrow =', afterUnown.borrow);
 // the header Reset clears every gain and aptitude override at once
 await page.selectOption('select[data-apt="turf"]', 'G');
 await page.click('button[data-action="reset-legacy"]');

@@ -131,67 +131,100 @@ const why = (cs: CardScore) => (cs.marginalValue > 0
   ? `+${(cs.marginalValue * 100).toFixed(1)}% expected sparks (${cs.coverage.filter((c) => c.marginal > 0).map((c) => c.target.name).join(', ')})`
   : `no uncovered targets left; best stat stick (+${cs.statPower.toFixed(0)} stats)`);
 
+export interface BuildOptions {
+  pinnedIds: number[];        // owned pins shortlist the owned slots; unowned pins ask for the friend's slot
+  borrowPool?: { card: Card; lb: number }[]; // every card at the borrowed limit break; empty means no friend's slot
+  borrowFromAll?: boolean;    // with owned pins left over, borrow the best card overall instead of the best leftover pin
+  size?: number;
+}
+type Slot = 'owned' | 'borrow';
+type PinReason = 'same character' | 'outscored' | 'trainee';
+
 /**
- * Greedy deck. Pinned cards are a shortlist for the owned slots: they are scored against what is already covered
- * and taken best first, one per character, until the owned slots are full; unchosen pins are reported. The
- * friend's slot then takes the best card overall at the borrowed limit break, from every card in `borrowPool`.
- * Remaining owned slots fill from the rest of the pool. Finally, if a deck card's LB4 version would serve
- * better as the borrow than the borrow chosen (freeing that card's slot for the next best owned card), swap.
+ * Greedy deck: five owned slots and the friend's slot.
+ * 1. Pins first, best marginal spark gain first, one per character. An owned pin goes to an owned slot at its own
+ *    limit break; an unowned pin can only be the friend's card, so it competes for that slot at the borrowed LB.
+ *    Once the owned slots are full, leftover owned pins compete for the friend's slot too unless `borrowFromAll`.
+ *    When one character has both an owned and an unowned pin, whichever scores higher takes its slot.
+ * 2. A friend's slot still open takes the best card overall from `borrowPool`.
+ * 3. Owned slots still open fill from the rest of the pool.
+ * 4. If a deck card's higher-LB version would serve better as the borrow (freeing its slot for the next best owned
+ *    card), swap; a pinned borrow is never evicted.
  */
-export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, pinnedIds: number[], size = DECK_SIZE, borrowPool: { card: Card; lb: number }[] = []): DeckResult {
+export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, options: BuildOptions | number[], size = DECK_SIZE, legacyBorrowPool: { card: Card; lb: number }[] = []): DeckResult {
+  const opts: BuildOptions = Array.isArray(options) ? { pinnedIds: options, borrowPool: legacyBorrowPool, size } : options;
+  const pinnedIds = opts.pinnedIds, borrowPool = opts.borrowPool ?? [], borrowFromAll = !!opts.borrowFromAll;
+  size = opts.size ?? size;
   const ownedSlots = borrowPool.length ? size - BORROWED_SLOTS : size;
   let existing = traineeCoverage(targets, ctx);
   const deck: CardScore[] = [];
   const steps: string[] = [];
   const usedChars = new Set<number>();
   if (ctx.trainee) usedChars.add(ctx.trainee.charId);
-  const ownedCount = () => deck.filter((d) => !d.borrowed).length;
+  const ownedOpen = () => deck.filter((d) => !d.borrowed).length < ownedSlots;
+  const borrowOpen = () => borrowPool.length > 0 && !deck.some((d) => d.borrowed);
   const add = (cs: CardScore, note: string) => {
     deck.push(cs); usedChars.add(cs.card.charId);
     existing = addTo(existing, cs.mine, cs.card);
     steps.push(`${cs.card.name} (LB${cs.lb})${cs.borrowed ? ', borrowed' : ''}: ${note}`);
   };
   const free = (p: { card: Card }) => !usedChars.has(p.card.charId);
-  /** Best candidate by marginal spark gain, then stats, against the current deck. */
-  const best = (cands: { card: Card; lb: number }[]) => cands.filter(free).map((p) => scoreCard(p.card, p.lb, targets, existing, ctx)).sort(cmp)[0];
+  const score = (p: { card: Card; lb: number }, borrowed: boolean): CardScore => ({ ...scoreCard(p.card, p.lb, targets, existing, ctx), borrowed });
 
-  // 1. pins: the shortlist for the owned slots
-  const pins = pinnedIds.map((id) => pool.find((x) => x.card.id === id)).filter((x): x is { card: Card; lb: number } => !!x);
-  const chosenPins = new Set<number>();
-  while (ownedCount() < ownedSlots) {
-    const pick = best(pins.filter((p) => !chosenPins.has(p.card.id)));
+  // 1. pins
+  const owned = new Map(pool.map((p) => [p.card.id, p]));
+  const borrowable = new Map(borrowPool.map((p) => [p.card.id, p]));
+  const pins = pinnedIds.map((id) => owned.get(id) ?? borrowable.get(id)).filter((x): x is { card: Card; lb: number } => !!x);
+  const isOwnedPin = (p: { card: Card }) => owned.has(p.card.id);
+  const chosen = new Set<number>();
+  let pinnedBorrow = false;
+  for (;;) {
+    const cands: CardScore[] = [];
+    for (const p of pins) {
+      if (chosen.has(p.card.id) || !free(p)) continue;
+      const slot: Slot | null = isOwnedPin(p) ? (ownedOpen() ? 'owned' : borrowOpen() && !borrowFromAll ? 'borrow' : null) : borrowOpen() ? 'borrow' : null;
+      if (!slot) continue;
+      cands.push(slot === 'owned' ? score(p, false) : score(borrowable.get(p.card.id) ?? p, true));
+    }
+    const pick = cands.sort(cmp)[0];
     if (!pick) break;
-    chosenPins.add(pick.card.id);
+    chosen.add(pick.card.id);
+    if (pick.borrowed) pinnedBorrow = true;
     add(pick, `pinned, ${why(pick)}`);
   }
   for (const p of pins) {
-    if (chosenPins.has(p.card.id)) continue;
-    const same = deck.find((d) => d.card.charId === p.card.charId);
-    steps.push(`${p.card.name} (LB${p.lb}): pinned but not chosen, ${same ? `same character as ${same.card.name}` : `lower added spark chance than the ${ownedSlots} chosen`}`);
+    if (chosen.has(p.card.id)) continue;
+    const reason: PinReason = ctx.trainee && p.card.charId === ctx.trainee.charId ? 'trainee' : deck.some((d) => d.card.charId === p.card.charId) ? 'same character' : 'outscored';
+    const detail = reason === 'trainee' ? "the trainee's own card" : reason === 'same character' ? `same character as ${deck.find((d) => d.card.charId === p.card.charId)!.card.name}`
+      : isOwnedPin(p) ? `lower added spark chance than the ${ownedSlots} chosen` : `the friend's slot went to ${deck.find((d) => d.borrowed)?.card.name ?? 'another card'}`;
+    steps.push(`${p.card.name} (LB${p.lb})${isOwnedPin(p) ? '' : ', not owned'}: pinned but not chosen, ${detail}`);
   }
 
-  // 2. the friend's card: best overall against the pins
+  // 2. the friend's card, if no pin took the slot
   let borrow: BorrowOption | null = null;
   const alternatives: BorrowOption[] = [];
-  if (borrowPool.length && deck.length + 1 <= size) {
-    const ranked = borrowPool.filter(free).map((p) => scoreCard(p.card, p.lb, targets, existing, ctx)).sort(cmp);
-    const top = ranked[0];
-    if (top) {
-      add({ ...top, borrowed: true }, why(top));
-      borrow = { card: top.card, replaces: null, gain: top.marginalValue, statGain: top.statPower };
+  if (borrowPool.length) {
+    const ranked = borrowPool.filter(free).map((p) => score(p, true)).sort(cmp);
+    const current = deck.find((d) => d.borrowed);
+    if (current) {
+      borrow = { card: current.card, replaces: null, gain: current.marginalValue, statGain: current.statPower };
+      for (const r of ranked.slice(0, 5)) alternatives.push({ card: r.card, replaces: null, gain: r.marginalValue, statGain: r.statPower });
+    } else if (ranked[0]) {
+      add(ranked[0], why(ranked[0]));
+      borrow = { card: ranked[0].card, replaces: null, gain: ranked[0].marginalValue, statGain: ranked[0].statPower };
       for (const r of ranked.slice(1, 6)) alternatives.push({ card: r.card, replaces: null, gain: r.marginalValue, statGain: r.statPower });
     }
   }
 
   // 3. fill the owned slots left from the rest of the pool
-  while (ownedCount() < ownedSlots) {
-    const pick = best(pool.filter((p) => !chosenPins.has(p.card.id)));
+  while (ownedOpen()) {
+    const pick = pool.filter((p) => free(p) && !chosen.has(p.card.id)).map((p) => score(p, false)).sort(cmp)[0];
     if (!pick) break;
     add(pick, why(pick));
   }
 
   // 4. upgrade: a deck card's higher-LB version as the borrow instead (replacing the borrow, if any), its slot refilled
-  if (borrowPool.length) {
+  if (borrowPool.length && !pinnedBorrow) {
     const base = deckValue(deck, targets, ctx);
     let bestSwap: { entries: CardScore[]; opt: BorrowOption; value: { sparks: number; stats: number }; from: CardScore; to: CardScore; refill: CardScore | undefined } | null = null;
     for (const d of deck) {

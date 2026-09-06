@@ -20,7 +20,7 @@ function suggestions() {
   if (!matches.length) return nothing;
   return html`<ul>${matches.map((card) => {
     const lb = effectiveLb(store.inventory, card, store.settings.defaultLb);
-    return html`<li data-action="pin-card" data-id="${card.id}" @click=${() => pinCard(card.id)}><img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="r">${lb == null ? 'not owned' : `LB${lb}`}</span></li>`;
+    return html`<li data-action="pin-card" data-id="${card.id}" @click=${() => pinCard(card.id)}><img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="r">${lb == null ? 'not owned, would be borrowed' : `LB${lb}`}</span></li>`;
   })}</ul>`;
 }
 function pinCard(id: number) {
@@ -46,10 +46,11 @@ export function renderRun(c: RunPlan) {
         ${store.run.pinnedIds.length ? store.run.pinnedIds.map((id) => {
           const card = data.cardById.get(id); if (!card) return nothing;
           const owned = !c.unowned.has(id);
-          return html`<span class="chip">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} ${card.title}</a>${owned ? nothing : html` <span class="warn small">not owned</span>${tip('Marked not owned in the card table, so it is skipped when building the deck.')}`}<button data-action="unpin-card" data-id="${id}" title="Unpin" @click=${() => unpinCard(id)}>✕</button></span>`;
+          return html`<span class="chip">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} ${card.title}</a>${owned ? nothing : html` <span class="tag borrow">borrow</span>${tip("Not in your inventory, so it asks for the friend's slot at LB4.")}`}<button data-action="unpin-card" data-id="${id}" title="Unpin" @click=${() => unpinCard(id)}>✕</button></span>`;
         }) : html`<span class="muted small">Nothing pinned. Light Hello is mandatory in Grand Concert, so pin one of her cards unless you have a reason not to.</span>`}
       </div>
-      ${c.pinnedIds.length > OWNED_SLOTS ? html`<div class="small muted">${c.pinnedIds.length} pinned: the builder keeps the ${OWNED_SLOTS} with the best added spark chance and may borrow one of the rest.</div>` : nothing}
+      ${c.ownedPinIds.length > OWNED_SLOTS ? html`<div class="small muted">${c.ownedPinIds.length} owned cards pinned: the builder keeps the ${OWNED_SLOTS} with the best added spark chance.</div>
+        <label class="row"><span class="k">Borrow best overall card instead of best card among pins</span><input type="checkbox" data-run="borrowFromAll" .checked=${live(store.run.borrowFromAll)} @change=${(e: Event) => update((s) => { s.run.borrowFromAll = (e.target as HTMLInputElement).checked; })} /></label>` : nothing}
       ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked as owned. She is mandatory in Grand Concert.</div>` : nothing}
       <label class="row"><span class="k">Training focus</span>
         <select data-setting="focus" @change=${(e: Event) => setSetting('focus', (e.target as HTMLSelectElement).value)}>${(['balanced', 'stamina', 'sprint'] as const).map((f) => html`<option value="${f}" ?selected=${store.settings.focus === f}>${capitalize(f)}</option>`)}</select></label>

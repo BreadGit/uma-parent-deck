@@ -20,11 +20,12 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   is to actually hand over the skill) and a stat score (predicted contribution in independent
   training at your limit break). Ranking is by marginal spark gain, tie-broken by stats.
 - A greedy builder fills the five owned slots and the friend's slot. Pinned cards (Light Hello is
-  pinned by default for Our Grand Concert) are a shortlist for the owned slots: taken best first by
-  marginal spark gain, one card per character, so eight pins give the best five of them. The friend's
-  slot then takes the best card overall at LB4 from every card, and any owned slots left fill from
-  the rest of your inventory. If a deck card's LB4 version would serve better as the borrow, it is
-  swapped in and its slot refilled.
+  pinned by default for Our Grand Concert) go first, best marginal spark gain first, one card per
+  character: an owned pin takes an owned slot, and a pin you do not own asks for the friend's slot at
+  LB4. With six or more owned pins the leftover pins compete for the friend's slot too, unless the
+  "borrow best overall card" box is ticked. A friend's slot still open takes the best card overall,
+  owned slots still open fill from the rest of your inventory, and if a deck card's LB4 version would
+  serve better as the borrow it is swapped in and its slot refilled.
 - The predicted run shows expected stats, chance of ≥600 and ≥1100 per stat (blue spark star
   bands), chance of SS rank (which increase white spark star odds), estimated SP, and a 10-skill priority list used by independent training
   with the skills that are gated behind an event choice listed first.

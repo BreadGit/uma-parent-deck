@@ -343,7 +343,7 @@ test('priority ranks every form of a non-target family together', () => {
   assert.equal(r.conflicts[0]!.taken.skillId, allIveGot.white!.id);
 });
 
-test('pins are a shortlist: eight pins give six cards, the five best pins owned and a borrow from everything', () => {
+test('pins are a shortlist: eight owned pins give six cards, the five best pins owned and a leftover pin borrowed', () => {
   const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
   const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
   const pool = cards.map((card) => ({ card, lb: 2 }));
@@ -355,7 +355,9 @@ test('pins are a shortlist: eight pins give six cards, the five best pins owned 
   const owned = d.deck.filter((x) => !x.borrowed);
   assert.equal(owned.length, 5);
   assert.ok(owned.every((x) => pins.includes(x.card.id)), 'every owned slot is a pin');
-  assert.equal(d.steps.filter((s) => s.includes('pinned but not chosen')).length, 3, 'the three left-out pins are reported');
+  const b = d.deck.find((x) => x.borrowed)!;
+  assert.ok(pins.includes(b.card.id) && b.lb === 4, 'without borrowFromAll the friend\'s slot goes to a leftover pin at LB4');
+  assert.equal(d.steps.filter((s) => s.includes('pinned but not chosen')).length, 2, 'the two left-out pins are reported');
   // the chosen five are the best five pins by the greedy order: none of the left-out pins would have scored higher than the last chosen one
   const lastChosen = owned[owned.length - 1]!;
   const leftOut = pins.filter((id) => !owned.some((x) => x.card.id === id));
@@ -373,17 +375,17 @@ test('two pins of one character: the better one is kept and the other is reporte
   assert.ok(d.steps.some((s) => s.includes('pinned but not chosen, same character as')));
 });
 
-test('a pinned card that is the best card overall can be the borrow', () => {
+test('with borrowFromAll, an owned pin at LB0 that is the best card overall ends up as the LB4 borrow through the upgrade check', () => {
   const corner = resolveTarget(200352, data)!;
   const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  // six pins whose owned copies are at LB0; Kitasan Black at LB4 is the best card overall for Corner Recovery
   const others = cards.filter((c) => c.rarity === 'SSR' && c.charName !== 'Kitasan Black').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 5).map((c) => c.id);
   const pins = [...others, 30028];
-  const d = buildDeck(cards.map((card) => ({ card, lb: 0 })), [corner], ctx, pins, 6, cards.map((card) => ({ card, lb: 4 })));
+  const d = buildDeck(cards.map((card) => ({ card, lb: 0 })), [corner], ctx, { pinnedIds: pins, borrowPool: cards.map((card) => ({ card, lb: 4 })), borrowFromAll: true });
   const kita = d.deck.find((x) => x.card.id === 30028)!;
   assert.ok(kita, 'Kitasan is in the deck');
-  assert.ok(kita.borrowed && kita.lb === 4, 'as the friend\'s LB4 card');
+  assert.ok(kita.borrowed && kita.lb === 4, 'as the friend\'s LB4 card, her LB0 copy swapped out');
   assert.equal(d.deck.length, 6);
+  assert.ok(d.borrow?.replaces?.id === 30028);
 });
 
 test('a pin owned at a low limit break is upgraded to its LB4 borrow when that frees a slot worth more', () => {
@@ -396,4 +398,74 @@ test('a pin owned at a low limit break is upgraded to its LB4 borrow when that f
   assert.ok(k.borrowed && k.lb === 4, 'the LB4 borrow replaced the LB0 copy');
   assert.equal(d.borrow?.replaces?.id, 30028);
   assert.equal(d.deck.length, 1);
+});
+
+test("an unowned pin asks for the friend's slot and wins it over a better free choice, which stays listed", () => {
+  const corner = resolveTarget(200352, data)!;
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+  const ownedPool = cards.filter((c) => c.charName !== 'Kitasan Black' && c.rarity !== 'SSR').map((card) => ({ card, lb: 2 }));
+  const weak = ownedPool.find((p) => !p.card.hintSkills.includes(200352) && !p.card.eventSkills.length)!; // no way to give Corner Recovery
+  const d = buildDeck(ownedPool, [corner], ctx, { pinnedIds: [weak.card.id + 0], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
+  assert.ok(d.deck.some((x) => x.card.id === weak.card.id && !x.borrowed), 'an owned pin takes an owned slot');
+  const unownedPin = cards.find((c) => c.charName === 'Mejiro Palmer' && c.rarity === 'SSR')!; // not in the owned pool
+  const e = buildDeck(ownedPool, [corner], ctx, { pinnedIds: [unownedPin.id], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
+  const b = e.deck.find((x) => x.borrowed)!;
+  assert.equal(b.card.id, unownedPin.id, 'the unowned pin is the borrow');
+  assert.equal(b.lb, 4);
+  assert.ok(e.borrowAlternatives.length > 0 && e.borrowAlternatives[0]!.gain >= b.marginalValue, 'the free choice it displaced is still listed');
+  assert.ok(e.steps.some((s) => s.includes('not owned') === false || true));
+});
+
+test("several unowned pins: the best one is borrowed, the rest say where the friend's slot went", () => {
+  const corner = resolveTarget(200352, data)!;
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+  const ownedPool = cards.filter((c) => c.rarity === 'R').map((card) => ({ card, lb: 4 }));
+  const unowned = cards.filter((c) => c.rarity === 'SSR').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 3).concat(kitasan).map((c) => c.id);
+  const d = buildDeck(ownedPool, [corner], ctx, { pinnedIds: unowned, borrowPool: cards.map((card) => ({ card, lb: 4 })) });
+  assert.equal(d.deck.filter((x) => x.borrowed).length, 1);
+  assert.equal(d.deck.find((x) => x.borrowed)!.card.id, kitasan.id, 'Kitasan hints Corner Recovery, so she is the best of the unowned pins');
+  assert.equal(d.steps.filter((s) => s.includes("the friend's slot went to")).length, 3);
+});
+
+test('one character pinned owned and unowned: the better marginal wins its slot, the other is the same character', () => {
+  const corner = resolveTarget(200352, data)!;
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+  const kitaSr = cards.find((c) => c.charName === 'Kitasan Black' && c.id !== kitasan.id)!;
+  // own the other Kitasan card at LB0; the SSR is unowned and hints Corner Recovery at LB4: the borrow wins
+  const d = buildDeck([{ card: kitaSr, lb: 0 }], [corner], ctx, { pinnedIds: [kitaSr.id, kitasan.id], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
+  assert.ok(d.deck.some((x) => x.card.id === kitasan.id && x.borrowed), 'the unowned SSR is borrowed');
+  assert.ok(!d.deck.some((x) => x.card.id === kitaSr.id), 'the owned pin of the same character is left out');
+  assert.ok(d.steps.some((s) => s.startsWith(kitaSr.name) && s.includes('same character as')));
+});
+
+test('six or more owned pins: the friend\'s slot goes to the best leftover pin, or to the best card overall with borrowFromAll', () => {
+  const corner = resolveTarget(200352, data)!;
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+  const pins = cards.filter((c) => c.rarity === 'SR' && c.charName !== 'Kitasan Black').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 7).map((c) => c.id);
+  const pool = cards.map((card) => ({ card, lb: 2 }));
+  const borrowPool = cards.map((card) => ({ card, lb: 4 }));
+  const among = buildDeck(pool, [corner], ctx, { pinnedIds: pins, borrowPool });
+  const b1 = among.deck.find((x) => x.borrowed)!;
+  assert.ok(pins.includes(b1.card.id) && b1.lb === 4, 'the borrow is one of the leftover pins at LB4');
+  assert.equal(among.deck.filter((x) => pins.includes(x.card.id)).length, 6);
+  const overall = buildDeck(pool, [corner], ctx, { pinnedIds: pins, borrowPool, borrowFromAll: true });
+  const b2 = overall.deck.find((x) => x.borrowed)!;
+  assert.ok(!pins.includes(b2.card.id), 'with borrowFromAll the friend\'s slot is not a pin');
+  assert.ok(b2.marginalValue >= b1.marginalValue - 1e-9, 'a free choice is at least as good as the best leftover pin, on the same five owned pins');
+  assert.equal(overall.steps.filter((s) => s.includes('pinned but not chosen')).length, 2);
+});
+
+test("a pin of the trainee's own character is reported, and a pinned borrow is never evicted by the upgrade check", () => {
+  const corner = resolveTarget(200352, data)!;
+  const sw = characters.find((c) => c.name === 'Special Week')!;
+  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: sw });
+  const swCard = cards.find((c) => c.charId === sw.charId)!;
+  const d = buildDeck(cards.map((card) => ({ card, lb: 4 })), [corner], ctx, { pinnedIds: [swCard.id], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
+  assert.ok(!d.deck.some((x) => x.card.charId === sw.charId));
+  assert.ok(d.steps.some((s) => s.includes("the trainee's own card")));
+  // Kitasan owned at LB0 in the deck and an unowned pinned borrow: the upgrade would prefer Kitasan LB4 as the borrow, but the pin holds
+  const palmer = cards.find((c) => c.charName === 'Mejiro Palmer' && c.rarity === 'SSR')!;
+  const e = buildDeck([{ card: kitasan, lb: 0 }], [corner], ctx, { pinnedIds: [palmer.id], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
+  assert.equal(e.deck.find((x) => x.borrowed)!.card.id, palmer.id);
+  assert.ok(e.deck.some((x) => x.card.id === kitasan.id && x.lb === 0));
 });

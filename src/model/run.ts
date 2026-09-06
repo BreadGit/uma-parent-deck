@@ -19,7 +19,8 @@ export interface RunInput {
   traineeStars: number;                    // picks the base stat table
   aptOverrides: Partial<Aptitudes>;
   raceOverrides: Record<string, boolean>;  // calendar id -> forced in (true) or out (false)
-  pinnedIds: number[];                     // support cards forced into the deck, in order
+  pinnedIds: number[];                     // pinned support cards: owned ones shortlist the owned slots, unowned ones ask for the friend's slot
+  borrowFromAll: boolean;                  // with six or more owned pins, borrow the best card overall rather than the best leftover pin
   parentGains: number[][];                 // [parent 1, parent 2], five stats each: the start gain the legacy screen shows
 }
 
@@ -32,7 +33,8 @@ export interface RunPlan {
   targets: Target[];
   pool: { card: Card; lb: number }[];      // every card in the ranking, at its effective LB
   unowned: Set<number>;                    // card ids marked not owned
-  pinnedIds: number[];                     // pins that are actually owned
+  pinnedIds: number[];                     // pins that exist in the data
+  ownedPinIds: number[];                   // the pins that are in the inventory
   existing: Existing;                      // what the trainee and lineage already cover
   ranking: CardScore[];
   deckResult: DeckResult;
@@ -122,18 +124,20 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns, trainee, raceWins: raceWinChances(schedule), lineage, priority: [] };
   const { pool, unowned } = cardPool(data, inventory, settings);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
-  const pinnedIds = input.pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
+  const pinnedIds = input.pinnedIds.filter((id) => data.cardById.has(id));
+  const ownedPinIds = pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
   // Any Global card can be borrowed from a friend, assumed at the borrowed limit break.
   const borrowPool = data.cards.map((card) => ({ card, lb: BORROWED_LB }));
+  const build = { pinnedIds, borrowPool, borrowFromAll: input.borrowFromAll, size: DECK_SIZE };
   const order = (cands: WishlistEntry[]) => applyUserOrder(cands, input.wishlistOrder, input.wishlistExcluded, data);
   // Pass 1: build without conflict rules to get the prioritized-skill order; that order decides which target an
   // event's single choice goes to. Pass 2 rebuilds with those rules.
-  const pass1 = buildDeck(deckPool, targets, baseCtx, pinnedIds, DECK_SIZE, borrowPool);
+  const pass1 = buildDeck(deckPool, targets, baseCtx, build);
   const priority = derivePriority(order(wishlistCandidates(pass1.deck, targets, baseCtx)), targets, data);
   const ctx: Ctx = { ...baseCtx, priority };
   const existing = traineeCoverage(targets, ctx);
   const ranking = rankCards(pool, targets, existing, ctx);
-  const deckResult = buildDeck(deckPool, targets, ctx, pinnedIds, DECK_SIZE, borrowPool);
+  const deckResult = buildDeck(deckPool, targets, ctx, build);
   const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings);
   const inherited = STATS.map((_, i) => inheritedFromParents(input.parentGains, i, settings));
   const finalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
@@ -141,7 +145,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);
   const ordered = order(candidates);
   return {
-    trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, existing, ranking, deckResult, pred, inherited, finalMean, rank,
+    trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, inherited, finalMean, rank,
     wl: ordered.slice(0, PRIORITIZED_SKILLS_MAX),
     wlRest: ordered.slice(PRIORITIZED_SKILLS_MAX),
     wlExcluded: candidates.filter((w) => input.wishlistExcluded.includes(w.key)),

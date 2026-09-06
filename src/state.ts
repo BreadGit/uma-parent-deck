@@ -18,7 +18,7 @@ const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck
 
 export const DEFAULT_RUN: RunInput = {
   targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
-  aptOverrides: {}, raceOverrides: {}, pinnedIds: [], parentGains: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
+  aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentGains: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
 };
 export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system' };
 
@@ -41,6 +41,7 @@ function migrateRun(raw: Json, data: Data): RunInput {
   for (const k of ['targets', 'wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = numList(raw[k]);
   if (typeof raw.traineeCardId === 'number') run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
+  if (typeof raw.borrowFromAll === 'boolean') run.borrowFromAll = raw.borrowFromAll;
   if (isObj(raw.aptOverrides)) run.aptOverrides = raw.aptOverrides as RunInput['aptOverrides'];
   if (isObj(raw.raceOverrides)) run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([, v]) => typeof v === 'boolean')) as Record<string, boolean>;
   // pins: a single pinnedId (v1) became pinnedIds (v2)

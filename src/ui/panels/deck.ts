@@ -88,7 +88,7 @@ export function renderDeck(c: RunPlan) {
       <h2>Suggested deck</h2>
       ${d.deck.length ? html`<div class="deck">${[...d.deck.filter((x) => !x.borrowed), ...d.deck.filter((x) => x.borrowed)].map((cs) => html`
         <div class="slot">
-          <div class="slot-top">${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : store.run.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}</div>
+          <div class="slot-top">${store.run.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : nothing}</div>
           ${cardThumb(cs.card, 'slot-art')}
           <div class="name">${cardLink(cs.card)}</div>
           <div class="lb">${cs.borrowed ? html`${cs.card.rarity} · LB4 (friend's)` : html`${cs.card.rarity} · LB ${lbSelect(cs.card, cs.lb, 'small')}`} ${typeTag(cs.card)}</div>
