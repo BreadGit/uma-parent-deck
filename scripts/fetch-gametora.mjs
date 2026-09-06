@@ -196,8 +196,8 @@ function normalizeCards(raw, eventNames, palGroupEvents) {
       effects,
       effectsByLb,
       unique: c.unique ?? null,
-      hintSkills: c.hints?.hint_skills ?? [],
-      eventSkills: c.event_skills ?? [],
+      hintSkills: ids(c.hints?.hint_skills),
+      eventSkills: ids(c.event_skills),
       hintOthers,
       chainEvents,
       randomEvents,
@@ -234,6 +234,9 @@ function normalizeSkills(raw) {
 }
 
 const APT_KEYS = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
+// The feed occasionally carries a skill id as a string (Super Creek's event skill 201352); ids are numbers here.
+const ids = (list) => (list ?? []).map(Number);
+
 function normalizeCharacters(raw) {
   // Career goals per character: race objectives with their calendar slot (turn 1 = Junior early January).
   const goalsByChar = new Map();
@@ -262,10 +265,10 @@ function normalizeCharacters(raw) {
       baseStats: c.base_stats,
       fourStarStats: c.four_star_stats ?? null,
       fiveStarStats: c.five_star_stats ?? null,
-      innateSkills: c.skills_innate ?? [],
-      awakeningSkills: c.skills_awakening_en ?? c.skills_awakening ?? [],
-      eventSkills: c.skills_event ?? [],
-      uniqueSkills: c.skills_unique ?? [],
+      innateSkills: ids(c.skills_innate),
+      awakeningSkills: ids(c.skills_awakening_en ?? c.skills_awakening),
+      eventSkills: ids(c.skills_event),
+      uniqueSkills: ids(c.skills_unique),
       goals: goalsByChar.get(c.char_id) ?? [],
     });
   }

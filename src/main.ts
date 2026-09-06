@@ -417,7 +417,6 @@ function renderDeck(c: Computed): Raw {
       </tbody></table>
       ${d.conflicts.length ? html`<div class="conflicts-box"><h3>Choice conflicts</h3>
         ${(() => {
-          const name = (id: number) => c.targets.find((t) => t.id === id)?.name ?? `#${id}`;
           const opts = (cf: typeof d.conflicts[number]) => [{ skill: cf.keptSkill, opt: cf.keptOption, taken: true }, ...cf.droppedSkills.map((skill, i) => ({ skill, opt: cf.droppedOptions[i] ?? '', taken: false }))];
           return html`<table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken${tip('Skills are taken when they are higher in the Independent training prioritized skills section below.')}</th><th>Not taken</th></tr></thead><tbody>
             ${d.conflicts.map((cf) => html`<tr><td style="white-space:normal">${cf.label}</td>

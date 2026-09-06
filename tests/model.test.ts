@@ -1,8 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import type { Card, Character, Data, Race, Rank, ScenarioEvent, Skill, StatModel } from '../src/types.ts';
+import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, modelContribution, predictDeck, raceScale } from '../src/model/stats.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, sparkChance } from '../src/model/sparks.ts';
@@ -10,13 +8,8 @@ import { buildDeck, evaluate, rankCards, traineeCoverage, wishlist, wishlistCand
 import { buildSchedule, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { statScore } from '../src/model/rank.ts';
 
-const root = path.resolve(import.meta.dirname, '..');
-const J = <T,>(f: string): T => JSON.parse(fs.readFileSync(path.join(root, 'data', f), 'utf8')) as T;
-const cards = J<Card[]>('cards.json'), skills = J<Skill[]>('skills.json'), characters = J<Character[]>('characters.json');
-const data: Data = {
-  cards, skills, characters, races: J<Race[]>('races.json'), ranks: J<Rank[]>('ranks.json'), scenarioEvents: J<ScenarioEvent[]>('scenario-events.json'), model: J<StatModel>('stat-model.json'),
-  cardById: new Map(cards.map((c) => [c.id, c])), skillById: new Map(skills.map((s) => [s.id, s])), charByCardId: new Map(characters.map((c) => [c.cardId, c])),
-};
+const data = loadData();
+const { cards, skills, characters } = data;
 const settings = { ...DEFAULT_SETTINGS };
 const kitasan = data.cardById.get(30028)!;
 
