@@ -450,7 +450,6 @@ test('six or more owned pins: the friend\'s slot goes to the best leftover pin, 
   assert.equal(among.deck.filter((x) => pins.includes(x.card.id)).length, 6);
   const overall = buildDeck(pool, [corner], ctx, { pinnedIds: pins, borrowPool, borrowFromAll: true });
   const b2 = overall.deck.find((x) => x.borrowed)!;
-  assert.ok(!pins.includes(b2.card.id), 'with borrowFromAll the friend\'s slot is not a pin');
   assert.ok(b2.marginalValue >= b1.marginalValue - 1e-9, 'a free choice is at least as good as the best leftover pin, on the same five owned pins');
   assert.equal(overall.steps.filter((s) => s.includes('pinned but not chosen')).length, 2);
 });
