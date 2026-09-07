@@ -6,13 +6,36 @@ export const EFFECT = {
   raceBonus: 15, fanBonus: 16, hintLevels: 17, hintFreq: 18, specialty: 19, skillPointBonus: 30,
 } as const;
 
-/** Effect id -> value at the given limit break, unique effects folded in. */
-export function passives(card: Card, lb: number): Record<number, number> {
+/** Effect id -> value at the given limit break, unique effects folded in, plus any deck-dependent extras. */
+export function passives(card: Card, lb: number, extra: Record<number, number> = {}): Record<number, number> {
   const e = card.effectsByLb[Math.max(0, Math.min(4, lb))] ?? {};
   const out: Record<number, number> = {};
   for (const [k, v] of Object.entries(e)) {
     const id = Number(k.replace('u', ''));
     out[id] = (out[id] ?? 0) + v;
+  }
+  for (const [k, v] of Object.entries(extra)) out[Number(k)] = (out[Number(k)] ?? 0) + v;
+  return out;
+}
+
+/** The level a card's limit break reaches, which decides whether its unique effect is unlocked. */
+const LB_LEVEL: Record<Card['rarity'], number[]> = { R: [20, 25, 30, 35, 40], SR: [25, 30, 35, 40, 45], SSR: [30, 35, 40, 45, 50] };
+/**
+ * Passives a card's unique effect adds once the deck is known (docs/refs/gametora-unique-effects.md): type 103 gives
+ * Training Effectiveness with enough card types in the deck, type 105 gives initial stats per card in the deck.
+ * The other compound types are folded into effectsByLb by the normalizer or left out.
+ */
+export function deckUniqueExtras(card: Card, lb: number, deck: { card: Card }[]): Record<number, number> {
+  const out: Record<number, number> = {};
+  if (!card.unique || (LB_LEVEL[card.rarity][Math.max(0, Math.min(4, lb))] ?? 0) < card.unique.level) return out;
+  const types = new Set(deck.map((d) => d.card.type));
+  for (const u of card.unique.effects) {
+    if (u.type === 103 && types.size >= u.value) out[EFFECT.trainingEff] = (out[EFFECT.trainingEff] ?? 0) + (u.value_1 ?? 0);
+    if (u.type === 105) STATS.forEach((st, i) => {
+      const same = deck.filter((d) => d.card.type === st).length, friends = deck.filter((d) => d.card.type === 'pal' || d.card.type === 'group').length;
+      const v = u.value * same + (u.value_1 ?? 0) * friends;
+      if (v) out[EFFECT.initialStat + i] = (out[EFFECT.initialStat + i] ?? 0) + v;
+    });
   }
   return out;
 }
@@ -29,9 +52,9 @@ export function raceScale(races: number, model: StatModel, settings: Settings): 
   return scale;
 }
 
-/** Model-only card contribution at the reference race count, balanced focus. */
-export function modelContribution(card: Card, lb: number, model: StatModel): { stats: number[]; sp: number } {
-  const p = passives(card, lb);
+/** Model-only card contribution at the reference race count, balanced focus. `extra` adds deck-dependent passives. */
+export function modelContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): { stats: number[]; sp: number } {
+  const p = passives(card, lb, extra);
   const stats = STATS.map((s, i) => {
     let v = model.floor + (p[EFFECT.initialStat + i] ?? 0);
     const role = card.type === s ? 'primary' : (model.secondary[card.type] ?? []).includes(s) ? 'secondary' : null;
@@ -50,16 +73,20 @@ export function modelContribution(card: Card, lb: number, model: StatModel): { s
 
 export interface Contribution { stats: number[]; sp: number; source: 'observed' | 'observed+model' | 'model'; runs?: number }
 
-/** Best estimate of a card's contribution at the reference race count: observed where available, model otherwise. */
-export function cardContribution(card: Card, lb: number, model: StatModel): Contribution {
+/**
+ * Best estimate of a card's contribution at the reference race count: observed where available, model otherwise.
+ * `extra` (deck-dependent unique passives) only reaches the model: an observed row already contains the effect at
+ * the deck it was logged with, and it cancels out of an LB shift.
+ */
+export function cardContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): Contribution {
   const obs = model.observed.filter((o) => o.cardId === card.id && o.wellTested);
   const exact = obs.find((o) => o.lb === lb);
   if (exact) return { stats: exact.stats.slice(), sp: exact.sp, source: 'observed', runs: exact.runs };
-  const m = modelContribution(card, lb, model);
+  const m = modelContribution(card, lb, model, extra);
   if (obs.length) {
     // shift the nearest observed LB by the model's delta between the two LBs
     const near = obs.reduce((a, b) => (Math.abs(b.lb - lb) < Math.abs(a.lb - lb) ? b : a));
-    const mNear = modelContribution(card, near.lb, model);
+    const mNear = modelContribution(card, near.lb, model, extra);
     return {
       stats: near.stats.map((v, i) => Math.max(model.floor, v + (m.stats[i]! - mNear.stats[i]!))),
       sp: near.sp + (m.sp - mNear.sp),
@@ -94,7 +121,7 @@ export function predictDeck(deck: DeckInput[], trainee: Character | null, races:
   const cardStats = [0, 0, 0, 0, 0];
   let cardSp = 0;
   for (const d of deck) {
-    const c = cardContribution(d.card, d.lb, model);
+    const c = cardContribution(d.card, d.lb, model, deckUniqueExtras(d.card, d.lb, deck));
     c.stats.forEach((v, i) => (cardStats[i]! += v * scale));
     cardSp += c.sp * scale;
   }

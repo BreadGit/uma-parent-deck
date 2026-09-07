@@ -67,7 +67,7 @@ export function renderRanking(c: RunPlan) {
             <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
             ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
-            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${x.card.unique?.effects.some((u) => u.type >= 100) ? html` <span class="tag warn">unique not modelled</span>${tip(`Unique effect: ${x.card.unique.text ?? 'conditional effect (text not fetched)'}. It has a condition the stat model does not evaluate, so the model leaves it out; an observed row includes it only at the observed limit break.`)}` : nothing}</td>
+            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${x.card.unique?.model ? html` <span class="tag ${Object.keys(x.card.unique.model.effects).length || x.card.unique.effects.some((u) => u.type === 103 || u.type === 105) ? '' : 'warn'}">${Object.keys(x.card.unique.model.effects).length || x.card.unique.effects.some((u) => u.type === 103 || u.type === 105) ? 'unique approximated' : 'unique not modelled'}</span>${tip(`Unique effect: ${x.card.unique.text ?? 'conditional effect'}. Model: ${x.card.unique.model.note || 'left out'}. An observed row includes the real effect at the observed limit break.`)}` : nothing}</td>
           </tr>`;
         })}
       </tbody></table></div>

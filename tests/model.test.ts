@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
-import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale } from '../src/model/stats.ts';
+import { cardContribution, deckUniqueExtras, EFFECT, modelContribution, passives, predictDeck, raceScale } from '../src/model/stats.ts';
 import type { Card, Race } from '../src/types.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, pruneConflicts, sparkChance, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
@@ -39,6 +39,26 @@ test('stat model: reproduces observed Kitasan MLB, shifts other limit breaks fro
   assert.ok(c0.stats[0]! <= obs.stats[0]!);
   assert.ok(raceScale(23, data.model, settings) > 1.08 && raceScale(23, data.model, settings) < 1.14, 'fewer races, more card stats');
   assert.equal(raceScale(28, data.model, settings), 1);
+});
+
+test('deck-dependent unique effects: Agnes Digital gains Training Effectiveness with five card types, Symboli Rudolf gains initial stats per card, only through the model', () => {
+  const digital = data.cardById.get(30085)!, rudolf = data.cardById.get(30090)!;
+  // the n-th SSR of each type, so a type listed twice gives two different cards
+  const pick = (types: string[]) => types.map((t, i) => ({ card: cards.filter((c) => c.type === t && c.rarity === 'SSR' && ![30085, 30090].includes(c.id))[types.slice(0, i).filter((x) => x === t).length]!, lb: 4 }));
+  const fiveTypes = [{ card: digital, lb: 4 }, ...pick(['speed', 'stamina', 'guts', 'wit', 'pal'])]; // power, speed, stamina, guts, wit, pal
+  const fourTypes = [{ card: digital, lb: 4 }, ...pick(['speed', 'speed', 'stamina', 'stamina', 'pal'])]; // power, speed, stamina, pal
+  assert.deepEqual(deckUniqueExtras(digital, 4, fiveTypes), { [EFFECT.trainingEff]: 15 });
+  assert.deepEqual(deckUniqueExtras(digital, 4, fourTypes), {});
+  assert.ok(modelContribution(digital, 4, data.model, deckUniqueExtras(digital, 4, fiveTypes)).stats[2]! > modelContribution(digital, 4, data.model).stats[2]!, 'more Power from her own facility');
+  const withRudolf = [{ card: rudolf, lb: 4 }, ...pick(['speed', 'speed', 'stamina', 'guts', 'pal'])]; // Rudolf is a Stamina card
+  const extras = deckUniqueExtras(rudolf, 4, withRudolf);
+  assert.equal(extras[EFFECT.initialStat + 0], 20 + 2, 'two Speed cards at +10 each, plus 2 from the Pal card');
+  assert.equal(extras[EFFECT.initialStat + 1], 20 + 2, 'her own Stamina card and the other Stamina card, plus 2 from the Pal card');
+  assert.equal(extras[EFFECT.initialStat + 4], 2, 'the Pal card alone for Wit');
+  assert.deepEqual(deckUniqueExtras(kitasan, 4, withRudolf), {}, 'a basic unique effect adds nothing here');
+  const obs = data.model.observed.find((o) => o.wellTested && o.lb === 4)!;
+  const card = data.cardById.get(obs.cardId)!;
+  assert.deepEqual(cardContribution(card, 4, data.model, { [EFFECT.trainingEff]: 15 }).stats, obs.stats, 'an observed row already contains its deck effects');
 });
 
 test('prediction: focus multiplies the split, growth raises event stats, race losses cost stat points', () => {
