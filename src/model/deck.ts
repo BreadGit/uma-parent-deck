@@ -220,17 +220,12 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
 
   // 2. the friend's card, if no pin took the slot
   let borrow: BorrowOption | null = null;
-  const alternatives: BorrowOption[] = [];
   if (borrowPool.length) {
-    const ranked = borrowPool.filter(free).map((p) => score(p, true)).sort(cmp);
     const current = deck.find((d) => d.borrowed);
-    if (current) {
-      borrow = { card: current.card, replaces: null, gain: current.marginalValue, statGain: current.statPower };
-      for (const r of ranked.slice(0, 5)) alternatives.push({ card: r.card, replaces: null, gain: r.marginalValue, statGain: r.statPower });
-    } else if (ranked[0]) {
-      add(ranked[0], why(ranked[0]));
-      borrow = { card: ranked[0].card, replaces: null, gain: ranked[0].marginalValue, statGain: ranked[0].statPower };
-      for (const r of ranked.slice(1, 6)) alternatives.push({ card: r.card, replaces: null, gain: r.marginalValue, statGain: r.statPower });
+    if (current) borrow = { card: current.card, replaces: null, gain: current.marginalValue, statGain: current.statPower };
+    else {
+      const best = borrowPool.filter(free).map((p) => score(p, true)).sort(cmp)[0];
+      if (best) { add(best, why(best)); borrow = { card: best.card, replaces: null, gain: best.marginalValue, statGain: best.statPower }; }
     }
   }
 
@@ -296,6 +291,17 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     if (out.borrowed) borrow = { card: cs.card, replaces: null, gain: cs.marginalValue, statGain: cs.statPower };
     const gain = b.value.sparks - base.sparks;
     steps.push(`Swap ${out.card.name} (LB${out.lb}) for ${cs.card.name} (LB${cs.lb})${out.borrowed ? ' as the borrow' : ''}: ${gain > 1e-9 ? `+${(gain * 100).toFixed(1)}% expected sparks` : `same sparks, +${(b.value.stats - base.stats).toFixed(0)} focus-weighted stats`}`);
+  }
+
+  // Other borrows, scored against the final owned cards (after every swap), so the list never names the borrow itself
+  const alternatives: BorrowOption[] = [];
+  const finalBorrow = deck.find((d) => d.borrowed);
+  if (finalBorrow) {
+    const owned = deck.filter((d) => !d.borrowed);
+    const state = stateOf(owned, targets, ctx);
+    const used = new Set(owned.map((x) => x.card.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
+    const ranked = borrowPool.filter((p) => !used.has(p.card.charId) && p.card.id !== finalBorrow.card.id).map((p) => scoreCard(p.card, p.lb, targets, state, ctx)).sort(cmp);
+    for (const r of ranked.slice(0, 5)) alternatives.push({ card: r.card, replaces: null, gain: r.marginalValue, statGain: r.statPower });
   }
 
   const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);

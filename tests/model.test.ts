@@ -443,7 +443,8 @@ test("unowned pins ask for the friend's slot: the best one is borrowed over a be
   const e = buildDeck(ownedPool, [corner], ctx, { pinnedIds: [palmer.id], borrowPool: all4 });
   const b = e.deck.find((x) => x.borrowed)!;
   assert.ok(b.card.id === palmer.id && b.lb === 4, 'the unowned pin is the borrow');
-  assert.ok(e.borrowAlternatives.length > 0 && e.borrowAlternatives[0]!.gain >= b.marginalValue, 'the free choice it displaced is still listed');
+  assert.ok(e.borrowAlternatives.length > 0 && !e.borrowAlternatives.some((o) => o.card.id === palmer.id || e.deck.some((x) => !x.borrowed && x.card.charId === o.card.charId)), 'other borrows are listed, never the borrow itself or a character already in the deck');
+  assert.ok(e.borrowAlternatives.every((o, i, arr) => i === 0 || arr[i - 1]!.gain >= o.gain - 1e-9), 'best first');
   const rPool = cards.filter((c) => c.rarity === 'R').map((card) => ({ card, lb: 4 }));
   const unowned = cards.filter((c) => c.rarity === 'SSR').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 3).concat(kitasan).map((c) => c.id);
   const f = buildDeck(rPool, [corner], ctx, { pinnedIds: unowned, borrowPool: all4 });
@@ -489,6 +490,9 @@ test('the swap pass never leaves the deck worse than the greedy build, reports e
   assert.equal(swaps.length > 0, improved.deck.some((d, i) => d.card.id !== greedy.deck[i]?.card.id), 'every change is reported as a swap step');
   assert.ok(!swaps.some((s) => s.startsWith(`Swap ${data.cardById.get(30052)!.name}`)), 'a pinned card is never swapped out');
   assert.equal(new Set(improved.deck.map((x) => x.card.charId)).size, improved.deck.length);
+  const finalBorrow = improved.deck.find((x) => x.borrowed)!;
+  assert.equal(improved.borrow?.card.id, finalBorrow.card.id, 'the borrow named is the one in the deck after the swaps');
+  assert.ok(improved.borrowAlternatives.length > 0 && !improved.borrowAlternatives.some((o) => o.card.id === finalBorrow.card.id || improved.deck.some((x) => !x.borrowed && x.card.charId === o.card.charId)), 'the alternatives follow the final deck');
   const f = data.model.focus;
   buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'sprint' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v, i) => a + v * f.sprint[i]!, 0)) < 1e-6, 'stat power is focus-weighted'));
   buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'balanced' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v) => a + v, 0)) < 1e-6));
