@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/settings.ts';
 import { defaultState, migrate, resetRun, DEFAULT_RUN } from '../src/state.ts';
+import { importInventory } from '../src/inventory.ts';
 import { planRun, targetSpCost } from '../src/model/run.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { combineSources, eventSources, pruneConflicts, purchasedOwnership, resolveTarget, sparkChance, type SkillSource } from '../src/model/sparks.ts';
@@ -11,6 +12,7 @@ import { evaluate, makeCtx, traineeCoverage } from '../src/model/deck.ts';
 const data = loadData();
 const input = () => ({ ...structuredClone(DEFAULT_RUN), traineeCardId: 100101, pinnedIds: [30052] });
 const settings = () => structuredClone(DEFAULT_SETTINGS);
+const file = (value: unknown) => new File([JSON.stringify(value)], 'inventory.json', { type: 'application/json' });
 
 test('card event sources follow changes to the same settings object, including nested arrays', () => {
   const s = settings(), creek = data.cardById.get(30016)!;
@@ -175,4 +177,12 @@ test('borrow gain uses the final five owned cards as its baseline', () => {
   const sum = (v: Map<number, number>) => [...v.values()].reduce((a, b) => a + b, 0);
   const gain = sum(p.deckResult.sparks) - sum(evaluate(owned, p.targets, p.ctx).sparks);
   assert.ok(Math.abs(p.deckResult.borrow!.gain - gain) < 1e-9, `${p.deckResult.borrow!.gain} != ${gain}`);
+});
+
+test('inventory import rejects invalid structure and invalid entries atomically', async () => {
+  for (const value of [null, [], 'text', 4, { garbage: 'data' }, { 30052: false }, { 30052: '' }, { 30052: 5 }, { 30052: 2.5 }, { 30052: null, garbage: 1 }]) {
+    await assert.rejects(importInventory(file(value)), Error, JSON.stringify(value));
+  }
+  assert.deepEqual(await importInventory(file({ 30052: 'none', 30028: '2', 20009: -1 })), { 30052: null, 30028: 2, 20009: null });
+  assert.deepEqual(await importInventory(file({})), {}, 'an explicit empty inventory means defaults');
 });

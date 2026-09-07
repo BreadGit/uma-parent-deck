@@ -38,6 +38,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
   repo root to make it the default.
+  Invalid inventory imports leave the current inventory intact.
 - Legacy screen: a copy of the game's pre-run screen. Above each stat you pick the "+XX" each
   parent side adds at the start, as the game shows it; the 20 possible values each decode to one
   set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). Each spark then procs at the two
