@@ -220,6 +220,16 @@ for k in np.linspace(0, 2.0, 201):
     if best is None or sse < best[1]: best = (k, sse)
 GROWTH_EFFECT = float(round(best[0], 2))
 print(f'  growth effect on event stats k = {GROWTH_EFFECT} (1.0 = full growth %, 0 = none)')
+# how much the fit prefers that k: the pooled within-race-count variance of event stats at k = 0, the best k and k = 1
+def sse_at(k):
+    sse = 0
+    for R in (28, 23):
+        rows_R = [(e, g) for r, e, g, _ in evs if r == R]
+        if not rows_R: continue
+        E = np.array([e / (1 + k * g / 100) for e, g in rows_R])
+        sse += ((E - E.mean(axis=0)) ** 2).sum()
+    return sse
+print('  event-stat variance at k=0: %.0f, at best k: %.0f, at k=1: %.0f (n=%d runs; a flat curve means the data cannot tell)' % (sse_at(0), sse_at(best[0]), sse_at(1.0), len(evs)))
 event_base = {}; event_sp = {}; sigma_res = []
 for R in (28, 23):
     rows_R = [(e, g) for r, e, g, _ in evs if r == R]
