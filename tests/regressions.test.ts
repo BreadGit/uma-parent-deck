@@ -163,3 +163,16 @@ test('event choice scoring accounts for a purchasable circle upgrade', () => {
   const result = pruneConflicts(new Map([[right.id, sources]]), [right.id], [], settings(), [right]);
   assert.deepEqual(result.map.get(right.id), [sources[1]], 'a certain purchasable circle yields 25%, above the 20% expected from the gold roll');
 });
+
+test('borrow gain uses the final five owned cards as its baseline', () => {
+  const p = planRun({ ...input(), targets: [200352, 201601, 200472] }, settings(), {}, data);
+  const owned = traineeCoverage(p.targets, p.ctx);
+  for (const entry of p.deckResult.deck.filter((c) => !c.borrowed)) {
+    owned.chars.add(entry.card.charId);
+    owned.cards.push(entry.card);
+    for (const [id, sources] of entry.mine) owned.sources.set(id, [...(owned.sources.get(id) ?? []), ...sources]);
+  }
+  const sum = (v: Map<number, number>) => [...v.values()].reduce((a, b) => a + b, 0);
+  const gain = sum(p.deckResult.sparks) - sum(evaluate(owned, p.targets, p.ctx).sparks);
+  assert.ok(Math.abs(p.deckResult.borrow!.gain - gain) < 1e-9, `${p.deckResult.borrow!.gain} != ${gain}`);
+});

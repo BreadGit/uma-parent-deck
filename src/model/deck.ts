@@ -343,10 +343,13 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   // Other borrows, scored against the final owned cards (after every swap), so the list never names the borrow itself
   const alternatives: BorrowOption[] = [];
   const finalBorrow = deck.find((d) => d.borrowed);
-  if (finalBorrow && borrow && !borrow.replaces) borrow.statGain = finalBorrow.statPower;
   if (finalBorrow) {
     const owned = deck.filter((d) => !d.borrowed);
     const state = stateOf(owned, targets, ctx);
+    if (borrow) {
+      borrow.gain = total(evaluate(stateOf(deck, targets, ctx), targets, ctx).sparks) - total(evaluate(state, targets, ctx).sparks);
+      borrow.statGain = finalBorrow.statPower;
+    }
     const used = new Set(owned.map((x) => x.card.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
     const ranked = borrowPool.filter((p) => !used.has(p.card.charId) && p.card.id !== finalBorrow.card.id).map((p) => scoreCard(p.card, p.lb, targets, state, ctx)).sort(cmp);
     for (const r of ranked.slice(0, 5)) alternatives.push({ card: r.card, replaces: null, gain: r.marginalValue, statGain: r.statPower });
