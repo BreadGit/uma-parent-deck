@@ -1,4 +1,5 @@
 import { html, nothing, type TemplateResult } from 'lit-html';
+import { live } from 'lit-html/directives/live.js';
 import { STATS, type Card } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
@@ -16,11 +17,15 @@ function setLb(card: Card, value: string) {
     else s.inventory[id] = Number(value);
   });
 }
-/** The LB dropdown shared by the deck slots and the ranking table. */
+/**
+ * The LB dropdown shared by the deck slots and the ranking table. The value is bound live: once a user has changed
+ * a <select>, the browser ignores later `selected` attribute changes on its options, so a select element that lit
+ * reuses for a different card would keep showing the old choice.
+ */
 export function lbSelect(card: Card, lb: number, cls = '') {
   const owned = !plan().unowned.has(card.id);
   const explicit = store.inventory[String(card.id)] !== undefined;
-  return html`<select data-lb="${card.id}" class="${cls} ${explicit ? '' : 'muted'}" @change=${(e: Event) => setLb(card, (e.target as HTMLSelectElement).value)}>
+  return html`<select data-lb="${card.id}" class="${cls} ${explicit ? '' : 'muted'}" .value=${live(owned ? String(lb) : 'none')} @change=${(e: Event) => setLb(card, (e.target as HTMLSelectElement).value)}>
     <option value="none" ?selected=${!owned}>not owned</option>
     ${[0, 1, 2, 3, 4].map((l) => html`<option value="${l}" ?selected=${owned && lb === l}>${l}${!explicit && lb === l ? ' (default)' : ''}</option>`)}</select>`;
 }
@@ -62,7 +67,7 @@ export function renderRanking(c: RunPlan) {
             <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
             ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
-            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${x.card.unique?.effects.some((u) => u.type >= 100) ? html` <span class="tag warn" title="This card's unique effect has a condition the stat model does not evaluate, so its stats leave that effect out (an observed row includes it only at the observed limit break).">unique not modelled</span>` : nothing}</td>
+            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${x.card.unique?.effects.some((u) => u.type >= 100) ? html` <span class="tag warn">unique not modelled</span>${tip(`Unique effect: ${x.card.unique.text ?? 'conditional effect (text not fetched)'}. It has a condition the stat model does not evaluate, so the model leaves it out; an observed row includes it only at the observed limit break.`)}` : nothing}</td>
           </tr>`;
         })}
       </tbody></table></div>
