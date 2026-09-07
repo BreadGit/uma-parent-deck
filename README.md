@@ -5,10 +5,10 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 ## What it does
 
-- You pick the white skills you want to spark. Cards that hint or give the skill, its gold
-  upgrade, or its ◎ form all count; gold counts more because a gold skill has a base 40% spark
-  chance at run end, a ◎ 25%, a white 20%. The run only hands over hints: every figure assumes you
-  buy the target at the end, and the predicted run shows the worst-case SP that takes.
+- You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
+  If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint. Predictions assume you buy
+  the gold form when available (40% spark chance), otherwise ◎ (25%), otherwise white (20%). The run buys
+  nothing. The predicted run shows the full worst-case SP cost, including every prerequisite purchase.
 - You pick the trainee. Her own support cards are excluded, her innate and awakening skills
   count as already covered, and her growth rates and aptitudes feed the stat and race models. Her own
   events count as sources too: story and choice events at a set rate, outings at another, and secret

@@ -24,7 +24,10 @@ names differ they are noted.
   merged; LB4 is **MLB**. Raises the card's level cap and effects. support cards will typically represent a character in the game. the 6 support cards in a deck will influence how a Trainee's career run will go.
 - **Borrow** (friend's card, rental): the one deck slot that must hold another player's card, assumed
   MLB in the tool.
-- **Hint**: the way a skill is given to a Trainee. if the Trainee has the skill already then the skill lvl will go up to a cap. the higher the skill lvl the less the skill costs in SP to purchase. **Hint Frequency** and **Hint Levels** are card effects.
+- **Hint**: makes a skill available to buy; it does not purchase it. Repeated hints raise its hint level, up to
+  a cap, and lower its SP purchase cost. **Hint Frequency** and **Hint Levels** are card effects.
+  If the skill's family has a ◎ version, buying ○ also permits buying ◎ without a separate ◎ hint.
+  A ○ suffix alone does not mean a ◎ version exists. Gold upgrades require their own hint or an innate/awakening source.
 - **Skill Point (SP)**: the points used to purchase skills after a run is over.
 - **Chain events**: a support card's scripted event sequence (SSR: 3, SR: 2, R: 0). **Random
   events**: a list of events that can happen randomly during a run. **Outings** (recreation, dates): pal and group
@@ -66,8 +69,20 @@ names differ they are noted.
 - **White spark generation**: at run end each owned skill may become a white spark: 20% for a white
   skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage. The run
   hands over hints only; the player buys the skills at the end.
-- **Gold skill**: the upgraded form of a white skill (e.g. Concentration for Focus). **○ / ◎ / ×**:
-  normal / stronger / weaker variants of some whites; ◎ is inheritance-only.
+- **Gold skill**: the upgraded form of a normal-rarity skill (e.g. Concentration for Focus). Buying it also requires
+  buying its lower forms. A gold upgrade is separate from a ◎ upgrade and needs its own availability.
+- **○ / ◎ / ×**: normal / stronger / weaker variants that exist in some skill families. Only a family with an
+  actual ◎ version allows that purchase after ○, at an additional SP cost and without a separate ◎ hint.
+  [Right-Handed](https://umamusu.wiki/Game:Skills/200012) has ○ and ◎ forms.
+  [Corner Recovery ○](https://umamusu.wiki/Game:Skills/200352) has no ◎ form; its gold upgrade is Swinging Maestro.
+  [Lucky Seven](https://umamusu.wiki/Game:Skills/201562) is a green passive without a ○/◎ pair; its gold upgrade is Super Lucky Seven.
+  These pairs are not restricted to green passives: [Mile Straightaways](https://umamusu.wiki/Game:Skills/201032) is a speed skill with ○ and ◎ forms.
+- **Skill family**: the base skill and its actual upgrades. Neither a skill's icon color nor a ○ suffix establishes
+  which upgrades exist. A **white skill spark** gives the family's basic skill hint when inherited, not a gold
+  or ◎ hint. It cannot create an upgrade absent from that family. "White skill" in the tool means normal rarity,
+  including green passives; it does not mean a white icon. Green skill icons are also separate from green unique-skill
+  sparks. See [Crazyfellow's guide](refs/crazyfellow-parenting-gene-guide.txt), "Basic information about skill genes"
+  and "Skills with 〇 and ◎ versions."
 - **G1**: top race grade. One win per G1 is enough for the affinity bonus.
 
 ## This tool
@@ -89,9 +104,12 @@ names differ they are noted.
 - **Spark chance**: expected chance a target becomes a white spark at run end. **Added spark chance**
   (marginal): how much a card raises the total over what the trainee and deck already cover.
   **Spark chance alone**: the card by itself.
-- **Coverage**: which targets the run can obtain and through which sources, on the assumption that the
-  player buys each one. **Worst-case target SP cost**: every target bought once at the base cost of the
-  dearest form the run can hand over, with no discounts; compared with the estimated SP.
+- **Coverage**: which target hints the run can obtain and through which sources. Spark chance assumes the
+  player buys the gold form when available, otherwise a released ◎ upgrade if that family has one, otherwise the base skill.
+  **Worst-case target SP cost**: the total base cost of those purchases, including every lower form required,
+  with each family counted once and no hint discounts. For example, Swinging Maestro costs 170 SP plus
+  Corner Recovery ○ at 170 SP, for 340 SP total. Right-Handed ◎ costs 110 SP plus ○ at 90 SP, for 200 SP total.
+  This total is compared with the estimated SP; the run itself buys nothing.
 - **Lineage** (per target): copies of that white spark already on each parent side (count and star
   total), which raise both hint and generation chances.
 - **Pinned card**: a card the builder places first, best marginal gain first. An owned pin takes one of

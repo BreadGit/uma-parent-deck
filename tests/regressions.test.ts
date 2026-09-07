@@ -2,11 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/settings.ts';
-import { defaultState, migrate, resetRun } from '../src/state.ts';
+import { defaultState, migrate, resetRun, DEFAULT_RUN } from '../src/state.ts';
+import { planRun, targetSpCost } from '../src/model/run.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
-import { eventSources } from '../src/model/sparks.ts';
+import { combineSources, eventSources, pruneConflicts, purchasedOwnership, resolveTarget, sparkChance, type SkillSource } from '../src/model/sparks.ts';
+import { evaluate, makeCtx, traineeCoverage } from '../src/model/deck.ts';
 
 const data = loadData();
+const input = () => ({ ...structuredClone(DEFAULT_RUN), traineeCardId: 100101, pinnedIds: [30052] });
 const settings = () => structuredClone(DEFAULT_SETTINGS);
 
 test('card event sources follow changes to the same settings object, including nested arrays', () => {
@@ -65,4 +68,98 @@ test('bundled career goals contain no repeated race objective at the same slot',
     const keys = ch.goals.flatMap((g) => g.races.map((r) => `${g.slot}:${r.raceId}`));
     assert.equal(new Set(keys).size, keys.length, ch.name);
   }
+});
+
+test('gold purchase includes the white prerequisite and deduplicates target families', () => {
+  const p = planRun({ ...input(), targets: [200352], pinnedIds: [30052, 30016] }, settings(), {}, data);
+  const target = resolveTarget(200352, data)!;
+  assert.equal(p.spCost.total, 340);
+  assert.equal(targetSpCost([target, target], p.deckResult.coverage).total, 340);
+  const missing = { ...target, white: { ...target.white!, cost: null } };
+  assert.equal(targetSpCost([missing], p.deckResult.coverage).incomplete, true);
+});
+
+test('a normal hint permits buying its circle upgrade without inventing a circle hint', () => {
+  const p = planRun({ ...input(), targets: [200012] }, settings(), {}, data);
+  const hints = combineSources(p.deckResult.coverage.get(200012)!);
+  assert.equal(hints.pCircle, 0);
+  assert.equal(hints.pGold, 0);
+  assert.ok(Math.abs(p.deckResult.sparks.get(200012)! - hints.pAny * 0.25) < 1e-9);
+  assert.equal(p.spCost.total, 200);
+  assert.equal(p.spCost.items[0]!.skill!.name, 'Right-Handed ◎');
+  assert.ok(!p.wl.some((w) => w.skillId === 200011), 'the event priority still asks for the available hint');
+});
+
+test('circle upgrades follow actual skill families, not the normal skill name or icon color', () => {
+  const cases = [
+    { id: 200352, circle: null, gold: 200351 }, // Corner Recovery ○: recovery skill, no ◎
+    { id: 201562, circle: null, gold: 201561 }, // Lucky Seven: green skill, no ◎
+    { id: 200012, circle: 200011, gold: 200014 }, // Right-Handed: green skill with ◎
+    { id: 201032, circle: 201031, gold: 201033 }, // Mile Straightaways: speed skill with ◎
+  ];
+  for (const row of cases) {
+    const target = resolveTarget(row.id, data)!;
+    assert.equal(target.circle?.id ?? null, row.circle, target.name);
+    assert.equal(target.gold?.id ?? null, row.gold, target.name);
+    for (const id of target.familyIds) assert.equal(resolveTarget(id, data)!.circle?.id ?? null, row.circle, `family member ${id}`);
+  }
+});
+
+test('inherited hints use only real upgrades for spark predictions and purchase costs', () => {
+  const cases = [
+    { id: 200352, rate: 0.2, purchases: [200352], cost: 170 },
+    { id: 201562, rate: 0.2, purchases: [201562], cost: 110 },
+    { id: 200012, rate: 0.25, purchases: [200012, 200011], cost: 200 },
+    { id: 201032, rate: 0.25, purchases: [201032, 201031], cost: 210 },
+  ];
+  for (const row of cases) {
+    const target = resolveTarget(row.id, data)!;
+    const ctx = makeCtx({ data, settings: settings(), trainee: null, races: 20, totalTurns: data.model.races.totalTurns,
+      lineage: new Map([[target.id, { k1: 1, p1: 3, k2: 0, p2: 0 }]]) });
+    const result = evaluate(traineeCoverage([target], ctx), [target], ctx);
+    const sources = result.map.get(target.id)!;
+    assert.deepEqual(sources.map((s) => [s.kind, s.skillId]), [['lineage', target.id]]);
+    const hints = combineSources(sources);
+    assert.equal(hints.pGold, 0);
+    assert.equal(hints.pCircle, 0, 'inheritance gives the base hint');
+    const pHint = 1 - (1 - 0.09 * 2.5) ** 2; // one 3★ spark, affinity 150, two inspiration events
+    assert.ok(Math.abs(hints.pWhite - pHint) < 1e-9);
+    assert.ok(Math.abs(result.sparks.get(target.id)! - pHint * row.rate * 1.1) < 1e-9, target.name);
+    const cost = targetSpCost([target], result.map);
+    assert.deepEqual(cost.items[0]!.purchases.map((s) => s.id), row.purchases, target.name);
+    assert.equal(cost.total, row.cost, target.name);
+  }
+});
+
+test('purchases preserve gold and unavailable outcomes while only upgrading released circle forms', () => {
+  const right = resolveTarget(200012, data)!;
+  const hints = { pGold: 0.2, pCircle: 0.1, pWhite: 0.5, pAny: 0.8 };
+  const bought = purchasedOwnership(right, hints);
+  assert.deepEqual(bought, { pGold: 0.2, pCircle: 0.6, pWhite: 0, pAny: 0.8 });
+  assert.equal(hints.pWhite, 0.5, 'purchasing does not change the hint coverage');
+  assert.ok(Math.abs(sparkChance(bought, settings()) - 0.23) < 1e-9);
+  const unreleased = { ...right, circle: { ...right.circle!, unreleasedEn: true } };
+  assert.deepEqual(purchasedOwnership(unreleased, hints), hints);
+  const absent = { pGold: 0, pCircle: 0, pWhite: 0, pAny: 0 };
+  assert.deepEqual(purchasedOwnership(right, absent), absent, 'an upgrade cannot create an acquisition source');
+  const gold = resolveTarget(200352, data)!;
+  assert.deepEqual(purchasedOwnership(gold, hints), hints, 'gold still needs its own hint');
+});
+
+test('a gold skill above a circle upgrade includes both prerequisite purchases', () => {
+  const right = resolveTarget(200012, data)!;
+  const source: SkillSource = { kind: 'awakening', skillId: right.gold!.id, gold: true, circle: false, pObtain: 1, isChoice: false, detail: 'Awakening skill' };
+  const cost = targetSpCost([right], new Map([[right.id, [source]]]));
+  assert.equal(cost.total, 330);
+  assert.deepEqual(cost.items[0]!.purchases.map((s) => s.id), [right.white!.id, right.circle!.id, right.gold!.id]);
+});
+
+test('event choice scoring accounts for a purchasable circle upgrade', () => {
+  const right = resolveTarget(200012, data)!;
+  const sources: SkillSource[] = [
+    { kind: 'chain', skillId: right.gold!.id, gold: true, circle: false, pObtain: 0.5, isChoice: true, detail: 'Half chance of gold', event: { key: 'fixture:choice', label: 'Choice', option: 'Gold roll', optionIndex: 0 } },
+    { kind: 'chain', skillId: right.white!.id, gold: false, circle: false, pObtain: 1, isChoice: true, detail: 'Guaranteed white hint', event: { key: 'fixture:choice', label: 'Choice', option: 'White hint', optionIndex: 1 } },
+  ];
+  const result = pruneConflicts(new Map([[right.id, sources]]), [right.id], [], settings(), [right]);
+  assert.deepEqual(result.map.get(right.id), [sources[1]], 'a certain purchasable circle yields 25%, above the 20% expected from the gold roll');
 });

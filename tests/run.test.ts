@@ -116,12 +116,12 @@ test("predicted stats are clamped to the scenario caps plus the blue sparks' sta
   assert.deepEqual(light.finalMean, light.rawFinalMean, 'nothing to clamp without inheritance');
 });
 
-test('worst-case target SP cost: each target once at the dearest form the run can hand over, missing costs mark it incomplete', () => {
+test('worst-case target SP cost: each family once with prerequisite costs, missing costs mark it incomplete', () => {
   const corner = resolveTarget(200352, data)!; // Corner Recovery ○ / Swinging Maestro
   const plan = planRun({ ...empty, targets: [corner.id], pinnedIds: [30028] }, settings, {}, data);
   const cost = targetSpCost([corner], new Map([[corner.id, plan.deckResult.coverage.get(corner.id)!]]));
   const goldCost = corner.gold!.cost!, whiteCost = corner.white!.cost!;
-  assert.equal(cost.total, Math.max(goldCost, whiteCost), 'Kitasan can hand over the gold, so the dearer form counts');
+  assert.equal(cost.total, goldCost + whiteCost, 'buying the gold also requires buying the white form');
   assert.equal(cost.incomplete, false);
   assert.equal(plan.spCost.total, cost.total);
   assert.equal(targetSpCost([corner], new Map()).total, whiteCost, 'no source at all still buys the white form');

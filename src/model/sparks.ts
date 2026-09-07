@@ -9,8 +9,8 @@ import { affinityMultiplier } from './inherit.ts';
 export interface Target {
   id: number;            // the family id: the white form's skill id when there is one
   name: string;
-  white: Skill | null;   // white ○ form
-  circle: Skill | null;  // ◎ form (only reachable through inheritance)
+  white: Skill | null;   // normal-rarity base form, which may or may not have a ○ suffix
+  circle: Skill | null;  // actual ◎ family member, if one exists; purchasable without a separate hint
   gold: Skill | null;    // gold upgrade
   familyIds: Set<number>;
 }
@@ -364,12 +364,13 @@ const bestSource = (ss: EventSource[]) => ss.slice().sort((a, b) => Number(b.gol
  * The option of an event that serves a target best: the one whose sources, combined, give the target the highest
  * spark chance, so an option offering the gold form and a white fallback beats one offering the gold form alone.
  */
-function bestOption(ss: EventSource[], settings: Settings): EventSource {
+function bestOption(ss: EventSource[], settings: Settings, target?: Target): EventSource {
   const byOption = new Map<number, EventSource[]>();
   for (const s of ss) byOption.set(s.event.optionIndex, [...(byOption.get(s.event.optionIndex) ?? []), s]);
   let best: { value: number; source: EventSource } | null = null;
   for (const [, sources] of [...byOption].sort((a, b) => a[0] - b[0])) {
-    const value = sparkChance(combineSources(sources), settings);
+    const hints = combineSources(sources);
+    const value = sparkChance(target ? purchasedOwnership(target, hints) : hints, settings);
     if (!best || value > best.value + 1e-12) best = { value, source: bestSource(sources) };
   }
   return best!.source;
@@ -383,7 +384,7 @@ function bestOption(ss: EventSource[], settings: Settings): EventSource {
  * counts one of them, and an option that gives two targets keeps both. `settings` gives the spark rates the options
  * are valued by.
  */
-export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[], blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[], blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS, targets: Target[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
   for (const [tid, sources] of map) for (const s of sources) if (isEventSource(s)) byEvent.set(s.event.key, new Set([...(byEvent.get(s.event.key) ?? []), tid]));
   const rank = (skillId: number) => { const i = priority.indexOf(skillId); return i < 0 ? Infinity : i; };
@@ -396,7 +397,7 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
     const blocker = blockers.filter((b) => b.event.key === key && rank(b.skillId) < rank(ordered[0]!)).sort((a, b) => rank(a.skillId) - rank(b.skillId))[0];
     let chosen: number, takenOption: ConflictOption;
     if (blocker) { chosen = blocker.event.optionIndex; takenOption = { skillId: blocker.skillId, option: blocker.event.option, target: null }; }
-    else { const best = bestOption(sourcesFor(ordered[0]!), settings); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: ordered[0]! }; }
+    else { const best = bestOption(sourcesFor(ordered[0]!), settings, targets.find((t) => t.id === ordered[0])); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: ordered[0]! }; }
     taken.set(key, chosen);
     const dropped = ordered.filter((tid) => !sourcesFor(tid).some((s) => s.event.optionIndex === chosen)).map((tid) => { const s = bestSource(sourcesFor(tid)); return { skillId: s.skillId, option: s.event.option, target: tid }; });
     if (blocker || dropped.length) conflicts.push({ eventKey: key, label: blocker?.event.label || label, taken: takenOption, dropped });
@@ -408,6 +409,11 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
 
 /** Chance of owning the skill at run end in each form, gold > ◎ > white when several are possible. */
 export interface Ownership { pGold: number; pCircle: number; pWhite: number; pAny: number }
+/** Highest form the player can buy. Only families with a released ◎ member can upgrade without a separate hint. */
+export function purchasedOwnership(target: Target, hints: Ownership): Ownership {
+  if (!target.circle || target.circle.unreleasedEn) return { ...hints };
+  return { ...hints, pCircle: hints.pCircle + hints.pWhite, pWhite: 0 };
+}
 interface Mass { any: number; goldOrCircle: number; gold: number }
 const massOf = (s: SkillSource, p: number): Mass => ({ any: p, goldOrCircle: s.gold || s.circle ? p : 0, gold: s.gold ? p : 0 });
 const addMass = (a: Mass, b: Mass): Mass => ({ any: Math.min(1, a.any + b.any), goldOrCircle: Math.min(1, a.goldOrCircle + b.goldOrCircle), gold: Math.min(1, a.gold + b.gold) });

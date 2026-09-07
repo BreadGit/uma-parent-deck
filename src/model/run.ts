@@ -1,7 +1,7 @@
 import { STATS, type Card, type Character, type Data, type Inventory, type Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
-import { combineSources, lineageCount, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { rankEstimate, uniqueSkillLevel, type RankEstimate } from './rank.ts';
@@ -24,8 +24,8 @@ export interface RunInput {
   parentGains: number[][];                 // [parent 1, parent 2], five stats each: the start gain the legacy screen shows
 }
 
-/** The base cost of every selected target, each bought once in the dearest form the run can hand over. */
-export interface SpCost { total: number; incomplete: boolean; items: { target: Target; skill: Skill | null; cost: number | null }[] }
+/** The full base cost of every selected target family, including prerequisites for its best purchasable form. */
+export interface SpCost { total: number; incomplete: boolean; items: { target: Target; skill: Skill | null; cost: number | null; purchases: Skill[] }[] }
 /** Scenario stat caps after the blue sparks' start-of-run uncaps, and whether the prediction hit them. */
 export interface StatCaps { cap: number[]; uncap: number[]; capped: boolean[] }
 
@@ -120,22 +120,20 @@ export function derivePriority(ordered: WishlistEntry[], targets: Target[], data
 }
 
 /**
- * Worst-case SP to buy every target once: the gold form's base cost when the run can hand over the gold, the
- * target's own base cost otherwise, the higher of the two when both are possible. No prerequisite costs, hint
- * discounts or probability weighting: an undiscounted upper bound to compare with the predicted SP.
+ * Worst-case SP for the best purchasable form of each target, including every prerequisite. Each family is bought
+ * once, with no hint discounts or probability weighting. Gold needs a hint; a released ◎ upgrade does not.
  */
 export function targetSpCost(targets: Target[], coverage: Map<number, SkillSource[]>): SpCost {
   const items: SpCost['items'] = [];
   let total = 0, incomplete = false;
-  for (const t of targets) {
-    const own = combineSources(coverage.get(t.id) ?? []);
-    const forms: Skill[] = [];
-    if (own.pGold > 1e-9 && t.gold) forms.push(t.gold);
-    if (own.pGold < 1 - 1e-9 || !forms.length) { const w = t.white ?? t.circle ?? t.gold; if (w) forms.push(w); }
-    const dearest = forms.sort((a, b) => (b.cost ?? Infinity) - (a.cost ?? Infinity))[0] ?? null;
-    const cost = dearest?.cost ?? null;
+  for (const t of new Map(targets.map((t) => [t.id, t])).values()) {
+    const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
+    const circle = t.circle && !t.circle.unreleasedEn ? t.circle : null;
+    const skill = own.pGold > 1e-9 && t.gold ? t.gold : circle ?? t.white ?? t.gold;
+    const purchases = [...new Map([t.white, circle, skill].filter((s): s is Skill => !!s).map((s) => [s.id, s])).values()];
+    const cost = !purchases.length || purchases.some((s) => s.cost == null) ? null : purchases.reduce((a, s) => a + s.cost!, 0);
     if (cost == null) incomplete = true; else total += cost;
-    items.push({ target: t, skill: dearest, cost });
+    items.push({ target: t, skill, cost, purchases });
   }
   return { total, incomplete, items };
 }
