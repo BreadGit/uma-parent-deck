@@ -85,8 +85,6 @@ function conflicts(c: RunPlan) {
 
 export function renderDeck(c: RunPlan) {
   const d = c.deckResult;
-  const p = c.pred;
-  const customized = store.run.wishlistOrder.length > 0 || store.run.wishlistExcluded.length > 0;
   return html`
     <section class="panel">
       <h2>Suggested deck</h2>
@@ -100,6 +98,16 @@ export function renderDeck(c: RunPlan) {
         </div>`)}</div>` : html`<div class="muted">No owned cards. Mark cards in the table below.</div>`}
       ${d.borrow ? html`<div class="small gap-top"><b>Borrow:</b> ${cardLink(d.borrow.card)} at LB4${d.borrow.replaces ? html` instead of your own copy at a lower LB` : nothing}${d.borrow.gain > 1e-9 ? html`: +${(d.borrow.gain * 100).toFixed(1)}% expected sparks` : html` <span class="muted">(adds nothing to the targets; the best stat stick)</span>`}.
         ${d.borrowAlternatives.length ? html`<span class="muted">Other borrows: ${d.borrowAlternatives.map((o) => `${o.card.name} (+${(o.gain * 100).toFixed(1)}%)`).join(', ')}.</span>` : nothing}</div>` : nothing}
+      ${c.issues.length ? html`<div role="alert" data-plan-issues>${c.issues.map((issue) => html`<p class="warn">${issue}</p>`)}</div>` : renderPrediction(c)}
+      <details><summary>How the deck was built</summary><ol class="small">${d.steps.map((s) => html`<li>${s}</li>`)}</ol></details>
+    </section>`;
+}
+const resetWishlist = () => update((s) => { s.run.wishlistOrder = []; s.run.wishlistExcluded = []; });
+
+function renderPrediction(c: RunPlan) {
+  const d = c.deckResult, p = c.pred;
+  const customized = store.run.wishlistOrder.length > 0 || store.run.wishlistExcluded.length > 0;
+  return html`
       <h3>Predicted run (deck ${c.sum.count} races, ${store.settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">
         <div class="stat outcome">
@@ -134,7 +142,5 @@ export function renderDeck(c: RunPlan) {
         ${c.wlExcluded.length ? html`Removed: ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" title="Put back" @click=${() => restoreSkill(w.key)}>+</button></span>`)} ` : nothing}
         ${customized ? html`<button class="small" data-action="wl-reset" @click=${resetWishlist}>Reset order</button>` : nothing}
       </div>` : (customized ? html`<div class="small muted"><button class="small" data-action="wl-reset" @click=${resetWishlist}>Reset order</button></div>` : nothing)}
-      <details><summary>How the deck was built</summary><ol class="small">${d.steps.map((s) => html`<li>${s}</li>`)}</ol></details>
-    </section>`;
+  `;
 }
-const resetWishlist = () => update((s) => { s.run.wishlistOrder = []; s.run.wishlistExcluded = []; });

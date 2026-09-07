@@ -38,7 +38,8 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
   repo root to make it the default.
-  Invalid inventory imports leave the current inventory intact.
+  Invalid inventory imports leave the current inventory intact. If fewer than five usable owned cards and
+  one borrowed card fit the deck, the page explains what is missing and hides the run predictions.
 - Legacy screen: a copy of the game's pre-run screen. Above each stat you pick the "+XX" each
   parent side adds at the start, as the game shows it; the 20 possible values each decode to one
   set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). Each spark then procs at the two
@@ -49,6 +50,8 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   procs); the game only shows the six scores' sum as ◎/○/△, so per-uma entry is not offered. The
   aptitude overrides sit under the stats like the game's table; S is not offered because only an
   inspiration event reaches it.
+  Each parent side has three blue sparks total across all stats. The selectors prevent exceeding that limit;
+  older saves that exceed it keep their values, with predictions hidden until the gains are corrected.
 
 Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live in
 `src/model/rules.ts`, tunable estimates in `src/settings.ts`.

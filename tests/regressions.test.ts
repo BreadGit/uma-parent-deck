@@ -7,7 +7,9 @@ import { importInventory } from '../src/inventory.ts';
 import { planRun, targetSpCost } from '../src/model/run.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { combineSources, eventSources, pruneConflicts, purchasedOwnership, resolveTarget, sparkChance, type SkillSource } from '../src/model/sparks.ts';
+import { canSetParentGain, parentGainIssues, parentSparkCount } from '../src/model/inherit.ts';
 import { evaluate, makeCtx, traineeCoverage } from '../src/model/deck.ts';
+import type { Inventory } from '../src/types.ts';
 
 const data = loadData();
 const input = () => ({ ...structuredClone(DEFAULT_RUN), traineeCardId: 100101, pinnedIds: [30052] });
@@ -185,4 +187,33 @@ test('inventory import rejects invalid structure and invalid entries atomically'
   }
   assert.deepEqual(await importInventory(file({ 30052: 'none', 30028: '2', 20009: -1 })), { 30052: null, 30028: 2, 20009: null });
   assert.deepEqual(await importInventory(file({})), {}, 'an explicit empty inventory means defaults');
+});
+
+test('plans with fewer than five usable owned characters are explicitly incomplete', () => {
+  const candidates = [30052, 30028, 30016, 30083, 20009];
+  for (let n = 0; n <= 5; n++) {
+    const inventory: Inventory = Object.fromEntries(data.cards.map((c) => [c.id, null]));
+    candidates.slice(0, n).forEach((id) => { inventory[id] = 4; });
+    const p = planRun(input(), settings(), inventory, data);
+    assert.equal(p.issues.length > 0, n < 5, `${n} owned cards`);
+    if (n === 5) assert.equal(p.deckResult.deck.length, 6);
+  }
+});
+
+test('parent limits apply across stats and flag impossible saved inputs', () => {
+  const valid = planRun({ ...input(), parentGains: [[5, 12, 21, 0, 0], [0, 0, 0, 42, 12]] }, settings(), {}, data);
+  assert.deepEqual(valid.issues, []);
+  const invalid = planRun({ ...input(), parentGains: [[63, 63, 63, 63, 63], [0, 0, 0, 0, 0]] }, settings(), {}, data);
+  assert.ok(invalid.issues.some((message) => /Parent 1/.test(message)));
+});
+
+test('parent gain edits enforce the shared budget and allow gradual repair of invalid saves', () => {
+  assert.equal(parentSparkCount([5, 12, 21, 0, 0]), 3);
+  assert.equal(canSetParentGain([63, 0, 0, 0, 0], 1, 5), false);
+  assert.equal(canSetParentGain([21, 12, 0, 0, 0], 2, 5), true);
+  assert.equal(canSetParentGain([0, 0, 0, 0, 0], 0, 64), false);
+  assert.equal(canSetParentGain([63, 63, 63, 0, 0], 0, 42), true, 'reducing nine sparks to eight is progress');
+  assert.equal(canSetParentGain([63, 63, 63, 0, 0], 3, 5), false);
+  assert.deepEqual(parentGainIssues([[63, 0, 0, 0, 0], [0, 0, 0, 63, 0]]), []);
+  assert.ok(parentGainIssues([[64, 0, 0, 0, 0], [0, 0, 0, 0, 0]]).length);
 });

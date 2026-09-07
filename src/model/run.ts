@@ -5,9 +5,9 @@ import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type L
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { rankEstimate, uniqueSkillLevel, type RankEstimate } from './rank.ts';
-import { inheritedFromParents, type Inheritance } from './inherit.ts';
+import { inheritedFromParents, parentGainIssues, type Inheritance } from './inherit.ts';
 import { clampStars, traineeAt } from './trainee.ts';
-import { BORROWED_LB, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS, SLOT_COUNT } from './rules.ts';
+import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS, SLOT_COUNT } from './rules.ts';
 
 /** Everything the user chose about the run. The app persists exactly this (plus UI-only fields). */
 export interface RunInput {
@@ -30,6 +30,7 @@ export interface SpCost { total: number; incomplete: boolean; items: { target: T
 export interface StatCaps { cap: number[]; uncap: number[]; capped: boolean[] }
 
 export interface RunPlan {
+  issues: string[];                        // correct these before using run predictions
   trainee: Character | null;
   apt: Aptitudes;
   schedule: ScheduledRace[];
@@ -169,6 +170,12 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const existing = traineeCoverage(targets, ctx);
   const ranking = rankCards(pool, targets, existing, ctx);
   const deckResult = buildDeck(deckPool, targets, ctx, build);
+  const issues = parentGainIssues(input.parentGains);
+  const ownedCount = deckResult.deck.filter((d) => !d.borrowed).length;
+  const borrowedCount = deckResult.deck.filter((d) => d.borrowed).length;
+  if (ownedCount !== DECK_SIZE - BORROWED_SLOTS || borrowedCount !== BORROWED_SLOTS) {
+    issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
+  }
   const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings, fansBefore);
   const inherited = STATS.map((_, i) => inheritedFromParents(input.parentGains, i, settings));
   const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
@@ -182,7 +189,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);
   const ordered = order(candidates);
   return {
-    trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
+    issues, trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
     wl: ordered.slice(0, PRIORITIZED_SKILLS_MAX),
     wlRest: ordered.slice(PRIORITIZED_SKILLS_MAX),
     wlExcluded: candidates.filter((w) => input.wishlistExcluded.includes(w.key)),

@@ -60,7 +60,8 @@ names differ they are noted.
 - **Spark** (JP factor): a trait a finished Trainee carries. **Blue** = stat (a fixed +5, +12 or +21 by stars
   at career start, plus a random 1 to 10, 1 to 16 or 1 to 28 each time it procs at an inspiration event, and a
   stat-cap increase of 4, 9 or 16 at the start), **pink/red** = aptitude, **green** = unique skill,
-  **white** = skill, race, or scenario. **Stars** on a spark: 1 to 3.
+  **white** = skill, race, or scenario. **Stars** on a spark: 1 to 3. Each uma carries one blue spark, so each
+  parent side has three blue sparks in total across all five stats, at most nine stars per side.
 - **Legacy screen**: the game's pre-run screen with the trainee's stats after inheritance, a "+XX" above each
   stat per parent side, and her aptitudes. In the tool, the **Legacy screen** panel copies it: the **start
   gain** per parent (one of the 20 sums three sparks can make, +0 to +63) and the surface and distance

@@ -106,12 +106,13 @@ test('the scenario completion reward is a source for I Wanna Win with You and On
 
 test("predicted stats are clamped to the scenario caps plus the blue sparks' start uncaps", () => {
   const caps = SCENARIO_STAT_CAPS[3]!;
-  const heavy: RunInput = { ...empty, traineeCardId: sw.cardId, parentGains: [[63, 63, 63, 63, 63], [63, 63, 63, 63, 63]] };
+  const heavy: RunInput = { ...empty, traineeCardId: sw.cardId, parentGains: [[0, 63, 0, 0, 0], [0, 63, 0, 0, 0]] };
   const plan = planRun(heavy, settings, {}, data);
+  assert.deepEqual(plan.issues, []);
   assert.ok(plan.statCaps);
-  plan.statCaps!.uncap.forEach((u) => assert.equal(u, 96, 'six 3★ sparks per stat raise its cap by 16 each'));
-  plan.finalMean.forEach((v, i) => { assert.ok(v <= caps[i]! + 96 + 1e-9, `stat ${i} ${v} within cap`); assert.ok(v <= plan.rawFinalMean[i]! + 1e-9); });
-  assert.equal(plan.statCaps!.capped.some(Boolean), plan.rawFinalMean.some((v, i) => v > caps[i]! + 96));
+  assert.deepEqual(plan.statCaps!.uncap, [0, 96, 0, 0, 0], 'six 3★ stamina sparks raise only the stamina cap by 16 each');
+  plan.finalMean.forEach((v, i) => { assert.ok(v <= caps[i]! + plan.statCaps!.uncap[i]! + 1e-9, `stat ${i} ${v} within cap`); assert.ok(v <= plan.rawFinalMean[i]! + 1e-9); });
+  assert.equal(plan.statCaps!.capped.some(Boolean), plan.rawFinalMean.some((v, i) => v > caps[i]! + plan.statCaps!.uncap[i]!));
   const light = planRun({ ...empty, traineeCardId: sw.cardId }, settings, {}, data);
   assert.deepEqual(light.finalMean, light.rawFinalMean, 'nothing to clamp without inheritance');
 });

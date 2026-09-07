@@ -3,7 +3,7 @@
 import { html, nothing } from 'lit-html';
 import { STATS, type AptKey, type Grade, type Stat } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
-import { inheritedFromGain, START_GAINS } from '../../model/inherit.ts';
+import { canSetParentGain, inheritedFromGain, parentGainIssues, START_GAINS } from '../../model/inherit.ts';
 import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS } from '../../model/rules.ts';
 import { data, store, update } from '../context.ts';
 import { capitalize, num } from '../format.ts';
@@ -16,6 +16,7 @@ const GRADES: Grade[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 const icon = (st: Stat) => html`<img src="/assets/icons/type_${st}.png" alt="" />`;
 
 function setGain(pi: number, si: number, gain: number) {
+  if (!canSetParentGain(store.run.parentGains[pi]!, si, gain)) return;
   update((s) => { s.run.parentGains = s.run.parentGains.map((p, j) => (j === pi ? p.map((g, i) => (i === si ? gain : g)) : p)); });
 }
 /** An override equal to the trainee's own grade is just the base again. */
@@ -27,7 +28,7 @@ function setAptitude(k: AptKey, grade: Grade) {
 }
 
 const gainSelect = (pi: number, si: number) => html`<select class="gain p${pi + 1} ${store.run.parentGains[pi]![si] ? 'set' : ''}" data-gain="${pi}-${si}" title="Parent ${pi + 1}" @change=${(e: Event) => setGain(pi, si, Number((e.target as HTMLSelectElement).value))}>
-  ${START_GAINS.map((g) => html`<option value="${g.gain}" ?selected=${store.run.parentGains[pi]![si] === g.gain}>+${g.gain}</option>`)}</select>`;
+  ${START_GAINS.map((g) => html`<option value="${g.gain}" ?disabled=${!canSetParentGain(store.run.parentGains[pi]!, si, g.gain)} ?selected=${store.run.parentGains[pi]![si] === g.gain}>+${g.gain}</option>`)}</select>`;
 
 /** Back to a blank legacy screen: no start gains and the trainee's own aptitudes. */
 const resetLegacy = () => update((s) => { s.run.parentGains = s.run.parentGains.map((p) => p.map(() => 0)); s.run.aptOverrides = {}; });
@@ -41,6 +42,8 @@ export function renderLegacy(c: RunPlan) {
       <h2 class="h-row">Legacy screen <span class="small muted">(copy the game's pre-run screen)</span>${t ? html`<button class="small push-right" data-action="reset-legacy" title="Clear every start gain and aptitude override" @click=${resetLegacy}>Reset</button>` : nothing}</h2>
       ${t ? html`
         <div class="legacy-legend"><span class="p1">Parent 1</span><span class="p2">Parent 2</span><span>start gain per stat, as the legacy screen shows it</span></div>
+        ${parentGainIssues(store.run.parentGains).map((issue) => html`<p class="warn" role="alert">${issue}</p>`)}
+        <div class="small muted">Each parent side has three blue sparks in total, shared across the five stats.</div>
         <div class="legacy-stats">${STATS.map((st, i) => {
           const gains = PARENTS.map((pi) => store.run.parentGains[pi]![i]!);
           const start = gains[0]! + gains[1]!;

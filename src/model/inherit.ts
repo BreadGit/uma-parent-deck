@@ -33,6 +33,22 @@ export const START_GAINS: { gain: number; stars: number[] }[] = (() => {
 export const MAX_START_GAIN = START_GAINS[START_GAINS.length - 1]!.gain;
 /** The sparks behind a start gain, or none for a value the screen cannot show. */
 export const sparksFromGain = (gain: number): number[] => START_GAINS.find((g) => g.gain === gain)?.stars ?? [];
+/** Across all five stats, one parent side has only three umas, each carrying one blue spark. */
+export const parentSparkCount = (gains: number[]): number => gains.reduce((n, gain) => n + sparksFromGain(gain).length, 0);
+export function parentGainIssues(parents: number[][]): string[] {
+  if (parents.length !== 2) return ['Enter gains for both parent sides.'];
+  return parents.flatMap((gains, i) => {
+    if (gains.length !== 5 || gains.some((g) => !START_GAINS.some((v) => v.gain === g))) return [`Parent ${i + 1} has an invalid start gain.`];
+    const count = parentSparkCount(gains);
+    return count > UMAS_PER_PARENT_SIDE ? [`Parent ${i + 1} uses ${count} blue sparks. At most ${UMAS_PER_PARENT_SIDE} can be split across the five stats. Reduce the gains or reset the legacy screen.`] : [];
+  });
+}
+/** Allow valid changes and edits that reduce an invalid saved side toward its limit. */
+export function canSetParentGain(gains: number[], statIndex: number, gain: number): boolean {
+  if (!START_GAINS.some((g) => g.gain === gain)) return false;
+  const count = parentSparkCount(gains.map((g, i) => i === statIndex ? gain : g));
+  return count <= UMAS_PER_PARENT_SIDE || count < parentSparkCount(gains) || gain === gains[statIndex];
+}
 /** The start gain a set of sparks shows. */
 export const gainOfSparks = (sparks: number[]) => sparks.reduce((a, k) => a + (BLUE_SPARK_START_GAIN_BY_STARS[k] ?? 0), 0);
 
