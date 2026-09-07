@@ -74,10 +74,13 @@ npm install
 npm run dev        # http://localhost:5173, also reachable on the LAN at http://<this machine's IP>:5173
 npm test           # model tests (node --test)
 npm run smoke      # headless Chromium walk-through against the dev server, writes docs/screenshot.png
+npm run test:e2e   # smoke walk-through plus browser regression cases against the dev server
 npm run build
 ```
 
 `npm run dev` binds to all interfaces (`vite --host`). Vite prints the network URL on start.
+Browser checks accept `URL` for another server, including `npm run preview`. Set `SCREENSHOT_PATH` to choose
+where the smoke screenshot goes, or to an empty string to skip writing it.
 
 ## Data
 

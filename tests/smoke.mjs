@@ -166,7 +166,7 @@ const rowSums = await page.evaluate(() => [...document.querySelectorAll('section
   return { sum: cells.slice(6, 11).reduce((a, b) => a + b, 0), total: cells[11] };
 }));
 for (const { sum, total } of rowSums) assert.ok(Number.isFinite(total) && Math.abs(sum - total) <= 3, `ranking stat cells ${sum} vs total ${total}`);
-await page.screenshot({ path: 'docs/screenshot.png', fullPage: true });
+if (process.env.SCREENSHOT_PATH !== '') await page.screenshot({ path: process.env.SCREENSHOT_PATH ?? 'docs/screenshot.png', fullPage: true });
 // exercise a race override, an LB change, a "not owned" mark and a blue spark slider
 {
   const firstSelected = await page.$('select[data-slot]:has(option[selected][value]:not([value=""]))');
