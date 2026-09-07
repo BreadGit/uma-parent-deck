@@ -493,6 +493,32 @@ test("the upgrade check borrows a deck card's LB4 copy when that frees a slot wo
   assert.ok(!g.deck.some((x) => x.card.charId === sw.charId) && g.steps.some((s) => s.includes("the trainee's own card")));
 });
 
+test('deck swaps preserve full-deck stat value when another card loses a unique effect', () => {
+  // Removing Bourbon's Wit type for Vodka's Power disables Digital's five-type unique.
+  const pool = [30104, 30001, 30039, 30090, 30085, 30066, 30005].map((id) => ({ card: data.cardById.get(id)!, lb: 4 }));
+  const ctx = ctxOf({ races: 28, settings: { ...settings, focus: 'stamina' } });
+  const focus = data.model.focus.stamina;
+  let previous = -Infinity;
+  for (const swapPasses of [0, 1, 2, 3]) {
+    const result = buildDeck(pool, [], ctx, { pinnedIds: [], borrowPool: pool, swapPasses });
+    const pred = predictDeck(result.deck, null, 28, 'stamina', 0, data.model, ctx.settings);
+    const actual = pred.cardStats.reduce((sum, v, i) => sum + v * focus[i]!, 0);
+    assert.ok(actual >= previous - 1e-6, `pass ${swapPasses} lowers full-deck value from ${previous} to ${actual}`);
+    assert.ok(Math.abs(result.deck.reduce((sum, d) => sum + d.statPower, 0) - actual) < 1e-6, 'stored contributions match the predictor after each pass');
+    previous = actual;
+  }
+});
+
+test('deck card stats include the complete deck even when no swaps run', () => {
+  const ctx = ctxOf({ races: 28 });
+  const result = buildDeck(all4, [], ctx, { pinnedIds: [30090], borrowPool: all4, swapPasses: 0 });
+  for (const d of result.deck) {
+    const actual = cardContribution(d.card, d.lb, data.model, uniqueExtras(d.card, d.lb, data.model, { deck: result.deck }));
+    assert.deepEqual(d.stats, actual.stats, `card ${d.card.id} must include the other five cards`);
+    assert.equal(d.sp, actual.sp);
+  }
+});
+
 test('the swap pass never leaves the deck worse than the greedy build, reports each swap, never touches a pin, and values stats by the training focus', () => {
   const targets = [200352, 201601, 200762, 200452, 201113].map((id) => resolveTarget(id, data)!);
   const ctx = ctxOf({ trainee: sw });

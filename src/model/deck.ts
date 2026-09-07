@@ -159,7 +159,15 @@ function stateOf(entries: Entry[], targets: Target[], ctx: Ctx): Existing {
 }
 /** Total expected sparks over the targets for a set of cards, plus their focus-weighted stat power. */
 function deckValue(entries: Entry[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
-  return { sparks: total(evaluate(stateOf(entries, targets, ctx), targets, ctx).sparks), stats: entries.reduce((a, e) => a + e.statPower, 0) };
+  const stats = entries.reduce((a, e, i) => a + statsOf(e.card, e.lb, ctx, entries.filter((_, j) => j !== i).map((x) => x.card)).statPower, 0);
+  return { sparks: total(evaluate(stateOf(entries, targets, ctx), targets, ctx).sparks), stats };
+}
+/** Refresh contributions after the deck changes, including effects on cards that stayed in it. */
+function refreshStats(deck: CardScore[], ctx: Ctx): void {
+  deck.forEach((d, i) => {
+    const { contrib, ...stats } = statsOf(d.card, d.lb, ctx, deck.filter((_, j) => j !== i).map((x) => x.card));
+    Object.assign(d, stats, { source: contrib.source, runs: contrib.runs });
+  });
 }
 const betterValue = (a: { sparks: number; stats: number }, b: { sparks: number; stats: number }) => a.sparks > b.sparks + 1e-9 || (Math.abs(a.sparks - b.sparks) <= 1e-9 && a.stats > b.stats + 1e-6);
 const why = (cs: CardScore) => (cs.marginalValue > 0
@@ -256,6 +264,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     if (!pick) break;
     add(pick, why(pick));
   }
+  refreshStats(deck, ctx);
 
   // 4. upgrade: a deck card's higher-LB version as the borrow instead (replacing the borrow, if any), its slot refilled
   if (borrowPool.length && !pinnedBorrow) {
@@ -281,6 +290,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     if (bestSwap) {
       steps.push(`Borrow ${bestSwap.to.card.name} (LB${bestSwap.to.lb}) instead of your own copy at LB${bestSwap.from.lb}, which frees a slot${bestSwap.refill ? ` for ${bestSwap.refill.card.name}` : ''}: +${(bestSwap.opt.gain * 100).toFixed(1)}% expected sparks`);
       deck.splice(0, deck.length, ...bestSwap.entries);
+      refreshStats(deck, ctx);
       borrow = bestSwap.opt;
     }
   }
@@ -305,14 +315,15 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
       const others = deck.filter((_, j) => j !== index);
       const otherCards = others.map((o) => o.card);
       const othersState = stateOf(others, targets, ctx);
-      const othersStats = others.reduce((a, e) => a + e.statPower, 0);
+      const dependent = others.filter((e) => deckDependent(e.card));
+      const fixedStats = others.filter((e) => !deckDependent(e.card)).reduce((a, e) => a + e.statPower, 0);
       const used = new Set(otherCards.map((c) => c.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
       const cands = (d.borrowed ? borrowPool : pool).filter((p) => !used.has(p.card.charId) && !(p.card.id === d.card.id && p.lb === d.lb) && !others.some((o) => o.card.id === p.card.id));
       for (const p of cands) {
         const mine = minesOf(p.card, p.lb, targets, ctx);
         const statPower = powerOf(p, otherCards);
-        // a card with no source for any target cannot raise the sparks, so it only matters as a better stat stick
-        if (!mine.size && statPower <= d.statPower) continue;
+        // A replacement can activate or disable another card's unique, even when its own stats are unchanged.
+        const othersStats = fixedStats + dependent.reduce((a, e) => a + powerOf(e, [...otherCards.filter((c) => c.id !== e.card.id), p.card]), 0);
         const value = { sparks: total(evaluate(addTo(othersState, mine, p.card), targets, ctx).sparks), stats: othersStats + statPower };
         if (betterValue(value, best?.value ?? base)) best = { index, pick: p, value };
       }
@@ -323,6 +334,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     const others = deck.filter((_, j) => j !== b.index);
     const cs = { ...scoreCard(b.pick.card, b.pick.lb, targets, stateOf(others, targets, ctx), ctx), borrowed: out.borrowed };
     deck.splice(b.index, 1, cs);
+    refreshStats(deck, ctx);
     if (out.borrowed) borrow = { card: cs.card, replaces: null, gain: cs.marginalValue, statGain: cs.statPower };
     const gain = b.value.sparks - base.sparks;
     steps.push(`Swap ${out.card.name} (LB${out.lb}) for ${cs.card.name} (LB${cs.lb})${out.borrowed ? ' as the borrow' : ''}: ${gain > 1e-9 ? `+${(gain * 100).toFixed(1)}% expected sparks` : `same sparks, +${(b.value.stats - base.stats).toFixed(0)} focus-weighted stats`}`);
@@ -331,6 +343,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   // Other borrows, scored against the final owned cards (after every swap), so the list never names the borrow itself
   const alternatives: BorrowOption[] = [];
   const finalBorrow = deck.find((d) => d.borrowed);
+  if (finalBorrow && borrow && !borrow.replaces) borrow.statGain = finalBorrow.statPower;
   if (finalBorrow) {
     const owned = deck.filter((d) => !d.borrowed);
     const state = stateOf(owned, targets, ctx);
