@@ -34,11 +34,11 @@ function addTo(e: Existing, add: Map<number, SkillSource[]>, card: Card): Existi
 }
 /** Non-target choice-gated options in the run (scenario options and card event options) that could outrank a target in the prioritized list. */
 function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
-  const families = new Set(targets.flatMap((t) => [...t.familyIds]));
+  const { families, traineeBlockers } = memoOf(ctx, targets);
   const out: Blocker[] = [];
   for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
   for (const card of e.cards) for (const s of eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
-  if (ctx.trainee) for (const s of traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
+  out.push(...traineeBlockers);
   return out;
 }
 
@@ -81,13 +81,32 @@ export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
   return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [] };
 }
 
-/** The card's own sources per target. */
+/** Per-context memo of what does not change within one plan: each card's sources per target, and the trainee's blockers. */
+interface CtxMemo { targets: Target[]; mines: Map<string, Map<number, SkillSource[]>>; families: Set<number>; traineeBlockers: Blocker[] }
+const ctxMemos = new WeakMap<Ctx, CtxMemo>();
+function memoOf(ctx: Ctx, targets: Target[]): CtxMemo {
+  let m = ctxMemos.get(ctx);
+  if (!m || m.targets !== targets) {
+    const families = new Set(targets.flatMap((t) => [...t.familyIds]));
+    const traineeBlockers: Blocker[] = [];
+    if (ctx.trainee) for (const s of traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) traineeBlockers.push({ skillId: s.skillId, event: s.event });
+    m = { targets, mines: new Map(), families, traineeBlockers };
+    ctxMemos.set(ctx, m);
+  }
+  return m;
+}
+/** The card's own sources per target (fixed for a card and limit break within one context). */
 function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<number, SkillSource[]> {
-  const mine = new Map<number, SkillSource[]>();
+  const memo = memoOf(ctx, targets);
+  const key = `${card.id}:${lb}`;
+  let mine = memo.mines.get(key);
+  if (mine) return mine;
+  mine = new Map<number, SkillSource[]>();
   for (const t of targets) {
     const sources = cardSourcesForTarget(card, lb, t, ctx.races, ctx.totalTurns, ctx.data, ctx.settings);
     if (sources.length) mine.set(t.id, sources);
   }
+  memo.mines.set(key, mine);
   return mine;
 }
 /** Stat contribution at the run's race count (compound unique effects evaluated against the other cards in the run and the agenda), and its value under the chosen training focus. */
@@ -266,24 +285,38 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     }
   }
 
-  // 5. one-swap improvement
+  // 5. one-swap improvement. Per slot the state of the other cards is built once; a candidate's sources are memoized
+  // per context, and its stat power too unless its unique effect depends on the deck around it.
   const pinnedSet = new Set(pinnedIds);
+  const deckDependent = (card: Card) => !!card.unique?.effects.some((u) => u.type === 103 || u.type === 105);
+  const powerCache = new Map<string, number>();
+  const powerOf = (p: { card: Card; lb: number }, others: Card[]) => {
+    if (deckDependent(p.card)) return statsOf(p.card, p.lb, ctx, others).statPower;
+    const key = `${p.card.id}:${p.lb}`;
+    let v = powerCache.get(key);
+    if (v === undefined) { v = statsOf(p.card, p.lb, ctx, others).statPower; powerCache.set(key, v); }
+    return v;
+  };
   for (let pass = 0; pass < (opts.swapPasses ?? 3); pass++) {
     const base = deckValue(deck, targets, ctx);
     let best: { index: number; pick: { card: Card; lb: number }; value: { sparks: number; stats: number } } | null = null;
-    deck.forEach((d, index) => {
-      if (pinnedSet.has(d.card.id)) return;
+    for (const [index, d] of deck.entries()) {
+      if (pinnedSet.has(d.card.id)) continue;
       const others = deck.filter((_, j) => j !== index);
-      const used = new Set(others.map((x) => x.card.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
+      const otherCards = others.map((o) => o.card);
+      const othersState = stateOf(others, targets, ctx);
+      const othersStats = others.reduce((a, e) => a + e.statPower, 0);
+      const used = new Set(otherCards.map((c) => c.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
       const cands = (d.borrowed ? borrowPool : pool).filter((p) => !used.has(p.card.charId) && !(p.card.id === d.card.id && p.lb === d.lb) && !others.some((o) => o.card.id === p.card.id));
       for (const p of cands) {
-        const entry: Entry = { card: p.card, lb: p.lb, mine: minesOf(p.card, p.lb, targets, ctx), statPower: statsOf(p.card, p.lb, ctx, others.map((o) => o.card)).statPower, borrowed: d.borrowed };
+        const mine = minesOf(p.card, p.lb, targets, ctx);
+        const statPower = powerOf(p, otherCards);
         // a card with no source for any target cannot raise the sparks, so it only matters as a better stat stick
-        if (!entry.mine.size && entry.statPower <= d.statPower) continue;
-        const value = deckValue([...others, entry], targets, ctx);
+        if (!mine.size && statPower <= d.statPower) continue;
+        const value = { sparks: total(evaluate(addTo(othersState, mine, p.card), targets, ctx).sparks), stats: othersStats + statPower };
         if (betterValue(value, best?.value ?? base)) best = { index, pick: p, value };
       }
-    });
+    }
     if (!best) break;
     const b: { index: number; pick: { card: Card; lb: number }; value: { sparks: number; stats: number } } = best;
     const out = deck[b.index]!;

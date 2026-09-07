@@ -101,8 +101,17 @@ function outcomeSkillShares(outcome: Reward[], data: Data, settings: Settings): 
 
 const EVENT_LABEL: Record<CardEvent['kind'], string> = { chain: 'Chain event', random: 'Random event', recreation: 'Outing', special: 'Special event' };
 
-/** The settings eventSources reads, as a cache key. */
-const eventSettingsKey = (s: Settings) => [s.chainRatesSSR, s.chainRatesSR, s.randomEventRate, s.palChainRate, s.groupOutingRate, s.groupFinaleRate, s.specialEventRate, s.goldRollStat].flat().join(',');
+/** The settings eventSources reads, as a cache key; built once per settings object, since the lookup runs per card per evaluation. */
+const settingsKeyCache = new WeakMap<Settings, string>();
+function eventSettingsKey(s: Settings): string {
+  let key = settingsKeyCache.get(s);
+  if (key === undefined) {
+    key = [s.chainRatesSSR, s.chainRatesSR, s.randomEventRate, s.palChainRate, s.groupOutingRate, s.groupFinaleRate, s.specialEventRate, s.goldRollStat,
+      s.charStoryEventRate, s.charOutingRate, s.charUndecodedEventRate, s.charConditionFallbackRate].flat().join(',');
+    settingsKeyCache.set(s, key);
+  }
+  return key;
+}
 const eventSourceCache = new WeakMap<Card, { key: string; value: EventSource[] }>();
 
 /** Skill sources from a card's events (form untagged), memoized per card and event settings. */
@@ -211,8 +220,21 @@ function traineeEventRate(ev: TraineeEvent, wins: RaceWins, settings: Settings):
   if (ev.kind === 'secret') return (ev.conditions ?? []).reduce((a, c) => a * conditionChance(c, wins, settings), 1);
   return ev.kind === 'outing' ? settings.charOutingRate : settings.charStoryEventRate;
 }
-/** Every skill source from the trainee's own events (form untagged), given the agenda. Secret events are scored by their race conditions. */
+const traineeSourceCache = new WeakMap<Character, { wins: RaceWins; key: string; value: EventSource[] }>();
+/**
+ * Every skill source from the trainee's own events (form untagged), given the agenda. Secret events are scored by
+ * their race conditions. Memoized per trainee, agenda (by identity) and event settings: a deck build evaluates the
+ * run state thousands of times and the trainee's events do not change within it.
+ */
 export function traineeEventSources(trainee: Character, wins: RaceWins, settings: Settings, data: Data): EventSource[] {
+  const key = eventSettingsKey(settings);
+  const hit = traineeSourceCache.get(trainee);
+  if (hit && hit.wins === wins && hit.key === key) return hit.value;
+  const value = computeTraineeEventSources(trainee, wins, settings, data);
+  traineeSourceCache.set(trainee, { wins, key, value });
+  return value;
+}
+function computeTraineeEventSources(trainee: Character, wins: RaceWins, settings: Settings, data: Data): EventSource[] {
   const out: EventSource[] = [];
   const offered = new Set<number>(); // every skill some event gives, whether or not it can fire under this agenda
   for (const ev of trainee.events) {
