@@ -62,7 +62,7 @@ unrelated work already in the workspace. Do not commit `docs/screenshot.png`.
 
 Include a `Co-Authored-By` trailer identifying the agent that actually contributed and its model version.
 Use the model version reported by the current session; do not guess or reuse another agent's name or model.
-For example: `Co-Authored-By: Codex (GPT-6) <noreply@openai.com>`.
+For example: `Co-Authored-By: Codex (GPT-6 Astra) <noreply@openai.com>`.
 
 ## Shared instructions
 
