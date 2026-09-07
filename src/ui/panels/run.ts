@@ -46,7 +46,7 @@ export function renderRun(c: RunPlan) {
         ${store.run.pinnedIds.length ? store.run.pinnedIds.map((id) => {
           const card = data.cardById.get(id); if (!card) return nothing;
           const lb = effectiveLb(store.inventory, card, store.settings.defaultLb);
-          return html`<span class="chip pin-row">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} <span class="muted">${card.title}</span></a><span class="pin-lb">${lb == null ? html`<span class="tag borrow">borrow</span>${tip("Not in your inventory, so it asks for the friend's slot at LB4.")}` : `${card.rarity} LB${lb}`}</span><button data-action="unpin-card" data-id="${id}" title="Unpin" @click=${() => unpinCard(id)}>✕</button></span>`;
+          return html`<span class="chip pin-row">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} <span class="muted">${card.title}</span></a><span class="pin-lb">${lb == null ? html`<span class="tag borrow">borrow</span>${tip("Not in your inventory, so it asks for the friend's slot at LB4.")}` : `LB${lb}`}</span><button data-action="unpin-card" data-id="${id}" title="Unpin" @click=${() => unpinCard(id)}>✕</button></span>`;
         }) : html`<span class="muted small">Nothing pinned. Light Hello is mandatory in Grand Concert, so pin one of her cards unless you have a reason not to.</span>`}
       </div>
       ${c.ownedPinIds.length > OWNED_SLOTS ? html`<div class="small muted">${c.ownedPinIds.length} owned cards pinned: the builder keeps the ${OWNED_SLOTS} with the best added spark chance.</div>
