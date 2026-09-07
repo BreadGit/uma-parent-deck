@@ -337,7 +337,14 @@ function normalizeCharacters(raw, charEvents, charEventsByCard, races) {
       // cond_value is the placement the objective requires (1 = win, 5 = top five); 0 means taking part is enough
       goals.push({ slot: o.turn - 1, required: Number(o.cond_value ?? 0), races: o.races.map((r) => ({ raceId: r.id, name: r.name_en, distance: r.distance, surface: r.terrain === 2 ? 'dirt' : 'turf', grade: r.grade, fansNeeded: r.fans_needed ?? 0, fansGain: r.fans_gained ?? 0 })) });
     }
-    goalsByChar.set(entry.char_id, goals);
+    // Route variants may repeat the same objective. Preserve distinct race choices, count repeated races once.
+    const seen = new Set();
+    const uniqueGoals = goals.map((g) => ({ ...g, races: g.races.filter((r) => {
+      const key = `${g.slot}:${r.raceId}`;
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    }) })).filter((g) => g.races.length);
+    goalsByChar.set(entry.char_id, uniqueGoals);
   }
   const out = [];
   for (const c of raw['character-cards']) {

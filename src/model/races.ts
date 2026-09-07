@@ -93,7 +93,10 @@ export function goalRaces(trainee: Character | null): Race[] {
  */
 export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, forced: Map<string, boolean>, popularity: Map<number, number> = new Map(), goals: Race[] = []): ScheduledRace[] {
   const goalSlots = new Set(goals.map(slotOf));
-  const all = [...goals, ...races.filter((r) => !r.unreleasedEn && !goalSlots.has(slotOf(r)))].sort((a, b) => slotOf(a) - slotOf(b) || (popularity.get(b.raceId) ?? 0) - (popularity.get(a.raceId) ?? 0));
+  // Alternate objective routes can repeat a race. A physical running counts only once, including its rewards.
+  const entries = [...goals, ...races.filter((r) => !r.unreleasedEn && !goalSlots.has(slotOf(r)))];
+  const all = [...new Map(entries.map((r) => [`${slotOf(r)}:${r.raceId}`, r])).values()]
+    .sort((a, b) => slotOf(a) - slotOf(b) || (popularity.get(b.raceId) ?? 0) - (popularity.get(a.raceId) ?? 0));
   const raws = new Map(all.map((r) => [r.calendarId, rawWinScore(r, apt)]));
   const fresh = (r: Race) => pWinAt(r, raws.get(r.calendarId) ?? 0, 1);
   const bySlot = new Map<number, Race[]>();

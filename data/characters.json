@@ -30508,36 +30508,6 @@
     ]
    },
    {
-    "slot": 55,
-    "required": 1,
-    "races": [
-     {
-      "raceId": 1006,
-      "name": "Tenno Sho (Spring)",
-      "distance": 3200,
-      "surface": "turf",
-      "grade": 100,
-      "fansNeeded": 20000,
-      "fansGain": 15000
-     }
-    ]
-   },
-   {
-    "slot": 67,
-    "required": 1,
-    "races": [
-     {
-      "raceId": 1016,
-      "name": "Tenno Sho (Autumn)",
-      "distance": 2000,
-      "surface": "turf",
-      "grade": 100,
-      "fansNeeded": 20000,
-      "fansGain": 15000
-     }
-    ]
-   },
-   {
     "slot": 67,
     "required": 1,
     "races": [
@@ -30560,36 +30530,6 @@
       "raceId": 1019,
       "name": "Japan Cup",
       "distance": 2400,
-      "surface": "turf",
-      "grade": 100,
-      "fansNeeded": 25000,
-      "fansGain": 30000
-     }
-    ]
-   },
-   {
-    "slot": 69,
-    "required": 1,
-    "races": [
-     {
-      "raceId": 1019,
-      "name": "Japan Cup",
-      "distance": 2400,
-      "surface": "turf",
-      "grade": 100,
-      "fansNeeded": 25000,
-      "fansGain": 30000
-     }
-    ]
-   },
-   {
-    "slot": 71,
-    "required": 1,
-    "races": [
-     {
-      "raceId": 1023,
-      "name": "Arima Kinen",
-      "distance": 2500,
       "surface": "turf",
       "grade": 100,
       "fansNeeded": 25000,
@@ -103367,21 +103307,6 @@
       "grade": 200,
       "fansNeeded": 2000,
       "fansGain": 6700
-     }
-    ]
-   },
-   {
-    "slot": 67,
-    "required": 1,
-    "races": [
-     {
-      "raceId": 1016,
-      "name": "Tenno Sho (Autumn)",
-      "distance": 2000,
-      "surface": "turf",
-      "grade": 100,
-      "fansNeeded": 20000,
-      "fansGain": 15000
      }
     ]
    },

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/settings.ts';
 import { defaultState, migrate, resetRun } from '../src/state.ts';
+import { buildSchedule, expectedFansBefore, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { eventSources } from '../src/model/sparks.ts';
 
 const data = loadData();
@@ -40,4 +41,28 @@ test('migrated states and sanitized settings own their mutable values', () => {
   assert.notEqual(a.settings.defaultLb, DEFAULT_SETTINGS.defaultLb);
   const saved = { chainRatesSSR: [0.5, 0.3, 0.1] };
   assert.notEqual(sanitizeSettings(saved).chainRatesSSR, saved.chainRatesSSR);
+});
+
+test('every trainee agenda has at most one selected race per slot', () => {
+  for (const ch of data.characters) {
+    const schedule = buildSchedule(data.races, traineeAptitudes(ch, {}), 0.8, new Map(), new Map(), goalRaces(ch));
+    const selected = schedule.filter((s) => s.selected);
+    assert.equal(selected.length, new Set(selected.map((s) => s.slot)).size, ch.name);
+  }
+});
+
+test('duplicate objective input cannot count race rewards twice', () => {
+  const brian = data.charByCardId.get(101601)!;
+  const goals = goalRaces(brian);
+  const baseline = buildSchedule(data.races, brian.aptitudes, 0.8, new Map(), new Map(), goals);
+  const duplicated = buildSchedule(data.races, brian.aptitudes, 0.8, new Map(), new Map(), [...goals, goals[0]!]);
+  assert.deepEqual(scheduleSummary(duplicated), scheduleSummary(baseline));
+  assert.equal(expectedFansBefore(duplicated, 72), expectedFansBefore(baseline, 72));
+});
+
+test('bundled career goals contain no repeated race objective at the same slot', () => {
+  for (const ch of data.characters) {
+    const keys = ch.goals.flatMap((g) => g.races.map((r) => `${g.slot}:${r.raceId}`));
+    assert.equal(new Set(keys).size, keys.length, ch.name);
+  }
 });
