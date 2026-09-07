@@ -19,7 +19,7 @@ async function onImport(e: Event) {
   catch (err) { alert(`Import failed: ${err}`); }
 }
 function resetAdvanced() {
-  update((s) => { const keep = Object.fromEntries(MAIN_PAGE_SETTINGS.map((k) => [k, s.settings[k]])); s.settings = { ...DEFAULT_SETTINGS, ...keep }; });
+  update((s) => { const keep = Object.fromEntries(MAIN_PAGE_SETTINGS.map((k) => [k, s.settings[k]])); s.settings = { ...structuredClone(DEFAULT_SETTINGS), ...keep }; });
 }
 
 export function renderSettings() {

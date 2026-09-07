@@ -30,7 +30,7 @@ export function defaultPins(data: Data): number[] {
   return lh ? [lh] : [];
 }
 export function defaultState(data: Data): AppState {
-  return { version: STATE_VERSION, run: { ...DEFAULT_RUN, pinnedIds: defaultPins(data) }, settings: { ...DEFAULT_SETTINGS }, inventory: {}, ui: { ...DEFAULT_UI } };
+  return { version: STATE_VERSION, run: { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) }, settings: structuredClone(DEFAULT_SETTINGS), inventory: {}, ui: { ...DEFAULT_UI } };
 }
 
 type Json = Record<string, unknown>;
@@ -39,7 +39,7 @@ const numList = (v: unknown): number[] => (Array.isArray(v) ? v.filter((x): x is
 
 /** Older shapes of the run state and what they turn into. */
 function migrateRun(raw: Json, data: Data): RunInput {
-  const run: RunInput = { ...DEFAULT_RUN, pinnedIds: defaultPins(data) };
+  const run: RunInput = { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) };
   for (const k of ['targets', 'wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = numList(raw[k]);
   if (typeof raw.traineeCardId === 'number') run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
@@ -144,5 +144,5 @@ export function saveState(state: AppState) {
 }
 /** Forget the run choices only; settings and inventory stay. */
 export function resetRun(state: AppState, data: Data): AppState {
-  return { ...state, run: { ...DEFAULT_RUN, pinnedIds: defaultPins(data) } };
+  return { ...state, run: { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) } };
 }

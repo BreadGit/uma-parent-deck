@@ -173,7 +173,7 @@ export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>
     const v = saved[key];
     if (v !== undefined && isValidSetting(key, v)) (out as unknown as Record<string, unknown>)[key] = v;
   }
-  return out;
+  return structuredClone(out);
 }
 
 /** User-facing note per advanced setting: what it does and where the default comes from. */
