@@ -90,7 +90,7 @@ export function renderDeck(c: RunPlan) {
   return html`
     <section class="panel">
       <h2>Suggested deck</h2>
-      ${d.deck.length ? html`<div class="deck">${[...d.deck.filter((x) => !x.borrowed), ...d.deck.filter((x) => x.borrowed)].map((cs) => html`
+      ${d.deck.length ? html`<div class="deck">${repeat([...d.deck.filter((x) => !x.borrowed), ...d.deck.filter((x) => x.borrowed)], (cs) => `${cs.card.id}:${cs.borrowed ? 'b' : 'o'}`, (cs) => html`
         <div class="slot">
           <div class="slot-top">${store.run.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : nothing}</div>
           ${cardThumb(cs.card, 'slot-art')}
@@ -106,7 +106,6 @@ export function renderDeck(c: RunPlan) {
           <div class="outcome-item"><div class="k">SS or better${tip('An estimate: the rank score is the game\'s stat table plus estimated skill terms, and its spread comes from the fitted stat model.')}</div><div class="v">${pill(c.rank.pSS, c.rank.pSS > 0.5 ? 'ok' : 'warn')}</div></div>
           <div class="outcome-item"><div class="k">Rank score</div><div class="v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
           <div class="outcome-item"><div class="k">Estimated SP</div><div class="v">${num(p.sp)}</div></div>
-          ${c.targets.length ? html`<div class="outcome-item"><div class="k">Worst-case target SP cost${tip(`The base cost of every target bought once, in the dearest form the run can hand over (${c.spCost.items.map((it) => `${it.skill?.name ?? it.target.name} ${it.cost ?? '?'}`).join(', ')}). No hint discounts, prerequisites or purchase planning: an upper bound to check against the estimated SP. Independent training buys nothing during the run; you choose the purchases at the end.`)}</div><div class="v ${c.spCost.total > p.sp ? 'warn' : ''}">${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}${c.spCost.total > p.sp ? html` <span class="small">exceeds SP</span>` : nothing}</div></div>` : nothing}
         </div>
         ${STATS.map((s, i) => html`
         <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)} <span class="sd">±${num(p.sd[i]!)}</span></div>
@@ -123,10 +122,11 @@ export function renderDeck(c: RunPlan) {
             <td class="small wrap">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>
+      ${c.targets.length ? html`<div class="small ${c.spCost.total > p.sp ? 'warn' : 'muted'}">Worst-case target SP cost: <b>${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}</b> of ${num(p.sp)} estimated SP${c.spCost.total > p.sp ? ', more than the run is expected to earn' : ''}${tip(`The base cost of every target bought once, in the dearest form the run can hand over (${c.spCost.items.map((it) => `${it.skill?.name ?? it.target.name} ${it.cost ?? '?'}`).join(', ')}). No hint discounts, prerequisites or purchase planning: an upper bound to check against the estimated SP. Independent training buys nothing during the run; you choose the purchases at the end.`)}</div>` : nothing}
       ${conflicts(c)}
       <h3>Independent training prioritized skills (up to ${PRIORITIZED_SKILLS_MAX})</h3>
-      ${c.wl.length ? html`<ol class="wishlist" @dragstart=${wishlistDrag.dragstart} @dragover=${wishlistDrag.dragover} @drop=${wishlistDrag.drop} @dragend=${wishlistDrag.dragend}>${repeat(c.wl, (w) => w.key, (w) => html`<li draggable="true" data-wl-key="${w.key}">
-          <span class="grip" title="Drag to reorder">⋮⋮</span>
+      ${c.wl.length ? html`<ol class="wishlist" @dragstart=${wishlistDrag.dragstart} @dragover=${wishlistDrag.dragover} @drop=${wishlistDrag.drop} @dragend=${wishlistDrag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => html`<li draggable="true" data-wl-key="${w.key}">
+          <span class="wl-num">${i + 1}.</span><span class="grip" title="Drag to reorder">⋮⋮</span>
           ${w.gated && w.isTarget ? html`<span class="tag gold wl-kind">target skill</span>` : w.gated ? html`<span class="tag wl-kind">not a target</span>` : html`<span class="tag warn wl-kind">target but not a choice</span>`}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span>
           <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" title="Remove from the list" @click=${() => excludeSkill(w.key)}>✕</button></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
       ${c.wlRest.length || c.wlExcluded.length ? html`<div class="small muted">
