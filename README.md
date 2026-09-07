@@ -7,37 +7,47 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 - You pick the white skills you want to spark. Cards that hint or give the skill, its gold
   upgrade, or its ◎ form all count; gold counts more because a gold skill has a base 40% spark
-  chance at run end vs 20% for a white.
+  chance at run end, a ◎ 25%, a white 20%. The run only hands over hints: every figure assumes you
+  buy the target at the end, and the predicted run shows the worst-case SP that takes.
 - You pick the trainee. Her own support cards are excluded, her innate and awakening skills
   count as already covered, and her growth rates and aptitudes feed the stat and race models. Her own
   events count as sources too: story and choice events at a set rate, outings at another, and secret
   events scored from the agenda (a "win the Derby and the Kikuka Sho" event is worth the product of
   those win chances, and nothing if a required race is not scheduled). Choice-gated ones take part in
   the one-option-per-event rule like card events.
-- The G1 schedule is built from a win table (surface x distance aptitude, consecutive-race penalty) with a win-chance threshold you set
-  on the main page, plus per-race checkboxes.
+- The G1 schedule uses independent training's own win odds (Shoppo_ura's data): 110% at A/A minus a
+  penalty per surface and distance grade and per consecutive race, clamped to 100%, with stats and
+  skills playing no part. A career goal the run would end on losing is always won. A win-chance
+  threshold you set on the main page and per-race picks complete the agenda.
 - Each card gets a spark score (expected sparks over the targets, given how likely the card
   is to actually hand over the skill) and a stat score (predicted contribution in independent
   training at your limit break). Ranking is by marginal spark gain, tie-broken by stats.
-- A greedy builder fills the five owned slots and the friend's slot. Pinned cards (Light Hello is
+- A greedy builder fills the five owned slots and the friend's slot, then tries single swaps until none
+  raises the expected sparks (or the focus-weighted stats at equal sparks). Pinned cards (Light Hello is
   pinned by default for Our Grand Concert) go first, best marginal spark gain first, one card per
   character: an owned pin takes an owned slot, and a pin you do not own asks for the friend's slot at
   LB4. With six or more owned pins the leftover pins compete for the friend's slot too, unless the
   "borrow best overall card" box is ticked. A friend's slot still open takes the best card overall,
   owned slots still open fill from the rest of your inventory, and if a deck card's LB4 version would
   serve better as the borrow it is swapped in and its slot refilled.
-- The predicted run shows expected stats, chance of ≥600 and ≥1100 per stat (blue spark star
-  bands), chance of SS rank (which increase white spark star odds), estimated SP, and a 10-skill priority list used by independent training
-  with the skills that are gated behind an event choice listed first.
+- The predicted run shows expected stats (clamped to the scenario caps plus the blue sparks' start
+  uncaps), chance of ≥600 and ≥1100 per stat (blue spark star bands), chance of SS rank and the
+  estimated SP against the worst-case cost of the targets, and a 10-skill priority list used by independent training with the skills that are
+  gated behind an event choice listed first. Only those ten entries steer event choices.
 - Every card counts as owned at a default limit break (4 for every rarity, editable) until you
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
   repo root to make it the default.
 - Legacy screen: a copy of the game's pre-run screen. Above each stat you pick the "+XX" each
   parent side adds at the start, as the game shows it; the 20 possible values each decode to one
-  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5), which then proc again at the two inspiration
-  events (70/80/90% by stars, scaled by the affinity setting). The aptitude overrides sit under the
-  stats like the game's table. White spark star odds depend on the run's SS rank instead.
+  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). Each spark then procs at the two
+  inspiration events (70/80/90% by stars, times 1 + affinity/100 of the uma carrying it) for a
+  random roll of 1 to 10, 1 to 16 or 1 to 28; the tool uses an assumed mean per star, set in the
+  advanced settings, because the distribution is unmeasured. The affinity is one advanced setting,
+  the individual score assumed for every uma in the lineage (150 by default, so every blue spark
+  procs); the game only shows the six scores' sum as ◎/○/△, so per-uma entry is not offered. The
+  aptitude overrides sit under the stats like the game's table; S is not offered because only an
+  inspiration event reaches it.
 
 Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live in
 `src/model/rules.ts`, tunable estimates in `src/settings.ts`.
@@ -77,9 +87,11 @@ and only re-downloads files whose manifest hash changed. Run it when a new card 
   hint skills, event skills, chain events and random events with rewards decoded. Event names
   come from the per-card page JSON (the static feed scrambles them), fetched once per card.
 - `data/skills.json`: all skills with rarity (1 white, 2 gold), SP cost, family links.
-- `data/characters.json`: Global character cards with aptitudes, growth, innate and
-  awakening skills, career goals, and her own events (story, choice, outing, secret with conditions)
-  from the per-character page JSON, on the content version Global runs.
+- `data/characters.json`: Global character cards with aptitudes, growth, base stats at every listed
+  star count, innate and awakening skills, career goals (with the placement each needs and the fans a
+  win gives), and her own events (story, choice, outing, secret with conditions) from the per-character
+  page JSON plus each outfit's own events from its page (`data/raw/char-events-by-card.json`), on the
+  content version Global runs.
 - `data/races.json`: the G1 career calendar.
 - `data/ranks.json`: rank score thresholds.
 - `data/stat-model.json`: fitted independent-training stat model, produced by
@@ -119,15 +131,36 @@ that fires at the scenario pick rate (100% by default, per Loopacord), so a card
 character is credited with the gold form. Data: `data/scenario-events.json`, decoded from
 GameTora's scenario events for every scenario.
 
+Event outcomes are correlated the way the game runs them: one option per event, the outcomes of
+that option exclusive (a gold-or-white roll follows the documented stat table at an assumed stat),
+a skill written into several conditional branches of one outcome counted once, and a card's chain
+stages nested so a skill offered by two stages counts once per run. Outcomes of one option are
+assumed equally likely; the game does not publish their odds.
+
 Numbers with no measurement behind them (chain completion rates in independent training,
-random event rate, big/small reward split, Group outing rates, hint acquisition scaling,
-loss penalty) are defaults in the advanced settings panel.
+random event rate, Group outing rates, hint acquisition scaling, the stat assumed for the gold
+roll, the song count for the scenario's completion skill, loss penalty) are defaults in the
+advanced settings panel.
 
 ## Known gaps
 
 - Independent-training hint pickup, random event rates, the Group finale rate, the trainee's outing rate
   and the fallback for secret-event conditions the tool cannot score (rival results, streaks, strategy)
-  are unmeasured; the defaults are guesses marked as such in the advanced settings.
+  are unmeasured; the defaults are guesses marked as such in the advanced settings. Whether
+  prioritized skills change which support hints the run takes is documented for Auto-Train only, so
+  hints stay priority-independent.
+- GameTora groups a trainee's fixed career events and her random character events together; both get
+  one rate. A skill GameTora lists for her events that no decoded event gives uses a placeholder rate.
+- The distribution of a blue spark's inspiration roll, the stat at the moment a chain's gold roll
+  happens, the odds between the outcomes of one option, and the cap increases from inspiration events
+  and green sparks are unknown; each is an explicit assumption or left out.
+- The stat model is an empirical fit: race scaling from one 23 versus 28 race comparison, focus
+  multipliers from two decks, fixed per-stat spreads, and event stats at the reference decks' Race
+  Bonus (the deck's total is shown but not modelled). Forty cards carry a conditional unique effect the
+  model does not evaluate; they are flagged in the ranking.
+- The agenda uses start-of-run aptitudes for the whole run; a pink spark proc at an inspiration event
+  is not modelled. Which option wins when several prioritized skills sit in one event is an assumption
+  (list order), not a measured rule.
 - Forfeited stat rewards from the event option not taken are not modelled.
 - Slot tiebreaks use how many umas can run a race comfortably, not how common it is on parents.
 - Career goals come per character, so an alternate outfit shows the base outfit's goals.

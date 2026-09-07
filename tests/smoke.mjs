@@ -95,6 +95,8 @@ assert.ok(!bodyText.includes('blue spark 1★'), 'predicted run still shows blue
 assert.ok(!bodyText.includes('Card / event / inherited stats'), 'predicted run still shows stat-source totals');
 assert.ok(!bodyText.includes("Blue spark stars depend on each stat's final value"), 'predicted run still shows the removed explanatory blurb');
 assert.ok(!bodyText.includes('White spark stars'), 'predicted run still shows white spark odds');
+assert.ok(bodyText.includes('Estimated SP'), 'predicted run should show the estimated SP');
+assert.ok(!(await page.$$eval('select[data-apt] option', (o) => o.some((x) => x.value === 'S'))), 'S cannot be chosen as a pre-run aptitude');
 assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'inventory settings still show default limit-break controls');
 assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
 // picking a start gain fills the dropdown in its parent's colour and raises the start value
@@ -150,6 +152,13 @@ for (const width of [1280, 1440, 1680, 1920]) {
       const w = document.documentElement.clientWidth; const bad = [];
       if (document.documentElement.scrollWidth > w + 1) bad.push(`document ${document.documentElement.scrollWidth} > ${w}`);
       for (const el of document.querySelectorAll('section.panel, .agenda-year, .deck .slot')) { const r = el.getBoundingClientRect(); if (r.right > w + 1) bad.push(`${el.className} right=${Math.round(r.right)}`); }
+      // content clipped inside a box never widens the document, so check every clipping element's own content too;
+      // deliberate truncation (ellipsis, line clamp) is exempt and a few px of a nowrap row are tolerated
+      for (const el of document.querySelectorAll('#app *')) {
+        const cs = getComputedStyle(el);
+        if (!(cs.overflowX === 'hidden' || cs.overflowX === 'clip') || cs.textOverflow === 'ellipsis' || cs.webkitLineClamp !== 'none') continue;
+        if (el.scrollWidth > el.clientWidth + 4) bad.push(`${el.tagName.toLowerCase()}.${el.className} clips ${el.scrollWidth - el.clientWidth}px (${el.textContent.trim().slice(0, 30)})`);
+      }
       return bad;
     });
     assert.deepEqual(over, [], `overflow at ${width}px ${scheme}: ${over.join('; ')}`);

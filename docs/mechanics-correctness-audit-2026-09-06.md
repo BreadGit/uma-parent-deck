@@ -5,6 +5,15 @@ Audited commit: `4f9ac84`
 Audit branch: `audit/game-mechanics-correctness`
 Audience: implementation agents correcting game-mechanics behavior
 
+## Implementation status (2026-09-06)
+
+Applied on this branch after the audit. Numbers refer to the sections below.
+
+- Done: 1 (additive win model, unclamped streak penalty, objective auto-win from `cond_value`), 2 (UmaTools stat table, aptitude buckets from skill tags, 120/170 per unique level, level from the agenda's fans and a bond-rate setting), 3 (fixed start gains, per-star assumed inspiration mean inside the published bounds, range shown), 4 (the per-spark formula base × (1 + individual affinity/100) with one affinity assumed for every uma, kept as an advanced setting at 150 because the game never shows individual scores; per-uma entry was tried and dropped as not something a user can fill in), 5 (Grand Live caps plus the +4/+9/+16 start uncaps; inspiration and green uncaps left out as unknown), 6 (override must exceed 28, finite checks), 8 (only the first ten steer choices), 9 (one option per event, exclusive outcomes per option, gold roll by the documented stat table at an assumed stat, duplicate rewards counted once, nested chain stages, an option giving two targets keeps both), 10 (completion reward as one gold-or-white roll at a songs-rate setting), 12 (◎ at 25%, worst-case target SP cost with a warning, coverage labelled as conditional on buying), 15 (exact 2★ and 3★ tables), 16 (focus-weighted stat value in the deck comparison, one-swap improvement pass), 17 (empirical labels in the settings and breakdown), 18 (the inert star-odds settings removed; a four-band output was tried and dropped as not worth the space).
+- Partial: 11 (each outfit's own `version` events are now fetched and decoded; fixed and random character events still share one rate because GameTora's page groups do not distinguish them; a listed skill with no decoded event gets a placeholder rate instead of 100%), 13 (the deck's total Race Bonus is shown and the caveat stated; no fit, since the logs do not record the reference decks' Race Bonus), 14 (compound unique effects keep their payload and are no longer folded into the passives; cards carrying one are flagged in the ranking; the conditions themselves have no definitions in the feed, so they are not evaluated, and the additive fold of basic unique Friendship Bonus stays until a refit).
+- Not changed: 7 (hints stay priority-independent, as the audit directs).
+- Secondary items: S removed from the pre-run aptitude choice (saved S becomes A), the fixed-aptitude assumption labelled, the scenario control restricted to Our Grand Concert; the legacy +63 feasibility check was not added.
+
 ## Scope and source policy
 
 This audit covers the Independent Training schedule, inheritance, skill-source probabilities, white-spark generation, run-stat prediction, rank prediction, deck selection, normalized data, and the end-to-end UI.

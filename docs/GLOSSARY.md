@@ -32,7 +32,10 @@ names differ they are noted.
 - **Trainee events**: the Trainee's own events. **Story events** play in every career; **choice events** offer
   two or three options; her **outings** happen when the run takes her out; **secret events** (hidden events)
   fire only once their conditions are met, usually winning specific G1s in a given year, and often give a skill.
-- **Scenario**: the career mode. This tool models **Our Grand Concert** (Global 2026-07-22).
+- **Scenario**: the career mode. This tool models **Our Grand Concert** (Global 2026-07-22), with base stat
+  caps of 1600 Speed, 1300 Stamina, 1300 Power, 1500 Guts and 1300 Wit. **Scenario completion skill**: 18 or
+  more of the 22 lesson songs by late Senior December give I Wanna Win with You, fewer give On the Way to
+  Our Dream.
   **Scenario-linked card**: A card that has a special effect in a scenario, for example giving a special scenario skill during the scenario skil event. **Scenario skill event**: an event that takes place Senior year in early November where each option is tied to a character (Smart Falcon, Mihono Bourbon, Silence Suzuka, Agnes
   Tachyon); picking that option with her in the run (trainee or card) gives the gold skill, otherwise the
   normal version; the unaffiliated option gives Lane Legerdemain.
@@ -41,14 +44,19 @@ names differ they are noted.
   deterministic.
 - **Training focus**: Balanced / Stamina / Sprint, shifts the stat split.
 - **Agenda**: the race schedule for the run. **Career goals**: the Trainee's mandatory objective races.
-- **Streak** (consecutive races): races in adjacent half-month slots; 3 or more in a row lower the
-  win chance in independent training.
-- **Rank** (evaluation): G to SS+ and beyond, from a score built from stats and skills. an overall rank of **SS** is the
-  threshold that improves white spark star odds. A single stat at 1100+ will also show its own "SS" ranking, though this is a different ranking from the overall ranking.
+- **Streak** (consecutive races): races in adjacent half-month slots. Independent training starts a race at
+  110% for A/A and takes 5 points off the third race in a row, 20 off the fourth, 30 off the fifth and 50
+  from the sixth, so A/A stays at 100% through three.
+- **Rank** (evaluation): G to SS+ and beyond, from a score built from stats and skills. An overall rank of **SS**
+  (17,500) is the threshold that improves white spark star odds. A single stat at 1100+ will also show its own
+  "SS" ranking, though this is a different ranking from the overall ranking.
 - **Legacy** (JP parent, inheritance): the two **parents** and four **grandparents** whose sparks pass to the
-  trainee. **Affinity**: compatibility between trainee and legacy and boosted by shared G1 wins between a parent and grandparent; it scales inheritance chances.
-- **Spark** (JP factor): a trait a finished Trainee carries. **Blue** = stat (1★ +5, 2★ +12, 3★ +21 at
-  career start and again per inspiration proc), **pink/red** = aptitude, **green** = unique skill,
+  trainee. **Affinity** (JP compatibility): each of the six has an individual score, raised by shared G1 wins;
+  a spark procs at its own uma's (1 + score/100). The game only shows the sum as ◎ (over 150), ○ (over 50) or △,
+  so the tool assumes one score for every uma (an advanced setting, 150 by default).
+- **Spark** (JP factor): a trait a finished Trainee carries. **Blue** = stat (a fixed +5, +12 or +21 by stars
+  at career start, plus a random 1 to 10, 1 to 16 or 1 to 28 each time it procs at an inspiration event, and a
+  stat-cap increase of 4, 9 or 16 at the start), **pink/red** = aptitude, **green** = unique skill,
   **white** = skill, race, or scenario. **Stars** on a spark: 1 to 3.
 - **Legacy screen**: the game's pre-run screen with the trainee's stats after inheritance, a "+XX" above each
   stat per parent side, and her aptitudes. In the tool, the **Legacy screen** panel copies it: the **start
@@ -56,7 +64,8 @@ names differ they are noted.
   aptitudes after pink sparks.
 - **Inspiration events**: early April of Classic and Senior year, when sparks may proc again.
 - **White spark generation**: at run end each owned skill may become a white spark: 20% for a white
-  skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage.
+  skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage. The run
+  hands over hints only; the player buys the skills at the end.
 - **Gold skill**: the upgraded form of a white skill (e.g. Concentration for Focus). **○ / ◎ / ×**:
   normal / stronger / weaker variants of some whites; ◎ is inheritance-only.
 - **G1**: top race grade. One win per G1 is enough for the affinity bonus.
@@ -64,21 +73,25 @@ names differ they are noted.
 ## This tool
 
 - **Target** (target white spark): a white skill you want the finished parent to carry as a spark.
-- **Source**: a way the run can end up owning a target skill: hint, chain event, random event,
-  outing, scenario option, trainee event (story, choice, outing or secret), innate/awakening skill, or
-  lineage. Each has an obtain chance. A secret event's chance is the product of its conditions' chances,
+- **Source**: a way the run can end up with a target skill's hint: hint, chain event, random event,
+  outing, scenario option or completion reward, trainee event (story, choice, outing or secret),
+  innate/awakening skill, or lineage. Each has an obtain chance. Sources from one option of one event are
+  exclusive outcomes, a card's chain stages are nested, everything else is independent. A secret event's chance is the product of its conditions' chances,
   with race wins scored from the agenda and conditions the tool cannot score given the fallback rate.
 - **Choice-gated**: a source that only happens if the run picks that option at an event. Only one
   option per event can be taken.
 - **Prioritized skills**: the tool's suggested 10-entry list for independent training. Entry types:
   **target skill** (choice-gated, leads to a target), **not a target** (choice-gated, doesn't), **target
-  but not a choice** (given regardless). Its order decides which option wins a conflict.
+  but not a choice** (given regardless). Only these ten steer event choices; the tool assumes their order
+  decides which option wins a conflict, which the game does not confirm.
 - **Choice conflict**: two or more targets (or a ranked non-target option) competing for one event's
   single option. The higher entry in the prioritized list takes it.
 - **Spark chance**: expected chance a target becomes a white spark at run end. **Added spark chance**
   (marginal): how much a card raises the total over what the trainee and deck already cover.
   **Spark chance alone**: the card by itself.
-- **Coverage**: which targets the run can obtain and through which sources.
+- **Coverage**: which targets the run can obtain and through which sources, on the assumption that the
+  player buys each one. **Worst-case target SP cost**: every target bought once at the base cost of the
+  dearest form the run can hand over, with no discounts; compared with the estimated SP.
 - **Lineage** (per target): copies of that white spark already on each parent side (count and star
   total), which raise both hint and generation chances.
 - **Pinned card**: a card the builder places first, best marginal gain first. An owned pin takes one of
