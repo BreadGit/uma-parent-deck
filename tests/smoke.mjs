@@ -160,6 +160,12 @@ const summary = await page.evaluate(() => ({
   top3: [...document.querySelectorAll('section.panel:last-child tbody tr')].slice(0, 3).map((r) => r.children[1].textContent.trim().split('\n')[0]),
 }));
 console.log(JSON.stringify(summary, null, 1));
+// the ranking's five stat cells carry the focus multipliers, so they add up to the Total cell (within rounding)
+const rowSums = await page.evaluate(() => [...document.querySelectorAll('section.panel:last-child tbody tr')].slice(0, 5).map((r) => {
+  const cells = [...r.children].map((td) => Number(td.textContent.trim()));
+  return { sum: cells.slice(6, 11).reduce((a, b) => a + b, 0), total: cells[11] };
+}));
+for (const { sum, total } of rowSums) assert.ok(Number.isFinite(total) && Math.abs(sum - total) <= 3, `ranking stat cells ${sum} vs total ${total}`);
 await page.screenshot({ path: 'docs/screenshot.png', fullPage: true });
 // exercise a race override, an LB change, a "not owned" mark and a blue spark slider
 {

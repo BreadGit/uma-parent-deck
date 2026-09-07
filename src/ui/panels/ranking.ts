@@ -57,13 +57,15 @@ function uniqueTag(card: Card) {
 
 export function renderRanking(c: RunPlan) {
   const fn = SORT_KEYS[store.ui.sortKey] ?? SORT_KEYS.score!;
+  // per-stat cells carry the training focus multipliers, like the Total column (their focus-weighted sum)
+  const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
   const pinRank = (x: CardScore) => { const i = store.run.pinnedIds.indexOf(x.card.id); return i < 0 ? Infinity : i; };
   const rows = c.ranking.slice().sort((a, b) => pinRank(a) - pinRank(b) || fn(b) - fn(a));
   const th = (k: string, label: string | TemplateResult, cls = 'num') => html`<th class="${cls} sortable" data-sort="${k}" @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${store.ui.sortKey === k ? ' ▾' : ''}</th>`;
   return html`
     <section class="panel">
       <h2>Card ranking <span class="small muted">(${rows.length} cards · click a header to sort)</span></h2>
-      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Added spark chance${tip('How much this card would raise the total expected white sparks over your targets if added to what is already covered by the trainee and the cards picked so far. Overlap with existing sources counts for less, so two cards giving the same skill do not both score full value.')}`)}${th('spark', html`Spark chance alone${tip('Expected white sparks over your targets from this card on its own: the chance it hands over each skill (hint, event, or outing) times the spark rate for the gold or white form.')}`)}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', 'Total')}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
+      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Added spark chance${tip('How much this card would raise the total expected white sparks over your targets if added to what is already covered by the trainee and the cards picked so far. Overlap with existing sources counts for less, so two cards giving the same skill do not both score full value.')}`)}${th('spark', html`Spark chance alone${tip('Expected white sparks over your targets from this card on its own: the chance it hands over each skill (hint, event, or outing) times the spark rate for the gold or white form.')}`)}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(`What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. The deck builder uses this value when two cards give the same sparks.`)}`)}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
         ${rows.map((x) => {
           const owned = !c.unowned.has(x.card.id);
           return html`<tr class="${owned ? '' : 'dim'}">
@@ -73,7 +75,7 @@ export function renderRanking(c: RunPlan) {
             <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
             <td class="num">${pill(x.sparkValue, '', 1)}</td>
             <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
-            ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
+            ${x.stats.map((v, i) => html`<td class="num">${num(v * (focusMul[i] ?? 1))}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
             <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${uniqueTag(x.card)}</td>
           </tr>`;
