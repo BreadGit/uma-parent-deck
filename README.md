@@ -85,7 +85,10 @@ and only re-downloads files whose manifest hash changed. Run it when a new card 
 
 - `data/cards.json`: Global support cards with effects at every level and per limit break,
   hint skills, event skills, chain events and random events with rewards decoded. Event names
-  come from the per-card page JSON (the static feed scrambles them), fetched once per card.
+  come from the per-card page JSON (the static feed scrambles them), fetched once per card. A
+  conditional unique effect (GameTora type 100 and up) keeps its payload and the text GameTora
+  renders for it, fetched from the card page (`data/raw/unique-effect-texts.json`); the decoded
+  meaning of each type is in `docs/refs/gametora-unique-effects.md`.
 - `data/skills.json`: all skills with rarity (1 white, 2 gold), SP cost, family links.
 - `data/characters.json`: Global character cards with aptitudes, growth, base stats at every listed
   star count, innate and awakening skills, career goals (with the placement each needs and the fans a
@@ -157,7 +160,7 @@ advanced settings panel.
 - The stat model is an empirical fit: race scaling from one 23 versus 28 race comparison, focus
   multipliers from two decks, fixed per-stat spreads, and event stats at the reference decks' Race
   Bonus (the deck's total is shown but not modelled). Forty cards carry a conditional unique effect the
-  model does not evaluate; they are flagged in the ranking.
+  model does not evaluate; they are flagged in the ranking with GameTora's description of the effect.
 - The agenda uses start-of-run aptitudes for the whole run; a pink spark proc at an inspiration event
   is not modelled. Which option wins when several prioritized skills sit in one event is an assumption
   (list order), not a measured rule.

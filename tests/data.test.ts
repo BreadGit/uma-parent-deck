@@ -34,6 +34,8 @@ test('cards carry the fields the stat and spark models read', () => {
   }
   const taiki = data.cardById.get(30053)!;
   assert.ok(taiki.unique?.effects.some((u) => u.type === 101 && u.value_1 != null), 'Taiki Shuttle keeps the compound payload');
+  assert.ok(taiki.unique?.text?.includes('bond gauge is at least 80'), "and GameTora's rendered text for it");
+  for (const c of data.cards) if (c.unique?.effects.some((u) => u.type >= 100)) assert.ok(c.unique.text, `${c.name} compound unique effect has its text`);
   const urara = data.charByCardId.get(105201)!;
   assert.equal(urara.goals.find((g) => g.races[0]?.name === 'Arima Kinen')?.required, 0, "Haru Urara's Arima Kinen is participation only");
   // decoding canary: Kitasan Black's third chain event hands out Professor of Curvature in both options

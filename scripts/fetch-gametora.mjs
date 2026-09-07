@@ -139,7 +139,7 @@ function decodePageEvent(ev, kind, index) {
   return { kind, index, name: ev.n, choices };
 }
 
-function normalizeCards(raw, eventNames, palGroupEvents) {
+function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
   const evrew = raw['dict/evrew'];
   const randomNamesByChar = new Map();
   for (const c of raw['support-cards']) {
@@ -200,7 +200,8 @@ function normalizeCards(raw, eventNames, palGroupEvents) {
       obtained: c.obtained ?? null,
       effects,
       effectsByLb,
-      unique: c.unique ?? null,
+      // compound unique effects (types 100 and up) carry GameTora's rendered description, fetched from the card page
+      unique: c.unique ? { ...c.unique, ...(uniqueTexts[c.support_id] ? { text: uniqueTexts[c.support_id] } : {}) } : null,
       hintSkills: ids(c.hints?.hint_skills),
       eventSkills: ids(c.event_skills),
       hintOthers,
@@ -461,7 +462,9 @@ async function normalize() {
   const eventNames = (await exists(namesFile)) ? await readJson(namesFile) : {};
   const pgFile = path.join(RAW, 'event-data-friend-group.json');
   const palGroupEvents = (await exists(pgFile)) ? await readJson(pgFile) : {};
-  const cards = normalizeCards(raw, eventNames, palGroupEvents);
+  const utFile = path.join(RAW, 'unique-effect-texts.json');
+  const uniqueTexts = (await exists(utFile)) ? await readJson(utFile) : {};
+  const cards = normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts);
   const kita = cards.find((c) => c.id === 30028);
   const kitaLast = kita?.chainEvents[2]?.choices[0]?.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331);
   if (!kitaLast) throw new Error('event reward decoding self-check failed (Kitasan Black chain 3 should hint 200331)');

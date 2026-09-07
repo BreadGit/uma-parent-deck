@@ -64132,7 +64132,8 @@
      "value_1": 30
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Energy Cost Reduction (30) when participating in a friendship (rainbow) training"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -64865,7 +64866,8 @@
      "value_4": 1
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Speed Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200162,
@@ -69126,7 +69128,8 @@
      "value_2": 2
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Skill Point Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -75922,7 +75925,8 @@
      "value_2": 10
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -77087,7 +77091,8 @@
      "value_2": 3
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Wit Bonus (3) when the bond gauge is full"
   },
   "hintSkills": [
    200052,
@@ -77497,7 +77502,8 @@
      "value_1": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "When the bond gauge is 80 or higher and this card is in a facility different from its type, gain Increased Training (20)"
   },
   "hintSkills": [
    200652,
@@ -78376,7 +78382,8 @@
      "value_1": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "If there are at least 5 different types of support cards in your deck, gain Increased Training (15)"
   },
   "hintSkills": [
    200022,
@@ -78829,7 +78836,8 @@
      "value_1": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Increased Training (1) per 10000 fans, up to (20) for 200000 fans"
   },
   "hintSkills": [
    200142,
@@ -79234,7 +79242,8 @@
      "value_2": 2
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200012,
@@ -79673,7 +79682,8 @@
      "value_1": 10
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200592,
@@ -80077,7 +80087,8 @@
      "value_2": 60
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Mood Effect (60) when the bond gauge is full"
   },
   "hintSkills": [
    200362,
@@ -80492,7 +80503,8 @@
      "value_1": 2
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)"
   },
   "hintSkills": [
    200831,
@@ -80944,7 +80956,8 @@
      "value_2": 3
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)"
   },
   "hintSkills": [
    200162,
@@ -81371,7 +81384,8 @@
      "value_2": 2
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200622,
@@ -81768,7 +81782,8 @@
      "value_2": 2
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Power Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200282,
@@ -82159,7 +82174,8 @@
      "value_4": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "The less energy you have, the more Friendship Bonus you'll gain"
   },
   "hintSkills": [
    200292,
@@ -82637,7 +82653,8 @@
      "value_4": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Training Effectiveness (5%); gain additional 3% Training Effectiveness for every 4 points of maximum Energy above 100, up to (20%) at 120"
   },
   "hintSkills": [
    200152,
@@ -83485,7 +83502,8 @@
      "value_4": 1
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Wit Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200232,
@@ -83912,7 +83930,8 @@
      "value": 0
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Increases skill point gain when training together"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -84306,7 +84325,8 @@
      "value_1": 30
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600"
   },
   "hintSkills": [
    200482,
@@ -84759,7 +84779,8 @@
      "value_4": 1
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200742,
@@ -85157,7 +85178,8 @@
      "value_2": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Friendship Bonus (20) when the bond gauge is full"
   },
   "hintSkills": [
    200722,
@@ -85613,7 +85635,8 @@
      "value_1": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Training Effectiveness (5) for every support card in the same training facility"
   },
   "hintSkills": [
    200132,
@@ -86087,7 +86110,8 @@
      "value_2": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Wit Friendship Recovery (5) when the bond gauge is full"
   },
   "hintSkills": [
    200352,
@@ -86568,7 +86592,8 @@
      "value_2": 10
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200032,
@@ -87424,7 +87449,8 @@
      "value_4": 1
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Power Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200931,
@@ -87859,7 +87885,8 @@
      "value_1": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Training Effectiveness (5) per every level of the current training facility"
   },
   "hintSkills": [
    200182,
@@ -88296,7 +88323,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "20% chance to make the current training fail rate zero"
   },
   "hintSkills": [
    200162,
@@ -88754,7 +88782,8 @@
      "value_4": 1
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200182,
@@ -89187,7 +89216,8 @@
      "value_2": 2
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Stamina Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200742,
@@ -89598,7 +89628,8 @@
      "value_1": 30
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600"
   },
   "hintSkills": [
    200282,
@@ -90018,7 +90049,8 @@
      "value_2": 3
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)"
   },
   "hintSkills": [
    200282,
@@ -90528,7 +90560,8 @@
      "value_2": 10
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200052,
@@ -90903,7 +90936,8 @@
      "value_2": 2
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Power Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200602,
@@ -91305,7 +91339,8 @@
      "value_2": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Training Effectiveness that scales with current Energy, from (5%) at 0 Energy to (20%) at 100+ Energy"
   },
   "hintSkills": [
    200532,
@@ -91732,7 +91767,8 @@
      "value_1": 2
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)"
   },
   "hintSkills": [
    200152,
@@ -92179,7 +92215,8 @@
      "value_2": 10
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200582,
@@ -92595,7 +92632,8 @@
      "value_2": 2
     }
    ],
-   "level": 30
+   "level": 30,
+   "text": "Gain Guts Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200352,
@@ -92993,7 +93031,8 @@
      "value_2": 10
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200432,
@@ -93389,7 +93428,8 @@
      "value_2": 2
     }
    ],
-   "level": 40
+   "level": 40,
+   "text": "Unlocked at level 40"
   },
   "hintSkills": [
    200152,
