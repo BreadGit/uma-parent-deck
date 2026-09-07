@@ -209,3 +209,23 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   innateSkillBuyShare: "Share of the trainee's innate skill rating counted in the rank score, on the idea that the run buys some but not all of them. Default 0.5 is an assumption, not a measurement, and part of this SP is already inside the skills-bought term, so it double counts a little. Fitting it needs logged rank scores.",
   totalTurnsOverride: `Total career turns used to scale card stats by races run, as (T - races) / (T - ${RACES_REFERENCE}). Blank uses the fitted 71.7 from decks run at 28 and 23 races. Values of ${RACES_REFERENCE} or less are rejected because they would divide by zero or flip the sign.`,
 };
+
+/** How the advanced settings panel lays a setting out: a number field, or a comma-separated list. */
+export interface SettingField { key: keyof Settings; label: string; kind: 'number' | 'list'; step?: number }
+export interface SettingGroup { title: string; fields: SettingField[] }
+const n = (key: keyof Settings, label: string, step = 0.01): SettingField => ({ key, label, kind: 'number', step });
+const list = (key: keyof Settings, label: string): SettingField => ({ key, label, kind: 'list' });
+/**
+ * The advanced settings, grouped by the part of the model they feed. Every setting that is not on the main page
+ * appears here exactly once (state.test.ts checks), except scenarioId, which has one supported value.
+ */
+export const ADVANCED_SETTING_GROUPS: SettingGroup[] = [
+  { title: 'Lineage', fields: [n('affinity', 'Affinity per uma', 1), list('whiteSparkInheritRates', 'White spark hint rate, 1/2/3★'), n('lineageSparkMultiplier', 'Spark chance × per lineage copy'), list('blueInspirationGainMean', 'Blue spark mean roll, 1/2/3★')] },
+  { title: 'Hints', fields: [n('hintBase', 'Hint chance per card-turn'), n('hintScale', 'Hint model scale'), n('hintTurnsShare', 'Turns a card is on its facility')] },
+  { title: 'Card events', fields: [list('chainRatesSSR', 'SSR chain reaches 1/2/3'), list('chainRatesSR', 'SR chain reaches 1/2'), n('randomEventRate', 'Random event fires'), n('palChainRate', 'Pal date chain completes'), n('groupOutingRate', 'Group member outing happens'), n('groupFinaleRate', 'Group finale happens'), n('specialEventRate', 'Unlock and New Year events'), n('goldRollStat', 'Stat at the gold-or-white roll', 10)] },
+  { title: 'Trainee events', fields: [n('charStoryEventRate', 'Story and choice events play'), n('charOutingRate', 'Outing event happens'), n('charUndecodedEventRate', 'Undecoded event skill obtained'), n('charConditionFallbackRate', 'Secret-event condition not scorable')] },
+  { title: 'Scenario', fields: [n('scenarioPickRate', 'Skill event option taken'), n('scenarioSongsRate', '18 or more songs learned'), n('uniqueAprilBondRate', 'April bond check passes')] },
+  { title: 'Spark chance at run end', fields: [n('goldSparkRate', 'Gold skill owned'), n('circleSparkRate', '◎ form owned'), n('whiteSparkRate', 'White skill owned')] },
+  { title: 'Rank score', fields: [n('skillScorePerSp', 'Points per SP spent'), n('skillScoreSd', 'Skill score spread', 10), n('innateSkillBuyShare', 'Innate skills counted')] },
+  { title: 'Stat model', fields: [n('lossPenalty', 'Stat lost per expected race loss', 1), n('totalTurnsOverride', 'Total career turns', 1)] },
+];

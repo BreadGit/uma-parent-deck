@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { defaultPins, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
-import { DEFAULT_SETTINGS, parseSetting, sanitizeSettings } from '../src/settings.ts';
+import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, parseSetting, sanitizeSettings, SETTING_HELP, type Settings } from '../src/settings.ts';
 
 const data = loadData();
 
@@ -83,4 +83,12 @@ test('validation: inventory entries are numeric ids with LB 0..4 or null; every 
   assert.equal(sanitizeSettings({ scenarioId: '3' }).scenarioId, 3, 'a string is not the number the model compares with');
   assert.equal(sanitizeSettings({ focus: 3 }).focus, 'stamina');
   assert.deepEqual(sanitizeSettings({ affinity: -1, hintScale: 2, bigRewardRate: 0.3 } as Record<string, unknown>), { ...DEFAULT_SETTINGS, hintScale: 2 }, 'out-of-range and retired keys are dropped');
+});
+
+test('the advanced settings panel lays out every advanced setting exactly once', () => {
+  const laidOut = ADVANCED_SETTING_GROUPS.flatMap((g) => g.fields.map((f) => f.key));
+  assert.equal(new Set(laidOut).size, laidOut.length, 'a setting appears in two groups');
+  const advanced = (Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]).filter((k) => !(MAIN_PAGE_SETTINGS as readonly string[]).includes(k) && k !== 'scenarioId');
+  assert.deepEqual([...laidOut].sort(), [...advanced].sort());
+  for (const key of laidOut) assert.ok(SETTING_HELP[key], `${key} has no help text`);
 });
