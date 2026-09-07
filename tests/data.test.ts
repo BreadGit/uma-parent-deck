@@ -36,6 +36,15 @@ test('cards carry the fields the stat and spark models read', () => {
   assert.ok(taiki.unique?.effects.some((u) => u.type === 101 && u.value_1 != null), 'Taiki Shuttle keeps the compound payload');
   assert.ok(taiki.unique?.text?.includes('bond gauge is at least 80'), "and GameTora's rendered text for it");
   for (const c of data.cards) if (c.unique?.effects.some((u) => u.type >= 100)) assert.ok(c.unique.text, `${c.name} compound unique effect has its text`);
+  // the approximable compound types are folded into the passives from the unlock level on; the deck-dependent ones are not
+  assert.deepEqual(taiki.unique?.model?.effects, { '3': 0.75, '30': 0.75 }, 'type 101 at the fitted share of the run');
+  assert.equal(taiki.effectsByLb[0]!.u3, 0.75, 'an SSR at LB0 is level 30, the unlock level');
+  assert.deepEqual(data.cardById.get(30067)!.unique?.model?.effects, { '30': 1.5 }, 'a type 101 with a single effect');
+  const topRoad = data.cardById.get(30086)!;
+  assert.equal(topRoad.effectsByLb[4]!.u8, 20, 'type 104: the fan cap in full');
+  const digital = data.cardById.get(30085)!;
+  assert.deepEqual(digital.unique?.model?.effects, {}, 'type 103 waits for the deck');
+  assert.ok(!Object.keys(digital.effectsByLb[4]!).some((k) => k.startsWith('u')));
   const urara = data.charByCardId.get(105201)!;
   assert.equal(urara.goals.find((g) => g.races[0]?.name === 'Arima Kinen')?.required, 0, "Haru Urara's Arima Kinen is participation only");
   // decoding canary: Kitasan Black's third chain event hands out Professor of Curvature in both options

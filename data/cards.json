@@ -64133,7 +64133,11 @@
     }
    ],
    "level": 30,
-   "text": "Gain Energy Cost Reduction (30) when participating in a friendship (rainbow) training"
+   "text": "Gain Energy Cost Reduction (30) when participating in a friendship (rainbow) training",
+   "model": {
+    "effects": {},
+    "note": "depends on turn-by-turn state, left out"
+   }
   },
   "hintSkills": [],
   "eventSkills": [
@@ -64806,7 +64810,9 @@
     "16": 10,
     "17": 2,
     "18": 40,
-    "19": 35
+    "19": 35,
+    "u3": 0.75,
+    "u30": 0.75
    },
    {
     "1": 20,
@@ -64817,7 +64823,9 @@
     "16": 10,
     "17": 2,
     "18": 40,
-    "19": 35
+    "19": 35,
+    "u3": 0.75,
+    "u30": 0.75
    },
    {
     "1": 20,
@@ -64828,7 +64836,9 @@
     "16": 10,
     "17": 2,
     "18": 40,
-    "19": 35
+    "19": 35,
+    "u3": 0.75,
+    "u30": 0.75
    },
    {
     "1": 25,
@@ -64840,7 +64850,9 @@
     "16": 15,
     "17": 2,
     "18": 40,
-    "19": 50
+    "19": 50,
+    "u3": 0.75,
+    "u30": 0.75
    },
    {
     "1": 25,
@@ -64852,7 +64864,9 @@
     "16": 15,
     "17": 4,
     "18": 60,
-    "19": 50
+    "19": 50,
+    "u3": 0.75,
+    "u30": 0.75
    }
   ],
   "unique": {
@@ -64867,7 +64881,14 @@
     }
    ],
    "level": 30,
-   "text": "Gain Speed Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
+   "text": "Gain Speed Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
+   "model": {
+    "effects": {
+     "3": 0.75,
+     "30": 0.75
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200162,
@@ -69072,7 +69093,8 @@
     "14": 25,
     "25": 20,
     "26": 15,
-    "31": 1
+    "31": 1,
+    "u30": 1.5
    },
    {
     "1": 25,
@@ -69082,7 +69104,8 @@
     "14": 25,
     "25": 20,
     "26": 15,
-    "31": 1
+    "31": 1,
+    "u30": 1.5
    },
    {
     "1": 25,
@@ -69092,7 +69115,8 @@
     "14": 25,
     "25": 20,
     "26": 15,
-    "31": 1
+    "31": 1,
+    "u30": 1.5
    },
    {
     "1": 25,
@@ -69104,7 +69128,8 @@
     "16": 10,
     "25": 30,
     "26": 20,
-    "31": 2
+    "31": 2,
+    "u30": 1.5
    },
    {
     "1": 35,
@@ -69116,7 +69141,8 @@
     "16": 15,
     "25": 30,
     "26": 20,
-    "31": 2
+    "31": 2,
+    "u30": 1.5
    }
   ],
   "unique": {
@@ -69129,7 +69155,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Skill Point Bonus (2) when the bond gauge is at least 80"
+   "text": "Gain Skill Point Bonus (2) when the bond gauge is at least 80",
+   "model": {
+    "effects": {
+     "30": 1.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [],
   "eventSkills": [
@@ -75889,7 +75921,8 @@
     "25": 20,
     "26": 15,
     "30": 1,
-    "31": 1
+    "31": 1,
+    "u8": 7.5
    },
    {
     "1": 10,
@@ -75901,7 +75934,8 @@
     "25": 30,
     "26": 20,
     "30": 1,
-    "31": 1
+    "31": 1,
+    "u8": 7.5
    },
    {
     "1": 15,
@@ -75913,7 +75947,8 @@
     "25": 30,
     "26": 20,
     "30": 1,
-    "31": 2
+    "31": 2,
+    "u8": 7.5
    }
   ],
   "unique": {
@@ -75926,7 +75961,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "8": 7.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [],
   "eventSkills": [
@@ -77037,7 +77078,8 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u7": 2.25
    },
    {
     "1": 25,
@@ -77047,7 +77089,8 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u7": 2.25
    },
    {
     "1": 25,
@@ -77057,7 +77100,8 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u7": 2.25
    },
    {
     "1": 25,
@@ -77068,7 +77112,8 @@
     "17": 1,
     "18": 20,
     "19": 50,
-    "31": 3
+    "31": 3,
+    "u7": 2.25
    },
    {
     "1": 30,
@@ -77079,7 +77124,8 @@
     "17": 1,
     "18": 20,
     "19": 50,
-    "31": 5
+    "31": 5,
+    "u7": 2.25
    }
   ],
   "unique": {
@@ -77092,7 +77138,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Wit Bonus (3) when the bond gauge is full"
+   "text": "Gain Wit Bonus (3) when the bond gauge is full",
+   "model": {
+    "effects": {
+     "7": 2.25
+    },
+    "note": "bond 100 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200052,
@@ -77503,7 +77555,11 @@
     }
    ],
    "level": 30,
-   "text": "When the bond gauge is 80 or higher and this card is in a facility different from its type, gain Increased Training (20)"
+   "text": "When the bond gauge is 80 or higher and this card is in a facility different from its type, gain Increased Training (20)",
+   "model": {
+    "effects": {},
+    "note": "depends on turn-by-turn state, left out"
+   }
   },
   "hintSkills": [
    200652,
@@ -78383,7 +78439,11 @@
     }
    ],
    "level": 30,
-   "text": "If there are at least 5 different types of support cards in your deck, gain Increased Training (15)"
+   "text": "If there are at least 5 different types of support cards in your deck, gain Increased Training (15)",
+   "model": {
+    "effects": {},
+    "note": "evaluated from the deck by the predictor"
+   }
   },
   "hintSkills": [
    200022,
@@ -78785,7 +78845,8 @@
     "14": 15,
     "17": 1,
     "18": 20,
-    "19": 20
+    "19": 20,
+    "u8": 20
    },
    {
     "1": 25,
@@ -78794,7 +78855,8 @@
     "14": 15,
     "17": 1,
     "18": 20,
-    "19": 20
+    "19": 20,
+    "u8": 20
    },
    {
     "1": 25,
@@ -78803,7 +78865,8 @@
     "14": 15,
     "17": 1,
     "18": 20,
-    "19": 20
+    "19": 20,
+    "u8": 20
    },
    {
     "1": 25,
@@ -78814,7 +78877,8 @@
     "16": 10,
     "17": 2,
     "18": 30,
-    "19": 35
+    "19": 35,
+    "u8": 20
    },
    {
     "1": 30,
@@ -78825,7 +78889,8 @@
     "16": 15,
     "17": 2,
     "18": 30,
-    "19": 35
+    "19": 35,
+    "u8": 20
    }
   ],
   "unique": {
@@ -78837,7 +78902,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Increased Training (1) per 10000 fans, up to (20) for 200000 fans"
+   "text": "Gain Increased Training (1) per 10000 fans, up to (20) for 200000 fans",
+   "model": {
+    "effects": {
+     "8": 20
+    },
+    "note": "fan cap of 20 reached early on a G1 agenda"
+   }
   },
   "hintSkills": [
    200142,
@@ -79212,7 +79283,8 @@
     "14": 25,
     "15": 1,
     "16": 5,
-    "19": 35
+    "19": 35,
+    "u4": 1.5
    },
    {
     "1": 25,
@@ -79221,7 +79293,8 @@
     "14": 25,
     "15": 5,
     "16": 10,
-    "19": 50
+    "19": 50,
+    "u4": 1.5
    },
    {
     "1": 25,
@@ -79230,7 +79303,8 @@
     "14": 30,
     "15": 5,
     "16": 10,
-    "19": 50
+    "19": 50,
+    "u4": 1.5
    }
   ],
   "unique": {
@@ -79243,7 +79317,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "4": 1.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200012,
@@ -79683,7 +79763,11 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {},
+    "note": "evaluated from the deck by the predictor"
+   }
   },
   "hintSkills": [
    200592,
@@ -80033,7 +80117,8 @@
     "14": 15,
     "15": 1,
     "16": 5,
-    "19": 35
+    "19": 35,
+    "u2": 45
    },
    {
     "1": 25,
@@ -80043,7 +80128,8 @@
     "14": 15,
     "15": 1,
     "16": 5,
-    "19": 35
+    "19": 35,
+    "u2": 45
    },
    {
     "1": 25,
@@ -80053,7 +80139,8 @@
     "14": 15,
     "15": 1,
     "16": 5,
-    "19": 35
+    "19": 35,
+    "u2": 45
    },
    {
     "1": 25,
@@ -80064,7 +80151,8 @@
     "14": 20,
     "15": 5,
     "16": 10,
-    "19": 50
+    "19": 50,
+    "u2": 45
    },
    {
     "1": 30,
@@ -80075,7 +80163,8 @@
     "14": 20,
     "15": 5,
     "16": 10,
-    "19": 50
+    "19": 50,
+    "u2": 45
    }
   ],
   "unique": {
@@ -80088,7 +80177,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Mood Effect (60) when the bond gauge is full"
+   "text": "Gain Mood Effect (60) when the bond gauge is full",
+   "model": {
+    "effects": {
+     "2": 45
+    },
+    "note": "bond 100 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200362,
@@ -80504,7 +80599,11 @@
     }
    ],
    "level": 30,
-   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)"
+   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)",
+   "model": {
+    "effects": {},
+    "note": "evaluated from the deck by the predictor"
+   }
   },
   "hintSkills": [
    200831,
@@ -80896,7 +80995,8 @@
     "17": 1,
     "18": 10,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u1": 11.25
    },
    {
     "1": 15,
@@ -80907,7 +81007,8 @@
     "17": 1,
     "18": 10,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u1": 11.25
    },
    {
     "1": 15,
@@ -80918,7 +81019,8 @@
     "17": 1,
     "18": 10,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u1": 11.25
    },
    {
     "1": 20,
@@ -80931,7 +81033,8 @@
     "17": 1,
     "18": 10,
     "19": 50,
-    "31": 3
+    "31": 3,
+    "u1": 11.25
    },
    {
     "1": 20,
@@ -80944,7 +81047,8 @@
     "17": 1,
     "18": 10,
     "19": 50,
-    "31": 5
+    "31": 5,
+    "u1": 11.25
    }
   ],
   "unique": {
@@ -80957,7 +81061,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)"
+   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)",
+   "model": {
+    "effects": {
+     "1": 11.25
+    },
+    "note": "the 5 friendship trainings done for 75% of the run"
+   }
   },
   "hintSkills": [
    200162,
@@ -81350,7 +81460,8 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 35
+    "19": 35,
+    "u3": 1.5
    },
    {
     "1": 20,
@@ -81361,7 +81472,8 @@
     "16": 10,
     "17": 1,
     "18": 20,
-    "19": 50
+    "19": 50,
+    "u3": 1.5
    },
    {
     "1": 20,
@@ -81372,7 +81484,8 @@
     "16": 10,
     "17": 1,
     "18": 20,
-    "19": 50
+    "19": 50,
+    "u3": 1.5
    }
   ],
   "unique": {
@@ -81385,7 +81498,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "3": 1.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200622,
@@ -81732,7 +81851,8 @@
     "15": 5,
     "16": 15,
     "17": 1,
-    "18": 20
+    "18": 20,
+    "u5": 1.5
    },
    {
     "1": 25,
@@ -81741,7 +81861,8 @@
     "15": 5,
     "16": 15,
     "17": 1,
-    "18": 20
+    "18": 20,
+    "u5": 1.5
    },
    {
     "1": 25,
@@ -81750,7 +81871,8 @@
     "15": 5,
     "16": 15,
     "17": 1,
-    "18": 20
+    "18": 20,
+    "u5": 1.5
    },
    {
     "1": 25,
@@ -81760,7 +81882,8 @@
     "15": 5,
     "16": 15,
     "17": 2,
-    "18": 30
+    "18": 30,
+    "u5": 1.5
    },
    {
     "1": 35,
@@ -81770,7 +81893,8 @@
     "15": 10,
     "16": 20,
     "17": 2,
-    "18": 30
+    "18": 30,
+    "u5": 1.5
    }
   ],
   "unique": {
@@ -81783,7 +81907,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Power Bonus (2) when the bond gauge is at least 80"
+   "text": "Gain Power Bonus (2) when the bond gauge is at least 80",
+   "model": {
+    "effects": {
+     "5": 1.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200282,
@@ -82175,7 +82305,11 @@
     }
    ],
    "level": 30,
-   "text": "The less energy you have, the more Friendship Bonus you'll gain"
+   "text": "The less energy you have, the more Friendship Bonus you'll gain",
+   "model": {
+    "effects": {},
+    "note": "depends on turn-by-turn state, left out"
+   }
   },
   "hintSkills": [
    200292,
@@ -82654,7 +82788,11 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (5%); gain additional 3% Training Effectiveness for every 4 points of maximum Energy above 100, up to (20%) at 120"
+   "text": "Gain Training Effectiveness (5%); gain additional 3% Training Effectiveness for every 4 points of maximum Energy above 100, up to (20%) at 120",
+   "model": {
+    "effects": {},
+    "note": "depends on turn-by-turn state, left out"
+   }
   },
   "hintSkills": [
    200152,
@@ -83434,7 +83572,9 @@
     "17": 2,
     "18": 30,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u7": 0.75,
+    "u30": 0.75
    },
    {
     "1": 25,
@@ -83447,7 +83587,9 @@
     "17": 2,
     "18": 30,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u7": 0.75,
+    "u30": 0.75
    },
    {
     "1": 25,
@@ -83460,7 +83602,9 @@
     "17": 2,
     "18": 30,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u7": 0.75,
+    "u30": 0.75
    },
    {
     "1": 25,
@@ -83474,7 +83618,9 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "31": 3
+    "31": 3,
+    "u7": 0.75,
+    "u30": 0.75
    },
    {
     "1": 30,
@@ -83488,7 +83634,9 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "31": 5
+    "31": 5,
+    "u7": 0.75,
+    "u30": 0.75
    }
   ],
   "unique": {
@@ -83503,7 +83651,14 @@
     }
    ],
    "level": 30,
-   "text": "Gain Wit Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
+   "text": "Gain Wit Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
+   "model": {
+    "effects": {
+     "7": 0.75,
+     "30": 0.75
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200232,
@@ -83931,7 +84086,11 @@
     }
    ],
    "level": 30,
-   "text": "Increases skill point gain when training together"
+   "text": "Increases skill point gain when training together",
+   "model": {
+    "effects": {},
+    "note": "depends on turn-by-turn state, left out"
+   }
   },
   "hintSkills": [],
   "eventSkills": [
@@ -84274,7 +84433,8 @@
     "12": 15,
     "14": 20,
     "15": 5,
-    "16": 15
+    "16": 15,
+    "u8": 15
    },
    {
     "1": 25,
@@ -84283,7 +84443,8 @@
     "12": 15,
     "14": 20,
     "15": 5,
-    "16": 15
+    "16": 15,
+    "u8": 15
    },
    {
     "1": 25,
@@ -84292,7 +84453,8 @@
     "12": 15,
     "14": 20,
     "15": 5,
-    "16": 15
+    "16": 15,
+    "u8": 15
    },
    {
     "1": 25,
@@ -84303,7 +84465,8 @@
     "15": 5,
     "16": 15,
     "17": 2,
-    "18": 30
+    "18": 30,
+    "u8": 15
    },
    {
     "1": 30,
@@ -84314,7 +84477,8 @@
     "15": 10,
     "16": 20,
     "17": 3,
-    "18": 40
+    "18": 40,
+    "u8": 15
    }
   ],
   "unique": {
@@ -84326,7 +84490,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600"
+   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600",
+   "model": {
+    "effects": {
+     "8": 15
+    },
+    "note": "600 total bond reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200482,
@@ -84742,7 +84912,8 @@
     "17": 1,
     "18": 20,
     "19": 10,
-    "31": 3
+    "31": 3,
+    "u8": 7.5
    },
    {
     "1": 20,
@@ -84754,7 +84925,8 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 3
+    "31": 3,
+    "u8": 7.5
    },
    {
     "1": 25,
@@ -84766,7 +84938,8 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 5
+    "31": 5,
+    "u8": 7.5
    }
   ],
   "unique": {
@@ -84780,7 +84953,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "8": 7.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200742,
@@ -85124,7 +85303,8 @@
     "14": 15,
     "17": 2,
     "18": 40,
-    "19": 50
+    "19": 50,
+    "u1": 15
    },
    {
     "1": 15,
@@ -85134,7 +85314,8 @@
     "14": 15,
     "17": 2,
     "18": 40,
-    "19": 50
+    "19": 50,
+    "u1": 15
    },
    {
     "1": 15,
@@ -85144,7 +85325,8 @@
     "14": 15,
     "17": 2,
     "18": 40,
-    "19": 50
+    "19": 50,
+    "u1": 15
    },
    {
     "1": 20,
@@ -85155,7 +85337,8 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u1": 15
    },
    {
     "1": 20,
@@ -85166,7 +85349,8 @@
     "17": 3,
     "18": 50,
     "19": 80,
-    "30": 2
+    "30": 2,
+    "u1": 15
    }
   ],
   "unique": {
@@ -85179,7 +85363,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Friendship Bonus (20) when the bond gauge is full"
+   "text": "Gain Friendship Bonus (20) when the bond gauge is full",
+   "model": {
+    "effects": {
+     "1": 15
+    },
+    "note": "bond 100 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200722,
@@ -85636,7 +85826,11 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (5) for every support card in the same training facility"
+   "text": "Gain Training Effectiveness (5) for every support card in the same training facility",
+   "model": {
+    "effects": {},
+    "note": "depends on turn-by-turn state, left out"
+   }
   },
   "hintSkills": [
    200132,
@@ -86052,7 +86246,8 @@
     "15": 1,
     "16": 5,
     "19": 20,
-    "31": 3
+    "31": 3,
+    "u31": 3.75
    },
    {
     "1": 25,
@@ -86063,7 +86258,8 @@
     "15": 1,
     "16": 5,
     "19": 20,
-    "31": 3
+    "31": 3,
+    "u31": 3.75
    },
    {
     "1": 25,
@@ -86074,7 +86270,8 @@
     "15": 1,
     "16": 5,
     "19": 20,
-    "31": 3
+    "31": 3,
+    "u31": 3.75
    },
    {
     "1": 25,
@@ -86086,7 +86283,8 @@
     "15": 5,
     "16": 10,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u31": 3.75
    },
    {
     "1": 35,
@@ -86098,7 +86296,8 @@
     "15": 5,
     "16": 10,
     "19": 35,
-    "31": 5
+    "31": 5,
+    "u31": 3.75
    }
   ],
   "unique": {
@@ -86111,7 +86310,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Wit Friendship Recovery (5) when the bond gauge is full"
+   "text": "Gain Wit Friendship Recovery (5) when the bond gauge is full",
+   "model": {
+    "effects": {
+     "31": 3.75
+    },
+    "note": "bond 100 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200352,
@@ -86556,7 +86761,8 @@
     "14": 15,
     "15": 1,
     "16": 5,
-    "19": 20
+    "19": 20,
+    "u8": 7.5
    },
    {
     "1": 25,
@@ -86568,7 +86774,8 @@
     "16": 10,
     "17": 2,
     "18": 30,
-    "19": 35
+    "19": 35,
+    "u8": 7.5
    },
    {
     "1": 30,
@@ -86580,7 +86787,8 @@
     "16": 10,
     "17": 3,
     "18": 40,
-    "19": 35
+    "19": 35,
+    "u8": 7.5
    }
   ],
   "unique": {
@@ -86593,7 +86801,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "8": 7.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200032,
@@ -87395,7 +87609,9 @@
     "10": 15,
     "11": 15,
     "14": 15,
-    "19": 50
+    "19": 50,
+    "u5": 0.75,
+    "u30": 0.75
    },
    {
     "1": 20,
@@ -87404,7 +87620,9 @@
     "10": 15,
     "11": 15,
     "14": 15,
-    "19": 50
+    "19": 50,
+    "u5": 0.75,
+    "u30": 0.75
    },
    {
     "1": 20,
@@ -87413,7 +87631,9 @@
     "10": 15,
     "11": 15,
     "14": 15,
-    "19": 50
+    "19": 50,
+    "u5": 0.75,
+    "u30": 0.75
    },
    {
     "1": 25,
@@ -87424,7 +87644,9 @@
     "14": 15,
     "15": 5,
     "16": 10,
-    "19": 50
+    "19": 50,
+    "u5": 0.75,
+    "u30": 0.75
    },
    {
     "1": 25,
@@ -87435,7 +87657,9 @@
     "14": 15,
     "15": 10,
     "16": 15,
-    "19": 65
+    "19": 65,
+    "u5": 0.75,
+    "u30": 0.75
    }
   ],
   "unique": {
@@ -87450,7 +87674,14 @@
     }
    ],
    "level": 30,
-   "text": "Gain Power Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
+   "text": "Gain Power Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
+   "model": {
+    "effects": {
+     "5": 0.75,
+     "30": 0.75
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200931,
@@ -87828,7 +88059,8 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 20
+    "19": 20,
+    "u8": 18.75
    },
    {
     "1": 20,
@@ -87839,7 +88071,8 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 20
+    "19": 20,
+    "u8": 18.75
    },
    {
     "1": 20,
@@ -87850,7 +88083,8 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 20
+    "19": 20,
+    "u8": 18.75
    },
    {
     "1": 25,
@@ -87862,7 +88096,8 @@
     "16": 10,
     "17": 2,
     "18": 30,
-    "19": 35
+    "19": 35,
+    "u8": 18.75
    },
    {
     "1": 25,
@@ -87874,7 +88109,8 @@
     "16": 10,
     "17": 2,
     "18": 30,
-    "19": 35
+    "19": 35,
+    "u8": 18.75
    }
   ],
   "unique": {
@@ -87886,7 +88122,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (5) per every level of the current training facility"
+   "text": "Gain Training Effectiveness (5) per every level of the current training facility",
+   "model": {
+    "effects": {
+     "8": 18.75
+    },
+    "note": "facility level 5 for 75% of the run"
+   }
   },
   "hintSkills": [
    200182,
@@ -88324,7 +88566,11 @@
     }
    ],
    "level": 30,
-   "text": "20% chance to make the current training fail rate zero"
+   "text": "20% chance to make the current training fail rate zero",
+   "model": {
+    "effects": {},
+    "note": "depends on turn-by-turn state, left out"
+   }
   },
   "hintSkills": [
    200162,
@@ -88749,7 +88995,8 @@
     "9": 15,
     "11": 15,
     "12": 15,
-    "19": 50
+    "19": 50,
+    "u8": 7.5
    },
    {
     "1": 25,
@@ -88759,7 +89006,8 @@
     "11": 20,
     "12": 20,
     "14": 15,
-    "19": 50
+    "19": 50,
+    "u8": 7.5
    },
    {
     "1": 25,
@@ -88769,7 +89017,8 @@
     "11": 20,
     "12": 20,
     "14": 30,
-    "19": 65
+    "19": 65,
+    "u8": 7.5
    }
   ],
   "unique": {
@@ -88783,7 +89032,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "8": 7.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200182,
@@ -89158,7 +89413,8 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 20
+    "19": 20,
+    "u4": 1.5
    },
    {
     "1": 20,
@@ -89169,7 +89425,8 @@
     "17": 1,
     "18": 20,
     "19": 20,
-    "30": 1
+    "30": 1,
+    "u4": 1.5
    },
    {
     "1": 20,
@@ -89180,7 +89437,8 @@
     "17": 1,
     "18": 20,
     "19": 20,
-    "30": 1
+    "30": 1,
+    "u4": 1.5
    },
    {
     "1": 25,
@@ -89192,7 +89450,8 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "30": 1
+    "30": 1,
+    "u4": 1.5
    },
    {
     "1": 25,
@@ -89204,7 +89463,8 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "30": 1
+    "30": 1,
+    "u4": 1.5
    }
   ],
   "unique": {
@@ -89217,7 +89477,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Stamina Bonus (2) when the bond gauge is at least 80"
+   "text": "Gain Stamina Bonus (2) when the bond gauge is at least 80",
+   "model": {
+    "effects": {
+     "4": 1.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200742,
@@ -89571,7 +89837,8 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 3
+    "31": 3,
+    "u8": 15
    },
    {
     "1": 25,
@@ -89582,7 +89849,8 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 3
+    "31": 3,
+    "u8": 15
    },
    {
     "1": 25,
@@ -89593,7 +89861,8 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 3
+    "31": 3,
+    "u8": 15
    },
    {
     "1": 25,
@@ -89605,7 +89874,8 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "31": 3
+    "31": 3,
+    "u8": 15
    },
    {
     "1": 30,
@@ -89617,7 +89887,8 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "31": 5
+    "31": 5,
+    "u8": 15
    }
   ],
   "unique": {
@@ -89629,7 +89900,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600"
+   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600",
+   "model": {
+    "effects": {
+     "8": 15
+    },
+    "note": "600 total bond reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200282,
@@ -89999,7 +90276,8 @@
     "14": 15,
     "17": 2,
     "18": 40,
-    "19": 50
+    "19": 50,
+    "u1": 11.25
    },
    {
     "1": 20,
@@ -90008,7 +90286,8 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u1": 11.25
    },
    {
     "1": 20,
@@ -90017,7 +90296,8 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u1": 11.25
    },
    {
     "1": 25,
@@ -90027,7 +90307,8 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u1": 11.25
    },
    {
     "1": 25,
@@ -90037,7 +90318,8 @@
     "17": 3,
     "18": 50,
     "19": 65,
-    "30": 1
+    "30": 1,
+    "u1": 11.25
    }
   ],
   "unique": {
@@ -90050,7 +90332,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)"
+   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)",
+   "model": {
+    "effects": {
+     "1": 11.25
+    },
+    "note": "the 5 friendship trainings done for 75% of the run"
+   }
   },
   "hintSkills": [
    200282,
@@ -90524,7 +90812,8 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "30": 1
+    "30": 1,
+    "u8": 7.5
    },
    {
     "1": 20,
@@ -90536,7 +90825,8 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u8": 7.5
    },
    {
     "1": 20,
@@ -90548,7 +90838,8 @@
     "17": 3,
     "18": 50,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u8": 7.5
    }
   ],
   "unique": {
@@ -90561,7 +90852,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "8": 7.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200052,
@@ -90890,7 +91187,8 @@
     "8": 5,
     "11": 25,
     "14": 25,
-    "19": 50
+    "19": 50,
+    "u5": 1.5
    },
    {
     "1": 25,
@@ -90898,7 +91196,8 @@
     "11": 25,
     "14": 25,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u5": 1.5
    },
    {
     "1": 25,
@@ -90906,7 +91205,8 @@
     "11": 25,
     "14": 25,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u5": 1.5
    },
    {
     "1": 25,
@@ -90915,7 +91215,8 @@
     "12": 15,
     "14": 25,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u5": 1.5
    },
    {
     "1": 30,
@@ -90924,7 +91225,8 @@
     "12": 30,
     "14": 35,
     "19": 80,
-    "30": 1
+    "30": 1,
+    "u5": 1.5
    }
   ],
   "unique": {
@@ -90937,7 +91239,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Power Bonus (2) when the bond gauge is at least 80"
+   "text": "Gain Power Bonus (2) when the bond gauge is at least 80",
+   "model": {
+    "effects": {
+     "5": 1.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200602,
@@ -91340,7 +91648,11 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness that scales with current Energy, from (5%) at 0 Energy to (20%) at 100+ Energy"
+   "text": "Gain Training Effectiveness that scales with current Energy, from (5%) at 0 Energy to (20%) at 100+ Energy",
+   "model": {
+    "effects": {},
+    "note": "depends on turn-by-turn state, left out"
+   }
   },
   "hintSkills": [
    200532,
@@ -91768,7 +92080,11 @@
     }
    ],
    "level": 30,
-   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)"
+   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)",
+   "model": {
+    "effects": {},
+    "note": "evaluated from the deck by the predictor"
+   }
   },
   "hintSkills": [
    200152,
@@ -92181,7 +92497,8 @@
     "11": 15,
     "12": 15,
     "14": 25,
-    "19": 20
+    "19": 20,
+    "u8": 7.5
    },
    {
     "1": 25,
@@ -92192,7 +92509,8 @@
     "14": 25,
     "17": 2,
     "18": 30,
-    "19": 35
+    "19": 35,
+    "u8": 7.5
    },
    {
     "1": 35,
@@ -92203,7 +92521,8 @@
     "14": 35,
     "17": 3,
     "18": 40,
-    "19": 35
+    "19": 35,
+    "u8": 7.5
    }
   ],
   "unique": {
@@ -92216,7 +92535,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "8": 7.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200582,
@@ -92574,7 +92899,8 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 35
+    "19": 35,
+    "u6": 1.5
    },
    {
     "1": 25,
@@ -92585,7 +92911,8 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "30": 1
+    "30": 1,
+    "u6": 1.5
    },
    {
     "1": 25,
@@ -92596,7 +92923,8 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "30": 1
+    "30": 1,
+    "u6": 1.5
    },
    {
     "1": 25,
@@ -92608,7 +92936,8 @@
     "17": 2,
     "18": 30,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u6": 1.5
    },
    {
     "1": 30,
@@ -92620,7 +92949,8 @@
     "17": 2,
     "18": 30,
     "19": 50,
-    "30": 1
+    "30": 1,
+    "u6": 1.5
    }
   ],
   "unique": {
@@ -92633,7 +92963,13 @@
     }
    ],
    "level": 30,
-   "text": "Gain Guts Bonus (2) when the bond gauge is at least 80"
+   "text": "Gain Guts Bonus (2) when the bond gauge is at least 80",
+   "model": {
+    "effects": {
+     "6": 1.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200352,
@@ -92999,7 +93335,8 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "30": 1
+    "30": 1,
+    "u8": 7.5
    },
    {
     "1": 20,
@@ -93009,7 +93346,8 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "30": 1
+    "30": 1,
+    "u8": 7.5
    },
    {
     "1": 20,
@@ -93019,7 +93357,8 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "30": 1
+    "30": 1,
+    "u8": 7.5
    }
   ],
   "unique": {
@@ -93032,7 +93371,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "8": 7.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200432,
@@ -93396,7 +93741,8 @@
     "15": 1,
     "16": 5,
     "17": 1,
-    "18": 10
+    "18": 10,
+    "u5": 1.5
    },
    {
     "1": 25,
@@ -93406,7 +93752,8 @@
     "15": 5,
     "16": 10,
     "17": 1,
-    "18": 20
+    "18": 20,
+    "u5": 1.5
    },
    {
     "1": 25,
@@ -93416,7 +93763,8 @@
     "15": 5,
     "16": 10,
     "17": 1,
-    "18": 20
+    "18": 20,
+    "u5": 1.5
    }
   ],
   "unique": {
@@ -93429,7 +93777,13 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40"
+   "text": "Unlocked at level 40",
+   "model": {
+    "effects": {
+     "5": 1.5
+    },
+    "note": "bond 80 reached for 75% of the run"
+   }
   },
   "hintSkills": [
    200152,

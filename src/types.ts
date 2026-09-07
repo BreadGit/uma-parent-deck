@@ -41,7 +41,8 @@ export interface Card {
   effects: Record<string, number[]>;
   effectsByLb: Record<string, number>[];
   /** The card's unique effect from its unlock level: basic effect types (below 100) are folded into effectsByLb as `u<type>`; compound types (100 and above) carry a condition the tool does not evaluate and stay here with their full payload. */
-  unique: { level: number; effects: UniqueEffect[]; text?: string } | null;
+  /** `model` says what the stat model takes from a compound effect: passives folded into effectsByLb (effect id -> amount) and the assumption behind them. */
+  unique: { level: number; effects: UniqueEffect[]; text?: string; model?: { effects: Record<string, number>; note: string } } | null;
   hintSkills: number[];
   eventSkills: number[];
   hintOthers: { type: number; value: number }[];
