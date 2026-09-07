@@ -26,6 +26,7 @@ export type EventCondition =
  */
 export interface TraineeEvent { kind: 'story' | 'choice' | 'outing' | 'secret'; index: number; name?: string; choices: EventChoice[]; conditions?: EventCondition[] }
 
+export interface UniqueEffect { type: number; value: number; value_1?: number; value_2?: number; value_3?: number; value_4?: number }
 export interface Card {
   id: number;
   urlName: string; // GameTora page slug
@@ -39,7 +40,8 @@ export interface Card {
   obtained: string | null;
   effects: Record<string, number[]>;
   effectsByLb: Record<string, number>[];
-  unique: { level: number; effects: { type: number; value: number }[] } | null;
+  /** The card's unique effect from its unlock level: basic effect types (below 100) are folded into effectsByLb as `u<type>`; compound types (100 and above) carry a condition the tool does not evaluate and stay here with their full payload. */
+  unique: { level: number; effects: UniqueEffect[] } | null;
   hintSkills: number[];
   eventSkills: number[];
   hintOthers: { type: number; value: number }[];
@@ -80,6 +82,8 @@ export interface Character {
   aptitudes: Record<AptKey, Grade>;
   growth: number[];
   baseStats: number[];       // at the card's base star rarity
+  twoStarStats: number[] | null;    // exact tables where GameTora lists them (a 1★ card has 2★ to 5★, a 2★ card 3★ to 5★, a 3★ card 4★ and 5★)
+  threeStarStats: number[] | null;
   fourStarStats: number[] | null;
   fiveStarStats: number[] | null;
   innateSkills: number[];
@@ -89,8 +93,9 @@ export interface Character {
   events: TraineeEvent[];
   goals: CareerGoal[];
 }
-export interface GoalRace { raceId: number; name: string; distance: number; surface: 'turf' | 'dirt'; grade: number; fansNeeded: number }
-export interface CareerGoal { slot: number; races: GoalRace[] } // slot 0 = Junior early January
+export interface GoalRace { raceId: number; name: string; distance: number; surface: 'turf' | 'dirt'; grade: number; fansNeeded: number; fansGain: number }
+/** slot 0 = Junior early January; `required` is the placement the objective needs (1 = win, 5 = top five), 0 for participation only. */
+export interface CareerGoal { slot: number; races: GoalRace[]; required: number }
 
 export interface Race {
   calendarId: string;
@@ -107,6 +112,7 @@ export interface Race {
   fansGain: number;
   unreleasedEn: boolean;
   goal?: boolean;       // a career objective of the trainee: run regardless
+  autoWin?: boolean;    // an objective the run would end on losing: independent training always wins it
 }
 
 export interface ScenarioEventChoice { linkedCharId: number | null; goldSkill?: number; whiteSkill?: number; skill?: number }

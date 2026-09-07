@@ -161,8 +161,10 @@ function normalizeCards(raw, eventNames, palGroupEvents) {
       const idx = LEVELS.indexOf(lvl);
       const e = {};
       for (const [type, vals] of Object.entries(effects)) if (vals[idx] > 0) e[type] = vals[idx];
+      // basic unique effects (types below 100) add to the passive of the same type; compound types carry a
+      // condition the model cannot evaluate, so they stay only in the `unique` record below
       if (c.unique && lvl >= c.unique.level) {
-        for (const u of c.unique.effects) e[`u${u.type}`] = u.value;
+        for (const u of c.unique.effects) if (u.type < 100) e[`u${u.type}`] = u.value;
       }
       return e;
     });
@@ -296,24 +298,28 @@ function normalizeCondition(cond, instances, raceIdByName) {
   }
 }
 const PAGE_GROUPS = [['nochoice', 'story'], ['wchoice', 'choice'], ['outings', 'outing'], ['secret', 'secret']];
-/** A character's events on Global, grouped by kind, with skill rewards decoded like card events. */
-function normalizeCharEvents(pageEvents, instances, raceIdByName) {
+/**
+ * A character's events on Global, grouped by kind, with skill rewards decoded like card events. The character's
+ * page carries the events every outfit shares; each outfit's own page carries that outfit's events under
+ * `version` (a story or choice event by its option count), so those come from `outfitPage`.
+ */
+function normalizeCharEvents(pageEvents, outfitPage, instances, raceIdByName) {
   const out = [];
-  for (const [group, kind] of PAGE_GROUPS) {
-    let index = 0;
-    for (const raw of pageEvents?.[group] ?? []) {
-      if (!raw || typeof raw !== 'object') continue;
-      const ev = eventOnGlobal(raw);
-      if (!ev) continue;
-      const event = decodePageEvent(ev, kind, ++index);
-      if (kind === 'secret') event.conditions = (ev.conditions ?? []).map((c) => normalizeCondition(c, instances, raceIdByName));
-      out.push(event);
-    }
-  }
+  const counters = { story: 0, choice: 0, outing: 0, secret: 0 };
+  const push = (raw, kind) => {
+    if (!raw || typeof raw !== 'object') return;
+    const ev = eventOnGlobal(raw);
+    if (!ev) return;
+    const event = decodePageEvent(ev, kind, ++counters[kind]);
+    if (kind === 'secret') event.conditions = (ev.conditions ?? []).map((c) => normalizeCondition(c, instances, raceIdByName));
+    out.push(event);
+  };
+  for (const [group, kind] of PAGE_GROUPS) for (const raw of pageEvents?.[group] ?? []) push(raw, kind);
+  for (const raw of outfitPage?.version ?? []) push(raw, Array.isArray(raw?.c) && raw.c.length > 1 ? 'choice' : 'story');
   return out;
 }
 
-function normalizeCharacters(raw, charEvents, races) {
+function normalizeCharacters(raw, charEvents, charEventsByCard, races) {
   const instances = new Map(raw.races.map((r) => [r.id, r]));
   const raceIdByName = new Map(races.map((r) => [r.name, r.raceId]));
   // Career goals per character: race objectives with their calendar slot (turn 1 = Junior early January).
@@ -322,7 +328,8 @@ function normalizeCharacters(raw, charEvents, races) {
     const goals = [];
     for (const o of entry.objectives ?? []) {
       if (o.cond_type !== 1 || !o.races?.length || o.turn > 72) continue;
-      goals.push({ slot: o.turn - 1, races: o.races.map((r) => ({ raceId: r.id, name: r.name_en, distance: r.distance, surface: r.terrain === 2 ? 'dirt' : 'turf', grade: r.grade, fansNeeded: r.fans_needed ?? 0 })) });
+      // cond_value is the placement the objective requires (1 = win, 5 = top five); 0 means taking part is enough
+      goals.push({ slot: o.turn - 1, required: Number(o.cond_value ?? 0), races: o.races.map((r) => ({ raceId: r.id, name: r.name_en, distance: r.distance, surface: r.terrain === 2 ? 'dirt' : 'turf', grade: r.grade, fansNeeded: r.fans_needed ?? 0, fansGain: r.fans_gained ?? 0 })) });
     }
     goalsByChar.set(entry.char_id, goals);
   }
@@ -341,13 +348,16 @@ function normalizeCharacters(raw, charEvents, races) {
       aptitudes,
       growth: c.stat_bonus,
       baseStats: c.base_stats,
+      twoStarStats: c.two_star_stats ?? null,
+      threeStarStats: c.three_star_stats ?? null,
       fourStarStats: c.four_star_stats ?? null,
       fiveStarStats: c.five_star_stats ?? null,
       innateSkills: ids(c.skills_innate),
       awakeningSkills: ids(c.skills_awakening_en ?? c.skills_awakening),
       eventSkills: ids(c.skills_event),
       uniqueSkills: ids(c.skills_unique),
-      events: normalizeCharEvents(charEvents[c.char_id], instances, raceIdByName),
+      // shared events from the character's page; the outfit's own events from its page (the base outfit's page is the character's)
+      events: normalizeCharEvents(charEvents[c.char_id], charEventsByCard[c.card_id] ?? charEvents[c.char_id], instances, raceIdByName),
       goals: goalsByChar.get(c.char_id) ?? [],
     });
   }
@@ -355,8 +365,17 @@ function normalizeCharacters(raw, charEvents, races) {
 }
 
 const distanceCategory = (m) => (m <= 1400 ? 'sprint' : m <= 1800 ? 'mile' : m <= 2400 ? 'medium' : 'long');
+/** Fans a first place gives, by race id, from the objectives data (the calendar's own fans_gain is an index into a fan table, not a count). */
+function fansByRace(raw) {
+  const byId = new Map(), byIndex = new Map();
+  for (const entry of raw['ura-objectives'] ?? []) for (const o of entry.objectives ?? []) for (const r of o.races ?? []) if (r.fans_gained) byId.set(r.id, r.fans_gained);
+  const races = new Map(raw.races.map((r) => [r.id, r]));
+  for (const cal of raw['ura-races'] ?? []) { const r = races.get(cal.instance); if (r && byId.has(r.race_id)) byIndex.set(cal.fans_gain, byId.get(r.race_id)); }
+  return { byId, byIndex };
+}
 function normalizeRaces(raw) {
   const races = new Map(raw.races.map((r) => [r.id, r]));
+  const fans = fansByRace(raw);
   const out = [];
   for (const cal of raw['ura-races']) {
     const r = races.get(cal.instance);
@@ -373,7 +392,8 @@ function normalizeRaces(raw) {
       month: cal.month,
       half: cal.half,
       fansNeeded: cal.fans_needed,
-      fansGain: cal.fans_gain,
+      // fans for a win: the objectives' count for this race, else the count of a race sharing the same fan-set index
+      fansGain: fans.byId.get(r.race_id) ?? fans.byIndex.get(cal.fans_gain) ?? 0,
       unreleasedEn: Array.isArray(r.unreleased_servers) && r.unreleased_servers.includes('en'),
     });
   }
@@ -449,7 +469,9 @@ async function normalize() {
   const races = normalizeRaces(raw);
   const ceFile = path.join(RAW, 'char-events.json');
   const charEvents = (await exists(ceFile)) ? await readJson(ceFile) : {};
-  const characters = normalizeCharacters(raw, charEvents, races);
+  const ceCardFile = path.join(RAW, 'char-events-by-card.json');
+  const charEventsByCard = (await exists(ceCardFile)) ? await readJson(ceCardFile) : {};
+  const characters = normalizeCharacters(raw, charEvents, charEventsByCard, races);
   const sw = characters.find((c) => c.charId === 1001);
   if (!sw?.events.some((e) => e.kind === 'secret' && e.conditions.some((c) => c.type === 'win'))) throw new Error('character event decoding self-check failed (Special Week should have a secret event with a win condition)');
   const ranks = normalizeRanks(raw);

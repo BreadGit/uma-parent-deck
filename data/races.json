@@ -11,7 +11,7 @@
   "month": 12,
   "half": 1,
   "fansNeeded": 1000,
-  "fansGain": 29,
+  "fansGain": 7000,
   "unreleasedEn": false
  },
  {
@@ -26,7 +26,7 @@
   "month": 12,
   "half": 1,
   "fansNeeded": 1000,
-  "fansGain": 27,
+  "fansGain": 6500,
   "unreleasedEn": false
  },
  {
@@ -41,7 +41,7 @@
   "month": 12,
   "half": 2,
   "fansNeeded": 1000,
-  "fansGain": 29,
+  "fansGain": 7000,
   "unreleasedEn": false
  },
  {
@@ -56,7 +56,7 @@
   "month": 12,
   "half": 2,
   "fansNeeded": 1000,
-  "fansGain": 54,
+  "fansGain": 4200,
   "unreleasedEn": false
  },
  {
@@ -71,7 +71,7 @@
   "month": 4,
   "half": 1,
   "fansNeeded": 4500,
-  "fansGain": 31,
+  "fansGain": 10500,
   "unreleasedEn": false
  },
  {
@@ -86,7 +86,7 @@
   "month": 4,
   "half": 1,
   "fansNeeded": 4500,
-  "fansGain": 32,
+  "fansGain": 11000,
   "unreleasedEn": false
  },
  {
@@ -101,7 +101,7 @@
   "month": 5,
   "half": 1,
   "fansNeeded": 5000,
-  "fansGain": 31,
+  "fansGain": 10500,
   "unreleasedEn": false
  },
  {
@@ -116,7 +116,7 @@
   "month": 5,
   "half": 2,
   "fansNeeded": 6000,
-  "fansGain": 32,
+  "fansGain": 11000,
   "unreleasedEn": false
  },
  {
@@ -131,7 +131,7 @@
   "month": 5,
   "half": 2,
   "fansNeeded": 6000,
-  "fansGain": 35,
+  "fansGain": 20000,
   "unreleasedEn": false
  },
  {
@@ -146,7 +146,7 @@
   "month": 6,
   "half": 1,
   "fansNeeded": 15000,
-  "fansGain": 46,
+  "fansGain": 13000,
   "unreleasedEn": false
  },
  {
@@ -161,7 +161,7 @@
   "month": 6,
   "half": 2,
   "fansNeeded": 20000,
-  "fansGain": 34,
+  "fansGain": 15000,
   "unreleasedEn": false
  },
  {
@@ -176,7 +176,7 @@
   "month": 7,
   "half": 1,
   "fansNeeded": 4000,
-  "fansGain": 42,
+  "fansGain": 4500,
   "unreleasedEn": false
  },
  {
@@ -191,7 +191,7 @@
   "month": 9,
   "half": 2,
   "fansNeeded": 15000,
-  "fansGain": 46,
+  "fansGain": 13000,
   "unreleasedEn": false
  },
  {
@@ -206,7 +206,7 @@
   "month": 10,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 41,
+  "fansGain": 6000,
   "unreleasedEn": false
  },
  {
@@ -221,7 +221,7 @@
   "month": 10,
   "half": 2,
   "fansNeeded": 7500,
-  "fansGain": 33,
+  "fansGain": 12000,
   "unreleasedEn": false
  },
  {
@@ -236,7 +236,7 @@
   "month": 10,
   "half": 2,
   "fansNeeded": 7500,
-  "fansGain": 30,
+  "fansGain": 10000,
   "unreleasedEn": false
  },
  {
@@ -251,7 +251,7 @@
   "month": 10,
   "half": 2,
   "fansNeeded": 20000,
-  "fansGain": 34,
+  "fansGain": 15000,
   "unreleasedEn": false
  },
  {
@@ -266,7 +266,7 @@
   "month": 11,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 43,
+  "fansGain": 8000,
   "unreleasedEn": false
  },
  {
@@ -281,7 +281,7 @@
   "month": 11,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 20,
+  "fansGain": 4100,
   "unreleasedEn": false
  },
  {
@@ -296,7 +296,7 @@
   "month": 11,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 41,
+  "fansGain": 6000,
   "unreleasedEn": false
  },
  {
@@ -311,7 +311,7 @@
   "month": 11,
   "half": 1,
   "fansNeeded": 10000,
-  "fansGain": 31,
+  "fansGain": 10500,
   "unreleasedEn": false
  },
  {
@@ -326,7 +326,7 @@
   "month": 11,
   "half": 2,
   "fansNeeded": 25000,
-  "fansGain": 36,
+  "fansGain": 30000,
   "unreleasedEn": false
  },
  {
@@ -341,7 +341,7 @@
   "month": 11,
   "half": 2,
   "fansNeeded": 15000,
-  "fansGain": 32,
+  "fansGain": 11000,
   "unreleasedEn": false
  },
  {
@@ -356,7 +356,7 @@
   "month": 12,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 30,
+  "fansGain": 10000,
   "unreleasedEn": false
  },
  {
@@ -371,7 +371,7 @@
   "month": 12,
   "half": 2,
   "fansNeeded": 25000,
-  "fansGain": 36,
+  "fansGain": 30000,
   "unreleasedEn": false
  },
  {
@@ -386,7 +386,7 @@
   "month": 12,
   "half": 2,
   "fansNeeded": 12000,
-  "fansGain": 43,
+  "fansGain": 8000,
   "unreleasedEn": false
  },
  {
@@ -401,7 +401,7 @@
   "month": 2,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 41,
+  "fansGain": 6000,
   "unreleasedEn": false
  },
  {
@@ -416,7 +416,7 @@
   "month": 2,
   "half": 2,
   "fansNeeded": 12000,
-  "fansGain": 30,
+  "fansGain": 10000,
   "unreleasedEn": false
  },
  {
@@ -431,7 +431,7 @@
   "month": 3,
   "half": 2,
   "fansNeeded": 20000,
-  "fansGain": 47,
+  "fansGain": 13500,
   "unreleasedEn": false
  },
  {
@@ -446,7 +446,7 @@
   "month": 3,
   "half": 2,
   "fansNeeded": 15000,
-  "fansGain": 46,
+  "fansGain": 13000,
   "unreleasedEn": false
  },
  {
@@ -461,7 +461,7 @@
   "month": 4,
   "half": 2,
   "fansNeeded": 20000,
-  "fansGain": 34,
+  "fansGain": 15000,
   "unreleasedEn": false
  },
  {
@@ -476,7 +476,7 @@
   "month": 5,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 43,
+  "fansGain": 8000,
   "unreleasedEn": false
  },
  {
@@ -491,7 +491,7 @@
   "month": 5,
   "half": 1,
   "fansNeeded": 10000,
-  "fansGain": 31,
+  "fansGain": 10500,
   "unreleasedEn": false
  },
  {
@@ -506,7 +506,7 @@
   "month": 6,
   "half": 1,
   "fansNeeded": 15000,
-  "fansGain": 46,
+  "fansGain": 13000,
   "unreleasedEn": false
  },
  {
@@ -521,7 +521,7 @@
   "month": 6,
   "half": 2,
   "fansNeeded": 20000,
-  "fansGain": 34,
+  "fansGain": 15000,
   "unreleasedEn": false
  },
  {
@@ -536,7 +536,7 @@
   "month": 6,
   "half": 2,
   "fansNeeded": 12000,
-  "fansGain": 41,
+  "fansGain": 6000,
   "unreleasedEn": false
  },
  {
@@ -551,7 +551,7 @@
   "month": 9,
   "half": 2,
   "fansNeeded": 15000,
-  "fansGain": 46,
+  "fansGain": 13000,
   "unreleasedEn": false
  },
  {
@@ -566,7 +566,7 @@
   "month": 10,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 41,
+  "fansGain": 6000,
   "unreleasedEn": false
  },
  {
@@ -581,7 +581,7 @@
   "month": 10,
   "half": 2,
   "fansNeeded": 20000,
-  "fansGain": 34,
+  "fansGain": 15000,
   "unreleasedEn": false
  },
  {
@@ -596,7 +596,7 @@
   "month": 11,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 43,
+  "fansGain": 8000,
   "unreleasedEn": false
  },
  {
@@ -611,7 +611,7 @@
   "month": 11,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 20,
+  "fansGain": 4100,
   "unreleasedEn": false
  },
  {
@@ -626,7 +626,7 @@
   "month": 11,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 41,
+  "fansGain": 6000,
   "unreleasedEn": false
  },
  {
@@ -641,7 +641,7 @@
   "month": 11,
   "half": 1,
   "fansNeeded": 10000,
-  "fansGain": 31,
+  "fansGain": 10500,
   "unreleasedEn": false
  },
  {
@@ -656,7 +656,7 @@
   "month": 11,
   "half": 2,
   "fansNeeded": 25000,
-  "fansGain": 36,
+  "fansGain": 30000,
   "unreleasedEn": false
  },
  {
@@ -671,7 +671,7 @@
   "month": 11,
   "half": 2,
   "fansNeeded": 15000,
-  "fansGain": 32,
+  "fansGain": 11000,
   "unreleasedEn": false
  },
  {
@@ -686,7 +686,7 @@
   "month": 12,
   "half": 1,
   "fansNeeded": 12000,
-  "fansGain": 30,
+  "fansGain": 10000,
   "unreleasedEn": false
  },
  {
@@ -701,7 +701,7 @@
   "month": 12,
   "half": 2,
   "fansNeeded": 25000,
-  "fansGain": 36,
+  "fansGain": 30000,
   "unreleasedEn": false
  },
  {
@@ -716,7 +716,7 @@
   "month": 12,
   "half": 2,
   "fansNeeded": 12000,
-  "fansGain": 43,
+  "fansGain": 8000,
   "unreleasedEn": false
  }
 ]

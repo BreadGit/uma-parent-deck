@@ -83,3 +83,24 @@ if (charTodo.length) {
   await fs.writeFile(CHAR_OUT, JSON.stringify(charEvents, null, 1));
 }
 console.log('characters done', Object.keys(charEvents).length);
+
+// Alternate outfits: their own page carries the outfit's events, which the base page lacks. Keyed by card id.
+const CARD_OUT = path.join(RAW, 'char-events-by-card.json');
+const byCard = (await exists(CARD_OUT)) ? await readJson(CARD_OUT) : {};
+const altTodo = charCards.filter((c) => firstOutfit.get(c.char_id) !== c && !byCard[c.card_id]);
+console.log(`${altTodo.length} alternate outfits to fetch (${charCards.length - firstOutfit.size - altTodo.length} cached)`);
+if (altTodo.length) {
+  const id = await buildId();
+  let n = 0;
+  for (const c of altTodo) {
+    const d = await getJson(`${BASE}/_next/data/${id}/umamusume/characters/${c.url_name}.json`);
+    if (!d) { console.warn('miss outfit', c.card_id, c.url_name); continue; }
+    let en = d.pageProps?.eventData?.en;
+    if (typeof en === 'string') en = JSON.parse(en);
+    if (!en) { console.warn('no event data for outfit', c.card_id); continue; }
+    byCard[c.card_id] = en;
+    if (++n % 10 === 0) { await fs.writeFile(CARD_OUT, JSON.stringify(byCard, null, 1)); console.log(`${n}/${altTodo.length}`); }
+  }
+  await fs.writeFile(CARD_OUT, JSON.stringify(byCard, null, 1));
+}
+console.log('outfits done', Object.keys(byCard).length);

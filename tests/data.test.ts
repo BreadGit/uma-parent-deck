@@ -28,6 +28,14 @@ test('cards carry the fields the stat and spark models read', () => {
     }
     if (c.rarity === 'SSR') assert.ok(c.chainEvents.length <= 3, `${c.name} chain events`);
   }
+  // compound unique effects (types 100 and up) keep their payload and are not folded into the passives
+  for (const c of data.cards) {
+    for (const u of c.unique?.effects ?? []) if (u.type >= 100) for (const e of c.effectsByLb) assert.ok(!(`u${u.type}` in e), `${c.name} folds compound unique type ${u.type}`);
+  }
+  const taiki = data.cardById.get(30053)!;
+  assert.ok(taiki.unique?.effects.some((u) => u.type === 101 && u.value_1 != null), 'Taiki Shuttle keeps the compound payload');
+  const urara = data.charByCardId.get(105201)!;
+  assert.equal(urara.goals.find((g) => g.races[0]?.name === 'Arima Kinen')?.required, 0, "Haru Urara's Arima Kinen is participation only");
   // decoding canary: Kitasan Black's third chain event hands out Professor of Curvature in both options
   const kitasan = data.cardById.get(30028)!;
   assert.equal(kitasan.chainEvents.length, 3);
@@ -48,9 +56,11 @@ test('characters have aptitudes, growth, base stats and resolvable skills', () =
     for (const k of APT_KEYS) assert.ok(typeof ch.aptitudes[k] === 'string', `${ch.name} aptitude ${k}`);
     assert.equal(ch.growth.length, 5, `${ch.name} growth`);
     assert.equal(ch.baseStats.length, 5, `${ch.name} base stats`);
-    for (const t of [ch.fourStarStats, ch.fiveStarStats]) if (t) assert.equal(t.length, 5, `${ch.name} star table`);
+    for (const t of [ch.twoStarStats, ch.threeStarStats, ch.fourStarStats, ch.fiveStarStats]) if (t) assert.equal(t.length, 5, `${ch.name} star table`);
+    if (ch.rarity <= 2) assert.ok(ch.threeStarStats, `${ch.name} ${ch.title} lists a 3★ table`);
+    if (ch.rarity === 1) assert.ok(ch.twoStarStats, `${ch.name} ${ch.title} lists a 2★ table`);
     for (const id of [...ch.innateSkills, ...ch.awakeningSkills, ...ch.eventSkills]) assert.ok(skillExists(id), `${ch.name} references unknown skill ${id}`);
-    for (const g of ch.goals) assert.ok(g.slot >= 0 && g.slot < 72, `${ch.name} goal slot ${g.slot}`);
+    for (const g of ch.goals) { assert.ok(g.slot >= 0 && g.slot < 72, `${ch.name} goal slot ${g.slot}`); assert.ok(isNum(g.required) && g.required >= 0, `${ch.name} goal placement`); for (const r of g.races) assert.ok(isNum(r.fansGain), `${ch.name} goal fans`); }
   }
 });
 
