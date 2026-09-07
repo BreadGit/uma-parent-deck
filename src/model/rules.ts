@@ -68,6 +68,8 @@ export const GOLD_ROLL_BY_STAT: [number, number][] = [[1000, 0.9], [800, 0.8], [
 // --- rating ---
 /** Rating points per unique-skill level: 120 for a 1★ or 2★ trainee, 170 from 3★ (UmaTools, GameWith). */
 export const UNIQUE_SKILL_SCORE_PER_LEVEL = { lowStar: 120, highStar: 170 };
+/** Initial unique level by trainee stars. At 3★ the upgraded unique starts at Lv1 (https://altema.jp/umamusume/koyuskill). */
+export const UNIQUE_SKILL_START_LEVEL_BY_STARS = [0, 1, 2, 1, 2, 3];
 export const UNIQUE_SKILL_LEVEL_MAX = 6;
 /**
  * The three in-career unique-skill level-ups (URA rule, unchanged in Grand Live): fans needed before the slot (the
@@ -77,7 +79,8 @@ export const UNIQUE_SKILL_LEVEL_MAX = 6;
 export const UNIQUE_LEVEL_CHECKS: { slot: number; fans: number; dirtFans: number; bond: boolean }[] = [
   { slot: 50, fans: 60000, dirtFans: 40000, bond: false },   // Senior early February
   { slot: 54, fans: 70000, dirtFans: 60000, bond: true },    // Senior early April
-  { slot: 72, fans: 120000, dirtFans: 80000, bond: false },  // Senior late December, after the Arima Kinen has been run (so fans through slot 71 count)
+  // Christmas precedes Arima Kinen. Playthrough with screenshots: https://kubinaga1230.hatenablog.com/entry/2023/01/09/174600
+  { slot: 71, fans: 120000, dirtFans: 80000, bond: false },  // Senior late December, before that turn's race
 ];
 /** Base rating of a skill by rarity, before the aptitude bucket: white, ◎ and gold (GameWith). */
 export const SKILL_SCORE = { white: 217, circle: 262, gold: 508 };

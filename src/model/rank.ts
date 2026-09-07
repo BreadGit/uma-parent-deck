@@ -2,7 +2,7 @@ import type { AptKey, Character, Data, Grade, Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { phi } from './stats.ts';
 import type { Aptitudes } from './races.ts';
-import { APTITUDE_BUCKET_MULTIPLIER, SKILL_SCORE, UNIQUE_LEVEL_CHECKS, UNIQUE_SKILL_LEVEL_MAX, UNIQUE_SKILL_SCORE_PER_LEVEL } from './rules.ts';
+import { APTITUDE_BUCKET_MULTIPLIER, SKILL_SCORE, UNIQUE_LEVEL_CHECKS, UNIQUE_SKILL_LEVEL_MAX, UNIQUE_SKILL_SCORE_PER_LEVEL, UNIQUE_SKILL_START_LEVEL_BY_STARS } from './rules.ts';
 
 /**
  * Rating points per stat value, the game's table as reproduced by UmaTools (umakonga formula): per-point rates in
@@ -79,11 +79,11 @@ export function uniqueSkillScore(stars: number, level: number): number {
 /** A trainee whose own dirt aptitude beats her turf aptitude uses the lower fan thresholds (Haru Urara, Smart Falcon). Pass the character's table, not the run's overrides. */
 const dirtOriented = (apt: Aptitudes) => bucketOf(apt.dirt) === 'good' && bucketOf(apt.turf) !== 'good';
 /**
- * Expected unique-skill level at run end: the trainee's stars, plus one for each fan check the agenda's expected
- * fans reach (the April check also needs a green bond with the chairperson, given as a setting), capped at six.
+ * Expected unique-skill level at run end: the initial level for the trainee's stars, plus one for each fan check
+ * the agenda's expected fans reach (the April check also needs the chairperson bond, given as a setting).
  */
 export function uniqueSkillLevel(stars: number, apt: Aptitudes, fansBefore: (slot: number) => number, settings: Settings): number {
-  let level = stars;
+  let level = UNIQUE_SKILL_START_LEVEL_BY_STARS[stars] ?? 1;
   for (const c of UNIQUE_LEVEL_CHECKS) {
     const met = fansBefore(c.slot) >= (dirtOriented(apt) ? c.dirtFans : c.fans) ? 1 : 0;
     level += met * (c.bond ? settings.uniqueAprilBondRate : 1);

@@ -38,12 +38,12 @@ test('star tables: every listed table is used as is; only a missing one interpol
 test('rank estimate: the unique skill at its level and a share of the innate skills count, P(SS) rises with score', () => {
   const apt = sw.aptitudes;
   const low = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 3, apt, data, settings);
-  const high = rankEstimate([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, 3, 5, apt, data, settings);
+  const high = rankEstimate([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, 5, 5, apt, data, settings);
   assert.ok(high.score > low.score && high.pSS > low.pSS);
   const noTrainee = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, null, 3, 0, null, data, settings);
   assert.equal(low.uniquePts, 510, 'a 3★ trainee at unique Lv3');
   assert.ok(low.score - noTrainee.score >= 510, 'the trainee adds at least her unique skill');
-  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 6, apt, data, settings).uniquePts, 1020);
+  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6, apt, data, settings).uniquePts, 1020);
   assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 2, 2, apt, data, settings).uniquePts, 240, 'a 2★ trainee scores 120 per level');
   assert.equal(low.ssMin, data.ranks.find((r) => r.name === 'SS')!.min);
 });
@@ -59,6 +59,7 @@ test('the star count is clamped to the trainee: a count below her rarity cannot 
   const p1 = at(1), p3 = at(3), p5 = at(5);
   assert.equal(p1.rank.uniqueLevel, p3.rank.uniqueLevel);
   assert.equal(p1.rank.score, p3.rank.score, 'a stale 1★ scores like 3★');
+  assert.ok(p3.rank.uniqueLevel <= 4 && p3.rank.uniquePts <= 680, 'a 3★ trainee cannot exceed unique Lv4');
   assert.ok(p5.rank.uniquePts > p3.rank.uniquePts && p5.rank.uniqueLevel <= 6);
 });
 
@@ -68,9 +69,10 @@ test('the dirt fan thresholds follow the character, so an aptitude override on t
   const p = planRun({ ...empty, traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: { turf: 'G', dirt: 'A' } }, strict, {}, data);
   const fans = (slot: number) => expectedFansBefore(p.schedule, slot);
   assert.ok(fans(50) > 40000 && fans(50) < 60000, `fans before February ${fans(50)}`);
-  assert.equal(uniqueSkillLevel(3, p.apt, fans, strict), 5.5, 'the overridden table would call her dirt-oriented');
+  assert.equal(uniqueSkillLevel(3, p.apt, fans, strict), 3.5, 'the overridden table would call her dirt-oriented');
   assert.equal(p.rank.uniqueLevel, uniqueSkillLevel(3, sw.aptitudes, fans, strict), 'the plan uses her own table');
-  assert.equal(p.rank.uniqueLevel, 4, 'only the December check (120,000 fans) is met on the turf thresholds');
+  assert.ok(fans(71) < 120000 && fans(72) >= 120000, 'only the final Arima pushes fans above the Christmas threshold');
+  assert.equal(p.rank.uniqueLevel, 1, 'no turf fan check is met; Arima fans arrive too late for Christmas');
 });
 
 test('a total-turn override at or below the reference race count is rejected and cannot divide by zero', () => {

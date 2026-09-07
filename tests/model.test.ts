@@ -343,15 +343,16 @@ test('rating: the UmaTools stat table exactly (values computed from its code), s
   assert.equal(skillScore(byName('Groundwork'), apt('G')), 217, 'an unconditioned skill ignores aptitudes');
   assert.equal(skillScore(byName('Concentration'), null), 508);
   assert.deepEqual([uniqueSkillScore(3, 3), uniqueSkillScore(5, 6), uniqueSkillScore(2, 4), uniqueSkillScore(1, 1)], [510, 1020, 480, 120]);
-  // level: stars plus the fan checks the agenda reaches, the April one at the bond rate, capped at six
+  // The upgraded unique starts again at Lv1 at 3★; each career adds at most three levels.
   const turf = traineeAptitudes(null, {});
-  assert.equal(uniqueSkillLevel(3, turf, () => 0, settings), 3);
-  assert.equal(uniqueSkillLevel(3, turf, () => 200000, { ...settings, uniqueAprilBondRate: 1 }), 6);
-  assert.equal(uniqueSkillLevel(3, turf, () => 200000, { ...settings, uniqueAprilBondRate: 0.5 }), 5.5);
+  assert.deepEqual([1, 2, 3, 4, 5].map((stars) => uniqueSkillLevel(stars, turf, () => 0, settings)), [1, 2, 1, 2, 3]);
+  assert.deepEqual([1, 2, 3, 4, 5].map((stars) => uniqueSkillLevel(stars, turf, () => 200000, { ...settings, uniqueAprilBondRate: 1 })), [4, 5, 4, 5, 6]);
+  assert.equal(uniqueSkillLevel(3, turf, () => 200000, { ...settings, uniqueAprilBondRate: 0.5 }), 3.5);
   assert.equal(uniqueSkillLevel(5, turf, () => 200000, { ...settings, uniqueAprilBondRate: 1 }), 6, 'capped');
-  assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot > 60 ? 130000 : 50000), settings), 4, 'only the December check is reached');
-  assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot >= 72 ? 120000 : 50000), settings), 4, 'the December check comes after the Arima Kinen in slot 71, so its fans count');
-  assert.equal(uniqueSkillLevel(3, traineeAptitudes(null, { turf: 'G', dirt: 'A' }), () => 45000, { ...settings, uniqueAprilBondRate: 1 }), 4, 'a dirt trainee clears the 40,000-fan February check');
+  assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot > 60 ? 130000 : 50000), settings), 2, 'only the December check is reached');
+  assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot >= 71 ? 120000 : 50000), settings), 2, 'fans through early December qualify for Christmas');
+  assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot >= 72 ? 120000 : 50000), settings), 1, 'fans from Arima Kinen in slot 71 arrive after the Christmas check');
+  assert.equal(uniqueSkillLevel(3, traineeAptitudes(null, { turf: 'G', dirt: 'A' }), () => 45000, { ...settings, uniqueAprilBondRate: 1 }), 2, 'a dirt trainee clears the 40,000-fan February check');
 });
 
 // ----- inheritance -----

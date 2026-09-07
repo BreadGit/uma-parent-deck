@@ -29,7 +29,7 @@ export const hasExactStarTable = (ch: Character, stars: number) => knownStarTabl
 
 export const STARS_MAX = 5;
 /**
- * A star count the trainee can have: her base rarity up to five. The stars start the unique skill's level and pick
+ * A star count the trainee can have: her base rarity up to five. The stars determine the unique skill's initial level and
  * its rating rate, so a count left over from another trainee must not reach the rank estimate.
  */
 export function clampStars(ch: Character | null, stars: number): number {
