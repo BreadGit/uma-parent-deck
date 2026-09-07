@@ -35,7 +35,11 @@ test('cards carry the fields the stat and spark models read', () => {
   const taiki = data.cardById.get(30053)!;
   assert.ok(taiki.unique?.effects.some((u) => u.type === 101 && u.value_1 != null), 'Taiki Shuttle keeps the compound payload');
   assert.ok(taiki.unique?.text?.includes('bond gauge is at least 80'), "and GameTora's rendered text for it");
-  for (const c of data.cards) if (c.unique?.effects.some((u) => u.type >= 100)) assert.ok(c.unique.text, `${c.name} compound unique effect has its text`);
+  for (const c of data.cards) if (c.unique?.effects.some((u) => u.type >= 100)) {
+    assert.ok(c.unique.text, `${c.name} compound unique effect has its text`);
+    assert.ok(!/^Unlocked at level/.test(c.unique.text), `${c.name}: the unlock line was kept instead of the effect`);
+  }
+  assert.ok(data.cardById.get(30081)!.unique?.text?.startsWith('Gain Training Effectiveness (10)'), 'a level-40 unlock (Team Sirius) still gets the effect line');
   // the approximable compound types are folded into the passives from the unlock level on; the deck-dependent ones are not
   assert.deepEqual(taiki.unique?.model?.effects, { '3': 0.75, '30': 0.75 }, 'type 101 at the fitted share of the run');
   assert.equal(taiki.effectsByLb[0]!.u3, 0.75, 'an SSR at LB0 is level 30, the unlock level');

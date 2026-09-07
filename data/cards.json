@@ -75961,7 +75961,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "8": 7.5
@@ -79317,7 +79317,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Stamina Bonus (2) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "4": 1.5
@@ -79763,7 +79763,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "If there are at least 4 different types of support cards in your deck, gain Increased Training (10)",
    "model": {
     "effects": {},
     "note": "evaluated from the deck by the predictor"
@@ -81498,7 +81498,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Speed Bonus (2) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "3": 1.5
@@ -84953,7 +84953,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "8": 7.5
@@ -86801,7 +86801,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "8": 7.5
@@ -89032,7 +89032,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "8": 7.5
@@ -90852,7 +90852,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "8": 7.5
@@ -92535,7 +92535,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "8": 7.5
@@ -93371,7 +93371,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "8": 7.5
@@ -93777,7 +93777,7 @@
     }
    ],
    "level": 40,
-   "text": "Unlocked at level 40",
+   "text": "Gain Power Bonus (2) when the bond gauge is at least 80",
    "model": {
     "effects": {
      "5": 1.5

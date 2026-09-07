@@ -118,15 +118,20 @@ console.log('outfits done', Object.keys(byCard).length);
 // on the card page from the same payload. Keep that rendered text per card so the tool can show and decode it.
 const UNIQUE_OUT = path.join(RAW, 'unique-effect-texts.json');
 const uniqueTexts = (await exists(UNIQUE_OUT)) ? await readJson(UNIQUE_OUT) : {};
-const compound = cards.filter((c) => c.release_en && c.unique?.effects.some((u) => u.type >= 100) && !uniqueTexts[c.support_id]);
+// the line GameTora prints above the effect for a card whose unique unlocks above the base level; an earlier
+// version of this script kept it as the text, so a cached entry that is only that line is refetched
+const UNLOCK_LINE = /^Unlocked at level \d+$/;
+const compound = cards.filter((c) => c.release_en && c.unique?.effects.some((u) => u.type >= 100) && (!uniqueTexts[c.support_id] || UNLOCK_LINE.test(uniqueTexts[c.support_id])));
 console.log(`${compound.length} compound unique effects to fetch (${Object.keys(uniqueTexts).length} cached)`);
 for (const c of compound) {
   const page = await getText(`${BASE}/umamusume/supports/${c.url_name}`);
   if (!page) { console.warn('miss unique text', c.support_id); continue; }
   const text = page.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, '\n');
-  const m = /Unique Effect\s*\n\s*([^\n]+)/.exec(text);
-  if (!m) { console.warn('no unique text for', c.support_id); continue; }
-  uniqueTexts[c.support_id] = m[1].replace(/&amp;/g, '&').replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"').trim();
+  // the effect is the first non-empty line after the heading that is not the unlock-level line
+  const after = text.split(/Unique Effect\s*\n/)[1] ?? '';
+  const line = after.split('\n').map((l) => l.trim()).find((l) => l && !UNLOCK_LINE.test(l));
+  if (!line) { console.warn('no unique text for', c.support_id); continue; }
+  uniqueTexts[c.support_id] = line.replace(/&amp;/g, '&').replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"').trim();
 }
 await fs.writeFile(UNIQUE_OUT, JSON.stringify(uniqueTexts, null, 1));
 console.log('unique texts done', Object.keys(uniqueTexts).length);
