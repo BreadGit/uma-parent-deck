@@ -2,7 +2,8 @@ import type { Card, CardEvent, Character, Data, EventCondition, RaceRef, Reward,
 import type { Settings } from '../settings.ts';
 import { EFFECT, passives } from './stats.ts';
 import type { RaceWins } from './races.ts';
-import { INSPIRATION_EVENTS, LINEAGE_MAX_PER_SIDE, STARS_PER_SPARK_MAX } from './rules.ts';
+import { GOLD_ROLL_BY_STAT, INSPIRATION_EVENTS, LINEAGE_MAX_PER_SIDE, SCENARIO_COMPLETION_SKILLS, STARS_PER_SPARK_MAX } from './rules.ts';
+import { affinityMultiplier } from './inherit.ts';
 
 /** A target as the user picked it, resolved to its skill family. */
 export interface Target {
@@ -39,7 +40,9 @@ export function formOf(id: number, data: Data): SkillForm {
 }
 
 /** The event an event-backed source comes from. Sources sharing a key come from one event, of which one option is taken per run. */
-export interface EventRef { key: string; label: string; option: string }
+export interface EventRef { key: string; label: string; option: string; optionIndex: number }
+/** A stage of a card's chain (or a Pal card's dates): reaching stage k means every earlier stage happened too. */
+export interface ChainRef { key: string; stage: number; pReach: number }
 
 interface SourceBase extends SkillForm {
   skillId: number;
@@ -49,14 +52,15 @@ interface SourceBase extends SkillForm {
 }
 /** A source that is not tied to an event choice. */
 export interface PlainSource extends SourceBase { kind: 'hint' | 'innate' | 'awakening' | 'char-event' | 'lineage'; isChoice: false }
-/** A source from a card event, one of the trainee's own events, or the scenario's skill event. Choice-gated when the skill comes from one option among several. */
-export interface EventSource extends SourceBase { kind: CardEvent['kind'] | TraineeEvent['kind'] | 'scenario'; isChoice: boolean; event: EventRef; linkedCharId?: number }
+/** A source from a card event, one of the trainee's own events, or the scenario. Choice-gated when the skill comes from one option among several. */
+export interface EventSource extends SourceBase { kind: CardEvent['kind'] | TraineeEvent['kind'] | 'scenario'; isChoice: boolean; event: EventRef; linkedCharId?: number; chain?: ChainRef }
 export type SkillSource = PlainSource | EventSource;
 export type SourceKind = SkillSource['kind'];
 /** Narrow to a choice-gated source, which always has its event. */
 export const isChoiceSource = (s: SkillSource): s is EventSource & { isChoice: true } => s.isChoice;
+export const isEventSource = (s: SkillSource): s is EventSource => 'event' in s;
 /** The event key of an event-backed source, null for hints and trainee or lineage sources. */
-export const eventKeyOf = (s: SkillSource): string | null => ('event' in s ? s.event.key : null);
+export const eventKeyOf = (s: SkillSource): string | null => (isEventSource(s) ? s.event.key : null);
 
 /** Expected number of hint events a card produces per run, from Hint Frequency. */
 export function expectedHints(card: Card, lb: number, races: number, totalTurns: number, settings: Settings): number {
@@ -65,11 +69,32 @@ export function expectedHints(card: Card, lb: number, races: number, totalTurns:
   return turns * settings.hintBase * (1 + hf / 100) * settings.hintScale;
 }
 
-function rewardSkills(rw: Reward[]): { id: number; share: number }[] {
-  const out: { id: number; share: number }[] = [];
-  for (const r of rw) {
-    if (r.t === 'sk' && typeof r.d === 'number') out.push({ id: r.d, share: 1 });
-    if (r.t === 'sr' && Array.isArray(r.d)) for (const x of r.d) out.push({ id: x.d, share: 1 / r.d.length });
+/** Chance a final chain event rolls the gold skill rather than its white form, at a stat of the card's type (mechanics document table). */
+export function goldRollChance(stat: number): number {
+  return (GOLD_ROLL_BY_STAT.find(([min]) => stat >= min) ?? GOLD_ROLL_BY_STAT[GOLD_ROLL_BY_STAT.length - 1])![1];
+}
+
+/**
+ * Chance of each skill given one outcome of an event option. A skill listed several times in the outcome (GameTora
+ * writes conditional branches into one list) counts once. A "random skill" reward that is a gold skill and its own
+ * white form is the stat-gated gold roll; any other random list splits evenly.
+ */
+function outcomeSkillShares(outcome: Reward[], data: Data, settings: Settings): Map<number, { share: number; rolled: boolean }> {
+  const out = new Map<number, { share: number; rolled: boolean }>();
+  const put = (id: number, share: number, rolled: boolean) => { const cur = out.get(id); if (!cur || cur.share < share) out.set(id, { share, rolled: rolled || !!cur?.rolled }); };
+  for (const r of outcome) {
+    if (r.t === 'sk' && typeof r.d === 'number') put(r.d, 1, false);
+    if (r.t === 'sr' && Array.isArray(r.d)) {
+      const ids = r.d.map((x) => x.d);
+      const skills = ids.map((id) => data.skillById.get(id));
+      const gi = skills.findIndex((s) => !!s && isGold(s));
+      const pair = ids.length === 2 && gi >= 0 && !!skills[gi] && skills[gi]!.versions.includes(ids[1 - gi]!);
+      if (pair) {
+        const g = goldRollChance(settings.goldRollStat);
+        put(ids[gi]!, g, true);
+        put(ids[1 - gi]!, 1 - g, true);
+      } else for (const id of ids) put(id, 1 / ids.length, false);
+    }
   }
   return out;
 }
@@ -77,63 +102,64 @@ function rewardSkills(rw: Reward[]): { id: number; share: number }[] {
 const EVENT_LABEL: Record<CardEvent['kind'], string> = { chain: 'Chain event', random: 'Random event', recreation: 'Outing', special: 'Special event' };
 
 /** The settings eventSources reads, as a cache key. */
-const eventSettingsKey = (s: Settings) => [s.chainRatesSSR, s.chainRatesSR, s.randomEventRate, s.palChainRate, s.groupOutingRate, s.groupFinaleRate, s.specialEventRate, s.bigRewardRate].flat().join(',');
+const eventSettingsKey = (s: Settings) => [s.chainRatesSSR, s.chainRatesSR, s.randomEventRate, s.palChainRate, s.groupOutingRate, s.groupFinaleRate, s.specialEventRate, s.goldRollStat].flat().join(',');
 const eventSourceCache = new WeakMap<Card, { key: string; value: EventSource[] }>();
 
 /** Skill sources from a card's events (form untagged), memoized per card and event settings. */
-export function eventSources(card: Card, settings: Settings): EventSource[] {
+export function eventSources(card: Card, settings: Settings, data: Data): EventSource[] {
   const key = eventSettingsKey(settings);
   const hit = eventSourceCache.get(card);
   if (hit && hit.key === key) return hit.value;
-  const value = computeEventSources(card, settings);
+  const value = computeEventSources(card, settings, data);
   eventSourceCache.set(card, { key, value });
   return value;
 }
 
 /**
- * Skill sources of one event that fires with chance `pFire`: one per skill per option. A skill offered by only
- * some of several options is choice-gated. `owner` names the card or trainee in labels, `keyPrefix` groups the
- * event's options under one key for conflict resolution.
+ * Skill sources of one event that fires with chance `pFire`: one per skill per option, with the chance the option's
+ * outcomes give that skill (outcomes are assumed equally likely; the game does not publish their odds). A skill
+ * offered by only some of several options is choice-gated. `owner` names the card or trainee in labels,
+ * `keyPrefix` groups the event's options under one key so that one option is taken per run.
  */
-function scanEvent(ev: CardEvent | TraineeEvent, pFire: number, label: string, owner: string, keyPrefix: string, settings: Settings, extra: Partial<EventSource> = {}): EventSource[] {
+function scanEvent(ev: CardEvent | TraineeEvent, pFire: number, label: string, owner: string, keyPrefix: string, settings: Settings, data: Data, extra: Partial<EventSource> = {}): EventSource[] {
   const out: EventSource[] = [];
   const nChoices = ev.choices.length;
   const name = `${label} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}`;
-  ev.choices.forEach((choice, ci) => {
+  const perChoice = ev.choices.map((choice) => {
     const nOut = choice.outcomes.length;
-    // Outcomes of one choice are mutually exclusive: add up the chance per skill across outcomes.
-    const perSkill = new Map<number, { p: number; where: Set<string> }>();
-    choice.outcomes.forEach((outcome, oi) => {
-      const pOutcome = nOut === 1 ? 1 : oi === nOut - 1 ? settings.bigRewardRate : (1 - settings.bigRewardRate) / (nOut - 1);
-      for (const { id, share } of rewardSkills(outcome)) {
-        const cur = perSkill.get(id) ?? { p: 0, where: new Set<string>() };
-        cur.p += pOutcome * share;
-        if (nOut > 1) cur.where.add(oi === nOut - 1 ? 'big reward' : 'small reward');
-        perSkill.set(id, cur);
+    const perSkill = new Map<number, { p: number; rolled: boolean }>();
+    for (const outcome of choice.outcomes) {
+      for (const [id, { share, rolled }] of outcomeSkillShares(outcome, data, settings)) {
+        const cur = perSkill.get(id) ?? { p: 0, rolled: false };
+        perSkill.set(id, { p: Math.min(1, cur.p + share / nOut), rolled: cur.rolled || rolled });
       }
-    });
-    for (const [id, { p, where }] of perSkill) {
-      const inAll = ev.choices.every((c) => c.outcomes.some((o) => rewardSkills(o).some((x) => x.id === id)));
-      const both = where.size === 1 ? `, ${[...where][0]}` : '';
+    }
+    return { nOut, perSkill };
+  });
+  perChoice.forEach(({ nOut, perSkill }, ci) => {
+    for (const [id, { p, rolled }] of perSkill) {
+      const inAll = perChoice.every((c) => c.perSkill.has(id));
+      const how = [nOut > 1 ? `one of ${nOut} outcomes` : '', rolled ? 'gold rolled against the white form' : ''].filter(Boolean).join(', ');
       out.push({ kind: ev.kind, skillId: id, gold: false, circle: false, pObtain: pFire * p, isChoice: nChoices > 1 && !inAll,
-        event: { key: `${keyPrefix}:${ev.kind}:${ev.index}`, label: `${owner}'s ${name.charAt(0).toLowerCase()}${name.slice(1)}`, option: `option ${ci + 1}` },
-        detail: `${name}${both}`, ...extra });
+        event: { key: `${keyPrefix}:${ev.kind}:${ev.index}`, label: `${owner}'s ${name.charAt(0).toLowerCase()}${name.slice(1)}`, option: `option ${ci + 1}`, optionIndex: ci },
+        detail: `${name}${how ? ` (${how})` : ''}`, ...extra });
     }
   });
   return out;
 }
 
-function computeEventSources(card: Card, settings: Settings): EventSource[] {
+function computeEventSources(card: Card, settings: Settings, data: Data): EventSource[] {
   const out: EventSource[] = [];
   const chainRates = card.rarity === 'SSR' ? settings.chainRatesSSR : card.rarity === 'SR' ? settings.chainRatesSR : [];
-  const scan = (ev: CardEvent, pFire: number, label: string) => out.push(...scanEvent(ev, pFire, label, card.name, String(card.id), settings, { cardName: card.name }));
-  card.chainEvents.forEach((ev) => scan(ev, chainRates[ev.index - 1] ?? 0, EVENT_LABEL.chain));
+  const scan = (ev: CardEvent, pFire: number, label: string, chain?: ChainRef) => out.push(...scanEvent(ev, pFire, label, card.name, String(card.id), settings, data, { cardName: card.name, ...(chain ? { chain } : {}) }));
+  // chain stages are nested: stage k needs every stage before it
+  card.chainEvents.forEach((ev) => { const pReach = chainRates[ev.index - 1] ?? 0; scan(ev, pReach, EVENT_LABEL.chain, { key: `${card.id}:chain`, stage: ev.index, pReach }); });
   const randomScale = Math.min(1, 2 / Math.max(1, card.randomEvents.length));
   card.randomEvents.forEach((ev) => scan(ev, settings.randomEventRate * randomScale, EVENT_LABEL.random));
   const nRec = card.recreationEvents.length;
   card.recreationEvents.forEach((ev) => {
-    const rate = card.type === 'pal' ? settings.palChainRate : ev.index === nRec ? settings.groupFinaleRate : settings.groupOutingRate;
-    scan(ev, rate, card.type === 'pal' ? 'Date' : ev.index === nRec ? 'Group finale' : 'Member outing');
+    if (card.type === 'pal') { scan(ev, settings.palChainRate, 'Date', { key: `${card.id}:date`, stage: ev.index, pReach: settings.palChainRate }); return; }
+    scan(ev, ev.index === nRec ? settings.groupFinaleRate : settings.groupOutingRate, ev.index === nRec ? 'Group finale' : 'Member outing');
   });
   card.specialEvents.forEach((ev) => scan(ev, settings.specialEventRate, EVENT_LABEL.special));
   return out;
@@ -150,7 +176,7 @@ export function cardSourcesForTarget(card: Card, lb: number, target: Target, rac
     const pEach = 1 - Math.pow(1 - 1 / pool, eh);
     for (const id of hintsInFamily) out.push({ kind: 'hint', skillId: id, ...formOf(id, data), pObtain: pEach, isChoice: false, detail: `Hint (${eh.toFixed(1)} hints/run over ${pool} skills)`, cardName: card.name });
   }
-  for (const src of eventSources(card, settings)) {
+  for (const src of eventSources(card, settings, data)) {
     if (target.familyIds.has(src.skillId)) out.push({ ...src, ...formOf(src.skillId, data) });
   }
   return out;
@@ -186,17 +212,18 @@ function traineeEventRate(ev: TraineeEvent, wins: RaceWins, settings: Settings):
   return ev.kind === 'outing' ? settings.charOutingRate : settings.charStoryEventRate;
 }
 /** Every skill source from the trainee's own events (form untagged), given the agenda. Secret events are scored by their race conditions. */
-export function traineeEventSources(trainee: Character, wins: RaceWins, settings: Settings): EventSource[] {
+export function traineeEventSources(trainee: Character, wins: RaceWins, settings: Settings, data: Data): EventSource[] {
   const out: EventSource[] = [];
   const offered = new Set<number>(); // every skill some event gives, whether or not it can fire under this agenda
   for (const ev of trainee.events) {
-    for (const c of ev.choices) for (const { id } of c.outcomes.flatMap(rewardSkills)) offered.add(id);
+    for (const c of ev.choices) for (const o of c.outcomes) for (const id of outcomeSkillShares(o, data, settings).keys()) offered.add(id);
     const rate = traineeEventRate(ev, wins, settings);
     if (rate <= 0) continue;
-    out.push(...scanEvent(ev, rate, TRAINEE_EVENT_LABEL[ev.kind], trainee.name, 'trainee', settings));
+    out.push(...scanEvent(ev, rate, TRAINEE_EVENT_LABEL[ev.kind], trainee.name, 'trainee', settings, data));
   }
-  // skills GameTora lists for her events but no decoded event gives (a handful of characters): a plain source at the story rate
-  for (const id of trainee.eventSkills) if (!offered.has(id)) out.push({ kind: 'story', skillId: id, gold: false, circle: false, pObtain: settings.charStoryEventRate, isChoice: false, event: { key: `trainee:flat:${id}`, label: `${trainee.name}'s event`, option: '' }, detail: 'Character event (not decoded)' });
+  // skills GameTora lists for her events that no decoded event gives: usually an alternate outfit's own events, whose
+  // page the tool has not fetched, so the trigger is unknown and a placeholder rate applies
+  for (const id of trainee.eventSkills) if (!offered.has(id)) out.push({ kind: 'story', skillId: id, gold: false, circle: false, pObtain: settings.charUndecodedEventRate, isChoice: false, event: { key: `trainee:flat:${id}`, label: `${trainee.name}'s event`, option: '', optionIndex: 0 }, detail: 'Character event not decoded (listed for her events, trigger unknown)' });
   return out;
 }
 
@@ -204,7 +231,7 @@ export function traineeSources(trainee: Character, target: Target, data: Data, s
   const out: SkillSource[] = [];
   for (const id of trainee.innateSkills) if (target.familyIds.has(id)) out.push({ kind: 'innate', skillId: id, ...formOf(id, data), pObtain: 1, isChoice: false, detail: 'Innate skill' });
   for (const id of trainee.awakeningSkills) if (target.familyIds.has(id)) out.push({ kind: 'awakening', skillId: id, ...formOf(id, data), pObtain: 1, isChoice: false, detail: 'Awakening skill' });
-  for (const src of traineeEventSources(trainee, wins, settings)) if (target.familyIds.has(src.skillId)) out.push({ ...src, ...formOf(src.skillId, data) });
+  for (const src of traineeEventSources(trainee, wins, settings, data)) if (target.familyIds.has(src.skillId)) out.push({ ...src, ...formOf(src.skillId, data) });
   return out;
 }
 
@@ -214,26 +241,26 @@ export const NO_LINEAGE: Lineage = { k1: 0, k2: 0, p1: 0, p2: 0 };
 export const lineageCount = (l: Lineage) => l.k1 + l.k2;
 
 /** Split a parent side's stars over its copies of the spark as evenly as possible, at most STARS_PER_SPARK_MAX each. */
-export function lineageSparks(l: Lineage): number[] {
-  const k1 = Math.max(0, Math.min(LINEAGE_MAX_PER_SIDE, l.k1)), k2 = Math.max(0, Math.min(LINEAGE_MAX_PER_SIDE, l.k2));
-  const spread = (stars: number, k: number) => {
-    if (k <= 0) return [] as number[];
-    const out = Array<number>(k).fill(0);
-    let left = Math.max(0, Math.min(STARS_PER_SPARK_MAX * k, Math.round(stars)));
-    for (let i = 0; left > 0; i = (i + 1) % k) { out[i]! += 1; left -= 1; }
-    return out.map((v) => Math.max(1, v));
-  };
-  return [...spread(l.p1, k1), ...spread(l.p2, k2)];
+function spread(stars: number, k: number): number[] {
+  const n = Math.max(0, Math.min(LINEAGE_MAX_PER_SIDE, k));
+  if (n <= 0) return [];
+  const out = Array<number>(n).fill(0);
+  let left = Math.max(0, Math.min(STARS_PER_SPARK_MAX * n, Math.round(stars)));
+  for (let i = 0; left > 0; i = (i + 1) % n) { out[i]! += 1; left -= 1; }
+  return out.map((v) => Math.max(1, v));
 }
+/** The sparks on each parent side, by stars. */
+export const lineageSparksBySide = (l: Lineage): [number[], number[]] => [spread(l.p1, l.k1), spread(l.p2, l.k2)];
+export const lineageSparks = (l: Lineage): number[] => lineageSparksBySide(l).flat();
 
-/** Inherited white sparks roll at each of the two inspiration events and hand over the white hint. */
+/** Inherited white sparks roll at each of the two inspiration events, at the assumed affinity, and hand over the white hint. */
 export function lineageSources(target: Target, lineage: Lineage | undefined, settings: Settings): SkillSource[] {
   if (!lineage || lineageCount(lineage) <= 0) return [];
   let miss = 1;
   const parts: string[] = [];
   for (const stars of lineageSparks(lineage)) {
     const rate = settings.whiteSparkInheritRates[Math.max(0, Math.min(2, stars - 1))] ?? 0.03;
-    const pOnce = Math.min(1, rate * (1 + settings.affinity / 100));
+    const pOnce = Math.min(1, rate * affinityMultiplier(settings));
     miss *= Math.pow(1 - pOnce, INSPIRATION_EVENTS);
     parts.push(`${stars}★ ${pct1(pOnce)}/event`);
   }
@@ -271,19 +298,19 @@ function computeScenarioOptions(data: Data, settings: Settings, present: Set<num
   for (const ev of data.scenarioEvents) {
     if (ev.scenarioId !== settings.scenarioId) continue;
     const key = `scenario:${ev.eventId}`;
-    for (const ch of ev.choices) {
+    ev.choices.forEach((ch, optionIndex) => {
       if (ch.linkedCharId == null) {
-        if (ch.skill != null) out.push({ skillId: ch.skill, event: { key, label: SCENARIO_EVENT_LABEL, option: 'unaffiliated option' }, detail: 'Scenario skill event, unaffiliated option' });
-        continue;
+        if (ch.skill != null) out.push({ skillId: ch.skill, event: { key, label: SCENARIO_EVENT_LABEL, option: 'unaffiliated option', optionIndex }, detail: 'Scenario skill event, unaffiliated option' });
+        return;
       }
       const here = present.has(ch.linkedCharId);
       const skill = here ? ch.goldSkill : ch.whiteSkill;
-      if (skill == null) continue;
+      if (skill == null) return;
       const name = charName(ch.linkedCharId);
       out.push({ skillId: skill, linkedCharId: ch.linkedCharId,
-        event: { key, label: SCENARIO_EVENT_LABEL, option: here ? `${name}'s option, gold version because she is in the run` : `${name}'s option, normal version because she is not in the run` },
+        event: { key, label: SCENARIO_EVENT_LABEL, option: here ? `${name}'s option, gold version because she is in the run` : `${name}'s option, normal version because she is not in the run`, optionIndex },
         detail: here ? `Scenario skill event, ${name}'s option (she is in the run)` : `Scenario skill event, ${name}'s option (she is not in the run)` });
-    }
+    });
   }
   return out;
 }
@@ -293,66 +320,108 @@ export function scenarioSources(target: Target, data: Data, settings: Settings, 
     .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...formOf(o.skillId, data), pObtain: settings.scenarioPickRate, isChoice: true, event: o.event, detail: o.detail, ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
 }
 
+/**
+ * The scenario's completion reward: Our Grand Concert gives the gold skill for 18 or more songs learned by late
+ * December of the Senior year and the white one otherwise. The two are one outcome roll, not two independent sources.
+ */
+export function scenarioCompletionSources(target: Target, data: Data, settings: Settings): SkillSource[] {
+  const spec = SCENARIO_COMPLETION_SKILLS[settings.scenarioId];
+  if (!spec) return [];
+  const event: EventRef = { key: `scenario:${settings.scenarioId}:completion`, label: "Our Grand Concert's completion reward", option: '', optionIndex: 0 };
+  const out: SkillSource[] = [];
+  const p = settings.scenarioSongsRate;
+  if (target.familyIds.has(spec.gold) && data.skillById.has(spec.gold)) out.push({ kind: 'scenario', skillId: spec.gold, ...formOf(spec.gold, data), pObtain: p, isChoice: false, event, detail: `Scenario completion (${spec.songsForGold} or more songs learned)` });
+  if (target.familyIds.has(spec.white) && data.skillById.has(spec.white)) out.push({ kind: 'scenario', skillId: spec.white, ...formOf(spec.white, data), pObtain: 1 - p, isChoice: false, event, detail: `Scenario completion (fewer than ${spec.songsForGold} songs learned)` });
+  return out;
+}
+
 /** One option of a contested event: the skill it gives, and the target it serves (null for a non-target option). */
 export interface ConflictOption { skillId: number; option: string; target: number | null }
-/** An event whose single choice was contested: the option taken, by prioritized order, and the ones given up. */
+/** An event whose single choice cost a target its sources: the option taken, by prioritized order, and the targets given up. */
 export interface Conflict { eventKey: string; label: string; taken: ConflictOption; dropped: ConflictOption[] }
 /** A choice-gated option that is not a target but sits in the prioritized list: if ranked above the targets sharing its event, it takes the event. */
 export interface Blocker { skillId: number; event: EventRef }
 
+/** The option of an event that serves a target best: its gold form first, then the highest chance. */
+const bestSource = (ss: EventSource[]) => ss.slice().sort((a, b) => Number(b.gold) - Number(a.gold) || b.pObtain - a.pObtain)[0]!;
+
 /**
- * One event yields one option. When choice-gated sources for different targets share an event, keep the target
- * whose skills come first in `priority` (skill ids in prioritized order, every form of a family ranked together)
- * and drop the rest.
+ * One event yields one option. For every event some target's sources come from, take the option the run would pick:
+ * a non-target skill ranked above every target on that event (a blocker) wins it, else the target whose skills come
+ * first in `priority` (skill ids in prioritized order, every form of a family ranked together) takes its best option.
+ * Every target keeps only its sources on the taken option, so a target offered by two options counts one of them,
+ * and an option that gives two targets keeps both.
  */
 export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[], blockers: Blocker[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
-  for (const [tid, sources] of map) for (const s of sources) if (isChoiceSource(s)) byEvent.set(s.event.key, new Set([...(byEvent.get(s.event.key) ?? []), tid]));
+  for (const [tid, sources] of map) for (const s of sources) if (isEventSource(s)) byEvent.set(s.event.key, new Set([...(byEvent.get(s.event.key) ?? []), tid]));
   const rank = (skillId: number) => { const i = priority.indexOf(skillId); return i < 0 ? Infinity : i; };
-  const drop = new Map<string, Set<number>>();
+  const taken = new Map<string, number>();
   const conflicts: Conflict[] = [];
   for (const [key, tids] of byEvent) {
-    // the option of this event that serves a target: prefer its gold form
-    const optionFor = (tid: number): ConflictOption => {
-      const ss = (map.get(tid) ?? []).filter((s): s is EventSource => isChoiceSource(s) && s.event.key === key);
-      const s = ss.find((x) => x.gold) ?? ss[0]!;
-      return { skillId: s.skillId, option: s.event.option, target: tid };
-    };
+    const sourcesFor = (tid: number) => (map.get(tid) ?? []).filter((s): s is EventSource => isEventSource(s) && s.event.key === key);
     const ordered = [...tids].sort((a, b) => rank(a) - rank(b) || a - b);
-    const options = ordered.map(optionFor);
-    const label = (map.get(ordered[0]!) ?? []).find((s): s is EventSource => isChoiceSource(s) && s.event.key === key)?.event.label ?? key;
-    // a non-target option of this event that the user ranked above every target option wins the event outright
+    const label = sourcesFor(ordered[0]!)[0]?.event.label ?? key;
     const blocker = blockers.filter((b) => b.event.key === key && rank(b.skillId) < rank(ordered[0]!)).sort((a, b) => rank(a.skillId) - rank(b.skillId))[0];
-    if (blocker) {
-      drop.set(key, new Set(ordered));
-      conflicts.push({ eventKey: key, label: blocker.event.label || label, taken: { skillId: blocker.skillId, option: blocker.event.option, target: null }, dropped: options });
-      continue;
-    }
-    if (tids.size < 2) continue;
-    drop.set(key, new Set(ordered.slice(1)));
-    conflicts.push({ eventKey: key, label, taken: options[0]!, dropped: options.slice(1) });
+    let chosen: number, takenOption: ConflictOption;
+    if (blocker) { chosen = blocker.event.optionIndex; takenOption = { skillId: blocker.skillId, option: blocker.event.option, target: null }; }
+    else { const best = bestSource(sourcesFor(ordered[0]!)); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: ordered[0]! }; }
+    taken.set(key, chosen);
+    const dropped = ordered.filter((tid) => !sourcesFor(tid).some((s) => s.event.optionIndex === chosen)).map((tid) => { const s = bestSource(sourcesFor(tid)); return { skillId: s.skillId, option: s.event.option, target: tid }; });
+    if (blocker || dropped.length) conflicts.push({ eventKey: key, label: blocker?.event.label || label, taken: takenOption, dropped });
   }
-  if (!conflicts.length) return { map, conflicts };
   const out = new Map<number, SkillSource[]>();
-  for (const [tid, sources] of map) out.set(tid, sources.filter((s) => !(isChoiceSource(s) && drop.get(s.event.key)?.has(tid))));
+  for (const [tid, sources] of map) out.set(tid, sources.filter((s) => !isEventSource(s) || taken.get(s.event.key) === s.event.optionIndex));
   return { map: out, conflicts };
 }
 
-/** Combine independent sources into P(own gold) and P(own white) at run end. */
-export interface Ownership { pGold: number; pWhite: number; pAny: number }
+/** Chance of owning the skill at run end in each form, gold > ◎ > white when several are possible. */
+export interface Ownership { pGold: number; pCircle: number; pWhite: number; pAny: number }
+interface Mass { any: number; goldOrCircle: number; gold: number }
+const massOf = (s: SkillSource, p: number): Mass => ({ any: p, goldOrCircle: s.gold || s.circle ? p : 0, gold: s.gold ? p : 0 });
+const addMass = (a: Mass, b: Mass): Mass => ({ any: Math.min(1, a.any + b.any), goldOrCircle: Math.min(1, a.goldOrCircle + b.goldOrCircle), gold: Math.min(1, a.gold + b.gold) });
+const ZERO: Mass = { any: 0, goldOrCircle: 0, gold: 0 };
+
+/**
+ * Combine a target's sources into ownership odds. Sources from one option of one event are mutually exclusive
+ * outcomes and add up; a card's chain stages are nested (stage k implies every earlier stage), so a skill offered by
+ * several stages is counted once per run; everything else is independent.
+ */
 export function combineSources(sources: SkillSource[]): Ownership {
-  let noGold = 1, noAny = 1;
+  const groups = new Map<string, Mass>();
+  const chains = new Map<string, Map<number, { pReach: number; q: Mass }>>();
+  let n = 0;
   for (const s of sources) {
-    noAny *= 1 - s.pObtain;
-    if (s.gold) noGold *= 1 - s.pObtain;
+    if (isEventSource(s) && s.chain) {
+      const stages = chains.get(s.chain.key) ?? new Map<number, { pReach: number; q: Mass }>();
+      const cur = stages.get(s.chain.stage) ?? { pReach: s.chain.pReach, q: ZERO };
+      const q = s.chain.pReach > 0 ? s.pObtain / s.chain.pReach : 0; // chance given the stage is reached
+      stages.set(s.chain.stage, { pReach: cur.pReach, q: addMass(cur.q, massOf(s, q)) });
+      chains.set(s.chain.key, stages);
+      continue;
+    }
+    const key = isEventSource(s) ? `${s.event.key}#${s.event.optionIndex}` : `plain:${n++}`;
+    groups.set(key, addMass(groups.get(key) ?? ZERO, massOf(s, s.pObtain)));
   }
-  const pGold = 1 - noGold;
-  const pAny = 1 - noAny;
-  return { pGold, pWhite: Math.max(0, pAny - pGold), pAny };
+  for (const [key, stages] of chains) {
+    const ordered = [...stages].sort((a, b) => a[0] - b[0]);
+    const total: Mass = { any: 0, goldOrCircle: 0, gold: 0 };
+    const miss = { any: 1, goldOrCircle: 1, gold: 1 };
+    ordered.forEach(([, { pReach, q }], i) => {
+      miss.any *= 1 - q.any; miss.goldOrCircle *= 1 - q.goldOrCircle; miss.gold *= 1 - q.gold;
+      const deepest = Math.max(0, pReach - (ordered[i + 1]?.[1].pReach ?? 0)); // this is the last stage reached
+      total.any += deepest * (1 - miss.any); total.goldOrCircle += deepest * (1 - miss.goldOrCircle); total.gold += deepest * (1 - miss.gold);
+    });
+    groups.set(`chain:${key}`, total);
+  }
+  let noAny = 1, noGoldOrCircle = 1, noGold = 1;
+  for (const g of groups.values()) { noAny *= 1 - g.any; noGoldOrCircle *= 1 - g.goldOrCircle; noGold *= 1 - g.gold; }
+  const pAny = 1 - noAny, pGold = 1 - noGold, pGoldOrCircle = 1 - noGoldOrCircle;
+  return { pGold, pCircle: Math.max(0, pGoldOrCircle - pGold), pWhite: Math.max(0, pAny - pGoldOrCircle), pAny };
 }
 
 /** Expected spark probability for a target given ownership odds; each lineage occurrence multiplies it (base × 1.1^n). */
-export function sparkChance(own: { pGold: number; pWhite: number }, settings: Settings, lineageN = 0): number {
+export function sparkChance(own: { pGold: number; pCircle?: number; pWhite: number }, settings: Settings, lineageN = 0): number {
   const mult = Math.pow(settings.lineageSparkMultiplier, Math.max(0, lineageN));
-  return Math.min(1, (own.pGold * settings.goldSparkRate + own.pWhite * settings.whiteSparkRate) * mult);
+  return Math.min(1, (own.pGold * settings.goldSparkRate + (own.pCircle ?? 0) * settings.circleSparkRate + own.pWhite * settings.whiteSparkRate) * mult);
 }
