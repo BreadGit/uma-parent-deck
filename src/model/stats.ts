@@ -1,5 +1,6 @@
-import { STATS, type Card, type Character, type Focus, type StatModel } from '../types.ts';
+import { STATS, type Card, type Character, type Focus, type StatModel, type UniqueEffect } from '../types.ts';
 import type { Settings } from '../settings.ts';
+import { FACILITY_LEVEL_MAX, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP } from './rules.ts';
 
 export const EFFECT = {
   friendship: 1, mood: 2, statBonus: 3, trainingEff: 8, initialStat: 9, initialGauge: 14,
@@ -18,26 +19,66 @@ export function passives(card: Card, lb: number, extra: Record<number, number> =
   return out;
 }
 
-/** The level a card's limit break reaches, which decides whether its unique effect is unlocked. */
-const LB_LEVEL: Record<Card['rarity'], number[]> = { R: [20, 25, 30, 35, 40], SR: [25, 30, 35, 40, 45], SSR: [30, 35, 40, 45, 50] };
+/** Compound unique-effect types (100 and up) the stat model evaluates; the rest depend on turn-by-turn state and are left out. */
+export const MODELLED_UNIQUE_TYPES: ReadonlySet<number> = new Set([101, 103, 104, 105, 106, 109, 111]);
+/** What a compound effect can be evaluated against: the deck it sits in, and the agenda's expected fans before each slot. */
+export interface UniqueContext { deck?: { card: Card }[]; fansBefore?: (slot: number) => number }
+/** True when the card's unique effect is unlocked at this limit break. */
+export const uniqueUnlocked = (card: Card, lb: number) => !!card.unique && lb >= card.unique.fromLb;
+
+/** Run-average share of a "+1 per `step` fans, up to `cap`" effect, from the agenda's expected fans before each slot. */
+function fanRampShare(fansBefore: (slot: number) => number, step: number, cap: number): number {
+  if (!(step > 0) || !(cap > 0)) return 0;
+  let sum = 0;
+  for (let s = 0; s < SLOT_COUNT; s++) sum += Math.min(cap, Math.floor(fansBefore(s) / step)) / cap;
+  return sum / SLOT_COUNT;
+}
+
 /**
- * Passives a card's unique effect adds once the deck is known (docs/refs/gametora-unique-effects.md): type 103 gives
- * Training Effectiveness with enough card types in the deck, type 105 gives initial stats per card in the deck.
- * The other compound types are folded into effectsByLb by the normalizer or left out.
+ * Passives a card's compound unique effect adds (docs/refs/gametora-unique-effects.md), evaluated at run time so the
+ * fit script can do the same sums from the same payload. Ramping effects (bond, friendship count, total bond, facility
+ * level) count for `model.uniqueRampShare` of the run, a fitted share; type 104 (per fans) follows the agenda's fan
+ * curve when it is given and the same share otherwise; types 103 and 105 are exact given the deck.
  */
-export function deckUniqueExtras(card: Card, lb: number, deck: { card: Card }[]): Record<number, number> {
+export function uniqueExtras(card: Card, lb: number, model: StatModel, ctx: UniqueContext = {}): Record<number, number> {
   const out: Record<number, number> = {};
-  if (!card.unique || (LB_LEVEL[card.rarity][Math.max(0, Math.min(4, lb))] ?? 0) < card.unique.level) return out;
-  const types = new Set(deck.map((d) => d.card.type));
+  if (!card.unique || !uniqueUnlocked(card, lb)) return out;
+  const share = model.uniqueRampShare;
+  const deck = ctx.deck ?? [];
+  const add = (id: number | undefined, v: number) => { if (id == null || !Number.isFinite(v) || v === 0) return; out[id] = (out[id] ?? 0) + v; };
   for (const u of card.unique.effects) {
-    if (u.type === 103 && types.size >= u.value) out[EFFECT.trainingEff] = (out[EFFECT.trainingEff] ?? 0) + (u.value_1 ?? 0);
-    if (u.type === 105) STATS.forEach((st, i) => {
-      const same = deck.filter((d) => d.card.type === st).length, friends = deck.filter((d) => d.card.type === 'pal' || d.card.type === 'group').length;
-      const v = u.value * same + (u.value_1 ?? 0) * friends;
-      if (v) out[EFFECT.initialStat + i] = (out[EFFECT.initialStat + i] ?? 0) + v;
-    });
+    switch (u.type) {
+      case 101: add(u.value_1, (u.value_2 ?? 0) * share); add(u.value_3, (u.value_4 ?? 0) * share); break;
+      case 103: if (new Set(deck.map((d) => d.card.type)).size >= u.value) add(EFFECT.trainingEff, u.value_1 ?? 0); break;
+      case 104: add(EFFECT.trainingEff, (u.value_1 ?? 0) * (ctx.fansBefore ? fanRampShare(ctx.fansBefore, u.value, u.value_1 ?? 0) : share)); break;
+      case 105: STATS.forEach((st, i) => {
+        const same = deck.filter((d) => d.card.type === st).length, friends = deck.filter((d) => d.card.type === 'pal' || d.card.type === 'group').length;
+        add(EFFECT.initialStat + i, u.value * same + (u.value_1 ?? 0) * friends);
+      }); break;
+      case 106: add(EFFECT.friendship, u.value * (u.value_2 ?? 0) * share); break;
+      case 109: add(EFFECT.trainingEff, (u.value_1 ? UNIQUE_TOTAL_BOND_CAP / u.value_1 : 0) * share); break;
+      case 111: add(EFFECT.trainingEff, (u.value_1 ?? 0) * FACILITY_LEVEL_MAX * share); break;
+    }
   }
   return out;
+}
+
+/** What the model does with each of a card's compound unique effects, for the ranking tooltip. */
+export function uniqueNote(card: Card, model: StatModel, ctx: UniqueContext = {}): string {
+  const pctShare = `${Math.round(model.uniqueRampShare * 100)}% of the run`;
+  const note = (u: UniqueEffect): string => {
+    switch (u.type) {
+      case 101: return `bond ${u.value} assumed reached for ${pctShare}`;
+      case 103: return ctx.deck ? `the deck has ${new Set(ctx.deck.map((d) => d.card.type)).size} card types (needs ${u.value})` : 'counted from the deck once it is built';
+      case 104: return ctx.fansBefore ? `run average +${((u.value_1 ?? 0) * fanRampShare(ctx.fansBefore, u.value, u.value_1 ?? 0)).toFixed(1)} of ${u.value_1} from the agenda's fans` : `${pctShare} of the fan cap (the agenda's fans once it is built)`;
+      case 105: return 'initial stats per card in the deck once it is built';
+      case 106: return `the ${u.value} friendship trainings assumed done for ${pctShare}`;
+      case 109: return `${UNIQUE_TOTAL_BOND_CAP} total bond assumed reached for ${pctShare}`;
+      case 111: return `facility level ${FACILITY_LEVEL_MAX} assumed for ${pctShare}`;
+      default: return u.type >= 100 ? 'depends on turn-by-turn state, left out' : '';
+    }
+  };
+  return (card.unique?.effects ?? []).map(note).filter(Boolean).join('; ');
 }
 
 /** Total career turns for the race scaling: the override only when it sits above the reference race count (the settings spec enforces this; a bad saved value falls back to the fit). */
@@ -75,8 +116,8 @@ export interface Contribution { stats: number[]; sp: number; source: 'observed' 
 
 /**
  * Best estimate of a card's contribution at the reference race count: observed where available, model otherwise.
- * `extra` (deck-dependent unique passives) only reaches the model: an observed row already contains the effect at
- * the deck it was logged with, and it cancels out of an LB shift.
+ * `extra` (compound unique passives from uniqueExtras) only reaches the model: an observed row already contains the
+ * effect at the deck it was logged with, and it cancels out of an LB shift.
  */
 export function cardContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): Contribution {
   const obs = model.observed.filter((o) => o.cardId === card.id && o.wellTested);
@@ -116,12 +157,12 @@ function interp(model: StatModel, key: 'eventBase' | 'eventSp', races: number): 
   return (v28 as number) + ((v23 as number) - (v28 as number)) * t;
 }
 
-export function predictDeck(deck: DeckInput[], trainee: Character | null, races: number, focus: Focus, expectedLosses: number, model: StatModel, settings: Settings): Prediction {
+export function predictDeck(deck: DeckInput[], trainee: Character | null, races: number, focus: Focus, expectedLosses: number, model: StatModel, settings: Settings, fansBefore?: (slot: number) => number): Prediction {
   const scale = raceScale(races, model, settings);
   const cardStats = [0, 0, 0, 0, 0];
   let cardSp = 0;
   for (const d of deck) {
-    const c = cardContribution(d.card, d.lb, model, deckUniqueExtras(d.card, d.lb, deck));
+    const c = cardContribution(d.card, d.lb, model, uniqueExtras(d.card, d.lb, model, { deck, fansBefore }));
     c.stats.forEach((v, i) => (cardStats[i]! += v * scale));
     cardSp += c.sp * scale;
   }

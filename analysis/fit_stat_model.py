@@ -42,9 +42,32 @@ def find_card(char, rarity, typ):
         if len(narrowed) == 1: return narrowed
     return cs
 
-def passives(card, lb):
+# Compound unique effects (types 100 and up) are not in effectsByLb; the same sums as uniqueExtras() in
+# src/model/stats.ts, for the types that do not need the deck (docs/refs/gametora-unique-effects.md). The share of the
+# run a ramping effect counts for is fitted below; the app reads it back from the model as uniqueRampShare.
+TRAINING_EFF, FRIENDSHIP = 8, 1
+UNIQUE_TOTAL_BOND_CAP, FACILITY_LEVEL_MAX = 600, 5   # mirror src/model/rules.ts
+def unique_extras(card, lb, share):
+    out = collections.defaultdict(float)
+    u = card.get('unique')
+    if not u or lb < u['fromLb']: return out
+    def add(i, v):
+        if i is None or v is None or not np.isfinite(v) or v == 0: return
+        out[int(i)] += v
+    for e in u['effects']:
+        t = e['type']
+        if t == 101:
+            add(e.get('value_1'), (e.get('value_2') or 0) * share); add(e.get('value_3'), (e.get('value_4') or 0) * share)
+        elif t == 104: add(TRAINING_EFF, (e.get('value_1') or 0) * share)   # the app follows the agenda's fan curve instead when it has one
+        elif t == 106: add(FRIENDSHIP, e['value'] * (e.get('value_2') or 0) * share)
+        elif t == 109: add(TRAINING_EFF, (UNIQUE_TOTAL_BOND_CAP / e['value_1'] if e.get('value_1') else 0) * share)
+        elif t == 111: add(TRAINING_EFF, (e.get('value_1') or 0) * FACILITY_LEVEL_MAX * share)
+    return out
+
+def passives(card, lb, share):
     e = card['effectsByLb'][lb]
-    return {i: e.get(str(i), 0) + e.get(f'u{i}', 0) for i in range(1, 32)}
+    x = unique_extras(card, lb, share)
+    return {i: e.get(str(i), 0) + e.get(f'u{i}', 0) + x.get(i, 0) for i in range(1, 32)}
 
 # ---------- observations ----------
 # The sheet identifies each card by a GameTora image formula in column B (support_card_s_<id>.png),
@@ -91,36 +114,44 @@ for f in fuji:
 print(f'observations: {len(observed)} (fujikiseki added {fuji_added}); unmatched loopacord rows: {len(unmatched)}')
 for u in unmatched: print('  unmatched', u)
 
-# ---------- floor ----------
-floors = []
-for o in observed:
-    if o['source'] != 'loopacord' or not o['wellTested']: continue
-    p = passives(o['card'], o['lb'])
-    for i, s in enumerate(STATS):
-        if o['card']['type'] == s or s in SECONDARY.get(o['card']['type'], []): continue
-        floors.append(o['stats'][i] - p[9 + i])
-FLOOR = float(np.median(floors))
-print(f'floor: median {FLOOR}, mean {np.mean(floors):.2f}, sd {np.std(floors):.2f}, n {len(floors)}')
-
-# ---------- role regression ----------
-recs = []
-for o in observed:
-    if o['source'] != 'loopacord' or not o['wellTested']: continue
-    t = o['card']['type']
-    if t not in STATS: continue
-    p = passives(o['card'], o['lb'])
-    for i, s in enumerate(STATS):
-        role = 'primary' if t == s else ('secondary' if s in SECONDARY[t] else None)
-        if not role: continue
-        recs.append(dict(type=t, role=role, y=o['stats'][i] - FLOOR - p[9 + i], fr=p[1], mo=p[2], te=p[8], sb=p[3 + i], spec=p[19]))
-keys = sorted({(r['type'], r['role']) for r in recs})
+# ---------- floor and role regression, as a function of the unique ramp share ----------
 COLS = ['fr', 'mo', 'te', 'sb']
-X = np.array([[1.0 if (r['type'], r['role']) == k else 0.0 for k in keys] + [r[c] for c in COLS] for r in recs])
-y = np.array([r['y'] for r in recs])
-coef, *_ = np.linalg.lstsq(X, y, rcond=None)
-pred = X @ coef
-rmse = float(np.sqrt(np.mean((pred - y) ** 2)))
-r2 = 1 - np.sum((pred - y) ** 2) / np.sum((y - y.mean()) ** 2)
+def fit_cards(share):
+    floors = []
+    for o in observed:
+        if o['source'] != 'loopacord' or not o['wellTested']: continue
+        p = passives(o['card'], o['lb'], share)
+        for i, s in enumerate(STATS):
+            if o['card']['type'] == s or s in SECONDARY.get(o['card']['type'], []): continue
+            floors.append(o['stats'][i] - p[9 + i])
+    floor = float(np.median(floors))
+    recs = []
+    for o in observed:
+        if o['source'] != 'loopacord' or not o['wellTested']: continue
+        t = o['card']['type']
+        if t not in STATS: continue
+        p = passives(o['card'], o['lb'], share)
+        for i, s in enumerate(STATS):
+            role = 'primary' if t == s else ('secondary' if s in SECONDARY[t] else None)
+            if not role: continue
+            recs.append(dict(type=t, role=role, y=o['stats'][i] - floor - p[9 + i], fr=p[1], mo=p[2], te=p[8], sb=p[3 + i], spec=p[19]))
+    keys = sorted({(r['type'], r['role']) for r in recs})
+    X = np.array([[1.0 if (r['type'], r['role']) == k else 0.0 for k in keys] + [r[c] for c in COLS] for r in recs])
+    y = np.array([r['y'] for r in recs])
+    coef, *_ = np.linalg.lstsq(X, y, rcond=None)
+    pred = X @ coef
+    rmse = float(np.sqrt(np.mean((pred - y) ** 2)))
+    r2 = 1 - np.sum((pred - y) ** 2) / np.sum((y - y.mean()) ** 2)
+    return dict(share=share, floors=floors, floor=floor, recs=recs, keys=keys, X=X, y=y, coef=coef, pred=pred, rmse=rmse, r2=r2)
+
+# the share is fitted on the same rows as the slopes: the grid value with the lowest card RMSE wins
+SHARES = [round(s, 2) for s in np.arange(0, 1.0001, 0.05)]
+fits = {s: fit_cards(s) for s in SHARES}
+UNIQUE_RAMP_SHARE = min(SHARES, key=lambda s: (fits[s]['rmse'], -s))
+print('unique ramp share: card rmse ' + ', '.join(f'{s:.2f} -> {fits[s]["rmse"]:.2f}' for s in (0, 0.25, 0.5, 0.75, 1.0)) + f'; best {UNIQUE_RAMP_SHARE} (rmse {fits[UNIQUE_RAMP_SHARE]["rmse"]:.2f}, a flat curve means the data cannot tell)')
+best_fit = fits[UNIQUE_RAMP_SHARE]
+floors, FLOOR, recs, keys, X, y, coef, pred, rmse, r2 = (best_fit[k] for k in ('floors', 'floor', 'recs', 'keys', 'X', 'y', 'coef', 'pred', 'rmse', 'r2'))
+print(f'floor: median {FLOOR}, mean {np.mean(floors):.2f}, sd {np.std(floors):.2f}, n {len(floors)}')
 print(f'role regression: n={len(y)} rmse={rmse:.2f} r2={r2:.3f}')
 consts = {f'{t}.{role}': float(v) for (t, role), v in zip(keys, coef[:len(keys)])}
 slopes = {c: float(v) for c, v in zip(COLS, coef[len(keys):])}
@@ -135,7 +166,7 @@ for k in keys:
 sp_recs = []
 for o in observed:
     if o['source'] != 'loopacord' or not o['wellTested']: continue
-    p = passives(o['card'], o['lb'])
+    p = passives(o['card'], o['lb'], UNIQUE_RAMP_SHARE)
     t = o['card']['type']
     sp_recs.append(dict(sp=o['sp'], wit=t == 'wit', friend=t in ('pal', 'group'), spb=p[30], hf=p[18], hl=p[17], fr=p[1], te=p[8]))
 Xs = np.array([[1, r['wit'], r['friend'], r['spb']] for r in sp_recs], float)
@@ -284,9 +315,16 @@ model = dict(
     eventBase={str(k): v for k, v in event_base.items()},
     eventSp={str(k): v for k, v in event_sp.items()},
     growthEffect=GROWTH_EFFECT,
+    uniqueRampShare=UNIQUE_RAMP_SHARE,
     sigma=sigma,
     focus=focus,
     observed=[dict(cardId=o['cardId'], lb=o['lb'], source=o['source'], runs=o['runs'], wellTested=o['wellTested'], stats=o['stats'], sp=o['sp']) for o in observed],
 )
 json.dump(model, open(ROOT / 'data/stat-model.json', 'w'), indent=1)
 print('wrote data/stat-model.json')
+# what this script added for every compound unique effect, at every limit break, without a deck or an agenda: the
+# data test checks that uniqueExtras() in src/model/stats.ts reproduces it, so the two implementations cannot drift
+fixture = [dict(cardId=c['id'], lb=lb, extras={str(k): v for k, v in sorted(unique_extras(c, lb, UNIQUE_RAMP_SHARE).items())})
+           for c in cards if c.get('unique') and any(e['type'] >= 100 for e in c['unique']['effects']) for lb in range(5)]
+json.dump(dict(uniqueRampShare=UNIQUE_RAMP_SHARE, rows=fixture), open(ROOT / 'data/unique-extras-fixture.json', 'w'), indent=1)
+print(f'wrote data/unique-extras-fixture.json ({len(fixture)} rows)')

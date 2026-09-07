@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
-import { cardContribution, deckUniqueExtras, EFFECT, modelContribution, passives, predictDeck, raceScale } from '../src/model/stats.ts';
+import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
 import type { Card, Race } from '../src/types.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, pruneConflicts, sparkChance, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
@@ -41,21 +41,37 @@ test('stat model: reproduces observed Kitasan MLB, shifts other limit breaks fro
   assert.equal(raceScale(28, data.model, settings), 1);
 });
 
-test('deck-dependent unique effects: Agnes Digital gains Training Effectiveness with five card types, Symboli Rudolf gains initial stats per card, only through the model', () => {
+test('compound unique effects are evaluated at run time: deck-dependent ones from the deck, ramping ones at the fitted share, the fan one from the agenda, only through the model', () => {
+  const m = data.model, share = m.uniqueRampShare;
+  assert.ok(share > 0 && share <= 1);
   const digital = data.cardById.get(30085)!, rudolf = data.cardById.get(30090)!;
   // the n-th SSR of each type, so a type listed twice gives two different cards
   const pick = (types: string[]) => types.map((t, i) => ({ card: cards.filter((c) => c.type === t && c.rarity === 'SSR' && ![30085, 30090].includes(c.id))[types.slice(0, i).filter((x) => x === t).length]!, lb: 4 }));
   const fiveTypes = [{ card: digital, lb: 4 }, ...pick(['speed', 'stamina', 'guts', 'wit', 'pal'])]; // power, speed, stamina, guts, wit, pal
   const fourTypes = [{ card: digital, lb: 4 }, ...pick(['speed', 'speed', 'stamina', 'stamina', 'pal'])]; // power, speed, stamina, pal
-  assert.deepEqual(deckUniqueExtras(digital, 4, fiveTypes), { [EFFECT.trainingEff]: 15 });
-  assert.deepEqual(deckUniqueExtras(digital, 4, fourTypes), {});
-  assert.ok(modelContribution(digital, 4, data.model, deckUniqueExtras(digital, 4, fiveTypes)).stats[2]! > modelContribution(digital, 4, data.model).stats[2]!, 'more Power from her own facility');
+  assert.deepEqual(uniqueExtras(digital, 4, m, { deck: fiveTypes }), { [EFFECT.trainingEff]: 15 });
+  assert.deepEqual(uniqueExtras(digital, 4, m, { deck: fourTypes }), {});
+  assert.deepEqual(uniqueExtras(digital, 4, m), {}, 'without a deck a deck-dependent effect adds nothing');
+  assert.ok(modelContribution(digital, 4, m, uniqueExtras(digital, 4, m, { deck: fiveTypes })).stats[2]! > modelContribution(digital, 4, m).stats[2]!, 'more Power from her own facility');
   const withRudolf = [{ card: rudolf, lb: 4 }, ...pick(['speed', 'speed', 'stamina', 'guts', 'pal'])]; // Rudolf is a Stamina card
-  const extras = deckUniqueExtras(rudolf, 4, withRudolf);
+  const extras = uniqueExtras(rudolf, 4, m, { deck: withRudolf });
   assert.equal(extras[EFFECT.initialStat + 0], 20 + 2, 'two Speed cards at +10 each, plus 2 from the Pal card');
   assert.equal(extras[EFFECT.initialStat + 1], 20 + 2, 'her own Stamina card and the other Stamina card, plus 2 from the Pal card');
   assert.equal(extras[EFFECT.initialStat + 4], 2, 'the Pal card alone for Wit');
-  assert.deepEqual(deckUniqueExtras(kitasan, 4, withRudolf), {}, 'a basic unique effect adds nothing here');
+  assert.deepEqual(uniqueExtras(kitasan, 4, m, { deck: withRudolf }), {}, 'a basic unique effect adds nothing here');
+  // ramping effects at the fitted share: Taiki Shuttle's bond-80 Speed Bonus 1 and Skill Point Bonus 1 (type 101)
+  const taiki = data.cardById.get(30053)!;
+  assert.deepEqual(uniqueExtras(taiki, 0, m), { [EFFECT.statBonus]: share, [EFFECT.skillPointBonus]: share }, 'an SSR at LB0 is level 30, the unlock level');
+  assert.ok(uniqueUnlocked(taiki, 0) && !uniqueUnlocked(data.cardById.get(30081)!, 1) && uniqueUnlocked(data.cardById.get(30081)!, 2), 'Team Sirius unlocks at level 40, LB2 for an SSR');
+  assert.deepEqual(uniqueExtras(data.cardById.get(30081)!, 1, m), {});
+  // Narita Top Road (type 104, +1 Training Effectiveness per 10,000 fans up to 20): the agenda's fans when given, the share otherwise
+  const topRoad = data.cardById.get(30086)!;
+  assert.ok(Math.abs(uniqueExtras(topRoad, 4, m)[EFFECT.trainingEff]! - 20 * share) < 1e-9);
+  assert.equal(uniqueExtras(topRoad, 4, m, { fansBefore: () => 200000 })[EFFECT.trainingEff], 20, 'at the cap all run');
+  assert.deepEqual(uniqueExtras(topRoad, 4, m, { fansBefore: () => 0 }), {}, 'no fans, no effect');
+  const ramp = uniqueExtras(topRoad, 4, m, { fansBefore: (slot) => slot * 200000 / 72 })[EFFECT.trainingEff]!;
+  assert.ok(ramp > 9 && ramp < 11, `fans rising linearly to the cap give about half of it on average, got ${ramp}`);
+  assert.ok(uniqueNote(topRoad, m, { fansBefore: () => 200000 }).includes('+20.0 of 20') && uniqueNote(data.cardById.get(30083)!, m).includes('left out'), 'the tooltip says what was done');
   const obs = data.model.observed.find((o) => o.wellTested && o.lb === 4)!;
   const card = data.cardById.get(obs.cardId)!;
   assert.deepEqual(cardContribution(card, 4, data.model, { [EFFECT.trainingEff]: 15 }).stats, obs.stats, 'an observed row already contains its deck effects');

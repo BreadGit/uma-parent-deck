@@ -4,6 +4,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { STATS, type AptKey } from '../src/types.ts';
+import { uniqueExtras } from '../src/model/stats.ts';
+import fixtureJson from '../data/unique-extras-fixture.json' with { type: 'json' };
+const fixture = fixtureJson as { uniqueRampShare: number; rows: { cardId: number; lb: number; extras: Record<string, number> }[] };
 
 const data = loadData();
 const APT_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
@@ -28,33 +31,52 @@ test('cards carry the fields the stat and spark models read', () => {
     }
     if (c.rarity === 'SSR') assert.ok(c.chainEvents.length <= 3, `${c.name} chain events`);
   }
-  // compound unique effects (types 100 and up) keep their payload and are not folded into the passives
+  // compound unique effects (types 100 and up) keep their payload and are not folded into the passives: only basic
+  // unique types appear as u<type> keys, from the unlock limit break on
   for (const c of data.cards) {
-    for (const u of c.unique?.effects ?? []) if (u.type >= 100) for (const e of c.effectsByLb) assert.ok(!(`u${u.type}` in e), `${c.name} folds compound unique type ${u.type}`);
+    if (!c.unique) continue;
+    assert.ok(Number.isInteger(c.unique.fromLb) && c.unique.fromLb >= 0 && c.unique.fromLb <= 5, `${c.name} unique fromLb`);
+    const basic = new Set(c.unique.effects.filter((u) => u.type < 100).map((u) => `u${u.type}`));
+    c.effectsByLb.forEach((e, lb) => {
+      const uKeys = Object.keys(e).filter((k) => k.startsWith('u'));
+      for (const k of uKeys) assert.ok(basic.has(k), `${c.name} folds ${k} into the passives`);
+      assert.equal(uKeys.length > 0, lb >= c.unique!.fromLb && basic.size > 0, `${c.name} basic unique at LB${lb}`);
+    });
   }
   const taiki = data.cardById.get(30053)!;
   assert.ok(taiki.unique?.effects.some((u) => u.type === 101 && u.value_1 != null), 'Taiki Shuttle keeps the compound payload');
+  assert.equal(taiki.unique?.fromLb, 0, 'an SSR at LB0 is level 30, the unlock level');
+  assert.equal(data.cardById.get(30081)!.unique?.fromLb, 2, 'Team Sirius unlocks at level 40');
   assert.ok(taiki.unique?.text?.includes('bond gauge is at least 80'), "and GameTora's rendered text for it");
   for (const c of data.cards) if (c.unique?.effects.some((u) => u.type >= 100)) {
     assert.ok(c.unique.text, `${c.name} compound unique effect has its text`);
     assert.ok(!/^Unlocked at level/.test(c.unique.text), `${c.name}: the unlock line was kept instead of the effect`);
   }
   assert.ok(data.cardById.get(30081)!.unique?.text?.startsWith('Gain Training Effectiveness (10)'), 'a level-40 unlock (Team Sirius) still gets the effect line');
-  // the approximable compound types are folded into the passives from the unlock level on; the deck-dependent ones are not
-  assert.deepEqual(taiki.unique?.model?.effects, { '3': 0.75, '30': 0.75 }, 'type 101 at the fitted share of the run');
-  assert.equal(taiki.effectsByLb[0]!.u3, 0.75, 'an SSR at LB0 is level 30, the unlock level');
-  assert.deepEqual(data.cardById.get(30067)!.unique?.model?.effects, { '30': 1.5 }, 'a type 101 with a single effect');
-  const topRoad = data.cardById.get(30086)!;
-  assert.equal(topRoad.effectsByLb[4]!.u8, 20, 'type 104: the fan cap in full');
-  const digital = data.cardById.get(30085)!;
-  assert.deepEqual(digital.unique?.model?.effects, {}, 'type 103 waits for the deck');
-  assert.ok(!Object.keys(digital.effectsByLb[4]!).some((k) => k.startsWith('u')));
+  assert.ok(!Object.keys(data.cardById.get(30085)!.effectsByLb[4]!).some((k) => k.startsWith('u')), 'a compound-only unique folds nothing');
   const urara = data.charByCardId.get(105201)!;
   assert.equal(urara.goals.find((g) => g.races[0]?.name === 'Arima Kinen')?.required, 0, "Haru Urara's Arima Kinen is participation only");
   // decoding canary: Kitasan Black's third chain event hands out Professor of Curvature in both options
   const kitasan = data.cardById.get(30028)!;
   assert.equal(kitasan.chainEvents.length, 3);
   assert.ok(kitasan.chainEvents[2]!.choices.every((ch) => ch.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331)));
+});
+
+test('the fit script and the app add the same compound unique passives: the fixture the fit wrote is reproduced by uniqueExtras()', () => {
+  assert.equal(fixture.uniqueRampShare, data.model.uniqueRampShare, 'the fixture and the model come from the same fit');
+  assert.ok(fixture.rows.length >= 5 * 30, `${fixture.rows.length} rows`);
+  const seen = new Set<number>();
+  for (const row of fixture.rows) {
+    const card = data.cardById.get(row.cardId)!;
+    assert.ok(card, `fixture card ${row.cardId}`);
+    seen.add(card.id);
+    const mine = uniqueExtras(card, row.lb, data.model);
+    const want = Object.entries(row.extras).map(([k, v]) => [Number(k), v] as const).sort((a, b) => a[0] - b[0]);
+    const got = Object.entries(mine).map(([k, v]) => [Number(k), v] as const).sort((a, b) => a[0] - b[0]);
+    assert.deepEqual(got.map(([k]) => k), want.map(([k]) => k), `${card.name} LB${row.lb}: effects ${got.map(([k]) => k)} vs fit ${want.map(([k]) => k)}`);
+    got.forEach(([, v], i) => assert.ok(Math.abs(v - want[i]![1]) < 1e-9, `${card.name} LB${row.lb} effect ${want[i]![0]}: ${v} vs fit ${want[i]![1]}`));
+  }
+  for (const c of data.cards) if (c.unique?.effects.some((u) => u.type >= 100)) assert.ok(seen.has(c.id), `${c.name} is missing from the fixture; run npm run fit`);
 });
 
 test('skills have rarity, cost and resolvable version links', () => {

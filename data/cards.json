@@ -24205,7 +24205,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200182,
@@ -24581,7 +24582,8 @@
      "value": 15
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200282,
@@ -24928,7 +24930,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200562,
@@ -25318,7 +25321,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200472,
@@ -25752,7 +25756,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200442,
@@ -26132,7 +26137,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200052,
@@ -26505,7 +26511,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200142,
@@ -26888,7 +26895,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -27235,7 +27243,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200242,
@@ -27642,7 +27651,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -27992,7 +28002,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200042,
@@ -28379,7 +28390,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200722,
@@ -28719,7 +28731,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200132,
@@ -29096,7 +29109,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200442,
@@ -29500,7 +29514,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200362,
@@ -29861,7 +29876,8 @@
      "value": 15
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200092,
@@ -30259,7 +30275,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200142,
@@ -30710,7 +30727,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200062,
@@ -31078,7 +31096,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200122,
@@ -31430,7 +31449,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200152,
@@ -31760,7 +31780,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [],
   "eventSkills": [
@@ -32414,7 +32435,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200712,
@@ -32819,7 +32841,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200452,
@@ -33264,7 +33287,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200462,
@@ -33649,7 +33673,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200442,
@@ -34004,7 +34029,8 @@
      "value": 20
     }
    ],
-   "level": 35
+   "level": 35,
+   "fromLb": 2
   },
   "hintSkills": [
    200122,
@@ -34408,7 +34434,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200052,
@@ -34777,7 +34804,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200362,
@@ -35173,7 +35201,8 @@
      "value": 15
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200152,
@@ -35590,7 +35619,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200732,
@@ -35981,7 +36011,8 @@
      "value": 15
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -36369,7 +36400,8 @@
      "value": 1
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200172,
@@ -36762,7 +36794,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200132,
@@ -37162,7 +37195,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200022,
@@ -37528,7 +37562,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200302,
@@ -37926,7 +37961,8 @@
      "value": 15
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200012,
@@ -38275,7 +38311,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -38676,7 +38713,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200032,
@@ -39038,7 +39076,8 @@
      "value": 1
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200602,
@@ -39402,7 +39441,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200632,
@@ -39768,7 +39808,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200652,
@@ -40145,7 +40186,8 @@
      "value": 20
     }
    ],
-   "level": 35
+   "level": 35,
+   "fromLb": 2
   },
   "hintSkills": [
    200162,
@@ -40503,7 +40545,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200652,
@@ -40862,7 +40905,8 @@
      "value": 20
     }
    ],
-   "level": 35
+   "level": 35,
+   "fromLb": 2
   },
   "hintSkills": [
    200162,
@@ -41262,7 +41306,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200452,
@@ -41650,7 +41695,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200452,
@@ -42035,7 +42081,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200342,
@@ -42430,7 +42477,8 @@
      "value": 20
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200232,
@@ -42823,7 +42871,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200532,
@@ -43181,7 +43230,8 @@
      "value": 1
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200702,
@@ -43538,7 +43588,8 @@
      "value": 5
     }
    ],
-   "level": 25
+   "level": 25,
+   "fromLb": 0
   },
   "hintSkills": [
    200302,
@@ -43910,7 +43961,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -44376,7 +44428,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200432,
@@ -44785,7 +44838,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200452,
@@ -45162,7 +45216,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200622,
@@ -45598,7 +45653,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200032,
@@ -45990,7 +46046,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200042,
@@ -46476,7 +46533,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200132,
@@ -46878,7 +46936,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200252,
@@ -47373,7 +47432,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200712,
@@ -47789,7 +47849,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200012,
@@ -48247,7 +48308,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200732,
@@ -48692,7 +48754,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200152,
@@ -49090,7 +49153,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    201212,
@@ -49498,7 +49562,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200082,
@@ -49910,7 +49975,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200652,
@@ -50280,7 +50346,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200152,
@@ -50658,7 +50725,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -51141,7 +51209,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200052,
@@ -51542,7 +51611,8 @@
      "value": 5
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [],
   "eventSkills": [
@@ -51918,7 +51988,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200262,
@@ -52269,7 +52340,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [],
   "eventSkills": [
@@ -52914,7 +52986,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200062,
@@ -53305,7 +53378,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200062,
@@ -53712,7 +53786,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200222,
@@ -54141,7 +54216,8 @@
      "value": 5
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200162,
@@ -54575,7 +54651,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200282,
@@ -55046,7 +55123,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200042,
@@ -55579,7 +55657,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200332,
@@ -56029,7 +56108,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200152,
@@ -56467,7 +56547,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200442,
@@ -56899,7 +56980,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200042,
@@ -57375,7 +57457,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200462,
@@ -57801,7 +57884,8 @@
      "value": 15
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200152,
@@ -58190,7 +58274,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200062,
@@ -58624,7 +58709,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [],
   "eventSkills": [
@@ -59338,7 +59424,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200732,
@@ -59823,7 +59910,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200132,
@@ -60226,7 +60314,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200212,
@@ -60654,7 +60743,8 @@
      "value": 5
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200062,
@@ -61064,7 +61154,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200292,
@@ -61621,7 +61712,8 @@
      "value": 1
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -62078,7 +62170,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200012,
@@ -62430,7 +62523,8 @@
      "value": 1
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200452,
@@ -62880,7 +62974,8 @@
      "value": 1
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200152,
@@ -63292,7 +63387,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200282,
@@ -63716,7 +63812,8 @@
      "value": 1
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -64133,11 +64230,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Energy Cost Reduction (30) when participating in a friendship (rainbow) training",
-   "model": {
-    "effects": {},
-    "note": "depends on turn-by-turn state, left out"
-   }
+   "fromLb": 0,
+   "text": "Gain Energy Cost Reduction (30) when participating in a friendship (rainbow) training"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -64810,9 +64904,7 @@
     "16": 10,
     "17": 2,
     "18": 40,
-    "19": 35,
-    "u3": 0.75,
-    "u30": 0.75
+    "19": 35
    },
    {
     "1": 20,
@@ -64823,9 +64915,7 @@
     "16": 10,
     "17": 2,
     "18": 40,
-    "19": 35,
-    "u3": 0.75,
-    "u30": 0.75
+    "19": 35
    },
    {
     "1": 20,
@@ -64836,9 +64926,7 @@
     "16": 10,
     "17": 2,
     "18": 40,
-    "19": 35,
-    "u3": 0.75,
-    "u30": 0.75
+    "19": 35
    },
    {
     "1": 25,
@@ -64850,9 +64938,7 @@
     "16": 15,
     "17": 2,
     "18": 40,
-    "19": 50,
-    "u3": 0.75,
-    "u30": 0.75
+    "19": 50
    },
    {
     "1": 25,
@@ -64864,9 +64950,7 @@
     "16": 15,
     "17": 4,
     "18": 60,
-    "19": 50,
-    "u3": 0.75,
-    "u30": 0.75
+    "19": 50
    }
   ],
   "unique": {
@@ -64881,14 +64965,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Speed Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "3": 0.75,
-     "30": 0.75
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Speed Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200162,
@@ -65342,7 +65420,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200122,
@@ -65757,7 +65836,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200252,
@@ -66210,7 +66290,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200152,
@@ -66641,7 +66722,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200622,
@@ -67089,7 +67171,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200432,
@@ -67496,7 +67579,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200442,
@@ -67904,7 +67988,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200712,
@@ -68309,7 +68394,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200362,
@@ -68732,7 +68818,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200242,
@@ -69093,8 +69180,7 @@
     "14": 25,
     "25": 20,
     "26": 15,
-    "31": 1,
-    "u30": 1.5
+    "31": 1
    },
    {
     "1": 25,
@@ -69104,8 +69190,7 @@
     "14": 25,
     "25": 20,
     "26": 15,
-    "31": 1,
-    "u30": 1.5
+    "31": 1
    },
    {
     "1": 25,
@@ -69115,8 +69200,7 @@
     "14": 25,
     "25": 20,
     "26": 15,
-    "31": 1,
-    "u30": 1.5
+    "31": 1
    },
    {
     "1": 25,
@@ -69128,8 +69212,7 @@
     "16": 10,
     "25": 30,
     "26": 20,
-    "31": 2,
-    "u30": 1.5
+    "31": 2
    },
    {
     "1": 35,
@@ -69141,8 +69224,7 @@
     "16": 15,
     "25": 30,
     "26": 20,
-    "31": 2,
-    "u30": 1.5
+    "31": 2
    }
   ],
   "unique": {
@@ -69155,13 +69237,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Skill Point Bonus (2) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "30": 1.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Skill Point Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -70109,7 +70186,8 @@
      "value": 5
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200652,
@@ -70576,7 +70654,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200012,
@@ -70980,7 +71059,8 @@
      "value": 15
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200042,
@@ -71426,7 +71506,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200462,
@@ -71881,7 +71962,8 @@
      "value": 15
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200142,
@@ -72311,7 +72393,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200442,
@@ -72714,7 +72797,8 @@
      "value": 5
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200362,
@@ -73143,7 +73227,8 @@
      "value": 1
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200162,
@@ -73536,7 +73621,8 @@
      "value": 5
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200432,
@@ -73910,7 +73996,8 @@
      "value": 20
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200632,
@@ -74403,7 +74490,8 @@
      "value": 10
     }
    ],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [
    200092,
@@ -74887,7 +74975,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200142,
@@ -75222,7 +75311,8 @@
   ],
   "unique": {
    "effects": [],
-   "level": 30
+   "level": 30,
+   "fromLb": 0
   },
   "hintSkills": [],
   "eventSkills": [
@@ -75921,8 +76011,7 @@
     "25": 20,
     "26": 15,
     "30": 1,
-    "31": 1,
-    "u8": 7.5
+    "31": 1
    },
    {
     "1": 10,
@@ -75934,8 +76023,7 @@
     "25": 30,
     "26": 20,
     "30": 1,
-    "31": 1,
-    "u8": 7.5
+    "31": 1
    },
    {
     "1": 15,
@@ -75947,8 +76035,7 @@
     "25": 30,
     "26": 20,
     "30": 1,
-    "31": 2,
-    "u8": 7.5
+    "31": 2
    }
   ],
   "unique": {
@@ -75961,13 +76048,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "8": 7.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -77078,8 +77160,7 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "31": 3,
-    "u7": 2.25
+    "31": 3
    },
    {
     "1": 25,
@@ -77089,8 +77170,7 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "31": 3,
-    "u7": 2.25
+    "31": 3
    },
    {
     "1": 25,
@@ -77100,8 +77180,7 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "31": 3,
-    "u7": 2.25
+    "31": 3
    },
    {
     "1": 25,
@@ -77112,8 +77191,7 @@
     "17": 1,
     "18": 20,
     "19": 50,
-    "31": 3,
-    "u7": 2.25
+    "31": 3
    },
    {
     "1": 30,
@@ -77124,8 +77202,7 @@
     "17": 1,
     "18": 20,
     "19": 50,
-    "31": 5,
-    "u7": 2.25
+    "31": 5
    }
   ],
   "unique": {
@@ -77138,13 +77215,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Wit Bonus (3) when the bond gauge is full",
-   "model": {
-    "effects": {
-     "7": 2.25
-    },
-    "note": "bond 100 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Wit Bonus (3) when the bond gauge is full"
   },
   "hintSkills": [
    200052,
@@ -77555,11 +77627,8 @@
     }
    ],
    "level": 30,
-   "text": "When the bond gauge is 80 or higher and this card is in a facility different from its type, gain Increased Training (20)",
-   "model": {
-    "effects": {},
-    "note": "depends on turn-by-turn state, left out"
-   }
+   "fromLb": 0,
+   "text": "When the bond gauge is 80 or higher and this card is in a facility different from its type, gain Increased Training (20)"
   },
   "hintSkills": [
    200652,
@@ -78011,7 +78080,8 @@
      "value": 20
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200302,
@@ -78439,11 +78509,8 @@
     }
    ],
    "level": 30,
-   "text": "If there are at least 5 different types of support cards in your deck, gain Increased Training (15)",
-   "model": {
-    "effects": {},
-    "note": "evaluated from the deck by the predictor"
-   }
+   "fromLb": 0,
+   "text": "If there are at least 5 different types of support cards in your deck, gain Increased Training (15)"
   },
   "hintSkills": [
    200022,
@@ -78845,8 +78912,7 @@
     "14": 15,
     "17": 1,
     "18": 20,
-    "19": 20,
-    "u8": 20
+    "19": 20
    },
    {
     "1": 25,
@@ -78855,8 +78921,7 @@
     "14": 15,
     "17": 1,
     "18": 20,
-    "19": 20,
-    "u8": 20
+    "19": 20
    },
    {
     "1": 25,
@@ -78865,8 +78930,7 @@
     "14": 15,
     "17": 1,
     "18": 20,
-    "19": 20,
-    "u8": 20
+    "19": 20
    },
    {
     "1": 25,
@@ -78877,8 +78941,7 @@
     "16": 10,
     "17": 2,
     "18": 30,
-    "19": 35,
-    "u8": 20
+    "19": 35
    },
    {
     "1": 30,
@@ -78889,8 +78952,7 @@
     "16": 15,
     "17": 2,
     "18": 30,
-    "19": 35,
-    "u8": 20
+    "19": 35
    }
   ],
   "unique": {
@@ -78902,13 +78964,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Increased Training (1) per 10000 fans, up to (20) for 200000 fans",
-   "model": {
-    "effects": {
-     "8": 20
-    },
-    "note": "fan cap of 20 reached early on a G1 agenda"
-   }
+   "fromLb": 0,
+   "text": "Gain Increased Training (1) per 10000 fans, up to (20) for 200000 fans"
   },
   "hintSkills": [
    200142,
@@ -79283,8 +79340,7 @@
     "14": 25,
     "15": 1,
     "16": 5,
-    "19": 35,
-    "u4": 1.5
+    "19": 35
    },
    {
     "1": 25,
@@ -79293,8 +79349,7 @@
     "14": 25,
     "15": 5,
     "16": 10,
-    "19": 50,
-    "u4": 1.5
+    "19": 50
    },
    {
     "1": 25,
@@ -79303,8 +79358,7 @@
     "14": 30,
     "15": 5,
     "16": 10,
-    "19": 50,
-    "u4": 1.5
+    "19": 50
    }
   ],
   "unique": {
@@ -79317,13 +79371,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Stamina Bonus (2) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "4": 1.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Stamina Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200012,
@@ -79763,11 +79812,8 @@
     }
    ],
    "level": 40,
-   "text": "If there are at least 4 different types of support cards in your deck, gain Increased Training (10)",
-   "model": {
-    "effects": {},
-    "note": "evaluated from the deck by the predictor"
-   }
+   "fromLb": 2,
+   "text": "If there are at least 4 different types of support cards in your deck, gain Increased Training (10)"
   },
   "hintSkills": [
    200592,
@@ -80117,8 +80163,7 @@
     "14": 15,
     "15": 1,
     "16": 5,
-    "19": 35,
-    "u2": 45
+    "19": 35
    },
    {
     "1": 25,
@@ -80128,8 +80173,7 @@
     "14": 15,
     "15": 1,
     "16": 5,
-    "19": 35,
-    "u2": 45
+    "19": 35
    },
    {
     "1": 25,
@@ -80139,8 +80183,7 @@
     "14": 15,
     "15": 1,
     "16": 5,
-    "19": 35,
-    "u2": 45
+    "19": 35
    },
    {
     "1": 25,
@@ -80151,8 +80194,7 @@
     "14": 20,
     "15": 5,
     "16": 10,
-    "19": 50,
-    "u2": 45
+    "19": 50
    },
    {
     "1": 30,
@@ -80163,8 +80205,7 @@
     "14": 20,
     "15": 5,
     "16": 10,
-    "19": 50,
-    "u2": 45
+    "19": 50
    }
   ],
   "unique": {
@@ -80177,13 +80218,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Mood Effect (60) when the bond gauge is full",
-   "model": {
-    "effects": {
-     "2": 45
-    },
-    "note": "bond 100 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Mood Effect (60) when the bond gauge is full"
   },
   "hintSkills": [
    200362,
@@ -80599,11 +80635,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)",
-   "model": {
-    "effects": {},
-    "note": "evaluated from the deck by the predictor"
-   }
+   "fromLb": 0,
+   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)"
   },
   "hintSkills": [
    200831,
@@ -80995,8 +81028,7 @@
     "17": 1,
     "18": 10,
     "19": 35,
-    "31": 3,
-    "u1": 11.25
+    "31": 3
    },
    {
     "1": 15,
@@ -81007,8 +81039,7 @@
     "17": 1,
     "18": 10,
     "19": 35,
-    "31": 3,
-    "u1": 11.25
+    "31": 3
    },
    {
     "1": 15,
@@ -81019,8 +81050,7 @@
     "17": 1,
     "18": 10,
     "19": 35,
-    "31": 3,
-    "u1": 11.25
+    "31": 3
    },
    {
     "1": 20,
@@ -81033,8 +81063,7 @@
     "17": 1,
     "18": 10,
     "19": 50,
-    "31": 3,
-    "u1": 11.25
+    "31": 3
    },
    {
     "1": 20,
@@ -81047,8 +81076,7 @@
     "17": 1,
     "18": 10,
     "19": 50,
-    "31": 5,
-    "u1": 11.25
+    "31": 5
    }
   ],
   "unique": {
@@ -81061,13 +81089,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)",
-   "model": {
-    "effects": {
-     "1": 11.25
-    },
-    "note": "the 5 friendship trainings done for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)"
   },
   "hintSkills": [
    200162,
@@ -81460,8 +81483,7 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 35,
-    "u3": 1.5
+    "19": 35
    },
    {
     "1": 20,
@@ -81472,8 +81494,7 @@
     "16": 10,
     "17": 1,
     "18": 20,
-    "19": 50,
-    "u3": 1.5
+    "19": 50
    },
    {
     "1": 20,
@@ -81484,8 +81505,7 @@
     "16": 10,
     "17": 1,
     "18": 20,
-    "19": 50,
-    "u3": 1.5
+    "19": 50
    }
   ],
   "unique": {
@@ -81498,13 +81518,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Speed Bonus (2) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "3": 1.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Speed Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200622,
@@ -81851,8 +81866,7 @@
     "15": 5,
     "16": 15,
     "17": 1,
-    "18": 20,
-    "u5": 1.5
+    "18": 20
    },
    {
     "1": 25,
@@ -81861,8 +81875,7 @@
     "15": 5,
     "16": 15,
     "17": 1,
-    "18": 20,
-    "u5": 1.5
+    "18": 20
    },
    {
     "1": 25,
@@ -81871,8 +81884,7 @@
     "15": 5,
     "16": 15,
     "17": 1,
-    "18": 20,
-    "u5": 1.5
+    "18": 20
    },
    {
     "1": 25,
@@ -81882,8 +81894,7 @@
     "15": 5,
     "16": 15,
     "17": 2,
-    "18": 30,
-    "u5": 1.5
+    "18": 30
    },
    {
     "1": 35,
@@ -81893,8 +81904,7 @@
     "15": 10,
     "16": 20,
     "17": 2,
-    "18": 30,
-    "u5": 1.5
+    "18": 30
    }
   ],
   "unique": {
@@ -81907,13 +81917,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Power Bonus (2) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "5": 1.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Power Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200282,
@@ -82305,11 +82310,8 @@
     }
    ],
    "level": 30,
-   "text": "The less energy you have, the more Friendship Bonus you'll gain",
-   "model": {
-    "effects": {},
-    "note": "depends on turn-by-turn state, left out"
-   }
+   "fromLb": 0,
+   "text": "The less energy you have, the more Friendship Bonus you'll gain"
   },
   "hintSkills": [
    200292,
@@ -82788,11 +82790,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (5%); gain additional 3% Training Effectiveness for every 4 points of maximum Energy above 100, up to (20%) at 120",
-   "model": {
-    "effects": {},
-    "note": "depends on turn-by-turn state, left out"
-   }
+   "fromLb": 0,
+   "text": "Gain Training Effectiveness (5%); gain additional 3% Training Effectiveness for every 4 points of maximum Energy above 100, up to (20%) at 120"
   },
   "hintSkills": [
    200152,
@@ -83205,7 +83204,8 @@
      "value": 5
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200132,
@@ -83572,9 +83572,7 @@
     "17": 2,
     "18": 30,
     "19": 35,
-    "31": 3,
-    "u7": 0.75,
-    "u30": 0.75
+    "31": 3
    },
    {
     "1": 25,
@@ -83587,9 +83585,7 @@
     "17": 2,
     "18": 30,
     "19": 35,
-    "31": 3,
-    "u7": 0.75,
-    "u30": 0.75
+    "31": 3
    },
    {
     "1": 25,
@@ -83602,9 +83598,7 @@
     "17": 2,
     "18": 30,
     "19": 35,
-    "31": 3,
-    "u7": 0.75,
-    "u30": 0.75
+    "31": 3
    },
    {
     "1": 25,
@@ -83618,9 +83612,7 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "31": 3,
-    "u7": 0.75,
-    "u30": 0.75
+    "31": 3
    },
    {
     "1": 30,
@@ -83634,9 +83626,7 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "31": 5,
-    "u7": 0.75,
-    "u30": 0.75
+    "31": 5
    }
   ],
   "unique": {
@@ -83651,14 +83641,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Wit Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "7": 0.75,
-     "30": 0.75
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Wit Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200232,
@@ -84086,11 +84070,8 @@
     }
    ],
    "level": 30,
-   "text": "Increases skill point gain when training together",
-   "model": {
-    "effects": {},
-    "note": "depends on turn-by-turn state, left out"
-   }
+   "fromLb": 0,
+   "text": "Increases skill point gain when training together"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -84433,8 +84414,7 @@
     "12": 15,
     "14": 20,
     "15": 5,
-    "16": 15,
-    "u8": 15
+    "16": 15
    },
    {
     "1": 25,
@@ -84443,8 +84423,7 @@
     "12": 15,
     "14": 20,
     "15": 5,
-    "16": 15,
-    "u8": 15
+    "16": 15
    },
    {
     "1": 25,
@@ -84453,8 +84432,7 @@
     "12": 15,
     "14": 20,
     "15": 5,
-    "16": 15,
-    "u8": 15
+    "16": 15
    },
    {
     "1": 25,
@@ -84465,8 +84443,7 @@
     "15": 5,
     "16": 15,
     "17": 2,
-    "18": 30,
-    "u8": 15
+    "18": 30
    },
    {
     "1": 30,
@@ -84477,8 +84454,7 @@
     "15": 10,
     "16": 20,
     "17": 3,
-    "18": 40,
-    "u8": 15
+    "18": 40
    }
   ],
   "unique": {
@@ -84490,13 +84466,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600",
-   "model": {
-    "effects": {
-     "8": 15
-    },
-    "note": "600 total bond reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600"
   },
   "hintSkills": [
    200482,
@@ -84912,8 +84883,7 @@
     "17": 1,
     "18": 20,
     "19": 10,
-    "31": 3,
-    "u8": 7.5
+    "31": 3
    },
    {
     "1": 20,
@@ -84925,8 +84895,7 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 3,
-    "u8": 7.5
+    "31": 3
    },
    {
     "1": 25,
@@ -84938,8 +84907,7 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 5,
-    "u8": 7.5
+    "31": 5
    }
   ],
   "unique": {
@@ -84953,13 +84921,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "8": 7.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200742,
@@ -85303,8 +85266,7 @@
     "14": 15,
     "17": 2,
     "18": 40,
-    "19": 50,
-    "u1": 15
+    "19": 50
    },
    {
     "1": 15,
@@ -85314,8 +85276,7 @@
     "14": 15,
     "17": 2,
     "18": 40,
-    "19": 50,
-    "u1": 15
+    "19": 50
    },
    {
     "1": 15,
@@ -85325,8 +85286,7 @@
     "14": 15,
     "17": 2,
     "18": 40,
-    "19": 50,
-    "u1": 15
+    "19": 50
    },
    {
     "1": 20,
@@ -85337,8 +85297,7 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1,
-    "u1": 15
+    "30": 1
    },
    {
     "1": 20,
@@ -85349,8 +85308,7 @@
     "17": 3,
     "18": 50,
     "19": 80,
-    "30": 2,
-    "u1": 15
+    "30": 2
    }
   ],
   "unique": {
@@ -85363,13 +85321,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Friendship Bonus (20) when the bond gauge is full",
-   "model": {
-    "effects": {
-     "1": 15
-    },
-    "note": "bond 100 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Friendship Bonus (20) when the bond gauge is full"
   },
   "hintSkills": [
    200722,
@@ -85826,11 +85779,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (5) for every support card in the same training facility",
-   "model": {
-    "effects": {},
-    "note": "depends on turn-by-turn state, left out"
-   }
+   "fromLb": 0,
+   "text": "Gain Training Effectiveness (5) for every support card in the same training facility"
   },
   "hintSkills": [
    200132,
@@ -86246,8 +86196,7 @@
     "15": 1,
     "16": 5,
     "19": 20,
-    "31": 3,
-    "u31": 3.75
+    "31": 3
    },
    {
     "1": 25,
@@ -86258,8 +86207,7 @@
     "15": 1,
     "16": 5,
     "19": 20,
-    "31": 3,
-    "u31": 3.75
+    "31": 3
    },
    {
     "1": 25,
@@ -86270,8 +86218,7 @@
     "15": 1,
     "16": 5,
     "19": 20,
-    "31": 3,
-    "u31": 3.75
+    "31": 3
    },
    {
     "1": 25,
@@ -86283,8 +86230,7 @@
     "15": 5,
     "16": 10,
     "19": 35,
-    "31": 3,
-    "u31": 3.75
+    "31": 3
    },
    {
     "1": 35,
@@ -86296,8 +86242,7 @@
     "15": 5,
     "16": 10,
     "19": 35,
-    "31": 5,
-    "u31": 3.75
+    "31": 5
    }
   ],
   "unique": {
@@ -86310,13 +86255,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Wit Friendship Recovery (5) when the bond gauge is full",
-   "model": {
-    "effects": {
-     "31": 3.75
-    },
-    "note": "bond 100 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Wit Friendship Recovery (5) when the bond gauge is full"
   },
   "hintSkills": [
    200352,
@@ -86761,8 +86701,7 @@
     "14": 15,
     "15": 1,
     "16": 5,
-    "19": 20,
-    "u8": 7.5
+    "19": 20
    },
    {
     "1": 25,
@@ -86774,8 +86713,7 @@
     "16": 10,
     "17": 2,
     "18": 30,
-    "19": 35,
-    "u8": 7.5
+    "19": 35
    },
    {
     "1": 30,
@@ -86787,8 +86725,7 @@
     "16": 10,
     "17": 3,
     "18": 40,
-    "19": 35,
-    "u8": 7.5
+    "19": 35
    }
   ],
   "unique": {
@@ -86801,13 +86738,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "8": 7.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200032,
@@ -87252,7 +87184,8 @@
      "value": 15
     }
    ],
-   "level": 40
+   "level": 40,
+   "fromLb": 2
   },
   "hintSkills": [
    200012,
@@ -87609,9 +87542,7 @@
     "10": 15,
     "11": 15,
     "14": 15,
-    "19": 50,
-    "u5": 0.75,
-    "u30": 0.75
+    "19": 50
    },
    {
     "1": 20,
@@ -87620,9 +87551,7 @@
     "10": 15,
     "11": 15,
     "14": 15,
-    "19": 50,
-    "u5": 0.75,
-    "u30": 0.75
+    "19": 50
    },
    {
     "1": 20,
@@ -87631,9 +87560,7 @@
     "10": 15,
     "11": 15,
     "14": 15,
-    "19": 50,
-    "u5": 0.75,
-    "u30": 0.75
+    "19": 50
    },
    {
     "1": 25,
@@ -87644,9 +87571,7 @@
     "14": 15,
     "15": 5,
     "16": 10,
-    "19": 50,
-    "u5": 0.75,
-    "u30": 0.75
+    "19": 50
    },
    {
     "1": 25,
@@ -87657,9 +87582,7 @@
     "14": 15,
     "15": 10,
     "16": 15,
-    "19": 65,
-    "u5": 0.75,
-    "u30": 0.75
+    "19": 65
    }
   ],
   "unique": {
@@ -87674,14 +87597,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Power Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "5": 0.75,
-     "30": 0.75
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Power Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200931,
@@ -88059,8 +87976,7 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 20,
-    "u8": 18.75
+    "19": 20
    },
    {
     "1": 20,
@@ -88071,8 +87987,7 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 20,
-    "u8": 18.75
+    "19": 20
    },
    {
     "1": 20,
@@ -88083,8 +87998,7 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 20,
-    "u8": 18.75
+    "19": 20
    },
    {
     "1": 25,
@@ -88096,8 +88010,7 @@
     "16": 10,
     "17": 2,
     "18": 30,
-    "19": 35,
-    "u8": 18.75
+    "19": 35
    },
    {
     "1": 25,
@@ -88109,8 +88022,7 @@
     "16": 10,
     "17": 2,
     "18": 30,
-    "19": 35,
-    "u8": 18.75
+    "19": 35
    }
   ],
   "unique": {
@@ -88122,13 +88034,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (5) per every level of the current training facility",
-   "model": {
-    "effects": {
-     "8": 18.75
-    },
-    "note": "facility level 5 for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Training Effectiveness (5) per every level of the current training facility"
   },
   "hintSkills": [
    200182,
@@ -88566,11 +88473,8 @@
     }
    ],
    "level": 30,
-   "text": "20% chance to make the current training fail rate zero",
-   "model": {
-    "effects": {},
-    "note": "depends on turn-by-turn state, left out"
-   }
+   "fromLb": 0,
+   "text": "20% chance to make the current training fail rate zero"
   },
   "hintSkills": [
    200162,
@@ -88995,8 +88899,7 @@
     "9": 15,
     "11": 15,
     "12": 15,
-    "19": 50,
-    "u8": 7.5
+    "19": 50
    },
    {
     "1": 25,
@@ -89006,8 +88909,7 @@
     "11": 20,
     "12": 20,
     "14": 15,
-    "19": 50,
-    "u8": 7.5
+    "19": 50
    },
    {
     "1": 25,
@@ -89017,8 +88919,7 @@
     "11": 20,
     "12": 20,
     "14": 30,
-    "19": 65,
-    "u8": 7.5
+    "19": 65
    }
   ],
   "unique": {
@@ -89032,13 +88933,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "8": 7.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200182,
@@ -89413,8 +89309,7 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 20,
-    "u4": 1.5
+    "19": 20
    },
    {
     "1": 20,
@@ -89425,8 +89320,7 @@
     "17": 1,
     "18": 20,
     "19": 20,
-    "30": 1,
-    "u4": 1.5
+    "30": 1
    },
    {
     "1": 20,
@@ -89437,8 +89331,7 @@
     "17": 1,
     "18": 20,
     "19": 20,
-    "30": 1,
-    "u4": 1.5
+    "30": 1
    },
    {
     "1": 25,
@@ -89450,8 +89343,7 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "30": 1,
-    "u4": 1.5
+    "30": 1
    },
    {
     "1": 25,
@@ -89463,8 +89355,7 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "30": 1,
-    "u4": 1.5
+    "30": 1
    }
   ],
   "unique": {
@@ -89477,13 +89368,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Stamina Bonus (2) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "4": 1.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Stamina Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200742,
@@ -89837,8 +89723,7 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 3,
-    "u8": 15
+    "31": 3
    },
    {
     "1": 25,
@@ -89849,8 +89734,7 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 3,
-    "u8": 15
+    "31": 3
    },
    {
     "1": 25,
@@ -89861,8 +89745,7 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "31": 3,
-    "u8": 15
+    "31": 3
    },
    {
     "1": 25,
@@ -89874,8 +89757,7 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "31": 3,
-    "u8": 15
+    "31": 3
    },
    {
     "1": 30,
@@ -89887,8 +89769,7 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "31": 5,
-    "u8": 15
+    "31": 5
    }
   ],
   "unique": {
@@ -89900,13 +89781,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600",
-   "model": {
-    "effects": {
-     "8": 15
-    },
-    "note": "600 total bond reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600"
   },
   "hintSkills": [
    200282,
@@ -90276,8 +90152,7 @@
     "14": 15,
     "17": 2,
     "18": 40,
-    "19": 50,
-    "u1": 11.25
+    "19": 50
    },
    {
     "1": 20,
@@ -90286,8 +90161,7 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1,
-    "u1": 11.25
+    "30": 1
    },
    {
     "1": 20,
@@ -90296,8 +90170,7 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1,
-    "u1": 11.25
+    "30": 1
    },
    {
     "1": 25,
@@ -90307,8 +90180,7 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1,
-    "u1": 11.25
+    "30": 1
    },
    {
     "1": 25,
@@ -90318,8 +90190,7 @@
     "17": 3,
     "18": 50,
     "19": 65,
-    "30": 1,
-    "u1": 11.25
+    "30": 1
    }
   ],
   "unique": {
@@ -90332,13 +90203,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)",
-   "model": {
-    "effects": {
-     "1": 11.25
-    },
-    "note": "the 5 friendship trainings done for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Friendship Bonus (3) every time you do friendship training with this card, up to 5 times for a total of (15)"
   },
   "hintSkills": [
    200282,
@@ -90812,8 +90678,7 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "30": 1,
-    "u8": 7.5
+    "30": 1
    },
    {
     "1": 20,
@@ -90825,8 +90690,7 @@
     "17": 2,
     "18": 40,
     "19": 50,
-    "30": 1,
-    "u8": 7.5
+    "30": 1
    },
    {
     "1": 20,
@@ -90838,8 +90702,7 @@
     "17": 3,
     "18": 50,
     "19": 50,
-    "30": 1,
-    "u8": 7.5
+    "30": 1
    }
   ],
   "unique": {
@@ -90852,13 +90715,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "8": 7.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200052,
@@ -91187,8 +91045,7 @@
     "8": 5,
     "11": 25,
     "14": 25,
-    "19": 50,
-    "u5": 1.5
+    "19": 50
    },
    {
     "1": 25,
@@ -91196,8 +91053,7 @@
     "11": 25,
     "14": 25,
     "19": 50,
-    "30": 1,
-    "u5": 1.5
+    "30": 1
    },
    {
     "1": 25,
@@ -91205,8 +91061,7 @@
     "11": 25,
     "14": 25,
     "19": 50,
-    "30": 1,
-    "u5": 1.5
+    "30": 1
    },
    {
     "1": 25,
@@ -91215,8 +91070,7 @@
     "12": 15,
     "14": 25,
     "19": 50,
-    "30": 1,
-    "u5": 1.5
+    "30": 1
    },
    {
     "1": 30,
@@ -91225,8 +91079,7 @@
     "12": 30,
     "14": 35,
     "19": 80,
-    "30": 1,
-    "u5": 1.5
+    "30": 1
    }
   ],
   "unique": {
@@ -91239,13 +91092,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Power Bonus (2) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "5": 1.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Power Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200602,
@@ -91648,11 +91496,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Training Effectiveness that scales with current Energy, from (5%) at 0 Energy to (20%) at 100+ Energy",
-   "model": {
-    "effects": {},
-    "note": "depends on turn-by-turn state, left out"
-   }
+   "fromLb": 0,
+   "text": "Gain Training Effectiveness that scales with current Energy, from (5%) at 0 Energy to (20%) at 100+ Energy"
   },
   "hintSkills": [
    200532,
@@ -92080,11 +91925,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)",
-   "model": {
-    "effects": {},
-    "note": "evaluated from the deck by the predictor"
-   }
+   "fromLb": 0,
+   "text": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)"
   },
   "hintSkills": [
    200152,
@@ -92497,8 +92339,7 @@
     "11": 15,
     "12": 15,
     "14": 25,
-    "19": 20,
-    "u8": 7.5
+    "19": 20
    },
    {
     "1": 25,
@@ -92509,8 +92350,7 @@
     "14": 25,
     "17": 2,
     "18": 30,
-    "19": 35,
-    "u8": 7.5
+    "19": 35
    },
    {
     "1": 35,
@@ -92521,8 +92361,7 @@
     "14": 35,
     "17": 3,
     "18": 40,
-    "19": 35,
-    "u8": 7.5
+    "19": 35
    }
   ],
   "unique": {
@@ -92535,13 +92374,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "8": 7.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200582,
@@ -92899,8 +92733,7 @@
     "16": 5,
     "17": 1,
     "18": 20,
-    "19": 35,
-    "u6": 1.5
+    "19": 35
    },
    {
     "1": 25,
@@ -92911,8 +92744,7 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "30": 1,
-    "u6": 1.5
+    "30": 1
    },
    {
     "1": 25,
@@ -92923,8 +92755,7 @@
     "17": 1,
     "18": 20,
     "19": 35,
-    "30": 1,
-    "u6": 1.5
+    "30": 1
    },
    {
     "1": 25,
@@ -92936,8 +92767,7 @@
     "17": 2,
     "18": 30,
     "19": 50,
-    "30": 1,
-    "u6": 1.5
+    "30": 1
    },
    {
     "1": 30,
@@ -92949,8 +92779,7 @@
     "17": 2,
     "18": 30,
     "19": 50,
-    "30": 1,
-    "u6": 1.5
+    "30": 1
    }
   ],
   "unique": {
@@ -92963,13 +92792,8 @@
     }
    ],
    "level": 30,
-   "text": "Gain Guts Bonus (2) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "6": 1.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 0,
+   "text": "Gain Guts Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200352,
@@ -93335,8 +93159,7 @@
     "17": 2,
     "18": 30,
     "19": 20,
-    "30": 1,
-    "u8": 7.5
+    "30": 1
    },
    {
     "1": 20,
@@ -93346,8 +93169,7 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "30": 1,
-    "u8": 7.5
+    "30": 1
    },
    {
     "1": 20,
@@ -93357,8 +93179,7 @@
     "17": 2,
     "18": 40,
     "19": 35,
-    "30": 1,
-    "u8": 7.5
+    "30": 1
    }
   ],
   "unique": {
@@ -93371,13 +93192,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "8": 7.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Training Effectiveness (10) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200432,
@@ -93741,8 +93557,7 @@
     "15": 1,
     "16": 5,
     "17": 1,
-    "18": 10,
-    "u5": 1.5
+    "18": 10
    },
    {
     "1": 25,
@@ -93752,8 +93567,7 @@
     "15": 5,
     "16": 10,
     "17": 1,
-    "18": 20,
-    "u5": 1.5
+    "18": 20
    },
    {
     "1": 25,
@@ -93763,8 +93577,7 @@
     "15": 5,
     "16": 10,
     "17": 1,
-    "18": 20,
-    "u5": 1.5
+    "18": 20
    }
   ],
   "unique": {
@@ -93777,13 +93590,8 @@
     }
    ],
    "level": 40,
-   "text": "Gain Power Bonus (2) when the bond gauge is at least 80",
-   "model": {
-    "effects": {
-     "5": 1.5
-    },
-    "note": "bond 80 reached for 75% of the run"
-   }
+   "fromLb": 2,
+   "text": "Gain Power Bonus (2) when the bond gauge is at least 80"
   },
   "hintSkills": [
    200152,

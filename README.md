@@ -112,11 +112,15 @@ fit uses the Loopacord "Independent Training Research" sheet (`docs/`), 169 card
   Power->Stamina, Guts->Speed+Power, Wit->Speed) it adds a constant plus about 0.6 per
   point of Friendship Bonus, 0.7 per point of Training Effectiveness, 0.1 per point of
   Mood Effect and 11 per point of Stat Bonus. Specialty Priority does not show up.
-  RMSE 3.4 stat points, R² 0.97.
-- A conditional unique effect the model can approximate (bond, friendship count, total bond, fan or
-  facility-level conditions) is folded into the passives at an assumed share of the run at full
-  strength (0.75, fitted); the two deck-dependent ones (Agnes Digital's card types, Symboli Rudolf's
-  initial stats per card) are evaluated from the finished deck. See
+  RMSE 3.2 stat points, R² 0.97.
+- A conditional unique effect is evaluated at run time from its payload (`uniqueExtras()` in
+  `src/model/stats.ts`), not baked into the data. Ramping conditions (bond, friendship count, total
+  bond, facility level) count for a share of the run that the fit chooses on the same rows as the
+  slopes and writes to the model (`uniqueRampShare`, 0.70). Narita Top Road's per-fan effect follows
+  the agenda's expected fan curve. The two deck-dependent ones (Agnes Digital's card types, Symboli
+  Rudolf's initial stats per card) are counted from the cards around them, in the deck builder as
+  well as in the prediction. The fit writes what it added per card to
+  `data/unique-extras-fixture.json` and the data test checks the app reproduces it. See
   `docs/refs/gametora-unique-effects.md`.
 - Every card stat scales by (T - races) / (T - 28) with T ≈ 72 turns, from the same decks
   run at 28 and 23 races.

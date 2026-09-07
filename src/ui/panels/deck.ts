@@ -4,7 +4,7 @@ import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { Conflict } from '../../model/sparks.ts';
 import { combineSources } from '../../model/sparks.ts';
-import { BLUE_STAR_BANDS, cardContribution, deckUniqueExtras, EFFECT, pAbove, passives, raceScale } from '../../model/stats.ts';
+import { BLUE_STAR_BANDS, cardContribution, EFFECT, pAbove, passives, raceScale, uniqueExtras } from '../../model/stats.ts';
 import { statScore } from '../../model/rank.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { data, plan, store, update } from '../context.ts';
@@ -48,7 +48,7 @@ function statBreakdown(c: RunPlan) {
   const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
   const row = (label: TemplateResult | string, vals: number[], cls = '') => html`<tr class="${cls}"><td>${label}</td>${vals.map((v) => html`<td class="num">${num(v)}</td>`)}<td class="num">${num(vals.reduce((a, b) => a + b, 0))}</td></tr>`;
   const cardRows = d.deck.map((cs) => {
-    const cc = cardContribution(cs.card, cs.lb, data.model, deckUniqueExtras(cs.card, cs.lb, d.deck));
+    const cc = cardContribution(cs.card, cs.lb, data.model, uniqueExtras(cs.card, cs.lb, data.model, { deck: d.deck, fansBefore: c.ctx.fansBefore }));
     return row(html`${cardThumb(cs.card, 'thumb sm')} ${cardLink(cs.card)} <span class="muted small">(${cc.source === 'model' ? 'model' : `observed${cc.source === 'observed+model' ? ', shifted to LB' + cs.lb : ''}`})</span>`, cc.stats.map((v, i) => v * scale * focusMul[i]!));
   });
   const base = c.trainee?.baseStats ?? [0, 0, 0, 0, 0];

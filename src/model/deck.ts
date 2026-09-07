@@ -1,6 +1,6 @@
 import type { Card, Character, Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { cardContribution, raceScale, type Contribution } from './stats.ts';
+import { cardContribution, raceScale, uniqueExtras, type Contribution } from './stats.ts';
 import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import { cardSourcesForTarget, combineSources, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
@@ -15,6 +15,7 @@ export interface Ctx {
   raceWins: RaceWins;            // win chance per agenda race, for the trainee's secret events
   lineage: Map<number, Lineage>; // target.id -> existing lineage sparks
   priority: number[];            // skill ids in prioritized-skill order (every form of a family); decides which option an event's choice goes to
+  fansBefore?: (slot: number) => number; // the agenda's expected fans before a slot, for fan-scaled unique effects
 }
 /** A Ctx with no agenda, lineage or priority unless given; for tests and scripts. */
 export function makeCtx(base: Pick<Ctx, 'data' | 'settings' | 'races' | 'totalTurns' | 'trainee'> & Partial<Ctx>): Ctx {
@@ -89,9 +90,10 @@ function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<numbe
   }
   return mine;
 }
-/** Stat contribution at the run's race count, and its value under the chosen training focus. */
-function statsOf(card: Card, lb: number, ctx: Ctx): { contrib: Contribution; stats: number[]; statPower: number; sp: number } {
-  const contrib = cardContribution(card, lb, ctx.data.model);
+/** Stat contribution at the run's race count (compound unique effects evaluated against the other cards in the run and the agenda), and its value under the chosen training focus. */
+function statsOf(card: Card, lb: number, ctx: Ctx, others: Card[]): { contrib: Contribution; stats: number[]; statPower: number; sp: number } {
+  const extra = uniqueExtras(card, lb, ctx.data.model, { deck: [...others, card].map((c) => ({ card: c })), fansBefore: ctx.fansBefore });
+  const contrib = cardContribution(card, lb, ctx.data.model, extra);
   const scale = raceScale(ctx.races, ctx.data.model, ctx.settings);
   const stats = contrib.stats.map((v) => v * scale);
   const focusMul = ctx.data.model.focus[ctx.settings.focus] ?? [1, 1, 1, 1, 1];
@@ -99,7 +101,7 @@ function statsOf(card: Card, lb: number, ctx: Ctx): { contrib: Contribution; sta
 }
 
 export function scoreCard(card: Card, lb: number, targets: Target[], existing: Existing, ctx: Ctx): CardScore {
-  const { contrib, stats, statPower, sp } = statsOf(card, lb, ctx);
+  const { contrib, stats, statPower, sp } = statsOf(card, lb, ctx, existing.cards);
   const mine = minesOf(card, lb, targets, ctx);
   const alone = evaluate({ sources: mine, chars: new Set([card.charId]), cards: [card] }, targets, ctx);
   const before = evaluate(existing, targets, ctx);
@@ -275,7 +277,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
       const used = new Set(others.map((x) => x.card.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
       const cands = (d.borrowed ? borrowPool : pool).filter((p) => !used.has(p.card.charId) && !(p.card.id === d.card.id && p.lb === d.lb) && !others.some((o) => o.card.id === p.card.id));
       for (const p of cands) {
-        const entry: Entry = { card: p.card, lb: p.lb, mine: minesOf(p.card, p.lb, targets, ctx), statPower: statsOf(p.card, p.lb, ctx).statPower, borrowed: d.borrowed };
+        const entry: Entry = { card: p.card, lb: p.lb, mine: minesOf(p.card, p.lb, targets, ctx), statPower: statsOf(p.card, p.lb, ctx, others.map((o) => o.card)).statPower, borrowed: d.borrowed };
         // a card with no source for any target cannot raise the sparks, so it only matters as a better stat stick
         if (!entry.mine.size && entry.statPower <= d.statPower) continue;
         const value = deckValue([...others, entry], targets, ctx);

@@ -40,9 +40,12 @@ export interface Card {
   obtained: string | null;
   effects: Record<string, number[]>;
   effectsByLb: Record<string, number>[];
-  /** The card's unique effect from its unlock level: basic effect types (below 100) are folded into effectsByLb as `u<type>`; compound types (100 and above) carry a condition the tool does not evaluate and stay here with their full payload. */
-  /** `model` says what the stat model takes from a compound effect: passives folded into effectsByLb (effect id -> amount) and the assumption behind them. */
-  unique: { level: number; effects: UniqueEffect[]; text?: string; model?: { effects: Record<string, number>; note: string } } | null;
+  /**
+   * The card's unique effect: unlocked at `level`, which the card reaches at limit break `fromLb` (5 = never). Basic
+   * effect types (below 100) are folded into effectsByLb as `u<type>`; compound types (100 and above) carry a condition
+   * and stay here with their full payload and GameTora's rendered text, for uniqueExtras() to evaluate at run time.
+   */
+  unique: { level: number; fromLb: number; effects: UniqueEffect[]; text?: string } | null;
   hintSkills: number[];
   eventSkills: number[];
   hintOthers: { type: number; value: number }[];
@@ -134,6 +137,7 @@ export interface StatModel {
   eventBase: Record<string, number[]>;
   eventSp: Record<string, number>;
   growthEffect: number;
+  uniqueRampShare: number;   // share of the run a ramping compound unique effect is assumed at full strength (fitted)
   sigma: number[];
   focus: Record<Focus, number[]>;
   observed: { cardId: number; lb: number; source: string; runs: number; wellTested: boolean; stats: number[]; sp: number }[];

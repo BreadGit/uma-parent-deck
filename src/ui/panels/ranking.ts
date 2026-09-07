@@ -3,6 +3,7 @@ import { live } from 'lit-html/directives/live.js';
 import { STATS, type Card } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
+import { MODELLED_UNIQUE_TYPES, uniqueNote } from '../../model/stats.ts';
 import { modelContribution } from '../../model/stats.ts';
 import { data, plan, store, update } from '../context.ts';
 import { cardThumb, cardUrl, num, pct, pill, skillName, typeIcon } from '../format.ts';
@@ -47,6 +48,13 @@ const SORT_KEYS: Record<string, (x: CardScore) => number> = {
   speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
 };
 
+/** A compound unique effect: whether the model evaluates it, with GameTora's text and the assumption behind the evaluation. */
+function uniqueTag(card: Card) {
+  if (!card.unique?.effects.some((u) => u.type >= 100)) return nothing;
+  const modelled = card.unique.effects.some((u) => MODELLED_UNIQUE_TYPES.has(u.type));
+  return html` <span class="tag ${modelled ? '' : 'warn'}">${modelled ? 'unique approximated' : 'unique not modelled'}</span>${tip(`Unique effect: ${card.unique.text ?? 'conditional effect'}. Model: ${uniqueNote(card, data.model, { fansBefore: plan().ctx.fansBefore }) || 'left out'}. An observed row includes the real effect at the observed limit break.`)}`;
+}
+
 export function renderRanking(c: RunPlan) {
   const fn = SORT_KEYS[store.ui.sortKey] ?? SORT_KEYS.score!;
   const pinRank = (x: CardScore) => { const i = store.run.pinnedIds.indexOf(x.card.id); return i < 0 ? Infinity : i; };
@@ -67,7 +75,7 @@ export function renderRanking(c: RunPlan) {
             <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
             ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
-            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${x.card.unique?.model ? html` <span class="tag ${Object.keys(x.card.unique.model.effects).length || x.card.unique.effects.some((u) => u.type === 103 || u.type === 105) ? '' : 'warn'}">${Object.keys(x.card.unique.model.effects).length || x.card.unique.effects.some((u) => u.type === 103 || u.type === 105) ? 'unique approximated' : 'unique not modelled'}</span>${tip(`Unique effect: ${x.card.unique.text ?? 'conditional effect'}. Model: ${x.card.unique.model.note || 'left out'}. An observed row includes the real effect at the observed limit break.`)}` : nothing}</td>
+            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${uniqueTag(x.card)}</td>
           </tr>`;
         })}
       </tbody></table></div>

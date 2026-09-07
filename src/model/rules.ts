@@ -44,6 +44,12 @@ export const SCENARIO_COMPLETION_SKILLS: Record<number, { gold: number; white: n
   [OUR_GRAND_CONCERT]: { gold: 210071 /* I Wanna Win with You */, white: 210072 /* On the Way to Our Dream */, songsForGold: 18 },
 };
 
+// --- training ---
+/** Combined support bond a "per N total bond" unique effect (type 109) tops out at: 20% at 600 for Ikuno Dictus. */
+export const UNIQUE_TOTAL_BOND_CAP = 600;
+/** Highest facility level, where a "per facility level" unique effect (type 111) is at full strength. */
+export const FACILITY_LEVEL_MAX = 5;
+
 // --- career calendar ---
 export const SLOT_COUNT = 72;                // 3 years x 12 months x 2 halves; turn 1 = Junior early January
 

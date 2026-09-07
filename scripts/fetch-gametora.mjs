@@ -82,6 +82,12 @@ const LEVELS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
 const LB_LEVEL = { R: [20, 25, 30, 35, 40], SR: [25, 30, 35, 40, 45], SSR: [30, 35, 40, 45, 50] };
 const TYPE = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
 
+/** The first limit break (0..4) whose level reaches `level`; 5 when none does. */
+function unlockLb(rarity, level) {
+  const i = LB_LEVEL[rarity].findIndex((lvl) => lvl >= level);
+  return i < 0 ? 5 : i;
+}
+
 function fillForward(row) {
   const out = [];
   let cur = 0;
@@ -139,35 +145,6 @@ function decodePageEvent(ev, kind, index) {
   return { kind, index, name: ev.n, choices };
 }
 
-/**
- * Share of the run at which a unique effect that ramps up (bond 80, five friendship trainings, 600 total bond,
- * facility level 5) is assumed to be at full strength. Chosen by refitting the stat model on the Loopacord rows at
- * 0.25 / 0.5 / 0.75 / 1.0 (RMSE 4.31 / 3.71 / 3.40 / 3.52), so it is fitted on the same data the model is, not measured.
- */
-const UNIQUE_RAMP_SHARE = 0.75;
-const TRAINING_EFFECTIVENESS = 8, FRIENDSHIP_BONUS = 1;
-/**
- * What the stat model can take from a compound unique effect (docs/refs/gametora-unique-effects.md): effect id ->
- * amount folded into the passives. Effects that depend on the deck (types 103, 105) are applied by the predictor
- * with the deck in hand; effects that depend on turn-by-turn state are left out.
- */
-function uniqueModel(unique) {
-  const effects = {}, notes = [];
-  const add = (id, v) => { if (id == null || !Number.isFinite(v)) return; effects[id] = (effects[id] ?? 0) + v; }; // a type 101 may carry one effect or two
-  for (const u of unique?.effects ?? []) {
-    switch (u.type) {
-      case 101: add(u.value_1, u.value_2 * UNIQUE_RAMP_SHARE); add(u.value_3, u.value_4 * UNIQUE_RAMP_SHARE); notes.push(`bond ${u.value} reached for ${UNIQUE_RAMP_SHARE * 100}% of the run`); break;
-      case 104: add(TRAINING_EFFECTIVENESS, u.value_1); notes.push(`fan cap of ${u.value_1} reached early on a G1 agenda`); break;
-      case 106: add(FRIENDSHIP_BONUS, u.value * u.value_2 * UNIQUE_RAMP_SHARE); notes.push(`the ${u.value} friendship trainings done for ${UNIQUE_RAMP_SHARE * 100}% of the run`); break;
-      case 109: add(TRAINING_EFFECTIVENESS, (600 / u.value_1) * UNIQUE_RAMP_SHARE); notes.push(`600 total bond reached for ${UNIQUE_RAMP_SHARE * 100}% of the run`); break;
-      case 111: add(TRAINING_EFFECTIVENESS, u.value_1 * 5 * UNIQUE_RAMP_SHARE); notes.push(`facility level 5 for ${UNIQUE_RAMP_SHARE * 100}% of the run`); break;
-      case 103: case 105: notes.push('evaluated from the deck by the predictor'); break;
-      default: if (u.type >= 100) notes.push('depends on turn-by-turn state, left out');
-    }
-  }
-  return { effects, note: notes.join('; ') };
-}
-
 function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
   const evrew = raw['dict/evrew'];
   const randomNamesByChar = new Map();
@@ -190,12 +167,9 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
       const idx = LEVELS.indexOf(lvl);
       const e = {};
       for (const [type, vals] of Object.entries(effects)) if (vals[idx] > 0) e[type] = vals[idx];
-      // basic unique effects (types below 100) add to the passive of the same type; the compound types the stat
-      // model can approximate are folded in by uniqueModel(); the rest stay only in the `unique` record below
-      if (c.unique && lvl >= c.unique.level) {
-        for (const u of c.unique.effects) if (u.type < 100) e[`u${u.type}`] = u.value;
-        for (const [id, v] of Object.entries(uniqueModel(c.unique).effects)) e[`u${id}`] = (e[`u${id}`] ?? 0) + v;
-      }
+      // basic unique effects (types below 100) add to the passive of the same type; compound types (100 and up) stay
+      // in the `unique` record below for the app and the fit script to evaluate from the payload
+      if (c.unique && lvl >= c.unique.level) for (const u of c.unique.effects) if (u.type < 100) e[`u${u.type}`] = u.value;
       return e;
     });
     const hintOthers = [];
@@ -230,8 +204,9 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
       obtained: c.obtained ?? null,
       effects,
       effectsByLb,
-      // compound unique effects (types 100 and up) carry GameTora's rendered description, fetched from the card page
-      unique: c.unique ? { ...c.unique, ...(uniqueTexts[c.support_id] ? { text: uniqueTexts[c.support_id] } : {}), ...(c.unique.effects.some((u) => u.type >= 100) ? { model: uniqueModel(c.unique) } : {}) } : null,
+      // fromLb: the first limit break whose level unlocks the effect (5 = never). Compound effects (types 100 and up)
+      // carry GameTora's rendered description, fetched from the card page.
+      unique: c.unique ? { ...c.unique, fromLb: unlockLb(rarity, c.unique.level), ...(uniqueTexts[c.support_id] ? { text: uniqueTexts[c.support_id] } : {}) } : null,
       hintSkills: ids(c.hints?.hint_skills),
       eventSkills: ids(c.event_skills),
       hintOthers,

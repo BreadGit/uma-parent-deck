@@ -7,7 +7,7 @@ import { buildSchedule, expectedFansBefore, goalRaces, racePopularity, raceWinCh
 import { rankEstimate, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { inheritedFromParents, type Inheritance } from './inherit.ts';
 import { clampStars, traineeAt } from './trainee.ts';
-import { BORROWED_LB, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS } from './rules.ts';
+import { BORROWED_LB, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS, SLOT_COUNT } from './rules.ts';
 
 /** Everything the user chose about the run. The app persists exactly this (plus UI-only fields). */
 export interface RunInput {
@@ -152,7 +152,9 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const targets = input.targets.map((id) => resolveTarget(id, data)).filter((t): t is Target => !!t);
   const lineage = new Map<number, Lineage>();
   for (const t of targets) { const l = input.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
-  const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage, priority: [] };
+  const fansBySlot = Array.from({ length: SLOT_COUNT + 1 }, (_, s) => expectedFansBefore(schedule, s));
+  const fansBefore = (slot: number) => fansBySlot[Math.max(0, Math.min(SLOT_COUNT, slot))] ?? 0;
+  const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage, priority: [], fansBefore };
   const { pool, unowned } = cardPool(data, inventory, settings);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
   const pinnedIds = input.pinnedIds.filter((id) => data.cardById.has(id));
@@ -169,14 +171,14 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const existing = traineeCoverage(targets, ctx);
   const ranking = rankCards(pool, targets, existing, ctx);
   const deckResult = buildDeck(deckPool, targets, ctx, build);
-  const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings);
+  const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings, fansBefore);
   const inherited = STATS.map((_, i) => inheritedFromParents(input.parentGains, i, settings));
   const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => v > caps[i]! + inherited[i]!.uncap) } : null;
   const finalMean = statCaps ? rawFinalMean.map((v, i) => Math.min(v, statCaps.cap[i]!)) : rawFinalMean;
   // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
-  const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, (slot) => expectedFansBefore(schedule, slot), settings) : 0;
+  const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
   const rank = rankEstimate(finalMean, pred.sd, pred.sp, trainee, stars, uniqueLevel, trainee ? apt : null, data, settings);
   const spCost = targetSpCost(targets, deckResult.coverage);
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);
