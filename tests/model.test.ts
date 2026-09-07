@@ -3,115 +3,42 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale } from '../src/model/stats.ts';
-import type { Card } from '../src/types.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, sparkChance } from '../src/model/sparks.ts';
+import type { Card, Race } from '../src/types.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, pruneConflicts, sparkChance, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
-import { buildSchedule, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
-import { statScore } from '../src/model/rank.ts';
+import { baseWinChance, buildSchedule, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
+import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
+import { affinityMultiplier, gainOfSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, sparksFromGain, sparksFromStars, START_GAINS } from '../src/model/inherit.ts';
 
 const data = loadData();
 const { cards, skills, characters } = data;
 const settings = { ...DEFAULT_SETTINGS };
 const kitasan = data.cardById.get(30028)!;
+const T = data.model.races.totalTurns;
+const byName = (n: string) => skills.find((s) => s.name === n && !s.unreleasedEn)!;
+const target = (n: string) => resolveTarget(byName(n).id, data)!;
+const sw = characters.find((c) => c.name === 'Special Week')!;
+const ctxOf = (extra: Partial<Ctx> = {}): Ctx => makeCtx({ data, settings, races: 20, totalTurns: T, trainee: null, ...extra });
+const all4 = cards.map((card) => ({ card, lb: 4 }));
+
+// ----- skills and the stat model -----
 
 test('skill families resolve gold and white forms', () => {
   const t = resolveTarget(200352, data)!; // Corner Recovery ○
   assert.equal(t.gold?.name, 'Swinging Maestro');
   assert.equal(t.white?.id, 200352);
-  const fromGold = resolveTarget(200351, data)!;
-  assert.equal(fromGold.id, t.id);
+  assert.equal(resolveTarget(200351, data)!.id, t.id, 'the gold id resolves to the same family');
 });
 
-test('model reproduces observed Kitasan MLB within tolerance', () => {
+test('stat model: reproduces observed Kitasan MLB, shifts other limit breaks from the observation, scales with races', () => {
   const obs = data.model.observed.find((o) => o.cardId === 30028 && o.lb === 4)!;
-  const m = modelContribution(kitasan, 4, data.model);
-  m.stats.forEach((v, i) => assert.ok(Math.abs(v - obs.stats[i]!) < 15, `stat ${i}: model ${v} vs observed ${obs.stats[i]}`));
-  const c = cardContribution(kitasan, 4, data.model);
-  assert.equal(c.source, 'observed');
+  modelContribution(kitasan, 4, data.model).stats.forEach((v, i) => assert.ok(Math.abs(v - obs.stats[i]!) < 15, `stat ${i}: model ${v} vs observed ${obs.stats[i]}`));
+  assert.equal(cardContribution(kitasan, 4, data.model).source, 'observed');
   const c0 = cardContribution(kitasan, 0, data.model);
   assert.equal(c0.source, 'observed+model');
-  assert.ok(c0.stats[0]! <= c.stats[0]!);
-});
-
-test('race scaling grows card stats with fewer races', () => {
-  assert.ok(raceScale(23, data.model, settings) > 1.08 && raceScale(23, data.model, settings) < 1.14);
+  assert.ok(c0.stats[0]! <= obs.stats[0]!);
+  assert.ok(raceScale(23, data.model, settings) > 1.08 && raceScale(23, data.model, settings) < 1.14, 'fewer races, more card stats');
   assert.equal(raceScale(28, data.model, settings), 1);
-});
-
-test('a card is a hint source for its hint skills and a chain-event source for the skill an event gives', () => {
-  const corner = resolveTarget(200352, data)!; // Corner Recovery ○, on Kitasan's hint list
-  const hints = cardSourcesForTarget(kitasan, 4, corner, 28, data.model.races.totalTurns, data, settings);
-  const hint = hints.find((s) => s.kind === 'hint' && s.skillId === 200352)!;
-  assert.ok(hint && hint.pObtain > 0 && hint.pObtain < 1);
-  const eh = expectedHints(kitasan, 4, 28, data.model.races.totalTurns, settings);
-  assert.ok(Math.abs(hint.pObtain - (1 - Math.pow(1 - 1 / kitasan.hintSkills.length, eh))) < 1e-9, 'P(at least one hint) over a uniform pool');
-  const professor = resolveTarget(200331, data)!; // Professor of Curvature, given by chain event 3
-  const chain = cardSourcesForTarget(kitasan, 4, professor, 28, data.model.races.totalTurns, data, settings).find((s) => s.kind === 'chain')!;
-  assert.ok(chain && chain.gold, 'chain 3 gives the gold form');
-  assert.ok(Math.abs(chain.pObtain - settings.chainRatesSSR[2]!) < 1e-9, 'at the SSR chain-3 completion rate');
-  assert.equal(chain.isChoice, false, 'both options give it, so it is not choice-gated');
-});
-
-test('expected hints scale with turns off the track and Hint Frequency', () => {
-  const hf = (c: Card) => passives(c, 4)[EFFECT.hintFreq] ?? 0;
-  const noHf = cards.find((c) => c.rarity === 'SSR' && hf(c) === 0)!;
-  const withHf = cards.find((c) => hf(c) >= 30)!;
-  const T = data.model.races.totalTurns;
-  const base = expectedHints(noHf, 4, 20, T, settings);
-  assert.ok(Math.abs(base - (T - 20) * settings.hintTurnsShare * settings.hintBase * settings.hintScale) < 1e-9);
-  assert.ok(expectedHints(noHf, 4, 28, T, settings) < base, 'more races, fewer training turns, fewer hints');
-  assert.ok(Math.abs(expectedHints(withHf, 4, 20, T, settings) / base - (1 + hf(withHf) / 100)) < 1e-9);
-});
-
-test('event rewards decode: split outcomes use the big-reward rate, random skill lists share, an all-option skill is not gated, many random events scale', () => {
-  const riko = data.cardById.get(10060)!; // random 2, option 1: small reward Ramp Up, big reward Maverick ○
-  const rikoEv = eventSources(riko, settings).filter((s) => s.kind === 'random' && s.event.key.endsWith(':random:2'));
-  const rampUp = rikoEv.find((s) => data.skillById.get(s.skillId)?.name === 'Ramp Up')!;
-  const maverick = rikoEv.find((s) => data.skillById.get(s.skillId)?.name === 'Maverick ○')!;
-  const pFire = settings.randomEventRate * Math.min(1, 2 / riko.randomEvents.length);
-  assert.ok(Math.abs(rampUp.pObtain - pFire * (1 - settings.bigRewardRate)) < 1e-9 && rampUp.detail.includes('small reward'));
-  assert.ok(Math.abs(maverick.pObtain - pFire * settings.bigRewardRate) < 1e-9 && maverick.detail.includes('big reward'));
-  const fine = data.cardById.get(30010)!; // chain 3 hands out one of two skills at random
-  const shared = eventSources(fine, settings).filter((s) => s.event.key.endsWith(':chain:3'));
-  assert.equal(shared.length, 2);
-  for (const s of shared) assert.ok(Math.abs(s.pObtain - settings.chainRatesSSR[2]! / 2) < 1e-9, 'each gets half the event chance');
-  const diamond = data.cardById.get(30029)!; // chain 3: Iron Will in every option
-  const ironWill = eventSources(diamond, settings).find((s) => s.event.key.endsWith(':chain:3') && data.skillById.get(s.skillId)?.name === 'Iron Will')!;
-  assert.equal(ironWill.isChoice, false);
-  const sirius = data.cardById.get(30081)!; // 14 random events: scaled so two fire on average
-  const one = eventSources(sirius, settings).find((s) => s.kind === 'random')!;
-  assert.ok(one.pObtain <= settings.randomEventRate * 2 / sirius.randomEvents.length + 1e-9);
-});
-
-test('schedule respects threshold and consecutive penalty', () => {
-  const sw = characters.find((c) => c.name === 'Special Week')!;
-  const apt = traineeAptitudes(sw, {});
-  const sched = buildSchedule(data.races, apt, 0.8, new Map());
-  const sum = scheduleSummary(sched);
-  assert.ok(sum.count > 5 && sum.count < 30, `count ${sum.count}`);
-  const sel = sched.filter((s) => s.selected);
-  assert.ok(sel.every((s) => s.pWin >= 0.8));
-  assert.equal(new Set(sel.map((s) => s.race.raceId)).size, sel.length, 'each G1 at most once');
-  assert.equal(new Set(sel.map((s) => s.slot)).size, sel.length, 'one race per slot');
-  const dirt = sched.find((s) => s.race.surface === 'dirt');
-  assert.ok(dirt && dirt.base <= 0.5);
-  // forcing a race in and excluding another
-  const arima = sched.filter((s) => s.race.name === 'Arima Kinen');
-  const forced = buildSchedule(data.races, apt, 0.8, new Map([[arima[0]!.race.calendarId, true], [arima[1]!.race.calendarId, false]]));
-  assert.ok(forced.find((s) => s.race.calendarId === arima[0]!.race.calendarId)!.selected);
-  assert.ok(!forced.find((s) => s.race.calendarId === arima[1]!.race.calendarId)!.selected);
-});
-
-test('the consecutive-race penalty drops the fourth race of a streak under a 90% threshold and reports why', () => {
-  const allA = traineeAptitudes(null, { turf: 'A', dirt: 'A', sprint: 'A', mile: 'A', medium: 'A', long: 'A' });
-  const sched = buildSchedule(data.races, allA, 0.9, new Map());
-  const sel = sched.filter((s) => s.selected);
-  assert.ok(sel.length > 10, 'with every aptitude at A most G1s are runnable');
-  assert.ok(sel.every((s) => s.consecutive <= 3), 'a fourth race in a row would sit at 0.75 and fail the threshold');
-  assert.ok(sel.some((s) => s.consecutive === 3), 'three in a row is still allowed (1.0 - 0.1 >= 0.9)');
-  assert.ok(sched.some((s) => !s.selected && s.reason.startsWith('Streak penalty')), 'the dropped race says so');
-  const loose = buildSchedule(data.races, allA, 0.5, new Map());
-  assert.ok(loose.filter((s) => s.selected).some((s) => s.consecutive >= 4), 'a lower threshold lets longer streaks through');
 });
 
 test('prediction: focus multiplies the split, growth raises event stats, race losses cost stat points', () => {
@@ -128,9 +55,286 @@ test('prediction: focus multiplies the split, growth raises event stats, race lo
   balanced.mean.forEach((v, i) => assert.ok(Math.abs(v - penalised.mean[i]! - 100 / 5) < 1e-9, 'each expected loss removes lossPenalty points spread over five stats'));
 });
 
-test('greedy deck covers targets and produces a wishlist', () => {
-  const trainee = characters.find((c) => c.name === 'Special Week')!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee });
+// ----- sources: hints and events -----
+
+test('hints: a card is a hint source for its hint skills, with hints per run from turns off the track and Hint Frequency', () => {
+  const corner = resolveTarget(200352, data)!; // Corner Recovery ○, on Kitasan's hint list
+  const hint = cardSourcesForTarget(kitasan, 4, corner, 28, T, data, settings).find((s) => s.kind === 'hint' && s.skillId === 200352)!;
+  const eh = expectedHints(kitasan, 4, 28, T, settings);
+  assert.ok(hint.pObtain > 0 && hint.pObtain < 1);
+  assert.ok(Math.abs(hint.pObtain - (1 - Math.pow(1 - 1 / kitasan.hintSkills.length, eh))) < 1e-9, 'P(at least one hint) over a uniform pool');
+  const hf = (c: Card) => passives(c, 4)[EFFECT.hintFreq] ?? 0;
+  const noHf = cards.find((c) => c.rarity === 'SSR' && hf(c) === 0)!;
+  const withHf = cards.find((c) => hf(c) >= 30)!;
+  const base = expectedHints(noHf, 4, 20, T, settings);
+  assert.ok(Math.abs(base - (T - 20) * settings.hintTurnsShare * settings.hintBase * settings.hintScale) < 1e-9);
+  assert.ok(expectedHints(noHf, 4, 28, T, settings) < base, 'more races, fewer training turns, fewer hints');
+  assert.ok(Math.abs(expectedHints(withHf, 4, 20, T, settings) / base - (1 + hf(withHf) / 100)) < 1e-9);
+});
+
+test('event outcomes: outcomes of one option are equally likely, a gold/white random pair is the stat-gated gold roll, a skill in every option is not gated, many random events scale', () => {
+  const riko = data.cardById.get(10060)!; // random 2, option 1: one outcome gives Ramp Up, the other Maverick ○
+  const rikoEv = eventSources(riko, settings, data).filter((s) => s.kind === 'random' && s.event.key.endsWith(':random:2'));
+  const rampUp = rikoEv.find((s) => data.skillById.get(s.skillId)?.name === 'Ramp Up')!;
+  const maverick = rikoEv.find((s) => data.skillById.get(s.skillId)?.name === 'Maverick ○')!;
+  const pFire = settings.randomEventRate * Math.min(1, 2 / riko.randomEvents.length);
+  assert.ok(Math.abs(rampUp.pObtain - pFire / 2) < 1e-9 && rampUp.detail.includes('one of 2 outcomes'));
+  assert.ok(Math.abs(maverick.pObtain - pFire / 2) < 1e-9 && rampUp.event.optionIndex === maverick.event.optionIndex);
+  // the documented gold roll by the stat of the card's type
+  assert.deepEqual([399, 400, 600, 700, 800, 1000, 1200].map(goldRollChance), [0.3, 0.6, 0.65, 0.75, 0.8, 0.9, 0.9]);
+  const fine = data.cardById.get(30010)!; // chain 3: Speed Star (gold) or Prepared to Pass (its white form), by the Wit stat
+  const shared = eventSources(fine, settings, data).filter((s) => s.event.key.endsWith(':chain:3'));
+  const g = goldRollChance(settings.goldRollStat);
+  assert.equal(shared.length, 2);
+  assert.ok(Math.abs(shared.find((s) => data.skillById.get(s.skillId)?.name === 'Speed Star')!.pObtain - settings.chainRatesSSR[2]! * g) < 1e-9, 'gold at the documented rate for the assumed stat');
+  assert.ok(Math.abs(shared.find((s) => data.skillById.get(s.skillId)?.name === 'Prepared to Pass')!.pObtain - settings.chainRatesSSR[2]! * (1 - g)) < 1e-9, 'white otherwise');
+  const professor = cardSourcesForTarget(kitasan, 4, resolveTarget(200331, data)!, 28, T, data, settings).find((s) => s.kind === 'chain')!; // Kitasan chain 3: Professor of Curvature in both options
+  assert.ok(professor.gold && !professor.isChoice && Math.abs(professor.pObtain - settings.chainRatesSSR[2]!) < 1e-9);
+  const sirius = data.cardById.get(30081)!; // 14 random events: scaled so two fire on average
+  assert.ok(eventSources(sirius, settings, data).find((s) => s.kind === 'random')!.pObtain <= settings.randomEventRate * 2 / sirius.randomEvents.length + 1e-9);
+});
+
+test('ownership odds combine sources the way the game runs them: duplicates in one outcome count once, outcomes of one option are exclusive, chain stages are nested, options of one event are alternatives', () => {
+  const r3 = settings.chainRatesSSR[2]!, g = goldRollChance(settings.goldRollStat);
+  // El Condor Pasa chain 3 writes Speed Star into two conditional branches of one outcome; Matikanetannhauser chain 3 writes It's On! into three
+  const condor = cardSourcesForTarget(data.cardById.get(30102)!, 4, target('Speed Star'), 20, T, data, settings).filter((s) => eventKeyOf(s)?.endsWith(':chain:3'));
+  assert.equal(condor.length, 1);
+  assert.ok(Math.abs(condor[0]!.pObtain - r3) < 1e-9 && Math.abs(combineSources(condor).pGold - r3) < 1e-9, 'one 12% source, not 24%');
+  const machitan = cardSourcesForTarget(data.cardById.get(30103)!, 4, target("It's On!"), 20, T, data, settings).filter((s) => eventKeyOf(s)?.endsWith(':chain:3'));
+  assert.equal(machitan.length, 1);
+  assert.ok(Math.abs(machitan[0]!.pObtain - r3) < 1e-9);
+  // Fine Motion chain 3: gold or white, never both, so P(any) is the event chance
+  const fine = cardSourcesForTarget(data.cardById.get(30010)!, 4, target('Speed Star'), 20, T, data, settings).filter((s) => eventKeyOf(s)?.endsWith(':chain:3'));
+  const own = combineSources(fine);
+  assert.ok(Math.abs(own.pAny - r3) < 1e-9 && Math.abs(own.pGold - r3 * g) < 1e-9 && Math.abs(own.pWhite - r3 * (1 - g)) < 1e-9);
+  // Twin Turbo [TT Ignition!]: Givin' It 1000% from chain 2 (one outcome) and chain 3 (every outcome); reaching 3 implies 2
+  const turbo = cardSourcesForTarget(data.cardById.get(30112)!, 4, target("Givin' It 1000%"), 20, T, data, settings).filter((s): s is EventSource & { chain: NonNullable<EventSource['chain']> } => s.kind === 'chain');
+  const [r1, r2] = settings.chainRatesSSR as [number, number];
+  const q2 = turbo.find((s) => s.chain.stage === 2)!.pObtain / r2, q3 = turbo.find((s) => s.chain.stage === 3)!.pObtain / r3;
+  assert.ok(Math.abs(q3 - 1) < 1e-9);
+  const nested = (r1 - r2) * 0 + (r2 - r3) * q2 + r3 * (1 - (1 - q2) * (1 - q3));
+  assert.ok(Math.abs(combineSources(turbo).pAny - nested) < 1e-9, `nested ${nested}, got ${combineSources(turbo).pAny}`);
+  assert.ok(combineSources(turbo).pAny < 1 - (1 - r2 * q2) * (1 - r3 * q3), 'less than independent stages');
+  // a target offered by two options of one event counts one option
+  const twoOptions: SkillSource[] = [0, 1].map((optionIndex) => ({ kind: 'chain', skillId: 1, gold: false, circle: false, pObtain: 0.5, isChoice: false, detail: '', event: { key: 'x:chain:1', label: '', option: `option ${optionIndex + 1}`, optionIndex } }));
+  const pruned = pruneConflicts(new Map([[1, twoOptions]]), [1]).map.get(1)!;
+  assert.equal(pruned.length, 1);
+  assert.ok(Math.abs(combineSources(pruned).pAny - 0.5) < 1e-9);
+  // spark rates by form
+  assert.ok(Math.abs(sparkChance({ pGold: 1, pWhite: 0 }, settings, 0) - settings.goldSparkRate) < 1e-9);
+  assert.ok(Math.abs(sparkChance({ pGold: 0, pCircle: 1, pWhite: 0 }, settings, 0) - settings.circleSparkRate) < 1e-9);
+  assert.ok(Math.abs(sparkChance({ pGold: 0, pWhite: 1 }, settings, 2) - settings.whiteSparkRate * 1.21) < 1e-9, 'each lineage copy multiplies by 1.1');
+});
+
+test('Pal and Group outings are skill sources at their own rates', () => {
+  const lightHello = data.cardById.get(30052)!;
+  const seeYa = resolveTarget(201661, data)!; // Playtime's Over (white) / See Ya Later! (gold)
+  assert.equal(seeYa.gold?.id, 201662);
+  const srcs = cardSourcesForTarget(lightHello, 4, seeYa, 20, T, data, settings);
+  const finale = srcs.find((s) => s.kind === 'recreation')!;
+  assert.ok(finale.gold && Math.abs(finale.pObtain - settings.palChainRate) < 1e-9, 'the finale gives the gold form at the date-chain rate');
+  assert.ok(combineSources(srcs).pGold > 0.95);
+  const throne = data.cardById.get(30067)!;
+  assert.ok(Math.abs(cardSourcesForTarget(throne, 4, resolveTarget(201113, data)!, 20, T, data, settings).find((s) => s.kind === 'recreation')!.pObtain - settings.groupFinaleRate) < 1e-9);
+  assert.ok(Math.abs(cardSourcesForTarget(throne, 4, resolveTarget(200452, data)!, 20, T, data, settings).find((s) => s.kind === 'recreation')!.pObtain - settings.groupOutingRate) < 1e-9);
+});
+
+test('lineage sparks: each copy rolls twice at the assumed affinity to hand over the hint, and each copy multiplies the spark chance', () => {
+  const t = resolveTarget(200352, data)!;
+  const ctx = ctxOf({ trainee: sw, lineage: new Map([[t.id, { k1: 1, k2: 1, p1: 3, p2: 3 }]]) });
+  const lin = (traineeCoverage([t], ctx).sources.get(t.id) ?? []).find((s) => s.kind === 'lineage')!;
+  const perEvent = Math.min(1, settings.whiteSparkInheritRates[2]! * affinityMultiplier(settings));
+  assert.ok(Math.abs(lin.pObtain - (1 - Math.pow(1 - perEvent, 4))) < 1e-9, 'two sparks, two inspiration events each');
+  const weak = { ...settings, affinity: 0 };
+  const lin0 = (traineeCoverage([t], { ...ctx, settings: weak }).sources.get(t.id) ?? []).find((s) => s.kind === 'lineage')!;
+  assert.ok(lin0.pObtain < lin.pObtain, 'a lower affinity lowers the hint chance');
+});
+
+// ----- scenario and event choices -----
+
+test("Our Grand Concert's Senior November event: a linked character in the run (as trainee or card) turns her option gold, every option is a prioritized-skill candidate", () => {
+  const focus = target('Focus');
+  assert.equal(focus.gold?.name, 'Concentration');
+  const ctx = ctxOf();
+  const bourbon = cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit')!;
+  const without = evaluate(traineeCoverage([focus], ctx), [focus], ctx).map.get(focus.id)!.filter((s) => s.kind === 'scenario');
+  assert.equal(without.length, 1); assert.ok(!without[0]!.gold, 'Focus (normal) when Bourbon is absent');
+  const d = buildDeck([{ card: bourbon, lb: 4 }], [focus], ctx, [bourbon.id], 1);
+  const withCard = d.coverage.get(focus.id)!.filter((s) => s.kind === 'scenario');
+  assert.equal(withCard.length, 1); assert.ok(withCard[0]!.gold, 'Concentration when Bourbon is in the deck');
+  const bourbonUma = characters.find((c) => c.name === 'Mihono Bourbon')!;
+  const asTrainee = ctxOf({ trainee: bourbonUma });
+  assert.ok(evaluate(traineeCoverage([focus], asTrainee), [focus], asTrainee).map.get(focus.id)!.some((s) => s.kind === 'scenario' && s.gold), 'Concentration when Bourbon is the trainee');
+  assert.ok(!cardSourcesForTarget(kitasan, 4, focus, 20, T, data, settings).some((s) => s.kind === 'scenario'), 'a card alone is not a scenario source');
+  // Tachyon as a card: her option is the gold Come What May, listed instead of All I've Got
+  const allIveGot = target("All I've Got");
+  const tachyon = cards.find((c) => c.charName === 'Agnes Tachyon' && c.rarity === 'SSR')!;
+  const e = buildDeck([{ card: tachyon, lb: 4 }], [allIveGot], ctx, [tachyon.id], 1);
+  assert.ok(e.coverage.get(allIveGot.id)!.filter((s) => s.kind === 'scenario').every((s) => s.gold));
+  const wl = wishlistCandidates(e.deck, [allIveGot], ctx).map((w) => w.name);
+  assert.ok(wl.includes('Come What May') && !wl.includes("All I've Got"), `list: ${wl.join(', ')}`);
+  // with Focus also targeted, both scenario options stay listed even though only one can be taken
+  const both = { ...ctx, priority: [focus.id, allIveGot.id] };
+  const names = wishlistCandidates(buildDeck([{ card: tachyon, lb: 4 }], [allIveGot, focus], both, [tachyon.id], 1).deck, [allIveGot, focus], both).map((w) => w.name);
+  assert.ok(names.includes('Come What May') && names.includes('Focus'), `both options listed: ${names.join(', ')}`);
+  // every option is a candidate even with no targets
+  const bare = wishlistCandidates([], [], ctx).map((w) => w.name);
+  for (const n of ['Focus', "All I've Got", 'Full Tilt', 'Rosy Outlook', 'Lane Legerdemain']) assert.ok(bare.includes(n), `${n} missing from ${bare.join(', ')}`);
+  const bareBourbon = wishlistCandidates([], [], asTrainee).map((w) => w.name);
+  assert.ok(bareBourbon.includes('Concentration') && !bareBourbon.includes('Focus'));
+});
+
+test('one option per event: the prioritized order decides which target takes it, the loser stays listed, and an option that gives two targets keeps both', () => {
+  const groundwork = resolveTarget(201601, data)!, focus = target('Focus');
+  const falcon = cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!; // chain 1 offers Groundwork or Focus
+  const targets = [groundwork, focus];
+  const a = buildDeck([{ card: falcon, lb: 4 }], targets, ctxOf({ priority: [groundwork.id, focus.id] }), [], 1);
+  assert.equal(a.conflicts.length, 1);
+  assert.equal(a.conflicts[0]!.taken.target, groundwork.id);
+  const key = a.conflicts[0]!.eventKey;
+  assert.ok(a.coverage.get(groundwork.id)!.some((s) => eventKeyOf(s) === key) && !a.coverage.get(focus.id)!.some((s) => eventKeyOf(s) === key), 'Focus is not counted from the shared event');
+  const b = buildDeck([{ card: falcon, lb: 4 }], targets, ctxOf({ priority: [focus.id, groundwork.id] }), [], 1);
+  assert.equal(b.conflicts[0]!.taken.target, focus.id);
+  assert.ok((a.sparks.get(groundwork.id) ?? 0) > (b.sparks.get(groundwork.id) ?? 0), 'Groundwork spark chance rises when it is first');
+  const names = wishlistCandidates(a.deck, targets, ctxOf({ priority: [groundwork.id, focus.id] })).map((w) => w.name);
+  assert.ok(names.includes('Groundwork') && names.includes('Focus'), `both options listed: ${names.join(', ')}`);
+  // Ines Fujin chain 2: option 1 gives Medium Straightaways ○ and Sympathy together; option 2 gives Standard Distance ○ and Final Push
+  const ines = data.cardById.get(20030)!;
+  const straight = target('Medium Straightaways ○'), sympathy = target('Sympathy'), standard = target('Standard Distance ○');
+  const ikey = `${ines.id}:chain:2`;
+  const c = buildDeck([{ card: ines, lb: 4 }], [straight, sympathy], ctxOf({ priority: [straight.id, sympathy.id] }), [], 1);
+  assert.ok(c.coverage.get(straight.id)!.some((s) => eventKeyOf(s) === ikey) && c.coverage.get(sympathy.id)!.some((s) => eventKeyOf(s) === ikey), 'the same option awards both');
+  assert.ok(!c.conflicts.some((x) => x.eventKey === ikey), 'nothing to report');
+  const d = buildDeck([{ card: ines, lb: 4 }], [straight, standard], ctxOf({ priority: [straight.id, standard.id] }), [], 1);
+  assert.ok(!d.coverage.get(standard.id)!.some((s) => eventKeyOf(s) === ikey));
+  assert.equal(d.conflicts.find((x) => x.eventKey === ikey)?.dropped[0]?.target, standard.id);
+});
+
+test('a non-target option ranked above a target takes the event and is reported, with every form of its family ranked together', () => {
+  const focus = target('Focus'), lane = byName('Lane Legerdemain'), allIveGot = target("All I've Got");
+  const base = ctxOf();
+  assert.ok(wishlistCandidates([], [focus], base)[0]!.isTarget, 'targets come first');
+  const normal = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [focus.id, lane.id] });
+  assert.ok(normal.map.get(focus.id)!.some((s) => s.kind === 'scenario') && normal.conflicts.length === 0, 'Focus keeps the scenario event when ranked first');
+  const blocked = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [lane.id, focus.id] });
+  assert.ok(!blocked.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Lane Legerdemain ranked first takes the event');
+  assert.equal(blocked.conflicts.length, 1);
+  assert.equal(blocked.conflicts[0]!.taken.skillId, lane.id);
+  assert.equal(blocked.conflicts[0]!.taken.target, null);
+  // Come What May ranked first as a non-target; with Tachyon absent the event offers All I've Got instead, which still outranks Focus
+  const r = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [...allIveGot.familyIds, focus.id] });
+  assert.equal(r.conflicts.length, 1);
+  assert.equal(r.conflicts[0]!.taken.skillId, allIveGot.white!.id);
+});
+
+// ----- the agenda -----
+
+const raceAt = (surface: Race['surface'], category: Race['category']): Race => ({ calendarId: 't', raceInstanceId: 0, raceId: 1, name: 't', distance: 2000, category, surface, year: 2, month: 5, half: 1, fansNeeded: 0, fansGain: 0, unreleasedEn: false });
+const aptOf = (turf: Aptitudes['turf'], medium: Aptitudes['medium']): Aptitudes => traineeAptitudes(null, { turf, medium });
+
+test("independent-training win odds: 110% at A/A minus the surface and distance penalties, then the streak penalty, clamped to 0..100% (Shoppo_ura's data)", () => {
+  const r = raceAt('turf', 'medium');
+  assert.ok(Math.abs(rawWinScore(r, aptOf('A', 'A')) - 1.1) < 1e-9);
+  assert.equal(baseWinChance(r, aptOf('A', 'A')), 1);
+  assert.equal(baseWinChance(r, aptOf('S', 'A')), 1, 'S counts as A');
+  const cases: [Aptitudes['turf'], Aptitudes['medium'], number][] = [['A', 'B', 1.0], ['B', 'A', 1.0], ['A', 'E', 0.7], ['E', 'A', 0.6], ['A', 'G', 0.2], ['G', 'A', 0.2], ['C', 'E', 0.5], ['G', 'G', 0]];
+  for (const [t, m, p] of cases) assert.ok(Math.abs(baseWinChance(r, aptOf(t, m)) - p) < 1e-9, `${t}/${m} -> ${p}`);
+  assert.deepEqual([1, 2, 3, 4, 5, 6, 7].map((k) => Number(winChance(1.1, k).toFixed(4))), [1, 1, 1, 0.9, 0.8, 0.6, 0.6], 'A/A absorbs the third race');
+  assert.deepEqual([1, 2, 3, 4, 5, 6].map((k) => Number(winChance(1.0, k).toFixed(4))), [1, 1, 0.95, 0.8, 0.7, 0.5], 'A/B loses from the third race');
+  assert.deepEqual([1, 3, 4, 6].map((k) => Number(winChance(0.2, k).toFixed(4))), [0.2, 0.15, 0, 0]);
+});
+
+test('the agenda: one race per slot above the threshold, each G1 once, manual picks honoured, the streak penalty drops a race and says so', () => {
+  const apt = traineeAptitudes(sw, {});
+  const sched = buildSchedule(data.races, apt, 0.8, new Map());
+  const sum = scheduleSummary(sched);
+  assert.ok(sum.count > 5 && sum.count < 30, `count ${sum.count}`);
+  const sel = sched.filter((s) => s.selected);
+  assert.ok(sel.every((s) => s.pWin >= 0.8));
+  assert.equal(new Set(sel.map((s) => s.race.raceId)).size, sel.length, 'each G1 at most once');
+  assert.equal(new Set(sel.map((s) => s.slot)).size, sel.length, 'one race per slot');
+  const dirt = sched.find((s) => s.race.surface === 'dirt');
+  assert.ok(dirt && dirt.base <= 0.5);
+  const arima = sched.filter((s) => s.race.name === 'Arima Kinen');
+  const forced = buildSchedule(data.races, apt, 0.8, new Map([[arima[0]!.race.calendarId, true], [arima[1]!.race.calendarId, false]]));
+  assert.ok(forced.find((s) => s.race.calendarId === arima[0]!.race.calendarId)!.selected && !forced.find((s) => s.race.calendarId === arima[1]!.race.calendarId)!.selected);
+  const allA = traineeAptitudes(null, { turf: 'A', dirt: 'A', sprint: 'A', mile: 'A', medium: 'A', long: 'A' });
+  const tight = buildSchedule(data.races, allA, 0.95, new Map());
+  const tightSel = tight.filter((s) => s.selected);
+  assert.ok(tightSel.length > 10 && tightSel.every((s) => s.consecutive <= 3), 'a fourth race in a row would sit at 90% and fail a 95% threshold');
+  assert.ok(tightSel.some((s) => s.consecutive === 3 && s.pWin === 1), 'three in a row is still 100%');
+  assert.ok(tight.some((s) => !s.selected && s.reason.startsWith('Streak penalty')), 'the dropped race says so');
+  assert.ok(buildSchedule(data.races, allA, 0.85, new Map()).some((s) => s.selected && s.consecutive === 4), 'at 85% a fourth race (90%) gets through');
+});
+
+test('career goals are fixed in the agenda: a placement objective is won automatically, a participation-only one rolls the odds', () => {
+  const seiun = characters.find((c) => c.name === 'Seiun Sky')!;
+  const goals = goalRaces(seiun);
+  assert.ok(goals.some((g) => g.name.includes('Tokyo Yushun')));
+  const sched = buildSchedule(data.races, traineeAptitudes(seiun, {}), 0.8, new Map(), new Map(), goals);
+  const derby = sched.find((s) => s.race.name.includes('Tokyo Yushun') && s.selected)!;
+  assert.ok(derby.goal && derby.pWin === 1, 'the Derby is a selected goal and a top-five requirement, so it is won');
+  assert.ok(!sched.some((s) => s.race.name === 'Japanese Oaks' && s.selected), 'the Oaks cannot be run in the Derby slot');
+  assert.equal(sched.filter((s) => s.race.name === 'Arima Kinen' && s.selected).length, 2, 'both Arima goals run even though it is the same G1');
+  const urara = characters.find((c) => c.name === 'Haru Urara')!;
+  const ug = goalRaces(urara);
+  assert.equal(ug.find((g) => g.name === 'Arima Kinen')!.autoWin, false, 'Haru Urara only has to take part in the Arima Kinen');
+  assert.equal(ug.find((g) => g.name === 'JBC Sprint')!.autoWin, true, 'she must win the JBC Sprint');
+  const us = buildSchedule(data.races, traineeAptitudes(urara, {}), 0.8, new Map(), new Map(), ug);
+  assert.ok(us.find((s) => s.selected && s.goal && s.race.name === 'Arima Kinen')!.pWin < 0.3, 'turf G on her default aptitudes');
+  assert.equal(us.find((s) => s.selected && s.goal && s.race.name === 'JBC Sprint')!.pWin, 1);
+});
+
+// ----- rating -----
+
+test('rating: the UmaTools stat table exactly (values computed from its code), skills by form and aptitude bucket, the unique skill by stars and level', () => {
+  for (const [v, pts] of [[0, 0], [-5, 0], [400, 577], [600, 1143], [1000, 2635], [1199, 3835], [1200, 3841], [1201, 3849], [1249, 4240], [1250, 4249], [1500, 6773], [1999, 14261], [2000, 14280], [2001, 14298]] as const) assert.equal(statScore(v), pts, `stat ${v}`);
+  assert.equal(skillScore(byName('Groundwork'), null), 217);
+  const sprint = skills.find((s) => s.rarity === 1 && s.tags.includes('sho') && !s.unreleasedEn)!;
+  const apt = (g: Aptitudes['sprint']) => traineeAptitudes(null, { sprint: g });
+  assert.deepEqual((['A', 'C', 'E', 'G'] as const).map((g) => skillScore(sprint, apt(g))), [1.1, 0.9, 0.8, 0.7].map((m) => Math.round(217 * m)));
+  assert.equal(skillScore(byName('Groundwork'), apt('G')), 217, 'an unconditioned skill ignores aptitudes');
+  assert.equal(skillScore(byName('Concentration'), null), 508);
+  assert.deepEqual([uniqueSkillScore(3, 3), uniqueSkillScore(5, 6), uniqueSkillScore(2, 4), uniqueSkillScore(1, 1)], [510, 1020, 480, 120]);
+  // level: stars plus the fan checks the agenda reaches, the April one at the bond rate, capped at six
+  const turf = traineeAptitudes(null, {});
+  assert.equal(uniqueSkillLevel(3, turf, () => 0, settings), 3);
+  assert.equal(uniqueSkillLevel(3, turf, () => 200000, { ...settings, uniqueAprilBondRate: 1 }), 6);
+  assert.equal(uniqueSkillLevel(3, turf, () => 200000, { ...settings, uniqueAprilBondRate: 0.5 }), 5.5);
+  assert.equal(uniqueSkillLevel(5, turf, () => 200000, { ...settings, uniqueAprilBondRate: 1 }), 6, 'capped');
+  assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot > 60 ? 130000 : 50000), settings), 4, 'only the December check is reached');
+  assert.equal(uniqueSkillLevel(3, traineeAptitudes(null, { turf: 'G', dirt: 'A' }), () => 45000, { ...settings, uniqueAprilBondRate: 1 }), 4, 'a dirt trainee clears the 40,000-fan February check');
+});
+
+// ----- inheritance -----
+
+test('blue sparks: 20 distinct start gains each decoding to one star combination, fixed start gains, uncaps, and an assumed mean roll per inspiration proc at the affinity setting', () => {
+  assert.equal(START_GAINS.length, 20);
+  assert.equal(MAX_START_GAIN, 63);
+  assert.equal(new Set(START_GAINS.map((g) => g.gain)).size, 20, 'no two star combinations show the same +XX');
+  for (const g of START_GAINS) assert.equal(gainOfSparks(g.stars), g.gain);
+  assert.deepEqual(sparksFromGain(26), [1, 3], '+26 is a 1★ and a 3★');
+  assert.deepEqual(sparksFromGain(63), [3, 3, 3]);
+  assert.deepEqual(sparksFromGain(7), [], 'a value the screen cannot show has no sparks');
+  assert.deepEqual(sparksFromStars(7), [3, 3, 1], 'old slider totals still pack into sparks for migration');
+  const s = { ...settings, affinity: 150, blueInspirationGainMean: [5.5, 8.5, 14.5] };
+  const full = inheritedFromGain(63, s);
+  assert.equal(full.start, 63, 'the start gain is fixed');
+  assert.equal(full.uncap, 48, 'three 3★ sparks raise the cap by 16 each');
+  assert.ok(Math.abs(full.inspiration - 3 * 2 * 14.5) < 1e-9, 'at 150 every proc is certain and adds the assumed mean roll, twice');
+  assert.equal(full.inspirationMax, 3 * 2 * 28, 'at most 28 per proc');
+  const mixed = inheritedFromGain(26, { ...s, affinity: 0 });
+  assert.ok(Math.abs(mixed.inspiration - 2 * (0.9 * 14.5 + 0.7 * 5.5)) < 1e-9, 'at 0 affinity each spark rolls at its own star odds');
+  assert.equal(mixed.uncap, 16 + 4);
+  const two = inheritedFromParents([[63, 0, 0, 0, 0], [21, 0, 0, 0, 0]], 0, s);
+  assert.equal(two.start, 84);
+  assert.equal(two.uncap, 64);
+});
+
+// ----- the deck builder -----
+
+test('deck: six distinct characters, one borrowed slot at the borrowed limit break, the trainee excluded, a wishlist of at most ten', () => {
+  const ctx = ctxOf({ trainee: sw });
   const targets = [200352, 200762].map((id) => resolveTarget(id, data)!);
   const pool = cards.filter((c) => c.rarity === 'SSR').map((card) => ({ card, lb: 4 }));
   const r = rankCards(pool, targets, traineeCoverage(targets, ctx), ctx);
@@ -139,332 +343,121 @@ test('greedy deck covers targets and produces a wishlist', () => {
   assert.equal(d.deck.length, 6);
   assert.equal(d.deck[0]!.card.id, 30052);
   assert.equal(new Set(d.deck.map((x) => x.card.charId)).size, 6);
-  assert.ok(!d.deck.some((x) => x.card.charId === trainee.charId));
-  const p = predictDeck(d.deck.map((x) => ({ card: x.card, lb: x.lb })), trainee, 20, 'stamina', 1, data.model, settings);
+  assert.ok(!d.deck.some((x) => x.card.charId === sw.charId));
+  const p = predictDeck(d.deck.map((x) => ({ card: x.card, lb: x.lb })), sw, 20, 'stamina', 1, data.model, settings);
   assert.ok(p.mean.every((v) => v > 300 && v < 1600), JSON.stringify(p.mean));
-  const wl = wishlist(d.deck, targets, ctx);
-  assert.ok(wl.length <= 10);
+  assert.ok(wishlist(d.deck, targets, ctx).length <= 10);
+  const srPool = cards.filter((c) => c.rarity === 'SR').map((card) => ({ card, lb: 2 }));
+  const e = buildDeck(srPool, [resolveTarget(200352, data)!, resolveTarget(201601, data)!], ctx, [], 6, all4);
+  assert.equal(e.deck.filter((x) => x.borrowed).length, 1);
+  assert.ok(e.borrow && e.borrow.gain >= 0 && e.deck.find((x) => x.borrowed)!.lb === 4);
+  assert.equal(new Set(e.deck.map((x) => x.card.charId)).size, 6);
 });
 
-test('rank score matches published anchors', () => {
-  assert.ok(Math.abs(statScore(1000) - 2635) < 30);
-  assert.ok(Math.abs(statScore(600) - 1143) < 20);
-});
-
-test('blue spark start gains: 20 distinct sums, each decoding to one star combination, and the inheritance behind them', async () => {
-  const { START_GAINS, MAX_START_GAIN, sparksFromGain, gainOfSparks, inheritedFromGain, inheritedFromParents, sparksFromStars } = await import('../src/model/inherit.ts');
-  assert.equal(START_GAINS.length, 20);
-  assert.equal(MAX_START_GAIN, 63);
-  assert.equal(new Set(START_GAINS.map((g) => g.gain)).size, 20, 'no two star combinations show the same +XX');
-  for (const g of START_GAINS) assert.equal(gainOfSparks(g.stars), g.gain);
-  assert.deepEqual(sparksFromGain(26), [1, 3], '+26 is a 1★ and a 3★');
-  assert.deepEqual(sparksFromGain(63), [3, 3, 3]);
-  assert.deepEqual(sparksFromGain(7), [], 'a value the screen cannot show has no sparks');
-  const s = { ...DEFAULT_SETTINGS, affinity: 150 };
-  const full = inheritedFromGain(63, s);
-  assert.equal(full.start, 63);
-  assert.equal(full.inspiration, 126, '3★ sparks proc at 100% with 150 affinity, twice');
-  const mixed = inheritedFromGain(26, { ...DEFAULT_SETTINGS, affinity: 0 });
-  assert.ok(Math.abs(mixed.inspiration - 2 * (21 * 0.9 + 5 * 0.7)) < 1e-9, 'each spark rolls at its own star odds');
-  const two = inheritedFromParents([[63, 0, 0, 0, 0], [21, 0, 0, 0, 0]], 0, s);
-  assert.equal(two.start, 63 + 21);
-  assert.deepEqual(sparksFromStars(7), [3, 3, 1], 'old slider totals still pack into sparks for migration');
-});
-
-test('Pal and Group outings are skill sources at their own rates', () => {
-  const lightHello = data.cardById.get(30052)!;
-  const seeYa = resolveTarget(201661, data)!; // Playtime's Over (white) / See Ya Later! (gold)
-  assert.equal(seeYa.gold?.id, 201662);
-  const srcs = cardSourcesForTarget(lightHello, 4, seeYa, 20, data.model.races.totalTurns, data, settings);
-  const finale = srcs.find((s) => s.kind === 'recreation');
-  assert.ok(finale && finale.gold, 'finale should give the gold form');
-  assert.ok(Math.abs(finale!.pObtain - settings.palChainRate) < 1e-9, `pObtain ${finale!.pObtain}`);
-  assert.equal(combineSources(srcs).pGold > 0.95, true);
-  const throne = data.cardById.get(30067)!;
-  const photon = resolveTarget(201113, data)!;
-  const t = cardSourcesForTarget(throne, 4, photon, 20, data.model.races.totalTurns, data, settings).find((s) => s.kind === 'recreation')!;
-  assert.ok(Math.abs(t.pObtain - settings.groupFinaleRate) < 1e-9);
-  const prudent = resolveTarget(200452, data)!;
-  const m = cardSourcesForTarget(throne, 4, prudent, 20, data.model.races.totalTurns, data, settings).find((s) => s.kind === 'recreation')!;
-  assert.ok(Math.abs(m.pObtain - settings.groupOutingRate) < 1e-9);
-});
-
-test('lineage sparks: two 3★ copies hand over the hint about two thirds of the time, and each copy multiplies the spark chance', () => {
-  const trainee = characters.find((c) => c.name === 'Special Week')!;
-  const target = resolveTarget(200352, data)!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee, lineage: new Map([[target.id, { k1: 1, k2: 1, p1: 3, p2: 3 }]]) });
-  const lin = (traineeCoverage([target], ctx).sources.get(target.id) ?? []).find((s) => s.kind === 'lineage')!;
-  const perEvent = Math.min(1, settings.whiteSparkInheritRates[2]! * (1 + settings.affinity / 100));
-  assert.ok(Math.abs(lin.pObtain - (1 - Math.pow(1 - perEvent, 4))) < 1e-9, 'two sparks, two inspiration events each');
-  assert.ok(Math.abs(sparkChance({ pGold: 0, pWhite: 1 }, settings, 2) - settings.whiteSparkRate * 1.21) < 1e-9);
-  assert.ok(Math.abs(sparkChance({ pGold: 1, pWhite: 0 }, settings, 0) - settings.goldSparkRate) < 1e-9);
-});
-
-test('the deck has exactly one borrowed slot at the borrowed limit break, six distinct characters', () => {
-  const trainee = characters.find((c) => c.name === 'Special Week')!;
-  const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee });
-  const pool = cards.filter((c) => c.rarity === 'SR').map((card) => ({ card, lb: 2 }));
-  const d = buildDeck(pool, targets, ctx, [], 6, cards.map((card) => ({ card, lb: 4 })));
-  assert.equal(d.deck.filter((x) => x.borrowed).length, 1);
-  assert.ok(d.borrow && d.borrow.gain >= 0);
-  assert.equal(d.deck.find((x) => x.borrowed)!.lb, 4);
-  assert.equal(new Set(d.deck.map((x) => x.card.charId)).size, 6);
-});
-
-test('Grand Concert linked event: Bourbon present gives Concentration, otherwise Focus', () => {
-  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
-  assert.equal(focus.gold?.name, 'Concentration');
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const bourbon = cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit')!;
-  const without = evaluate(traineeCoverage([focus], ctx), [focus], ctx).map.get(focus.id)!.filter((s) => s.kind === 'scenario');
-  assert.equal(without.length, 1); assert.ok(!without[0]!.gold, 'Focus (normal) when Bourbon is absent');
-  const d = buildDeck([{ card: bourbon, lb: 4 }], [focus], ctx, [bourbon.id], 1);
-  const withCard = d.coverage.get(focus.id)!.filter((s) => s.kind === 'scenario');
-  assert.equal(withCard.length, 1); assert.ok(withCard[0]!.gold, 'Concentration when Bourbon is in the deck');
-  const bourbonUma = characters.find((c) => c.name === 'Mihono Bourbon')!;
-  const asTrainee = evaluate(traineeCoverage([focus], { ...ctx, trainee: bourbonUma }), [focus], { ...ctx, trainee: bourbonUma }).map.get(focus.id)!.filter((s) => s.kind === 'scenario');
-  assert.equal(asTrainee.length, 1); assert.ok(asTrainee[0]!.gold, 'Concentration when Bourbon is the trainee');
-  const names = wishlistCandidates(d.deck, [focus], ctx).map((w) => w.name);
-  assert.ok(names.includes('Concentration'));
-  const kitasan = cards.find((c) => c.id === 30028)!;
-  assert.ok(!cardSourcesForTarget(kitasan, 4, focus, 20, data.model.races.totalTurns, data, settings).some((s) => s.kind === 'scenario'));
-});
-
-test('one option per event: Smart Falcon chain 1 offers Groundwork or Focus, priority decides', () => {
-  const groundwork = resolveTarget(201601, data)!;
-  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
-  const falcon = cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!;
-  const targets = [groundwork, focus];
-  const mk = (priority: number[]): Ctx => makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null, priority });
-  const a = buildDeck([{ card: falcon, lb: 4 }], targets, mk([groundwork.id, focus.id]), [], 1);
-  assert.equal(a.conflicts.length, 1);
-  assert.equal(a.conflicts[0]!.taken.target, groundwork.id);
-  const focusSources = a.coverage.get(focus.id)!.filter((s) => eventKeyOf(s) === a.conflicts[0]!.eventKey);
-  assert.equal(focusSources.length, 0, 'Focus should not be counted from the shared event');
-  assert.ok(a.coverage.get(groundwork.id)!.some((s) => eventKeyOf(s) === a.conflicts[0]!.eventKey));
-  const b = buildDeck([{ card: falcon, lb: 4 }], targets, mk([focus.id, groundwork.id]), [], 1);
-  assert.equal(b.conflicts[0]!.taken.target, focus.id);
-});
-
-test('a pinned card is never swapped for another card of the same character', () => {
-  const ghost = cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit')!;
-  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const pool = cards.map((card) => ({ card, lb: 2 }));
-  const d = buildDeck(pool, [focus], ctx, [ghost.id], 6, cards.map((card) => ({ card, lb: 4 })));
-  const bourbons = d.deck.filter((x) => x.card.charId === ghost.charId);
-  assert.equal(bourbons.length, 1);
-  assert.equal(bourbons[0]!.card.id, ghost.id, 'the pinned Bourbon card must be the one in the deck');
-});
-
-test('career goal races are fixed in the agenda and highlighted', () => {
-  const seiun = characters.find((c) => c.name === 'Seiun Sky')!;
-  const goals = goalRaces(seiun);
-  assert.ok(goals.some((g) => g.name.includes('Tokyo Yushun')));
-  const sched = buildSchedule(data.races, traineeAptitudes(seiun, {}), 0.8, new Map(), new Map(), goals);
-  const derbySlot = sched.find((s) => s.race.name.includes('Tokyo Yushun') && s.selected)!;
-  assert.ok(derbySlot && derbySlot.goal, 'the Derby should be a selected goal');
-  assert.ok(!sched.some((s) => s.race.name === 'Japanese Oaks' && s.selected), 'the Oaks cannot be run in the Derby slot');
-  const arima = sched.filter((s) => s.race.name === 'Arima Kinen' && s.selected);
-  assert.equal(arima.length, 2, 'both Arima goals run even though it is the same G1');
-});
-
-test('a linked character in the run replaces the normal scenario option with the gold one', () => {
-  const allIveGot = resolveTarget(skills.find((s) => s.name === "All I've Got" && !s.unreleasedEn)!.id, data)!;
-  const tachyon = cards.find((c) => c.charName === 'Agnes Tachyon' && c.rarity === 'SSR')!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const d = buildDeck([{ card: tachyon, lb: 4 }], [allIveGot], ctx, [tachyon.id], 1);
-  const srcs = d.coverage.get(allIveGot.id)!.filter((s) => s.kind === 'scenario');
-  assert.equal(srcs.length, 1, 'exactly one scenario option for this target');
-  assert.ok(srcs[0]!.gold, 'and it is the gold one');
-  const wl = wishlistCandidates(d.deck, [allIveGot], ctx).map((w) => w.name);
-  assert.ok(wl.includes('Come What May') && !wl.includes("All I've Got"), `list: ${wl.join(', ')}`);
-  // with Focus also targeted, both scenario options stay listed even though only one can be taken
-  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
-  const both = buildDeck([{ card: tachyon, lb: 4 }], [allIveGot, focus], { ...ctx, priority: [focus.id, allIveGot.id] }, [tachyon.id], 1);
-  const names = wishlistCandidates(both.deck, [allIveGot, focus], { ...ctx, priority: [focus.id, allIveGot.id] }).map((w) => w.name);
-  assert.ok(names.includes('Come What May') && names.includes('Focus'), `both options listed: ${names.join(', ')}`);
-  const tachyonUma = characters.find((c) => c.name === 'Agnes Tachyon')!;
-  const cov = evaluate(traineeCoverage([allIveGot], { ...ctx, trainee: tachyonUma }), [allIveGot], { ...ctx, trainee: tachyonUma }).map.get(allIveGot.id)!;
-  assert.ok(cov.some((s) => s.kind === 'scenario' && s.gold), 'trainee as linked character gives the gold option');
-});
-
-test('regular card events keep both options listed and the order decides which is taken', () => {
-  const groundwork = resolveTarget(201601, data)!;
-  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
-  const falcon = cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!;
-  const mk = (priority: number[]): Ctx => makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null, priority });
-  const a = buildDeck([{ card: falcon, lb: 4 }], [groundwork, focus], mk([groundwork.id, focus.id]), [], 1);
-  const namesA = wishlistCandidates(a.deck, [groundwork, focus], mk([groundwork.id, focus.id])).map((w) => w.name);
-  assert.ok(namesA.includes('Groundwork') && namesA.includes('Focus'), `both options listed: ${namesA.join(', ')}`);
-  const evalA = evaluate({ sources: a.deck[0]!.mine, chars: new Set([falcon.charId]), cards: [falcon] }, [groundwork, focus], mk([groundwork.id, focus.id]));
-  const evalB = evaluate({ sources: a.deck[0]!.mine, chars: new Set([falcon.charId]), cards: [falcon] }, [groundwork, focus], mk([focus.id, groundwork.id]));
-  const key = evalA.conflicts[0]!.eventKey;
-  assert.ok(evalA.map.get(groundwork.id)!.some((s) => eventKeyOf(s) === key) && !evalA.map.get(focus.id)!.some((s) => eventKeyOf(s) === key), 'Groundwork keeps the event when first');
-  assert.ok(evalB.map.get(focus.id)!.some((s) => eventKeyOf(s) === key) && !evalB.map.get(groundwork.id)!.some((s) => eventKeyOf(s) === key), 'Focus keeps the event when first');
-  assert.ok(evalA.sparks.get(groundwork.id)! > evalB.sparks.get(groundwork.id)!, 'Groundwork spark chance rises when it is first');
-});
-
-test('scenario options are listed as prioritized-skill candidates even with no targets', () => {
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const names = wishlistCandidates([], [], ctx).map((w) => w.name);
-  for (const n of ['Focus', "All I've Got", 'Full Tilt', 'Rosy Outlook', 'Lane Legerdemain']) assert.ok(names.includes(n), `${n} missing from ${names.join(', ')}`);
-  const bourbonUma = characters.find((c) => c.name === 'Mihono Bourbon')!;
-  const names2 = wishlistCandidates([], [], { ...ctx, trainee: bourbonUma }).map((w) => w.name);
-  assert.ok(names2.includes('Concentration') && !names2.includes('Focus'));
-});
-
-test('a non-target option ranked above a target takes the event and is reported', () => {
-  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
-  const lane = skills.find((s) => s.name === 'Lane Legerdemain' && !s.unreleasedEn)!;
-  const base: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const names = wishlistCandidates([], [focus], base);
-  assert.ok(names[0]!.isTarget, `targets come first: ${names.map((w) => w.name).join(', ')}`);
-  const normal = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [focus.id, lane.id] });
-  assert.ok(normal.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Focus keeps the scenario event when ranked first');
-  assert.equal(normal.conflicts.length, 0);
-  const blocked = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [lane.id, focus.id] });
-  assert.ok(!blocked.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Lane Legerdemain ranked first takes the event');
-  assert.equal(blocked.conflicts.length, 1);
-  assert.equal(blocked.conflicts[0]!.taken.skillId, lane.id);
-  assert.equal(blocked.conflicts[0]!.taken.target, null);
-});
-
-test('priority ranks every form of a non-target family together', () => {
-  const focus = resolveTarget(skills.find((s) => s.name === 'Focus' && !s.unreleasedEn)!.id, data)!;
-  const allIveGot = resolveTarget(skills.find((s) => s.name === "All I've Got" && !s.unreleasedEn)!.id, data)!;
-  const base: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  // Come What May ranked first as a non-target blocker; with Tachyon absent the event offers All I've Got instead,
-  // which must still outrank Focus because the whole family is ranked together
-  const pr = [...allIveGot.familyIds, focus.id];
-  const r = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: pr });
-  assert.equal(r.conflicts.length, 1);
-  assert.equal(r.conflicts[0]!.taken.skillId, allIveGot.white!.id);
-});
-
-test('pins are a shortlist: eight owned pins give six cards, the five best pins owned and a leftover pin borrowed', () => {
-  const targets = [resolveTarget(200352, data)!, resolveTarget(201601, data)!];
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
+test('pins are a shortlist: the best five owned pins fill the owned slots, a leftover pin is borrowed unless borrowFromAll, the rest are reported', () => {
+  const corner = resolveTarget(200352, data)!;
+  const targets = [corner, resolveTarget(201601, data)!];
+  const ctx = ctxOf();
   const pool = cards.map((card) => ({ card, lb: 2 }));
   const seen = new Set<number>(); const pins: number[] = [];
   for (const c of cards.filter((c) => c.rarity === 'SSR')) { if (!seen.has(c.charId)) { seen.add(c.charId); pins.push(c.id); } if (pins.length === 8) break; }
-  const d = buildDeck(pool, targets, ctx, pins, 6, cards.map((card) => ({ card, lb: 4 })));
-  assert.equal(d.deck.length, 6);
-  assert.equal(d.deck.filter((x) => x.borrowed).length, 1);
+  const d = buildDeck(pool, targets, ctx, pins, 6, all4);
   const owned = d.deck.filter((x) => !x.borrowed);
   assert.equal(owned.length, 5);
   assert.ok(owned.every((x) => pins.includes(x.card.id)), 'every owned slot is a pin');
   const b = d.deck.find((x) => x.borrowed)!;
-  assert.ok(pins.includes(b.card.id) && b.lb === 4, 'without borrowFromAll the friend\'s slot goes to a leftover pin at LB4');
-  assert.equal(d.steps.filter((s) => s.includes('pinned but not chosen')).length, 2, 'the two left-out pins are reported');
-  // the chosen five are the best five pins by the greedy order: none of the left-out pins would have scored higher than the last chosen one
+  assert.ok(pins.includes(b.card.id) && b.lb === 4, "the friend's slot goes to a leftover pin at LB4");
+  assert.equal(d.steps.filter((s) => s.includes('pinned but not chosen')).length, 2);
   const lastChosen = owned[owned.length - 1]!;
-  const leftOut = pins.filter((id) => !owned.some((x) => x.card.id === id));
   const before = traineeCoverage(targets, ctx);
-  for (const id of leftOut) assert.ok(rankCards([{ card: data.cardById.get(id)!, lb: 2 }], targets, before, ctx)[0]!.marginalValue <= rankCards([{ card: lastChosen.card, lb: 2 }], targets, before, ctx)[0]!.marginalValue + 1e-9);
-});
-
-test('two pins of one character: the better one is kept and the other is reported as the same character', () => {
-  const targets = [resolveTarget(200352, data)!];
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const kitas = cards.filter((c) => c.charName === 'Kitasan Black').map((c) => c.id);
-  assert.ok(kitas.length >= 2);
-  const d = buildDeck(cards.map((card) => ({ card, lb: 4 })), targets, ctx, kitas, 6, cards.map((card) => ({ card, lb: 4 })));
-  assert.equal(d.deck.filter((x) => x.card.charName === 'Kitasan Black').length, 1);
-  assert.ok(d.steps.some((s) => s.includes('pinned but not chosen, same character as')));
-});
-
-test('with borrowFromAll, an owned pin at LB0 that is the best card overall ends up as the LB4 borrow through the upgrade check', () => {
-  const corner = resolveTarget(200352, data)!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const others = cards.filter((c) => c.rarity === 'SSR' && c.charName !== 'Kitasan Black').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 5).map((c) => c.id);
-  const pins = [...others, 30028];
-  const d = buildDeck(cards.map((card) => ({ card, lb: 0 })), [corner], ctx, { pinnedIds: pins, borrowPool: cards.map((card) => ({ card, lb: 4 })), borrowFromAll: true });
-  const kita = d.deck.find((x) => x.card.id === 30028)!;
-  assert.ok(kita, 'Kitasan is in the deck');
-  assert.ok(kita.borrowed && kita.lb === 4, 'as the friend\'s LB4 card, her LB0 copy swapped out');
-  assert.equal(d.deck.length, 6);
-  assert.ok(d.borrow?.replaces?.id === 30028);
-});
-
-test('a pin owned at a low limit break is upgraded to its LB4 borrow when that frees a slot worth more', () => {
-  const corner = resolveTarget(200352, data)!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  // only Kitasan is owned (at LB0) and only Kitasan can be borrowed: the borrow step has nothing free to take, so
-  // the upgrade step should swap the owned copy for the LB4 borrow
-  const d = buildDeck([{ card: kitasan, lb: 0 }], [corner], ctx, [30028], 6, [{ card: kitasan, lb: 4 }]);
-  const k = d.deck.find((x) => x.card.id === 30028)!;
-  assert.ok(k.borrowed && k.lb === 4, 'the LB4 borrow replaced the LB0 copy');
-  assert.equal(d.borrow?.replaces?.id, 30028);
-  assert.equal(d.deck.length, 1);
-});
-
-test("an unowned pin asks for the friend's slot and wins it over a better free choice, which stays listed", () => {
-  const corner = resolveTarget(200352, data)!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const ownedPool = cards.filter((c) => c.charName !== 'Kitasan Black' && c.rarity !== 'SSR').map((card) => ({ card, lb: 2 }));
-  const weak = ownedPool.find((p) => !p.card.hintSkills.includes(200352) && !p.card.eventSkills.length)!; // no way to give Corner Recovery
-  const d = buildDeck(ownedPool, [corner], ctx, { pinnedIds: [weak.card.id + 0], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
-  assert.ok(d.deck.some((x) => x.card.id === weak.card.id && !x.borrowed), 'an owned pin takes an owned slot');
-  const unownedPin = cards.find((c) => c.charName === 'Mejiro Palmer' && c.rarity === 'SSR')!; // not in the owned pool
-  const e = buildDeck(ownedPool, [corner], ctx, { pinnedIds: [unownedPin.id], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
-  const b = e.deck.find((x) => x.borrowed)!;
-  assert.equal(b.card.id, unownedPin.id, 'the unowned pin is the borrow');
-  assert.equal(b.lb, 4);
-  assert.ok(e.borrowAlternatives.length > 0 && e.borrowAlternatives[0]!.gain >= b.marginalValue, 'the free choice it displaced is still listed');
-  assert.ok(e.steps.some((s) => s.includes('not owned') === false || true));
-});
-
-test("several unowned pins: the best one is borrowed, the rest say where the friend's slot went", () => {
-  const corner = resolveTarget(200352, data)!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const ownedPool = cards.filter((c) => c.rarity === 'R').map((card) => ({ card, lb: 4 }));
-  const unowned = cards.filter((c) => c.rarity === 'SSR').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 3).concat(kitasan).map((c) => c.id);
-  const d = buildDeck(ownedPool, [corner], ctx, { pinnedIds: unowned, borrowPool: cards.map((card) => ({ card, lb: 4 })) });
-  assert.equal(d.deck.filter((x) => x.borrowed).length, 1);
-  assert.equal(d.deck.find((x) => x.borrowed)!.card.id, kitasan.id, 'Kitasan hints Corner Recovery, so she is the best of the unowned pins');
-  assert.equal(d.steps.filter((s) => s.includes("the friend's slot went to")).length, 3);
-});
-
-test('one character pinned owned and unowned: the better marginal wins its slot, the other is the same character', () => {
-  const corner = resolveTarget(200352, data)!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const kitaSr = cards.find((c) => c.charName === 'Kitasan Black' && c.id !== kitasan.id)!;
-  // own the other Kitasan card at LB0; the SSR is unowned and hints Corner Recovery at LB4: the borrow wins
-  const d = buildDeck([{ card: kitaSr, lb: 0 }], [corner], ctx, { pinnedIds: [kitaSr.id, kitasan.id], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
-  assert.ok(d.deck.some((x) => x.card.id === kitasan.id && x.borrowed), 'the unowned SSR is borrowed');
-  assert.ok(!d.deck.some((x) => x.card.id === kitaSr.id), 'the owned pin of the same character is left out');
-  assert.ok(d.steps.some((s) => s.startsWith(kitaSr.name) && s.includes('same character as')));
-});
-
-test('six or more owned pins: the friend\'s slot goes to the best leftover pin, or to the best card overall with borrowFromAll', () => {
-  const corner = resolveTarget(200352, data)!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: null });
-  const pins = cards.filter((c) => c.rarity === 'SR' && c.charName !== 'Kitasan Black').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 7).map((c) => c.id);
-  const pool = cards.map((card) => ({ card, lb: 2 }));
-  const borrowPool = cards.map((card) => ({ card, lb: 4 }));
-  const among = buildDeck(pool, [corner], ctx, { pinnedIds: pins, borrowPool });
+  for (const id of pins.filter((id) => !owned.some((x) => x.card.id === id))) assert.ok(rankCards([{ card: data.cardById.get(id)!, lb: 2 }], targets, before, ctx)[0]!.marginalValue <= rankCards([{ card: lastChosen.card, lb: 2 }], targets, before, ctx)[0]!.marginalValue + 1e-9, 'no left-out pin outscores the last chosen');
+  const srPins = cards.filter((c) => c.rarity === 'SR' && c.charName !== 'Kitasan Black').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 7).map((c) => c.id);
+  const among = buildDeck(pool, [corner], ctx, { pinnedIds: srPins, borrowPool: all4 });
   const b1 = among.deck.find((x) => x.borrowed)!;
-  assert.ok(pins.includes(b1.card.id) && b1.lb === 4, 'the borrow is one of the leftover pins at LB4');
-  assert.equal(among.deck.filter((x) => pins.includes(x.card.id)).length, 6);
-  const overall = buildDeck(pool, [corner], ctx, { pinnedIds: pins, borrowPool, borrowFromAll: true });
-  const b2 = overall.deck.find((x) => x.borrowed)!;
-  assert.ok(b2.marginalValue >= b1.marginalValue - 1e-9, 'a free choice is at least as good as the best leftover pin, on the same five owned pins');
+  assert.ok(srPins.includes(b1.card.id) && b1.lb === 4 && among.deck.filter((x) => srPins.includes(x.card.id)).length === 6);
+  const overall = buildDeck(pool, [corner], ctx, { pinnedIds: srPins, borrowPool: all4, borrowFromAll: true });
+  assert.ok(overall.deck.find((x) => x.borrowed)!.marginalValue >= b1.marginalValue - 1e-9, 'a free choice is at least as good as the best leftover pin');
   assert.equal(overall.steps.filter((s) => s.includes('pinned but not chosen')).length, 2);
 });
 
-test("a pin of the trainee's own character is reported, and a pinned borrow is never evicted by the upgrade check", () => {
+test('one card per character among pins: the better of two pins of one character is kept, whether owned or unowned, and the other is reported', () => {
   const corner = resolveTarget(200352, data)!;
-  const sw = characters.find((c) => c.name === 'Special Week')!;
-  const ctx: Ctx = makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: sw });
-  const swCard = cards.find((c) => c.charId === sw.charId)!;
-  const d = buildDeck(cards.map((card) => ({ card, lb: 4 })), [corner], ctx, { pinnedIds: [swCard.id], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
-  assert.ok(!d.deck.some((x) => x.card.charId === sw.charId));
-  assert.ok(d.steps.some((s) => s.includes("the trainee's own card")));
-  // Kitasan owned at LB0 in the deck and an unowned pinned borrow: the upgrade would prefer Kitasan LB4 as the borrow, but the pin holds
+  const ctx = ctxOf();
+  const kitas = cards.filter((c) => c.charName === 'Kitasan Black').map((c) => c.id);
+  assert.ok(kitas.length >= 2);
+  const d = buildDeck(all4, [corner], ctx, kitas, 6, all4);
+  assert.equal(d.deck.filter((x) => x.card.charName === 'Kitasan Black').length, 1);
+  assert.ok(d.steps.some((s) => s.includes('pinned but not chosen, same character as')));
+  const kitaSr = cards.find((c) => c.charName === 'Kitasan Black' && c.id !== kitasan.id)!;
+  // the other Kitasan card owned at LB0; the SSR unowned and hinting Corner Recovery at LB4: the borrow wins
+  const e = buildDeck([{ card: kitaSr, lb: 0 }], [corner], ctx, { pinnedIds: [kitaSr.id, kitasan.id], borrowPool: all4 });
+  assert.ok(e.deck.some((x) => x.card.id === kitasan.id && x.borrowed) && !e.deck.some((x) => x.card.id === kitaSr.id));
+  assert.ok(e.steps.some((s) => s.startsWith(kitaSr.name) && s.includes('same character as')));
+  // a pinned card of a character with another card in the pool keeps its own card in the deck
+  const bourbon = cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit')!;
+  const f = buildDeck(cards.map((card) => ({ card, lb: 2 })), [target('Focus')], ctx, [bourbon.id], 6, all4);
+  const bourbons = f.deck.filter((x) => x.card.charId === bourbon.charId);
+  assert.equal(bourbons.length, 1);
+  assert.equal(bourbons[0]!.card.id, bourbon.id);
+});
+
+test("unowned pins ask for the friend's slot: the best one is borrowed over a better free choice (still listed), the rest say where the slot went", () => {
+  const corner = resolveTarget(200352, data)!;
+  const ctx = ctxOf();
+  const ownedPool = cards.filter((c) => c.charName !== 'Kitasan Black' && c.rarity !== 'SSR').map((card) => ({ card, lb: 2 }));
+  const weak = ownedPool.find((p) => !p.card.hintSkills.includes(200352) && !p.card.eventSkills.length)!; // no way to give Corner Recovery
+  assert.ok(buildDeck(ownedPool, [corner], ctx, { pinnedIds: [weak.card.id], borrowPool: all4 }).deck.some((x) => x.card.id === weak.card.id && !x.borrowed), 'an owned pin takes an owned slot');
+  const palmer = cards.find((c) => c.charName === 'Mejiro Palmer' && c.rarity === 'SSR')!; // not in the owned pool
+  const e = buildDeck(ownedPool, [corner], ctx, { pinnedIds: [palmer.id], borrowPool: all4 });
+  const b = e.deck.find((x) => x.borrowed)!;
+  assert.ok(b.card.id === palmer.id && b.lb === 4, 'the unowned pin is the borrow');
+  assert.ok(e.borrowAlternatives.length > 0 && e.borrowAlternatives[0]!.gain >= b.marginalValue, 'the free choice it displaced is still listed');
+  const rPool = cards.filter((c) => c.rarity === 'R').map((card) => ({ card, lb: 4 }));
+  const unowned = cards.filter((c) => c.rarity === 'SSR').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 3).concat(kitasan).map((c) => c.id);
+  const f = buildDeck(rPool, [corner], ctx, { pinnedIds: unowned, borrowPool: all4 });
+  assert.equal(f.deck.filter((x) => x.borrowed).length, 1);
+  assert.equal(f.deck.find((x) => x.borrowed)!.card.id, kitasan.id, 'Kitasan hints Corner Recovery, so she is the best of the unowned pins');
+  assert.equal(f.steps.filter((s) => s.includes("the friend's slot went to")).length, 3);
+});
+
+test("the upgrade check borrows a deck card's LB4 copy when that frees a slot worth more, but never evicts a pinned borrow, and a pin of the trainee's own character is reported", () => {
+  const corner = resolveTarget(200352, data)!;
+  const ctx = ctxOf();
+  // only Kitasan owned (at LB0) and only Kitasan borrowable: the upgrade step swaps the owned copy for the LB4 borrow
+  const d = buildDeck([{ card: kitasan, lb: 0 }], [corner], ctx, [30028], 6, [{ card: kitasan, lb: 4 }]);
+  const k = d.deck.find((x) => x.card.id === 30028)!;
+  assert.ok(k.borrowed && k.lb === 4 && d.borrow?.replaces?.id === 30028 && d.deck.length === 1);
+  // with borrowFromAll, an owned LB0 pin that is the best card overall ends up as the LB4 borrow
+  const others = cards.filter((c) => c.rarity === 'SSR' && c.charName !== 'Kitasan Black').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 5).map((c) => c.id);
+  const e = buildDeck(cards.map((card) => ({ card, lb: 0 })), [corner], ctx, { pinnedIds: [...others, 30028], borrowPool: all4, borrowFromAll: true });
+  const kita = e.deck.find((x) => x.card.id === 30028)!;
+  assert.ok(kita.borrowed && kita.lb === 4 && e.deck.length === 6 && e.borrow?.replaces?.id === 30028);
+  // a pinned borrow holds even when the upgrade would prefer Kitasan LB4
+  const swCtx = ctxOf({ trainee: sw });
   const palmer = cards.find((c) => c.charName === 'Mejiro Palmer' && c.rarity === 'SSR')!;
-  const e = buildDeck([{ card: kitasan, lb: 0 }], [corner], ctx, { pinnedIds: [palmer.id], borrowPool: cards.map((card) => ({ card, lb: 4 })) });
-  assert.equal(e.deck.find((x) => x.borrowed)!.card.id, palmer.id);
-  assert.ok(e.deck.some((x) => x.card.id === kitasan.id && x.lb === 0));
+  const f = buildDeck([{ card: kitasan, lb: 0 }], [corner], swCtx, { pinnedIds: [palmer.id], borrowPool: all4 });
+  assert.equal(f.deck.find((x) => x.borrowed)!.card.id, palmer.id);
+  assert.ok(f.deck.some((x) => x.card.id === kitasan.id && x.lb === 0));
+  const swCard = cards.find((c) => c.charId === sw.charId)!;
+  const g = buildDeck(all4, [corner], swCtx, { pinnedIds: [swCard.id], borrowPool: all4 });
+  assert.ok(!g.deck.some((x) => x.card.charId === sw.charId) && g.steps.some((s) => s.includes("the trainee's own card")));
+});
+
+test('the swap pass never leaves the deck worse than the greedy build, reports each swap, never touches a pin, and values stats by the training focus', () => {
+  const targets = [200352, 201601, 200762, 200452, 201113].map((id) => resolveTarget(id, data)!);
+  const ctx = ctxOf({ trainee: sw });
+  const pool = cards.map((card) => ({ card, lb: 2 }));
+  const greedy = buildDeck(pool, targets, ctx, { pinnedIds: [30052], borrowPool: all4, swapPasses: 0 });
+  const improved = buildDeck(pool, targets, ctx, { pinnedIds: [30052], borrowPool: all4 });
+  const value = (d: typeof greedy) => [...d.sparks.values()].reduce((a, b) => a + b, 0);
+  const stats = (d: typeof greedy) => d.deck.reduce((a, x) => a + x.statPower, 0);
+  assert.ok(value(improved) >= value(greedy) - 1e-9);
+  if (Math.abs(value(improved) - value(greedy)) <= 1e-9) assert.ok(stats(improved) >= stats(greedy) - 1e-6);
+  const swaps = improved.steps.filter((s) => s.startsWith('Swap '));
+  assert.equal(swaps.length > 0, improved.deck.some((d, i) => d.card.id !== greedy.deck[i]?.card.id), 'every change is reported as a swap step');
+  assert.ok(!swaps.some((s) => s.startsWith(`Swap ${data.cardById.get(30052)!.name}`)), 'a pinned card is never swapped out');
+  assert.equal(new Set(improved.deck.map((x) => x.card.charId)).size, improved.deck.length);
+  const f = data.model.focus;
+  buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'sprint' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v, i) => a + v * f.sprint[i]!, 0)) < 1e-6, 'stat power is focus-weighted'));
+  buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'balanced' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v) => a + v, 0)) < 1e-6));
 });
