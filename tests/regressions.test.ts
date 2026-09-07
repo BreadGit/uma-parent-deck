@@ -3,8 +3,20 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/settings.ts';
 import { defaultState, migrate, resetRun } from '../src/state.ts';
+import { eventSources } from '../src/model/sparks.ts';
 
 const data = loadData();
+const settings = () => structuredClone(DEFAULT_SETTINGS);
+
+test('card event sources follow changes to the same settings object, including nested arrays', () => {
+  const s = settings(), creek = data.cardById.get(30016)!;
+  const chance = () => eventSources(creek, s, data).find((src) => src.skillId === 200351)!.pObtain;
+  assert.equal(chance(), 0.12);
+  s.chainRatesSSR[2] = 1;
+  assert.equal(chance(), 1);
+  s.chainRatesSSR = [0, 0, 0];
+  assert.equal(chance(), 0);
+});
 
 test('new states and resets do not share mutable run or settings defaults', () => {
   const a = defaultState(data), b = defaultState(data);

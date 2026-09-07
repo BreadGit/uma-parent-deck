@@ -101,16 +101,10 @@ function outcomeSkillShares(outcome: Reward[], data: Data, settings: Settings): 
 
 const EVENT_LABEL: Record<CardEvent['kind'], string> = { chain: 'Chain event', random: 'Random event', recreation: 'Outing', special: 'Special event' };
 
-/** The settings eventSources reads, as a cache key; built once per settings object, since the lookup runs per card per evaluation. */
-const settingsKeyCache = new WeakMap<Settings, string>();
+/** Settings are edited in place, so the cache key must reflect their current values. */
 function eventSettingsKey(s: Settings): string {
-  let key = settingsKeyCache.get(s);
-  if (key === undefined) {
-    key = [s.chainRatesSSR, s.chainRatesSR, s.randomEventRate, s.palChainRate, s.groupOutingRate, s.groupFinaleRate, s.specialEventRate, s.goldRollStat,
-      s.charStoryEventRate, s.charOutingRate, s.charUndecodedEventRate, s.charConditionFallbackRate].flat().join(',');
-    settingsKeyCache.set(s, key);
-  }
-  return key;
+  return [s.chainRatesSSR, s.chainRatesSR, s.randomEventRate, s.palChainRate, s.groupOutingRate, s.groupFinaleRate, s.specialEventRate, s.goldRollStat,
+    s.charStoryEventRate, s.charOutingRate, s.charUndecodedEventRate, s.charConditionFallbackRate].flat().join(',');
 }
 const eventSourceCache = new WeakMap<Card, { key: string; value: EventSource[] }>();
 
