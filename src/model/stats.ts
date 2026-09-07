@@ -17,9 +17,16 @@ export function passives(card: Card, lb: number): Record<number, number> {
   return out;
 }
 
+/** Total career turns for the race scaling: the override only when it sits above the reference race count (the settings spec enforces this; a bad saved value falls back to the fit). */
+export function totalTurns(model: StatModel, settings: Settings): number {
+  const T = settings.totalTurnsOverride;
+  return T != null && Number.isFinite(T) && T > model.races.reference ? T : model.races.totalTurns;
+}
 export function raceScale(races: number, model: StatModel, settings: Settings): number {
-  const T = settings.totalTurnsOverride ?? model.races.totalTurns;
-  return Math.max(0, T - races) / (T - model.races.reference);
+  const T = totalTurns(model, settings);
+  const scale = Math.max(0, T - races) / (T - model.races.reference);
+  if (!Number.isFinite(scale)) throw new Error(`race scale is not finite (total turns ${T}, reference ${model.races.reference})`);
+  return scale;
 }
 
 /** Model-only card contribution at the reference race count, balanced focus. */
@@ -101,7 +108,9 @@ export function predictDeck(deck: DeckInput[], trainee: Character | null, races:
   const sd = model.sigma.map((s) => s);
   const sp = cardSp + (interp(model, 'eventSp', r) as number);
   const base = trainee?.baseStats ?? [0, 0, 0, 0, 0];
-  return { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: mean.map((v, i) => v + (base[i] ?? 0)) };
+  const out = { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: mean.map((v, i) => v + (base[i] ?? 0)) };
+  for (const v of [...out.mean, ...out.sd, ...out.finalMean, out.sp]) if (!Number.isFinite(v)) throw new Error('prediction produced a non-finite number');
+  return out;
 }
 
 /** Standard normal CDF. */
