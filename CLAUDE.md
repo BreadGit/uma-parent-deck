@@ -28,8 +28,13 @@ Facts about the game belong in code, not prose, with a test per rule. Terms are 
 
 lit owns the children of everything it renders: never set `innerHTML` or `textContent` inside the app
 root. An element a handler writes to directly (the threshold `<output>`) is bound by property
-(`.value=`), not by a child expression. Boolean attributes use `?selected=`, `?open=`, `?disabled=`;
-inputs the user types into bind `.value=${live(...)}` so a state reset reaches the field. Keep the
+(`.value=`), not by a child expression. Boolean attributes use `?open=` and `?disabled=`. Every field
+that mirrors state (inputs the user types into and every `<select>`) binds `.value=${live(...)}`: a `<select>`
+the user has changed ignores later `?selected` changes on its options, so one that lit reuses for a different
+card or stat keeps a stale value (the deck LB dropdowns did). Render a list whose rows carry fields with
+`repeat()` keyed by identity, so a row that changes identity gets a new element. The smoke test's
+`assertFieldsMatchState` compares every state-bound field with the saved state; call it after any new
+interaction. Keep the
 `data-*` attributes on interactive elements: the smoke test selects by them.
 
 Styling: colours come from CSS variables in the two theme blocks at the top of `src/style.css`, nothing

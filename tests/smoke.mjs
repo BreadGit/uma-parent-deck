@@ -12,6 +12,38 @@ await page.waitForSelector('h1');
 await page.evaluate(() => localStorage.clear());
 await page.reload();
 
+/**
+ * Every form field that mirrors persisted state must show that state. A <select> the user has changed ignores later
+ * `selected` attribute changes on its options, so a field that lit reuses for a different card or stat would keep a
+ * stale value unless its value is bound live; this catches that whatever the field.
+ */
+async function assertFieldsMatchState(where) {
+  const bad = await page.evaluate(() => {
+    const st = JSON.parse(localStorage.getItem('uma-parent-deck.v4') ?? '{}');
+    const out = [];
+    for (const el of document.querySelectorAll('select[data-lb]')) {
+      const v = st.inventory?.[el.dataset.lb];
+      const want = v === null ? 'none' : String(v ?? 4);
+      if (el.value !== want) out.push(`LB select for ${el.dataset.lb} shows ${el.value}, state ${want}`);
+    }
+    for (const el of document.querySelectorAll('select[data-gain]')) {
+      const [p, i] = el.dataset.gain.split('-').map(Number);
+      const want = String(st.run?.parentGains?.[p]?.[i] ?? 0);
+      if (el.value !== want) out.push(`gain select ${el.dataset.gain} shows ${el.value}, state ${want}`);
+    }
+    for (const el of document.querySelectorAll('select[data-apt]')) {
+      const over = st.run?.aptOverrides?.[el.dataset.apt];
+      if (over && el.value !== over) out.push(`aptitude select ${el.dataset.apt} shows ${el.value}, override ${over}`);
+    }
+    for (const el of document.querySelectorAll('[data-setting]')) {
+      const v = st.settings?.[el.dataset.setting];
+      if (el.tagName === 'SELECT' && v !== undefined && el.value !== String(v)) out.push(`setting ${el.dataset.setting} shows ${el.value}, state ${v}`);
+    }
+    return out;
+  });
+  assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
+}
+
 // A range input must stay mounted while it is dragged. Replacing it on each input event
 // breaks pointer capture and prevents the thumb from reaching the pointer.
 const threshold = page.locator('input[data-setting="winThreshold"]');
@@ -127,6 +159,8 @@ await page.screenshot({ path: 'docs/screenshot.png', fullPage: true });
   assert.ok(after < before, `skipping a slot should remove a race (${before} -> ${after})`);
 }
 await page.selectOption('select[data-lb="30028"]', '2');
+await page.waitForTimeout(300);
+await assertFieldsMatchState('after changing an LB in the ranking');
 await page.selectOption('select[data-lb="30052"]', 'none');
 await page.waitForTimeout(200);
 // the default Light Hello pin, once marked not owned, becomes a borrow request and takes the friend's slot
@@ -138,6 +172,7 @@ console.log('deck after marking Light Hello SSR not owned: borrow =', afterUnown
 await page.selectOption('select[data-apt="turf"]', 'G');
 await page.click('button[data-action="reset-legacy"]');
 await page.waitForTimeout(200);
+await assertFieldsMatchState('after the legacy reset');
 const afterReset = await page.evaluate(() => ({ gains: [...document.querySelectorAll('select[data-gain]')].map((s) => s.value).join(','), turf: document.querySelector('select[data-apt="turf"]').value, options: document.querySelectorAll('select[data-gain="0-0"] option').length }));
 assert.equal(afterReset.gains, Array(10).fill('0').join(','), 'every start gain is back to +0');
 assert.equal(afterReset.turf, baseTurf, 'the aptitude override is gone');
