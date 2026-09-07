@@ -35,6 +35,9 @@ async function assertFieldsMatchState(where) {
       const over = st.run?.aptOverrides?.[el.dataset.apt];
       if (over && el.value !== over) out.push(`aptitude select ${el.dataset.apt} shows ${el.value}, override ${over}`);
     }
+    for (const el of document.querySelectorAll('select[data-select="trainee-stars"]')) {
+      if (el.value !== String(st.run?.traineeStars ?? 3)) out.push(`trainee stars shows ${el.value}, state ${st.run?.traineeStars}`);
+    }
     for (const el of document.querySelectorAll('[data-setting]')) {
       const v = st.settings?.[el.dataset.setting];
       if (el.tagName === 'SELECT' && v !== undefined && el.value !== String(v)) out.push(`setting ${el.dataset.setting} shows ${el.value}, state ${v}`);
@@ -97,7 +100,16 @@ const pickTrainee = async (q) => {
 };
 await pickTrainee('special week hopp');
 assert.equal(await page.inputValue('select[data-apt="turf"]'), baseTurf, 'selecting a trainee did not restore her default aptitude');
+// the star count belongs to the trainee: 1★ set on a 1★ uma is clamped up to a 3★ uma's rarity when she is picked
+await pickTrainee('haru urara');
+await page.selectOption('select[data-select="trainee-stars"]', '1');
+await page.waitForTimeout(200);
+await assertFieldsMatchState('after setting 1★ on Haru Urara');
 await pickTrainee('special dreamer');
+await page.waitForTimeout(200);
+const starsAfterSwitch = await page.evaluate(() => ({ shown: document.querySelector('select[data-select="trainee-stars"]').value, saved: JSON.parse(localStorage.getItem('uma-parent-deck.v4')).run.traineeStars }));
+assert.deepEqual(starsAfterSwitch, { shown: '3', saved: 3 }, 'a 3★ trainee cannot keep a 1★ count');
+await assertFieldsMatchState('after switching trainee');
 await page.click('details[data-details="advanced"] > summary');
 const advancedOverflow = await page.$eval('details[data-details="advanced"]', (details) => {
   const panelRight = details.closest('section.panel').getBoundingClientRect().right;

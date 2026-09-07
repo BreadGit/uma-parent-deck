@@ -6,6 +6,7 @@ import type { RunInput } from './model/run.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { gainOfSparks, sparksFromGain, sparksFromStars } from './model/inherit.ts';
+import { clampStars } from './model/trainee.ts';
 import type { Grade } from './types.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
@@ -42,6 +43,8 @@ function migrateRun(raw: Json, data: Data): RunInput {
   for (const k of ['targets', 'wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = numList(raw[k]);
   if (typeof raw.traineeCardId === 'number') run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
+  // the star count belongs to the trainee: at least her rarity, at most five
+  run.traineeStars = clampStars(run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) ?? null : null, run.traineeStars);
   if (typeof raw.borrowFromAll === 'boolean') run.borrowFromAll = raw.borrowFromAll;
   // aptitude overrides: S cannot show on the pre-run screen (only an inspiration event reaches it) and wins like A, so it becomes A
   if (isObj(raw.aptOverrides)) run.aptOverrides = Object.fromEntries(Object.entries(raw.aptOverrides).filter(([, v]) => typeof v === 'string').map(([k, v]) => [k, v === 'S' ? 'A' : v])) as Partial<Record<string, Grade>> as RunInput['aptOverrides'];

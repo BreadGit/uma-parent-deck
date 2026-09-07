@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
 import { applyUserOrder, derivePriority, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
-import { hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
+import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankEstimate } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
 import { SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
@@ -45,6 +45,20 @@ test('rank estimate: the unique skill at its level and a share of the innate ski
   assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 6, apt, data, settings).uniquePts, 1020);
   assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 2, 2, apt, data, settings).uniquePts, 240, 'a 2★ trainee scores 120 per level');
   assert.equal(low.ssMin, data.ranks.find((r) => r.name === 'SS')!.min);
+});
+
+test('the star count is clamped to the trainee: a count below her rarity cannot lower her unique skill', () => {
+  assert.equal(clampStars(sw, 1), 3, 'Special Week is a 3★ uma');
+  assert.equal(clampStars(sw, 9), 5);
+  assert.equal(clampStars(sw, NaN), 3);
+  assert.equal(clampStars(null, 1), 1);
+  const urara = data.characters.find((c) => c.name === 'Haru Urara')!;
+  assert.equal(clampStars(urara, 1), 1, 'a 1★ uma can be 1★');
+  const at = (traineeStars: number) => planRun({ ...empty, traineeCardId: sw.cardId, traineeStars }, settings, {}, data);
+  const p1 = at(1), p3 = at(3), p5 = at(5);
+  assert.equal(p1.rank.uniqueLevel, p3.rank.uniqueLevel);
+  assert.equal(p1.rank.score, p3.rank.score, 'a stale 1★ scores like 3★');
+  assert.ok(p5.rank.uniquePts > p3.rank.uniquePts && p5.rank.uniqueLevel <= 6);
 });
 
 test('a total-turn override at or below the reference race count is rejected and cannot divide by zero', () => {

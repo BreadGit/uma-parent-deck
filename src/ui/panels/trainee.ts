@@ -3,7 +3,7 @@ import { live } from 'lit-html/directives/live.js';
 import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { data, refresh, store, update, view } from '../context.ts';
-import { hasExactStarTable } from '../../model/trainee.ts';
+import { clampStars, hasExactStarTable, STARS_MAX } from '../../model/trainee.ts';
 import { capitalize, charImg, skillName } from '../format.ts';
 import { tip } from '../tooltip.ts';
 
@@ -16,7 +16,7 @@ function suggestions() {
 }
 function pickTrainee(cardId: number | null) {
   view.traineeQuery = '';
-  update((s) => { s.run.traineeCardId = cardId; s.run.aptOverrides = {}; });
+  update((s) => { s.run.traineeCardId = cardId; s.run.aptOverrides = {}; s.run.traineeStars = clampStars(cardId != null ? data.charByCardId.get(cardId) ?? null : null, s.run.traineeStars); });
 }
 
 export function renderTrainee(c: RunPlan) {
@@ -32,8 +32,8 @@ export function renderTrainee(c: RunPlan) {
         </div>
         <div class="grid2 gap-v">
           <label class="row"><span class="k">Stars${tip('Raised with pieces. Picks the base stats from the table GameTora lists for that star count; only a count the feed lacks is interpolated between the nearest tables.')}</span>
-            <select data-select="trainee-stars" @change=${(e: Event) => update((s) => { s.run.traineeStars = Number((e.target as HTMLSelectElement).value); })}>
-              ${[1, 2, 3, 4, 5].filter((k) => k >= (data.charByCardId.get(t.cardId)?.rarity ?? 1)).map((k) => html`<option value="${k}" ?selected=${store.run.traineeStars === k}>${k}★</option>`)}</select></label>
+            <select data-select="trainee-stars" .value=${live(String(store.run.traineeStars))} @change=${(e: Event) => update((s) => { s.run.traineeStars = Number((e.target as HTMLSelectElement).value); })}>
+              ${Array.from({ length: STARS_MAX }, (_, i) => i + 1).filter((k) => k >= (data.charByCardId.get(t.cardId)?.rarity ?? 1)).map((k) => html`<option value="${k}" ?selected=${store.run.traineeStars === k}>${k}★</option>`)}</select></label>
         </div>
         <div class="small muted">Base stats: ${t.baseStats.join(' / ')}${hasExactStarTable(data.charByCardId.get(t.cardId)!, store.run.traineeStars) ? nothing : html` <span class="warn">(interpolated: GameTora lists no ${store.run.traineeStars}★ table)</span>`}</div>
         <div class="small muted">Growth bonuses: ${t.growth.some((g) => g > 0) ? STATS.map((s, i) => t.growth[i]! > 0 ? `${capitalize(s)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</div>

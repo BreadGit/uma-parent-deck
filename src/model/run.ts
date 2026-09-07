@@ -6,7 +6,7 @@ import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { rankEstimate, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { inheritedFromParents, type Inheritance } from './inherit.ts';
-import { traineeAt } from './trainee.ts';
+import { clampStars, traineeAt } from './trainee.ts';
 import { BORROWED_LB, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS } from './rules.ts';
 
 /** Everything the user chose about the run. The app persists exactly this (plus UI-only fields). */
@@ -143,7 +143,8 @@ export function targetSpCost(targets: Target[], coverage: Map<number, SkillSourc
 /** Plan the whole run: schedule, deck, prediction, rank estimate and prioritized skills. Pure; the app memoizes it. */
 export function planRun(input: RunInput, settings: Settings, inventory: Inventory, data: Data): RunPlan {
   const traineeCard = input.traineeCardId != null ? data.charByCardId.get(input.traineeCardId) ?? null : null;
-  const trainee = traineeCard ? traineeAt(traineeCard, input.traineeStars) : null;
+  const stars = clampStars(traineeCard, input.traineeStars);
+  const trainee = traineeCard ? traineeAt(traineeCard, stars) : null;
   const apt = traineeAptitudes(trainee, input.aptOverrides);
   const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(input.raceOverrides)), racePopularityMap(data), goalRaces(traineeCard));
   const sum = scheduleSummary(schedule);
@@ -174,8 +175,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => v > caps[i]! + inherited[i]!.uncap) } : null;
   const finalMean = statCaps ? rawFinalMean.map((v, i) => Math.min(v, statCaps.cap[i]!)) : rawFinalMean;
-  const uniqueLevel = trainee ? uniqueSkillLevel(input.traineeStars, apt, (slot) => expectedFansBefore(schedule, slot), settings) : 0;
-  const rank = rankEstimate(finalMean, pred.sd, pred.sp, trainee, input.traineeStars, uniqueLevel, trainee ? apt : null, data, settings);
+  const uniqueLevel = trainee ? uniqueSkillLevel(stars, apt, (slot) => expectedFansBefore(schedule, slot), settings) : 0;
+  const rank = rankEstimate(finalMean, pred.sd, pred.sp, trainee, stars, uniqueLevel, trainee ? apt : null, data, settings);
   const spCost = targetSpCost(targets, deckResult.coverage);
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);
   const ordered = order(candidates);

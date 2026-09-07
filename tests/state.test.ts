@@ -32,6 +32,9 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.deepEqual(s2.run.targetLineage, { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } });
   assert.deepEqual(s2.run.raceOverrides, { a: true });
   assert.equal(s2.run.traineeStars, 3);
+  const sw = data.characters.find((c) => c.name === 'Special Week')!;
+  assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 1 } }, data).run.traineeStars, 3, 'a star count below the trainee\'s rarity is raised to it');
+  assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 7 } }, data).run.traineeStars, 5);
 });
 
 test('v4 saves (stars per parent) become v5 start gains, gains the screen cannot show are dropped, and an S aptitude override becomes A', () => {
