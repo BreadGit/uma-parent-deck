@@ -112,7 +112,12 @@ fit uses the Loopacord "Independent Training Research" sheet (`docs/`), 169 card
   Power->Stamina, Guts->Speed+Power, Wit->Speed) it adds a constant plus about 0.6 per
   point of Friendship Bonus, 0.7 per point of Training Effectiveness, 0.1 per point of
   Mood Effect and 11 per point of Stat Bonus. Specialty Priority does not show up.
-  RMSE 4.6 stat points, R² 0.95.
+  RMSE 3.4 stat points, R² 0.97.
+- A conditional unique effect the model can approximate (bond, friendship count, total bond, fan or
+  facility-level conditions) is folded into the passives at an assumed share of the run at full
+  strength (0.75, fitted); the two deck-dependent ones (Agnes Digital's card types, Symboli Rudolf's
+  initial stats per card) are evaluated from the finished deck. See
+  `docs/refs/gametora-unique-effects.md`.
 - Every card stat scales by (T - races) / (T - 28) with T ≈ 72 turns, from the same decks
   run at 28 and 23 races.
 - Event stats (which include race rewards) are deck independent: about 640/243/398/337/457
@@ -159,8 +164,9 @@ advanced settings panel.
   and green sparks are unknown; each is an explicit assumption or left out.
 - The stat model is an empirical fit: race scaling from one 23 versus 28 race comparison, focus
   multipliers from two decks, fixed per-stat spreads, and event stats at the reference decks' Race
-  Bonus (the deck's total is shown but not modelled). Forty cards carry a conditional unique effect the
-  model does not evaluate; they are flagged in the ranking with GameTora's description of the effect.
+  Bonus (the deck's total is shown but not modelled). Seven of the fourteen conditional unique-effect types depend on
+  turn-by-turn state and are left out; the ranking flags every conditional effect with GameTora's
+  description and what the model does with it.
 - The agenda uses start-of-run aptitudes for the whole run; a pink spark proc at an inspiration event
   is not modelled. Which option wins when several prioritized skills sit in one event is an assumption
   (list order), not a measured rule.

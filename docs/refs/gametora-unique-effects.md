@@ -31,15 +31,25 @@ Schemas decoded 2026-09-06 from one card per type (the feed's Global cards use t
 
 Payload fields marked `?` did not match the rendered text one to one; check the text before using them.
 
-## What the stat model could do with them
+## What the stat model does with them
 
-The independent-training stat model (`data/stat-model.json`, `src/model/stats.ts`) is a fit on passives. A card
-with an observed Loopacord row already carries its unique effect inside the observation; a model-only card
-loses it. Candidates for an approximation, each needing an explicit assumption:
+The independent-training stat model (`data/stat-model.json`, `src/model/stats.ts`) is a fit on passives. The
+normalizer (`uniqueModel()` in `scripts/fetch-gametora.mjs`) folds the approximable types into `effectsByLb` as
+`u<effect id>` from the unlock level on, and records what it did in `unique.model`; the fit script and the app read
+the same folded passives.
 
-- 103 and 105 depend only on the deck and could be evaluated exactly once the contribution model takes the deck
-  as input (it scores cards one at a time today).
-- 104 depends on fans, which the agenda predicts (`expectedFansBefore`); a 20-race agenda caps it early.
-- 101, 106, 109 and 111 ramp up over the run (bond, friendship count, total bond, facility level) and would need a
-  "share of the run at full effect" setting.
-- 102, 107, 108, 110, 112, 113 and 114 depend on turn-by-turn state (facility, energy, crowding) and stay out.
+| Type | Folded as | Assumption |
+|---:|---|---|
+| 101 | effect value_1 +value_2 × share, effect value_3 +value_4 × share | bond `value` reached for a share of the run |
+| 104 | Training Effectiveness +value_1 | the fan cap is reached early on any G1 agenda |
+| 106 | Friendship Bonus +value × value_2 × share | the `value` friendship trainings done for a share of the run |
+| 109 | Training Effectiveness +(600 / value_1) × share | 600 total bond reached for a share of the run |
+| 111 | Training Effectiveness +value_1 × 5 × share | facility level 5 for a share of the run |
+| 103 | applied by `deckUniqueExtras()` in `src/model/stats.ts` once the deck is known | exact, given the deck |
+| 105 | applied by `deckUniqueExtras()`: initial stat per card of that type, value_1 per Pal or Group card | exact, given the deck |
+| 102, 107, 108, 110, 112, 113, 114 | nothing | turn-by-turn state (facility, energy, crowding) |
+
+The share (`UNIQUE_RAMP_SHARE`) is 0.75, chosen by refitting the model on the Loopacord rows at 0.25, 0.5, 0.75 and
+1.0 (RMSE 4.31, 3.71, 3.40, 3.52 against 4.64 with nothing folded). It is fitted on the same 271 rows the model is,
+not measured from bond or facility logs. Deck-dependent extras only reach model-based contributions: an observed row
+already contains the effect at the deck it was logged with, and an LB shift cancels it.
