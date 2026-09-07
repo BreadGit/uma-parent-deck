@@ -175,7 +175,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => v > caps[i]! + inherited[i]!.uncap) } : null;
   const finalMean = statCaps ? rawFinalMean.map((v, i) => Math.min(v, statCaps.cap[i]!)) : rawFinalMean;
-  const uniqueLevel = trainee ? uniqueSkillLevel(stars, apt, (slot) => expectedFansBefore(schedule, slot), settings) : 0;
+  // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
+  const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, (slot) => expectedFansBefore(schedule, slot), settings) : 0;
   const rank = rankEstimate(finalMean, pred.sd, pred.sp, trainee, stars, uniqueLevel, trainee ? apt : null, data, settings);
   const spCost = targetSpCost(targets, deckResult.coverage);
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);

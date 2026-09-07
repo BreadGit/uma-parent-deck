@@ -76,7 +76,7 @@ export function uniqueSkillScore(stars: number, level: number): number {
   return (stars <= 2 ? UNIQUE_SKILL_SCORE_PER_LEVEL.lowStar : UNIQUE_SKILL_SCORE_PER_LEVEL.highStar) * level;
 }
 
-/** A trainee whose dirt aptitude beats her turf aptitude uses the lower fan thresholds (Haru Urara, Smart Falcon). */
+/** A trainee whose own dirt aptitude beats her turf aptitude uses the lower fan thresholds (Haru Urara, Smart Falcon). Pass the character's table, not the run's overrides. */
 const dirtOriented = (apt: Aptitudes) => bucketOf(apt.dirt) === 'good' && bucketOf(apt.turf) !== 'good';
 /**
  * Expected unique-skill level at run end: the trainee's stars, plus one for each fan check the agenda's expected
