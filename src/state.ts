@@ -6,6 +6,7 @@ import type { RunInput } from './model/run.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { gainOfSparks, sparksFromGain, sparksFromStars } from './model/inherit.ts';
+import type { Grade } from './types.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme }
@@ -42,7 +43,8 @@ function migrateRun(raw: Json, data: Data): RunInput {
   if (typeof raw.traineeCardId === 'number') run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
   if (typeof raw.borrowFromAll === 'boolean') run.borrowFromAll = raw.borrowFromAll;
-  if (isObj(raw.aptOverrides)) run.aptOverrides = raw.aptOverrides as RunInput['aptOverrides'];
+  // aptitude overrides: S cannot show on the pre-run screen (only an inspiration event reaches it) and wins like A, so it becomes A
+  if (isObj(raw.aptOverrides)) run.aptOverrides = Object.fromEntries(Object.entries(raw.aptOverrides).filter(([, v]) => typeof v === 'string').map(([k, v]) => [k, v === 'S' ? 'A' : v])) as Partial<Record<string, Grade>> as RunInput['aptOverrides'];
   if (isObj(raw.raceOverrides)) run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([, v]) => typeof v === 'boolean')) as Record<string, boolean>;
   // pins: a single pinnedId (v1) became pinnedIds (v2)
   if (Array.isArray(raw.pinnedIds)) run.pinnedIds = numList(raw.pinnedIds);

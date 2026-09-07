@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS, parseSetting, sanitizeSettings } from '../src/setting
 
 const data = loadData();
 
-test('nothing saved gives the defaults with Light Hello pinned', () => {
+test('nothing saved, or garbage in every slot, gives the defaults with Light Hello pinned', () => {
   const s = migrate({}, data);
   assert.equal(s.version, STATE_VERSION);
   assert.deepEqual(s.run.pinnedIds, defaultPins(data));
@@ -14,46 +14,45 @@ test('nothing saved gives the defaults with Light Hello pinned', () => {
   assert.deepEqual(s.settings, DEFAULT_SETTINGS);
   assert.deepEqual(s.inventory, {});
   assert.deepEqual(s.ui, { sortKey: 'score', theme: 'system' });
+  assert.deepEqual(migrate({ current: 'nope', state: 42, settings: [1], inventory: 'x', theme: 'neon' }, data), s);
 });
 
-test('v1 run state: single pin, combined blue stars and {n, stars} lineage migrate', () => {
+test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars} lineage; v2 stars per parent; malformed fields fall back', () => {
   const v1 = { targets: [200352], pinnedId: 30028, blueStars: [9, 9, 3, 0, 0], targetLineage: { '200352': { n: 3, stars: 3 } }, sortKey: 'stats' };
-  const s = migrate({ state: v1 }, data);
-  assert.deepEqual(s.run.pinnedIds, [30028]);
-  assert.deepEqual(s.run.parentGains, [[63, 0, 0, 0, 0], [0, 63, 21, 0, 0]], 'parent 1 fills first, the rest goes to parent 2, stars become start gains');
-  assert.deepEqual(s.run.targetLineage['200352'], { k1: 2, k2: 1, p1: 6, p2: 3 });
-  assert.equal(s.ui.sortKey, 'stats');
+  const s1 = migrate({ state: v1 }, data);
+  assert.deepEqual(s1.run.pinnedIds, [30028]);
+  assert.deepEqual(s1.run.parentGains, [[63, 0, 0, 0, 0], [0, 63, 21, 0, 0]], 'parent 1 fills first, the rest goes to parent 2, stars become start gains');
+  assert.deepEqual(s1.run.targetLineage['200352'], { k1: 2, k2: 1, p1: 6, p2: 3 });
+  assert.equal(s1.ui.sortKey, 'stats');
+  const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { a: true, b: 'no' }, traineeStars: 'five' };
+  const s2 = migrate({ state: v2 }, data);
+  assert.deepEqual(s2.run.targets, [200352]);
+  assert.deepEqual(s2.run.pinnedIds, [30052, 30028]);
+  assert.deepEqual(s2.run.parentGains, [[5, 12, 21, 0, 0], [0, 0, 0, 26, 33]], 'v2 stars per stat pack into sparks: 4★ is 3★+1★ (+26), 5★ is 3★+2★ (+33)');
+  assert.deepEqual(s2.run.targetLineage, { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } });
+  assert.deepEqual(s2.run.raceOverrides, { a: true });
+  assert.equal(s2.run.traineeStars, 3);
 });
 
-test('v2 run state passes through and malformed fields fall back', () => {
-  const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { a: true, b: 'no' }, traineeStars: 'five' };
-  const s = migrate({ state: v2 }, data);
-  assert.deepEqual(s.run.targets, [200352]);
-  assert.deepEqual(s.run.pinnedIds, [30052, 30028]);
-  assert.deepEqual(s.run.parentGains, [[5, 12, 21, 0, 0], [0, 0, 0, 26, 33]], 'v2 stars per stat pack into sparks: 4★ is 3★+1★ (+26), 5★ is 3★+2★ (+33)');
-  assert.deepEqual(s.run.targetLineage, { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } });
-  assert.deepEqual(s.run.raceOverrides, { a: true });
-  assert.equal(s.run.traineeStars, 3);
+test('v4 saves (stars per parent) become v5 start gains, gains the screen cannot show are dropped, and an S aptitude override becomes A', () => {
+  const v4 = { version: 4, run: { parentStars: [[9, 3, 0, 0, 0], [0, 0, 0, 0, 0]], aptOverrides: { turf: 'S', dirt: 'B' } }, settings: {}, inventory: {}, ui: { sortKey: 'score', theme: 'light' } };
+  const s = migrate({ current: v4 }, data);
+  assert.equal(s.version, STATE_VERSION);
+  assert.deepEqual(s.run.parentGains, [[63, 21, 0, 0, 0], [0, 0, 0, 0, 0]]);
+  assert.deepEqual(s.run.aptOverrides, { turf: 'A', dirt: 'B' }, 'S cannot show on the pre-run screen and wins like A');
+  const v5 = { version: 5, run: { parentGains: [[26, 7, 0, 0, 0], [0, 0, 0, 0, 63]] } };
+  assert.deepEqual(migrate({ current: v5 }, data).run.parentGains, [[26, 0, 0, 0, 0], [0, 0, 0, 0, 63]], '+7 is not a possible sum');
 });
 
 test('legacy settings blobs: version bumps apply and invalid values are dropped', () => {
-  const s1 = migrate({ settings: { version: 1, defaultLb: { R: 4, SR: 4, SSR: 0 }, showUnowned: false, ssStarOdds: [0.5, 0.5], hintBase: 0.1 } }, data);
+  const s1 = migrate({ settings: { version: 1, defaultLb: { R: 4, SR: 4, SSR: 0 }, showUnowned: false, chainRatesSSR: [0.5, 0.5], hintBase: 0.1 } }, data);
   assert.equal(s1.settings.defaultLb.SSR, 4, 'v1 -> SSR default LB becomes 4');
   assert.equal(s1.settings.showUnowned, true, 'v2 -> unowned shown by default');
-  assert.deepEqual(s1.settings.ssStarOdds, DEFAULT_SETTINGS.ssStarOdds, 'a two-entry list is rejected');
+  assert.deepEqual(s1.settings.chainRatesSSR, DEFAULT_SETTINGS.chainRatesSSR, 'a two-entry list is rejected');
   assert.equal(s1.settings.hintBase, 0.1);
   const s3 = migrate({ settings: { version: 3, showUnowned: false, defaultLb: { R: 2, SR: 3, SSR: 1 } } }, data);
   assert.equal(s3.settings.showUnowned, false);
   assert.deepEqual(s3.settings.defaultLb, { R: 2, SR: 3, SSR: 1 });
-});
-
-test('v4 saves (stars per parent) become v5 start gains; v5 gains that the screen cannot show are dropped', () => {
-  const v4 = { version: 4, run: { parentStars: [[9, 3, 0, 0, 0], [0, 0, 0, 0, 0]] }, settings: {}, inventory: {}, ui: { sortKey: 'score', theme: 'light' } };
-  const s = migrate({ current: v4 }, data);
-  assert.equal(s.version, 5);
-  assert.deepEqual(s.run.parentGains, [[63, 21, 0, 0, 0], [0, 0, 0, 0, 0]]);
-  const v5 = { version: 5, run: { parentGains: [[26, 7, 0, 0, 0], [0, 0, 0, 0, 63]] } };
-  assert.deepEqual(migrate({ current: v5 }, data).run.parentGains, [[26, 0, 0, 0, 0], [0, 0, 0, 0, 63]], '+7 is not a possible sum');
 });
 
 test('the current shape round-trips and wins over legacy keys', () => {
@@ -63,16 +62,8 @@ test('the current shape round-trips and wins over legacy keys', () => {
   assert.deepEqual(back, cur);
 });
 
-test('garbage in every slot gives the defaults', () => {
-  const s = migrate({ current: 'nope', state: 42, settings: [1], inventory: 'x', theme: 'neon' }, data);
-  assert.deepEqual(s, migrate({}, data));
-});
-
-test('inventory entries must be numeric ids with LB 0..4 or null', () => {
+test('validation: inventory entries are numeric ids with LB 0..4 or null; every setting is parsed against its spec and retired keys are dropped', () => {
   assert.deepEqual(sanitizeInventory({ '30028': 4, '30052': null, '1': 7, abc: 2, '2': '3', '3': 2.5 }), { '30028': 4, '30052': null });
-});
-
-test('parseSetting enforces each spec', () => {
   assert.equal(parseSetting('winThreshold', '0.7'), 0.7);
   assert.equal(parseSetting('winThreshold', '1.5'), undefined);
   assert.equal(parseSetting('winThreshold', 'abc'), undefined);
@@ -84,5 +75,7 @@ test('parseSetting enforces each spec', () => {
   assert.equal(parseSetting('focus', 'fast'), undefined);
   assert.equal(parseSetting('showUnowned', false), false);
   assert.equal(parseSetting('defaultLb', '4'), undefined);
-  assert.deepEqual(sanitizeSettings({ affinity: -1, hintScale: 2 }), { ...DEFAULT_SETTINGS, hintScale: 2 });
+  assert.equal(parseSetting('scenarioId', '5'), undefined, 'only the supported scenario');
+  assert.equal(parseSetting('scenarioId', '3'), 3);
+  assert.deepEqual(sanitizeSettings({ affinity: -1, hintScale: 2, bigRewardRate: 0.3 } as Record<string, unknown>), { ...DEFAULT_SETTINGS, hintScale: 2 }, 'out-of-range and retired keys are dropped');
 });

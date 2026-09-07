@@ -33,10 +33,10 @@ export function renderSettings() {
         <span class="small muted">Replace the repo's inventory.json with the export to make it the default.</span>
       </div>
       <details ?open=${view.showAdvanced} data-details="advanced" @toggle=${(e: Event) => { view.showAdvanced = (e.target as HTMLDetailsElement).open; }}><summary>Advanced settings</summary>
-        <div class="small muted gap-v">These numbers override the tool's estimates. Each one is a rate or scale the model needs but the game does not tell us; the defaults come from community measurements where they exist and from guesses where they do not. Hover the ⓘ next to a field for what it does and why the default is what it is.</div>
+        <div class="small muted gap-v">These numbers override the tool's estimates. Each one is a rate or scale the model needs but the game does not tell us; the defaults come from community measurements where they exist and from guesses where they do not. Hover the ⓘ next to a field for what it does and why the default is what it is. The stat model behind the predicted run is an empirical fit (Loopacord logs at 28 and 23 races, two decks for the focus multipliers), not the game's formula, and the rank and P(SS) figures inherit that.</div>
         <h3>Rates</h3>
         <div class="grid2 settings-grid">
-          ${numField('affinity', 'Legacy affinity (inspiration proc scaling)', 1)}
+          ${numField('affinity', 'Affinity assumed per uma (inspiration procs)', 1)}
           ${numField('hintBase', 'Hint chance per card-turn (base)')}
           ${numField('hintScale', 'Hint model scale (independent training)')}
           ${numField('hintTurnsShare', 'Share of turns a card is on a facility')}
@@ -48,16 +48,19 @@ export function renderSettings() {
           ${numField('groupFinaleRate', 'Group finale happens (unverified)')}
           ${numField('specialEventRate', 'Pal/Group unlock and New Year events')}
           ${numField('scenarioPickRate', 'Scenario linked-skill event fires')}
+          ${numField('scenarioSongsRate', 'Scenario completion: 18+ songs learned')}
           ${numField('charStoryEventRate', "Trainee's story and choice events play")}
           ${numField('charOutingRate', "Trainee's outing event happens")}
+          ${numField('charUndecodedEventRate', "Trainee's undecoded event skill obtained")}
           ${numField('charConditionFallbackRate', 'Secret-event condition the tool cannot score')}
-          ${numField('bigRewardRate', 'Big reward chance (split outcomes)')}
+          ${numField('goldRollStat', 'Stat assumed for the gold-or-white chain roll', 10)}
           ${numField('goldSparkRate', 'Spark chance with gold skill')}
+          ${numField('circleSparkRate', 'Spark chance with the ◎ form')}
           ${numField('whiteSparkRate', 'Spark chance with white skill')}
           ${listField('whiteSparkInheritRates', 'Lineage white spark hint rate (1/2/3★)')}
           ${numField('lineageSparkMultiplier', 'Spark chance multiplier per lineage occurrence')}
-          ${listField('ssStarOdds', 'White star odds at SS (1/2/3★)')}
-          ${listField('belowSsStarOdds', 'White star odds below SS')}
+          ${listField('blueInspirationGainMean', 'Blue spark mean roll per proc (1/2/3★)')}
+          ${numField('uniqueAprilBondRate', 'April unique-skill bond check passes')}
           ${numField('lossPenalty', 'Stat points lost per expected race loss', 1)}
           ${numField('skillScorePerSp', 'Rank points per SP (skills bought)')}
           ${numField('skillScoreSd', 'Rank score sd from skills', 10)}
