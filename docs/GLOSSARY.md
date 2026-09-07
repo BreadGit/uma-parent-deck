@@ -96,10 +96,10 @@ names differ they are noted.
   with race wins scored from the agenda and conditions the tool cannot score given the fallback rate.
 - **Choice-gated**: a source that only happens if the run picks that option at an event. Only one
   option per event can be taken.
-- **Prioritized skills**: the tool's suggested 10-entry list for independent training. Entry types:
-  **target skill** (choice-gated, leads to a target), **not a target** (choice-gated, doesn't), **target
-  but not a choice** (given regardless). Only these ten steer event choices; the tool assumes their order
-  decides which option wins a conflict, which the game does not confirm.
+- **Prioritized skills**: the tool's suggested 10-entry list for independent training. Entry tags:
+  **target** (choice-gated, leads to a target), **not a target** (choice-gated, doesn't), **target, no
+  choice** (given regardless, listed as filler). Only these ten steer event choices; the tool assumes their
+  order decides which option wins a conflict, which the game does not confirm.
 - **Choice conflict**: two or more targets (or a ranked non-target option) competing for one event's
   single option. The higher entry in the prioritized list takes it.
 - **Spark chance**: expected chance a target becomes a white spark at run end. **Added spark chance**

@@ -13,7 +13,7 @@ import { renderDeck } from './panels/deck.ts';
 import { renderSchedule } from './panels/schedule.ts';
 import { renderRanking } from './panels/ranking.ts';
 
-const THEMES: Theme[] = ['system', 'light', 'dark'];
+const THEMES: { id: Theme; label: string }[] = [{ id: 'system', label: 'Auto' }, { id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 function applyTheme() {
   const dark = store.ui.theme === 'dark' || (store.ui.theme === 'system' && systemDark.matches);
@@ -21,7 +21,7 @@ function applyTheme() {
 }
 
 function resetAll() {
-  if (!confirm('Clear targets, trainee, pinned cards, parent sparks, agenda picks and the prioritized order? Inventory and settings are kept.')) return;
+  if (!confirm('Clear the targets, trainee, pinned cards, legacy screen, agenda picks and prioritized order? Your inventory and settings are kept.')) return;
   saveState(resetRun(store, data));
   location.reload();
 }
@@ -29,14 +29,20 @@ function resetAll() {
 function page() {
   const c = plan();
   return html`
-    <header><h1>Uma parent deck</h1><span class="meta">Independent training deck builder for white-spark farming · data ${String(meta.fetchedAt).slice(0, 10)} from GameTora · ${data.cards.length} Global cards</span>
-      <span class="theme-toggle">Theme ${THEMES.map((t) => html`<button class="${store.ui.theme === t ? 'active' : ''}" data-theme-pick="${t}" @click=${() => { update((s) => { s.ui.theme = t; }); applyTheme(); }}>${t === 'system' ? 'OS' : t}</button>`)}</span></header>
+    <header>
+      <h1>Uma parent deck</h1>
+      <span class="meta">Independent-training deck builder for white-spark farming</span>
+      <span class="header-actions">
+        <span class="theme-toggle" role="group" aria-label="Theme">${THEMES.map((t) => html`<button class="${store.ui.theme === t.id ? 'active' : ''}" data-theme-pick="${t.id}" @click=${() => { update((s) => { s.ui.theme = t.id; }); applyTheme(); }}>${t.label}</button>`)}</span>
+        <button class="danger-outline" data-action="reset-all" title="Start a new run: clears every choice except your inventory and settings" @click=${resetAll}>Reset run</button>
+      </span>
+    </header>
     <main>
-      <div><div class="reset-bar"><button class="danger" data-action="reset-all" @click=${resetAll}>Reset all</button></div>${renderTargets(c)}${renderTrainee(c)}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
+      <div>${renderTargets(c)}${renderTrainee(c)}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
       <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div id="tooltip" role="tooltip"></div>
-    <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>. Independent training stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
+    <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
 }
 
 export function mount(root: HTMLElement) {

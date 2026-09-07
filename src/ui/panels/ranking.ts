@@ -1,3 +1,4 @@
+// Every card scored against the targets, with the limit-break dropdowns that make up the inventory.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { STATS, type Card } from '../../types.ts';
@@ -7,7 +8,9 @@ import { MODELLED_UNIQUE_TYPES, uniqueNote } from '../../model/stats.ts';
 import { modelContribution } from '../../model/stats.ts';
 import { data, plan, store, update } from '../context.ts';
 import { cardThumb, cardUrl, num, pct, pill, skillName, typeIcon } from '../format.ts';
+import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
+import { setSetting } from './run.ts';
 
 /** Set a card's limit break, or mark it not owned. The rarity's default LB means "no entry". */
 function setLb(card: Card, value: string) {
@@ -47,6 +50,8 @@ const SORT_KEYS: Record<string, (x: CardScore) => number> = {
   score: (x) => x.marginalValue * 1000 + x.statPower / 1000, spark: (x) => x.sparkValue, stats: (x) => x.statPower, sp: (x) => x.sp,
   speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
 };
+/** The added-spark bar tops out here: a card that adds half a spark on its own fills it. */
+const BAR_MAX = 0.5;
 
 /** A compound unique effect: whether the model evaluates it, with GameTora's text and the assumption behind the evaluation. */
 function uniqueTag(card: Card) {
@@ -55,6 +60,8 @@ function uniqueTag(card: Card) {
   return html` <span class="tag ${modelled ? '' : 'warn'}">${modelled ? 'unique approximated' : 'unique not modelled'}</span>${tip(`Unique effect: ${card.unique.text ?? 'conditional effect'}. Model: ${uniqueNote(card, data.model, { fansBefore: plan().ctx.fansBefore }) || 'left out'}. An observed row includes the real effect at the observed limit break.`)}`;
 }
 
+const PANEL_TIP = 'Every Global support card scored against your targets. Set the limit break of the cards you own here (or mark them not owned); the deck and the predictions follow.';
+
 export function renderRanking(c: RunPlan) {
   const fn = SORT_KEYS[store.ui.sortKey] ?? SORT_KEYS.score!;
   // per-stat cells carry the training focus multipliers, like the Total column (their focus-weighted sum)
@@ -62,24 +69,22 @@ export function renderRanking(c: RunPlan) {
   const pinRank = (x: CardScore) => { const i = store.run.pinnedIds.indexOf(x.card.id); return i < 0 ? Infinity : i; };
   const rows = c.ranking.slice().sort((a, b) => pinRank(a) - pinRank(b) || fn(b) - fn(a));
   const th = (k: string, label: string | TemplateResult, cls = 'num') => html`<th class="${cls} sortable" data-sort="${k}" @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${store.ui.sortKey === k ? ' ▾' : ''}</th>`;
-  return html`
-    <section class="panel">
-      <h2>Card ranking <span class="small muted">(${rows.length} cards · click a header to sort)</span></h2>
-      <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Added spark chance${tip('How much this card would raise the total expected white sparks over your targets if added to what is already covered by the trainee and the cards picked so far. Overlap with existing sources counts for less, so two cards giving the same skill do not both score full value.')}`)}${th('spark', html`Spark chance alone${tip('Expected white sparks over your targets from this card on its own: the chance it hands over each skill (hint, event, or outing) times the spark rate for the gold or white form.')}`)}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(`What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. The deck builder uses this value when two cards give the same sparks.`)}`)}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
-        ${rows.map((x) => {
-          const owned = !c.unowned.has(x.card.id);
-          return html`<tr class="${owned ? '' : 'dim'}">
-            <td>${cardThumb(x.card)}</td>
-            <td>${typeIcon(x.card)}${store.run.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a>${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : nothing}<br/><span class="small muted">${x.card.title}</span></td>
-            <td>${lbSelect(x.card, x.lb)}</td>
-            <td class="num"><span class="bar" style="width:${Math.min(60, x.marginalValue * 120)}px"></span> ${pill(x.marginalValue, '', 1)}</td>
-            <td class="num">${pill(x.sparkValue, '', 1)}</td>
-            <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
-            ${x.stats.map((v, i) => html`<td class="num">${num(v * (focusMul[i] ?? 1))}</td>`)}
-            <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
-            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${uniqueTag(x.card)}</td>
-          </tr>`;
-        })}
-      </tbody></table></div>
-    </section>`;
+  const actions = html`<label class="row"><span class="k">Show not owned</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.settings.showUnowned)} @change=${(e: Event) => setSetting('showUnowned', (e.target as HTMLInputElement).checked)} /></label>`;
+  return panel({ title: 'Card ranking', subtitle: `(${rows.length} cards · click a header to sort)`, tip: PANEL_TIP, actions }, html`
+    <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Added spark chance${tip('How much this card would raise the total expected white sparks over your targets if added to what is already covered by the trainee and the cards picked so far. Overlap with existing sources counts for less, so two cards giving the same skill do not both score full value.')}`)}${th('spark', html`Spark chance alone${tip('Expected white sparks over your targets from this card on its own: the chance it hands over each skill (hint, event, or outing) times the spark rate for the gold or white form.')}`)}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(`What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. The deck builder uses this value when two cards give the same sparks.`)}`)}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
+      ${rows.map((x) => {
+        const owned = !c.unowned.has(x.card.id);
+        return html`<tr class="${owned ? '' : 'dim'}">
+          <td>${cardThumb(x.card)}</td>
+          <td>${typeIcon(x.card)}${store.run.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a>${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : nothing}<br/><span class="small muted">${x.card.title}</span></td>
+          <td>${lbSelect(x.card, x.lb)}</td>
+          <td class="num"><meter class="bar" min="0" max="${BAR_MAX}" value="${Math.min(BAR_MAX, x.marginalValue)}"></meter> ${pill(x.marginalValue, '', 1)}</td>
+          <td class="num">${pill(x.sparkValue, '', 1)}</td>
+          <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
+          ${x.stats.map((v, i) => html`<td class="num">${num(v * (focusMul[i] ?? 1))}</td>`)}
+          <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
+          <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${uniqueTag(x.card)}</td>
+        </tr>`;
+      })}
+    </tbody></table></div>`);
 }

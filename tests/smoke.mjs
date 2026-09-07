@@ -50,6 +50,7 @@ async function assertFieldsMatchState(where) {
 // A range input must stay mounted while it is dragged. Replacing it on each input event
 // breaks pointer capture and prevents the thumb from reaching the pointer.
 const threshold = page.locator('input[data-setting="winThreshold"]');
+await threshold.scrollIntoViewIfNeeded();
 const thresholdBox = await threshold.boundingBox();
 await page.evaluate(() => {
   const app = document.querySelector('#app');
@@ -72,7 +73,7 @@ await page.mouse.up();
 assert.equal(duringDrag.connected, true, 'range input was replaced during drag');
 assert.equal(duringDrag.mutations, 0, 'app rerendered during drag');
 assert.ok(duringDrag.value <= 0.3, `drag toward 20% stopped at ${duringDrag.value * 100}%`);
-await page.waitForFunction(() => [...document.querySelectorAll('h2')].some((h) => h.textContent.includes(`threshold ${Math.round(Number(document.querySelector('input[data-setting="winThreshold"]').value) * 100)}%`)));
+await page.waitForFunction(() => document.querySelector('output[data-setting-output="winThreshold"]').value === `${Math.round(Number(document.querySelector('input[data-setting="winThreshold"]').value) * 100)}%`);
 await page.evaluate(() => globalThis.__rangeObserver.disconnect());
 await page.$eval('input[data-setting="winThreshold"]', (el) => {
   el.value = '0.8';
@@ -110,6 +111,8 @@ await page.waitForTimeout(200);
 const starsAfterSwitch = await page.evaluate(() => ({ shown: document.querySelector('select[data-select="trainee-stars"]').value, saved: JSON.parse(localStorage.getItem('uma-parent-deck.v4')).run.traineeStars }));
 assert.deepEqual(starsAfterSwitch, { shown: '3', saved: 3 }, 'a 3★ trainee cannot keep a 1★ count');
 await assertFieldsMatchState('after switching trainee');
+const searchWidths = await page.$$eval('input[type=search]', (els) => els.map((el) => ({ id: el.id, input: el.getBoundingClientRect().width, panel: el.closest('section.panel').getBoundingClientRect().width })));
+for (const w of searchWidths) assert.ok(w.input > w.panel * 0.8, `${w.id} is ${w.input}px wide in a ${w.panel}px panel`);
 await page.click('details[data-details="advanced"] > summary');
 const advancedOverflow = await page.$eval('details[data-details="advanced"]', (details) => {
   const panelRight = details.closest('section.panel').getBoundingClientRect().right;
@@ -153,7 +156,7 @@ const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),
   stats: [...document.querySelectorAll('.stat .v')].map((n) => n.textContent.trim()),
-  pSS: document.querySelector('.kv .v .pill')?.textContent,
+  pSS: document.querySelector('.stat.outcome .pill')?.textContent,
   wishlist: [...document.querySelectorAll('ol li')].slice(0, 10).map((n) => n.textContent.trim().slice(0, 80)),
   races: document.querySelector('h2:has(+ .scroll)')?.textContent,
   rankingRows: document.querySelectorAll('section.panel:last-child tbody tr').length,
@@ -186,7 +189,7 @@ const afterUnown = await page.evaluate(() => ({ borrow: document.querySelector('
 assert.ok(afterUnown.borrow?.includes('Light Hello'), `the unowned pin should be the borrow, got ${afterUnown.borrow}`);
 assert.equal(afterUnown.chip, 'borrow', 'the pinned chip says borrow');
 console.log('deck after marking Light Hello SSR not owned: borrow =', afterUnown.borrow);
-// the header Reset clears every gain and aptitude override at once
+// the panel's Reset clears every gain and aptitude override at once
 await page.selectOption('select[data-apt="turf"]', 'G');
 await page.click('button[data-action="reset-legacy"]');
 await page.waitForTimeout(200);

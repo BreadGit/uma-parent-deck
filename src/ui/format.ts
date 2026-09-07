@@ -1,6 +1,6 @@
 // Small templates and formatters shared by the panels.
 import { html, nothing, type TemplateResult } from 'lit-html';
-import type { Card, Character, Skill } from '../types.ts';
+import type { Card, Character, Skill, Stat } from '../types.ts';
 import { data } from './context.ts';
 import { tip } from './tooltip.ts';
 
@@ -24,3 +24,5 @@ export function skillWithTip(id: number, label?: string | TemplateResult): Templ
   const sk = data.skillById.get(id);
   return html`${label ?? sk?.name ?? `#${id}`}${sk?.desc ? tip(`${sk.name}${sk.rarity === 2 ? ' (gold)' : ''}: ${sk.desc}`) : nothing}`;
 }
+/** The game's icon for a stat, as used on the legacy screen and the trainee's stat strip. */
+export const statIcon = (st: Stat) => html`<img class="stat-icon" src="/assets/icons/type_${st}.png" alt="${st}" title="${capitalize(st)}" />`;
