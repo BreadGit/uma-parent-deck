@@ -80,5 +80,7 @@ test('validation: inventory entries are numeric ids with LB 0..4 or null; every 
   assert.equal(parseSetting('defaultLb', '4'), undefined);
   assert.equal(parseSetting('scenarioId', '5'), undefined, 'only the supported scenario');
   assert.equal(parseSetting('scenarioId', '3'), 3);
+  assert.equal(sanitizeSettings({ scenarioId: '3' }).scenarioId, 3, 'a string is not the number the model compares with');
+  assert.equal(sanitizeSettings({ focus: 3 }).focus, 'stamina');
   assert.deepEqual(sanitizeSettings({ affinity: -1, hintScale: 2, bigRewardRate: 0.3 } as Record<string, unknown>), { ...DEFAULT_SETTINGS, hintScale: 2 }, 'out-of-range and retired keys are dropped');
 });

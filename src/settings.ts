@@ -1,5 +1,5 @@
 import type { Focus } from './types.ts';
-import { OUR_GRAND_CONCERT } from './model/rules.ts';
+import { OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS } from './model/rules.ts';
 
 export interface Settings {
   // main page
@@ -87,7 +87,7 @@ export type SettingSpec =
   | { kind: 'number'; min: number; max: number }
   | { kind: 'number-or-null'; min: number; max: number }
   | { kind: 'list'; length: number; min: number; max: number }
-  | { kind: 'enum'; values: readonly string[] }
+  | { kind: 'enum'; values: readonly (string | number)[] }   // the saved value must be one of these, same type included
   | { kind: 'boolean' }
   | { kind: 'lb-defaults' };
 const rate: SettingSpec = { kind: 'number', min: 0, max: 1 };
@@ -117,7 +117,7 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   charOutingRate: rate,
   charUndecodedEventRate: rate,
   charConditionFallbackRate: rate,
-  scenarioId: { kind: 'enum', values: [String(OUR_GRAND_CONCERT)] },
+  scenarioId: { kind: 'enum', values: SUPPORTED_SCENARIOS },
   goldRollStat: { kind: 'number', min: 0, max: 2500 },
   goldSparkRate: rate,
   circleSparkRate: rate,
@@ -142,7 +142,7 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
     case 'number': return inRange(value, spec.min, spec.max);
     case 'number-or-null': return value === null || inRange(value, spec.min, spec.max);
     case 'list': return Array.isArray(value) && value.length === spec.length && value.every((v) => inRange(v, spec.min, spec.max));
-    case 'enum': return spec.values.includes(String(value)) && (typeof value === 'string' || typeof value === 'number');
+    case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
     case 'boolean': return typeof value === 'boolean';
     case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => inRange((value as Record<string, unknown>)[r], 0, 4));
   }
@@ -157,7 +157,7 @@ export function parseSetting(key: keyof Settings, raw: string | boolean): Settin
   let value: unknown;
   switch (spec.kind) {
     case 'boolean': value = typeof raw === 'boolean' ? raw : raw === 'true'; break;
-    case 'enum': value = typeof DEFAULT_SETTINGS[key] === 'number' ? Number(raw) : raw; break;
+    case 'enum': value = spec.values.find((v) => String(v) === String(raw)); break; // the spec's own value, so a numeric enum parses to a number
     case 'number-or-null': value = raw === '' ? null : Number(raw); break;
     case 'number': value = Number(raw); break;
     case 'list': value = String(raw).split(/[,\s]+/).filter(Boolean).map(Number); break;
