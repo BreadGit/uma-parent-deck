@@ -3,7 +3,7 @@ import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale, type Contribution } from './stats.ts';
 import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
 import type { RaceWins } from './races.ts';
-import { cardSourcesForTarget, combineSources, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
+import { cardSourcesForTarget, combineSources, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
 
 /** Everything a run evaluation needs besides the cards: the data, the settings and the run's fixed choices. */
 export interface Ctx {
@@ -36,18 +36,18 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
   const families = new Set(targets.flatMap((t) => [...t.familyIds]));
   const out: Blocker[] = [];
   for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
-  for (const card of e.cards) for (const s of eventSources(card, ctx.settings)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
-  if (ctx.trainee) for (const s of traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
+  for (const card of e.cards) for (const s of eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
+  if (ctx.trainee) for (const s of traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
   return out;
 }
 
 /**
- * Evaluate a run state: add the scenario options implied by the characters present, enforce one option per event
- * (by prioritized order), and give each target's spark chance.
+ * Evaluate a run state: add the scenario's options and completion reward, enforce one option per event (by
+ * prioritized order), and give each target's spark chance.
  */
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const full = new Map<number, SkillSource[]>();
-  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars)]);
+  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars), ...scenarioCompletionSources(t, ctx.data, ctx.settings)]);
   const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx));
   const sparks = new Map(targets.map((t) => [t.id, sparkChance(combineSources(map.get(t.id) ?? []), ctx.settings, lineageN(ctx, t))]));
   return { full, map, sparks, conflicts };
@@ -60,7 +60,7 @@ export interface CardScore {
   lb: number;
   stats: number[];      // contribution at the chosen race count
   sp: number;
-  statPower: number;    // sum of stat contribution
+  statPower: number;    // stat contribution weighted by the training focus multipliers
   source: Contribution['source'];
   runs?: number;
   coverage: Coverage[];
@@ -80,15 +80,27 @@ export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
   return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [] };
 }
 
-export function scoreCard(card: Card, lb: number, targets: Target[], existing: Existing, ctx: Ctx): CardScore {
-  const contrib = cardContribution(card, lb, ctx.data.model);
-  const scale = raceScale(ctx.races, ctx.data.model, ctx.settings);
-  const stats = contrib.stats.map((v) => v * scale);
+/** The card's own sources per target. */
+function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<number, SkillSource[]> {
   const mine = new Map<number, SkillSource[]>();
   for (const t of targets) {
     const sources = cardSourcesForTarget(card, lb, t, ctx.races, ctx.totalTurns, ctx.data, ctx.settings);
     if (sources.length) mine.set(t.id, sources);
   }
+  return mine;
+}
+/** Stat contribution at the run's race count, and its value under the chosen training focus. */
+function statsOf(card: Card, lb: number, ctx: Ctx): { contrib: Contribution; stats: number[]; statPower: number; sp: number } {
+  const contrib = cardContribution(card, lb, ctx.data.model);
+  const scale = raceScale(ctx.races, ctx.data.model, ctx.settings);
+  const stats = contrib.stats.map((v) => v * scale);
+  const focusMul = ctx.data.model.focus[ctx.settings.focus] ?? [1, 1, 1, 1, 1];
+  return { contrib, stats, statPower: stats.reduce((a, v, i) => a + v * (focusMul[i] ?? 1), 0), sp: contrib.sp * scale };
+}
+
+export function scoreCard(card: Card, lb: number, targets: Target[], existing: Existing, ctx: Ctx): CardScore {
+  const { contrib, stats, statPower, sp } = statsOf(card, lb, ctx);
+  const mine = minesOf(card, lb, targets, ctx);
   const alone = evaluate({ sources: mine, chars: new Set([card.charId]), cards: [card] }, targets, ctx);
   const before = evaluate(existing, targets, ctx);
   const after = evaluate(addTo(existing, mine, card), targets, ctx);
@@ -103,8 +115,7 @@ export function scoreCard(card: Card, lb: number, targets: Target[], existing: E
     sparkValue += spark;
     marginalValue += marginal;
   }
-  const statPower = stats.reduce((a, b) => a + b, 0);
-  return { card, lb, stats, sp: contrib.sp * scale, statPower, source: contrib.source, runs: contrib.runs, coverage, sparkValue, marginalValue, score: marginalValue, mine };
+  return { card, lb, stats, sp, statPower, source: contrib.source, runs: contrib.runs, coverage, sparkValue, marginalValue, score: marginalValue, mine };
 }
 
 const cmp = (a: CardScore, b: CardScore) => (b.marginalValue - a.marginalValue) || (b.statPower - a.statPower) || (b.sp - a.sp);
@@ -117,39 +128,46 @@ export function rankCards(pool: { card: Card; lb: number }[], targets: Target[],
 export interface BorrowOption { card: Card; replaces: Card | null; gain: number; statGain: number }
 export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[]; borrow: BorrowOption | null; borrowAlternatives: BorrowOption[] }
 
+/** The cards of a deck entry that matter to a run state: its sources and character. */
+type Entry = Pick<CardScore, 'card' | 'lb' | 'mine' | 'statPower' | 'borrowed'>;
 /** Run state for a set of cards on top of the trainee. */
-function stateOf(entries: CardScore[], targets: Target[], ctx: Ctx): Existing {
+function stateOf(entries: Entry[], targets: Target[], ctx: Ctx): Existing {
   let e = traineeCoverage(targets, ctx);
   for (const x of entries) e = addTo(e, x.mine, x.card);
   return e;
 }
-/** Total expected sparks over the targets for a set of cards, plus their stat power. */
-function deckValue(entries: CardScore[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
+/** Total expected sparks over the targets for a set of cards, plus their focus-weighted stat power. */
+function deckValue(entries: Entry[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
   return { sparks: total(evaluate(stateOf(entries, targets, ctx), targets, ctx).sparks), stats: entries.reduce((a, e) => a + e.statPower, 0) };
 }
+const betterValue = (a: { sparks: number; stats: number }, b: { sparks: number; stats: number }) => a.sparks > b.sparks + 1e-9 || (Math.abs(a.sparks - b.sparks) <= 1e-9 && a.stats > b.stats + 1e-6);
 const why = (cs: CardScore) => (cs.marginalValue > 0
   ? `+${(cs.marginalValue * 100).toFixed(1)}% expected sparks (${cs.coverage.filter((c) => c.marginal > 0).map((c) => c.target.name).join(', ')})`
-  : `no uncovered targets left; best stat stick (+${cs.statPower.toFixed(0)} stats)`);
+  : `no uncovered targets left; best stat stick (+${cs.statPower.toFixed(0)} focus-weighted stats)`);
 
 export interface BuildOptions {
   pinnedIds: number[];        // owned pins shortlist the owned slots; unowned pins ask for the friend's slot
   borrowPool?: { card: Card; lb: number }[]; // every card at the borrowed limit break; empty means no friend's slot
   borrowFromAll?: boolean;    // with owned pins left over, borrow the best card overall instead of the best leftover pin
   size?: number;
+  swapPasses?: number;        // local improvement passes after the greedy build (0 disables)
 }
 type Slot = 'owned' | 'borrow';
 type PinReason = 'same character' | 'outscored' | 'trainee';
 
 /**
- * Greedy deck: five owned slots and the friend's slot.
+ * Deck builder: five owned slots and the friend's slot.
  * 1. Pins first, best marginal spark gain first, one per character. An owned pin goes to an owned slot at its own
  *    limit break; an unowned pin can only be the friend's card, so it competes for that slot at the borrowed LB.
  *    Once the owned slots are full, leftover owned pins compete for the friend's slot too unless `borrowFromAll`.
  *    When one character has both an owned and an unowned pin, whichever scores higher takes its slot.
  * 2. A friend's slot still open takes the best card overall from `borrowPool`.
- * 3. Owned slots still open fill from the rest of the pool.
+ * 3. Owned slots still open fill greedily from the rest of the pool.
  * 4. If a deck card's higher-LB version would serve better as the borrow (freeing its slot for the next best owned
  *    card), swap; a pinned borrow is never evicted.
+ * 5. One-swap improvement: while replacing any unpinned card with any other card raises the deck's expected
+ *    sparks (or its focus-weighted stats at equal sparks), apply the best such swap. The greedy order is not
+ *    optimal under the spark model; this catches the cases a single swap fixes.
  */
 export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, options: BuildOptions | number[], size = DECK_SIZE, legacyBorrowPool: { card: Card; lb: number }[] = []): DeckResult {
   const opts: BuildOptions = Array.isArray(options) ? { pinnedIds: options, borrowPool: legacyBorrowPool, size } : options;
@@ -240,10 +258,8 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
       const refill = pool.filter((p) => !used.has(p.card.charId)).map((p) => scoreCard(p.card, p.lb, targets, after, ctx)).sort(cmp)[0];
       const entries = [...without, upScore, ...(refill ? [refill] : [])];
       const value = deckValue(entries, targets, ctx);
-      if (value.sparks > base.sparks + 1e-9 || (Math.abs(value.sparks - base.sparks) <= 1e-9 && value.stats > base.stats)) {
-        if (!bestSwap || value.sparks > bestSwap.value.sparks || (value.sparks === bestSwap.value.sparks && value.stats > bestSwap.value.stats)) {
-          bestSwap = { entries, value, from: d, to: upScore, refill, opt: { card: up.card, replaces: d.card, gain: value.sparks - base.sparks, statGain: value.stats - base.stats } };
-        }
+      if (betterValue(value, base) && (!bestSwap || betterValue(value, bestSwap.value))) {
+        bestSwap = { entries, value, from: d, to: upScore, refill, opt: { card: up.card, replaces: d.card, gain: value.sparks - base.sparks, statGain: value.stats - base.stats } };
       }
     }
     if (bestSwap) {
@@ -251,6 +267,35 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
       deck.splice(0, deck.length, ...bestSwap.entries);
       borrow = bestSwap.opt;
     }
+  }
+
+  // 5. one-swap improvement
+  const pinnedSet = new Set(pinnedIds);
+  for (let pass = 0; pass < (opts.swapPasses ?? 3); pass++) {
+    const base = deckValue(deck, targets, ctx);
+    let best: { index: number; pick: { card: Card; lb: number }; value: { sparks: number; stats: number } } | null = null;
+    deck.forEach((d, index) => {
+      if (pinnedSet.has(d.card.id)) return;
+      const others = deck.filter((_, j) => j !== index);
+      const used = new Set(others.map((x) => x.card.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
+      const cands = (d.borrowed ? borrowPool : pool).filter((p) => !used.has(p.card.charId) && !(p.card.id === d.card.id && p.lb === d.lb) && !others.some((o) => o.card.id === p.card.id));
+      for (const p of cands) {
+        const entry: Entry = { card: p.card, lb: p.lb, mine: minesOf(p.card, p.lb, targets, ctx), statPower: statsOf(p.card, p.lb, ctx).statPower, borrowed: d.borrowed };
+        // a card with no source for any target cannot raise the sparks, so it only matters as a better stat stick
+        if (!entry.mine.size && entry.statPower <= d.statPower) continue;
+        const value = deckValue([...others, entry], targets, ctx);
+        if (betterValue(value, best?.value ?? base)) best = { index, pick: p, value };
+      }
+    });
+    if (!best) break;
+    const b: { index: number; pick: { card: Card; lb: number }; value: { sparks: number; stats: number } } = best;
+    const out = deck[b.index]!;
+    const others = deck.filter((_, j) => j !== b.index);
+    const cs = { ...scoreCard(b.pick.card, b.pick.lb, targets, stateOf(others, targets, ctx), ctx), borrowed: out.borrowed };
+    deck.splice(b.index, 1, cs);
+    if (out.borrowed) borrow = { card: cs.card, replaces: null, gain: cs.marginalValue, statGain: cs.statPower };
+    const gain = b.value.sparks - base.sparks;
+    steps.push(`Swap ${out.card.name} (LB${out.lb}) for ${cs.card.name} (LB${cs.lb})${out.borrowed ? ' as the borrow' : ''}: ${gain > 1e-9 ? `+${(gain * 100).toFixed(1)}% expected sparks` : `same sparks, +${(b.value.stats - base.stats).toFixed(0)} focus-weighted stats`}`);
   }
 
   const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);
@@ -302,7 +347,7 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
     entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 1.2 : 1), reason: o.detail });
   }
   // Other choice-gated skills from the deck's and the trainee's events (not targets): listing them steers the AI to that option.
-  const offered = [...deck.map((d) => ({ owner: d.card.name, sources: eventSources(d.card, ctx.settings) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings) }] : [])];
+  const offered = [...deck.map((d) => ({ owner: d.card.name, sources: eventSources(d.card, ctx.settings, ctx.data) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data) }] : [])];
   for (const { owner, sources } of offered) {
     for (const src of sources) {
       if (!src.isChoice || seen.has(src.skillId) || targetFamilies.has(src.skillId)) continue;

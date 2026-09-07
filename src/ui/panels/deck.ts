@@ -4,7 +4,8 @@ import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { Conflict } from '../../model/sparks.ts';
 import { combineSources } from '../../model/sparks.ts';
-import { BLUE_STAR_BANDS, cardContribution, pAbove, raceScale } from '../../model/stats.ts';
+import { BLUE_STAR_BANDS, cardContribution, EFFECT, pAbove, passives, raceScale } from '../../model/stats.ts';
+import { statScore } from '../../model/rank.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { data, plan, store, update } from '../context.ts';
 import { cardLink, cardThumb, num, pct, pill, skillName, skillWithTip, typeTag } from '../format.ts';
@@ -52,6 +53,7 @@ function statBreakdown(c: RunPlan) {
   });
   const base = c.trainee?.baseStats ?? [0, 0, 0, 0, 0];
   const penalty = store.settings.lossPenalty * c.sum.expectedLosses;
+  const raceBonus = d.deck.reduce((a, cs) => a + (passives(cs.card, cs.lb)[EFFECT.raceBonus] ?? 0), 0);
   return html`<table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
       ${cardRows}
       ${row(`Career events and ${c.sum.count} races`, p.eventStats.map((v, i) => v * focusMul[i]!))}
@@ -59,10 +61,12 @@ function statBreakdown(c: RunPlan) {
       ${row('Two inspiration events', c.inherited.map((x) => x.inspiration))}
       ${row(`Base stats${c.trainee ? ` (${c.trainee.name})` : ''}`, base)}
       ${penalty ? row('Expected race losses', STATS.map(() => -penalty / 5)) : nothing}
+      ${c.statCaps && c.statCaps.capped.some(Boolean) ? row('Scenario cap (base cap + blue spark uncaps)', c.statCaps.cap) : nothing}
       ${row(html`<b>Final</b>`, c.finalMean, 'total')}
       ${row('Run-to-run spread (±1 sd)', p.sd)}
     </tbody></table>
-    <div class="small muted">Card and career rows include the ${store.settings.focus} focus multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and the race scaling of ×${scale.toFixed(2)} for ${c.sum.count} races vs the 28 the data was measured at. The spread is the standard deviation of total stats between runs of the same trainee and deck in the Loopacord logs; the card model itself has an RMSE of ${data.model.fit.rmse.toFixed(1)} per stat.</div>`;
+    <div class="small muted">Rank score: stats ${num(c.rank.statPts)} (${STATS.map((st, i) => `${st} ${num(statScore(c.finalMean[i]!))}`).join(', ')}), unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, skills bought and innate ${num(c.rank.skillPts - c.rank.uniquePts)}. The stat curve is the game's table; the skill terms are estimates.</div>
+    <div class="small muted">Card and career rows include the ${store.settings.focus} focus multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and the race scaling of ×${scale.toFixed(2)} for ${c.sum.count} races vs the 28 the data was measured at. The spread is the standard deviation of total stats between runs of the same trainee and deck in the Loopacord logs; the card model itself has an RMSE of ${data.model.fit.rmse.toFixed(1)} per stat. Everything here is an empirical fit of logged runs, not the game's formula: the race scaling comes from one 23-race versus 28-race comparison, the focus multipliers from two decks, and the career row (which includes race rewards) was measured at the reference decks' Race Bonus, which the logs do not record. This deck totals ${raceBonus}% Race Bonus; race rewards scale with it (a step at 34% in manual play), but that is not modelled, so cards that differ in Race Bonus may be misranked.${c.statCaps && c.statCaps.capped.some(Boolean) ? ' A stat is clamped to the scenario cap plus the blue sparks\' start-of-run uncaps; uncaps from inspiration events and green sparks are unknown and left out.' : ''}</div>`;
 }
 
 function conflicts(c: RunPlan) {
@@ -76,7 +80,7 @@ function conflicts(c: RunPlan) {
         <td class="wrap">${opts(cf).map((o) => html`<div>${skillWithTip(o.skillId)}${o.option ? html` <span class="muted">${o.option}</span>` : nothing}</div>`)}</td>
         <td><b>${skillName(cf.taken.skillId)}</b>${cf.taken.target != null ? nothing : html` <span class="muted">(not a target)</span>`}</td><td>${cf.dropped.map((o) => skillName(o.skillId)).join(', ')}</td></tr>`)}
     </tbody></table>
-    <div class="small muted">Only one option can be taken per event. Targets involved: ${involved.join(', ')}. Drag the prioritized skills below into a different order to change which one wins.</div></div>`;
+    <div class="small muted">Only one option can be taken per event. Targets involved: ${involved.join(', ')}. Drag the prioritized skills below into a different order to change which one wins. That the list order settles a contested option is an assumption: the game confirms prioritized skills steer choices, not how ties between them resolve.</div></div>`;
 }
 
 export function renderDeck(c: RunPlan) {
@@ -99,22 +103,23 @@ export function renderDeck(c: RunPlan) {
       <h3>Predicted run (deck ${c.sum.count} races, ${store.settings.focus} focus${c.trainee ? `, ${c.trainee.name}` : ''})</h3>
       <div class="stats">
         <div class="stat outcome">
-          <div class="outcome-item"><div class="k">SS or better</div><div class="v">${pill(c.rank.pSS, c.rank.pSS > 0.5 ? 'ok' : 'warn')}</div></div>
+          <div class="outcome-item"><div class="k">SS or better${tip('An estimate: the rank score is the game\'s stat table plus estimated skill terms, and its spread comes from the fitted stat model.')}</div><div class="v">${pill(c.rank.pSS, c.rank.pSS > 0.5 ? 'ok' : 'warn')}</div></div>
           <div class="outcome-item"><div class="k">Rank score</div><div class="v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
           <div class="outcome-item"><div class="k">Estimated SP</div><div class="v">${num(p.sp)}</div></div>
+          ${c.targets.length ? html`<div class="outcome-item"><div class="k">Worst-case target SP cost${tip(`The base cost of every target bought once, in the dearest form the run can hand over (${c.spCost.items.map((it) => `${it.skill?.name ?? it.target.name} ${it.cost ?? '?'}`).join(', ')}). No hint discounts, prerequisites or purchase planning: an upper bound to check against the estimated SP. Independent training buys nothing during the run; you choose the purchases at the end.`)}</div><div class="v ${c.spCost.total > p.sp ? 'warn' : ''}">${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}${c.spCost.total > p.sp ? html` <span class="small">exceeds SP</span>` : nothing}</div></div>` : nothing}
         </div>
         ${STATS.map((s, i) => html`
         <div class="stat"><div class="k">${s}</div><div class="v">${num(c.finalMean[i]!)} <span class="sd">±${num(p.sd[i]!)}</span></div>
           <div class="s">≥${BLUE_STAR_BANDS.mid} ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, BLUE_STAR_BANDS.mid))} · ≥${BLUE_STAR_BANDS.high} ${pill(pAbove(c.finalMean[i]!, p.sd[i]!, BLUE_STAR_BANDS.high))}</div></div>`)}
       </div>
       <details><summary>Where the stats come from</summary>${statBreakdown(c)}</details>
-      <h3>Target coverage</h3>
-      <table><thead><tr><th>Skill</th><th class="num">Ends with gold</th><th class="num">Ends with white</th><th class="num">Spark chance</th><th>Sources</th></tr></thead><tbody>
+      <h3>Target coverage${tip('The run hands over hints; it buys nothing. Every figure assumes you buy each target at the end (see the worst-case SP cost above). A gold hint gives the gold form at 40% spark chance, a ◎ hint 25%, an ordinary hint 20%.')}</h3>
+      <table><thead><tr><th>Skill</th><th class="num">Gold hint</th><th class="num">◎ or white hint</th><th class="num">Spark chance if bought</th><th>Sources</th></tr></thead><tbody>
         ${c.targets.map((t) => {
           const srcs = d.coverage.get(t.id) ?? [];
           const own = combineSources(srcs);
           const spark = d.sparks.get(t.id) ?? 0;
-          return html`<tr><td>${skillWithTip(t.white?.id ?? t.id, t.name)}</td><td class="num">${pill(own.pGold)}</td><td class="num">${pill(own.pWhite)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
+          return html`<tr><td>${skillWithTip(t.white?.id ?? t.id, t.name)}</td><td class="num">${pill(own.pGold)}</td><td class="num">${pill(own.pWhite + own.pCircle)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
             <td class="small wrap">${srcs.length ? srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${skillName(s.skillId)} ${pct(s.pObtain)} (${s.detail})`).join('; ') : html`<span class="warn">no source in deck</span>`}</td></tr>`;
         })}
       </tbody></table>

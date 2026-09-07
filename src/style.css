@@ -191,7 +191,7 @@ td.cover .t { display: inline-flex; margin: 1px 6px 1px 0; }
 .stat .v .sd { font-size: 11px; font-weight: 400; color: var(--muted); }
 .stat .s { font-size: 11px; color: var(--muted); white-space: nowrap; }
 .stat .s .pill { font-size: 11px; padding: 0 4px; }
-.stat.outcome { display: flex; gap: 14px; align-items: center; justify-content: space-around; background: var(--soft); border-color: var(--accent); border-width: 2px; }
+.stat.outcome { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: space-around; background: var(--soft); border-color: var(--accent); border-width: 2px; }
 .stat.outcome .outcome-item { text-align: center; }
 .stat.outcome .k { text-transform: uppercase; letter-spacing: .03em; font-size: 11px; white-space: nowrap; }
 .stat.outcome .v { white-space: nowrap; }
@@ -220,7 +220,7 @@ td.cover .t { display: inline-flex; margin: 1px 6px 1px 0; }
 .agenda-cell.avail .agenda-body { border-style: dashed; }
 .agenda-cell.goal .agenda-body { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--panel)); }
 .agenda-cell.goal .agenda-pick { justify-content: center; }
-.agenda-race { font-weight: 600; font-size: 11px; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.agenda-race { font-weight: 600; font-size: 11px; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 .agenda-race.dirt { color: var(--dirt); }
 .agenda-meta { font-size: 10px; color: var(--muted); white-space: nowrap; }
 .agenda-meta .pill { font-size: 10px; padding: 0 4px; }

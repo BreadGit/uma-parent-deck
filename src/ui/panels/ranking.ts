@@ -62,7 +62,7 @@ export function renderRanking(c: RunPlan) {
             <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
             ${x.stats.map((v) => html`<td class="num">${num(v)}</td>`)}
             <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
-            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}</td>
+            <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${x.card.unique?.effects.some((u) => u.type >= 100) ? html` <span class="tag warn" title="This card's unique effect has a condition the stat model does not evaluate, so its stats leave that effect out (an observed row includes it only at the observed limit break).">unique not modelled</span>` : nothing}</td>
           </tr>`;
         })}
       </tbody></table></div>
