@@ -64,13 +64,14 @@ export const GOLD_ROLL_BY_STAT: [number, number][] = [[1000, 0.9], [800, 0.8], [
 export const UNIQUE_SKILL_SCORE_PER_LEVEL = { lowStar: 120, highStar: 170 };
 export const UNIQUE_SKILL_LEVEL_MAX = 6;
 /**
- * The three in-career unique-skill level-ups (URA rule, unchanged in Grand Live): fans needed by the slot, with the
- * lower thresholds for dirt-oriented trainees; the April one also needs a green bond with the chairperson.
+ * The three in-career unique-skill level-ups (URA rule, unchanged in Grand Live): fans needed before the slot (the
+ * check fires at the start of that turn, so races in earlier slots count), with the lower thresholds for
+ * dirt-oriented trainees; the April one also needs a green bond with the chairperson.
  */
 export const UNIQUE_LEVEL_CHECKS: { slot: number; fans: number; dirtFans: number; bond: boolean }[] = [
   { slot: 50, fans: 60000, dirtFans: 40000, bond: false },   // Senior early February
   { slot: 54, fans: 70000, dirtFans: 60000, bond: true },    // Senior early April
-  { slot: 71, fans: 120000, dirtFans: 80000, bond: false },  // Senior late December
+  { slot: 72, fans: 120000, dirtFans: 80000, bond: false },  // Senior late December, after the Arima Kinen has been run (so fans through slot 71 count)
 ];
 /** Base rating of a skill by rarity, before the aptitude bucket: white, ◎ and gold (GameWith). */
 export const SKILL_SCORE = { white: 217, circle: 262, gold: 508 };

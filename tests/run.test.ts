@@ -70,7 +70,7 @@ test('the dirt fan thresholds follow the character, so an aptitude override on t
   assert.ok(fans(50) > 40000 && fans(50) < 60000, `fans before February ${fans(50)}`);
   assert.equal(uniqueSkillLevel(3, p.apt, fans, strict), 5.5, 'the overridden table would call her dirt-oriented');
   assert.equal(p.rank.uniqueLevel, uniqueSkillLevel(3, sw.aptitudes, fans, strict), 'the plan uses her own table');
-  assert.equal(p.rank.uniqueLevel, 3);
+  assert.equal(p.rank.uniqueLevel, 4, 'only the December check (120,000 fans) is met on the turf thresholds');
 });
 
 test('a total-turn override at or below the reference race count is rejected and cannot divide by zero', () => {

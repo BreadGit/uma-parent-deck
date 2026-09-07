@@ -334,6 +334,7 @@ test('rating: the UmaTools stat table exactly (values computed from its code), s
   assert.equal(uniqueSkillLevel(3, turf, () => 200000, { ...settings, uniqueAprilBondRate: 0.5 }), 5.5);
   assert.equal(uniqueSkillLevel(5, turf, () => 200000, { ...settings, uniqueAprilBondRate: 1 }), 6, 'capped');
   assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot > 60 ? 130000 : 50000), settings), 4, 'only the December check is reached');
+  assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot >= 72 ? 120000 : 50000), settings), 4, 'the December check comes after the Arima Kinen in slot 71, so its fans count');
   assert.equal(uniqueSkillLevel(3, traineeAptitudes(null, { turf: 'G', dirt: 'A' }), () => 45000, { ...settings, uniqueAprilBondRate: 1 }), 4, 'a dirt trainee clears the 40,000-fan February check');
 });
 
