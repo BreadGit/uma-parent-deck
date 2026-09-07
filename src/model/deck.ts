@@ -48,7 +48,7 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const full = new Map<number, SkillSource[]>();
   for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars), ...scenarioCompletionSources(t, ctx.data, ctx.settings)]);
-  const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx));
+  const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx), ctx.settings);
   const sparks = new Map(targets.map((t) => [t.id, sparkChance(combineSources(map.get(t.id) ?? []), ctx.settings, lineageN(ctx, t))]));
   return { full, map, sparks, conflicts };
 }

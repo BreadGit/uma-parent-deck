@@ -1,5 +1,5 @@
 import type { Card, CardEvent, Character, Data, EventCondition, RaceRef, Reward, Skill, TraineeEvent } from '../types.ts';
-import type { Settings } from '../settings.ts';
+import { DEFAULT_SETTINGS, type Settings } from '../settings.ts';
 import { EFFECT, passives } from './stats.ts';
 import type { RaceWins } from './races.ts';
 import { GOLD_ROLL_BY_STAT, INSPIRATION_EVENTS, LINEAGE_MAX_PER_SIDE, SCENARIO_COMPLETION_SKILLS, STARS_PER_SPARK_MAX } from './rules.ts';
@@ -342,17 +342,32 @@ export interface Conflict { eventKey: string; label: string; taken: ConflictOpti
 /** A choice-gated option that is not a target but sits in the prioritized list: if ranked above the targets sharing its event, it takes the event. */
 export interface Blocker { skillId: number; event: EventRef }
 
-/** The option of an event that serves a target best: its gold form first, then the highest chance. */
+/** The source that names an option for a target: its gold form first, then the highest chance. */
 const bestSource = (ss: EventSource[]) => ss.slice().sort((a, b) => Number(b.gold) - Number(a.gold) || b.pObtain - a.pObtain)[0]!;
+/**
+ * The option of an event that serves a target best: the one whose sources, combined, give the target the highest
+ * spark chance, so an option offering the gold form and a white fallback beats one offering the gold form alone.
+ */
+function bestOption(ss: EventSource[], settings: Settings): EventSource {
+  const byOption = new Map<number, EventSource[]>();
+  for (const s of ss) byOption.set(s.event.optionIndex, [...(byOption.get(s.event.optionIndex) ?? []), s]);
+  let best: { value: number; source: EventSource } | null = null;
+  for (const [, sources] of [...byOption].sort((a, b) => a[0] - b[0])) {
+    const value = sparkChance(combineSources(sources), settings);
+    if (!best || value > best.value + 1e-12) best = { value, source: bestSource(sources) };
+  }
+  return best!.source;
+}
 
 /**
  * One event yields one option. For every event some target's sources come from, take the option the run would pick:
  * a non-target skill ranked above every target on that event (a blocker) wins it, else the target whose skills come
- * first in `priority` (skill ids in prioritized order, every form of a family ranked together) takes its best option.
- * Every target keeps only its sources on the taken option, so a target offered by two options counts one of them,
- * and an option that gives two targets keeps both.
+ * first in `priority` (skill ids in prioritized order, every form of a family ranked together) takes the option
+ * worth the most to it. Every target keeps only its sources on the taken option, so a target offered by two options
+ * counts one of them, and an option that gives two targets keeps both. `settings` gives the spark rates the options
+ * are valued by.
  */
-export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[], blockers: Blocker[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[], blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
   for (const [tid, sources] of map) for (const s of sources) if (isEventSource(s)) byEvent.set(s.event.key, new Set([...(byEvent.get(s.event.key) ?? []), tid]));
   const rank = (skillId: number) => { const i = priority.indexOf(skillId); return i < 0 ? Infinity : i; };
@@ -365,7 +380,7 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
     const blocker = blockers.filter((b) => b.event.key === key && rank(b.skillId) < rank(ordered[0]!)).sort((a, b) => rank(a.skillId) - rank(b.skillId))[0];
     let chosen: number, takenOption: ConflictOption;
     if (blocker) { chosen = blocker.event.optionIndex; takenOption = { skillId: blocker.skillId, option: blocker.event.option, target: null }; }
-    else { const best = bestSource(sourcesFor(ordered[0]!)); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: ordered[0]! }; }
+    else { const best = bestOption(sourcesFor(ordered[0]!), settings); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: ordered[0]! }; }
     taken.set(key, chosen);
     const dropped = ordered.filter((tid) => !sourcesFor(tid).some((s) => s.event.optionIndex === chosen)).map((tid) => { const s = bestSource(sourcesFor(tid)); return { skillId: s.skillId, option: s.event.option, target: tid }; });
     if (blocker || dropped.length) conflicts.push({ eventKey: key, label: blocker?.event.label || label, taken: takenOption, dropped });

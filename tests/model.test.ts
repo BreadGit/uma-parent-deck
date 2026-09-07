@@ -140,6 +140,17 @@ test('ownership odds combine sources the way the game runs them: duplicates in o
   const pruned = pruneConflicts(new Map([[1, twoOptions]]), [1]).map.get(1)!;
   assert.equal(pruned.length, 1);
   assert.ok(Math.abs(combineSources(pruned).pAny - 0.5) < 1e-9);
+  // and the option kept is the one worth the most to the target as a whole, not the one with the single best source:
+  // Sasami Anshinzawa's Date 3 offers Nothing Ventured (gold) in both options and Risky Business (white) in the second only
+  const sasami = data.cardById.get(30080)!;
+  const risky = target('Risky Business');
+  const date3 = cardSourcesForTarget(sasami, 4, risky, 20, T, data, settings).filter((s) => eventKeyOf(s) === `${sasami.id}:recreation:3`);
+  assert.equal(date3.length, 3);
+  assert.ok(date3.some((s) => s.gold && (s as EventSource).event.optionIndex === 0) && date3.some((s) => s.gold && (s as EventSource).event.optionIndex === 1));
+  const kept = pruneConflicts(new Map([[risky.id, date3]]), [], [], settings);
+  assert.deepEqual(kept.map.get(risky.id)!.map((s) => (s as EventSource).event.optionIndex), [1, 1], 'the second option gives the gold at the same chance plus the white form');
+  assert.equal(kept.conflicts.length, 0, 'one target on the event: nothing was contested');
+  assert.ok(Math.abs(combineSources(kept.map.get(risky.id)!).pAny - 2 * date3[0]!.pObtain) < 1e-9);
   // spark rates by form
   assert.ok(Math.abs(sparkChance({ pGold: 1, pWhite: 0 }, settings, 0) - settings.goldSparkRate) < 1e-9);
   assert.ok(Math.abs(sparkChance({ pGold: 0, pCircle: 1, pWhite: 0 }, settings, 0) - settings.circleSparkRate) < 1e-9);
