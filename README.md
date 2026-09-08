@@ -159,12 +159,17 @@ a skill written into several conditional branches of one outcome counted once, a
 stages nested so a skill offered by two stages counts once per run. Outcomes of one option are
 assumed equally likely; the game does not publish their odds.
 
-Numbers with no measurement behind them (chain completion rates in independent training,
-random event rate, Group outing rates, hint acquisition scaling, the stat assumed for the gold
-roll, the song count for the scenario's completion skill, loss penalty) are defaults in the
-advanced settings panel.
+Support chain completion defaults use the Loopacord measurements in
+`docs/loopacord-independent-training-research.xlsx`, sheet "Chain Finish Rate Data".
+
+Numbers with no measurement behind them (random event rate, Group outing rates, hint acquisition
+scaling, the stat assumed for the gold roll, the song count for the scenario's completion skill,
+loss penalty) are defaults in the advanced settings panel.
 
 ## Known gaps
+
+The [curated reference index](docs/refs/README.md) records source precedence and the
+[goal-parent deck plan](docs/goal-parent-decks-plan.md) describes the proposed probability feature.
 
 - Independent-training hint pickup, random event rates, the Group finale rate, the trainee's outing rate
   and the fallback for secret-event conditions the tool cannot score (rival results, streaks, strategy)
