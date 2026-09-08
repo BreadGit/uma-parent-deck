@@ -129,8 +129,12 @@ Lowering a grade rebuilds only inferred entries. Editing a spark's aptitude or s
 inferred marker. Changing the trainee clears inferred entries and starting overrides but preserves
 manual ancestry. Legacy Reset clears both. Existing saves are not inferred automatically on load.
 
-Unsupported increases produce a visible message. If all inferable increases cannot fit alongside
-manual entries in six slots, no partial set is inferred and the panel reports the shortage.
+Aptitude dropdowns disable choices that exceed the four-grade starting limit or require more
+than six lineage slots alongside manual entries. The change handler applies the same guard before
+saving, so rejected changes leave grades and inferred sparks intact. Lowering another aptitude
+can free slots and enable a previously unavailable choice. Existing invalid saves can still be
+repaired by lowering grades, even if several changes are needed; their warning remains until
+the setup fits. The inference helper never creates a partial set when capacity is exceeded.
 Unassigned slots remain unknown, so partial inference alone does not complete the pink estimate.
 Goal notes identify inferred inputs. Manual ancestry edits refine the inspiration model and do
 not automatically change the starting grades copied from the game.

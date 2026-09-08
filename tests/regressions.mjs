@@ -398,3 +398,30 @@ test('aptitude increases infer editable pink sparks, preserve manual entries, an
   await page.click('[data-action="reset-legacy"]');
   assert.deepEqual((await state(page)).run.pinkLineage, Array(6).fill(null));
 });
+
+test('aptitude choices guard the six-spark limit and unlock when another grade frees a slot', async (t) => {
+  const page = await fresh(t);
+  await trainee(page);
+  await page.selectOption('[data-apt="dirt"]', 'C');
+  await page.selectOption('[data-apt="sprint"]', 'D');
+  const option = page.locator('[data-apt="end"] option[value="B"]');
+  assert.equal(await option.isDisabled(), true, 'a seventh spark cannot be selected');
+  assert.equal(await page.locator('[data-apt="dirt"] option[value="B"]').isDisabled(), true, 'more than four starting increases cannot be selected');
+  const before = (await state(page)).run;
+  await page.locator('[data-apt="end"]').evaluate((select) => {
+    select.value = 'B';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  assert.deepEqual((await state(page)).run, before, 'the handler also rejects a forced disabled selection');
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'C', 'rejected change restores the displayed grade');
+  assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
+  await page.selectOption('[data-apt="sprint"]', 'E');
+  assert.equal(await option.isDisabled(), false);
+  await page.selectOption('[data-apt="end"]', 'B');
+  assert.equal((await state(page)).run.pinkLineage.filter(Boolean).length, 6);
+  await page.reload();
+  await page.waitForSelector('[data-apt="end"]');
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
+  assert.equal(await page.locator('[data-apt="sprint"] option[value="D"]').isDisabled(), true);
+  assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
+});

@@ -46,3 +46,11 @@ export function inferPinkLineage(base: Aptitudes, entered: Aptitudes, current: (
   wanted.forEach((spark, i) => { lineage[slots[i]!] = spark; });
   return { lineage, issues };
 }
+
+/** Reject grades that exceed inheritance limits; allow lower grades to repair an older invalid setup. */
+export function withPinkAptitude(base: Aptitudes, entered: Aptitudes, current: (PinkSpark | null)[], key: AptKey, grade: Grade): PinkInference | null {
+  if (!GRADES.includes(grade) || grade === 'S') return null;
+  const inferred = inferPinkLineage(base, { ...entered, [key]: grade }, current);
+  const lowersGrade = GRADES.indexOf(grade) < GRADES.indexOf(entered[key]);
+  return inferred.issues.length && !lowersGrade ? null : inferred;
+}

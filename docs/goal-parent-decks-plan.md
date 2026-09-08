@@ -42,7 +42,8 @@ already suggests so the probability breakdown is reviewable before it controls s
   eligibility changes. Reuse the existing individual-affinity assumption. Leave unknown ancestry
   explicit and do not silently assign six favorable sparks. Raising a starting grade infers a
   minimum-star set in the available slots, with Estimated labels. Preserve manually entered sparks
-  and allow the user to refine inferred entries in the advanced editor.
+  and allow the user to refine inferred entries in the advanced editor. Disable aptitude choices
+  that exceed the starting inheritance limit or six available lineage slots; reject them before saving.
 
 Use the existing state migration path. Normalize skill-family identity and prevent a family from
 being both required and preferred. Existing saved targets should migrate as preferred targets

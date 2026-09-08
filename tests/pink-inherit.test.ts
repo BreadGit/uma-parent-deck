@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { migrate } from '../src/state.ts';
 import { APTITUDE_KEYS, emptyPinkLineage, type PinkSpark } from '../src/model/goal-input.ts';
-import { inferPinkLineage } from '../src/model/pink-inherit.ts';
+import { inferPinkLineage, withPinkAptitude } from '../src/model/pink-inherit.ts';
 import type { Aptitudes } from '../src/model/races.ts';
 
 const base = Object.fromEntries(APTITUDE_KEYS.map((key) => [key, 'G'])) as Aptitudes;
@@ -74,4 +74,29 @@ test('old manual ancestry stays manual and inferred provenance survives saved-st
   assert.equal(saved.version, 11);
   assert.deepEqual(saved.run.pinkLineage, lineage);
   assert.deepEqual(migrate({ current: saved }, data), saved);
+});
+
+test('aptitude changes reject a seventh spark without losing the current estimates', () => {
+  const grades = { ...base, end: 'D' as const, mile: 'D' as const };
+  const current = inferPinkLineage(base, grades, emptyPinkLineage()).lineage;
+  const before = structuredClone(current);
+  assert.equal(withPinkAptitude(base, grades, current, 'end', 'C'), null);
+  assert.deepEqual(current, before);
+  const lower = withPinkAptitude(base, grades, current, 'mile', 'E')!;
+  assert.equal(filled(lower.lineage).length, 5);
+  const higher = withPinkAptitude(base, { ...grades, mile: 'E' }, lower.lineage, 'end', 'C')!;
+  assert.equal(filled(higher.lineage).length, 6);
+  assert.deepEqual(higher.issues, []);
+  assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'B'), null);
+  assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'S'), null);
+  const manual = Array.from({ length: 6 }, () => ({ aptitude: 'turf' as const, stars: 3 }));
+  assert.equal(withPinkAptitude(base, base, manual, 'end', 'F'), null);
+});
+
+test('lowering grades can repair an old setup even when several changes are needed', () => {
+  const old = { ...base, end: 'A' as const, mile: 'A' as const };
+  const lower = withPinkAptitude(base, old, emptyPinkLineage(), 'end', 'C');
+  assert.ok(lower);
+  assert.ok(lower.issues.length > 0, 'the other aptitude still exceeds the starting limit');
+  assert.equal(withPinkAptitude(base, old, emptyPinkLineage(), 'sprint', 'F'), null);
 });

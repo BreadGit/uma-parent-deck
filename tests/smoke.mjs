@@ -329,6 +329,24 @@ await assertFieldsMatchState('after clearing entered sparks again');
 assert.equal(await page.locator('select[data-gain] option.dim').count(), 0);
 await page.click('button[data-action="toggle-sparks"]');
 await assertFieldsMatchState('after closing the spark form');
+// Guard aptitude edits before they exceed six pink sparks.
+await page.selectOption('[data-apt="dirt"]', 'C');
+await assertFieldsMatchState('after allocating four pink sparks to dirt');
+await page.selectOption('[data-apt="sprint"]', 'D');
+await assertFieldsMatchState('after filling all six pink slots');
+assert.equal(await page.locator('[data-apt="end"] option[value="B"]').isDisabled(), true);
+await page.locator('[data-apt="end"]').evaluate((select) => {
+  select.value = 'B';
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+});
+await assertFieldsMatchState('after rejecting an aptitude that needs a seventh spark');
+assert.equal(await page.inputValue('[data-apt="end"]'), 'C');
+assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
+await page.selectOption('[data-apt="sprint"]', 'E');
+await assertFieldsMatchState('after freeing a pink slot');
+assert.equal(await page.locator('[data-apt="end"] option[value="B"]').isDisabled(), false);
+await page.click('[data-action="reset-legacy"]');
+await assertFieldsMatchState('after resetting aptitude guard checks');
 // Goal roles share the target chips. Editor selection is transient; goals and lineage persist.
 const deckBeforeGoal = await page.locator('.deck').innerText();
 await page.check('[data-goal-enabled]');
