@@ -143,8 +143,8 @@ await page.fill('#card-search', 'kitasan');
 await page.waitForSelector('li[data-action="pin-card"]');
 await page.click('li[data-action="pin-card"]');
 await page.waitForTimeout(200);
-const topRanked = await page.$$eval('section.panel:last-child tbody tr td:nth-child(2)', (tds) => tds.slice(0, 2).map((td) => td.textContent));
-assert.ok(topRanked.some((t) => t.includes('Kitasan Black') && t.includes('pinned')), `pinned card should sit with the pinned rows at the top, got: ${topRanked}`);
+const topRanked = await page.$$eval('section.panel:last-child tbody tr td:nth-child(2)', (tds) => tds.slice(0, 2).map((td) => ({ name: td.textContent, pinned: td.querySelector('.ranking-pin')?.getAttribute('aria-pressed') === 'true' })));
+assert.ok(topRanked.some((t) => t.name.includes('Kitasan Black') && t.pinned), `pinned card should sit with the pinned rows at the top, got: ${JSON.stringify(topRanked)}`);
 assert.ok((await page.$$eval('.deck .slot .name', (n) => n.map((x) => x.textContent))).some((n) => n.includes('Kitasan Black')), 'pinned card should be in the deck');
 await page.click('.chip button[data-action="unpin-card"]:not([data-id="30052"])');
 // Pin directly from the ranking, then unpin with the keyboard after the row moves.
