@@ -65,7 +65,7 @@ names differ they are noted.
 - **Legacy screen**: the game's pre-run screen with the trainee's stats after inheritance, a "+XX" above each
   stat per parent side, and her aptitudes. In the tool, the **Legacy** panel copies it: the **start
   gain** per parent (one of the 20 sums three sparks can make, +0 to +63, each shown with the stars behind
-  it, e.g. "+63 333" for three 3★ sparks) and the surface and distance aptitudes after pink sparks.
+  it, e.g. "+63 9★" for three 3★ sparks) and the surface and distance aptitudes after pink sparks.
 - **Inspiration events**: early April of Classic and Senior year, when sparks may proc again.
 - **White spark generation**: at run end each owned skill may become a white spark: 20% for a white
   skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage. The run

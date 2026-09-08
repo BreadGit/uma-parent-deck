@@ -326,7 +326,7 @@ td.cover .t { display: inline-flex; margin: 1px 6px 1px 0; }
   .wishlist .wl-move, .wishlist .wl-x { font-size: 12px; line-height: 22px; padding: 0 8px; }
   input[type=range] { height: 28px; }
 }
-/* narrow touch screens: a 16px "+63 333" needs the whole 66px stat column, so the gain select drops its native arrow */
+/* narrow touch screens: a 16px "+63 9★" needs the whole 66px stat column, so the gain select drops its native arrow */
 @media (pointer: coarse) and (max-width: 480px) {
   .legacy-stat select.gain { appearance: none; }
 }

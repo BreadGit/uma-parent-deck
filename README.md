@@ -42,8 +42,8 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   one borrowed card fit the deck, the page explains what is missing and hides the run predictions.
 - Legacy: a copy of the game's pre-run screen. Above each stat you pick the "+XX" each
   parent side adds at the start, as the game shows it; the 20 possible values each decode to one
-  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start), shown next to the value as the stars
-  per spark, e.g. "+63 333". Each spark then procs at the two inspiration events (70/80/90% by stars, times 1 + affinity/100 of the uma carrying it) for a
+  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start), shown next to the value with their
+  total stars, e.g. "+63 9★". Each spark then procs at the two inspiration events (70/80/90% by stars, times 1 + affinity/100 of the uma carrying it) for a
   random roll of 1 to 10, 1 to 16 or 1 to 28; the tool uses an assumed mean per star, set in the
   advanced settings, because the distribution is unmeasured. The affinity is one advanced setting,
   the individual score assumed for every uma in the lineage (150 by default, so every blue spark

@@ -33,8 +33,8 @@ function setAptitude(k: AptKey, grade: Grade) {
   });
 }
 
-/** "+63 333": the start gain and the stars of each spark behind it. A bracketed "(3+3+3)" form clips in the select's column. */
-const gainLabel = (g: { gain: number; stars: number[] }) => (g.stars.length ? `+${g.gain} ${g.stars.join('')}` : `+${g.gain}`);
+/** "+63 9★": the start gain and the total stars of the sparks behind it. Per-spark forms such as "(3+3+3)" clip in the select's column. */
+const gainLabel = (g: { gain: number; stars: number[] }) => (g.stars.length ? `+${g.gain} ${g.stars.reduce((a, k) => a + k, 0)}★` : `+${g.gain}`);
 
 const gainSelect = (pi: number, si: number) => html`<select class="gain p${pi + 1} ${store.run.parentGains[pi]![si] ? 'set' : ''}" data-gain="${pi}-${si}" title="Parent ${pi + 1}" .value=${live(String(store.run.parentGains[pi]![si]))} @change=${(e: Event) => setGain(pi, si, Number((e.target as HTMLSelectElement).value))}>
   ${START_GAINS.map((g) => html`<option value="${g.gain}" ?disabled=${!canSetParentGain(store.run.parentGains[pi]!, si, g.gain)} ?selected=${store.run.parentGains[pi]![si] === g.gain}>${gainLabel(g)}</option>`)}</select>`;
@@ -43,7 +43,7 @@ const gainSelect = (pi: number, si: number) => html`<select class="gain p${pi + 
 const resetLegacy = () => update((s) => { s.run.parentGains = s.run.parentGains.map((p) => p.map(() => 0)); s.run.aptOverrides = {}; });
 
 const PANEL_TIP = 'Copy the game\'s legacy screen, shown before the run starts: the "+XX" each parent adds above every stat, and the aptitudes after inheritance.';
-const GAINS_TIP = `The "+XX" above each stat on the legacy screen, per parent. Each value decodes to the blue sparks behind it, shown after it as the stars of each spark ("+63 333" is three 3★ sparks). One parent side has ${UMAS_PER_PARENT_SIDE} umas (the parent and her two grandparents) with one blue spark each, so only sums those ${UMAS_PER_PARENT_SIDE} sparks can make are offered, and choosing them on one stat greys them out on the others.`;
+const GAINS_TIP = `The "+XX" above each stat on the legacy screen, per parent. Each value decodes to the blue sparks behind it, with their total stars after it ("+63 9★" is three 3★ sparks; +10 and +12 are both 2★, as 1★+1★ and one 2★). One parent side has ${UMAS_PER_PARENT_SIDE} umas (the parent and her two grandparents) with one blue spark each, so only sums those ${UMAS_PER_PARENT_SIDE} sparks can make are offered, and choosing them on one stat greys them out on the others.`;
 const LATER_TIP = `Expected extra stat from the two inspiration events, from the sparks behind each +XX. A 3★ spark procs at 90%, 2★ at 80%, 1★ at 70%, times (1 + affinity/100) with the affinity from the advanced settings. Each proc rolls 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[1]![1]} for 1★, 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[2]![1]} for 2★, 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[3]![1]} for 3★; the average assumed per star is an advanced setting. Each spark also raises the stat's cap at the start by +${BLUE_SPARK_START_UNCAP_BY_STARS[1]} / +${BLUE_SPARK_START_UNCAP_BY_STARS[2]} / +${BLUE_SPARK_START_UNCAP_BY_STARS[3]} by stars.`;
 const APT_TIP = 'Set surface and distance to what the legacy screen shows after inheritance, since pink sparks can raise them. The agenda uses these for the whole run; a pink spark proc at an inspiration event is not modelled, and S is not offered because only such a proc reaches it.';
 
