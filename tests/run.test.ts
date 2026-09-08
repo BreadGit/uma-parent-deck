@@ -15,7 +15,7 @@ const data = loadData();
 const settings = { ...DEFAULT_SETTINGS };
 const byName = (n: string) => data.skills.find((s) => s.name === n && !s.unreleasedEn)!;
 const sw = data.characters.find((c) => c.name === 'Special Week')!;
-const empty: RunInput = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentGains: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] };
+const empty: RunInput = { targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [[null, null, null], [null, null, null]] };
 const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight });
 
 test('star tables: every listed table is used as is; only a missing one interpolates, and counts outside the range clamp', () => {
@@ -106,7 +106,7 @@ test('the scenario completion reward is a source for I Wanna Win with You and On
 
 test("predicted stats are clamped to the scenario caps plus the blue sparks' start uncaps", () => {
   const caps = SCENARIO_STAT_CAPS[3]!;
-  const heavy: RunInput = { ...empty, traineeCardId: sw.cardId, parentGains: [[0, 63, 0, 0, 0], [0, 63, 0, 0, 0]] };
+  const heavy: RunInput = { ...empty, traineeCardId: sw.cardId, parentSparks: [Array(3).fill({ stat: 'stamina', stars: 3 }), Array(3).fill({ stat: 'stamina', stars: 3 })] };
   const plan = planRun(heavy, settings, {}, data);
   assert.deepEqual(plan.issues, []);
   assert.ok(plan.statCaps);

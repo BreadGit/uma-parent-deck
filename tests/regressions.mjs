@@ -4,6 +4,7 @@ import { test, after } from 'node:test';
 import { chromium } from 'playwright';
 import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
+import { defaultParentSparks } from '../src/model/inherit.ts';
 
 const data = loadData();
 const browser = await chromium.launch();
@@ -56,7 +57,7 @@ test('the first reset clears targets, trainee, pins and inheritance while preser
   assert.equal(await page.locator('.target-row').count(), 0);
   const saved = await state(page);
   assert.deepEqual(saved.run.targets, []);
-  assert.deepEqual(saved.run.parentGains, [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]);
+  assert.deepEqual(saved.run.parentSparks, [defaultParentSparks(), defaultParentSparks()]);
   assert.deepEqual(saved.run.pinnedIds, [30052]);
   assert.equal(saved.settings.focus, 'sprint');
   assert.equal(saved.inventory['30028'], 2);
@@ -130,31 +131,32 @@ test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious cir
   assert.equal(await predictions(page).count(), 1);
 });
 
-test('parent selectors share a three-spark budget and allow valid mixed stats', async (t) => {
+test('start gains share a side\'s three umas: a bigger gain takes the weakest umas from the other stats, and the sparks persist', async (t) => {
   const page = await fresh(t);
   await trainee(page);
   await page.selectOption('[data-gain="0-0"]', '63');
-  assert.equal(await page.locator('[data-gain="0-1"] option[value="5"]').isDisabled(), true);
+  assert.equal(await page.locator('[data-gain="0-1"]').inputValue(), '0', 'the default 1★ Stamina went to the third Speed spark');
   await page.selectOption('[data-gain="0-0"]', '21');
   await page.selectOption('[data-gain="0-1"]', '12');
   await page.selectOption('[data-gain="0-2"]', '5');
-  assert.equal(await page.locator('[data-gain="0-3"] option[value="5"]').isDisabled(), true);
-  assert.equal(await page.locator('[data-gain="1-0"] option[value="63"]').isDisabled(), false);
+  await page.selectOption('[data-gain="0-3"]', '5');
+  assert.equal(await page.locator('[data-gain="0-2"]').inputValue(), '0', 'the 1★ Power uma is the weakest, so Guts took her');
+  assert.equal(await page.locator('[data-gain="1-0"]').inputValue(), '5', 'parent 2 is untouched');
   assert.equal(await predictions(page).count(), 1);
   await page.reload();
-  assert.deepEqual((await state(page)).run.parentGains[0], [21, 12, 5, 0, 0]);
+  assert.deepEqual((await state(page)).run.parentSparks[0], [{ stat: 'speed', stars: 3 }, { stat: 'stamina', stars: 2 }, { stat: 'guts', stars: 1 }]);
 });
 
-test('impossible saved inheritance blocks predictions and can be repaired without losing the other side', async (t) => {
+test('a malformed saved side becomes the default side without a warning, and the other side is kept', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  saved.run.parentGains = [[63, 63, 0, 0, 0], [0, 0, 0, 0, 63]];
+  saved.run.parentSparks = [[{ stat: 'speed', stars: 3 }, { stat: 'speed', stars: 3 }, { stat: 'luck', stars: 3 }], [{ stat: 'wit', stars: 3 }, { stat: 'wit', stars: 3 }, { stat: 'wit', stars: 3 }]];
   const page = await fresh(t, saved);
-  assert.match(await page.locator('[data-plan-issues]').innerText(), /Parent 1 uses 6 blue sparks/);
-  assert.equal(await predictions(page).count(), 0);
-  await page.selectOption('[data-gain="0-1"]', '0');
+  assert.equal(await page.locator('[data-plan-issues]').count(), 0);
   assert.equal(await predictions(page).count(), 1);
-  assert.deepEqual((await state(page)).run.parentGains, [[63, 0, 0, 0, 0], [0, 0, 0, 0, 63]]);
+  assert.deepEqual(await page.$$eval('[data-gain]', (els) => els.map((e) => e.value)), ['5', '0', '5', '0', '5', '0', '0', '0', '0', '63'], 'side 1 shows the default sparks, side 2 its three 3★ Wit');
+  await page.selectOption('[data-gain="1-3"]', '5');
+  assert.deepEqual((await state(page)).run.parentSparks, [defaultParentSparks(), [{ stat: 'wit', stars: 3 }, { stat: 'wit', stars: 3 }, { stat: 'guts', stars: 1 }]], 'the next edit saves the repaired side 1 along with the change on side 2');
 });
 
 test('invalid inventory imports preserve inventory, while valid export and import round-trip', async (t) => {

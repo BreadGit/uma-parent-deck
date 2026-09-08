@@ -14,6 +14,7 @@ export const view = {
   traineeQuery: '',
   cardQuery: '',
   showAdvanced: false,
+  showSparks: false,
 };
 
 let renderer: () => void = () => {};

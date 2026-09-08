@@ -5,7 +5,7 @@ import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts
 import type { RunInput } from './model/run.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
-import { gainOfSparks, sparksFromGain, sparksFromStars } from './model/inherit.ts';
+import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
 import { clampStars } from './model/trainee.ts';
 import type { Grade } from './types.ts';
 
@@ -13,14 +13,14 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState }
 
-export const STATE_VERSION = 5;
+export const STATE_VERSION = 6;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
 
 export const DEFAULT_RUN: RunInput = {
   targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
-  aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentGains: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
+  aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [defaultParentSparks(), defaultParentSparks()],
 };
 export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system' };
 
@@ -59,18 +59,23 @@ function migrateRun(raw: Json, data: Data): RunInput {
     const l = migrateLineage(v);
     if (l) run.targetLineage[k] = l;
   }
-  // blue sparks: one combined blueStars list (v1) became stars per parent (v2), which became the start gain per
-  // parent as the legacy screen shows it (v5); stars pack into sparks and sum to their gain
+  // blue sparks: one combined blueStars list (v1) became stars per parent (v2), then the start gain per parent as
+  // the legacy screen shows it (v5), then the spark each of the side's three umas carries (v6). Gains decode into
+  // sparks; a side the screen could not show, or one left at +0 everywhere, becomes the default side.
   const five = (p: number[]) => [0, 1, 2, 3, 4].map((i) => p[i] ?? 0);
   const starsToGains = (p: number[]) => five(p).map((stars) => gainOfSparks(sparksFromStars(stars)));
-  if (Array.isArray(raw.parentGains) && raw.parentGains.length === 2) run.parentGains = raw.parentGains.map(numList).map((p) => five(p).map((g) => (sparksFromGain(g).length || g === 0 ? g : 0)));
-  else if (Array.isArray(raw.parentStars) && raw.parentStars.length === 2) run.parentGains = raw.parentStars.map(numList).map(starsToGains);
+  const sideFromGains = (gains: number[]): ParentSparks => (gains.some((g) => g) && parentSparksFromGains(five(gains))) || defaultParentSparks();
+  let gains: number[][] | null = null;
+  if (Array.isArray(raw.parentSparks) && raw.parentSparks.length === 2) run.parentSparks = raw.parentSparks.map(sanitizeParentSparks);
+  else if (Array.isArray(raw.parentGains) && raw.parentGains.length === 2) gains = raw.parentGains.map(numList);
+  else if (Array.isArray(raw.parentStars) && raw.parentStars.length === 2) gains = raw.parentStars.map(numList).map(starsToGains);
   else if (Array.isArray(raw.blueStars)) {
     let left = MAX_PARENT_STARS;
     const all = numList(raw.blueStars);
     const p1 = all.map((v) => { const take = Math.min(v, left); left -= take; return take; });
-    run.parentGains = [starsToGains(p1), starsToGains(all.map((v, i) => Math.min(MAX_PARENT_STARS, v - p1[i]!)))];
+    gains = [starsToGains(p1), starsToGains(all.map((v, i) => Math.min(MAX_PARENT_STARS, v - p1[i]!)))];
   }
+  if (gains) run.parentSparks = gains.map(sideFromGains);
   return run;
 }
 function migrateLineage(v: Json): Lineage | null {

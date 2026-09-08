@@ -207,6 +207,15 @@ meter.bar::-moz-meter-bar { background: var(--accent); border-radius: 4px; }
 .legacy-apts .cell { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 .legacy-apts .cell select { font-size: 11px; padding: 1px 0; width: 34px; }
 .legacy-apts .cell.over select { border-color: var(--warn); }
+/* "By stars" form: each side's three umas with the stat and stars of her blue spark */
+.legacy-sparks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 12px; margin-top: 8px; font-size: 11px; }
+.legacy-sparks .side { display: grid; grid-template-columns: auto auto auto; justify-content: start; gap: 3px 5px; align-items: center; min-width: 0; }
+.legacy-sparks .side-head { grid-column: 1 / -1; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.legacy-sparks .side.p1 .side-head { color: var(--parent1); }
+.legacy-sparks .side.p2 .side-head { color: var(--parent2); }
+.legacy-sparks .who { color: var(--muted); white-space: nowrap; }
+.legacy-sparks select { font-size: 11px; padding: 1px 2px; min-width: 0; max-width: 100%; }
+.legacy-sparks select[data-spark-stat] { width: 92px; }
 
 /* deck and predicted run */
 .deck { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
@@ -319,8 +328,9 @@ td.cover .t { display: inline-flex; margin: 1px 6px 1px 0; }
   button.small { padding: 4px 10px; font-size: 13px; }
   .chip button { padding: 2px 6px; font-size: 15px; }
   input[type=search], input[type=text], input[type=number], select { font-size: 16px; }
-  .legacy-stat select.gain, .legacy-apts .cell select, .chip.target-row select, .agenda-pick select { font-size: 16px; }
+  .legacy-stat select.gain, .legacy-apts .cell select, .legacy-sparks select, .chip.target-row select, .agenda-pick select { font-size: 16px; }
   .legacy-apts .cell select { width: 46px; }
+  .legacy-sparks select[data-spark-stat] { width: 112px; }
   .wishlist .grip { display: none; }
   .wishlist li { padding: 5px 4px; }
   .wishlist .wl-move, .wishlist .wl-x { font-size: 12px; line-height: 22px; padding: 0 8px; }

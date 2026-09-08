@@ -7,7 +7,7 @@ import { importInventory } from '../src/inventory.ts';
 import { planRun, targetSpCost } from '../src/model/run.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { combineSources, eventSources, pruneConflicts, purchasedOwnership, resolveTarget, sparkChance, type SkillSource } from '../src/model/sparks.ts';
-import { canSetParentGain, parentGainIssues, parentSparkCount } from '../src/model/inherit.ts';
+import { defaultParentSparks, gainsOfParentSparks, withParentGain } from '../src/model/inherit.ts';
 import { evaluate, makeCtx, traineeCoverage } from '../src/model/deck.ts';
 import type { Inventory } from '../src/types.ts';
 
@@ -29,14 +29,14 @@ test('card event sources follow changes to the same settings object, including n
 test('new states and resets do not share mutable run or settings defaults', () => {
   const a = defaultState(data), b = defaultState(data);
   a.run.targets.push(201601);
-  a.run.parentGains[0]![0] = 63;
+  a.run.parentSparks[0]![0] = { stat: 'guts', stars: 3 };
   a.settings.chainRatesSSR[0] = 0;
   assert.deepEqual(b.run.targets, []);
-  assert.deepEqual(b.run.parentGains, [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]);
+  assert.deepEqual(b.run.parentSparks, [defaultParentSparks(), defaultParentSparks()]);
   assert.equal(b.settings.chainRatesSSR[0], 0.69);
   const reset = resetRun(a, data);
   assert.deepEqual(reset.run.targets, []);
-  assert.equal(reset.run.parentGains[0]![0], 0);
+  assert.deepEqual(reset.run.parentSparks[0], defaultParentSparks());
   assert.equal(reset.settings, a.settings);
 });
 
@@ -200,20 +200,16 @@ test('plans with fewer than five usable owned characters are explicitly incomple
   }
 });
 
-test('parent limits apply across stats and flag impossible saved inputs', () => {
-  const valid = planRun({ ...input(), parentGains: [[5, 12, 21, 0, 0], [0, 0, 0, 42, 12]] }, settings(), {}, data);
-  assert.deepEqual(valid.issues, []);
-  const invalid = planRun({ ...input(), parentGains: [[63, 63, 63, 63, 63], [0, 0, 0, 0, 0]] }, settings(), {}, data);
-  assert.ok(invalid.issues.some((message) => /Parent 1/.test(message)));
+test('the plan shows the start gains the sparks make, and a full side never raises an issue', () => {
+  const p = planRun({ ...input(), parentSparks: [[{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 2 }, { stat: 'power', stars: 3 }], [{ stat: 'guts', stars: 3 }, { stat: 'guts', stars: 3 }, { stat: 'wit', stars: 2 }]] }, settings(), {}, data);
+  assert.deepEqual(p.parentGains, [[5, 12, 21, 0, 0], [0, 0, 0, 42, 12]]);
+  assert.deepEqual(p.issues, []);
 });
 
-test('parent gain edits enforce the shared budget and allow gradual repair of invalid saves', () => {
-  assert.equal(parentSparkCount([5, 12, 21, 0, 0]), 3);
-  assert.equal(canSetParentGain([63, 0, 0, 0, 0], 1, 5), false);
-  assert.equal(canSetParentGain([21, 12, 0, 0, 0], 2, 5), true);
-  assert.equal(canSetParentGain([0, 0, 0, 0, 0], 0, 64), false);
-  assert.equal(canSetParentGain([63, 63, 63, 0, 0], 0, 42), true, 'reducing nine sparks to eight is progress');
-  assert.equal(canSetParentGain([63, 63, 63, 0, 0], 3, 5), false);
-  assert.deepEqual(parentGainIssues([[63, 0, 0, 0, 0], [0, 0, 0, 63, 0]]), []);
-  assert.ok(parentGainIssues([[64, 0, 0, 0, 0], [0, 0, 0, 0, 0]]).length);
+test('a start gain picked over a full side takes umas from the other stats, fewest stars first, and the old budget rules are gone', () => {
+  const side = withParentGain(defaultParentSparks(), 0, 63);
+  assert.deepEqual(gainsOfParentSparks(side), [63, 0, 0, 0, 0], 'three 3★ Speed sparks evict every default 1★');
+  const back = withParentGain(side, 1, 5);
+  assert.deepEqual(gainsOfParentSparks(back), [42, 5, 0, 0, 0], 'a 1★ Stamina spark takes the last Speed slot');
+  assert.deepEqual(gainsOfParentSparks(withParentGain(back, 0, 0)), [0, 5, 0, 0, 0], '+0 frees the stat and keeps the others');
 });

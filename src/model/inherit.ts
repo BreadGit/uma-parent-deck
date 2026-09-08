@@ -1,4 +1,5 @@
 import type { Settings } from '../settings.ts';
+import { STATS, type Stat } from '../types.ts';
 import { BLUE_SPARK_INSPIRATION_PROC_BY_STARS, BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_GAIN_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, INSPIRATION_EVENTS, MAX_BLUE_STARS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from './rules.ts';
 export { MAX_BLUE_STARS, MAX_PARENT_STARS };
 
@@ -33,24 +34,51 @@ export const START_GAINS: { gain: number; stars: number[] }[] = (() => {
 export const MAX_START_GAIN = START_GAINS[START_GAINS.length - 1]!.gain;
 /** The sparks behind a start gain, or none for a value the screen cannot show. */
 export const sparksFromGain = (gain: number): number[] => START_GAINS.find((g) => g.gain === gain)?.stars ?? [];
-/** Across all five stats, one parent side has only three umas, each carrying one blue spark. */
-export const parentSparkCount = (gains: number[]): number => gains.reduce((n, gain) => n + sparksFromGain(gain).length, 0);
-export function parentGainIssues(parents: number[][]): string[] {
-  if (parents.length !== 2) return ['Enter gains for both parent sides.'];
-  return parents.flatMap((gains, i) => {
-    if (gains.length !== 5 || gains.some((g) => !START_GAINS.some((v) => v.gain === g))) return [`Parent ${i + 1} has an invalid start gain.`];
-    const count = parentSparkCount(gains);
-    return count > UMAS_PER_PARENT_SIDE ? [`Parent ${i + 1} uses ${count} blue sparks. At most ${UMAS_PER_PARENT_SIDE} can be split across the five stats. Reduce the gains or reset the legacy screen.`] : [];
-  });
-}
-/** Allow valid changes and edits that reduce an invalid saved side toward its limit. */
-export function canSetParentGain(gains: number[], statIndex: number, gain: number): boolean {
-  if (!START_GAINS.some((g) => g.gain === gain)) return false;
-  const count = parentSparkCount(gains.map((g, i) => i === statIndex ? gain : g));
-  return count <= UMAS_PER_PARENT_SIDE || count < parentSparkCount(gains) || gain === gains[statIndex];
-}
 /** The start gain a set of sparks shows. */
 export const gainOfSparks = (sparks: number[]) => sparks.reduce((a, k) => a + (BLUE_SPARK_START_GAIN_BY_STARS[k] ?? 0), 0);
+
+/** One uma's blue spark: the stat it raises and its stars. */
+export interface BlueSpark { stat: Stat; stars: number }
+/**
+ * One parent side's umas, the parent and her two grandparents, each with her blue spark. Every trained uma carries
+ * one, so a null slot only means "not entered": the start gain dropdown set that stat to +0.
+ */
+export type ParentSparks = (BlueSpark | null)[];
+export const UMA_LABELS = ['Parent', 'Grandparent', 'Grandparent'];
+/** A fresh side: 1★ Speed, Stamina and Power, so every uma has a spark to edit rather than a blank. */
+export const defaultParentSparks = (): ParentSparks => [{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 1 }, { stat: 'power', stars: 1 }];
+export const isValidSpark = (v: unknown): v is BlueSpark => !!v && typeof v === 'object' && STATS.includes((v as BlueSpark).stat) && Number.isInteger((v as BlueSpark).stars) && (v as BlueSpark).stars >= 1 && (v as BlueSpark).stars <= STARS_PER_SPARK_MAX;
+/** A saved side, or the default when it is not exactly three slots of a spark or null. */
+export function sanitizeParentSparks(raw: unknown): ParentSparks {
+  if (!Array.isArray(raw) || raw.length !== UMAS_PER_PARENT_SIDE || !raw.every((v) => v === null || isValidSpark(v))) return defaultParentSparks();
+  return raw.map((v: BlueSpark | null) => (v ? { stat: v.stat, stars: v.stars } : null));
+}
+/** The "+XX" one side shows above each stat: the sum of its umas' sparks on that stat. */
+export const gainsOfParentSparks = (sparks: ParentSparks): number[] => STATS.map((st) => gainOfSparks(sparks.filter((s) => s?.stat === st).map((s) => s!.stars)));
+/** Sparks from the legacy screen's five gains, in stat order, strongest first; null when they need more than three umas. */
+export function parentSparksFromGains(gains: number[]): ParentSparks | null {
+  if (gains.length !== STATS.length || gains.some((g) => !START_GAINS.some((v) => v.gain === g))) return null;
+  const out: ParentSparks = gains.flatMap((g, i) => [...sparksFromGain(g)].sort((a, b) => b - a).map((stars) => ({ stat: STATS[i]!, stars })));
+  if (out.length > UMAS_PER_PARENT_SIDE) return null;
+  while (out.length < UMAS_PER_PARENT_SIDE) out.push(null);
+  return out;
+}
+/**
+ * Set one stat's start gain as read off the legacy screen. The umas already on that stat are replaced first, then
+ * empty slots are used, and if the gain still needs more umas they come from the other stats, fewest stars first
+ * and grandparents before the parent. The decoded sparks take the freed slots in order, strongest first.
+ */
+export function withParentGain(sparks: ParentSparks, statIndex: number, gain: number): ParentSparks {
+  const stat = STATS[statIndex]!;
+  const wanted = [...sparksFromGain(gain)].sort((a, b) => b - a);
+  const out: ParentSparks = sparks.map((s) => (s?.stat === stat ? null : s));
+  let need = wanted.length - out.filter((s) => !s).length;
+  const evict = out.map((s, i) => ({ s, i })).filter((x) => x.s).sort((a, b) => a.s!.stars - b.s!.stars || b.i - a.i);
+  for (const x of evict) { if (need <= 0) break; out[x.i] = null; need--; }
+  let i = 0;
+  for (const stars of wanted) { while (out[i]) i++; out[i] = { stat, stars }; i++; }
+  return out;
+}
 
 /**
  * Proc multiplier of a spark at an inspiration event: (1 + individual affinity/100) of the uma carrying it. The tool

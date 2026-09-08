@@ -42,7 +42,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   one borrowed card fit the deck, the page explains what is missing and hides the run predictions.
 - Legacy: a copy of the game's pre-run screen. Above each stat you pick the "+XX" each
   parent side adds at the start, as the game shows it; the 20 possible values each decode to one
-  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). Each spark then procs at the two
+  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). "By stars" opens a second way in:
+  the blue spark (stat and stars) of each parent and her two grandparents, as a database such as
+  uma.moe lists them. Both edit the same sparks, and a fresh side starts as 1★ Speed, Stamina and Power. Each spark then procs at the two
   inspiration events (70/80/90% by stars, times 1 + affinity/100 of the uma carrying it) for a
   random roll of 1 to 10, 1 to 16 or 1 to 28; the tool uses an assumed mean per star, set in the
   advanced settings, because the distribution is unmeasured. The affinity is one advanced setting,
@@ -50,8 +52,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   procs); the game only shows the six scores' sum as ◎/○/△, so per-uma entry is not offered. The
   aptitude overrides sit under the stats like the game's table; S is not offered because only an
   inspiration event reaches it.
-  Each parent side has three blue sparks total across all stats. The selectors prevent exceeding that limit;
-  older saves that exceed it keep their values, with predictions hidden until the gains are corrected.
+  Each parent side has three blue sparks total across all stats, one per uma. A "+XX" that needs more umas
+  than its stat already has takes them from the other stats, fewest stars first, so those drop. A saved side
+  the screen could not show is replaced by the default side rather than warned about.
 
 Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live in
 `src/model/rules.ts`, tunable estimates in `src/settings.ts`.

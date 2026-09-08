@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { defaultPins, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
+import { defaultParentSparks } from '../src/model/inherit.ts';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, parseSetting, sanitizeSettings, SETTING_HELP, type Settings } from '../src/settings.ts';
 
 const data = loadData();
@@ -21,14 +22,14 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   const v1 = { targets: [200352], pinnedId: 30028, blueStars: [9, 9, 3, 0, 0], targetLineage: { '200352': { n: 3, stars: 3 } }, sortKey: 'stats' };
   const s1 = migrate({ state: v1 }, data);
   assert.deepEqual(s1.run.pinnedIds, [30028]);
-  assert.deepEqual(s1.run.parentGains, [[63, 0, 0, 0, 0], [0, 63, 21, 0, 0]], 'parent 1 fills first, the rest goes to parent 2, stars become start gains');
+  assert.deepEqual(s1.run.parentSparks, [Array(3).fill({ stat: 'speed', stars: 1 + 2 }), defaultParentSparks()], 'parent 1 fills first with three 3★ Speed sparks; the rest would need four umas on parent 2, so that side is the default');
   assert.deepEqual(s1.run.targetLineage['200352'], { k1: 2, k2: 1, p1: 6, p2: 3 });
   assert.equal(s1.ui.sortKey, 'stats');
   const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { a: true, b: 'no' }, traineeStars: 'five' };
   const s2 = migrate({ state: v2 }, data);
   assert.deepEqual(s2.run.targets, [200352]);
   assert.deepEqual(s2.run.pinnedIds, [30052, 30028]);
-  assert.deepEqual(s2.run.parentGains, [[5, 12, 21, 0, 0], [0, 0, 0, 26, 33]], 'v2 stars per stat pack into sparks: 4★ is 3★+1★ (+26), 5★ is 3★+2★ (+33)');
+  assert.deepEqual(s2.run.parentSparks, [[{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 2 }, { stat: 'power', stars: 3 }], defaultParentSparks()], 'v2 stars per stat become one uma each; 4★ Guts and 5★ Wit pack into four sparks, so that side is the default');
   assert.deepEqual(s2.run.targetLineage, { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } });
   assert.deepEqual(s2.run.raceOverrides, { a: true });
   assert.equal(s2.run.traineeStars, 3);
@@ -37,14 +38,26 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 7 } }, data).run.traineeStars, 5);
 });
 
-test('v4 saves (stars per parent) become v5 start gains, gains the screen cannot show are dropped, and an S aptitude override becomes A', () => {
-  const v4 = { version: 4, run: { parentStars: [[9, 3, 0, 0, 0], [0, 0, 0, 0, 0]], aptOverrides: { turf: 'S', dirt: 'B' } }, settings: {}, inventory: {}, ui: { sortKey: 'score', theme: 'light' } };
+test('v4 saves (stars per parent) and v5 saves (start gains) become v6 sparks per uma; sides the screen cannot show or left at +0 become the default; an S aptitude override becomes A', () => {
+  const v4 = { version: 4, run: { parentStars: [[3, 3, 0, 0, 0], [0, 0, 0, 0, 0]], aptOverrides: { turf: 'S', dirt: 'B' } }, settings: {}, inventory: {}, ui: { sortKey: 'score', theme: 'light' } };
   const s = migrate({ current: v4 }, data);
   assert.equal(s.version, STATE_VERSION);
-  assert.deepEqual(s.run.parentGains, [[63, 21, 0, 0, 0], [0, 0, 0, 0, 0]]);
+  assert.deepEqual(s.run.parentSparks, [[{ stat: 'speed', stars: 3 }, { stat: 'stamina', stars: 3 }, null], defaultParentSparks()], 'two sparks leave the third uma unentered; an untouched side is the default');
   assert.deepEqual(s.run.aptOverrides, { turf: 'A', dirt: 'B' }, 'S cannot show on the pre-run screen and wins like A');
-  const v5 = { version: 5, run: { parentGains: [[26, 7, 0, 0, 0], [0, 0, 0, 0, 63]] } };
-  assert.deepEqual(migrate({ current: v5 }, data).run.parentGains, [[26, 0, 0, 0, 0], [0, 0, 0, 0, 63]], '+7 is not a possible sum');
+  const v5 = { version: 5, run: { parentGains: [[26, 7, 0, 0, 0], [0, 0, 0, 12, 33]] } };
+  assert.deepEqual(migrate({ current: v5 }, data).run.parentSparks, [defaultParentSparks(), [{ stat: 'guts', stars: 2 }, { stat: 'wit', stars: 3 }, { stat: 'wit', stars: 2 }]], '+7 is not a possible sum, so that side is the default; +33 is a 3★ and a 2★, strongest first');
+  const over = { version: 5, run: { parentGains: [[63, 63, 0, 0, 0], [0, 0, 0, 0, 0]] } };
+  assert.deepEqual(migrate({ current: over }, data).run.parentSparks, [defaultParentSparks(), defaultParentSparks()], 'six sparks on one side is impossible and is dropped rather than warned about');
+});
+
+test('v6 sparks per uma round-trip, a null slot survives, and a malformed slot resets its side only', () => {
+  const side = [{ stat: 'guts', stars: 3 }, null, { stat: 'wit', stars: 1 }];
+  const ok = migrate({ current: { version: 6, run: { parentSparks: [side, side] } } }, data);
+  assert.deepEqual(ok.run.parentSparks, [side, side]);
+  const bad = migrate({ current: { version: 6, run: { parentSparks: [side, [{ stat: 'luck', stars: 3 }, null, null]] } } }, data);
+  assert.deepEqual(bad.run.parentSparks, [side, defaultParentSparks()]);
+  const short = migrate({ current: { version: 6, run: { parentSparks: [[{ stat: 'guts', stars: 4 }, null, null], side.slice(0, 2)] } } }, data);
+  assert.deepEqual(short.run.parentSparks, [defaultParentSparks(), defaultParentSparks()], 'stars past 3 and a side with two slots are malformed');
 });
 
 test('legacy settings blobs: version bumps apply and invalid values are dropped', () => {

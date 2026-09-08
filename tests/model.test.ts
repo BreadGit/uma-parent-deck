@@ -8,7 +8,7 @@ import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventS
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
-import { affinityMultiplier, gainOfSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, sparksFromGain, sparksFromStars, START_GAINS } from '../src/model/inherit.ts';
+import { affinityMultiplier, defaultParentSparks, gainOfSparks, gainsOfParentSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, parentSparksFromGains, sparksFromGain, sparksFromStars, START_GAINS, withParentGain, type ParentSparks } from '../src/model/inherit.ts';
 import { SLOT_COUNT } from '../src/model/rules.ts';
 
 const data = loadData();
@@ -379,6 +379,25 @@ test('blue sparks: 20 distinct start gains each decoding to one star combination
   const two = inheritedFromParents([[63, 0, 0, 0, 0], [21, 0, 0, 0, 0]], 0, s);
   assert.equal(two.start, 84);
   assert.equal(two.uncap, 64);
+});
+
+test('sparks per uma: each of a side\'s three umas carries one blue spark, and the "+XX" per stat is the sum of the sparks on it', () => {
+  assert.deepEqual(gainsOfParentSparks(defaultParentSparks()), [5, 5, 5, 0, 0], 'the default side is 1★ Speed, Stamina and Power');
+  assert.deepEqual(gainsOfParentSparks([{ stat: 'speed', stars: 3 }, { stat: 'speed', stars: 1 }, null]), [26, 0, 0, 0, 0]);
+  assert.deepEqual(parentSparksFromGains([26, 0, 0, 0, 12]), [{ stat: 'speed', stars: 3 }, { stat: 'speed', stars: 1 }, { stat: 'wit', stars: 2 }], 'gains decode in stat order, strongest spark first');
+  assert.deepEqual(parentSparksFromGains([5, 0, 0, 0, 0]), [{ stat: 'speed', stars: 1 }, null, null]);
+  assert.equal(parentSparksFromGains([63, 5, 0, 0, 0]), null, 'four sparks do not fit three umas');
+  assert.equal(parentSparksFromGains([7, 0, 0, 0, 0]), null, 'a value the screen cannot show');
+});
+
+test('setting a start gain replaces that stat\'s umas first, then empty slots, then the other stats\' weakest umas, grandparents before the parent', () => {
+  const side: ParentSparks = [{ stat: 'speed', stars: 3 }, { stat: 'stamina', stars: 1 }, null];
+  assert.deepEqual(withParentGain(side, 0, 26), [{ stat: 'speed', stars: 3 }, { stat: 'stamina', stars: 1 }, { stat: 'speed', stars: 1 }], 'Speed 3★ stays put, the extra 1★ takes the empty slot');
+  assert.deepEqual(withParentGain(side, 2, 21), [{ stat: 'speed', stars: 3 }, { stat: 'stamina', stars: 1 }, { stat: 'power', stars: 3 }], 'an empty slot is used before anyone is evicted');
+  assert.deepEqual(withParentGain(side, 2, 42), [{ stat: 'speed', stars: 3 }, { stat: 'power', stars: 3 }, { stat: 'power', stars: 3 }], 'the 1★ Stamina goes before the 3★ Speed');
+  assert.deepEqual(withParentGain([{ stat: 'speed', stars: 2 }, { stat: 'stamina', stars: 2 }, { stat: 'power', stars: 2 }], 3, 24), [{ stat: 'speed', stars: 2 }, { stat: 'guts', stars: 2 }, { stat: 'guts', stars: 2 }], 'on equal stars the grandparents go first');
+  assert.deepEqual(withParentGain(side, 0, 0), [null, { stat: 'stamina', stars: 1 }, null], '+0 frees the stat and leaves the rest');
+  assert.deepEqual(withParentGain(defaultParentSparks(), 4, 63), Array(3).fill({ stat: 'wit', stars: 3 }));
 });
 
 // ----- the deck builder -----

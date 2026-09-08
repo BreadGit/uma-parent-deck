@@ -5,7 +5,7 @@ import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type L
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { rankEstimate, uniqueSkillLevel, type RankEstimate } from './rank.ts';
-import { inheritedFromParents, parentGainIssues, type Inheritance } from './inherit.ts';
+import { gainsOfParentSparks, inheritedFromParents, type Inheritance, type ParentSparks } from './inherit.ts';
 import { clampStars, traineeAt } from './trainee.ts';
 import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS, SLOT_COUNT } from './rules.ts';
 
@@ -21,7 +21,7 @@ export interface RunInput {
   raceOverrides: Record<string, boolean>;  // calendar id -> forced in (true) or out (false)
   pinnedIds: number[];                     // pinned support cards: owned ones shortlist the owned slots, unowned ones ask for the friend's slot
   borrowFromAll: boolean;                  // with six or more owned pins, borrow the best card overall rather than the best leftover pin
-  parentGains: number[][];                 // [parent 1, parent 2], five stats each: the start gain the legacy screen shows
+  parentSparks: ParentSparks[];            // [parent 1, parent 2], the blue spark each of the side's three umas carries
 }
 
 /** The full base cost of every selected target family, including prerequisites for its best purchasable form. */
@@ -45,6 +45,7 @@ export interface RunPlan {
   ranking: CardScore[];
   deckResult: DeckResult;
   pred: Prediction;
+  parentGains: number[][];                 // [parent 1, parent 2], five stats each: the "+XX" the legacy screen shows, from the sparks
   inherited: Inheritance[];                // per stat, from both parents' blue sparks
   rawFinalMean: number[];                  // predicted final stats including inheritance, before the scenario caps
   finalMean: number[];                     // the same, clamped to the caps
@@ -170,14 +171,15 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const existing = traineeCoverage(targets, ctx);
   const ranking = rankCards(pool, targets, existing, ctx);
   const deckResult = buildDeck(deckPool, targets, ctx, build);
-  const issues = parentGainIssues(input.parentGains);
+  const issues: string[] = [];
   const ownedCount = deckResult.deck.filter((d) => !d.borrowed).length;
   const borrowedCount = deckResult.deck.filter((d) => d.borrowed).length;
   if (ownedCount !== DECK_SIZE - BORROWED_SLOTS || borrowedCount !== BORROWED_SLOTS) {
     issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
   }
   const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings, fansBefore);
-  const inherited = STATS.map((_, i) => inheritedFromParents(input.parentGains, i, settings));
+  const parentGains = input.parentSparks.map(gainsOfParentSparks);
+  const inherited = STATS.map((_, i) => inheritedFromParents(parentGains, i, settings));
   const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => v > caps[i]! + inherited[i]!.uncap) } : null;
@@ -189,7 +191,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);
   const ordered = order(candidates);
   return {
-    issues, trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
+    issues, trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
     wl: ordered.slice(0, PRIORITIZED_SKILLS_MAX),
     wlRest: ordered.slice(PRIORITIZED_SKILLS_MAX),
     wlExcluded: candidates.filter((w) => input.wishlistExcluded.includes(w.key)),

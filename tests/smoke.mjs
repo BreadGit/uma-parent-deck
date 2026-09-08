@@ -1,6 +1,7 @@
 // Drives the dev server in Chromium through the main flows and checks layout at four widths in both themes.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { BLUE_SPARK_START_GAIN_BY_STARS } from '../src/model/rules.ts';
 const url = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
@@ -18,9 +19,10 @@ await page.reload();
  * stale value unless its value is bound live; this catches that whatever the field.
  */
 async function assertFieldsMatchState(where) {
-  const bad = await page.evaluate(() => {
+  const bad = await page.evaluate((gainByStars) => {
     const st = JSON.parse(localStorage.getItem('uma-parent-deck.v4') ?? '{}');
     const out = [];
+    const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'];
     for (const el of document.querySelectorAll('select[data-lb]')) {
       const v = st.inventory?.[el.dataset.lb];
       const want = v === null ? 'none' : String(v ?? 4);
@@ -28,8 +30,16 @@ async function assertFieldsMatchState(where) {
     }
     for (const el of document.querySelectorAll('select[data-gain]')) {
       const [p, i] = el.dataset.gain.split('-').map(Number);
-      const want = String(st.run?.parentGains?.[p]?.[i] ?? 0);
-      if (el.value !== want) out.push(`gain select ${el.dataset.gain} shows ${el.value}, state ${want}`);
+      const want = String((st.run?.parentSparks?.[p] ?? []).filter((s) => s?.stat === STATS[i]).reduce((a, s) => a + gainByStars[s.stars], 0));
+      if (el.value !== want) out.push(`gain select ${el.dataset.gain} shows ${el.value}, state makes ${want}`);
+    }
+    for (const el of document.querySelectorAll('select[data-spark-stat], select[data-spark-stars]')) {
+      const key = el.dataset.sparkStat ?? el.dataset.sparkStars;
+      const [p, u] = key.split('-').map(Number);
+      const spark = st.run?.parentSparks?.[p]?.[u] ?? null;
+      const want = el.dataset.sparkStat ? (spark?.stat ?? '') : spark ? String(spark.stars) : null;
+      if (want !== null && el.value !== want) out.push(`spark select ${key} shows ${el.value}, state ${want}`);
+      if (el.dataset.sparkStars && el.disabled !== !spark) out.push(`stars select ${key} disabled=${el.disabled} for spark ${JSON.stringify(spark)}`);
     }
     for (const el of document.querySelectorAll('select[data-apt]')) {
       const over = st.run?.aptOverrides?.[el.dataset.apt];
@@ -43,7 +53,7 @@ async function assertFieldsMatchState(where) {
       if (el.tagName === 'SELECT' && v !== undefined && el.value !== String(v)) out.push(`setting ${el.dataset.setting} shows ${el.value}, state ${v}`);
     }
     return out;
-  });
+  }, BLUE_SPARK_START_GAIN_BY_STARS);
   assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
 }
 
@@ -152,6 +162,27 @@ await page.waitForTimeout(200);
 const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start: Number(el.querySelector('.body .v').textContent), base: Number(el.querySelector('.body .sub').textContent.replace(/\D/g, '')), p1: Number(el.querySelector('select[data-gain="0-2"]').value), p2Class: el.querySelector('select[data-gain="1-2"]').className }));
 assert.equal(powerCell.start, powerCell.base + powerCell.p1 + 54, 'the start value is base plus both parents');
 assert.ok(/\bp2\b/.test(powerCell.p2Class) && /\bset\b/.test(powerCell.p2Class), 'a picked gain is shown filled in parent 2 colour');
+assert.equal(await page.$eval('select[data-gain="1-0"]', (s) => s.value), '0', 'three Power sparks took the default Speed uma on parent 2');
+await assertFieldsMatchState('after picking a start gain');
+// "By stars" opens the per-uma form; a spark set there shows up as the stat's "+XX" above
+assert.equal(await page.$('[data-sparks-form]'), null, 'the spark form starts closed');
+await page.click('button[data-action="toggle-sparks"]');
+await page.waitForSelector('[data-sparks-form]');
+assert.equal(await page.$$eval('select[data-spark-stat]', (s) => s.length), 6, 'two sides of three umas');
+await page.selectOption('select[data-spark-stat="0-0"]', 'guts');
+await page.waitForTimeout(200);
+await page.selectOption('select[data-spark-stars="0-0"]', '2');
+await page.waitForTimeout(200);
+const afterSpark = await page.evaluate(() => ({ speed: document.querySelector('select[data-gain="0-0"]').value, guts: document.querySelector('select[data-gain="0-3"]').value, guts2: document.querySelector('select[data-gain="1-3"]').value }));
+assert.deepEqual(afterSpark, { speed: '0', guts: '12', guts2: '0' }, 'the parent\'s spark moved from 1★ Speed to 2★ Guts on her side only');
+await assertFieldsMatchState('after editing a spark by stars');
+await page.selectOption('select[data-gain="0-3"]', '0');
+await page.waitForTimeout(200);
+assert.equal(await page.$eval('select[data-spark-stat="0-0"]', (s) => s.value), '', 'setting the stat to +0 empties the uma\'s slot in the form');
+await assertFieldsMatchState('after emptying a slot from the dropdown');
+await page.click('button[data-action="toggle-sparks"]');
+await page.waitForTimeout(100);
+assert.equal(await page.$('[data-sparks-form]'), null, 'the toggle closes the form again');
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),
@@ -195,7 +226,7 @@ await page.click('button[data-action="reset-legacy"]');
 await page.waitForTimeout(200);
 await assertFieldsMatchState('after the legacy reset');
 const afterReset = await page.evaluate(() => ({ gains: [...document.querySelectorAll('select[data-gain]')].map((s) => s.value).join(','), turf: document.querySelector('select[data-apt="turf"]').value, options: document.querySelectorAll('select[data-gain="0-0"] option').length }));
-assert.equal(afterReset.gains, Array(10).fill('0').join(','), 'every start gain is back to +0');
+assert.equal(afterReset.gains, '5,5,5,5,5,5,0,0,0,0', 'every side is back to the default 1★ Speed, Stamina and Power');
 assert.equal(afterReset.turf, baseTurf, 'the aptitude override is gone');
 assert.equal(afterReset.options, 20, 'every possible +XX is offered');
 // layout check: no horizontal overflow at common widths, both themes
