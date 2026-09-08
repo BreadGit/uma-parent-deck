@@ -148,6 +148,8 @@ table.coverage td.src-list { width: 55%; }
 /* in-flow tables scroll sideways inside their panel */
 .scroll-x { overflow-x: auto; }
 /* the added-spark bar: a <meter> so the width is data, not an inline style */
+.spark-score { display: grid; grid-template-columns: 60px auto; align-items: center; gap: 6px; }
+.spark-score .pill { justify-self: end; }
 meter.bar { width: 60px; height: 8px; vertical-align: middle; border: none; background: var(--soft); border-radius: 4px; }
 meter.bar::-webkit-meter-bar { background: var(--soft); border: none; border-radius: 4px; }
 meter.bar::-webkit-meter-optimum-value, meter.bar::-webkit-meter-suboptimum-value, meter.bar::-webkit-meter-even-less-good-value { background: var(--accent); border-radius: 4px; }

@@ -310,6 +310,9 @@ for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.setViewportSize({ width, height: 1000 });
     await page.waitForTimeout(100);
+    const sparkBars = await page.locator('meter.bar').evaluateAll((bars) => bars.map((bar) => ({ left: bar.getBoundingClientRect().left, right: bar.getBoundingClientRect().right })));
+    assert.ok(sparkBars.length > 1, 'ranking has bars to compare');
+    assert.ok(sparkBars.every((bar) => Math.abs(bar.left - sparkBars[0].left) < 0.5 && Math.abs(bar.right - sparkBars[0].right) < 0.5), `added spark bars should align at ${width}px ${scheme}`);
     const over = await page.evaluate(() => {
       const w = document.documentElement.clientWidth; const bad = [];
       if (document.documentElement.scrollWidth > w + 1) bad.push(`document ${document.documentElement.scrollWidth} > ${w}`);

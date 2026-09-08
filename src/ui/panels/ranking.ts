@@ -83,7 +83,7 @@ export function renderRanking(c: RunPlan) {
             <button type="button" class="ranking-pin ${pinned ? 'active' : ''}" data-action="toggle-card-pin" data-id="${x.card.id}" aria-label="${pinLabel}" aria-pressed="${pinned}" title="${pinLabel}" @click=${() => pinned ? unpinCard(x.card.id) : pinCard(x.card.id)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22.3126 10.1753L20.8984 11.5895L20.1913 10.8824L15.9486 15.125L15.2415 18.6606L13.8273 20.0748L9.58466 15.8321L4.63492 20.7819L3.2207 19.3677L8.17045 14.4179L3.92781 10.1753L5.34202 8.76107L8.87756 8.05396L13.1202 3.81132L12.4131 3.10422L13.8273 1.69L22.3126 10.1753Z"></path></svg></button>
           </div></td>
           <td>${lbSelect(x.card, x.lb)}</td>
-          <td class="num"><meter class="bar" min="0" max="${BAR_MAX}" value="${Math.min(BAR_MAX, x.marginalValue)}"></meter> ${pill(x.marginalValue, '', 1)}</td>
+          <td class="num"><div class="spark-score"><meter class="bar" min="0" max="${BAR_MAX}" value="${Math.min(BAR_MAX, x.marginalValue)}"></meter>${pill(x.marginalValue, '', 1)}</div></td>
           <td class="num">${pill(x.sparkValue, '', 1)}</td>
           <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
           ${x.stats.map((v, i) => html`<td class="num">${num(v * (focusMul[i] ?? 1))}</td>`)}
