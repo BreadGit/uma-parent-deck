@@ -5,6 +5,13 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 ## What it does
 
+- The optional Parent goal panel evaluates the current suggested deck for acceptable blue stats,
+  one pink aptitude, and two required white skill sparks with minimum stars. Preferred white sparks
+  appear as extras. It shows the complete-goal chance and estimated attempts for 50%, 75%, and 95%
+  chance of success. Phase 1 evaluates goals without changing card selection or prioritized skills.
+  Enter all six pink lineage sparks and the starting style grades in Legacy to include B-to-A
+  inspiration increases. Missing ancestry and unsupported jumps are shown as incomplete estimates.
+
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
   If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint. Predictions assume you buy
   the gold form when available (40% spark chance), otherwise ◎ (25%), otherwise white (20%). The run buys
@@ -63,7 +70,8 @@ Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live i
 
 - `src/model/`: the game and tool logic, with no DOM. `run.ts` turns the user's choices into the plan
   the page shows (schedule, deck, prediction, rank estimate, prioritized skills); `sparks.ts` finds skill
-  sources and resolves event conflicts; `deck.ts` scores cards and builds the deck; `stats.ts`,
+  sources and resolves event conflicts; `deck.ts` scores cards and builds the deck; `goal.ts`
+  evaluates parent goals, with shared skill outcomes in `goal-skills.ts`; `stats.ts`,
   `races.ts`, `rank.ts`, `inherit.ts` and `trainee.ts` are the individual models.
 - `src/state.ts`: the persisted state and its migration from older saves.
 - `src/ui/`: lit-html templates, one module per panel.
@@ -169,7 +177,9 @@ loss penalty) are defaults in the advanced settings panel.
 ## Known gaps
 
 The [curated reference index](docs/refs/README.md) records source precedence and the
-[goal-parent deck plan](docs/goal-parent-decks-plan.md) describes the proposed probability feature.
+[goal-parent deck plan](docs/goal-parent-decks-plan.md) records the completed phase 1 evaluator
+and the deferred deck optimizer. [Evaluator notes](docs/goal-parent-evaluator.md) explain its
+calculation and remaining approximations.
 
 - Independent-training hint pickup, random event rates, the Group finale rate, the trainee's outing rate
   and the fallback for secret-event conditions the tool cannot score (rival results, streaks, strategy)
@@ -186,8 +196,9 @@ The [curated reference index](docs/refs/README.md) records source precedence and
   Bonus (the deck's total is shown but not modelled). Seven of the fourteen conditional unique-effect types depend on
   turn-by-turn state and are left out; the ranking flags every conditional effect with GameTora's
   description and what the model does with it.
-- The agenda uses start-of-run aptitudes for the whole run; a pink spark proc at an inspiration event
-  is not modelled. Which option wins when several prioritized skills sit in one event is an assumption
+- The agenda uses start-of-run aptitudes for the whole run. The goal evaluator models B-to-A pink
+  inspiration increases for final spark eligibility, without changing race odds or skill rating.
+  Which option wins when several prioritized skills sit in one event is an assumption
   (list order), not a measured rule.
 - Forfeited stat rewards from the event option not taken are not modelled.
 - Slot tiebreaks use how many umas can run a race comfortably, not how common it is on parents.

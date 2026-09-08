@@ -84,6 +84,21 @@ samples. Its separate green-spark analysis has much larger samples but must not 
 for missing direct white evidence. Scope the first goal evaluator to the supported ordinary
 parent-farming bands and handle unsupported outcomes explicitly.
 
+Phase 1 uses the additional community bands below so low-probability tails still receive a rate.
+These are approximations outside Hakuraku's main white sample, not additional Hakuraku findings.
+The output identifies their use when more than 0.1% of predicted outcomes fall in these bands.
+
+| Overall rank score | Approximate 1-star | Approximate 2-star | Approximate 3-star |
+|---|---:|---:|---:|
+| Below 6,500 | 0.90 | 0.10 | 0 |
+| 28,800+ | 0.175 | 0.70 | 0.125 |
+
+Source: [Crazyfellow snapshot](crazyfellow-parenting-gene-guide.txt), "Chance of Stars for white
+genes", and the numeric rank boundaries in [Umaguide's table](umaguide-sparks.md#white-sparks).
+The 17,500 band ends at 28,799 in the implementation. The normal white generation multiplier
+is retained in low-rank tails; possible separate low-rank generation effects discussed in the guide
+are not quantified by this feature.
+
 ## Modeling implications
 
 The spark-generation tables cannot supply the chance of acquiring a required hint. That comes

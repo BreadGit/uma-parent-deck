@@ -18,7 +18,7 @@ names differ they are noted.
   unlocked by potential level. Both count as covered targets.
 - **Growth** (growth rates, stat bonuses): the Trainee's percentage bonus per stat (e.g. Stamina +20%).
 - **Aptitudes**: letter grades G to S for turf/dirt, sprint/mile/medium/long, and running styles.
-  Only surface and distance matter to the tool.
+  The agenda uses surface and distance. Skill rating and parent-goal pink eligibility also use style.
 - **Support card**: one of the six cards in a deck. Types: speed, stamina, power, guts, wit, **pal**
   (JP/GameTora "friend"), **group**. Rarity R/SR/SSR. **Limit break (LB)**: 0 to 4 duplicates
   merged; LB4 is **MLB**. Raises the card's level cap and effects. support cards will typically represent a character in the game. the 6 support cards in a deck will influence how a Trainee's career run will go.
@@ -64,8 +64,9 @@ names differ they are noted.
   parent side has three blue sparks in total across all five stats, at most nine stars per side.
 - **Legacy screen**: the game's pre-run screen with the trainee's stats after inheritance, a "+XX" above each
   stat per parent side, and her aptitudes. In the tool, the **Legacy** panel copies it: the **start
-  gain** per parent (one of the 20 sums three sparks can make, +0 to +63) and the surface and distance
-  aptitudes after pink sparks. Its "By stars" form enters the same sparks per uma (stat and stars) instead.
+  gain** per parent (one of the 20 sums three sparks can make, +0 to +63) and all starting
+  aptitudes after pink sparks. Its "By stars" form enters the same blue sparks per uma (stat and stars).
+  When parent goals are enabled, separate pink lineage fields enter each ancestor's aptitude and stars.
 - **Inspiration events**: early April of Classic and Senior year, when sparks may proc again.
 - **White spark generation**: at run end each owned skill may become a white spark: 20% for a white
   skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage. The run
@@ -88,11 +89,25 @@ names differ they are noted.
 
 ## This tool
 
-- **Target** (target white spark): a white skill you want the finished parent to carry as a spark.
+- **Deck target** (target white spark): a white skill the existing deck builder tries to spark.
+- **Parent goal**: the blue, pink, and two required white spark conditions that one finished parent
+  must meet together. Phase 1 evaluates the current suggested deck; changing a goal does not select cards.
+- **Required white spark**: one of two different skill families that must both appear at their chosen
+  minimum stars. Gold and normal forms of Corner Recovery are one family, not two requirements.
+- **Preferred white spark**: an optional family tracked at 2★ or better. Its absence does not make the
+  parent goal fail, and it cannot also be a required family. Phase 1 reports its individual chance.
+- **Complete-goal chance**: the estimated probability that every required condition holds on the same
+  parent. It is not the sum of target chances. Shared event rewards and the final rank affect it.
+- **Attempt**: one final spark roll, including the initial result or a reroll. The displayed counts
+  assume independent attempts with the same odds, even though a reroll keeps the trained parent.
+- **Pink lineage**: the aptitude and star count of each of the six ancestors' pink sparks. Unknown
+  entries do not mean zero matching sparks. The model predicts supported B-to-A increases; it does
+  not infer a below-B multi-grade jump.
 - **Source**: a way the run can end up with a target skill's hint: hint, chain event, random event,
   outing, scenario option or completion reward, trainee event (story, choice, outing or secret),
   innate/awakening skill, or lineage. Each has an obtain chance. Sources from one option of one event are
-  exclusive outcomes, a card's chain stages are nested, everything else is independent. A secret event's chance is the product of its conditions' chances,
+  modeled from the decoded rewards for parent goals. Rewards within one outcome can occur together;
+  alternative outcomes cannot. A card's chain stages are nested, and unlinked sources are treated as independent. A secret event's chance is the product of its conditions' chances,
   with race wins scored from the agenda and conditions the tool cannot score given the fallback rate.
 - **Choice-gated**: a source that only happens if the run picks that option at an event. Only one
   option per event can be taken.

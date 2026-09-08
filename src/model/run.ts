@@ -1,5 +1,7 @@
 import { STATS, type Card, type Character, type Data, type Inventory, type Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
+import type { ParentGoal, PinkSpark } from './goal-input.ts';
+import { evaluateParentGoal, type GoalEstimate } from './goal.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
@@ -11,6 +13,8 @@ import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARI
 
 /** Everything the user chose about the run. The app persists exactly this (plus UI-only fields). */
 export interface RunInput {
+  goal: ParentGoal;
+  pinkLineage: (PinkSpark | null)[];
   targets: number[];                       // target family ids (the white form's skill id)
   targetLineage: Record<string, Lineage>;  // target id -> copies of the spark already in the lineage
   wishlistOrder: number[];                 // prioritized-skill keys the user arranged, in order
@@ -30,6 +34,7 @@ export interface SpCost { total: number; incomplete: boolean; items: { target: T
 export interface StatCaps { cap: number[]; uncap: number[]; capped: boolean[] }
 
 export interface RunPlan {
+  goalEstimate: GoalEstimate | null;
   issues: string[];                        // correct these before using run predictions
   trainee: Character | null;
   apt: Aptitudes;
@@ -140,6 +145,26 @@ export function targetSpCost(targets: Target[], coverage: Map<number, SkillSourc
   return { total, incomplete, items };
 }
 
+export type DeckPrediction = Pick<RunPlan, 'pred' | 'parentGains' | 'inherited' | 'rawFinalMean' | 'finalMean' | 'statCaps' | 'rank'>;
+
+/** Predict a supplied deck without selecting cards. */
+export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number): DeckPrediction {
+  const { data, settings, trainee } = ctx;
+  const fansBefore = ctx.fansBefore ?? (() => 0);
+  const stars = clampStars(trainee, input.traineeStars);
+  const pred = predictDeck(deck, trainee, ctx.races, settings.focus, expectedLosses, data.model, settings, fansBefore);
+  const parentGains = input.parentSparks.map(gainsOfParentSparks);
+  const inherited = STATS.map((_, i) => inheritedFromParents(parentGains, i, settings));
+  const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
+  const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
+  const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => v > caps[i]! + inherited[i]!.uncap) } : null;
+  const finalMean = statCaps ? rawFinalMean.map((v, i) => Math.min(v, statCaps.cap[i]!)) : rawFinalMean;
+  // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
+  const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
+  const rank = rankEstimate(finalMean, pred.sd, pred.sp, trainee, stars, uniqueLevel, trainee ? apt : null, data, settings);
+  return { pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank };
+}
+
 /** Plan the whole run: schedule, deck, prediction, rank estimate and prioritized skills. Pure; the app memoizes it. */
 export function planRun(input: RunInput, settings: Settings, inventory: Inventory, data: Data): RunPlan {
   const traineeCard = input.traineeCardId != null ? data.charByCardId.get(input.traineeCardId) ?? null : null;
@@ -177,21 +202,18 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   if (ownedCount !== DECK_SIZE - BORROWED_SLOTS || borrowedCount !== BORROWED_SLOTS) {
     issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
   }
-  const pred = predictDeck(deckResult.deck.map((d) => ({ card: d.card, lb: d.lb })), trainee, sum.count, settings.focus, sum.expectedLosses, data.model, settings, fansBefore);
-  const parentGains = input.parentSparks.map(gainsOfParentSparks);
-  const inherited = STATS.map((_, i) => inheritedFromParents(parentGains, i, settings));
-  const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
-  const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
-  const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => v > caps[i]! + inherited[i]!.uncap) } : null;
-  const finalMean = statCaps ? rawFinalMean.map((v, i) => Math.min(v, statCaps.cap[i]!)) : rawFinalMean;
-  // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
-  const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
-  const rank = rankEstimate(finalMean, pred.sd, pred.sp, trainee, stars, uniqueLevel, trainee ? apt : null, data, settings);
+  const prediction = predictRunDeck(deckResult.deck, input, ctx, apt, sum.expectedLosses);
+  const { pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank } = prediction;
+  const goalLineage = new Map(ctx.lineage);
+  for (const [key, value] of Object.entries(input.targetLineage)) goalLineage.set(Number(key), value);
+  const goalEstimate = input.goal.enabled ? evaluateParentGoal(input.goal, input.pinkLineage, apt, deckResult.deck, { ...ctx, lineage: goalLineage }, {
+    rawMean: rawFinalMean, sd: pred.sd, caps: statCaps?.cap, skillPoints: rank.skillPts, skillSd: settings.skillScoreSd,
+  }, issues) : null;
   const spCost = targetSpCost(targets, deckResult.coverage);
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);
   const ordered = order(candidates);
   return {
-    issues, trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
+    goalEstimate, issues, trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
     wl: ordered.slice(0, PRIORITIZED_SKILLS_MAX),
     wlRest: ordered.slice(PRIORITIZED_SKILLS_MAX),
     wlExcluded: candidates.filter((w) => input.wishlistExcluded.includes(w.key)),

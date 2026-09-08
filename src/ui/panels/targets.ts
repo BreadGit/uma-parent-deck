@@ -27,10 +27,10 @@ function addTarget(id: number) {
   update((s) => { if (!s.run.targets.includes(base)) s.run.targets.push(base); });
 }
 function removeTarget(id: number) {
-  update((s) => { s.run.targets = s.run.targets.filter((x) => x !== id); delete s.run.targetLineage[String(id)]; });
+  update((s) => { s.run.targets = s.run.targets.filter((x) => x !== id); if (!s.run.goal.required.some((r) => r.id === id) && !s.run.goal.preferred.includes(id)) delete s.run.targetLineage[String(id)]; });
 }
 /** Change how many umas on one parent side carry the spark; the star total follows unless already set. */
-function setLineageCount(id: number, side: 'k1' | 'k2', k: number) {
+export function setLineageCount(id: number, side: 'k1' | 'k2', k: number) {
   update((s) => {
     const cur = s.run.targetLineage[String(id)] ?? NO_LINEAGE;
     const pSide = side === 'k1' ? 'p1' : 'p2';
@@ -39,7 +39,7 @@ function setLineageCount(id: number, side: 'k1' | 'k2', k: number) {
     if (lineageCount(next) === 0) delete s.run.targetLineage[String(id)]; else s.run.targetLineage[String(id)] = next;
   });
 }
-function setLineageStars(id: number, side: 'p1' | 'p2', stars: number) {
+export function setLineageStars(id: number, side: 'p1' | 'p2', stars: number) {
   update((s) => { const cur = s.run.targetLineage[String(id)]; if (cur) s.run.targetLineage[String(id)] = { ...cur, [side]: stars }; });
 }
 

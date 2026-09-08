@@ -237,3 +237,47 @@ test('zero through four owned characters show an incomplete deck, and five resto
     else assert.equal(await page.locator('.deck .slot').count(), 6);
   }
 });
+
+test('parent goals migrate old targets, persist edits, and leave deck selection unchanged', async (t) => {
+  const saved = defaultState(data);
+  saved.version = 6;
+  delete saved.run.goal;
+  delete saved.run.pinkLineage;
+  saved.run.traineeCardId = 100101;
+  saved.run.targets = [200012, 200352];
+  const page = await fresh(t, saved);
+  assert.equal(await page.locator('[data-goal-enabled]').isChecked(), false);
+  const before = await page.locator('.deck').innerText();
+  await page.check('[data-goal-enabled]');
+  assert.deepEqual((await state(page)).run.goal.preferred, [200012, 200352]);
+  assert.deepEqual(await page.locator('[data-goal-required]').evaluateAll((els) => els.map((el) => el.value)), ['', '']);
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /Choose two different required white skills/);
+  for (const [selector, value] of [['[data-goal-required="0"]', '200012'], ['[data-goal-required="1"]', '200352'], ['[data-goal-pink]', 'end'], ['[data-apt="end"]', 'B']]) await page.selectOption(selector, value);
+  assert.deepEqual((await state(page)).run.goal.preferred, []);
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /Enter all six pink lineage sparks/);
+  for (let i = 0; i < 6; i++) await page.selectOption(`[data-pink-lineage="${i}"]`, 'end');
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0);
+  const probability = await page.locator('[data-goal-probability]').innerText();
+  const attempts = await page.locator('[data-goal-attempts]').allTextContents();
+  assert.equal(attempts.length, 3);
+  assert.equal(await page.locator('.deck').innerText(), before);
+  await page.reload();
+  await page.waitForSelector('[data-goal-result]');
+  assert.equal(await page.locator('[data-goal-required="0"]').inputValue(), '200012');
+  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
+  assert.deepEqual(await page.locator('[data-goal-attempts]').allTextContents(), attempts);
+  await page.selectOption('[data-apt="end"]', 'C');
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /starts below B/);
+  assert.equal(await page.locator('[data-goal-attempts]').count(), 0);
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0, 'unsupported jumps are unknown, not impossible');
+  await page.uncheck('[data-goal-enabled]');
+  assert.equal(await page.locator('[data-goal-result]').count(), 0);
+  await page.check('[data-goal-enabled]');
+  assert.equal(await page.locator('[data-goal-required="0"]').inputValue(), '200012');
+  await page.selectOption('[data-goal-lineage-k="200012"][data-side="k1"]', '2');
+  const ancestry = (await state(page)).run.targetLineage['200012'];
+  await page.click('[data-action="remove-target"][data-id="200012"]');
+  assert.deepEqual((await state(page)).run.targetLineage['200012'], ancestry, 'removing a deck target preserves ancestry used by the goal');
+  assert.equal(await page.locator('[data-goal-lineage-k="200012"][data-side="k1"]').inputValue(), '2');
+});

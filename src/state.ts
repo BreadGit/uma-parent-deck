@@ -3,6 +3,7 @@
 import { STATS, type AptKey, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
+import { DEFAULT_GOAL, emptyPinkLineage, sanitizeGoal, sanitizePinkLineage } from './model/goal-input.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
@@ -12,12 +13,13 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState }
 
-export const STATE_VERSION = 6;
+export const STATE_VERSION = 7;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
 
 export const DEFAULT_RUN: RunInput = {
+  goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(),
   targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
   aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [defaultParentSparks(), defaultParentSparks()],
 };
@@ -84,6 +86,8 @@ function migrateRun(raw: Json, data: Data): RunInput {
     gains = [starsToGains(p1), starsToGains(all.map((v, i) => Math.min(MAX_PARENT_STARS, v - p1[i]!)))];
   }
   if (gains) run.parentSparks = gains.map(sideFromGains);
+  run.goal = sanitizeGoal(raw.goal, data, run.targets);
+  run.pinkLineage = sanitizePinkLineage(raw.pinkLineage);
   return run;
 }
 function migrateLineage(v: Json): Lineage | null {

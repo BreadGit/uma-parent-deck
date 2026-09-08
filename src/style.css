@@ -215,6 +215,35 @@ meter.bar::-moz-meter-bar { background: var(--accent); border-radius: 4px; }
 .legacy-apts .cell { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 .legacy-apts .cell select { font-size: 11px; padding: 1px 0; width: 34px; }
 .legacy-apts .cell.over select { border-color: var(--warn); }
+
+.goal-group { min-width: 0; margin: 12px 0; padding: 10px; border: 1px solid var(--line); border-radius: 6px; }
+.goal-group legend { font-weight: 600; padding: 0 4px; }
+.goal-field { display: grid; gap: 4px; min-width: 0; font-size: 12px; }
+.goal-field select { width: 100%; min-width: 0; max-width: 100%; }
+.goal-pair { display: grid; grid-template-columns: minmax(0, 1fr) 125px; gap: 8px; }
+.goal-stats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.goal-lineage { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 8px; font-size: 11px; }
+.goal-lineage > span:first-child { width: 100%; }
+.goal-lineage select { font-size: inherit; max-width: 94px; }
+.goal-preferred { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
+.goal-preferred-name { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.goal-preferred-name span { overflow-wrap: anywhere; }
+.goal-pink-side { margin: 10px 0; }
+.goal-pink-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 55px; align-items: center; gap: 6px; margin: 5px 0; font-size: 12px; }
+.goal-pink-row select { min-width: 0; width: 100%; max-width: 100%; }
+.goal-total { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; font-size: 28px; font-weight: 600; margin: 8px 0; }
+.goal-total span { font-weight: 400; }
+.goal-breakdown { width: 100%; table-layout: fixed; }
+.goal-breakdown th, .goal-breakdown td { white-space: normal; overflow-wrap: anywhere; }
+.goal-breakdown th:first-child { width: 48%; }
+.goal-attempts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.goal-attempts > div { display: grid; gap: 4px; background: var(--soft); border-radius: 6px; padding: 8px; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .goal-pair { grid-template-columns: minmax(0, 1fr); }
+  .goal-field select, .goal-pink-row select, .goal-lineage select { font-size: 16px; }
+  .goal-lineage select { max-width: 110px; }
+  .goal-attempts { font-size: 12px; }
+}
 /* "By stars" form: each side's three umas with the stat and stars of her blue spark */
 .legacy-sparks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 12px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 11px; }
 .legacy-sparks .side { display: grid; grid-template-columns: auto auto auto; justify-content: start; gap: 3px 5px; align-items: center; min-width: 0; }

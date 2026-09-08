@@ -1,3 +1,4 @@
+import { DEFAULT_GOAL, emptyPinkLineage } from '../src/model/goal-input.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
@@ -59,7 +60,7 @@ test("Special Week's secret event needs runnings the default agenda skips; force
   assert.ok(src && Math.abs(src.pObtain - expected) < 1e-9 && expected > 0, `secret ${src?.pObtain} vs ${expected}`);
   const dropped = specialWeekAgenda(true, [forced.id('Japan Cup', 2)]);
   assert.equal(traineeSources(sw, stamina, data, settings, raceWinChances(dropped.sched)).filter((s) => s.kind === 'secret').length, 0, 'excluding one required running kills the event');
-  const base: RunInput = { targets: [stamina.id], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [[null, null, null], [null, null, null]] };
+  const base: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [stamina.id], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [[null, null, null], [null, null, null]] };
   const plainRun = planRun(base, settings, {}, data);
   const withRuns = planRun({ ...base, raceOverrides: Object.fromEntries(forced.forced) }, settings, {}, data);
   const secretOf = (p: typeof plainRun) => (p.existing.sources.get(stamina.id) ?? []).find((s) => s.kind === 'secret');

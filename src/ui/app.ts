@@ -5,6 +5,7 @@ import { resetRun, saveState, type Theme } from '../state.ts';
 import { data, onRender, plan, store, update } from './context.ts';
 import { installTooltips } from './tooltip.ts';
 import { renderTargets } from './panels/targets.ts';
+import { renderGoalEditor, renderGoalResult } from './panels/goal.ts';
 import { renderTrainee } from './panels/trainee.ts';
 import { renderLegacy } from './panels/legacy.ts';
 import { renderRun } from './panels/run.ts';
@@ -21,7 +22,7 @@ function applyTheme() {
 }
 
 function resetAll() {
-  if (!confirm('Clear the targets, trainee, pinned cards, legacy screen, agenda picks and prioritized order? Your inventory and settings are kept.')) return;
+  if (!confirm('Clear the deck targets, parent goal, trainee, pinned cards, legacy screen, agenda picks and prioritized order? Your inventory and settings are kept.')) return;
   saveState(resetRun(store, data));
   location.reload();
 }
@@ -38,8 +39,8 @@ function page() {
       </span>
     </header>
     <main>
-      <div>${renderTrainee(c)}${renderTargets(c)}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
-      <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
+      <div>${renderTrainee(c)}${renderTargets(c)}${renderGoalEditor()}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
+      <div>${renderDeck(c)}${renderGoalResult(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div id="tooltip" role="tooltip"></div>
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;

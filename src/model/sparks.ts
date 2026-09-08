@@ -53,7 +53,7 @@ interface SourceBase extends SkillForm {
 /** A source that is not tied to an event choice. */
 export interface PlainSource extends SourceBase { kind: 'hint' | 'innate' | 'awakening' | 'char-event' | 'lineage'; isChoice: false }
 /** A source from a card event, one of the trainee's own events, or the scenario. Choice-gated when the skill comes from one option among several. */
-export interface EventSource extends SourceBase { kind: CardEvent['kind'] | TraineeEvent['kind'] | 'scenario'; isChoice: boolean; event: EventRef; linkedCharId?: number; chain?: ChainRef }
+export interface EventSource extends SourceBase { kind: CardEvent['kind'] | TraineeEvent['kind'] | 'scenario'; isChoice: boolean; event: EventRef; linkedCharId?: number; chain?: ChainRef; roll?: { pFire: number; outcomes: Reward[][] } }
 export type SkillSource = PlainSource | EventSource;
 export type SourceKind = SkillSource['kind'];
 /** Narrow to a choice-gated source, which always has its event. */
@@ -145,7 +145,7 @@ function scanEvent(ev: CardEvent | TraineeEvent, pFire: number, label: string, o
       const how = [nOut > 1 ? `one of ${nOut} outcomes` : '', rolled ? 'gold rolled against the white form' : ''].filter(Boolean).join(', ');
       out.push({ kind: ev.kind, skillId: id, gold: false, circle: false, pObtain: pFire * p, isChoice: nChoices > 1 && !inAll,
         event: { key: `${keyPrefix}:${ev.kind}:${ev.index}`, label: `${owner}'s ${name.charAt(0).toLowerCase()}${name.slice(1)}`, option: `option ${ci + 1}`, optionIndex: ci },
-        detail: `${name}${how ? ` (${how})` : ''}`, ...extra });
+        detail: `${name}${how ? ` (${how})` : ''}`, roll: { pFire, outcomes: ev.choices[ci]!.outcomes }, ...extra });
     }
   });
   return out;
@@ -333,7 +333,7 @@ function computeScenarioOptions(data: Data, settings: Settings, present: Set<num
 
 export function scenarioSources(target: Target, data: Data, settings: Settings, present: Set<number>): SkillSource[] {
   return scenarioOptions(data, settings, present).filter((o) => target.familyIds.has(o.skillId))
-    .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...formOf(o.skillId, data), pObtain: settings.scenarioPickRate, isChoice: true, event: o.event, detail: o.detail, ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
+    .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...formOf(o.skillId, data), pObtain: settings.scenarioPickRate, isChoice: true, event: o.event, detail: o.detail, roll: { pFire: settings.scenarioPickRate, outcomes: [[{ t: 'sk', d: o.skillId }]] }, ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
 }
 
 /**

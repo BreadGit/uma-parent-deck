@@ -1,6 +1,8 @@
 # Goal-parent deck plan
 
-Updated 2026-09-08. Status: research and planning. The feature below is not implemented.
+Updated 2026-09-08. Phase 1 is implemented on `feature/goal-parent-decks` for review.
+Phase 2 remains deferred. The sections below retain the agreed scope and acceptance criteria.
+See [phase 1 evaluator notes](goal-parent-evaluator.md) for the implemented calculation and limits.
 
 ## Objective and agreed scope
 

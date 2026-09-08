@@ -53,6 +53,29 @@ async function assertFieldsMatchState(where) {
       const v = st.settings?.[el.dataset.setting];
       if (el.tagName === 'SELECT' && v !== undefined && el.value !== String(v)) out.push(`setting ${el.dataset.setting} shows ${el.value}, state ${v}`);
     }
+    const goal = st.run?.goal;
+    const check = (el, want) => { if (el.value !== String(want)) out.push(`${JSON.stringify(el.dataset)} shows ${el.value}, state ${want}`); };
+    for (const el of document.querySelectorAll('[data-goal-enabled]')) {
+      if (el.checked !== goal?.enabled) out.push('goal enabled differs from state');
+    }
+    for (const el of document.querySelectorAll('[data-goal-blue]')) {
+      if (el.checked !== goal.blueStats.includes(el.dataset.goalBlue)) out.push(`blue ${el.dataset.goalBlue} differs from state`);
+    }
+    for (const el of document.querySelectorAll('[data-goal-stars]')) check(el, goal[`${el.dataset.goalStars}Stars`]);
+    for (const el of document.querySelectorAll('[data-goal-pink]')) check(el, goal.pink ?? '');
+    for (const el of document.querySelectorAll('[data-goal-required]')) check(el, goal.required[el.dataset.goalRequired].id ?? '');
+    for (const el of document.querySelectorAll('[data-goal-white-stars]')) check(el, goal.required[el.dataset.goalWhiteStars].stars);
+    for (const el of document.querySelectorAll('[data-goal-preferred-add]')) check(el, '');
+    for (const el of document.querySelectorAll('[data-goal-lineage-k], [data-goal-lineage-p], [data-lineage-k], [data-lineage-p]')) {
+      const id = el.dataset.goalLineageK ?? el.dataset.goalLineageP ?? el.dataset.lineageK ?? el.dataset.lineageP;
+      check(el, st.run.targetLineage[id]?.[el.dataset.side] ?? 0);
+    }
+    for (const el of document.querySelectorAll('[data-pink-lineage], [data-pink-lineage-stars]')) {
+      const index = el.dataset.pinkLineage ?? el.dataset.pinkLineageStars;
+      const spark = st.run.pinkLineage[index];
+      check(el, el.hasAttribute('data-pink-lineage') ? spark?.aptitude ?? '' : spark?.stars ?? '');
+      if (el.hasAttribute('data-pink-lineage-stars') && el.disabled !== !spark) out.push(`pink stars ${index} disabled differs from state`);
+    }
     return out;
   }, BLUE_SPARK_START_GAIN_BY_STARS);
   assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
@@ -100,7 +123,7 @@ const legacyPlacement = await page.evaluate(() => {
   const panelOf = (title) => [...document.querySelectorAll('section.panel')].find((panel) => panel.querySelector('h2')?.textContent.startsWith(title));
   return { traineeApts: panelOf('Trainee').querySelectorAll('select[data-apt]').length, legacyApts: panelOf('Legacy').querySelectorAll('select[data-apt]').length, gains: panelOf('Legacy').querySelectorAll('select[data-gain]').length, styleSelects: [...panelOf('Legacy').querySelectorAll('select[data-apt]')].filter((s) => ['front', 'pace', 'late', 'end'].includes(s.dataset.apt)).length };
 });
-assert.deepEqual(legacyPlacement, { traineeApts: 0, legacyApts: 6, gains: 10, styleSelects: 0 });
+assert.deepEqual(legacyPlacement, { traineeApts: 0, legacyApts: 10, gains: 10, styleSelects: 4 });
 assert.deepEqual(await page.$$eval('select[data-gain]', (els) => els.map((s) => s.value)), Array(10).fill('0'), 'a fresh run starts with no entered gains');
 await assertFieldsMatchState('after choosing the first trainee');
 const baseTurf = await page.inputValue('select[data-apt="turf"]');
@@ -304,6 +327,48 @@ await assertFieldsMatchState('after clearing entered sparks again');
 assert.equal(await page.locator('select[data-gain] option.dim').count(), 0);
 await page.click('button[data-action="toggle-sparks"]');
 await assertFieldsMatchState('after closing the spark form');
+// Goal inputs evaluate the current deck and keep every field synchronized after identity changes.
+const deckBeforeGoal = await page.locator('.deck').innerText();
+await page.check('[data-goal-enabled]');
+await assertFieldsMatchState('after enabling parent goal');
+await page.uncheck('[data-goal-blue="guts"]');
+await assertFieldsMatchState('after changing accepted blue stats');
+await page.click('[data-action="goal-any-blue"]');
+await assertFieldsMatchState('after restoring any blue stat');
+for (const [selector, value] of [
+  ['[data-goal-stars="blue"]', '3'], ['[data-goal-stars="pink"]', '2'], ['[data-goal-pink]', 'turf'],
+  ['[data-goal-required="0"]', '200012'], ['[data-goal-required="1"]', '200352'],
+  ['[data-goal-white-stars="0"]', '3'], ['[data-goal-white-stars="0"]', '2'],
+  ['[data-goal-preferred-add]', '201562'],
+]) {
+  await page.selectOption(selector, value);
+  await assertFieldsMatchState(`after ${selector} = ${value}`);
+}
+await page.click('[data-goal-remove-preferred="201562"]');
+await assertFieldsMatchState('after removing a preferred spark');
+await page.selectOption('[data-goal-preferred-add]', '201562');
+await assertFieldsMatchState('after restoring a preferred spark');
+for (let i = 0; i < 6; i++) {
+  await page.selectOption(`[data-pink-lineage="${i}"]`, 'turf');
+  await assertFieldsMatchState(`after pink lineage ${i}`);
+}
+await page.locator('.goal-pink-lineage').evaluate((el) => { el.open = true; });
+await page.selectOption('[data-pink-lineage-stars="0"]', '3');
+await assertFieldsMatchState('after pink star edit');
+assert.equal(await page.locator('.deck').innerText(), deckBeforeGoal, 'goal inputs leave the selected deck unchanged');
+assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+assert.equal(await page.locator('[data-goal-attempts]').count(), 3);
+await page.selectOption('[data-goal-lineage-k="200012"][data-side="k1"]', '2');
+await assertFieldsMatchState('after white lineage copies');
+await page.selectOption('[data-goal-lineage-p="200012"][data-side="p1"]', '6');
+await assertFieldsMatchState('after white lineage stars');
+await page.selectOption('[data-goal-required="0"]', '201562');
+await assertFieldsMatchState('after replacing a required family with a preferred family');
+assert.equal(await page.locator('[data-goal-remove-preferred="201562"]').count(), 0);
+await page.reload();
+await page.waitForSelector('[data-goal-result]');
+await assertFieldsMatchState('after reloading the parent goal');
+await page.locator('.goal-pink-lineage').evaluate((el) => { el.open = true; });
 // layout check: no horizontal overflow at common widths, both themes
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
