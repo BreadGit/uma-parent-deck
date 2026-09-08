@@ -6,5 +6,5 @@
     <path d="M32 15 C34 9 40 4 48 4 C44 8 40 13 32 15 Z" fill="#3fbf5a"/>
     <path d="M32 15 C32 10 33 5 32 0 C31 5 32 10 32 15 Z" fill="#3fbf5a"/>
   </g>
-  <path d="M21 4 L25 17 L38 21 L25 25 L21 38 L17 25 L4 21 L17 17 Z" fill="#fff" stroke="#f2711c" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M23 1 L29 17 L45 23 L29 29 L23 45 L17 29 L1 23 L17 17 Z" fill="#fff" stroke="#f2711c" stroke-width="2.5" stroke-linejoin="round"/>
 </svg>
