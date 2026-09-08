@@ -28,6 +28,14 @@ function addSkill(key: number) {
   cur.splice(PRIORITIZED_SKILLS_MAX - 1, cur.length, key);
   update((s) => { s.run.wishlistOrder = cur; });
 }
+/** Move an entry one place up or down; the drag handlers and the arrow buttons both end up here. */
+function nudgeSkill(key: number, delta: number) {
+  const cur = plan().wl.map((w) => w.key);
+  const i = cur.indexOf(key), j = i + delta;
+  if (i < 0 || j < 0 || j >= cur.length) return;
+  cur.splice(i, 1); cur.splice(j, 0, key);
+  update((s) => { s.run.wishlistOrder = cur; });
+}
 function moveSkill(from: number, to: number) {
   const cur = plan().wl.map((w) => w.key);
   const i = cur.indexOf(from), j = cur.indexOf(to);
@@ -62,7 +70,7 @@ function statBreakdown(c: RunPlan) {
   const penalty = store.settings.lossPenalty * c.sum.expectedLosses;
   const raceBonus = d.deck.reduce((a, cs) => a + (passives(cs.card, cs.lb)[EFFECT.raceBonus] ?? 0), 0);
   const capped = !!c.statCaps && c.statCaps.capped.some(Boolean);
-  return html`<table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
+  return html`<div class="scroll-x"><table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
       ${cardRows}
       ${row(`Career events and ${c.sum.count} races`, p.eventStats.map((v, i) => v * focusMul[i]!))}
       ${row('Inheritance at the start', c.inherited.map((x) => x.start))}
@@ -72,7 +80,7 @@ function statBreakdown(c: RunPlan) {
       ${capped ? row('Scenario cap (base cap + blue spark uncaps)', c.statCaps!.cap) : nothing}
       ${row(html`<b>Final</b>`, c.finalMean, 'total')}
       ${row('Run-to-run spread (±1 sd)', p.sd)}
-    </tbody></table>
+    </tbody></table></div>
     <div class="small muted">Rank score: stats ${num(c.rank.statPts)} (${STATS.map((st, i) => `${st} ${num(statScore(c.finalMean[i]!))}`).join(', ')}), unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, skills bought and innate ${num(c.rank.skillPts - c.rank.uniquePts)}. The stat curve is the game's table; the skill terms are estimates.</div>
     <div class="small muted">Card and career rows include the ${store.settings.focus} focus multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and a race scaling of ×${scale.toFixed(2)} for ${c.sum.count} races against the 28 the data was measured at. The spread is the standard deviation of total stats between logged runs of one trainee and deck; the card model itself has an RMSE of ${data.model.fit.rmse.toFixed(1)} per stat over ${data.model.fit.n} observations. Everything here is an empirical fit of logged runs, not the game's formula: the race scaling comes from one 23-race versus 28-race comparison, the focus multipliers from two decks, and the career row (which includes race rewards) was measured at the reference decks' Race Bonus. This deck has ${raceBonus}% Race Bonus, which is not modelled, so cards that differ in Race Bonus may be misranked.${capped ? ' A stat is clamped to the scenario cap plus the blue sparks\' start-of-run uncaps; uncaps from inspiration events and green sparks are unknown and left out.' : ''}</div>`;
 }
@@ -82,11 +90,11 @@ function conflicts(c: RunPlan) {
   if (!d.conflicts.length) return nothing;
   const opts = (cf: Conflict) => [cf.taken, ...cf.dropped];
   return html`<div class="conflicts-box">${sub('Choice conflicts', { tip: 'These events offer more than one wanted skill, and the run can pick only one option per event. The option whose skill sits higher in the prioritized list below wins; drag the list to change it. That the list order settles a contested option is an assumption: the game confirms prioritized skills steer choices, not how ties between them resolve.' })}
-    <table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken</th><th>Not taken</th></tr></thead><tbody>
+    <div class="scroll-x"><table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken</th><th>Not taken</th></tr></thead><tbody>
       ${d.conflicts.map((cf) => html`<tr><td class="wrap">${cf.label}</td>
         <td class="wrap">${opts(cf).map((o) => html`<div>${skillWithTip(o.skillId)}${o.option ? html` <span class="muted">${o.option}</span>` : nothing}</div>`)}</td>
         <td><b>${skillName(cf.taken.skillId)}</b>${cf.taken.target != null ? nothing : html` <span class="muted">(not a target)</span>`}</td><td>${cf.dropped.map((o) => skillName(o.skillId)).join(', ')}</td></tr>`)}
-    </tbody></table></div>`;
+    </tbody></table></div></div>`;
 }
 
 export function renderDeck(c: RunPlan) {
@@ -109,7 +117,7 @@ export function renderDeck(c: RunPlan) {
 
 const PREDICTION_TIP = `Means with the run-to-run spread (±1 sd) from an empirical fit of logged independent-training runs. ≥${BLUE_STAR_BANDS.mid} and ≥${BLUE_STAR_BANDS.high} are the chances of the stat reaching the 2★ and 3★ blue spark bands.`;
 const COVERAGE_TIP = 'Chance the run hands over each target\'s hint, by form. The spark chance assumes you buy the best hinted form at the end: gold at 40%, otherwise a released ◎ upgrade at 25%, otherwise the base skill at 20%. Where a ◎ exists, buying it needs no separate hint. The run itself buys nothing.';
-const PRIORITY_TIP = `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices, and their order decides which option wins when one event offers two wanted skills. Drag to reorder.`;
+const PRIORITY_TIP = `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices, and their order decides which option wins when one event offers two wanted skills. Drag a row, or use the arrows, to reorder.`;
 const KIND_TAG: Record<'target' | 'other' | 'given', { cls: string; label: string; tip: string }> = {
   target: { cls: 'gold', label: 'target', tip: 'Leads to a target and needs the run to pick this option at an event.' },
   other: { cls: '', label: 'not a target', tip: 'Not a target, but listing it steers the run to this option and its skill.' },
@@ -134,22 +142,22 @@ function renderPrediction(c: RunPlan) {
       </div>
       <details><summary>Where the stats come from</summary>${statBreakdown(c)}</details>
       ${sub('Target coverage', { tip: COVERAGE_TIP })}
-      <table class="coverage"><thead><tr><th>Skill</th><th class="num">Gold hint</th><th class="num">◎ or white hint</th><th class="num">Spark chance</th><th>Sources</th></tr></thead><tbody>
+      <div class="scroll-x"><table class="coverage"><thead><tr><th>Skill</th><th class="num col-detail">Gold hint</th><th class="num col-detail">◎ or white hint</th><th class="num">Spark chance</th><th>Sources</th></tr></thead><tbody>
         ${c.targets.map((t) => {
           const srcs = d.coverage.get(t.id) ?? [];
           const own = combineSources(srcs);
           const spark = d.sparks.get(t.id) ?? 0;
-          return html`<tr><td>${skillWithTip(t.white?.id ?? t.id, t.name)}</td><td class="num">${pill(own.pGold)}</td><td class="num">${pill(own.pWhite + own.pCircle)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
+          return html`<tr><td>${skillWithTip(t.white?.id ?? t.id, t.name)}</td><td class="num col-detail">${pill(own.pGold)}</td><td class="num col-detail">${pill(own.pWhite + own.pCircle)}</td><td class="num">${pill(spark, spark > 0 ? 'ok' : 'warn')}</td>
             <td class="small wrap src-list">${srcs.length ? srcs.map(sourceLine) : html`<span class="warn">no source in the deck</span>`}</td></tr>`;
         })}
-      </tbody></table>
+      </tbody></table></div>
       ${c.targets.length ? html`<div class="small ${c.spCost.total > p.sp ? 'warn' : 'muted'}">Worst-case target SP cost: <b>${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}</b> of ${num(p.sp)} estimated SP${c.spCost.total > p.sp ? ', more than the run is expected to earn' : ''}${tip(`The base cost of every target bought once in its best hinted form, with prerequisites and no hint discounts (${c.spCost.items.map((it) => `${it.skill?.name ?? it.target.name}: ${it.purchases.map((s) => `${s.name} ${s.cost ?? '?'}`).join(' + ')} = ${it.cost ?? '?'}`).join(', ')}). An upper bound to check against the estimated SP; you choose the purchases at the end of the run.`)}</div>` : nothing}
       ${conflicts(c)}
       ${sub('Prioritized skills', { note: `up to ${PRIORITIZED_SKILLS_MAX}`, tip: PRIORITY_TIP, actions: customized ? html`<button class="small" data-action="wl-reset" @click=${resetWishlist}>Reset list</button>` : nothing })}
       ${c.wl.length ? html`<ol class="wishlist" @dragstart=${wishlistDrag.dragstart} @dragover=${wishlistDrag.dragover} @drop=${wishlistDrag.drop} @dragend=${wishlistDrag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => html`<li draggable="true" data-wl-key="${w.key}">
           <span class="wl-num">${i + 1}.</span><span class="grip" title="Drag to reorder">⋮⋮</span>
-          ${kindTag(w)}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span>
-          <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" title="Remove from the list" @click=${() => excludeSkill(w.key)}>✕</button></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
+          <span class="wl-body">${kindTag(w)}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span></span>
+          <span class="wl-actions"><button class="small wl-move" data-action="wl-up" data-id="${w.key}" title="Move up" ?disabled=${i === 0} @click=${() => nudgeSkill(w.key, -1)}>▲</button><button class="small wl-move" data-action="wl-down" data-id="${w.key}" title="Move down" ?disabled=${i === c.wl.length - 1} @click=${() => nudgeSkill(w.key, 1)}>▼</button><button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" title="Remove from the list" @click=${() => excludeSkill(w.key)}>✕</button></span></li>`)}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
       ${c.wlRest.length || c.wlExcluded.length ? html`<div class="small muted wl-extra">
         ${c.wlRest.length ? html`<span>Not listed:</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" title="Add to the list" @click=${() => addSkill(w.key)}>+</button></span>`)}` : nothing}
         ${c.wlExcluded.length ? html`<span>Removed:</span> ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" title="Put back" @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}

@@ -199,7 +199,7 @@ assert.equal(afterReset.gains, Array(10).fill('0').join(','), 'every start gain 
 assert.equal(afterReset.turf, baseTurf, 'the aptitude override is gone');
 assert.equal(afterReset.options, 20, 'every possible +XX is offered');
 // layout check: no horizontal overflow at common widths, both themes
-for (const width of [1280, 1440, 1680, 1920]) {
+for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.setViewportSize({ width, height: 1000 });
@@ -220,7 +220,7 @@ for (const width of [1280, 1440, 1680, 1920]) {
     assert.deepEqual(over, [], `overflow at ${width}px ${scheme}: ${over.join('; ')}`);
   }
 }
-console.log('layout ok at 1280-1920px in light and dark');
+console.log('layout ok at 390-1920px in light and dark');
 console.log('errors:', errors);
 await browser.close();
 process.exit(errors.length ? 1 : 0);

@@ -1,7 +1,7 @@
 # Working rules for this repo
 
 Before saying something works, run `npx tsc --noEmit`, `npm test`, and `npm run smoke`. The smoke test
-drives headless Chromium through the main flows and checks for horizontal overflow at 1280, 1440,
+drives headless Chromium through the main flows and checks for horizontal overflow at 390, 768, 1280, 1440,
 1680 and 1920 px in both themes. Layout bugs only ever surfaced there. `npm run test:e2e` runs the
 smoke test plus the browser regression cases; use it when changing those flows.
 
