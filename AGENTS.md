@@ -11,7 +11,11 @@ address. Set `SCREENSHOT_PATH=''` to skip the smoke screenshot or set a temporar
 Edits: never rely on an anchor string matching. Assert that a replacement applied. Three fixes in this
 project's history silently did nothing because the surrounding text had changed.
 
+Code should be self documenting, with tests covering expected behaviors.
+
 ## Layout
+
+Game knowledge is curated and vendored in `docs/`. Use `docs/` to answer game knowledge questions or to get game data or facts about the game. If the information you're looking for is not in `docs/` then searching the internet is okay too. Game and project terms are defined in `docs/GLOSSARY.md`.
 
 - `src/model/`: pure game and tool logic, no DOM. `run.ts` has `planRun()`, the whole pipeline from the
   user's choices to the plan the page shows. Named game constants in `rules.ts`; tunable estimates with
@@ -24,9 +28,6 @@ project's history silently did nothing because the surrounding text had changed.
 - `tests/`: `model.test.ts` has a test per rule, `run.test.ts` covers the pipeline and the family-aware
   ordering, `state.test.ts` covers migration and setting specs, `data.test.ts` checks `data/*.json` shape
   and references (run it after a fetch or a refit). Tests are type-checked with the app.
-
-Facts about the game belong in code, not prose, with a test per rule. Terms are defined in
-`docs/GLOSSARY.md`; keep it in sync when a term is added or renamed.
 
 ## lit-html
 
