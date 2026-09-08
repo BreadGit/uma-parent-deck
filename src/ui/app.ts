@@ -38,7 +38,7 @@ function page() {
       </span>
     </header>
     <main>
-      <div>${renderTargets(c)}${renderTrainee(c)}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
+      <div>${renderTrainee(c)}${renderTargets(c)}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
       <div>${renderDeck(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div id="tooltip" role="tooltip"></div>
