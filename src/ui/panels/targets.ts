@@ -94,7 +94,7 @@ export function renderTargets(c: RunPlan) {
         <div class="target-editor-controls"><div class="target-roles" role="group" aria-label="Goal for ${t.name}">
           ${(['required', 'preferred'] as const).map((role) => html`<button data-target-role=${role} data-id=${t.id} class=${!!required === (role === 'required') ? 'active' : ''} aria-pressed=${!!required === (role === 'required')} @click=${() => setRole(t.id, role === 'required')}>${role === 'required' ? 'Required' : 'Preferred'}</button>`)}
         </div>${required ? html`<label class="target-stars">Minimum stars <select data-target-stars=${t.id} .value=${live(String(required.stars))} @change=${(e: Event) => update((s) => { const r = s.run.goal.required.find((r) => r.id === t.id); if (r) r.stars = Number((e.target as HTMLSelectElement).value); })}>
-          ${[1, 2, 3].map((n) => html`<option value=${n} ?selected=${required.stars === n}>${n}★+</option>`)}</select></label>` : html`<span class="small muted">Optional extra at 2★+</span>`}</div>
+          ${[1, 2, 3].map((n) => html`<option value=${n} ?selected=${required.stars === n}>${n}★+</option>`)}</select></label>` : html`<span class="small muted">Preferred at 2★+</span>`}</div>
       </div>
       <div class="target-editor-lineage"><h3>White sparks in lineage${tip(lineageTip())}</h3>
         <div class="target-lineage-fields">${([0, 1] as const).map((side) => {
