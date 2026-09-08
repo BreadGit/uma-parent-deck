@@ -6,9 +6,10 @@ import { cardContribution, EFFECT, modelContribution, passives, predictDeck, rac
 import type { Card, Race } from '../src/types.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, pruneConflicts, sparkChance, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
-import { baseWinChance, buildSchedule, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
+import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
 import { affinityMultiplier, gainOfSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, sparksFromGain, sparksFromStars, START_GAINS } from '../src/model/inherit.ts';
+import { SLOT_COUNT } from '../src/model/rules.ts';
 
 const data = loadData();
 const { cards, skills, characters } = data;
@@ -539,4 +540,14 @@ test('the swap pass never leaves the deck worse than the greedy build, reports e
   const f = data.model.focus;
   buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'sprint' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v, i) => a + v * f.sprint[i]!, 0)) < 1e-6, 'stat power is focus-weighted'));
   buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'balanced' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v) => a + v, 0)) < 1e-6));
+});
+
+test('expected fans sum each scheduled race\'s fans times its win chance, the same total the unique-skill checks use', () => {
+  const brian = data.charByCardId.get(101601)!;
+  const sched = buildSchedule(data.races, brian.aptitudes, 0.8, new Map(), new Map(), goalRaces(brian));
+  const sum = scheduleSummary(sched);
+  assert.ok(sum.expectedFans > 0);
+  assert.equal(sum.expectedFans, expectedFansBefore(sched, SLOT_COUNT));
+  const byHand = sched.filter((s) => s.selected).reduce((a, s) => a + s.race.fansGain * Math.min(1, s.pWin), 0);
+  assert.equal(sum.expectedFans, byHand);
 });

@@ -48,8 +48,8 @@ button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border
 button:hover { border-color: var(--line-strong); }
 button.small { padding: 2px 8px; font-size: 12px; }
 button.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-button.danger-outline { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, var(--line)); font-size: 12px; padding: 3px 9px; }
-button.danger-outline:hover { background: var(--danger); border-color: var(--danger); color: var(--on-accent); }
+button.danger { background: var(--danger); border-color: var(--danger); color: var(--on-accent); font-weight: 600; padding: 6px 14px; }
+button.danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
 details > summary { cursor: pointer; color: var(--accent); }
 a.card-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--muted); }
 a.card-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
@@ -95,20 +95,20 @@ a.card-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .chip img { width: 20px; height: 20px; }
 .chip button { border: none; background: none; padding: 0 2px; color: var(--muted); }
 .chip button:hover { color: var(--text); }
-.chip.gold { border-color: var(--gold); }
 .chip.small { font-size: 12px; padding: 1px 6px; margin: 2px 0; }
 .chip.small button { font-size: 13px; }
 .chip .type-icon { width: 18px; height: 18px; margin: 0 3px 0 8px; }
 .chip-art { width: 22px; height: 22px; vertical-align: middle; border-radius: 3px; }
-.chips .chip.target-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) 16px auto 18px; align-items: center; gap: 6px; width: 100%; border-radius: 8px; }
+.chips .chip.target-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto 18px; align-items: center; gap: 6px; width: 100%; border-radius: 8px; }
 .chips.pin-list { flex-direction: column; gap: 4px; }
 .chips .chip.pin-row { display: grid; grid-template-columns: 22px 18px 1fr auto 18px; align-items: center; gap: 6px; width: 100%; border-radius: 8px; }
 .chips .chip.pin-row .type-icon { margin: 0; }
 .chips .chip.pin-row .card-link { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chips .chip.pin-row .pin-lb { font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.chip.target-row .tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip.target-row .tname { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.chip.target-row .tname .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chip.target-row .tip { margin: 0; }
-.chip.target-row .status { display: inline-flex; align-items: center; }
+.chip.target-row .status { display: inline-flex; align-items: center; justify-self: end; }
 .chip.target-row .tag { margin: 0; white-space: nowrap; }
 .chip.target-row select { font-size: 11px; padding: 1px 2px; max-width: 110px; }
 .chip.target-row select:disabled { opacity: .4; }
@@ -213,9 +213,12 @@ meter.bar::-moz-meter-bar { background: var(--accent); border-radius: 4px; }
 .deck .slot .slot-top { height: 18px; text-align: right; margin-bottom: 6px; }
 .deck .slot .slot-top .tag { margin: 0; }
 .deck .slot .name { font-size: 12px; margin-top: 4px; min-height: 32px; }
+.deck .slot .name .type-icon { width: 16px; height: 16px; margin-right: 3px; }
 .deck .slot .lb { font-size: 12px; color: var(--muted); }
 .deck .slot .cover { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 6px; }
-.deck .slot .cover .t { margin: 0; }
+/* a slot is narrow: the target name may wrap, but 'spark NN% (i)' stays on one line */
+.deck .slot .cover .t { margin: 0; white-space: normal; flex-wrap: wrap; justify-content: center; }
+.deck .slot .cover .t .n { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 .slot-art { width: 72px; height: 72px; border-radius: 6px; }
 .cover { font-size: 12px; }
 .cover .t { display: inline-flex; align-items: center; gap: 3px; margin-right: 8px; white-space: nowrap; }

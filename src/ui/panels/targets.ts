@@ -56,8 +56,8 @@ export function renderTargets(c: RunPlan) {
     const desc = (t.white ?? t.gold)?.desc ?? '';
     // sources the trainee brings herself (innate, awakening, her own events); lineage is entered on the chip
     const own = (c.existing.sources.get(t.id) ?? []).filter((s) => s.kind !== 'lineage');
-    return html`<span class="chip target-row ${t.gold ? 'gold' : ''}">
-      <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" /><span class="tname">${t.name}</span>${tip(`${desc}${desc ? '\n\n' : ''}${t.gold ? `Gold form: ${t.gold.name}. A card that gives the gold form counts, at the higher spark rate.` : 'This skill has no gold form.'}`)}
+    return html`<span class="chip target-row">
+      <img src="${skillIcon(t.white ?? t.gold ?? undefined)}" alt="" /><span class="tname"><span class="txt">${t.name}</span>${tip(`${desc}${desc ? '\n\n' : ''}${t.gold ? `Gold form: ${t.gold.name}. A card that gives the gold form counts, at the higher spark rate.` : 'This skill has no gold form.'}`)}</span>
       <span class="status">${own.length ? html`<span class="tag ok">from trainee</span>${tip(`The trainee gives this herself:\n${own.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n')}`)}` : nothing}</span>
       <button data-action="remove-target" data-id="${t.id}" title="Remove target" @click=${() => removeTarget(t.id)}>✕</button>
       <span class="row2">

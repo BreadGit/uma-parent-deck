@@ -15,7 +15,7 @@ export const skillIcon = (s: Skill | undefined) => (s?.iconId ? `/assets/skills/
 export const cardImg = (c: Card) => `/assets/supports/${c.id}.png`;
 export const charImg = (c: Character) => `/assets/characters/${c.cardId}.png`;
 export const cardUrl = (c: Card) => `https://gametora.com/umamusume/supports/${c.urlName}`;
-export const cardLink = (c: Card, label?: string) => html`<a class="card-link" href="${cardUrl(c)}" target="_blank" rel="noopener">${label ?? c.name}</a>`;
+export const cardLink = (c: Card, label?: string | TemplateResult) => html`<a class="card-link" href="${cardUrl(c)}" target="_blank" rel="noopener">${label ?? c.name}</a>`;
 export const cardThumb = (c: Card, cls = 'thumb') => html`<a href="${cardUrl(c)}" target="_blank" rel="noopener"><img class="${cls}" src="${cardImg(c)}" alt="" loading="lazy" /></a>`;
 export const typeIcon = (c: Card) => html`<img class="type-icon" src="/assets/icons/type_${c.type}.png" alt="${c.type}" title="${c.type}" />`;
 export const typeTag = (c: Card) => html`<span class="tag type-${c.type}">${c.type}</span>`;

@@ -66,7 +66,7 @@ export function renderSchedule(c: RunPlan) {
   const bySlot = new Map<number, ScheduledRace[]>();
   for (const r of c.schedule) bySlot.set(r.slot, [...(bySlot.get(r.slot) ?? []), r]);
   const overridden = Object.keys(store.run.raceOverrides).length > 0;
-  const subtitle = `(${c.sum.count} races${c.sum.goals ? `, ${c.sum.goals} career goals` : ''} · ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses${c.sum.longestStreak > 2 ? ` · longest streak ${c.sum.longestStreak}` : ''})`;
+  const subtitle = `(${c.sum.count} races${c.sum.goals ? `, ${c.sum.goals} career goals` : ''} · ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses · ${Math.round(c.sum.expectedFans).toLocaleString('en-US')} expected fans${c.sum.longestStreak > 2 ? ` · longest streak ${c.sum.longestStreak}` : ''})`;
   const actions = html`
     ${overridden ? html`<button class="small" data-action="reset-races" @click=${() => update((s) => { s.run.raceOverrides = {}; })}>Clear manual picks</button>` : nothing}
     <label class="threshold"><span class="k">Win chance at least${tip(THRESHOLD_TIP)}</span>

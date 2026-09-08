@@ -197,7 +197,9 @@ export function scheduleSummary(sched: ScheduledRace[]) {
   const unique = new Set(sel.map((s) => s.race.raceId)).size;
   const goals = sel.filter((s) => s.goal).length;
   const longestStreak = sel.reduce((a, s) => Math.max(a, s.consecutive), 0);
-  return { count: sel.length, unique, goals, expectedWins: wins, expectedLosses: sel.length - wins, longestStreak };
+  // fans come only from wins: a lost race pays nothing, so each race counts its fans times its win chance
+  const expectedFans = sel.reduce((a, s) => a + s.race.fansGain * Math.min(1, s.pWin), 0);
+  return { count: sel.length, unique, goals, expectedWins: wins, expectedLosses: sel.length - wins, longestStreak, expectedFans };
 }
 
 export function traineeAptitudes(trainee: Character | null, overrides: Partial<Aptitudes>): Aptitudes {

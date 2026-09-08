@@ -34,7 +34,7 @@ function page() {
       <span class="meta">Independent-training deck builder for white-spark farming</span>
       <span class="header-actions">
         <span class="theme-toggle" role="group" aria-label="Theme">${THEMES.map((t) => html`<button class="${store.ui.theme === t.id ? 'active' : ''}" data-theme-pick="${t.id}" @click=${() => { update((s) => { s.ui.theme = t.id; }); applyTheme(); }}>${t.label}</button>`)}</span>
-        <button class="danger-outline" data-action="reset-all" title="Start a new run: clears every choice except your inventory and settings" @click=${resetAll}>Reset run</button>
+        <button class="danger" data-action="reset-all" title="Start a new run: clears every choice except your inventory and settings" @click=${resetAll}>Reset run</button>
       </span>
     </header>
     <main>

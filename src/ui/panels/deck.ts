@@ -10,7 +10,7 @@ import { BLUE_STAR_BANDS, cardContribution, EFFECT, pAbove, passives, raceScale,
 import { statScore } from '../../model/rank.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { data, plan, store, update } from '../context.ts';
-import { capitalize, cardLink, cardThumb, num, pct, pill, skillName, skillWithTip, typeTag } from '../format.ts';
+import { capitalize, cardLink, cardThumb, num, pct, pill, skillName, skillWithTip, typeIcon } from '../format.ts';
 import { panel, sub } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 import { lbSelect } from './ranking.ts';
@@ -95,9 +95,9 @@ export function renderDeck(c: RunPlan) {
     <div class="slot">
       <div class="slot-top">${store.run.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : nothing}</div>
       ${cardThumb(cs.card, 'slot-art')}
-      <div class="name">${cardLink(cs.card)}</div>
-      <div class="lb">${cs.borrowed ? html`${cs.card.rarity} · LB4 (friend's)` : html`${cs.card.rarity} · LB ${lbSelect(cs.card, cs.lb, 'small')}`} ${typeTag(cs.card)}</div>
-      <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</div>
+      <div class="name">${typeIcon(cs.card)}${cardLink(cs.card, html`${cs.card.charName} <span class="muted">${cs.card.title}</span>`)}</div>
+      <div class="lb">${cs.borrowed ? html`LB4 (friend's)` : html`LB ${lbSelect(cs.card, cs.lb, 'small')}`}</div>
+      <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} <span class="n"><span class="muted">spark</span> ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span></span>`)}</div>
     </div>`)}</div>` : html`<div class="muted">No owned cards. Mark the cards you own in the card ranking.</div>`;
   const borrow = d.borrow ? html`<div class="small gap-top"><b>Borrow:</b> ${cardLink(d.borrow.card)} at LB4${d.borrow.replaces ? html` instead of your own copy at a lower LB` : nothing}${d.borrow.gain > 1e-9 ? html`: +${(d.borrow.gain * 100).toFixed(1)}% expected sparks` : html` <span class="muted">(adds nothing to the targets; the best stat stick)</span>`}.
     ${d.borrowAlternatives.length ? html`<span class="muted">Other borrows: ${d.borrowAlternatives.map((o) => `${o.card.name} (+${(o.gain * 100).toFixed(1)}%)`).join(', ')}.</span>` : nothing}</div>` : nothing;
