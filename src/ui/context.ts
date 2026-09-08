@@ -11,6 +11,7 @@ export const store: AppState = loadState(data, defaultInventory);
 /** State that is not persisted: search boxes, open panels, slider previews. */
 export const view = {
   query: '',
+  targetEditorId: null as number | null,
   traineeQuery: '',
   cardQuery: '',
   showAdvanced: false,

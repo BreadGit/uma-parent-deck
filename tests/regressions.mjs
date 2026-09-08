@@ -238,46 +238,78 @@ test('zero through four owned characters show an incomplete deck, and five resto
   }
 });
 
-test('parent goals migrate old targets, persist edits, and leave deck selection unchanged', async (t) => {
+test('white target chips migrate old goals and support zero or many required sparks', async (t) => {
   const saved = defaultState(data);
-  saved.version = 6;
-  delete saved.run.goal;
-  delete saved.run.pinkLineage;
+  saved.version = 7;
   saved.run.traineeCardId = 100101;
-  saved.run.targets = [200012, 200352];
+  saved.run.targets = [200012];
+  saved.run.goal = { ...saved.run.goal, enabled: true, pink: 'end', required: [{ id: null, stars: 2 }, { id: 200352, stars: 3 }], preferred: [201601, 200472] };
+  saved.run.aptOverrides.end = 'B';
+  saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
   const page = await fresh(t, saved);
-  assert.equal(await page.locator('[data-goal-enabled]').isChecked(), false);
   const before = await page.locator('.deck').innerText();
-  await page.check('[data-goal-enabled]');
-  assert.deepEqual((await state(page)).run.goal.preferred, [200012, 200352]);
-  assert.deepEqual(await page.locator('[data-goal-required]').evaluateAll((els) => els.map((el) => el.value)), ['', '']);
-  assert.match(await page.locator('[data-goal-issues]').innerText(), /Choose two different required white skills/);
-  for (const [selector, value] of [['[data-goal-required="0"]', '200012'], ['[data-goal-required="1"]', '200352'], ['[data-goal-pink]', 'end'], ['[data-apt="end"]', 'B']]) await page.selectOption(selector, value);
-  assert.deepEqual((await state(page)).run.goal.preferred, []);
-  assert.match(await page.locator('[data-goal-issues]').innerText(), /Enter all six pink lineage sparks/);
-  for (let i = 0; i < 6; i++) await page.selectOption(`[data-pink-lineage="${i}"]`, 'end');
+  assert.equal(await page.locator('[data-required-count]').innerText(), '1 required');
+  assert.equal(await page.locator('[data-action="select-target"]').count(), 4);
+  assert.equal(await page.locator('[data-goal-required]').count(), 0);
+  for (const id of [200012, 201601, 200472]) {
+    await page.click(`[data-action="select-target"][data-id="${id}"]`);
+    await page.click(`[data-target-role="required"][data-id="${id}"]`);
+  }
+  assert.equal(await page.locator('[data-required-count]').innerText(), '4 required');
+  assert.equal(await page.locator('.deck').innerText(), before, 'roles do not change deck ranking');
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  await page.reload();
+  await page.waitForSelector('[data-required-count]');
+  assert.equal(await page.locator('[data-required-count]').innerText(), '4 required');
+  await page.click('[data-action="select-target"][data-id="200352"]');
+  assert.equal(await page.inputValue('[data-target-stars="200352"]'), '3');
+  await page.click('[data-action="select-target"][data-id="200352"]');
+  for (const id of [200012, 200352, 201601, 200472]) {
+    await page.click(`[data-action="select-target"][data-id="${id}"]`);
+    await page.click(`[data-target-role="preferred"][data-id="${id}"]`);
+  }
+  assert.deepEqual((await state(page)).run.goal.required, []);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
+  assert.match(await page.locator('[data-goal-result]').innerText(), /No required white sparks/);
   const probability = await page.locator('[data-goal-probability]').innerText();
-  const attempts = await page.locator('[data-goal-attempts]').allTextContents();
-  assert.equal(attempts.length, 3);
-  assert.equal(await page.locator('.deck').innerText(), before);
   await page.reload();
   await page.waitForSelector('[data-goal-result]');
-  assert.equal(await page.locator('[data-goal-required="0"]').inputValue(), '200012');
   assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
-  assert.deepEqual(await page.locator('[data-goal-attempts]').allTextContents(), attempts);
   await page.selectOption('[data-apt="end"]', 'C');
   assert.match(await page.locator('[data-goal-issues]').innerText(), /starts below B/);
-  assert.equal(await page.locator('[data-goal-attempts]').count(), 0);
-  assert.equal(await page.locator('[data-goal-zero]').count(), 0, 'unsupported jumps are unknown, not impossible');
-  await page.uncheck('[data-goal-enabled]');
-  assert.equal(await page.locator('[data-goal-result]').count(), 0);
-  await page.check('[data-goal-enabled]');
-  assert.equal(await page.locator('[data-goal-required="0"]').inputValue(), '200012');
-  await page.selectOption('[data-goal-lineage-k="200012"][data-side="k1"]', '2');
-  const ancestry = (await state(page)).run.targetLineage['200012'];
-  await page.click('[data-action="remove-target"][data-id="200012"]');
-  assert.deepEqual((await state(page)).run.targetLineage['200012'], ancestry, 'removing a deck target preserves ancestry used by the goal');
-  assert.equal(await page.locator('[data-goal-lineage-k="200012"][data-side="k1"]').inputValue(), '2');
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0);
+});
+
+test('chip selection toggles its editor and removal updates goals without activating another chip', async (t) => {
+  const page = await fresh(t);
+  await target(page, 'Groundwork');
+  assert.equal(await page.locator('[data-target-editor]').getAttribute('data-target-editor'), '201601');
+  await page.click('[data-target-role="required"]');
+  await page.selectOption('[data-target-stars="201601"]', '3');
+  await page.selectOption('[data-lineage-k="201601"][data-side="k1"]', '2');
+  await page.selectOption('[data-lineage-p="201601"][data-side="p1"]', '4');
+  assert.equal(await page.locator('[data-target-editor] h3').first().innerText(), 'Goals for target white spark');
+  assert.match(await page.locator('[data-target-editor] h3').last().innerText(), /^White sparks in lineage/);
+  assert.equal(await page.locator('[data-target-editor] [data-action="remove-target"]').count(), 0);
+  await target(page, 'Lucky Seven');
+  await page.click('[data-action="select-target"][data-id="201601"]');
+  assert.equal(await page.inputValue('[data-target-stars="201601"]'), '3');
+  assert.equal(await page.inputValue('[data-lineage-p="201601"][data-side="p1"]'), '4');
+  await page.locator('[data-action="select-target"][data-id="201601"]').press('Enter');
+  assert.equal(await page.locator('[data-target-editor]').count(), 0);
+  await page.locator('[data-action="select-target"][data-id="201601"]').press('Enter');
+  assert.equal(await page.locator('[data-target-editor]').count(), 1);
+  await page.click('[data-action="remove-target"][data-id="201562"]');
+  assert.equal(await page.locator('[data-target-editor]').getAttribute('data-target-editor'), '201601');
+  assert.deepEqual((await state(page)).run.goal.preferred, []);
+  await page.click('[data-action="remove-target"][data-id="201601"]');
+  assert.equal(await page.locator('[data-target-editor]').count(), 0);
+  const after = await state(page);
+  assert.deepEqual(after.run.targets, []);
+  assert.deepEqual(after.run.goal.required, []);
+  assert.deepEqual(after.run.targetLineage, {});
+  await page.reload();
+  await page.waitForSelector('#target-search');
+  assert.equal(await page.locator('[data-action="select-target"]').count(), 0);
 });

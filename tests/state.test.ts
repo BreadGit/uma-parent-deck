@@ -101,7 +101,7 @@ test('legacy settings blobs: version bumps apply and invalid values are dropped'
 
 test('the current shape round-trips and wins over legacy keys', () => {
   const cur = migrate({}, data);
-  cur.run.targets = [201601]; cur.settings.winThreshold = 0.6; cur.inventory = { '30028': 2, '30052': null }; cur.ui = { sortKey: 'sp', theme: 'dark' };
+  cur.run.targets = [201601]; cur.run.goal.preferred = [201601]; cur.settings.winThreshold = 0.6; cur.inventory = { '30028': 2, '30052': null }; cur.ui = { sortKey: 'sp', theme: 'dark' };
   const back = migrate({ current: JSON.parse(JSON.stringify(cur)), state: { targets: [999] }, settings: { winThreshold: 0.1 }, inventory: { '1': 1 }, theme: 'light' }, data);
   assert.deepEqual(back, cur);
 });

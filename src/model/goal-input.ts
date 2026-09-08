@@ -3,34 +3,35 @@ import { resolveTarget } from './sparks.ts';
 
 export const APTITUDE_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 export const APTITUDE_LABELS: Record<AptKey, string> = { turf: 'Turf', dirt: 'Dirt', sprint: 'Sprint', mile: 'Mile', medium: 'Medium', long: 'Long', front: 'Front Runner', pace: 'Pace Chaser', late: 'Late Surger', end: 'End Closer' };
-export interface WhiteGoal { id: number | null; stars: number }
+export interface WhiteGoal { id: number; stars: number }
 export interface ParentGoal {
   enabled: boolean;
   blueStats: Stat[];
   blueStars: number;
   pink: AptKey | null;
   pinkStars: number;
-  required: [WhiteGoal, WhiteGoal];
+  required: WhiteGoal[];
   preferred: number[];
 }
 export interface PinkSpark { aptitude: AptKey; stars: number }
-export const DEFAULT_GOAL: ParentGoal = { enabled: false, blueStats: [...STATS], blueStars: 2, pink: null, pinkStars: 2, required: [{ id: null, stars: 2 }, { id: null, stars: 2 }], preferred: [] };
+export const DEFAULT_GOAL: ParentGoal = { enabled: false, blueStats: [...STATS], blueStars: 2, pink: null, pinkStars: 2, required: [], preferred: [] };
 export const emptyPinkLineage = (): (PinkSpark | null)[] => Array.from({ length: 6 }, () => null);
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 const stars = (v: unknown) => typeof v === 'number' && [1, 2, 3].includes(v) ? v : 2;
 export const goalFamily = (id: unknown, data: Data): number | null => {
   if (typeof id !== 'number') return null;
-  const t = resolveTarget(id, data);
+  const member = resolveTarget(id, data);
+  const t = member?.gold ? resolveTarget(member.gold.id, data) : member;
   return t?.white && !t.white.unreleasedEn && !t.white.name.includes('×') ? t.id : null;
 };
 export function sanitizeGoal(raw: unknown, data: Data, oldTargets: number[] = []): ParentGoal {
   const v = object(raw);
-  const required = [0, 1].map((i) => {
-    const entry = object(Array.isArray(v.required) ? v.required[i] : undefined);
-    return { id: goalFamily(entry.id, data), stars: stars(entry.stars) };
-  }) as ParentGoal['required'];
-  if (required[1].id === required[0].id) required[1].id = null;
-  const preferred = Array.isArray(v.preferred) ? v.preferred : oldTargets;
+  const required: WhiteGoal[] = [];
+  for (const rawEntry of Array.isArray(v.required) ? v.required : []) {
+    const entry = object(rawEntry), id = goalFamily(entry.id, data);
+    if (id !== null && !required.some((r) => r.id === id)) required.push({ id, stars: stars(entry.stars) });
+  }
+  const preferred = [...(Array.isArray(v.preferred) ? v.preferred : []), ...oldTargets];
   return {
     enabled: v.enabled === true,
     blueStats: Array.isArray(v.blueStats) ? STATS.filter((s) => (v.blueStats as unknown[]).includes(s)) : [...STATS],

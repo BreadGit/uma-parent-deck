@@ -5,31 +5,39 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
 
 ## Review flow
 
-1. Select a trainee, deck targets, inventory, and agenda as before.
-2. Enable **Evaluate goal** in Parent goal. Select acceptable blue stats, a pink aptitude, two
-   required white skill families, and their minimum stars. Add preferred white families if useful.
-3. Copy all starting aptitude grades from the game's Legacy screen. Enter all six pink lineage
-   sparks in Legacy. White lineage copies and star totals use the same values as deck targets.
-4. Read Parent goal estimate beside the suggested deck. It shows a complete probability, individual
-   spark chances, both required skills' availability, SS chance, and 50% / 75% / 95% attempt counts.
+1. Select a trainee, white targets, inventory, and agenda as before.
+2. Select a target chip to open its shared editor. Choose Required or Preferred under **Goals for
+   target white spark**. Required families have individual minimum stars; Preferred families are
+   optional 2★+ extras. Zero required whites is valid. There is no maximum required count.
+3. Enter copies and stars under **White sparks in lineage** in the same editor. Select the active
+   chip again to close it. The × on each chip removes the target and its goal and lineage entries.
+4. Enable **Evaluate goal** in Parent goal and choose blue and pink goals. Copy all starting aptitude
+   grades from the game's Legacy screen and enter the six pink lineage sparks in Legacy.
+5. Read Parent goal estimate. It shows the complete probability, individual spark chances, all
+   required skills' availability, SS chance, and 50% / 75% / 95% attempt counts.
 
-Changing goal requirements does not alter the selected deck, its coverage table, or the prioritized
-list. Changing shared run inputs, such as white lineage, inventory, or agenda, can still alter them.
+Required/Preferred roles and minimum stars do not change selected cards or the prioritized list.
+Adding or removing a target chip changes the existing builder's target list. Changing shared run
+inputs, such as lineage, inventory, or agenda, can still change the suggested deck.
 Unknown pink ancestry and matching pink sparks below starting B withhold the combined estimate.
 A fully specified goal with no modeled source or eligibility has zero chance. Preferred extras
 are individual 2★-or-better probabilities, not conditional on successful required goals.
+With zero required white families, the white contribution is one and success depends on blue/pink.
 
 ## Data and ownership
 
 - `src/model/goal-input.ts` defines and normalizes the goal and six pink ancestry entries.
-- `src/state.ts` migrates saves to version 7. Old deck targets become preferred goal families, with
-  no required families selected and goal evaluation disabled. The old deck targets remain intact.
+- `src/state.ts` migrates saves to version 8. Older deck targets default to Preferred; stored Required
+  entries and their stars survive. The former empty required slots disappear. Old goal-only families
+  join the unified target list, which can change deck suggestions for saves with separate lists.
+  Invalid families and duplicate required entries are removed. The required list defaults to empty.
 - `src/model/run.ts` exposes `predictRunDeck()` for a supplied deck and calls `evaluateParentGoal()`
   after the existing builder selects cards. It never searches decks from inside the goal evaluator.
 - `src/model/goal-skills.ts` calculates a joint distribution over the best obtainable form of each
   required family. `src/model/goal.ts` combines this with stat, rank, pink, and star estimates.
-- `src/ui/panels/goal.ts` renders the editor and results. Legacy owns the starting grades and pink
-  lineage controls. All edits use the existing persisted store.
+- `src/ui/panels/targets.ts` renders the target chips and shared goal/lineage editor. Its selected
+  chip is transient view state. `goal.ts` renders blue/pink controls and results. Legacy owns starting
+  grades and pink lineage. All saved edits use the existing persisted store.
 
 Generation constants live in `rules.ts`. Their provenance is the
 [Hakuraku note](refs/hakuraku-spark-generation.md), including the explicitly approximate low/UE
@@ -40,22 +48,30 @@ remain the defaults. New generation tables are not independent copies of tunable
 ## Calculation
 
 For a shared final outcome, complete success is the chance of the acceptable blue, the specified
-pink, and both white families generating with enough stars. The implementation separates only
+pink, and all required white families generating with enough stars. The implementation separates only
 terms whose remaining dependence is not modeled:
 
-`P(goal) ≈ E[g1(form1) × g2(form2)] × E[blue(stats) × stars1(rank) × stars2(rank)] × P(pink)`
+`P(goal) ≈ E[product_i g_i(form_i)] × E[blue(stats) × product_i stars_i(rank)] × P(pink)`
 
 Here `g` includes the purchased skill form and `1.1^lineageCopies`. This is not a product of the
 individual probabilities shown in the table.
 
 ### Skill outcomes
 
-Two base-four digits record none, normal white, released double-circle upgrade, or gold per
-required family. This gives at most 16 states. Independent sources combine by retaining each
-family's best form. Shared events apply the decoded rewards together; alternative outcomes and
-random skill selections stay exclusive. The existing assumed outcome weights and gold-roll
-setting apply. A reached late chain stage implies all preceding stages, so chain reach chances
-are not multiplied as independent events. Repeated prerequisites still give one family roll.
+Each required family's form is none, normal white, released double-circle upgrade, or gold.
+Families sharing an event or chain form connected groups. Independent groups are evaluated
+separately, so fifty independent families do not create an exponential joint state table.
+Within each group, sources combine by retaining each family's best form. Shared events apply the
+decoded rewards together; alternative outcomes and random skill selections stay exclusive.
+The existing assumed outcome weights and gold-roll setting apply. A reached late chain stage
+implies all preceding stages. Repeated prerequisites still give one family roll.
+
+Small distributions are exact under the source assumptions. Large linked groups use at most
+4,096 weighted sample states. Resampling uses a fixed hash order and stratified quantiles; very
+large pair products use a fixed permutation of those quantiles. The UI identifies this additional
+approximation when used. It bounds state growth without imposing a target-count limit. Very rare
+joint acquisition outcomes can be missed. Independent groups still multiply analytically, which
+preserves tiny joint chances instead of relying on a sample that obtains every independent skill.
 
 The evaluator resolves event choices once for all required and preferred families using the
 current prioritized-skill order and its non-target blockers. It does not rewrite that list for
@@ -70,11 +86,12 @@ Each sample is rounded, bounded at zero, and clamped to the inherited scenario c
 statline determines its blue band and stat rating. The existing predicted skill-rating mean and
 normal spread complete the rank distribution; skill uncertainty is integrated analytically across
 rank bands. Zero stat spread uses one exact outcome. Fixed samples make repeated evaluations
-and future deck comparisons deterministic. A local 25-evaluation check with Special Week, two
+and future deck comparisons deterministic. In the initial two-family implementation, a local
+25-evaluation check with Special Week, two
 required families, and complete pink ancestry measured about 5 ms median and 7.5 ms at the 95th
 percentile for the warm evaluator alone. This excludes deck search and rendering.
 
-Both white star rolls use the same rank outcome. This retains blue/SS and white/white dependence.
+All required white star rolls use the same rank outcome. This retains blue/SS and white/white dependence.
 For example, separately averaging two 50%/80% white-star regimes and multiplying loses their
 shared rank dependence. The goal's sampled SS estimate can differ slightly from the existing
 Predicted run panel's linearized rank estimate, especially near caps.

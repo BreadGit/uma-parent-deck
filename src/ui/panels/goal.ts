@@ -1,37 +1,20 @@
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
-import { repeat } from 'lit-html/directives/repeat.js';
 import { STATS } from '../../types.ts';
 import { APTITUDE_KEYS, APTITUDE_LABELS, sanitizeGoal, type ParentGoal } from '../../model/goal-input.ts';
 import { attemptsFor } from '../../model/goal.ts';
-import { NO_LINEAGE, resolveTarget } from '../../model/sparks.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { data, store, update } from '../context.ts';
 import { capitalize } from '../format.ts';
 import { panel } from '../panel.ts';
-import { setLineageCount, setLineageStars } from './targets.ts';
 
-const families = [...new Map(data.skills.map((s) => resolveTarget(s.id, data)).filter((t) => t?.white && !t.white.unreleasedEn && !t.white.name.includes('×')).map((t) => [t!.id, t!])).values()].sort((a, b) => a.name.localeCompare(b.name));
 const change = (fn: (goal: ParentGoal) => void) => update((s) => { fn(s.run.goal); s.run.goal = sanitizeGoal(s.run.goal, data); });
 const probability = (p: number) => p === 0 ? '0%' : p < 0.00001 ? '<0.001%' : `${(p * 100).toFixed(p < 0.001 ? 3 : p < 0.01 ? 2 : 1)}%`;
 const stars = (current: number) => [1, 2, 3].map((n) => html`<option value=${n} ?selected=${current === n}>${n}★ or better</option>`);
-const skillOptions = (excluded: number[] = [], selected: number | null = null) => families.filter((t) => !excluded.includes(t.id)).map((t) => html`<option value=${t.id} ?selected=${selected === t.id}>${t.name}</option>`);
-
-function lineageFields(id: number) {
-  const l = store.run.targetLineage[String(id)] ?? NO_LINEAGE;
-  return html`<div class="goal-lineage"><span class="muted">White sparks in lineage</span>${([0, 1] as const).map((side) => {
-    const k = side === 0 ? 'k1' : 'k2', p = side === 0 ? 'p1' : 'p2';
-    return html`<span>P${side + 1}
-      <select aria-label="Parent ${side + 1} copies" data-goal-lineage-k=${id} data-side=${k} .value=${live(String(l[k]))} @change=${(e: Event) => setLineageCount(id, k, Number((e.target as HTMLSelectElement).value))}>${[0, 1, 2, 3].map((n) => html`<option value=${n} ?selected=${l[k] === n}>${n} copies</option>`)}</select>
-      <select aria-label="Parent ${side + 1} total stars" data-goal-lineage-p=${id} data-side=${p} ?disabled=${!l[k]} .value=${live(String(l[p]))} @change=${(e: Event) => setLineageStars(id, p, Number((e.target as HTMLSelectElement).value))}>${Array.from({ length: 3 * l[k] - l[k] + 1 }, (_, i) => i + l[k]).map((n) => html`<option value=${n} ?selected=${l[p] === n}>${n}★ total</option>`)}</select>
-    </span>`;
-  })}</div>`;
-}
-
 export function renderGoalEditor() {
   const g = store.run.goal;
   return panel({ title: 'Parent goal', actions: html`<label><input type="checkbox" data-goal-enabled .checked=${g.enabled} @change=${(e: Event) => change((g) => { g.enabled = (e.target as HTMLInputElement).checked; })} /> Evaluate goal</label>` }, g.enabled ? html`
-    <p class="small muted">Evaluate the current suggested deck. Deck targets above still choose the cards; goal requirements do not change them yet.</p>
+    <p class="small muted">Choose blue and pink goals here. Set required and preferred white sparks in Target white sparks above.</p>
     <fieldset class="goal-group"><legend>Required blue spark</legend>
       <div class="goal-stats">${STATS.map((stat) => html`<label><input type="checkbox" data-goal-blue=${stat} .checked=${g.blueStats.includes(stat)} @change=${(e: Event) => change((g) => { g.blueStats = (e.target as HTMLInputElement).checked ? [...g.blueStats, stat] : g.blueStats.filter((s) => s !== stat); })} /> ${capitalize(stat)}</label>`)}
       <button class="small" data-action="goal-any-blue" @click=${() => change((g) => { g.blueStats = [...STATS]; })}>Any stat</button></div>
@@ -41,15 +24,6 @@ export function renderGoalEditor() {
       <label class="goal-field">Aptitude<select data-goal-pink .value=${live(g.pink ?? '')} @change=${(e: Event) => change((g) => { g.pink = (e.target as HTMLSelectElement).value as ParentGoal['pink']; })}><option value="">Choose aptitude</option>${APTITUDE_KEYS.map((k) => html`<option value=${k} ?selected=${g.pink === k}>${APTITUDE_LABELS[k]}</option>`)}</select></label>
       <label class="goal-field">Minimum stars<select data-goal-stars="pink" .value=${live(String(g.pinkStars))} @change=${(e: Event) => change((g) => { g.pinkStars = Number((e.target as HTMLSelectElement).value); })}>${stars(g.pinkStars)}</select></label>
     </div></fieldset>
-    ${repeat(g.required.map((r, i) => ({ ...r, i })), (r) => `${r.i}:${r.id}`, (r) => html`<fieldset class="goal-group"><legend>Required white spark ${r.i + 1}</legend><div class="goal-pair">
-      <label class="goal-field">Skill<select data-goal-required=${r.i} .value=${live(r.id === null ? '' : String(r.id))} @change=${(e: Event) => change((g) => { const v = (e.target as HTMLSelectElement).value; g.required[r.i]!.id = v ? Number(v) : null; })}><option value="">Choose skill</option>${skillOptions(g.required.filter((_, i) => i !== r.i).flatMap((r) => r.id === null ? [] : [r.id]), r.id)}</select></label>
-      <label class="goal-field">Minimum stars<select data-goal-white-stars=${r.i} .value=${live(String(r.stars))} @change=${(e: Event) => change((g) => { g.required[r.i]!.stars = Number((e.target as HTMLSelectElement).value); })}>${stars(r.stars)}</select></label>
-    </div>${r.id !== null ? lineageFields(r.id) : nothing}</fieldset>`)}
-    <fieldset class="goal-group"><legend>Preferred white sparks</legend>
-      <p class="small muted">Extras at 2★ or better. These are not required for success.</p>
-      <label class="goal-field">Add skill<select data-goal-preferred-add .value=${live('')} @change=${(e: Event) => { const id = Number((e.target as HTMLSelectElement).value); if (id) change((g) => { g.preferred.push(id); }); }}><option value="">Choose a preferred skill</option>${skillOptions([...g.preferred, ...g.required.flatMap((r) => r.id === null ? [] : [r.id])])}</select></label>
-      ${repeat(g.preferred, (id) => id, (id) => html`<div class="goal-preferred"><div class="goal-preferred-name"><span>${resolveTarget(id, data)?.name}</span><button class="small" data-goal-remove-preferred=${id} aria-label="Remove ${resolveTarget(id, data)?.name}" @click=${() => change((g) => { g.preferred = g.preferred.filter((p) => p !== id); })}>Remove</button></div>${lineageFields(id)}</div>`)}
-    </fieldset>
   ` : html`<p class="small muted">Set the blue, pink, and white sparks you want on one finished parent.</p>`);
 }
 
@@ -66,7 +40,7 @@ export function renderGoalResult(c: RunPlan) {
       <tr><td>Pink (${store.run.goal.pink ? APTITUDE_LABELS[store.run.goal.pink] : 'choose aptitude'})</td><td class="num">A/S only</td><td class="num">${result.pink?.probability == null ? 'Needs inputs' : probability(result.pink.probability)}</td></tr>
       ${result.required.map((w) => html`<tr><td>${w.target.name}</td><td class="num">${probability(w.available)}</td><td class="num">${probability(w.probability)}</td></tr>`)}
     </tbody></table></div>
-    <p class="small muted">Both required skills available ${probability(result.bothAvailable)} · SS or better ${probability(result.pSS)}. Each spark chance is shown individually; shared events and rank affect the combined result.</p>
+    <p class="small muted">${result.required.length ? `All ${result.required.length} required white skill${result.required.length === 1 ? '' : 's'} available ${probability(result.allAvailable)} · ` : 'No required white sparks · '}SS or better ${probability(result.pSS)}. Each spark chance is shown individually; shared events and rank affect the combined result.</p>
     ${p !== null ? html`<div class="goal-attempts">${[0.5, 0.75, 0.95].map((confidence) => { const n = attemptsFor(p, confidence); return html`<div><b>${confidence * 100}% chance</b><span data-goal-attempts=${confidence}>${Number.isFinite(n) ? `${n.toLocaleString()} attempts` : 'Not reachable'}</span></div>`; })}</div>
       <p class="small muted">Attempts count final spark rolls. This estimate treats them as independent with the same odds, including rerolls.</p>` : nothing}
     ${result.preferred.length ? html`<details><summary>Preferred extras at 2★ or better</summary><ul class="small">${result.preferred.map((w) => html`<li>${w.target.name}: ${probability(w.probability)} per attempt</li>`)}</ul><p class="small muted">These individual chances do not require the rest of the goal to succeed.</p></details>` : nothing}

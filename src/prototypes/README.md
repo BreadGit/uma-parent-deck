@@ -1,5 +1,9 @@
 # White spark editor comparison
 
+The user selected C. The main app now uses its chip layout with zero or more required families,
+separate goal/lineage headers, removal on each chip, and click-again-to-close behavior. These
+original comparisons retain the earlier two-required constraint for reference.
+
 Disposable, development-only UI experiment. Run Vite and open
 `/?prototype=white-sparks&variant=A`. The toolbar switches between stable variants:
 

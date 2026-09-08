@@ -90,10 +90,14 @@ names differ they are noted.
 ## This tool
 
 - **Deck target** (target white spark): a white skill the existing deck builder tries to spark.
-- **Parent goal**: the blue, pink, and two required white spark conditions that one finished parent
-  must meet together. Phase 1 evaluates the current suggested deck; changing a goal does not select cards.
-- **Required white spark**: one of two different skill families that must both appear at their chosen
-  minimum stars. Gold and normal forms of Corner Recovery are one family, not two requirements.
+  Each target chip is Required or Preferred in the goal evaluator. Adding or removing a target
+  changes the builder's list. Changing its role or minimum stars changes the goal evaluation only.
+- **Parent goal**: the blue, pink, and required white spark conditions that one finished parent must
+  meet together. Required whites can number zero or more. With none, success depends only on blue
+  and pink. Phase 1 evaluates the current suggested deck. Required/Preferred roles do not select cards.
+- **Required white spark**: a target family that must appear at its chosen minimum stars. Every
+  required family must succeed on the same parent. Gold and normal forms of Corner Recovery are
+  one family, not two requirements.
 - **Preferred white spark**: an optional family tracked at 2★ or better. Its absence does not make the
   parent goal fail, and it cannot also be a required family. Phase 1 reports its individual chance.
 - **Complete-goal chance**: the estimated probability that every required condition holds on the same

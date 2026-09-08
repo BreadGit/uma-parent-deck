@@ -5,10 +5,15 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 ## What it does
 
-- The optional Parent goal panel evaluates the current suggested deck for acceptable blue stats,
-  one pink aptitude, and two required white skill sparks with minimum stars. Preferred white sparks
-  appear as extras. It shows the complete-goal chance and estimated attempts for 50%, 75%, and 95%
-  chance of success. Phase 1 evaluates goals without changing card selection or prioritized skills.
+- Target white sparks uses compact chips with one shared editor. Select a chip to edit its goal
+  and lineage; select it again to close. Remove a target with the × on its chip. Any number of targets,
+  including zero, can be Required. Preferred targets are optional 2★+ extras. Required targets have
+  individual minimum stars. Separate headers distinguish target goals from existing lineage.
+- The optional Parent goal panel sets acceptable blue stats and one pink aptitude. The evaluator
+  combines those with every required white spark and shows estimated attempts for 50%, 75%, and
+  95% chance of success. With no required whites, success depends only on blue and pink. Changing
+  a target's Required/Preferred role does not change deck selection; adding or removing a target
+  still changes the builder's target list. Goal-driven deck optimization remains deferred.
   Enter all six pink lineage sparks and the starting style grades in Legacy to include B-to-A
   inspiration increases. Missing ancestry and unsupported jumps are shown as incomplete estimates.
 

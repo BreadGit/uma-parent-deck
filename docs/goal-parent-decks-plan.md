@@ -1,13 +1,15 @@
 # Goal-parent deck plan
 
 Updated 2026-09-08. Phase 1 is implemented on `feature/goal-parent-decks` for review.
-Phase 2 remains deferred. The sections below retain the agreed scope and acceptance criteria.
+Phase 2 remains deferred. The reviewed UI uses compact target chips with a shared editor.
+The required white list now supports zero or more families, superseding the initial two-slot design.
+The sections below record the current scope and acceptance criteria.
 See [phase 1 evaluator notes](goal-parent-evaluator.md) for the implemented calculation and limits.
 
 ## Objective and agreed scope
 
 Estimate the probability that one finished parent carries an acceptable blue spark, a specified
-pink spark, and both required white skill sparks at their minimum stars. Maximize that complete
+pink spark, and every required white skill spark at its minimum stars. Maximize that complete
 required-goal probability. Preferred white sparks distinguish decks whose required-goal chances
 are effectively tied; they must not silently outweigh a required target.
 
@@ -30,7 +32,9 @@ already suggests so the probability breakdown is reviewable before it controls s
 
 - Acceptable blue stats, including any stat, and minimum stars.
 - Desired pink aptitude and minimum stars.
-- Two required white skill families and minimum stars; a separate list of preferred families.
+- Zero or more required white skill families and their minimum stars. Required and Preferred roles
+  share the Target white sparks chip list. The selected chip opens a shared editor with separate
+  goal and lineage headers; clicking it again closes the editor. Removal lives on the chip.
 - Four style grades in Legacy alongside its existing surface and distance grades. These describe
   the trainee after both parents are selected. Reuse the existing aptitude overrides.
 - Pink aptitude and stars for the two parents and four grandparents when modeling inspiration
@@ -39,14 +43,14 @@ already suggests so the probability breakdown is reviewable before it controls s
 
 Use the existing state migration path. Normalize skill-family identity and prevent a family from
 being both required and preferred. Existing saved targets should migrate as preferred targets
-with no required goal activated until the user chooses it; do not arbitrarily select two.
+with no required white families selected until the user chooses them.
 
 ### Probability evaluator
 
 Extract evaluation of a supplied deck from `planRun()` without calling deck search recursively.
 Keep this pure model logic separate from lit templates.
 
-1. Resolve skill sources and the two required families' joint availability. Preserve shared chain
+1. Resolve skill sources and all required families' joint availability. Preserve shared chain
    stages, event outcomes, and incompatible choices. Retain the existing pooled hint and event
    estimates rather than building a turn-by-turn training simulator.
 2. Predict final stats with inheritance and scenario caps. Calculate overall rank from the same
@@ -95,7 +99,9 @@ explanation of the approximation is enough. Report sensible rounded estimates, n
 - Test zero and certain success, and the 50% / 75% / 95% attempt calculations.
 - Test state migration and field synchronization. Extend smoke/regression interactions for new
   controls, calling `assertFieldsMatchState` after changes.
-- Confirm that adding or changing a goal does not change the suggested deck in this delivery.
+- Confirm that changing Required/Preferred roles or minimum stars does not change the suggested
+  deck. Adding/removing target chips still changes the existing builder's target list.
+- Test zero, one, and many required whites, plus large independent and linked source groups.
 
 ## Delivery 2: use the evaluator to select decks
 

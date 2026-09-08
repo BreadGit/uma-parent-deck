@@ -2,118 +2,173 @@ import type { Data, Reward } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { goldRollChance, isEventSource, type EventSource, type SkillSource, type Target } from './sparks.ts';
 
-// Two base-four digits record the best available form per required family: none, white, circle, gold.
-export type FormDistribution = Map<number, number>;
-const add = (d: FormDistribution, state: number, p: number) => { if (p > 0) d.set(state, (d.get(state) ?? 0) + p); };
-const empty = (): FormDistribution => new Map([[0, 1]]);
-const merge = (a: number, b: number) => Math.max(a % 4, b % 4) + 4 * Math.max(Math.floor(a / 4), Math.floor(b / 4));
-function combine(a: FormDistribution, b: FormDistribution): FormDistribution {
-  const out: FormDistribution = new Map();
-  for (const [x, p] of a) for (const [y, q] of b) add(out, merge(x, y), p * q);
-  return out;
-}
+// Each digit records a family's best available form: none, white, circle, gold.
+interface Distribution { states: Map<string, number>; approximate: boolean }
+export interface FormDistribution { count: number; components: { indices: number[]; distribution: Distribution }[] }
+const MAX_STATES = 4096;
+const MAX_COMBINATIONS = 65536;
+const add = (d: Map<string, number>, state: string, p: number) => { if (p > 0) d.set(state, (d.get(state) ?? 0) + p); };
+const fixed = (state: string): Distribution => ({ states: new Map([[state, 1]]), approximate: false });
+const empty = (count: number) => fixed('0'.repeat(count));
 const clamp = (p: number) => Math.max(0, Math.min(1, p));
-function fires(d: FormDistribution, p: number): FormDistribution {
-  const out = new Map([[0, 1 - clamp(p)]]);
-  for (const [state, mass] of d) add(out, state, mass * clamp(p));
-  return out;
+const merge = (a: string, b: string) => Array.from(a, (form, i) => form > b[i]! ? form : b[i]!).join('');
+function stateHash(state: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < state.length; i++) hash = Math.imul(hash ^ state.charCodeAt(i), 16777619);
+  hash = Math.imul(hash ^ hash >>> 16, 0x85ebca6b);
+  hash = Math.imul(hash ^ hash >>> 13, 0xc2b2ae35);
+  return (hash ^ hash >>> 16) >>> 0;
 }
-function skillState(id: number, targets: Target[], data: Data): number {
-  let state = 0;
-  targets.forEach((t, i) => {
-    if (!t.familyIds.has(id)) return;
+function quantiles(d: Distribution, count: number): string[] {
+  // Shuffle outcome order deterministically so digit order does not bias repeated resampling.
+  const result: string[] = [], states = [...d.states].map(([state, p]) => ({ state, p, hash: stateHash(state) }))
+    .sort((a, b) => a.hash - b.hash || a.state.localeCompare(b.state)).map(({ state, p }) => [state, p] as const);
+  let i = 0, cumulative = states[0]![1];
+  const mass = states.reduce((sum, [, p]) => sum + p, 0);
+  for (let sample = 0; sample < count; sample++) {
+    const q = (sample + .5) / count * mass;
+    while (cumulative < q && i < states.length - 1) cumulative += states[++i]![1];
+    result.push(states[i]![0]);
+  }
+  return result;
+}
+function bound(d: Distribution): Distribution {
+  if (d.states.size <= MAX_STATES) return d;
+  const states = new Map<string, number>();
+  for (const state of quantiles(d, MAX_STATES)) add(states, state, 1 / MAX_STATES);
+  return { states, approximate: true };
+}
+function combine(a: Distribution, b: Distribution): Distribution {
+  const states = new Map<string, number>();
+  if (a.states.size * b.states.size > MAX_COMBINATIONS) {
+    const left = quantiles(a, MAX_STATES), right = quantiles(b, MAX_STATES);
+    // A fixed permutation spreads the paired quantiles without introducing runtime randomness.
+    for (let i = 0; i < MAX_STATES; i++) add(states, merge(left[i]!, right[(i * 1597) % MAX_STATES]!), 1 / MAX_STATES);
+    return { states, approximate: true };
+  }
+  for (const [x, p] of a.states) for (const [y, q] of b.states) add(states, merge(x, y), p * q);
+  return bound({ states, approximate: a.approximate || b.approximate });
+}
+function fires(d: Distribution, p: number, count: number): Distribution {
+  const states = new Map([['0'.repeat(count), 1 - clamp(p)]]);
+  for (const [state, mass] of d.states) add(states, state, mass * clamp(p));
+  return { states, approximate: d.approximate };
+}
+function skillState(id: number, targets: Target[], data: Data): string {
+  return targets.map((t) => {
+    if (!t.familyIds.has(id)) return '0';
     const skill = data.skillById.get(id);
-    const form = skill?.rarity === 2 ? 3 : (t.circle && !t.circle.unreleasedEn) || skill?.name.includes('◎') ? 2 : 1;
-    state += form * 4 ** i;
-  });
-  return state;
+    return skill?.rarity === 2 ? '3' : (t.circle && !t.circle.unreleasedEn) || skill?.name.includes('◎') ? '2' : '1';
+  }).join('');
 }
-
-function rewardsDistribution(rewards: Reward[], targets: Target[], data: Data, settings: Settings): FormDistribution {
-  let dist = empty();
+function rewardsDistribution(rewards: Reward[], targets: Target[], data: Data, settings: Settings): Distribution {
+  let dist = empty(targets.length);
   for (const reward of rewards) {
     if (reward.t === 'sk' && typeof reward.d === 'number') {
-      dist = combine(dist, new Map([[skillState(reward.d, targets, data), 1]]));
+      dist = combine(dist, fixed(skillState(reward.d, targets, data)));
     } else if (reward.t === 'sr' && Array.isArray(reward.d) && reward.d.length) {
       const ids = reward.d.map((r) => r.d);
       const gold = ids.find((id) => data.skillById.get(id)?.rarity === 2);
       const pair = ids.length === 2 && gold !== undefined && data.skillById.get(gold)!.versions.includes(ids.find((id) => id !== gold)!);
-      const options: FormDistribution = new Map();
-      for (const id of ids) add(options, skillState(id, targets, data), pair ? (id === gold ? goldRollChance(settings.goldRollStat) : 1 - goldRollChance(settings.goldRollStat)) : 1 / ids.length);
-      dist = combine(dist, options);
+      const states = new Map<string, number>();
+      for (const id of ids) add(states, skillState(id, targets, data), pair ? (id === gold ? goldRollChance(settings.goldRollStat) : 1 - goldRollChance(settings.goldRollStat)) : 1 / ids.length);
+      dist = combine(dist, { states, approximate: false });
     }
   }
   return dist;
 }
-
-function eventDistribution(sources: EventSource[], targets: Target[], data: Data, settings: Settings): { conditional: FormDistribution; pFire: number } {
+function eventDistribution(sources: EventSource[], targets: Target[], data: Data, settings: Settings): { conditional: Distribution; pFire: number } {
   const first = sources[0]!;
   if (first.roll) {
-    const dist: FormDistribution = new Map();
-    for (const outcome of first.roll.outcomes) for (const [state, p] of rewardsDistribution(outcome, targets, data, settings)) add(dist, state, p / first.roll.outcomes.length);
-    return { conditional: dist.size ? dist : empty(), pFire: first.roll.pFire };
+    const states = new Map<string, number>();
+    let approximate = false;
+    for (const outcome of first.roll.outcomes) {
+      const dist = rewardsDistribution(outcome, targets, data, settings);
+      approximate ||= dist.approximate;
+      for (const [state, p] of dist.states) add(states, state, p / first.roll.outcomes.length);
+    }
+    return { conditional: states.size ? bound({ states, approximate }) : empty(targets.length), pFire: first.roll.pFire };
   }
-  // Scenario completion offers mutually exclusive gold/white rewards. Legacy synthetic sources use this path too.
-  const dist: FormDistribution = new Map();
+  // Scenario completion and undecoded individual events use their existing marginal source rates.
+  const states = new Map<string, number>();
   const unique = [...new Map(sources.map((s) => [s.skillId, s])).values()];
   const pFire = first.chain?.pReach ?? Math.min(1, unique.reduce((a, s) => a + s.pObtain, 0));
   let total = 0;
   for (const s of unique) {
     const p = pFire ? s.pObtain / pFire : 0;
-    add(dist, skillState(s.skillId, targets, data), p);
-    total += p;
+    add(states, skillState(s.skillId, targets, data), p); total += p;
   }
-  add(dist, 0, Math.max(0, 1 - total));
-  return { conditional: dist, pFire };
+  add(states, '0'.repeat(targets.length), Math.max(0, 1 - total));
+  return { conditional: { states, approximate: false }, pFire };
 }
-
-/** Exact joint availability across shared events and chains; independent hint pickups remain an estimate. */
-export function jointSkillForms(targets: Target[], coverage: Map<number, SkillSource[]>, data: Data, settings: Settings): FormDistribution {
-  if (targets.length > 2) throw new Error('jointSkillForms supports at most two required families');
+function componentForms(targets: Target[], coverage: Map<number, SkillSource[]>, data: Data, settings: Settings): Distribution {
   const events = new Map<string, EventSource[]>();
-  let dist = empty();
+  let dist = empty(targets.length);
   for (const t of targets) for (const s of coverage.get(t.id) ?? []) {
     if (isEventSource(s)) {
       const group = events.get(s.event.key) ?? [];
       group.push(s); events.set(s.event.key, group);
-    } else {
-      dist = combine(dist, fires(new Map([[skillState(s.skillId, targets, data), 1]]), s.pObtain));
-    }
+    } else dist = combine(dist, fires(fixed(skillState(s.skillId, targets, data)), s.pObtain, targets.length));
   }
-  const chains = new Map<string, { stage: number; pReach: number; conditional: FormDistribution }[]>();
+  const chains = new Map<string, { stage: number; pReach: number; conditional: Distribution }[]>();
   for (const sources of events.values()) {
     const { conditional, pFire } = eventDistribution(sources, targets, data, settings);
     const chain = sources[0]!.chain;
-    if (!chain) { dist = combine(dist, fires(conditional, pFire)); continue; }
+    if (!chain) { dist = combine(dist, fires(conditional, pFire, targets.length)); continue; }
     const stages = chains.get(chain.key) ?? [];
-    stages.push({ stage: chain.stage, pReach: clamp(chain.pReach), conditional });
-    chains.set(chain.key, stages);
+    stages.push({ stage: chain.stage, pReach: clamp(chain.pReach), conditional }); chains.set(chain.key, stages);
   }
   for (const stages of chains.values()) {
     stages.sort((a, b) => a.stage - b.stage);
     for (let i = 1; i < stages.length; i++) stages[i]!.pReach = Math.min(stages[i]!.pReach, stages[i - 1]!.pReach);
-    const chainDist: FormDistribution = new Map([[0, 1 - stages[0]!.pReach]]);
-    let reached = empty();
+    const states = new Map([['0'.repeat(targets.length), 1 - stages[0]!.pReach]]);
+    let reached = empty(targets.length), approximate = false;
     stages.forEach((stage, i) => {
-      reached = combine(reached, stage.conditional);
+      reached = combine(reached, stage.conditional); approximate ||= reached.approximate;
       const deepest = stage.pReach - (stages[i + 1]?.pReach ?? 0);
-      for (const [state, p] of reached) add(chainDist, state, p * deepest);
+      for (const [state, p] of reached.states) add(states, state, p * deepest);
     });
-    dist = combine(dist, chainDist);
+    dist = combine(dist, bound({ states, approximate }));
   }
   return dist;
 }
 
-export function whiteGenerationMoments(dist: FormDistribution, lineageCopies: number[], settings: Settings): { both: number; each: number[]; available: number[]; bothAvailable: number } {
+/** Factor independent families before evaluating shared events and chains. There is no target-count limit. */
+export function jointSkillForms(targets: Target[], coverage: Map<number, SkillSource[]>, data: Data, settings: Settings): FormDistribution {
+  const parents = targets.map((_, i) => i), sourceOwner = new Map<string, number>();
+  const root = (i: number): number => parents[i] === i ? i : (parents[i] = root(parents[i]!));
+  targets.forEach((target, i) => {
+    for (const source of coverage.get(target.id) ?? []) {
+      if (!isEventSource(source)) continue;
+      for (const key of [`event:${source.event.key}`, ...(source.chain ? [`chain:${source.chain.key}`] : [])]) {
+        const owner = sourceOwner.get(key);
+        if (owner === undefined) sourceOwner.set(key, i); else parents[root(i)] = root(owner);
+      }
+    }
+  });
+  const groups = new Map<number, number[]>();
+  targets.forEach((_, i) => { const key = root(i), group = groups.get(key) ?? []; group.push(i); groups.set(key, group); });
+  return { count: targets.length, components: [...groups.values()].map((indices) => ({ indices, distribution: componentForms(indices.map((i) => targets[i]!), coverage, data, settings) })) };
+}
+export function whiteGenerationMoments(forms: FormDistribution, lineageCopies: number[], settings: Settings): { all: number; each: number[]; available: number[]; allAvailable: number; approximate: boolean } {
   const rates = [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];
-  const each = [0, 0], available = [0, 0];
-  let both = 0, bothAvailable = 0;
-  for (const [state, p] of dist) {
-    const forms = [state % 4, Math.floor(state / 4)];
-    const chances = forms.map((form, i) => clamp(rates[form]! * settings.lineageSparkMultiplier ** (lineageCopies[i] ?? 0)));
-    forms.forEach((form, i) => { each[i]! += p * chances[i]!; available[i]! += form > 0 ? p : 0; });
-    both += p * chances[0]! * chances[1]!;
-    if (forms.every((form) => form > 0)) bothAvailable += p;
+  const each = Array<number>(forms.count).fill(0), available = [...each];
+  let all = 1, allAvailable = 1, approximate = false;
+  for (const { indices, distribution } of forms.components) {
+    let generated = 0, obtained = 0;
+    approximate ||= distribution.approximate;
+    for (const [state, p] of distribution.states) {
+      let joint = 1, complete = true;
+      indices.forEach((index, i) => {
+        const form = Number(state[i]), chance = clamp(rates[form]! * settings.lineageSparkMultiplier ** (lineageCopies[index] ?? 0));
+        each[index]! += p * chance;
+        if (form) available[index]! += p; else complete = false;
+        joint *= chance;
+      });
+      generated += p * joint;
+      if (complete) obtained += p;
+    }
+    all *= generated; allAvailable *= obtained;
   }
-  return { both, each, available, bothAvailable };
+  return { all, each, available, allAvailable, approximate };
 }

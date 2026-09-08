@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { DEFAULT_RUN, migrate, defaultState } from '../src/state.ts';
-import { DEFAULT_GOAL, emptyPinkLineage, sanitizeGoal, sanitizePinkLineage, APTITUDE_KEYS } from '../src/model/goal-input.ts';
+import { DEFAULT_GOAL, emptyPinkLineage, sanitizeGoal, sanitizePinkLineage, goalFamily, APTITUDE_KEYS } from '../src/model/goal-input.ts';
 import { attemptsFor, blueChance, pinkEstimate, starChance, statGoalMoments, evaluateParentGoal } from '../src/model/goal.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
 import { resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
@@ -70,13 +70,13 @@ test('joint skill model preserves simultaneous and mutually exclusive event outc
     return whiteGenerationMoments(jointSkillForms([a, b], sources, data, settings), [0, 0], settings);
   };
   const exclusive = check({ pFire: 1, outcomes: [[{ t: 'sk', d: a.id }], [{ t: 'sk', d: b.id }]] });
-  close(exclusive.both, 0);
+  close(exclusive.all, 0);
   close(exclusive.each[0]!, .1);
   const together = check({ pFire: .5, outcomes: [[{ t: 'sk', d: a.id }, { t: 'sk', d: b.id }]] });
-  close(together.bothAvailable, .5);
-  close(together.both, .5 * .2 * .2);
+  close(together.allAvailable, .5);
+  close(together.all, .5 * .2 * .2);
   const random = check({ pFire: 1, outcomes: [[{ t: 'sr', d: [{ d: a.id, v: '1' }, { d: b.id, v: '1' }] }]] });
-  close(random.both, 0);
+  close(random.all, 0);
 });
 
 test('independent hint pickups combine without double-counting repeated sources', () => {
@@ -84,22 +84,22 @@ test('independent hint pickups combine without double-counting repeated sources'
   const result = whiteGenerationMoments(forms, [0, 0], settings);
   close(result.available[0]!, .75);
   close(result.available[1]!, .4);
-  close(result.bothAvailable, .75 * .4);
-  close(result.both, .75 * .4 * .2 ** 2);
+  close(result.allAvailable, .75 * .4);
+  close(result.all, .75 * .4 * .2 ** 2);
 });
 
 test('one event choice cannot supply two conflicting required targets', () => {
   const sources = new Map<number, SkillSource[]>([[a.id, [event(a.id, { isChoice: true, pObtain: 1 })]], [b.id, [event(b.id, { isChoice: true, pObtain: 1, event: { key: 'event', label: 'Event', option: 'two', optionIndex: 1 } })]]]);
   const { map } = pruneConflicts(sources, [a.id, b.id], [], settings, [a, b]);
-  close(whiteGenerationMoments(jointSkillForms([a, b], map, data, settings), [], settings).both, 0);
+  close(whiteGenerationMoments(jointSkillForms([a, b], map, data, settings), [], settings).all, 0);
 });
 
 test('later chain stage implies earlier stages without independent reach rolls', () => {
   const stage = (skillId: number, index: number, pReach: number) => event(skillId, { kind: 'chain', event: { key: `chain:${index}`, label: 'Chain', option: '', optionIndex: 0 }, chain: { key: 'card', stage: index, pReach }, roll: { pFire: pReach, outcomes: [[{ t: 'sk', d: skillId }]] } });
   const forms = jointSkillForms([a, b], new Map([[a.id, [stage(a.id, 1, .7)]], [b.id, [stage(b.id, 3, .2)]]]), data, settings);
-  close([...forms.values()].reduce((x, p) => x + p, 0), 1);
+  close([...forms.components[0]!.distribution.states.values()].reduce((x, p) => x + p, 0), 1);
   const result = whiteGenerationMoments(forms, [0, 0], settings);
-  close(result.bothAvailable, .2);
+  close(result.allAvailable, .2);
   close(result.available[0]!, .7);
   close(result.available[1]!, .2);
 });
@@ -115,15 +115,15 @@ test('gold-or-white outcome and duplicate prerequisite rewards yield one family 
 });
 
 test('rank bands share a stat outcome with blue and both required white stars', () => {
-  const goal = structuredClone(DEFAULT_GOAL);
+  const goal = { ...structuredClone(DEFAULT_GOAL), required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] };
   const means = [1090, 1000, 1000, 1000, 1000];
   goal.blueStats = ['speed'];
   const points = 17500 - means.reduce((p, v) => p + statScore(v), 0);
   const shared = statGoalMoments({ rawMean: means, sd: [120, 0, 0, 0, 0], skillPoints: points, skillSd: 0 }, goal);
-  assert.ok(shared.blueBothWhiteStars > shared.blue * shared.whiteStars[0]! * shared.whiteStars[1]!, 'strong stat outcomes improve both blue and white star odds');
+  assert.ok(shared.blueAllWhiteStars > shared.blue * shared.whiteStars[0]! * shared.whiteStars[1]!, 'strong stat outcomes improve both blue and white star odds');
   const fixed = (score: number) => statGoalMoments({ rawMean: [1100, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], skillPoints: score - statScore(1100), skillSd: 0 }, goal);
-  close(fixed(17499).blueBothWhiteStars, .16 * .5 ** 2);
-  close(fixed(17500).blueBothWhiteStars, .16 * .8 ** 2);
+  close(fixed(17499).blueAllWhiteStars, .16 * .5 ** 2);
+  close(fixed(17500).blueAllWhiteStars, .16 * .8 ** 2);
   close(fixed(6500).whiteStars[0]!, .5);
   close(fixed(6499).whiteStars[0]!, .1);
   close(fixed(28800).whiteStars[0]!, .825);
@@ -135,9 +135,9 @@ test('goal migration keeps old targets as preferred and normalizes family identi
   const saved = migrate({ current: { version: 6, run: { targets: [b.gold!.id, b.id, a.id] } } }, data);
   assert.equal(saved.run.goal.enabled, false);
   assert.deepEqual(saved.run.goal.preferred, [b.id, a.id]);
-  assert.deepEqual(saved.run.goal.required.map((r) => r.id), [null, null]);
+  assert.deepEqual(saved.run.goal.required.map((r) => r.id), []);
   const goal = sanitizeGoal({ enabled: true, required: [{ id: b.gold!.id, stars: 3 }, { id: b.id, stars: 99 }], preferred: [b.id, a.id, -1], blueStats: ['power', 'nope', 'power'], pink: 'end' }, data);
-  assert.deepEqual(goal.required, [{ id: b.id, stars: 3 }, { id: null, stars: 2 }]);
+  assert.deepEqual(goal.required, [{ id: b.id, stars: 3 }]);
   assert.deepEqual(goal.preferred, [a.id]);
   assert.deepEqual(goal.blueStats, ['power']);
   assert.deepEqual(sanitizePinkLineage([{ aptitude: 'end', stars: 3 }, { aptitude: 'end', stars: 4 }]), [{ aptitude: 'end', stars: 3 }, null, null, null, null, null]);
@@ -167,10 +167,10 @@ test('complete goal uses both required sparks while preferred extras do not cons
   const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
   const result = evaluateParentGoal(goal, emptyPinkLineage(), grades, [], ctx, stats, []);
   close(result.probability!, .2 ** 2 * .8 * .8 ** 2 * .08);
-  close(result.bothAvailable, 1);
+  close(result.allAvailable, 1);
   result.required.forEach((r) => close(r.probability, .2 * .8));
-  const partial = evaluateParentGoal({ ...goal, required: [{ id: null, stars: 2 }, { id: b.id, stars: 3 }] }, emptyPinkLineage(), grades, [], ctx, stats, []);
-  assert.equal(partial.probability, null);
+  const partial = evaluateParentGoal({ ...goal, required: [{ id: b.id, stars: 3 }] }, emptyPinkLineage(), grades, [], ctx, stats, []);
+  close(partial.probability!, .8 * .08 * .2 * .1);
   close(partial.required[0]!.probability, .2 * .1);
   const preferred = evaluateParentGoal({ ...goal, preferred: [target('Lucky Seven').id] }, emptyPinkLineage(), grades, [], ctx, stats, []);
   close(preferred.probability!, result.probability!);
@@ -188,3 +188,71 @@ test('unavailable required skills give zero; incomplete inputs give no complete 
   assert.equal(evaluateParentGoal({ ...goal, pink: null }, lineage(), apt(), [], ctx, stats, []).probability, null);
 });
 type ParentGoalRequired = typeof DEFAULT_GOAL.required;
+
+test('zero, one, and many required whites use a product within each shared rank outcome', () => {
+  const c = target('Right-Handed ○');
+  const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id, c.id], awakeningSkills: [], eventSkills: [], events: [] };
+  const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
+  const grades = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
+  const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
+  const requirements = [{ id: a.id, stars: 2 }, { id: b.id, stars: 3 }, { id: c.id, stars: 1 }];
+  for (const n of [0, 1, 2, 3]) {
+    const result = evaluateParentGoal({ ...structuredClone(DEFAULT_GOAL), enabled: true, pink: 'turf', required: requirements.slice(0, n), preferred: [] }, emptyPinkLineage(), grades, [], ctx, stats, []);
+    close(result.probability!, .8 * .08 * [.2 * .8, .2 * .1, .25].slice(0, n).reduce((all, p) => all * p, 1));
+    close(result.allAvailable, 1);
+    assert.equal(result.required.length, n);
+  }
+});
+
+test('three families connected through overlapping events keep their joint availability', () => {
+  const c = target('Lucky Seven');
+  const ab = { pFire: .5, outcomes: [[{ t: 'sk', d: a.id }, { t: 'sk', d: b.id }]] };
+  const bc = { pFire: .4, outcomes: [[{ t: 'sk', d: b.id }, { t: 'sk', d: c.id }]] };
+  const source = (id: number, key: string, roll: EventSource['roll']) => event(id, { event: { key, label: key, option: '', optionIndex: 0 }, roll });
+  const forms = jointSkillForms([a, b, c], new Map([[a.id, [source(a.id, 'ab', ab)]], [b.id, [source(b.id, 'ab', ab), source(b.id, 'bc', bc)]], [c.id, [source(c.id, 'bc', bc)]]]), data, settings);
+  const result = whiteGenerationMoments(forms, [0, 0, 0], settings);
+  close(result.allAvailable, .5 * .4);
+  close(result.available[1]!, .7);
+  close(result.all, .5 * .4 * .2 ** 3);
+  assert.equal(result.approximate, false);
+});
+
+const manyFamilies = [...new Map(data.skills.map((s) => resolveTarget(s.id, data)).filter((t) => t?.white && !t.white.unreleasedEn && !t.circle && !t.white.name.includes('×') && goalFamily(t.id, data) === t.id).map((t) => [t!.id, t!])).values()];
+test('many independent required families retain tiny probabilities without exponential expansion', () => {
+  const targets = manyFamilies.slice(0, 50);
+  assert.equal(targets.length, 50);
+  const forms = jointSkillForms(targets, new Map(targets.map((t) => [t.id, [plain(t.id, .5)]])), data, settings);
+  assert.equal(forms.components.length, 50);
+  const result = whiteGenerationMoments(forms, [], settings);
+  close(result.all / (.5 * .2) ** 50, 1);
+  close(result.allAvailable / .5 ** 50, 1);
+  assert.equal(result.approximate, false);
+  assert.equal(result.each.length, 50);
+});
+
+test('large linked outcome groups are bounded, deterministic, and marked approximate', () => {
+  const targets = manyFamilies.filter((t) => t.gold && !t.gold.unreleasedEn).slice(0, 16);
+  assert.equal(targets.length, 16);
+  const rewards = targets.map((t) => ({ t: 'sr', d: [{ d: t.gold!.id, v: '1' }, { d: t.id, v: '1' }] }));
+  const coverage = new Map(targets.map((t) => [t.id, [event(t.id, { roll: { pFire: 1, outcomes: [rewards] } })]]));
+  const evaluate = () => whiteGenerationMoments(jointSkillForms(targets, coverage, data, settings), [], settings);
+  const first = evaluate();
+  assert.equal(first.approximate, true);
+  close(first.allAvailable, 1);
+  assert.deepEqual(evaluate(), first);
+  close(first.all / (.75 * .4 + .25 * .2) ** targets.length, 1, .1);
+});
+
+test('v7 required slots become a variable list and old goal-only skills join the target chips', () => {
+  const raw = { version: 7, run: { targets: [a.id], goal: { enabled: true, required: [{ id: null, stars: 2 }, { id: b.id, stars: 3 }], preferred: [200012] } } };
+  const saved = migrate({ current: raw }, data);
+  assert.deepEqual(saved.run.goal.required, [{ id: b.id, stars: 3 }]);
+  assert.deepEqual(saved.run.goal.preferred, [200012, a.id]);
+  assert.deepEqual(new Set(saved.run.targets), new Set([a.id, b.id, 200012]));
+  const targets = manyFamilies.slice(0, 25);
+  const goal = sanitizeGoal({ required: [{ id: null }, ...targets.map((t) => ({ id: t.id, stars: 3 })), { id: targets[0]!.id, stars: 1 }], preferred: targets.map((t) => t.id) }, data);
+  assert.equal(goal.required.length, 25);
+  assert.deepEqual(goal.preferred, []);
+  assert.deepEqual(sanitizeGoal({ required: [] }, data).required, []);
+  assert.deepEqual(sanitizeGoal({ required: [{ id: 200432, stars: 2 }, { id: 200433, stars: 2 }] }, data).required, [{ id: 200432, stars: 2 }], 'related variants cannot become duplicate family requirements');
+});

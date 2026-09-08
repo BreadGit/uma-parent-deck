@@ -63,9 +63,11 @@ async function assertFieldsMatchState(where) {
     }
     for (const el of document.querySelectorAll('[data-goal-stars]')) check(el, goal[`${el.dataset.goalStars}Stars`]);
     for (const el of document.querySelectorAll('[data-goal-pink]')) check(el, goal.pink ?? '');
-    for (const el of document.querySelectorAll('[data-goal-required]')) check(el, goal.required[el.dataset.goalRequired].id ?? '');
-    for (const el of document.querySelectorAll('[data-goal-white-stars]')) check(el, goal.required[el.dataset.goalWhiteStars].stars);
-    for (const el of document.querySelectorAll('[data-goal-preferred-add]')) check(el, '');
+    for (const el of document.querySelectorAll('[data-target-stars]')) check(el, goal.required.find((r) => r.id === Number(el.dataset.targetStars)).stars);
+    for (const el of document.querySelectorAll('[data-target-role]')) {
+      const required = goal.required.some((r) => r.id === Number(el.dataset.id));
+      if (el.getAttribute('aria-pressed') !== String(required === (el.dataset.targetRole === 'required'))) out.push('target role differs from state');
+    }
     for (const el of document.querySelectorAll('[data-goal-lineage-k], [data-goal-lineage-p], [data-lineage-k], [data-lineage-p]')) {
       const id = el.dataset.goalLineageK ?? el.dataset.goalLineageP ?? el.dataset.lineageK ?? el.dataset.lineageP;
       check(el, st.run.targetLineage[id]?.[el.dataset.side] ?? 0);
@@ -327,7 +329,7 @@ await assertFieldsMatchState('after clearing entered sparks again');
 assert.equal(await page.locator('select[data-gain] option.dim').count(), 0);
 await page.click('button[data-action="toggle-sparks"]');
 await assertFieldsMatchState('after closing the spark form');
-// Goal inputs evaluate the current deck and keep every field synchronized after identity changes.
+// Goal roles share the target chips. Editor selection is transient; goals and lineage persist.
 const deckBeforeGoal = await page.locator('.deck').innerText();
 await page.check('[data-goal-enabled]');
 await assertFieldsMatchState('after enabling parent goal');
@@ -335,39 +337,65 @@ await page.uncheck('[data-goal-blue="guts"]');
 await assertFieldsMatchState('after changing accepted blue stats');
 await page.click('[data-action="goal-any-blue"]');
 await assertFieldsMatchState('after restoring any blue stat');
-for (const [selector, value] of [
-  ['[data-goal-stars="blue"]', '3'], ['[data-goal-stars="pink"]', '2'], ['[data-goal-pink]', 'turf'],
-  ['[data-goal-required="0"]', '200012'], ['[data-goal-required="1"]', '200352'],
-  ['[data-goal-white-stars="0"]', '3'], ['[data-goal-white-stars="0"]', '2'],
-  ['[data-goal-preferred-add]', '201562'],
-]) {
+for (const [selector, value] of [['[data-goal-stars="blue"]', '3'], ['[data-goal-stars="pink"]', '2'], ['[data-goal-pink]', 'turf']]) {
   await page.selectOption(selector, value);
   await assertFieldsMatchState(`after ${selector} = ${value}`);
 }
-await page.click('[data-goal-remove-preferred="201562"]');
-await assertFieldsMatchState('after removing a preferred spark');
-await page.selectOption('[data-goal-preferred-add]', '201562');
-await assertFieldsMatchState('after restoring a preferred spark');
+for (const id of [200352, 201601, 200472]) {
+  await page.click(`[data-action="select-target"][data-id="${id}"]`);
+  await assertFieldsMatchState(`after opening target ${id}`);
+  await page.click(`[data-target-role="required"][data-id="${id}"]`);
+  await assertFieldsMatchState(`after requiring target ${id}`);
+}
+assert.equal(await page.locator('[data-required-count]').innerText(), '3 required');
+assert.equal(await page.locator('.deck').innerText(), deckBeforeGoal, 'changing goal roles leaves selected cards unchanged');
 for (let i = 0; i < 6; i++) {
   await page.selectOption(`[data-pink-lineage="${i}"]`, 'turf');
   await assertFieldsMatchState(`after pink lineage ${i}`);
 }
-await page.locator('.goal-pink-lineage').evaluate((el) => { el.open = true; });
 await page.selectOption('[data-pink-lineage-stars="0"]', '3');
 await assertFieldsMatchState('after pink star edit');
-assert.equal(await page.locator('.deck').innerText(), deckBeforeGoal, 'goal inputs leave the selected deck unchanged');
 assert.equal(await page.locator('[data-goal-issues]').count(), 0);
 assert.equal(await page.locator('[data-goal-attempts]').count(), 3);
-await page.selectOption('[data-goal-lineage-k="200012"][data-side="k1"]', '2');
+await page.click('[data-action="select-target"][data-id="201601"]');
+await assertFieldsMatchState('after switching target editor');
+await page.selectOption('[data-target-stars="201601"]', '3');
+await assertFieldsMatchState('after required star edit');
+await page.selectOption('[data-lineage-k="201601"][data-side="k1"]', '2');
 await assertFieldsMatchState('after white lineage copies');
-await page.selectOption('[data-goal-lineage-p="200012"][data-side="p1"]', '6');
+await page.selectOption('[data-lineage-p="201601"][data-side="p1"]', '5');
 await assertFieldsMatchState('after white lineage stars');
-await page.selectOption('[data-goal-required="0"]', '201562');
-await assertFieldsMatchState('after replacing a required family with a preferred family');
-assert.equal(await page.locator('[data-goal-remove-preferred="201562"]').count(), 0);
+await page.click('[data-action="select-target"][data-id="201601"]');
+assert.equal(await page.locator('[data-target-editor]').count(), 0, 'clicking the selected chip closes the editor');
+await assertFieldsMatchState('after closing target editor');
+await page.click('[data-action="select-target"][data-id="201601"]');
+await assertFieldsMatchState('after reopening target editor');
+assert.equal(await page.locator('[data-target-editor] [data-action="remove-target"]').count(), 0, 'removal lives on the chip');
+for (const query of ['Lucky Seven', 'Right-Handed']) {
+  await page.fill('#target-search', query);
+  await page.locator('[data-action="add-target"]').first().click();
+  await assertFieldsMatchState(`after adding ${query} as preferred`);
+}
+await page.click('[data-action="remove-target"][data-id="200012"]');
+await assertFieldsMatchState('after removing the active chip');
+assert.equal(await page.locator('[data-target-editor]').count(), 0);
 await page.reload();
 await page.waitForSelector('[data-goal-result]');
-await assertFieldsMatchState('after reloading the parent goal');
+await assertFieldsMatchState('after reloading goals');
+for (const id of [200352, 201601, 200472]) {
+  await page.click(`[data-action="select-target"][data-id="${id}"]`);
+  await assertFieldsMatchState(`after restoring editor ${id}`);
+  if (id === 201601) {
+    assert.equal(await page.inputValue('[data-target-stars="201601"]'), '3');
+    assert.equal(await page.inputValue('[data-lineage-p="201601"][data-side="p1"]'), '5');
+  }
+  await page.click(`[data-target-role="preferred"][data-id="${id}"]`);
+  await assertFieldsMatchState(`after making ${id} preferred`);
+}
+assert.equal(await page.locator('[data-required-count]').innerText(), '0 required');
+assert.equal(await page.locator('[data-goal-issues]').count(), 0, 'zero required whites is a complete white goal');
+await page.click('[data-target-role="required"][data-id="200472"]');
+await assertFieldsMatchState('after selecting one required white');
 await page.locator('.goal-pink-lineage').evaluate((el) => { el.open = true; });
 // layout check: no horizontal overflow at common widths, both themes
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
