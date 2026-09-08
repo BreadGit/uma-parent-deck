@@ -87,7 +87,7 @@ await page.click('li[data-action="pick-trainee"]');
 // the legacy screen mirrors the game: aptitude overrides and per-parent start gains live there, not in the Trainee panel
 const legacyPlacement = await page.evaluate(() => {
   const panelOf = (title) => [...document.querySelectorAll('section.panel')].find((panel) => panel.querySelector('h2')?.textContent.startsWith(title));
-  return { traineeApts: panelOf('Trainee').querySelectorAll('select[data-apt]').length, legacyApts: panelOf('Legacy screen').querySelectorAll('select[data-apt]').length, gains: panelOf('Legacy screen').querySelectorAll('select[data-gain]').length, styleSelects: [...panelOf('Legacy screen').querySelectorAll('select[data-apt]')].filter((s) => ['front', 'pace', 'late', 'end'].includes(s.dataset.apt)).length };
+  return { traineeApts: panelOf('Trainee').querySelectorAll('select[data-apt]').length, legacyApts: panelOf('Legacy').querySelectorAll('select[data-apt]').length, gains: panelOf('Legacy').querySelectorAll('select[data-gain]').length, styleSelects: [...panelOf('Legacy').querySelectorAll('select[data-apt]')].filter((s) => ['front', 'pace', 'late', 'end'].includes(s.dataset.apt)).length };
 });
 assert.deepEqual(legacyPlacement, { traineeApts: 0, legacyApts: 6, gains: 10, styleSelects: 0 });
 const baseTurf = await page.inputValue('select[data-apt="turf"]');
