@@ -17,7 +17,7 @@ function suggestions() {
 }
 function pickTrainee(cardId: number | null) {
   view.traineeQuery = '';
-  update((s) => { s.run.traineeCardId = cardId; s.run.aptOverrides = {}; s.run.traineeStars = clampStars(cardId != null ? data.charByCardId.get(cardId) ?? null : null, s.run.traineeStars); });
+  update((s) => { s.run.traineeCardId = cardId; s.run.aptOverrides = {}; s.run.pinkLineage = s.run.pinkLineage.map((spark) => spark?.inferred ? null : spark); s.run.traineeStars = clampStars(cardId != null ? data.charByCardId.get(cardId) ?? null : null, s.run.traineeStars); });
 }
 
 const STARS_TIP = 'Her rarity after the pieces you have used on her. Sets the base stats and the unique skill\'s starting level.';

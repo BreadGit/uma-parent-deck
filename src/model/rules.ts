@@ -92,6 +92,9 @@ export const BLUE_GENERATION_BANDS = [
   { min: 1100, rates: [0.2, 0.7, 0.1] },
 ] as const;
 export const PINK_GENERATION_RATES = [0.2, 0.7, 0.1] as const;
+// Minimum total lineage stars for zero through four starting aptitude increases.
+// Source: docs/refs/umaguide-sparks.md, Starting Aptitude table. Starting grades cap at A.
+export const PINK_SPARK_START_STARS: readonly number[] = [0, 1, 4, 7, 10];
 export const PINK_INSPIRATION_RATES = [0, 0.01, 0.03, 0.05] as const;
 // Low and UE bands use Crazyfellow's community estimates; the goal output identifies their use.
 export const WHITE_GENERATION_BANDS = [

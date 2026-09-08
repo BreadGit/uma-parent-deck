@@ -126,6 +126,7 @@ export function evaluateParentGoal(goal: ParentGoal, pinkLineage: (PinkSpark | n
   const pink = goal.pink ? pinkEstimate(apt, goal.pink, goal.pinkStars, pinkLineage, ctx.settings.affinity) : null;
   issues.push(...(pink?.issues ?? []));
   const notes = ['Starting aptitude grades already include parent selection. Pink ancestry estimates additional mid-run inspiration increases without changing the entered grades.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
+  if (pinkLineage.some((spark) => spark?.inferred)) notes.push('Some pink sparks are minimum-star estimates inferred from starting aptitude increases. Other lineages can produce the same grades. Refine them in Legacy > Pink sparks.');
   if (skills.approximate) notes.push('A large group of linked skill sources uses a fixed sample approximation. Very rare joint outcomes may be missed.');
   if (coverage.conflicts.length) notes.push('Some goal skills compete for event choices. This estimate follows the current prioritized-skill order.');
   if (moments.approximateRank > 0.001) notes.push(`${(100 * moments.approximateRank).toFixed(1)}% of predicted ranks use Crazyfellow's additional below-B or UE star-rate estimates.`);

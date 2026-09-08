@@ -14,7 +14,9 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
 4. Enable **Evaluate goal** in Parent goal and choose blue and pink goals. Copy all starting aptitude
    grades from the game's Legacy screen after selecting both parents. Open **Pink sparks** beside
    **By stars** in Legacy to enter the six pink lineage sparks for mid-run inspiration estimates.
-   The editor starts closed. Closing it keeps the saved inputs active.
+   Raising a grade above the trainee's base infers a minimum-star set in the available slots.
+   The editor labels these entries Estimated; editing an entry makes it manual. Unassigned slots
+   remain unknown. The editor starts closed. Closing it keeps the saved inputs active.
 5. Read Parent goal estimate. It shows the complete probability, individual spark chances, all
    required skills' availability, SS chance, and 50% / 75% / 95% attempt counts.
 
@@ -29,12 +31,17 @@ With zero required white families, the white contribution is one and success dep
 ## Data and ownership
 
 - `src/model/goal-input.ts` defines and normalizes the goal and six pink ancestry entries.
-- `src/state.ts` migrates saves to version 10. Valid pink ancestry from older saves survives.
+- `src/state.ts` migrates saves to version 11. Pink entries can carry `inferred: true`;
+  old entries without the marker stay manual, and the marker survives reloads. Valid pink ancestry
+  from older saves survives.
   Saves from version 9 have unknown ancestry because that version removed the data. Entered
-  aptitude overrides survive; absent ancestry is never inferred from those grades. Older deck targets
-  default to Preferred; stored Required entries and their stars survive. The former empty required slots disappear. Old goal-only families
+  aptitude overrides survive; migration does not infer absent ancestry from them. Older deck targets
+  default to Preferred; stored Required entries and their stars survive. The former empty required
+  slots disappear. Old goal-only families
   join the unified target list, which can change deck suggestions for saves with separate lists.
   Invalid families and duplicate required entries are removed. The required list defaults to empty.
+- `src/model/pink-inherit.ts` infers a minimum-star set when a Legacy grade changes. It preserves
+  manual slots, reuses matching inferred slots, and never allocates more than six sparks.
 - `src/model/run.ts` exposes `predictRunDeck()` for a supplied deck and calls `evaluateParentGoal()`
   after the existing builder selects cards. It never searches decks from inside the goal evaluator.
 - `src/model/goal-skills.ts` calculates a joint distribution over the best obtainable form of each
@@ -100,6 +107,33 @@ All required white star rolls use the same rank outcome. This retains blue/SS an
 For example, separately averaging two 50%/80% white-star regimes and multiplying loses their
 shared rank dependence. The goal's sampled SS estimate can differ slightly from the existing
 Predicted run panel's linearized rank estimate, especially near caps.
+
+### Starting pink inference
+
+The starting thresholds are 1, 4, 7, and 10 total matching stars for one through four grade
+increases. Starting inheritance cannot reach S or increase more than four grades. The table is
+vendored in `docs/refs/umaguide-sparks.md` and summarized in `refs/aptitude-inheritance.md`.
+
+When the user changes any starting grade, inference considers all grades above the trainee's base.
+It subtracts manually entered stars from each minimum, then packs missing stars into 3★ sparks
+and one remainder. Manual sparks keep their slots. Matching inferred sparks keep theirs where
+possible; other estimates use free slots in lineage order. These positions are placeholders, not
+claims about which parent carried a spark. The model uses the same assumed affinity for all six.
+
+For example, C to A requires at least 4 stars, so an empty lineage receives 3★ and 1★. A manually
+entered 2★ spark reduces the estimate to one additional 2★ spark. If manually entered stars already
+satisfy the minimum, none are added. This does not establish that the manually entered lineage
+matches every starting grade; grades remain the user's input for the run.
+
+Lowering a grade rebuilds only inferred entries. Editing a spark's aptitude or stars removes its
+inferred marker. Changing the trainee clears inferred entries and starting overrides but preserves
+manual ancestry. Legacy Reset clears both. Existing saves are not inferred automatically on load.
+
+Unsupported increases produce a visible message. If all inferable increases cannot fit alongside
+manual entries in six slots, no partial set is inferred and the panel reports the shortage.
+Unassigned slots remain unknown, so partial inference alone does not complete the pink estimate.
+Goal notes identify inferred inputs. Manual ancestry edits refine the inspiration model and do
+not automatically change the starting grades copied from the game.
 
 ### Pink eligibility
 

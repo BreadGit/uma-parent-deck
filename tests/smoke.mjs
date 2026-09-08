@@ -352,6 +352,18 @@ assert.equal(await page.locator('.deck').innerText(), deckBeforeGoal, 'changing 
 assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0, 'pink ancestry starts collapsed');
 await page.click('[data-action="toggle-pink-sparks"]');
 await assertFieldsMatchState('after opening pink sparks');
+const startEnd = await page.inputValue('[data-apt="end"]');
+await page.selectOption('[data-apt="end"]', 'A');
+await assertFieldsMatchState('after inferring pink sparks from an aptitude increase');
+assert.equal(await page.locator('[data-pink-inferred]').count(), 2);
+await page.reload();
+await page.waitForSelector('[data-goal-result]');
+await page.click('[data-action="toggle-pink-sparks"]');
+await assertFieldsMatchState('after reloading inferred pink sparks');
+assert.equal(await page.locator('[data-pink-inferred]').count(), 2);
+await page.selectOption('[data-apt="end"]', startEnd);
+await assertFieldsMatchState('after restoring the base aptitude');
+assert.equal(await page.locator('[data-pink-inferred]').count(), 0);
 for (let i = 0; i < 6; i++) {
   await page.selectOption(`[data-pink-lineage="${i}"]`, 'turf');
   await assertFieldsMatchState(`after pink lineage ${i}`);

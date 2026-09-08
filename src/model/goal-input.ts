@@ -13,7 +13,7 @@ export interface ParentGoal {
   required: WhiteGoal[];
   preferred: number[];
 }
-export interface PinkSpark { aptitude: AptKey; stars: number }
+export interface PinkSpark { aptitude: AptKey; stars: number; inferred?: true }
 export const DEFAULT_GOAL: ParentGoal = { enabled: false, blueStats: [...STATS], blueStars: 2, pink: null, pinkStars: 2, required: [], preferred: [] };
 export const emptyPinkLineage = (): (PinkSpark | null)[] => Array.from({ length: 6 }, () => null);
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
@@ -43,6 +43,6 @@ export function sanitizePinkLineage(raw: unknown): (PinkSpark | null)[] {
   return emptyPinkLineage().map((_, i) => {
     const v = object(Array.isArray(raw) ? raw[i] : undefined);
     return APTITUDE_KEYS.includes(v.aptitude as AptKey) && typeof v.stars === 'number' && [1, 2, 3].includes(v.stars)
-      ? { aptitude: v.aptitude as AptKey, stars: v.stars } : null;
+      ? { aptitude: v.aptitude as AptKey, stars: v.stars, ...(v.inferred === true ? { inferred: true as const } : {}) } : null;
   });
 }

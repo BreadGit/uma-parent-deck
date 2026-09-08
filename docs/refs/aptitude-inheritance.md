@@ -16,6 +16,25 @@ the collapsed Pink sparks editor in Legacy. See [the current evaluator](../goal-
 The code was inspected at commit `8b7cd11b8288cc2d303c2ebb51f68fcc930a5fd5`.
 These notes describe the inspected calculations; they are not a copy of the implementation.
 
+## Starting grade increases
+
+Source: [vendored uma.guide spark guide](umaguide-sparks.md), Pink Sparks, Starting Aptitude table.
+The Crazyfellow snapshot's Chapter 3 also gives G to C with at least 10 total matching stars.
+
+| Grade increases before the run | Minimum matching stars across all six ancestors |
+|---|---:|
+| 1 | 1 |
+| 2 | 4 |
+| 3 | 7 |
+| 4 | 10 |
+
+Starting inheritance caps at four increases and at A. Thus G can reach C before the run;
+C can reach A with at least 4 stars. Further increases require mid-run inspiration.
+A starting grade does not uniquely identify a star total, its distribution, or the ancestor slots.
+The app's inference uses minimum total stars, packed into the fewest slots, as an explicit tool
+assumption. For C to A this gives 3★ + 1★; 2★ + 2★ is another valid combination with different
+mid-run activation odds. Manual entries take precedence and unassigned slots remain unknown.
+
 ## Activation probability
 
 Both sources use these pink-spark activation rates before affinity:

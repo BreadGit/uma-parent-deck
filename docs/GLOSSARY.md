@@ -105,6 +105,9 @@ names differ they are noted.
   parent. It is not the sum of target chances. Shared event rewards and the final rank affect it.
 - **Attempt**: one final spark roll, including the initial result or a reroll. The displayed counts
   assume independent attempts with the same odds, even though a reroll keeps the trained parent.
+- **Inferred pink spark**: an estimated pink spark chosen to explain a starting aptitude increase.
+  The tool uses the minimum required stars and packs them into the fewest slots. A grade does not
+  identify the actual lineage. Editing an inferred entry makes it manual; unassigned slots stay unknown.
 - **Pink lineage**: the aptitude and star count of each of the six ancestors' pink sparks. Unknown
   entries do not mean zero matching sparks. The model predicts supported B-to-A increases; it does
   not infer a below-B multi-grade jump.

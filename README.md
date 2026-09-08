@@ -16,7 +16,8 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   still changes the builder's target list. Goal-driven deck optimization remains deferred.
   Copy starting aptitude grades from the game after selecting both parents. Open Pink sparks
   beside By stars in Legacy to enter all six ancestors and include mid-run B-to-A increases.
-  Closing this advanced editor keeps its saved inputs active. Missing ancestry and unsupported jumps are shown as incomplete estimates.
+  Raising a grade above the trainee's base fills an estimated minimum-star set in that editor.
+  You can refine it manually. Unassigned slots remain unknown. Closing the editor keeps its inputs active. Missing ancestry and unsupported jumps are shown as incomplete estimates.
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
   If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint. Predictions assume you buy
