@@ -25,11 +25,11 @@ function suggestions() {
     return html`<li data-action="pin-card" data-id="${card.id}" @click=${() => pinCard(card.id)}><img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="r">${lb == null ? 'not owned · borrow' : `LB${lb}`}</span></li>`;
   })}</ul>`;
 }
-function pinCard(id: number) {
+export function pinCard(id: number) {
   view.cardQuery = '';
   update((s) => { if (!s.run.pinnedIds.includes(id)) s.run.pinnedIds.push(id); });
 }
-function unpinCard(id: number) {
+export function unpinCard(id: number) {
   update((s) => { s.run.pinnedIds = s.run.pinnedIds.filter((x) => x !== id); });
 }
 

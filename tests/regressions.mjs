@@ -63,6 +63,26 @@ test('the first reset clears targets, trainee, pins and inheritance while preser
   assert.equal(saved.inventory['30028'], 2);
 });
 
+test('ranking pins persist and an unowned pin requests a borrowed card', async (t) => {
+  const saved = defaultState(data);
+  saved.inventory['30028'] = null;
+  saved.settings.showUnowned = true;
+  const page = await fresh(t, saved);
+  const button = page.locator('button[data-action="toggle-card-pin"][data-id="30028"]');
+  await button.click();
+  assert.equal(await button.getAttribute('aria-pressed'), 'true');
+  assert.ok((await state(page)).run.pinnedIds.includes(30028));
+  assert.match(await page.locator('.pin-list .pin-row').filter({ hasText: 'Kitasan Black' }).innerText(), /borrow/);
+  assert.match(await page.locator('.deck .slot').filter({ hasText: 'Kitasan Black' }).innerText(), /borrow/);
+  await page.reload();
+  assert.equal(await button.getAttribute('aria-pressed'), 'true');
+  await button.click();
+  assert.equal(await button.getAttribute('aria-pressed'), 'false');
+  assert.ok(!(await state(page)).run.pinnedIds.includes(30028));
+  await page.reload();
+  assert.equal(await button.getAttribute('aria-pressed'), 'false');
+});
+
 test('SSR event-rate edits update gold coverage immediately and survive reload unchanged', async (t) => {
   const page = await fresh(t);
   await target(page, 'Corner Recovery');

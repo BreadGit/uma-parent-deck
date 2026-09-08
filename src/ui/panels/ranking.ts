@@ -1,6 +1,7 @@
 // Every card scored against the targets, with the limit-break dropdowns that make up the inventory.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
+import { repeat } from 'lit-html/directives/repeat.js';
 import { STATS, type Card } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
@@ -10,7 +11,7 @@ import { data, plan, store, update } from '../context.ts';
 import { cardThumb, cardUrl, num, pct, pill, skillName, typeIcon } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
-import { setSetting } from './run.ts';
+import { pinCard, setSetting, unpinCard } from './run.ts';
 
 /** Set a card's limit break, or mark it not owned. The rarity's default LB means "no entry". */
 function setLb(card: Card, value: string) {
@@ -72,11 +73,15 @@ export function renderRanking(c: RunPlan) {
   const actions = html`<label class="row"><span class="k">Show not owned</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.settings.showUnowned)} @change=${(e: Event) => setSetting('showUnowned', (e.target as HTMLInputElement).checked)} /></label>`;
   return panel({ title: 'Card ranking', subtitle: `(${rows.length} cards · click a header to sort)`, tip: PANEL_TIP, actions }, html`
     <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Added spark chance${tip('How much this card would raise the total expected white sparks over your targets if added to what is already covered by the trainee and the cards picked so far. Overlap with existing sources counts for less, so two cards giving the same skill do not both score full value.')}`)}${th('spark', html`Spark chance alone${tip('Expected white sparks over your targets from this card on its own: the chance it hands over each skill (hint, event, or outing) times the spark rate for the gold or white form.')}`)}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(`What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. The deck builder uses this value when two cards give the same sparks.`)}`)}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
-      ${rows.map((x) => {
+      ${repeat(rows, (x) => x.card.id, (x) => {
         const owned = !c.unowned.has(x.card.id);
+        const pinned = store.run.pinnedIds.includes(x.card.id);
+        const pinLabel = `${pinned ? 'Unpin' : 'Pin'} ${x.card.charName} [${x.card.title}]`;
         return html`<tr class="${owned ? '' : 'dim'}">
           <td>${cardThumb(x.card)}</td>
-          <td>${typeIcon(x.card)}${store.run.pinnedIds.includes(x.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a>${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : nothing}<br/><span class="small muted">${x.card.title}</span></td>
+          <td><div class="ranking-card"><div class="ranking-card-name">${typeIcon(x.card)}${pinned ? html`<span class="tag pin">pinned</span>` : nothing}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a>${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">trainee's card</span>` : nothing}<br/><span class="small muted">${x.card.title}</span></div>
+            <button type="button" class="ranking-pin ${pinned ? 'active' : ''}" data-action="toggle-card-pin" data-id="${x.card.id}" aria-label="${pinLabel}" aria-pressed="${pinned}" title="${pinLabel}" @click=${() => pinned ? unpinCard(x.card.id) : pinCard(x.card.id)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22.3126 10.1753L20.8984 11.5895L20.1913 10.8824L15.9486 15.125L15.2415 18.6606L13.8273 20.0748L9.58466 15.8321L4.63492 20.7819L3.2207 19.3677L8.17045 14.4179L3.92781 10.1753L5.34202 8.76107L8.87756 8.05396L13.1202 3.81132L12.4131 3.10422L13.8273 1.69L22.3126 10.1753Z"></path></svg></button>
+          </div></td>
           <td>${lbSelect(x.card, x.lb)}</td>
           <td class="num"><meter class="bar" min="0" max="${BAR_MAX}" value="${Math.min(BAR_MAX, x.marginalValue)}"></meter> ${pill(x.marginalValue, '', 1)}</td>
           <td class="num">${pill(x.sparkValue, '', 1)}</td>

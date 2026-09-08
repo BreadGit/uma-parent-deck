@@ -147,6 +147,19 @@ const topRanked = await page.$$eval('section.panel:last-child tbody tr td:nth-ch
 assert.ok(topRanked.some((t) => t.includes('Kitasan Black') && t.includes('pinned')), `pinned card should sit with the pinned rows at the top, got: ${topRanked}`);
 assert.ok((await page.$$eval('.deck .slot .name', (n) => n.map((x) => x.textContent))).some((n) => n.includes('Kitasan Black')), 'pinned card should be in the deck');
 await page.click('.chip button[data-action="unpin-card"]:not([data-id="30052"])');
+// Pin directly from the ranking, then unpin with the keyboard after the row moves.
+const rankingPin = page.locator('button[data-action="toggle-card-pin"][data-id="30028"]');
+assert.equal(await page.locator('button[data-action="toggle-card-pin"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has a pin button');
+await rankingPin.click();
+assert.equal(await rankingPin.getAttribute('aria-pressed'), 'true');
+assert.equal(await page.locator('.scroll tbody tr').nth(1).locator('button[data-action="toggle-card-pin"]').getAttribute('data-id'), '30028', 'new pin follows Light Hello at the top of the ranking');
+assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 1);
+assert.ok((await page.locator('.deck .slot .name').allTextContents()).some((name) => name.includes('Kitasan Black')), 'ranking pin adds the card to the deck');
+await assertFieldsMatchState('after pinning from the ranking');
+await rankingPin.press('Enter');
+assert.equal(await rankingPin.getAttribute('aria-pressed'), 'false');
+assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 0);
+await assertFieldsMatchState('after unpinning from the ranking');
 await page.click('details:has(> summary:text("Where the stats come from")) > summary');
 const breakdownRows = await page.$$eval('details:has(> summary:text("Where the stats come from")) tbody tr', (r) => r.length);
 assert.ok(breakdownRows >= 10, `breakdown should list cards, career, inheritance, base, final, spread; got ${breakdownRows}`);

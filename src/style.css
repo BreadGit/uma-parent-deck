@@ -141,6 +141,10 @@ table.coverage td.src-list { width: 55%; }
 .src-list .src { line-height: 1.35; margin: 1px 0; }
 .src-list .src .pill { font-size: 11px; padding: 0 4px; }
 .scroll { max-height: 70vh; overflow: auto; }
+.ranking-card { display: flex; align-items: center; gap: 10px; }
+.ranking-card-name { flex: 1; }
+.ranking-pin { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; width: 28px; height: 28px; padding: 4px; }
+.ranking-pin svg { width: 18px; height: 18px; }
 /* in-flow tables scroll sideways inside their panel */
 .scroll-x { overflow-x: auto; }
 /* the added-spark bar: a <meter> so the width is data, not an inline style */
