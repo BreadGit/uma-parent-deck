@@ -192,6 +192,8 @@ meter.bar::-moz-meter-bar { background: var(--accent); border-radius: 4px; }
 .legacy-stat select.gain.p2 { border-color: var(--parent2); color: var(--parent2); }
 .legacy-stat select.gain.p1.set { background: var(--parent1); color: var(--on-accent); }
 .legacy-stat select.gain.p2.set { background: var(--parent2); color: var(--on-accent); }
+.legacy-stat select.gain option { background: var(--input); color: var(--text); }
+.legacy-stat select.gain option.dim { color: var(--muted); }
 .legacy-stat .head { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; padding: 2px 0; background: var(--stat-head); color: var(--on-accent); border-right: 1px solid var(--panel); }
 .legacy-stat:first-child .head { border-radius: 5px 0 0 0; }
 .legacy-stat:last-child .head { border-radius: 0 5px 0 0; border-right: none; }

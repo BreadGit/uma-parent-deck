@@ -235,9 +235,47 @@ await page.click('button[data-action="reset-legacy"]');
 await page.waitForTimeout(200);
 await assertFieldsMatchState('after the legacy reset');
 const afterReset = await page.evaluate(() => ({ gains: [...document.querySelectorAll('select[data-gain]')].map((s) => s.value).join(','), turf: document.querySelector('select[data-apt="turf"]').value, options: document.querySelectorAll('select[data-gain="0-0"] option').length }));
-assert.equal(afterReset.gains, '5,5,5,5,5,5,0,0,0,0', 'every side is back to the default 1★ Speed, Stamina and Power');
+assert.equal(afterReset.gains, '0,0,0,0,0,0,0,0,0,0', 'reset clears every gain for entry');
 assert.equal(afterReset.turf, baseTurf, 'the aptitude override is gone');
 assert.equal(afterReset.options, 20, 'every possible +XX is offered');
+assert.equal(await page.locator('select[data-gain] option.dim').count(), 0, 'empty sides do not dim any choices');
+await page.reload();
+await page.waitForSelector('select[data-gain]');
+await assertFieldsMatchState('after reloading cleared Legacy gains');
+assert.deepEqual(await page.$$eval('select[data-gain]', (els) => els.map((s) => s.value)), Array(10).fill('0'));
+await page.click('button[data-action="toggle-sparks"]');
+await assertFieldsMatchState('after opening cleared spark rows');
+assert.deepEqual(await page.$$eval('.legacy-sparks select', (els) => els.map((s) => s.value)), Array(12).fill(''));
+// One occupied slot leaves room for at most two sparks on any other stat.
+await page.selectOption('select[data-gain="0-0"]', '12');
+await assertFieldsMatchState('after entering the first gain');
+assert.deepEqual(await page.$$eval('select[data-gain="0-1"] option.dim', (els) => els.map((o) => o.value)), ['15', '22', '29', '31', '36', '38', '45', '47', '54', '63']);
+assert.equal(await page.locator('select[data-gain="0-0"] option.dim').count(), 0, 'replacing the current stat can use its own slot');
+assert.equal(await page.locator('select[data-gain^="1-"] option.dim').count(), 0, 'the other parent side is independent');
+for (const theme of ['light', 'dark']) {
+  await page.click(`button[data-theme-pick="${theme}"]`);
+  const colors = await page.$eval('select[data-gain="0-1"]', (s) => ({
+    normal: getComputedStyle(s.querySelector('option[value="12"]')).color,
+    dim: getComputedStyle(s.querySelector('option[value="63"]')).color,
+  }));
+  assert.notEqual(colors.normal, colors.dim, `conflicting options have a distinct text color in ${theme} theme`);
+}
+await page.click('button[data-theme-pick="system"]');
+// A dimmed choice remains selectable and reallocates the side's existing sparks.
+assert.equal(await page.locator('select[data-gain] option:disabled').count(), 0);
+await page.selectOption('select[data-gain="0-1"]', '63');
+await assertFieldsMatchState('after selecting a dimmed gain');
+assert.equal(await page.locator('select[data-gain="0-0"]').inputValue(), '0');
+assert.equal(await page.locator('select[data-gain="0-1"]').inputValue(), '63');
+assert.deepEqual(await page.$$eval('select[data-gain="0-0"] option:not(.dim)', (els) => els.map((o) => o.value)), ['0']);
+await page.selectOption('select[data-spark-stat="0-0"]', 'power');
+await assertFieldsMatchState('after moving a spark to another stat');
+assert.deepEqual(await page.$$eval('select[data-gain="0-1"] option.dim', (els) => els.map((o) => o.value)), ['15', '22', '29', '31', '36', '38', '45', '47', '54', '63']);
+await page.click('button[data-action="reset-legacy"]');
+await assertFieldsMatchState('after clearing entered sparks again');
+assert.equal(await page.locator('select[data-gain] option.dim').count(), 0);
+await page.click('button[data-action="toggle-sparks"]');
+await assertFieldsMatchState('after closing the spark form');
 // layout check: no horizontal overflow at common widths, both themes
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
