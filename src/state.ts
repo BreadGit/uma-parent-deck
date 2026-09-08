@@ -1,13 +1,12 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
-import type { Data, Inventory } from './types.ts';
+import { STATS, type AptKey, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
 import { clampStars } from './model/trainee.ts';
-import type { Grade } from './types.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme }
@@ -36,6 +35,13 @@ export function defaultState(data: Data): AppState {
 type Json = Record<string, unknown>;
 const isObj = (v: unknown): v is Json => !!v && typeof v === 'object' && !Array.isArray(v);
 const numList = (v: unknown): number[] => (Array.isArray(v) ? v.filter((x): x is number => typeof x === 'number') : []);
+const APT_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
+const APT_GRADES: Grade[] = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
+/** Stat arrays are positional. A malformed entry becomes zero without moving the entries after it. */
+const statValues = (raw: unknown): number[] => STATS.map((_, i) => {
+  const v: unknown = Array.isArray(raw) ? raw[i] : undefined;
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : 0;
+});
 
 /** Older shapes of the run state and what they turn into. */
 function migrateRun(raw: Json, data: Data): RunInput {
@@ -47,7 +53,10 @@ function migrateRun(raw: Json, data: Data): RunInput {
   run.traineeStars = clampStars(run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) ?? null : null, run.traineeStars);
   if (typeof raw.borrowFromAll === 'boolean') run.borrowFromAll = raw.borrowFromAll;
   // aptitude overrides: S cannot show on the pre-run screen (only an inspiration event reaches it) and wins like A, so it becomes A
-  if (isObj(raw.aptOverrides)) run.aptOverrides = Object.fromEntries(Object.entries(raw.aptOverrides).filter(([, v]) => typeof v === 'string').map(([k, v]) => [k, v === 'S' ? 'A' : v])) as Partial<Record<string, Grade>> as RunInput['aptOverrides'];
+  if (isObj(raw.aptOverrides)) for (const k of APT_KEYS) {
+    const v = raw.aptOverrides[k];
+    if (typeof v === 'string' && APT_GRADES.includes(v as Grade)) run.aptOverrides[k] = v === 'S' ? 'A' : v as Grade;
+  }
   if (isObj(raw.raceOverrides)) run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([, v]) => typeof v === 'boolean')) as Record<string, boolean>;
   // pins: a single pinnedId (v1) became pinnedIds (v2)
   if (Array.isArray(raw.pinnedIds)) run.pinnedIds = numList(raw.pinnedIds);
@@ -61,17 +70,16 @@ function migrateRun(raw: Json, data: Data): RunInput {
   }
   // blue sparks: one combined blueStars list (v1) became stars per parent (v2), then the start gain per parent as
   // the legacy screen shows it (v5), then the spark each of the side's three umas carries (v6). Gains decode into
-  // sparks; a side the screen could not show, or one left at +0 everywhere, becomes the default side.
-  const five = (p: number[]) => [0, 1, 2, 3, 4].map((i) => p[i] ?? 0);
-  const starsToGains = (p: number[]) => five(p).map((stars) => gainOfSparks(sparksFromStars(stars)));
-  const sideFromGains = (gains: number[]): ParentSparks => (gains.some((g) => g) && parentSparksFromGains(five(gains))) || defaultParentSparks();
+  // sparks; a side the screen could not show becomes empty. Partial and empty sides are kept.
+  const starsToGains = (p: number[]) => p.map((stars) => gainOfSparks(sparksFromStars(stars)));
+  const sideFromGains = (gains: number[]): ParentSparks => parentSparksFromGains(gains) ?? defaultParentSparks();
   let gains: number[][] | null = null;
   if (Array.isArray(raw.parentSparks) && raw.parentSparks.length === 2) run.parentSparks = raw.parentSparks.map(sanitizeParentSparks);
-  else if (Array.isArray(raw.parentGains) && raw.parentGains.length === 2) gains = raw.parentGains.map(numList);
-  else if (Array.isArray(raw.parentStars) && raw.parentStars.length === 2) gains = raw.parentStars.map(numList).map(starsToGains);
+  else if (Array.isArray(raw.parentGains) && raw.parentGains.length === 2) gains = raw.parentGains.map(statValues);
+  else if (Array.isArray(raw.parentStars) && raw.parentStars.length === 2) gains = raw.parentStars.map(statValues).map(starsToGains);
   else if (Array.isArray(raw.blueStars)) {
     let left = MAX_PARENT_STARS;
-    const all = numList(raw.blueStars);
+    const all = statValues(raw.blueStars);
     const p1 = all.map((v) => { const take = Math.min(v, left); left -= take; return take; });
     gains = [starsToGains(p1), starsToGains(all.map((v, i) => Math.min(MAX_PARENT_STARS, v - p1[i]!)))];
   }

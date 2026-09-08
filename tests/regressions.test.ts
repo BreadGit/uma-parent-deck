@@ -207,8 +207,8 @@ test('the plan shows the start gains the sparks make, and a full side never rais
 });
 
 test('a start gain picked over a full side takes umas from the other stats, fewest stars first, and the old budget rules are gone', () => {
-  const side = withParentGain(defaultParentSparks(), 0, 63);
-  assert.deepEqual(gainsOfParentSparks(side), [63, 0, 0, 0, 0], 'three 3★ Speed sparks evict every default 1★');
+  const side = withParentGain([{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 1 }, { stat: 'power', stars: 1 }], 0, 63);
+  assert.deepEqual(gainsOfParentSparks(side), [63, 0, 0, 0, 0], 'three 3★ Speed sparks replace all entered 1★ sparks');
   const back = withParentGain(side, 1, 5);
   assert.deepEqual(gainsOfParentSparks(back), [42, 5, 0, 0, 0], 'a 1★ Stamina spark takes the last Speed slot');
   assert.deepEqual(gainsOfParentSparks(withParentGain(back, 0, 0)), [0, 5, 0, 0, 0], '+0 frees the stat and keeps the others');

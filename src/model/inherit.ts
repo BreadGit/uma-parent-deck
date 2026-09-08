@@ -45,8 +45,8 @@ export interface BlueSpark { stat: Stat; stars: number }
  */
 export type ParentSparks = (BlueSpark | null)[];
 export const UMA_LABELS = ['Parent', 'Grandparent', 'Grandparent'];
-/** A fresh side: 1★ Speed, Stamina and Power, so every uma has a spark to edit rather than a blank. */
-export const defaultParentSparks = (): ParentSparks => [{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 1 }, { stat: 'power', stars: 1 }];
+/** A fresh side has no entered sparks, so every stat starts at +0. */
+export const defaultParentSparks = (): ParentSparks => Array(UMAS_PER_PARENT_SIDE).fill(null);
 export const isValidSpark = (v: unknown): v is BlueSpark => !!v && typeof v === 'object' && STATS.includes((v as BlueSpark).stat) && Number.isInteger((v as BlueSpark).stars) && (v as BlueSpark).stars >= 1 && (v as BlueSpark).stars <= STARS_PER_SPARK_MAX;
 /** A saved side, or the default when it is not exactly three slots of a spark or null. */
 export function sanitizeParentSparks(raw: unknown): ParentSparks {
@@ -64,19 +64,31 @@ export function parentSparksFromGains(gains: number[]): ParentSparks | null {
   return out;
 }
 /**
- * Set one stat's start gain as read off the legacy screen. The umas already on that stat are replaced first, then
- * empty slots are used, and if the gain still needs more umas they come from the other stats, fewest stars first
- * and grandparents before the parent. The decoded sparks take the freed slots in order, strongest first.
+ * Set one stat's start gain. Keep matching sparks on their umas, then replace the stat's remaining sparks in place.
+ * Extra sparks use empty slots before taking other stats' umas, fewest stars first and grandparents before the parent.
+ * Remaining stars are assigned strongest first. An unsupported gain or stat index leaves the side unchanged.
  */
 export function withParentGain(sparks: ParentSparks, statIndex: number, gain: number): ParentSparks {
-  const stat = STATS[statIndex]!;
-  const wanted = [...sparksFromGain(gain)].sort((a, b) => b - a);
-  const out: ParentSparks = sparks.map((s) => (s?.stat === stat ? null : s));
-  let need = wanted.length - out.filter((s) => !s).length;
-  const evict = out.map((s, i) => ({ s, i })).filter((x) => x.s).sort((a, b) => a.s!.stars - b.s!.stars || b.i - a.i);
-  for (const x of evict) { if (need <= 0) break; out[x.i] = null; need--; }
-  let i = 0;
-  for (const stars of wanted) { while (out[i]) i++; out[i] = { stat, stars }; i++; }
+  const stat = STATS[statIndex];
+  const decoded = START_GAINS.find((g) => g.gain === gain);
+  if (!Number.isInteger(statIndex) || !stat || !decoded) return sparks;
+  const wanted = [...decoded.stars].sort((a, b) => b - a);
+  const replace: number[] = [];
+  const out = sparks.map((s, i) => {
+    if (s?.stat !== stat) return s;
+    const match = wanted.indexOf(s.stars);
+    if (match >= 0) { wanted.splice(match, 1); return s; }
+    replace.push(i);
+    return null;
+  });
+  const slots = [...replace, ...sparks.flatMap((s, i) => s === null ? [i] : [])];
+  const evict = out.map((s, i) => ({ s, i })).filter((x) => x.s && x.s.stat !== stat).sort((a, b) => a.s!.stars - b.s!.stars || b.i - a.i);
+  for (const x of evict) {
+    if (slots.length >= wanted.length) break;
+    out[x.i] = null;
+    slots.push(x.i);
+  }
+  wanted.forEach((stars, i) => { out[slots[i]!] = { stat, stars }; });
   return out;
 }
 

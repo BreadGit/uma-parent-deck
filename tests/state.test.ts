@@ -2,10 +2,38 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { defaultPins, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
-import { defaultParentSparks } from '../src/model/inherit.ts';
+import { defaultParentSparks, gainsOfParentSparks } from '../src/model/inherit.ts';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, parseSetting, sanitizeSettings, SETTING_HELP, type Settings } from '../src/settings.ts';
 
 const data = loadData();
+
+test('new Legacy sides start empty', () => {
+  assert.deepEqual(migrate({}, data).run.parentSparks, [[null, null, null], [null, null, null]]);
+  const side = [{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 1 }, { stat: 'power', stars: 1 }];
+  assert.deepEqual(migrate({ current: { version: 6, run: { parentSparks: [side, side] } } }, data).run.parentSparks, [side, side], 'the former defaults remain valid saved entries');
+});
+
+test('malformed legacy stat entries do not shift later stats during migration', () => {
+  for (const bad of ['bad', null, undefined, {}, NaN, Infinity, -1]) {
+    const gains = migrate({ current: { version: 5, run: { parentGains: [[12, bad, 5, 0, 0], [0, 0, 0, 0, 21]] } } }, data);
+    assert.deepEqual(gains.run.parentSparks.map(gainsOfParentSparks), [[12, 0, 5, 0, 0], [0, 0, 0, 0, 21]]);
+    const stars = [[2, bad, 1, 0, 0], [0, 0, 0, 0, 3]];
+    for (const saved of [{ state: { parentStars: stars } }, { current: { version: 4, run: { parentStars: stars } } }]) {
+      assert.deepEqual(migrate(saved, data).run.parentSparks.map(gainsOfParentSparks), [[12, 0, 5, 0, 0], [0, 0, 0, 0, 21]]);
+    }
+    assert.deepEqual(migrate({ state: { blueStars: [2, bad, 1, 0, 0] } }, data).run.parentSparks.map(gainsOfParentSparks), [[12, 0, 5, 0, 0], [0, 0, 0, 0, 0]]);
+  }
+});
+
+test('saved aptitude overrides keep valid keys and grades only', () => {
+  const raw = { turf: 'Z', dirt: 'S', sprint: 'B', mile: 2, medium: null, long: 'a', front: 'G', luck: 'A' };
+  assert.deepEqual(migrate({ current: { version: 6, run: { aptOverrides: raw } } }, data).run.aptOverrides, { dirt: 'A', sprint: 'B', front: 'G' });
+  for (const grade of ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G']) {
+    const keys = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
+    const aptOverrides = Object.fromEntries(keys.map((key) => [key, grade]));
+    assert.deepEqual(migrate({ state: { aptOverrides } }, data).run.aptOverrides, Object.fromEntries(keys.map((key) => [key, grade === 'S' ? 'A' : grade])));
+  }
+});
 
 test('nothing saved, or garbage in every slot, gives the defaults with Light Hello pinned', () => {
   const s = migrate({}, data);

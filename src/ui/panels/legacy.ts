@@ -5,7 +5,7 @@ import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { STATS, type AptKey, type Grade, type Stat } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
-import { inheritedFromGain, START_GAINS, UMA_LABELS, withParentGain, type BlueSpark } from '../../model/inherit.ts';
+import { defaultParentSparks, inheritedFromGain, START_GAINS, UMA_LABELS, withParentGain, type BlueSpark } from '../../model/inherit.ts';
 import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { capitalize, num, statIcon } from '../format.ts';
@@ -76,7 +76,7 @@ const sparksForm = () => html`<div class="legacy-sparks" data-sparks-form>
 </div>`;
 
 /** Clear the entered sparks and restore the trainee's own aptitudes. */
-const resetLegacy = () => update((s) => { s.run.parentSparks = PARENTS.map(() => UMAS.map(() => null)); s.run.aptOverrides = {}; });
+const resetLegacy = () => update((s) => { s.run.parentSparks = PARENTS.map(() => defaultParentSparks()); s.run.aptOverrides = {}; });
 const toggleSparks = () => { view.showSparks = !view.showSparks; refresh(); };
 
 const PANEL_TIP = 'Copy the game\'s legacy screen, shown before the run starts: the "+XX" each parent adds above every stat, and the aptitudes after inheritance. "By stars" enters the blue spark of each uma instead, for a parent found on a database.';

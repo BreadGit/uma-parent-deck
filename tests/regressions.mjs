@@ -57,7 +57,7 @@ test('the first reset clears targets, trainee, pins and inheritance while preser
   assert.equal(await page.locator('.target-row').count(), 0);
   const saved = await state(page);
   assert.deepEqual(saved.run.targets, []);
-  assert.deepEqual(saved.run.parentSparks, [defaultParentSparks(), defaultParentSparks()]);
+  assert.deepEqual(saved.run.parentSparks, [[null, null, null], [null, null, null]]);
   assert.deepEqual(saved.run.pinnedIds, [30052]);
   assert.equal(saved.settings.focus, 'sprint');
   assert.equal(saved.inventory['30028'], 2);
@@ -135,16 +135,33 @@ test('start gains share a side\'s three umas: a bigger gain takes the weakest um
   const page = await fresh(t);
   await trainee(page);
   await page.selectOption('[data-gain="0-0"]', '63');
-  assert.equal(await page.locator('[data-gain="0-1"]').inputValue(), '0', 'the default 1★ Stamina went to the third Speed spark');
+  assert.equal(await page.locator('[data-gain="0-1"]').inputValue(), '0', 'all three sparks are on Speed');
   await page.selectOption('[data-gain="0-0"]', '21');
   await page.selectOption('[data-gain="0-1"]', '12');
   await page.selectOption('[data-gain="0-2"]', '5');
   await page.selectOption('[data-gain="0-3"]', '5');
   assert.equal(await page.locator('[data-gain="0-2"]').inputValue(), '0', 'the 1★ Power uma is the weakest, so Guts took her');
-  assert.equal(await page.locator('[data-gain="1-0"]').inputValue(), '5', 'parent 2 is untouched');
+  assert.equal(await page.locator('[data-gain="1-0"]').inputValue(), '0', 'parent 2 is untouched');
   assert.equal(await predictions(page).count(), 1);
   await page.reload();
   assert.deepEqual((await state(page)).run.parentSparks[0], [{ stat: 'speed', stars: 3 }, { stat: 'stamina', stars: 2 }, { stat: 'guts', stars: 1 }]);
+});
+
+test('saved spark ownership survives gain edits and reload; malformed aptitudes fall back to the trainee', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.parentSparks[0] = [{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 3 }, { stat: 'power', stars: 2 }];
+  saved.run.aptOverrides = { turf: 'Z', dirt: 'B', luck: 'A' };
+  const page = await fresh(t, saved);
+  assert.equal(await page.inputValue('[data-apt="turf"]'), data.charByCardId.get(100101).aptitudes.turf);
+  assert.equal(await page.inputValue('[data-apt="dirt"]'), 'B');
+  await page.selectOption('[data-gain="0-0"]', '17');
+  await page.reload();
+  await page.waitForSelector('[data-gain]');
+  assert.deepEqual((await state(page)).run.parentSparks, [[{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 2 }, { stat: 'power', stars: 2 }], [null, null, null]]);
+  assert.deepEqual((await state(page)).run.aptOverrides, { dirt: 'B' });
+  await page.click('[data-action="toggle-sparks"]');
+  assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['speed', '1', 'speed', '2', 'power', '2']);
 });
 
 test('a malformed saved side becomes the default side without a warning, and the other side is kept', async (t) => {
@@ -154,7 +171,7 @@ test('a malformed saved side becomes the default side without a warning, and the
   const page = await fresh(t, saved);
   assert.equal(await page.locator('[data-plan-issues]').count(), 0);
   assert.equal(await predictions(page).count(), 1);
-  assert.deepEqual(await page.$$eval('[data-gain]', (els) => els.map((e) => e.value)), ['5', '0', '5', '0', '5', '0', '0', '0', '0', '63'], 'side 1 shows the default sparks, side 2 its three 3★ Wit');
+  assert.deepEqual(await page.$$eval('[data-gain]', (els) => els.map((e) => e.value)), ['0', '0', '0', '0', '0', '0', '0', '0', '0', '63'], 'side 1 is empty, side 2 keeps its three 3★ Wit');
   await page.selectOption('[data-gain="1-3"]', '5');
   assert.deepEqual((await state(page)).run.parentSparks, [defaultParentSparks(), [{ stat: 'wit', stars: 3 }, { stat: 'wit', stars: 3 }, { stat: 'guts', stars: 1 }]], 'the next edit saves the repaired side 1 along with the change on side 2');
 });

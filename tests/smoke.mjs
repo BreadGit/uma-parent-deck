@@ -101,6 +101,8 @@ const legacyPlacement = await page.evaluate(() => {
   return { traineeApts: panelOf('Trainee').querySelectorAll('select[data-apt]').length, legacyApts: panelOf('Legacy').querySelectorAll('select[data-apt]').length, gains: panelOf('Legacy').querySelectorAll('select[data-gain]').length, styleSelects: [...panelOf('Legacy').querySelectorAll('select[data-apt]')].filter((s) => ['front', 'pace', 'late', 'end'].includes(s.dataset.apt)).length };
 });
 assert.deepEqual(legacyPlacement, { traineeApts: 0, legacyApts: 6, gains: 10, styleSelects: 0 });
+assert.deepEqual(await page.$$eval('select[data-gain]', (els) => els.map((s) => s.value)), Array(10).fill('0'), 'a fresh run starts with no entered gains');
+await assertFieldsMatchState('after choosing the first trainee');
 const baseTurf = await page.inputValue('select[data-apt="turf"]');
 const overrideTurf = baseTurf === 'G' ? 'A' : 'G';
 await page.selectOption('select[data-apt="turf"]', overrideTurf);
@@ -163,7 +165,7 @@ await page.waitForTimeout(200);
 const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start: Number(el.querySelector('.body .v').textContent), base: Number(el.querySelector('.body .sub').textContent.replace(/\D/g, '')), p1: Number(el.querySelector('select[data-gain="0-2"]').value), p2Class: el.querySelector('select[data-gain="1-2"]').className }));
 assert.equal(powerCell.start, powerCell.base + powerCell.p1 + 54, 'the start value is base plus both parents');
 assert.ok(/\bp2\b/.test(powerCell.p2Class) && /\bset\b/.test(powerCell.p2Class), 'a picked gain is shown filled in parent 2 colour');
-assert.equal(await page.$eval('select[data-gain="1-0"]', (s) => s.value), '0', 'three Power sparks took the default Speed uma on parent 2');
+assert.equal(await page.$eval('select[data-gain="1-0"]', (s) => s.value), '0', 'all three sparks are on Power on parent 2');
 await assertFieldsMatchState('after picking a start gain');
 // "By stars" opens the per-uma form; a spark set there shows up as the stat's "+XX" above
 assert.equal(await page.$('[data-sparks-form]'), null, 'the spark form starts closed');
@@ -175,7 +177,7 @@ await page.waitForTimeout(200);
 await page.selectOption('select[data-spark-stars="0-0"]', '2');
 await page.waitForTimeout(200);
 const afterSpark = await page.evaluate(() => ({ speed: document.querySelector('select[data-gain="0-0"]').value, guts: document.querySelector('select[data-gain="0-3"]').value, guts2: document.querySelector('select[data-gain="1-3"]').value }));
-assert.deepEqual(afterSpark, { speed: '0', guts: '12', guts2: '0' }, 'the parent\'s spark moved from 1★ Speed to 2★ Guts on her side only');
+assert.deepEqual(afterSpark, { speed: '0', guts: '12', guts2: '0' }, 'the parent has a 2★ Guts spark on her side only');
 await assertFieldsMatchState('after editing a spark by stars');
 await page.selectOption('select[data-gain="0-3"]', '0');
 await page.waitForTimeout(200);
@@ -187,6 +189,19 @@ await page.selectOption('select[data-gain="0-3"]', '12');
 await page.waitForTimeout(200);
 assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['guts', '2', '', '', '', ''], 'one 2★ Guts uma and two empty rows');
 await assertFieldsMatchState('after shrinking a start gain');
+// Editing an aggregate gain preserves an existing 1★ parent and changes only the 3★ grandparent.
+for (const [selector, value] of [
+  ['data-spark-stat="0-0"', 'speed'], ['data-spark-stars="0-0"', '1'],
+  ['data-spark-stat="0-1"', 'speed'], ['data-spark-stars="0-1"', '3'],
+  ['data-spark-stat="0-2"', 'power'], ['data-spark-stars="0-2"', '2'],
+]) {
+  await page.selectOption(`select[${selector}]`, value);
+  await assertFieldsMatchState(`after entering ${selector}`);
+}
+assert.equal(await page.inputValue('select[data-gain="0-0"]'), '26');
+await page.selectOption('select[data-gain="0-0"]', '17');
+await assertFieldsMatchState('after reducing the grandparent spark through its gain');
+assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['speed', '1', 'speed', '2', 'power', '2']);
 assert.equal(await page.$$eval('.legacy-sparks', (els) => els.length), 1);
 assert.ok(await page.evaluate(() => document.querySelector('.legacy-sparks').compareDocumentPosition(document.querySelector('.legacy-legend')) & Node.DOCUMENT_POSITION_FOLLOWING), 'the spark form sits above the start gain row');
 await page.click('button[data-action="toggle-sparks"]');

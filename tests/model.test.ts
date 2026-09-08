@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
-import type { Card, Race } from '../src/types.ts';
+import { STATS, type Card, type Race } from '../src/types.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, pruneConflicts, sparkChance, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
@@ -382,12 +382,52 @@ test('blue sparks: 20 distinct start gains each decoding to one star combination
 });
 
 test('sparks per uma: each of a side\'s three umas carries one blue spark, and the "+XX" per stat is the sum of the sparks on it', () => {
-  assert.deepEqual(gainsOfParentSparks(defaultParentSparks()), [5, 5, 5, 0, 0], 'the default side is 1★ Speed, Stamina and Power');
+  assert.deepEqual(gainsOfParentSparks(defaultParentSparks()), [0, 0, 0, 0, 0], 'the default side has no entered sparks');
   assert.deepEqual(gainsOfParentSparks([{ stat: 'speed', stars: 3 }, { stat: 'speed', stars: 1 }, null]), [26, 0, 0, 0, 0]);
   assert.deepEqual(parentSparksFromGains([26, 0, 0, 0, 12]), [{ stat: 'speed', stars: 3 }, { stat: 'speed', stars: 1 }, { stat: 'wit', stars: 2 }], 'gains decode in stat order, strongest spark first');
   assert.deepEqual(parentSparksFromGains([5, 0, 0, 0, 0]), [{ stat: 'speed', stars: 1 }, null, null]);
   assert.equal(parentSparksFromGains([63, 5, 0, 0, 0]), null, 'four sparks do not fit three umas');
   assert.equal(parentSparksFromGains([7, 0, 0, 0, 0]), null, 'a value the screen cannot show');
+});
+
+test('gain edits preserve matching sparks and reuse the same uma before an empty slot', () => {
+  const side: ParentSparks = [{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 3 }, { stat: 'power', stars: 2 }];
+  assert.deepEqual(withParentGain(side, 0, 26), side, 'reapplying a gain preserves ownership');
+  assert.deepEqual(withParentGain(side, 0, 17), [{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 2 }, side[2]], 'only the 3★ grandparent changes');
+  assert.deepEqual(withParentGain(side, 0, 5), [side[0], null, side[2]], 'shrinking keeps the matching parent spark');
+  assert.deepEqual(withParentGain([null, side[1]!, side[2]!], 0, 12), [null, { stat: 'speed', stars: 2 }, side[2]], 'an existing spark stays on its uma even with an earlier empty slot');
+});
+
+test('unsupported gain values and stat indices leave entered sparks unchanged', () => {
+  const side: ParentSparks = [{ stat: 'speed', stars: 2 }, null, { stat: 'wit', stars: 1 }];
+  for (const gain of [-1, 7, 12.5, 64, NaN, Infinity]) assert.deepEqual(withParentGain(side, 0, gain), side);
+  for (const index of [-1, 5, 0.5, NaN, Infinity]) assert.deepEqual(withParentGain(side, index, 21), side);
+  assert.deepEqual(withParentGain(side, 0, 0), [null, null, side[2]], '+0 still clears the chosen stat');
+});
+
+test('every supported gain edit keeps the requested total and as many existing matching sparks as possible', () => {
+  const slots: ParentSparks = [null, ...STATS.flatMap((stat) => [1, 2, 3].map((stars) => ({ stat, stars })))];
+  for (const a of slots) for (const b of slots) for (const c of slots) {
+    const side = [a, b, c];
+    const before = structuredClone(side);
+    for (const [si, stat] of STATS.entries()) for (const gain of START_GAINS) {
+      const next = withParentGain(side, si, gain.gain);
+      assert.equal(next.length, 3);
+      assert.equal(gainsOfParentSparks(next)[si], gain.gain);
+      assert.deepEqual(side, before, 'editing does not mutate the input');
+      for (const stars of [1, 2, 3]) {
+        const oldCount = side.filter((s) => s?.stat === stat && s.stars === stars).length;
+        const newCount = gain.stars.filter((s) => s === stars).length;
+        const kept = side.filter((s, i) => s?.stat === stat && s.stars === stars && next[i]?.stat === stat && next[i]?.stars === stars).length;
+        assert.equal(kept, Math.min(oldCount, newCount), 'matching sparks stay on their umas');
+      }
+      const others = side.filter((s) => s && s.stat !== stat).length;
+      if (others + gain.stars.length <= 3) side.forEach((s, i) => {
+        if (s && s.stat !== stat) assert.deepEqual(next[i], s, 'other stats stay unchanged when there is room');
+      });
+      if (gainsOfParentSparks(side)[si] === gain.gain) assert.deepEqual(next, side, 'reapplying the same gain is a no-op');
+    }
+  }
 });
 
 test('setting a start gain replaces that stat\'s umas first, then empty slots, then the other stats\' weakest umas, grandparents before the parent', () => {
