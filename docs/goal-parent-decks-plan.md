@@ -37,8 +37,10 @@ already suggests so the probability breakdown is reviewable before it controls s
   goal and lineage headers; clicking it again closes the editor. Removal lives on the chip.
 - Four style grades in Legacy alongside its existing surface and distance grades. These describe
   the trainee after both parents are selected. Reuse the existing aptitude overrides.
-- Use those entered grades directly for pink eligibility. They include starting parent-spark
-  increases. Do not request pink ancestry or predict later inspiration aptitude increases.
+- A collapsed Pink sparks editor beside By stars in Legacy. It records pink aptitude and stars
+  for the two parents and four grandparents when modeling inspiration
+  eligibility changes. Reuse the existing individual-affinity assumption. Leave unknown ancestry
+  explicit and do not silently assign six favorable sparks.
 
 Use the existing state migration path. Normalize skill-family identity and prevent a family from
 being both required and preferred. Existing saved targets should migrate as preferred targets
@@ -55,8 +57,9 @@ Keep this pure model logic separate from lit templates.
 2. Predict final stats with inheritance and scenario caps. Calculate overall rank from the same
    stat outcome and estimated skill spending. Preserve the dependence between blue thresholds
    and SS rather than multiplying their separately averaged probabilities.
-3. Determine pink eligibility from entered A/S grades across track, distance, and style. Select
-   uniformly among eligible aptitudes. Leave later inspiration aptitude increases outside the model.
+3. Predict final pink eligibility using the
+   [supported B-to-A inheritance model](refs/aptitude-inheritance.md). Include competing aptitude
+   increases. Keep below-B multi-grade jumps outside the automatic model for now.
 4. Apply the audited blue, pink, white-generation, and conditional star tables to each outcome.
    Average complete-goal probabilities across outcomes. Treat remaining unmodeled dependencies
    as documented approximations. Fixed samples or small finite distributions can keep evaluation
@@ -72,9 +75,8 @@ out-of-scope outcome must not silently be treated as a normal supported outcome.
 ### Output and attempts
 
 Show the required-goal probability and a breakdown explaining the main limiting target or
-threshold. Show zero chance when the modeled sources and eligibility inputs establish it under
-the entered grades. Distinguish missing inputs from zero chance, and
-state that later aptitude increases are outside this estimate.
+threshold. Identify impossible combinations only when the modeled sources and eligibility inputs
+establish impossibility. Distinguish missing inputs and unsupported aptitude jumps from zero chance.
 
 Use a simple "attempts" display. With estimated per-attempt success `p`, show the attempt counts
 for 50%, 75%, and 95% chance of at least one success:
@@ -92,7 +94,7 @@ explanation of the approximation is enough. Report sensible rounded estimates, n
 - Test at-least-2-star versus exactly-2-star arithmetic inside the model, even if the initial UI
   offers only minimum stars.
 - Test single and multiple blue targets, including any stat.
-- Test entered pink eligibility, competing A/S grades, below-A targets, and obsolete ancestry migration.
+- Test B-to-A inheritance, competing pink eligibility, unknown ancestry, and unsupported jumps.
 - Test shared event outcomes and alternatives that cannot supply both required targets.
 - Test shared-rank dependence and the difference between expected spark count and joint success.
 - Test zero and certain success, and the 50% / 75% / 95% attempt calculations.
@@ -127,7 +129,7 @@ not guarantee a global optimum. Measure evaluation time before deciding whether 
 
 ## Deferred work
 
-Full trainee/parent/scenario/agenda/focus search, prediction of later inspiration aptitude increases,
+Full trainee/parent/scenario/agenda/focus search, automatic below-B multi-grade aptitude jumps,
 mid-career aptitude effects on race results, detailed skill-budget allocation, reroll selection,
 race/scenario white-spark goals, and a complete turn-by-turn training simulator are outside these
 two deliveries. More accurate hint and whole-run rank measurements can improve existing estimates

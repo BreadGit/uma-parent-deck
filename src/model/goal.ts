@@ -1,7 +1,7 @@
 import { STATS, type AptKey, type Card, type Grade } from '../types.ts';
 import { type Ctx, evaluate, traineeCoverage } from './deck.ts';
-import { APTITUDE_KEYS, type ParentGoal } from './goal-input.ts';
-import { BLUE_GENERATION_BANDS, WHITE_GENERATION_BANDS, PINK_GENERATION_RATES, OUR_GRAND_CONCERT } from './rules.ts';
+import { APTITUDE_KEYS, APTITUDE_LABELS, type ParentGoal, type PinkSpark } from './goal-input.ts';
+import { BLUE_GENERATION_BANDS, WHITE_GENERATION_BANDS, PINK_GENERATION_RATES, PINK_INSPIRATION_RATES, INSPIRATION_EVENTS, OUR_GRAND_CONCERT } from './rules.ts';
 import { cardSourcesForTarget, lineageCount, resolveTarget, type Target } from './sparks.ts';
 import { jointSkillForms, whiteGenerationMoments } from './goal-skills.ts';
 import { phi } from './stats.ts';
@@ -22,11 +22,32 @@ export function attemptsFor(p: number, confidence: number): number {
 }
 
 export interface PinkEstimate { probability: number | null; issues: string[]; eligibility: { aptitude: AptKey; probability: number | null }[] }
-export function pinkEstimate(apt: Record<AptKey, Grade>, target: AptKey, stars: number): PinkEstimate {
-  const eligibility = APTITUDE_KEYS.map((key) => ({ aptitude: key, probability: Number(apt[key] === 'A' || apt[key] === 'S') }));
-  const eligible = eligibility.filter((e) => e.probability === 1);
-  const probability = eligible.some((e) => e.aptitude === target) ? starChance(PINK_GENERATION_RATES, stars) / eligible.length : 0;
-  return { probability, issues: [], eligibility };
+export function pinkEstimate(apt: Record<AptKey, Grade>, target: AptKey, stars: number, lineage: (PinkSpark | null)[], affinity: number): PinkEstimate {
+  const issues: string[] = [];
+  const unknown = lineage.length !== 6 || lineage.some((p) => p === null);
+  const eligibility = APTITUDE_KEYS.map((key) => {
+    if (apt[key] === 'A' || apt[key] === 'S') return { aptitude: key, probability: 1 };
+    const matching = lineage.filter((p): p is PinkSpark => p?.aptitude === key);
+    if (unknown) return { aptitude: key, probability: null };
+    if (!matching.length) return { aptitude: key, probability: 0 };
+    if (apt[key] !== 'B') {
+      issues.push(`${APTITUDE_LABELS[key]} starts below B and has matching pink sparks. Its chance of reaching A is outside this estimate.`);
+      return { aptitude: key, probability: null };
+    }
+    const miss = matching.reduce((p, spark) => p * (1 - Math.min(1, PINK_INSPIRATION_RATES[spark.stars]! * (1 + affinity / 100))) ** INSPIRATION_EVENTS, 1);
+    return { aptitude: key, probability: 1 - miss };
+  });
+  if (unknown && eligibility.some((e) => e.probability === null)) issues.unshift('Open Pink sparks in Legacy and enter all six lineage sparks to estimate mid-run aptitude increases and competing pink types.');
+  if (issues.length) return { probability: null, issues, eligibility };
+  const desired = eligibility.find((e) => e.aptitude === target)!.probability!;
+  // The count of other eligible aptitudes is a Poisson-binomial distribution.
+  let count = [1];
+  for (const e of eligibility.filter((e) => e.aptitude !== target)) {
+    const next = Array<number>(count.length + 1).fill(0), p = e.probability!;
+    count.forEach((mass, k) => { next[k]! += mass * (1 - p); next[k + 1]! += mass * p; });
+    count = next;
+  }
+  return { probability: desired * starChance(PINK_GENERATION_RATES, stars) * count.reduce((p, mass, k) => p + mass / (k + 1), 0), issues, eligibility };
 }
 
 export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number }
@@ -82,7 +103,7 @@ export interface GoalEstimate {
   allAvailable: number;
   pSS: number;
 }
-export function evaluateParentGoal(goal: ParentGoal, apt: Record<AptKey, Grade>, deck: { card: Card; lb: number }[], ctx: Ctx, stats: GoalStats, runIssues: string[]): GoalEstimate {
+export function evaluateParentGoal(goal: ParentGoal, pinkLineage: (PinkSpark | null)[], apt: Record<AptKey, Grade>, deck: { card: Card; lb: number }[], ctx: Ctx, stats: GoalStats, runIssues: string[]): GoalEstimate {
   const issues = [...runIssues];
   if (!ctx.trainee) issues.push('Choose the trainee to estimate the parent goal.');
   if (ctx.settings.scenarioId !== OUR_GRAND_CONCERT) issues.push('Parent goals currently estimate Our Grand Concert independent training.');
@@ -102,9 +123,9 @@ export function evaluateParentGoal(goal: ParentGoal, apt: Record<AptKey, Grade>,
   const copies = (t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
   const skills = whiteGenerationMoments(joint, required.map(copies), ctx.settings);
   const moments = statGoalMoments(stats, goal);
-  const pink = goal.pink ? pinkEstimate(apt, goal.pink, goal.pinkStars) : null;
+  const pink = goal.pink ? pinkEstimate(apt, goal.pink, goal.pinkStars, pinkLineage, ctx.settings.affinity) : null;
   issues.push(...(pink?.issues ?? []));
-  const notes = ['Pink eligibility uses the aptitude grades entered in Legacy after selecting both parents. Later inspiration increases are not estimated.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
+  const notes = ['Starting aptitude grades already include parent selection. Pink ancestry estimates additional mid-run inspiration increases without changing the entered grades.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
   if (skills.approximate) notes.push('A large group of linked skill sources uses a fixed sample approximation. Very rare joint outcomes may be missed.');
   if (coverage.conflicts.length) notes.push('Some goal skills compete for event choices. This estimate follows the current prioritized-skill order.');
   if (moments.approximateRank > 0.001) notes.push(`${(100 * moments.approximateRank).toFixed(1)}% of predicted ranks use Crazyfellow's additional below-B or UE star-rate estimates.`);

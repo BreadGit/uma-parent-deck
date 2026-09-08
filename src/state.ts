@@ -3,7 +3,7 @@
 import { STATS, type AptKey, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
-import { DEFAULT_GOAL, goalFamily, sanitizeGoal } from './model/goal-input.ts';
+import { DEFAULT_GOAL, emptyPinkLineage, goalFamily, sanitizeGoal, sanitizePinkLineage } from './model/goal-input.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
@@ -13,13 +13,13 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState }
 
-export const STATE_VERSION = 9;
+export const STATE_VERSION = 10;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
 
 export const DEFAULT_RUN: RunInput = {
-  goal: structuredClone(DEFAULT_GOAL),
+  goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(),
   targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
   aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [defaultParentSparks(), defaultParentSparks()],
 };
@@ -90,6 +90,7 @@ function migrateRun(raw: Json, data: Data): RunInput {
   // All white targets share one editor. Preserve old goal-only families in the merged target list.
   const ids = new Set([...run.goal.required.map((r) => r.id), ...run.goal.preferred]);
   run.targets = [...new Set([...run.targets.map((id) => goalFamily(id, data)).filter((id): id is number => id !== null && ids.has(id)), ...ids])];
+  run.pinkLineage = sanitizePinkLineage(raw.pinkLineage);
   return run;
 }
 function migrateLineage(v: Json): Lineage | null {

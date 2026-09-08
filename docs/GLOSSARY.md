@@ -66,7 +66,8 @@ names differ they are noted.
   stat per parent side, and her aptitudes. In the tool, the **Legacy** panel copies it: the **start
   gain** per parent (one of the 20 sums three sparks can make, +0 to +63) and all starting
   aptitudes after pink sparks. Its "By stars" form enters the same blue sparks per uma (stat and stars).
-  Parent-goal pink eligibility uses these entered grades without predicting later aptitude increases.
+  Its collapsed Pink sparks editor enters each ancestor's pink aptitude and stars for mid-run
+  inspiration estimates. Closing it does not disable those estimates.
 - **Inspiration events**: early April of Classic and Senior year, when sparks may proc again.
 - **White spark generation**: at run end each owned skill may become a white spark: 20% for a white
   skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage. The run
@@ -104,6 +105,9 @@ names differ they are noted.
   parent. It is not the sum of target chances. Shared event rewards and the final rank affect it.
 - **Attempt**: one final spark roll, including the initial result or a reroll. The displayed counts
   assume independent attempts with the same odds, even though a reroll keeps the trained parent.
+- **Pink lineage**: the aptitude and star count of each of the six ancestors' pink sparks. Unknown
+  entries do not mean zero matching sparks. The model predicts supported B-to-A increases; it does
+  not infer a below-B multi-grade jump.
 - **Source**: a way the run can end up with a target skill's hint: hint, chain event, random event,
   outing, scenario option or completion reward, trainee event (story, choice, outing or secret),
   innate/awakening skill, or lineage. Each has an obtain chance. Sources from one option of one event are

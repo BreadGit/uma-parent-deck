@@ -211,6 +211,9 @@ meter.bar::-moz-meter-bar { background: var(--accent); border-radius: 4px; }
 .goal-field select { width: 100%; min-width: 0; max-width: 100%; }
 .goal-pair { display: grid; grid-template-columns: minmax(0, 1fr) 125px; gap: 8px; }
 .goal-stats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.goal-pink-side { margin: 10px 0; }
+.goal-pink-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 55px; align-items: center; gap: 6px; margin: 5px 0; font-size: 12px; }
+.goal-pink-row select { min-width: 0; width: 100%; max-width: 100%; }
 .goal-total { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; font-size: 28px; font-weight: 600; margin: 8px 0; }
 .goal-total span { font-weight: 400; }
 .goal-breakdown { width: 100%; table-layout: fixed; }
@@ -220,7 +223,7 @@ meter.bar::-moz-meter-bar { background: var(--accent); border-radius: 4px; }
 .goal-attempts > div { display: grid; gap: 4px; background: var(--soft); border-radius: 6px; padding: 8px; overflow-wrap: anywhere; }
 @media (max-width: 600px) {
   .goal-pair { grid-template-columns: minmax(0, 1fr); }
-  .goal-field select { font-size: 16px; }
+  .goal-field select, .goal-pink-row select { font-size: 16px; }
   .goal-attempts { font-size: 12px; }
 }
 /* "By stars" form: each side's three umas with the stat and stars of her blue spark */

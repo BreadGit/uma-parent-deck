@@ -16,6 +16,7 @@ export const view = {
   cardQuery: '',
   showAdvanced: false,
   showSparks: false,
+  showPinkSparks: false,
 };
 
 let renderer: () => void = () => {};

@@ -244,7 +244,7 @@ test('white target chips migrate old goals and support zero or many required spa
   saved.run.traineeCardId = 100101;
   saved.run.targets = [200012];
   saved.run.goal = { ...saved.run.goal, enabled: true, pink: 'end', required: [{ id: null, stars: 2 }, { id: 200352, stars: 3 }], preferred: [201601, 200472] };
-  saved.run.aptOverrides.end = 'A';
+  saved.run.aptOverrides.end = 'B';
   saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
   const page = await fresh(t, saved);
   const before = await page.locator('.deck').innerText();
@@ -277,16 +277,8 @@ test('white target chips migrate old goals and support zero or many required spa
   await page.waitForSelector('[data-goal-result]');
   assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
   await page.selectOption('[data-apt="end"]', 'C');
-  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
-  assert.equal(await page.locator('[data-goal-zero]').count(), 1);
-  assert.equal(await page.locator('[data-pink-lineage], [data-pink-lineage-stars]').count(), 0);
-  assert.equal('pinkLineage' in (await state(page)).run, false);
-  await page.selectOption('[data-apt="end"]', 'A');
-  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
-  await page.reload();
-  await page.waitForSelector('[data-goal-result]');
-  assert.equal(await page.inputValue('[data-apt="end"]'), 'A');
-  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /starts below B/);
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0);
 });
 
 test('chip selection toggles its editor and removal updates goals without activating another chip', async (t) => {
@@ -320,4 +312,52 @@ test('chip selection toggles its editor and removal updates goals without activa
   await page.reload();
   await page.waitForSelector('#target-search');
   assert.equal(await page.locator('[data-action="select-target"]').count(), 0);
+});
+
+
+test('advanced pink inputs stay collapsed and retain inspiration data across toggles and reload', async (t) => {
+  const saved = defaultState(data);
+  saved.version = 9;
+  delete saved.run.pinkLineage;
+  saved.run.traineeCardId = 100101;
+  saved.run.aptOverrides.end = 'B';
+  saved.run.goal = { ...saved.run.goal, enabled: true, pink: 'end' };
+  const page = await fresh(t, saved);
+  const toggle = page.locator('[data-action="toggle-pink-sparks"]');
+  assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0);
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /Open Pink sparks in Legacy/);
+  await toggle.press('Enter');
+  assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+  assert.equal(await page.locator('[data-pink-lineage]').count(), 6);
+  assert.equal(await page.locator('[data-pink-lineage-stars="0"]').isDisabled(), true);
+  for (let i = 0; i < 6; i++) await page.selectOption(`[data-pink-lineage="${i}"]`, 'end');
+  await page.selectOption('[data-pink-lineage-stars="0"]', '3');
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0);
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'B', 'inspiration does not edit starting grades');
+  const probability = await page.locator('[data-goal-probability]').innerText();
+  const ancestry = (await state(page)).run.pinkLineage;
+  await page.click('[data-action="toggle-sparks"]');
+  assert.equal(await page.locator('[data-sparks-form]').count(), 1);
+  await toggle.click();
+  assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0);
+  assert.equal(await page.locator('[data-sparks-form]').count(), 1, 'blue and pink editors toggle independently');
+  assert.deepEqual((await state(page)).run.pinkLineage, ancestry);
+  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
+  await page.reload();
+  await page.waitForSelector('[data-goal-result]');
+  assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
+  await toggle.click();
+  assert.equal(await page.inputValue('[data-pink-lineage="0"]'), 'end');
+  assert.equal(await page.inputValue('[data-pink-lineage-stars="0"]'), '3');
+  await page.selectOption('[data-pink-lineage="0"]', '');
+  assert.equal(await page.locator('[data-pink-lineage-stars="0"]').isDisabled(), true);
+  assert.equal(await page.inputValue('[data-pink-lineage-stars="0"]'), '');
+  assert.equal((await state(page)).run.pinkLineage[0], null);
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0, 'unknown ancestry is not impossible');
+  await page.click('[data-action="reset-legacy"]');
+  assert.deepEqual((await state(page)).run.pinkLineage, Array(6).fill(null));
+  assert.deepEqual((await state(page)).run.aptOverrides, {});
 });

@@ -1,9 +1,8 @@
 # Aptitude increases at inspiration events
 
 Reviewed 2026-09-08. This is a curated research note for predicting final pink-spark eligibility.
-Current scope uses the post-parent-selection grades entered in Legacy and omits later aptitude
-increases. The original proposal below is retained as research, not implementation guidance.
-See [the current evaluator](../goal-parent-evaluator.md#pink-eligibility).
+The phase 1 evaluator implements the B-to-A scope below. Parent and grandparent inputs live in
+the collapsed Pink sparks editor in Legacy. See [the current evaluator](../goal-parent-evaluator.md#pink-eligibility).
 
 ## Sources
 
@@ -58,7 +57,7 @@ is not generally the chance of reaching A. For example, the guide describes C to
 large activation, or C to B at the first event followed by B to A at the second. Computing an
 exact probability for these paths needs the missing point distribution.
 
-## Original scope proposal
+## Recommended initial scope
 
 - Read post-parent-selection grades from the Legacy panel, including all four running styles.
 - Record the pink aptitude and stars of each of the six lineage umas. Unknown entries must remain

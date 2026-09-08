@@ -92,6 +92,7 @@ export const BLUE_GENERATION_BANDS = [
   { min: 1100, rates: [0.2, 0.7, 0.1] },
 ] as const;
 export const PINK_GENERATION_RATES = [0.2, 0.7, 0.1] as const;
+export const PINK_INSPIRATION_RATES = [0, 0.01, 0.03, 0.05] as const;
 // Low and UE bands use Crazyfellow's community estimates; the goal output identifies their use.
 export const WHITE_GENERATION_BANDS = [
   { min: 0, rates: [0.9, 0.1, 0], approximate: true },

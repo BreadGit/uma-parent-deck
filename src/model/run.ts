@@ -1,6 +1,6 @@
 import { STATS, type Card, type Character, type Data, type Inventory, type Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import type { ParentGoal } from './goal-input.ts';
+import type { ParentGoal, PinkSpark } from './goal-input.ts';
 import { evaluateParentGoal, type GoalEstimate } from './goal.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
@@ -14,6 +14,7 @@ import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARI
 /** Everything the user chose about the run. The app persists exactly this (plus UI-only fields). */
 export interface RunInput {
   goal: ParentGoal;
+  pinkLineage: (PinkSpark | null)[];
   targets: number[];                       // target family ids (the white form's skill id)
   targetLineage: Record<string, Lineage>;  // target id -> copies of the spark already in the lineage
   wishlistOrder: number[];                 // prioritized-skill keys the user arranged, in order
@@ -205,7 +206,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const { pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank } = prediction;
   const goalLineage = new Map(ctx.lineage);
   for (const [key, value] of Object.entries(input.targetLineage)) goalLineage.set(Number(key), value);
-  const goalEstimate = input.goal.enabled ? evaluateParentGoal(input.goal, apt, deckResult.deck, { ...ctx, lineage: goalLineage }, {
+  const goalEstimate = input.goal.enabled ? evaluateParentGoal(input.goal, input.pinkLineage, apt, deckResult.deck, { ...ctx, lineage: goalLineage }, {
     rawMean: rawFinalMean, sd: pred.sd, caps: statCaps?.cap, skillPoints: rank.skillPts, skillSd: settings.skillScoreSd,
   }, issues) : null;
   const spCost = targetSpCost(targets, deckResult.coverage);

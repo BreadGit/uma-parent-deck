@@ -14,8 +14,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   95% chance of success. With no required whites, success depends only on blue and pink. Changing
   a target's Required/Preferred role does not change deck selection; adding or removing a target
   still changes the builder's target list. Goal-driven deck optimization remains deferred.
-  Copy the track, distance, and style grades shown in game after selecting both parents into Legacy.
-  Pink eligibility uses those grades; later inspiration increases are not estimated.
+  Copy starting aptitude grades from the game after selecting both parents. Open Pink sparks
+  beside By stars in Legacy to enter all six ancestors and include mid-run B-to-A increases.
+  Closing this advanced editor keeps its saved inputs active. Missing ancestry and unsupported jumps are shown as incomplete estimates.
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
   If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint. Predictions assume you buy
@@ -201,8 +202,8 @@ calculation and remaining approximations.
   Bonus (the deck's total is shown but not modelled). Seven of the fourteen conditional unique-effect types depend on
   turn-by-turn state and are left out; the ranking flags every conditional effect with GameTora's
   description and what the model does with it.
-- The agenda and goal evaluator use the entered starting aptitudes for the whole run. These
-  already include starting parent-spark increases. Later inspiration increases are not estimated.
+- The agenda uses start-of-run aptitudes for the whole run. The goal evaluator models B-to-A pink
+  inspiration increases for final spark eligibility, without changing race odds or skill rating.
   Which option wins when several prioritized skills sit in one event is an assumption
   (list order), not a measured rule.
 - Forfeited stat rewards from the event option not taken are not modelled.
