@@ -13,9 +13,7 @@ export interface ParentGoal {
   required: WhiteGoal[];
   preferred: number[];
 }
-export interface PinkSpark { aptitude: AptKey; stars: number }
 export const DEFAULT_GOAL: ParentGoal = { enabled: false, blueStats: [...STATS], blueStars: 2, pink: null, pinkStars: 2, required: [], preferred: [] };
-export const emptyPinkLineage = (): (PinkSpark | null)[] => Array.from({ length: 6 }, () => null);
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 const stars = (v: unknown) => typeof v === 'number' && [1, 2, 3].includes(v) ? v : 2;
 export const goalFamily = (id: unknown, data: Data): number | null => {
@@ -38,11 +36,4 @@ export function sanitizeGoal(raw: unknown, data: Data, oldTargets: number[] = []
     blueStars: stars(v.blueStars), pink: APTITUDE_KEYS.includes(v.pink as AptKey) ? v.pink as AptKey : null, pinkStars: stars(v.pinkStars), required,
     preferred: [...new Set(preferred.map((id) => goalFamily(id, data)).filter((id): id is number => id !== null && !required.some((r) => r.id === id)))],
   };
-}
-export function sanitizePinkLineage(raw: unknown): (PinkSpark | null)[] {
-  return emptyPinkLineage().map((_, i) => {
-    const v = object(Array.isArray(raw) ? raw[i] : undefined);
-    return APTITUDE_KEYS.includes(v.aptitude as AptKey) && typeof v.stars === 'number' && [1, 2, 3].includes(v.stars)
-      ? { aptitude: v.aptitude as AptKey, stars: v.stars } : null;
-  });
 }

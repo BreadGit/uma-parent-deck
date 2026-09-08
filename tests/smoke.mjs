@@ -72,12 +72,6 @@ async function assertFieldsMatchState(where) {
       const id = el.dataset.goalLineageK ?? el.dataset.goalLineageP ?? el.dataset.lineageK ?? el.dataset.lineageP;
       check(el, st.run.targetLineage[id]?.[el.dataset.side] ?? 0);
     }
-    for (const el of document.querySelectorAll('[data-pink-lineage], [data-pink-lineage-stars]')) {
-      const index = el.dataset.pinkLineage ?? el.dataset.pinkLineageStars;
-      const spark = st.run.pinkLineage[index];
-      check(el, el.hasAttribute('data-pink-lineage') ? spark?.aptitude ?? '' : spark?.stars ?? '');
-      if (el.hasAttribute('data-pink-lineage-stars') && el.disabled !== !spark) out.push(`pink stars ${index} disabled differs from state`);
-    }
     return out;
   }, BLUE_SPARK_START_GAIN_BY_STARS);
   assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
@@ -349,12 +343,6 @@ for (const id of [200352, 201601, 200472]) {
 }
 assert.equal(await page.locator('[data-required-count]').innerText(), '3 required');
 assert.equal(await page.locator('.deck').innerText(), deckBeforeGoal, 'changing goal roles leaves selected cards unchanged');
-for (let i = 0; i < 6; i++) {
-  await page.selectOption(`[data-pink-lineage="${i}"]`, 'turf');
-  await assertFieldsMatchState(`after pink lineage ${i}`);
-}
-await page.selectOption('[data-pink-lineage-stars="0"]', '3');
-await assertFieldsMatchState('after pink star edit');
 assert.equal(await page.locator('[data-goal-issues]').count(), 0);
 assert.equal(await page.locator('[data-goal-attempts]').count(), 3);
 await page.click('[data-action="select-target"][data-id="201601"]');
@@ -396,7 +384,7 @@ assert.equal(await page.locator('[data-required-count]').innerText(), '0 require
 assert.equal(await page.locator('[data-goal-issues]').count(), 0, 'zero required whites is a complete white goal');
 await page.click('[data-target-role="required"][data-id="200472"]');
 await assertFieldsMatchState('after selecting one required white');
-await page.locator('.goal-pink-lineage').evaluate((el) => { el.open = true; });
+assert.equal(await page.locator('[data-pink-lineage], [data-pink-lineage-stars]').count(), 0);
 // layout check: no horizontal overflow at common widths, both themes
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {

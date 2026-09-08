@@ -244,7 +244,7 @@ test('white target chips migrate old goals and support zero or many required spa
   saved.run.traineeCardId = 100101;
   saved.run.targets = [200012];
   saved.run.goal = { ...saved.run.goal, enabled: true, pink: 'end', required: [{ id: null, stars: 2 }, { id: 200352, stars: 3 }], preferred: [201601, 200472] };
-  saved.run.aptOverrides.end = 'B';
+  saved.run.aptOverrides.end = 'A';
   saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
   const page = await fresh(t, saved);
   const before = await page.locator('.deck').innerText();
@@ -277,8 +277,16 @@ test('white target chips migrate old goals and support zero or many required spa
   await page.waitForSelector('[data-goal-result]');
   assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
   await page.selectOption('[data-apt="end"]', 'C');
-  assert.match(await page.locator('[data-goal-issues]').innerText(), /starts below B/);
-  assert.equal(await page.locator('[data-goal-zero]').count(), 0);
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  assert.equal(await page.locator('[data-goal-zero]').count(), 1);
+  assert.equal(await page.locator('[data-pink-lineage], [data-pink-lineage-stars]').count(), 0);
+  assert.equal('pinkLineage' in (await state(page)).run, false);
+  await page.selectOption('[data-apt="end"]', 'A');
+  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
+  await page.reload();
+  await page.waitForSelector('[data-goal-result]');
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'A');
+  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
 });
 
 test('chip selection toggles its editor and removal updates goals without activating another chip', async (t) => {

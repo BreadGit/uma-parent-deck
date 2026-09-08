@@ -12,22 +12,24 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
 3. Enter copies and stars under **White sparks in lineage** in the same editor. Select the active
    chip again to close it. The × on each chip removes the target and its goal and lineage entries.
 4. Enable **Evaluate goal** in Parent goal and choose blue and pink goals. Copy all starting aptitude
-   grades from the game's Legacy screen and enter the six pink lineage sparks in Legacy.
+   grades from the game's Legacy screen after selecting both parents. These include starting
+   increases from parent sparks; no separate pink ancestry input is needed.
 5. Read Parent goal estimate. It shows the complete probability, individual spark chances, all
    required skills' availability, SS chance, and 50% / 75% / 95% attempt counts.
 
 Required/Preferred roles and minimum stars do not change selected cards or the prioritized list.
 Adding or removing a target chip changes the existing builder's target list. Changing shared run
 inputs, such as lineage, inventory, or agenda, can still change the suggested deck.
-Unknown pink ancestry and matching pink sparks below starting B withhold the combined estimate.
-A fully specified goal with no modeled source or eligibility has zero chance. Preferred extras
-are individual 2★-or-better probabilities, not conditional on successful required goals.
+A fully specified goal with no modeled source or eligibility has zero chance under the entered
+aptitude grades. Later inspiration events can change actual eligibility but are not predicted.
+Preferred extras are individual 2★-or-better probabilities, not conditional on successful required goals.
 With zero required white families, the white contribution is one and success depends on blue/pink.
 
 ## Data and ownership
 
-- `src/model/goal-input.ts` defines and normalizes the goal and six pink ancestry entries.
-- `src/state.ts` migrates saves to version 8. Older deck targets default to Preferred; stored Required
+- `src/model/goal-input.ts` defines and normalizes the goal.
+- `src/state.ts` migrates saves to version 9. Obsolete pink ancestry entries are discarded
+  while entered aptitude overrides survive. Older deck targets default to Preferred; stored Required
   entries and their stars survive. The former empty required slots disappear. Old goal-only families
   join the unified target list, which can change deck suggestions for saves with separate lists.
   Invalid families and duplicate required entries are removed. The required list defaults to empty.
@@ -37,7 +39,7 @@ With zero required white families, the white contribution is one and success dep
   required family. `src/model/goal.ts` combines this with stat, rank, pink, and star estimates.
 - `src/ui/panels/targets.ts` renders the target chips and shared goal/lineage editor. Its selected
   chip is transient view state. `goal.ts` renders blue/pink controls and results. Legacy owns starting
-  grades and pink lineage. All saved edits use the existing persisted store.
+  aptitude grades copied from the game. All saved edits use the existing persisted store.
 
 Generation constants live in `rules.ts`. Their provenance is the
 [Hakuraku note](refs/hakuraku-spark-generation.md), including the explicitly approximate low/UE
@@ -98,15 +100,16 @@ Predicted run panel's linearized rank estimate, especially near caps.
 
 ### Pink eligibility
 
-Starting A/S aptitudes remain eligible. With complete ancestry, a B aptitude becomes eligible
-when any matching spark procs at either inspiration event. Each proc uses its star rate times
-`1 + individualAffinity / 100`, capped at one. The existing affinity setting applies to all six.
-A small distribution over the number of other eligible aptitudes accounts for dilution when
-competing B aptitudes become A. Generation selects uniformly among eligible aptitudes.
+Pink eligibility uses the entered track, distance, and style grades after selecting both parents.
+These grades already include starting aptitude increases from parent sparks. The evaluator does
+not add another starting increase or predict increases from later inspiration events.
 
-A grade below B with matching ancestry needs an unknown aptitude-point distribution. It remains
-unestimated, including when it could dilute an already eligible target. No matching spark in
-complete ancestry gives zero chance of improvement. A/S versus S does not change selection odds.
+A/S grades are eligible. Generation selects uniformly among all eligible aptitudes, then applies
+the requested minimum-star chance. For example, a specific 2★+ pink spark has an estimated
+`0.8 / 4 = 20%` chance when four entered aptitudes are A/S. A target below A gives zero under the
+entered grades, not impossibility across every potential inspiration outcome. With no eligible
+aptitudes the estimate is zero rather than an invalid division. A and S have the same selection odds.
+The inheritance research remains in `docs/refs/aptitude-inheritance.md` for reference.
 
 ### Attempts
 
@@ -118,18 +121,18 @@ independent chance. There is no attempts-per-career setting or selective-reroll 
 
 - Hint pickups across families are independent pooled estimates. Shared hints competing over a
   limited number of training turns are not simulated.
-- Unlinked events, different chain outcomes conditional on reach, and distinct pink proc rolls are
-  independent estimates. Race-conditioned rewards inherit the existing race model.
+- Unlinked events and different chain outcomes conditional on reach are independent estimates.
+  Race-conditioned rewards inherit the existing race model.
 - Skill acquisition is independent of the sampled stat/rank outcome. Gold-roll odds use the
   existing assumed stat at the event. Buying the required skills does not change the rank budget.
 - Blue inspiration contributions use their existing mean. This delivery adds no inheritance
   variance or correlation between blue, pink, and white inspiration outcomes.
-- Skill rating and agenda race odds use starting aptitudes. Pink increases affect final spark
-  eligibility only. Skill rating, stat spreads, and unmeasured event rates remain estimates.
+- Skill rating, agenda race odds, and pink eligibility use the entered starting aptitudes. Later
+  aptitude increases are omitted. Skill rating, stat spreads, and unmeasured event rates remain estimates.
 - White families generate and roll their stars independently conditional on skill forms and rank.
   Race, scenario, green unique, and negative skill spark goals are outside this delivery.
 
 `tests/goal.test.ts` covers numeric boundaries, complete-goal arithmetic, shared events and chains,
 rank dependence, pink eligibility, migration, and unchanged deck selection. Browser smoke checks
 all goal controls against saved state and tests responsive layouts in both themes. Browser
-regressions cover reloads, old saves, and unsupported versus impossible goals.
+regressions cover reloads, old saves, and pink eligibility changes through entered grades.

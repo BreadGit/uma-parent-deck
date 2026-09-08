@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { DEFAULT_RUN, migrate, defaultState } from '../src/state.ts';
-import { DEFAULT_GOAL, emptyPinkLineage, sanitizeGoal, sanitizePinkLineage, goalFamily, APTITUDE_KEYS } from '../src/model/goal-input.ts';
+import { DEFAULT_GOAL, sanitizeGoal, goalFamily, APTITUDE_KEYS } from '../src/model/goal-input.ts';
 import { attemptsFor, blueChance, pinkEstimate, starChance, statGoalMoments, evaluateParentGoal } from '../src/model/goal.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
 import { resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
@@ -18,7 +18,6 @@ const target = (name: string) => resolveTarget(data.skills.find((s) => s.name ==
 const a = target('Groundwork'), b = target('Corner Recovery ○');
 const close = (actual: number, expected: number, tolerance = 1e-10) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} != ${expected}`);
 const apt = (): Record<AptKey, Grade> => Object.fromEntries(APTITUDE_KEYS.map((k) => [k, k === 'turf' ? 'A' : 'G'])) as Record<AptKey, Grade>;
-const lineage = () => Array.from({ length: 6 }, () => ({ aptitude: 'turf' as const, stars: 3 }));
 const plain = (skillId: number, pObtain = 1): SkillSource => ({ kind: 'hint', skillId, pObtain, gold: false, circle: false, isChoice: false, detail: 'Test hint' });
 const event = (skillId: number, overrides: Partial<EventSource> = {}): EventSource => ({ kind: 'random', skillId, pObtain: 0.5, gold: false, circle: false, isChoice: false, detail: 'Test event', event: { key: 'event', label: 'Event', option: 'one', optionIndex: 0 }, ...overrides });
 
@@ -41,27 +40,27 @@ test('attempt counts handle boundaries and use the selected confidence', () => {
   assert.ok(Number.isFinite(attemptsFor(1e-15, .95)));
 });
 
-test('pink eligibility includes B-to-A and dilution from competing aptitudes', () => {
-  const grades = { ...apt(), end: 'B' as const };
-  const sparks = lineage();
-  const end = [{ aptitude: 'end' as const, stars: 3 }, ...sparks.slice(1)];
-  const result = pinkEstimate(grades, 'end', 2, end, 150);
-  close(result.probability!, (1 - .875 ** 2) * .8 / 2);
-  const competitor = pinkEstimate(grades, 'turf', 2, end, 150);
-  close(competitor.probability!, .8 * (.875 ** 2 + (1 - .875 ** 2) / 2));
-  const six = pinkEstimate(grades, 'end', 2, Array.from({ length: 6 }, () => end[0]!), 150);
-  close(six.probability!, (1 - .875 ** 12) * .8 / 2);
-  close(pinkEstimate(grades, 'end', 2, sparks, 150).probability!, 0);
-  close(pinkEstimate({ ...grades, end: 'A' }, 'end', 2, sparks, 150).probability!, .4);
+test('pink eligibility uses entered grades and counts every eligible surface, distance, and style', () => {
+  const grades = { ...apt(), mile: 'A' as const, medium: 'S' as const, end: 'A' as const };
+  close(pinkEstimate(grades, 'end', 2).probability!, .8 / 4);
+  close(pinkEstimate(grades, 'end', 3).probability!, .1 / 4);
+  close(pinkEstimate({ ...grades, end: 'S' }, 'end', 2).probability!, .8 / 4);
+  for (const grade of ['B', 'C', 'D', 'E', 'F', 'G'] as const) {
+    const result = pinkEstimate({ ...grades, end: grade }, 'end', 2);
+    assert.equal(result.probability, 0);
+    assert.deepEqual(result.issues, []);
+    close(pinkEstimate({ ...grades, end: grade }, 'turf', 2).probability!, .8 / 3);
+  }
+  const none = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'G'])) as Record<AptKey, Grade>;
+  assert.equal(pinkEstimate(none, 'end', 2).probability, 0);
 });
 
-test('unknown ancestry and unsupported jumps are not declared impossible', () => {
-  assert.equal(pinkEstimate(apt(), 'end', 2, emptyPinkLineage(), 150).probability, null);
-  const result = pinkEstimate(apt(), 'end', 2, [{ aptitude: 'end', stars: 3 }, ...lineage().slice(1)], 150);
-  assert.equal(result.probability, null);
-  assert.match(result.issues.join(' '), /below B/);
-  const allA = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
-  close(pinkEstimate(allA, 'end', 2, emptyPinkLineage(), 150).probability!, .08, 1e-10);
+test('old pink ancestry is discarded while entered aptitude grades survive migration', () => {
+  const saved = migrate({ current: { version: 8, run: { aptOverrides: { end: 'A', mile: 'B' }, pinkLineage: Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 })) } } }, data);
+  assert.equal(saved.version, 9);
+  assert.deepEqual(saved.run.aptOverrides, { end: 'A', mile: 'B' });
+  assert.equal('pinkLineage' in saved.run, false);
+  assert.deepEqual(migrate({ current: saved }, data), saved);
 });
 
 test('joint skill model preserves simultaneous and mutually exclusive event outcomes', () => {
@@ -140,7 +139,6 @@ test('goal migration keeps old targets as preferred and normalizes family identi
   assert.deepEqual(goal.required, [{ id: b.id, stars: 3 }]);
   assert.deepEqual(goal.preferred, [a.id]);
   assert.deepEqual(goal.blueStats, ['power']);
-  assert.deepEqual(sanitizePinkLineage([{ aptitude: 'end', stars: 3 }, { aptitude: 'end', stars: 4 }]), [{ aptitude: 'end', stars: 3 }, null, null, null, null, null]);
   const current = defaultState(data); current.run.goal = goal;
   assert.deepEqual(migrate({ current }, data).run.goal, goal);
 });
@@ -151,7 +149,6 @@ test('goal editing leaves selected cards and current prioritized list unchanged'
   input.targets = [a.id];
   const before = planRun(input, settings, {}, data);
   input.goal = { ...structuredClone(DEFAULT_GOAL), enabled: true, pink: 'turf', required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }], preferred: [] };
-  input.pinkLineage = lineage();
   const after = planRun(input, settings, {}, data);
   assert.deepEqual(after.deckResult.deck.map((d) => [d.card.id, d.lb, d.borrowed]), before.deckResult.deck.map((d) => [d.card.id, d.lb, d.borrowed]));
   assert.deepEqual(after.wl, before.wl);
@@ -165,17 +162,17 @@ test('complete goal uses both required sparks while preferred extras do not cons
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
   const grades = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
   const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
-  const result = evaluateParentGoal(goal, emptyPinkLineage(), grades, [], ctx, stats, []);
+  const result = evaluateParentGoal(goal, grades, [], ctx, stats, []);
   close(result.probability!, .2 ** 2 * .8 * .8 ** 2 * .08);
   close(result.allAvailable, 1);
   result.required.forEach((r) => close(r.probability, .2 * .8));
-  const partial = evaluateParentGoal({ ...goal, required: [{ id: b.id, stars: 3 }] }, emptyPinkLineage(), grades, [], ctx, stats, []);
+  const partial = evaluateParentGoal({ ...goal, required: [{ id: b.id, stars: 3 }] }, grades, [], ctx, stats, []);
   close(partial.probability!, .8 * .08 * .2 * .1);
   close(partial.required[0]!.probability, .2 * .1);
-  const preferred = evaluateParentGoal({ ...goal, preferred: [target('Lucky Seven').id] }, emptyPinkLineage(), grades, [], ctx, stats, []);
+  const preferred = evaluateParentGoal({ ...goal, preferred: [target('Lucky Seven').id] }, grades, [], ctx, stats, []);
   close(preferred.probability!, result.probability!);
   close(preferred.preferred[0]!.probability, 0);
-  assert.equal(evaluateParentGoal(goal, emptyPinkLineage(), grades, [], ctx, stats, ['Incomplete deck']).probability, null);
+  assert.equal(evaluateParentGoal(goal, grades, [], ctx, stats, ['Incomplete deck']).probability, null);
 });
 
 test('unavailable required skills give zero; incomplete inputs give no complete estimate', () => {
@@ -183,9 +180,9 @@ test('unavailable required skills give zero; incomplete inputs give no complete 
   const trainee = { ...data.characters[0]!, innateSkills: [], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings: { ...settings, scenarioPickRate: 0 }, races: 0, totalTurns: 72, trainee });
   const stats = { rawMean: [1000, 1000, 1000, 1000, 1000], sd: [0, 0, 0, 0, 0], skillPoints: 3000, skillSd: 0 };
-  const result = evaluateParentGoal(goal, lineage(), apt(), [], ctx, stats, []);
+  const result = evaluateParentGoal(goal, apt(), [], ctx, stats, []);
   assert.equal(result.probability, 0);
-  assert.equal(evaluateParentGoal({ ...goal, pink: null }, lineage(), apt(), [], ctx, stats, []).probability, null);
+  assert.equal(evaluateParentGoal({ ...goal, pink: null }, apt(), [], ctx, stats, []).probability, null);
 });
 type ParentGoalRequired = typeof DEFAULT_GOAL.required;
 
@@ -197,7 +194,7 @@ test('zero, one, and many required whites use a product within each shared rank 
   const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
   const requirements = [{ id: a.id, stars: 2 }, { id: b.id, stars: 3 }, { id: c.id, stars: 1 }];
   for (const n of [0, 1, 2, 3]) {
-    const result = evaluateParentGoal({ ...structuredClone(DEFAULT_GOAL), enabled: true, pink: 'turf', required: requirements.slice(0, n), preferred: [] }, emptyPinkLineage(), grades, [], ctx, stats, []);
+    const result = evaluateParentGoal({ ...structuredClone(DEFAULT_GOAL), enabled: true, pink: 'turf', required: requirements.slice(0, n), preferred: [] }, grades, [], ctx, stats, []);
     close(result.probability!, .8 * .08 * [.2 * .8, .2 * .1, .25].slice(0, n).reduce((all, p) => all * p, 1));
     close(result.allAvailable, 1);
     assert.equal(result.required.length, n);

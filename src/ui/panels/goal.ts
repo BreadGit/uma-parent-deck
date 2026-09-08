@@ -34,7 +34,7 @@ export function renderGoalResult(c: RunPlan) {
   return panel({ title: 'Parent goal estimate' }, html`<div data-goal-result>
     ${p === null ? html`<p class="muted" data-goal-probability>Complete the goal inputs for a combined estimate.</p>` : html`<div class="goal-total" data-goal-probability>${probability(p)}<span class="small muted">per attempt for every required spark</span></div>`}
     ${result.issues.length ? html`<ul class="small" data-goal-issues>${result.issues.map((issue) => html`<li>${issue}</li>`)}</ul>` : nothing}
-    ${p === 0 ? html`<p class="warn" data-goal-zero>The modeled outcomes give a zero estimate. Check blue spark thresholds, skill availability, and pink eligibility below.</p>` : nothing}
+    ${p === 0 ? html`<p class="warn" data-goal-zero>The modeled outcomes give a zero estimate with the entered aptitude grades. Check blue spark thresholds, skill availability, and pink eligibility below.</p>` : nothing}
     <div class="scroll-x"><table class="goal-breakdown"><thead><tr><th>Required spark</th><th class="num">Available</th><th class="num">Spark chance</th></tr></thead><tbody>
       <tr><td>Blue (${store.run.goal.blueStats.length === 5 ? 'any stat' : store.run.goal.blueStats.map(capitalize).join(', ') || 'none selected'})</td><td class="num">Always</td><td class="num">${probability(result.blue)}</td></tr>
       <tr><td>Pink (${store.run.goal.pink ? APTITUDE_LABELS[store.run.goal.pink] : 'choose aptitude'})</td><td class="num">A/S only</td><td class="num">${result.pink?.probability == null ? 'Needs inputs' : probability(result.pink.probability)}</td></tr>
@@ -44,9 +44,9 @@ export function renderGoalResult(c: RunPlan) {
     ${p !== null ? html`<div class="goal-attempts">${[0.5, 0.75, 0.95].map((confidence) => { const n = attemptsFor(p, confidence); return html`<div><b>${confidence * 100}% chance</b><span data-goal-attempts=${confidence}>${Number.isFinite(n) ? `${n.toLocaleString()} attempts` : 'Not reachable'}</span></div>`; })}</div>
       <p class="small muted">Attempts count final spark rolls. This estimate treats them as independent with the same odds, including rerolls.</p>` : nothing}
     ${result.preferred.length ? html`<details><summary>Preferred extras at 2★ or better</summary><ul class="small">${result.preferred.map((w) => html`<li>${w.target.name}: ${probability(w.probability)} per attempt</li>`)}</ul><p class="small muted">These individual chances do not require the rest of the goal to succeed.</p></details>` : nothing}
-    <details><summary>Assumptions and aptitude increases</summary><ul class="small">${result.notes.map((note) => html`<li>${note}</li>`)}</ul>
+    <details><summary>Assumptions and aptitude eligibility</summary><ul class="small">${result.notes.map((note) => html`<li>${note}</li>`)}</ul>
       <p class="small muted">Stats share the same outcome with rank. Hint pickups and unlinked events are treated as independent. The agenda keeps its starting aptitude estimates.</p>
-      ${result.pink ? html`<ul class="small">${result.pink.eligibility.map((e) => html`<li>${APTITUDE_LABELS[e.aptitude]} eligible at the end: ${e.probability === null ? 'not estimated' : probability(e.probability)}</li>`)}</ul>` : nothing}
+      ${result.pink ? html`<ul class="small">${result.pink.eligibility.map((e) => html`<li>${APTITUDE_LABELS[e.aptitude]} eligible with entered grade: ${e.probability === null ? 'not estimated' : probability(e.probability)}</li>`)}</ul>` : nothing}
     </details>
   </div>`);
 }

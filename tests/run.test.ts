@@ -1,4 +1,4 @@
-import { DEFAULT_GOAL, emptyPinkLineage } from '../src/model/goal-input.ts';
+import { DEFAULT_GOAL } from '../src/model/goal-input.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
@@ -16,7 +16,7 @@ const data = loadData();
 const settings = { ...DEFAULT_SETTINGS };
 const byName = (n: string) => data.skills.find((s) => s.name === n && !s.unreleasedEn)!;
 const sw = data.characters.find((c) => c.name === 'Special Week')!;
-const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [[null, null, null], [null, null, null]] };
+const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [[null, null, null], [null, null, null]] };
 const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight });
 
 test('star tables: every listed table is used as is; only a missing one interpolates, and counts outside the range clamp', () => {
