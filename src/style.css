@@ -214,6 +214,7 @@ meter.bar::-moz-meter-bar { background: var(--accent); border-radius: 4px; }
 .deck .slot .slot-top .tag { margin: 0; }
 .deck .slot .name { font-size: 12px; margin-top: 4px; min-height: 32px; }
 .deck .slot .name .type-icon { width: 16px; height: 16px; margin-right: 3px; }
+.deck .slot .name .title { display: block; }
 .deck .slot .lb { font-size: 12px; color: var(--muted); }
 .deck .slot .cover { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 6px; }
 /* a slot is narrow: the target name may wrap, but 'spark NN% (i)' stays on one line */

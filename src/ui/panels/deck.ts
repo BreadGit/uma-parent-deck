@@ -95,7 +95,7 @@ export function renderDeck(c: RunPlan) {
     <div class="slot">
       <div class="slot-top">${store.run.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : nothing}</div>
       ${cardThumb(cs.card, 'slot-art')}
-      <div class="name">${typeIcon(cs.card)}${cardLink(cs.card, html`${cs.card.charName} <span class="muted">${cs.card.title}</span>`)}</div>
+      <div class="name">${typeIcon(cs.card)}${cardLink(cs.card, html`${cs.card.charName}<span class="muted title">${cs.card.title}</span>`)}</div>
       <div class="lb">${cs.borrowed ? html`LB4 (friend's)` : html`LB ${lbSelect(cs.card, cs.lb, 'small')}`}</div>
       <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} <span class="n"><span class="muted">spark</span> ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span></span>`)}</div>
     </div>`)}</div>` : html`<div class="muted">No owned cards. Mark the cards you own in the card ranking.</div>`;
