@@ -208,7 +208,7 @@ meter.bar::-moz-meter-bar { background: var(--accent); border-radius: 4px; }
 .legacy-apts .cell select { font-size: 11px; padding: 1px 0; width: 34px; }
 .legacy-apts .cell.over select { border-color: var(--warn); }
 /* "By stars" form: each side's three umas with the stat and stars of her blue spark */
-.legacy-sparks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 12px; margin-top: 8px; font-size: 11px; }
+.legacy-sparks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 12px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 11px; }
 .legacy-sparks .side { display: grid; grid-template-columns: auto auto auto; justify-content: start; gap: 3px 5px; align-items: center; min-width: 0; }
 .legacy-sparks .side-head { grid-column: 1 / -1; font-weight: 600; display: flex; align-items: center; gap: 4px; }
 .legacy-sparks .side.p1 .side-head { color: var(--parent1); }

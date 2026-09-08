@@ -37,9 +37,10 @@ async function assertFieldsMatchState(where) {
       const key = el.dataset.sparkStat ?? el.dataset.sparkStars;
       const [p, u] = key.split('-').map(Number);
       const spark = st.run?.parentSparks?.[p]?.[u] ?? null;
-      const want = el.dataset.sparkStat ? (spark?.stat ?? '') : spark ? String(spark.stars) : null;
-      if (want !== null && el.value !== want) out.push(`spark select ${key} shows ${el.value}, state ${want}`);
+      const want = el.dataset.sparkStat ? (spark?.stat ?? '') : spark ? String(spark.stars) : '';
+      if (el.value !== want) out.push(`spark select ${key} shows ${el.value}, state ${want}`);
       if (el.dataset.sparkStars && el.disabled !== !spark) out.push(`stars select ${key} disabled=${el.disabled} for spark ${JSON.stringify(spark)}`);
+      if (!!el.querySelector('option[value=""]') !== !spark) out.push(`spark select ${key} offers "—" ${spark ? 'for a filled slot' : 'not at all for an empty slot'}`);
     }
     for (const el of document.querySelectorAll('select[data-apt]')) {
       const over = st.run?.aptOverrides?.[el.dataset.apt];
@@ -180,6 +181,14 @@ await page.selectOption('select[data-gain="0-3"]', '0');
 await page.waitForTimeout(200);
 assert.equal(await page.$eval('select[data-spark-stat="0-0"]', (s) => s.value), '', 'setting the stat to +0 empties the uma\'s slot in the form');
 await assertFieldsMatchState('after emptying a slot from the dropdown');
+// +63 then +12 on one stat leaves two umas unentered: both of their selects show "—", not a stale star count
+await page.selectOption('select[data-gain="0-3"]', '63');
+await page.selectOption('select[data-gain="0-3"]', '12');
+await page.waitForTimeout(200);
+assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['guts', '2', '', '', '', ''], 'one 2★ Guts uma and two empty rows');
+await assertFieldsMatchState('after shrinking a start gain');
+assert.equal(await page.$$eval('.legacy-sparks', (els) => els.length), 1);
+assert.ok(await page.evaluate(() => document.querySelector('.legacy-sparks').compareDocumentPosition(document.querySelector('.legacy-legend')) & Node.DOCUMENT_POSITION_FOLLOWING), 'the spark form sits above the start gain row');
 await page.click('button[data-action="toggle-sparks"]');
 await page.waitForTimeout(100);
 assert.equal(await page.$('[data-sparks-form]'), null, 'the toggle closes the form again');
