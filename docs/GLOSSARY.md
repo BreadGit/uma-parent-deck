@@ -67,7 +67,9 @@ names differ they are noted.
   gain** per parent (one of the 20 sums three sparks can make, +0 to +63) and all starting
   aptitudes after pink sparks. Its "By stars" form enters the same blue sparks per uma (stat and stars).
   Its collapsed Pink sparks editor enters each ancestor's pink aptitude and stars for mid-run
-  inspiration estimates. Closing it does not disable those estimates.
+  inspiration estimates. Its button and editor sit between the stat gains and aptitude inputs.
+  Dimmed aptitude choices reassign other sparks and adjust affected grades without going below base.
+  Closing the editor does not disable those estimates.
 - **Inspiration events**: early April of Classic and Senior year, when sparks may proc again.
 - **White spark generation**: at run end each owned skill may become a white spark: 20% for a white
   skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage. The run
@@ -106,7 +108,7 @@ names differ they are noted.
 - **Attempt**: one final spark roll, including the initial result or a reroll. The displayed counts
   assume independent attempts with the same odds, even though a reroll keeps the trained parent.
 - **Inferred pink spark**: an estimated pink spark chosen to explain a starting aptitude increase.
-  The tool uses the minimum required stars and packs them into the fewest slots. A grade does not
+  The tool adds the minimum missing stars, keeping existing matching sparks where possible. A grade does not
   identify the actual lineage. Editing an inferred entry makes it manual; unassigned slots stay unknown.
 - **Pink lineage**: the aptitude and star count of each of the six ancestors' pink sparks. Unknown
   entries do not mean zero matching sparks. The model predicts supported B-to-A increases; it does

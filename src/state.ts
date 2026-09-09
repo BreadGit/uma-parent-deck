@@ -3,7 +3,8 @@
 import { STATS, type AptKey, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
-import { DEFAULT_GOAL, emptyPinkLineage, goalFamily, sanitizeGoal, sanitizePinkLineage } from './model/goal-input.ts';
+import { APTITUDE_KEYS, DEFAULT_GOAL, emptyPinkLineage, goalFamily, sanitizeGoal, sanitizePinkLineage } from './model/goal-input.ts';
+import { normalizeStartingAptitudes } from './model/pink-inherit.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
@@ -13,7 +14,7 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState }
 
-export const STATE_VERSION = 11;
+export const STATE_VERSION = 12;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -58,6 +59,11 @@ function migrateRun(raw: Json, data: Data): RunInput {
   if (isObj(raw.aptOverrides)) for (const k of APT_KEYS) {
     const v = raw.aptOverrides[k];
     if (typeof v === 'string' && APT_GRADES.includes(v as Grade)) run.aptOverrides[k] = v === 'S' ? 'A' : v as Grade;
+  }
+  const trainee = run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) : null;
+  if (trainee) {
+    const aptitudes = normalizeStartingAptitudes(trainee.aptitudes, run.aptOverrides);
+    run.aptOverrides = Object.fromEntries(APTITUDE_KEYS.filter((key) => aptitudes[key] !== trainee.aptitudes[key]).map((key) => [key, aptitudes[key]]));
   }
   if (isObj(raw.raceOverrides)) run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([, v]) => typeof v === 'boolean')) as Record<string, boolean>;
   // pins: a single pinnedId (v1) became pinnedIds (v2)

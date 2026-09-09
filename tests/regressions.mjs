@@ -174,12 +174,12 @@ test('saved spark ownership survives gain edits and reload; malformed aptitudes 
   saved.run.aptOverrides = { turf: 'Z', dirt: 'B', luck: 'A' };
   const page = await fresh(t, saved);
   assert.equal(await page.inputValue('[data-apt="turf"]'), data.charByCardId.get(100101).aptitudes.turf);
-  assert.equal(await page.inputValue('[data-apt="dirt"]'), 'B');
+  assert.equal(await page.inputValue('[data-apt="dirt"]'), 'C');
   await page.selectOption('[data-gain="0-0"]', '17');
   await page.reload();
   await page.waitForSelector('[data-gain]');
   assert.deepEqual((await state(page)).run.parentSparks, [[{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 2 }, { stat: 'power', stars: 2 }], [null, null, null]]);
-  assert.deepEqual((await state(page)).run.aptOverrides, { dirt: 'B' });
+  assert.deepEqual((await state(page)).run.aptOverrides, { dirt: 'C' });
   await page.click('[data-action="toggle-sparks"]');
   assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['speed', '1', 'speed', '2', 'power', '2']);
 });
@@ -277,7 +277,7 @@ test('white target chips migrate old goals and support zero or many required spa
   await page.waitForSelector('[data-goal-result]');
   assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
   await page.selectOption('[data-apt="end"]', 'C');
-  assert.match(await page.locator('[data-goal-issues]').innerText(), /starts below B/);
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /Open Pink sparks in Legacy/);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
 });
 
@@ -390,38 +390,48 @@ test('aptitude increases infer editable pink sparks, preserve manual entries, an
   await page.click('[data-action="toggle-pink-sparks"]');
   assert.equal(await page.locator('[data-pink-inferred]').count(), 1);
   await page.selectOption('[data-apt="end"]', 'C');
-  assert.deepEqual((await state(page)).run.pinkLineage.filter(Boolean), [{ aptitude: 'end', stars: 3 }]);
+  assert.deepEqual((await state(page)).run.pinkLineage.filter(Boolean), []);
   await page.selectOption('[data-apt="end"]', 'A');
   await page.click('[data-action="clear-trainee"]');
   await trainee(page, 'haru urara');
-  assert.deepEqual((await state(page)).run.pinkLineage.filter(Boolean), [{ aptitude: 'end', stars: 3 }]);
+  assert.deepEqual((await state(page)).run.pinkLineage.filter(Boolean), []);
   await page.click('[data-action="reset-legacy"]');
   assert.deepEqual((await state(page)).run.pinkLineage, Array(6).fill(null));
 });
 
-test('aptitude choices guard the six-spark limit and unlock when another grade frees a slot', async (t) => {
+test('dimmed aptitude choices rebalance pink sparks and stay between base and starting limits', async (t) => {
   const page = await fresh(t);
   await trainee(page);
+  assert.deepEqual(await page.locator('[data-apt="turf"] option').evaluateAll((options) => options.map((o) => o.value)), ['A']);
+  assert.deepEqual(await page.locator('[data-apt="dirt"] option').evaluateAll((options) => options.map((o) => o.value)), ['C', 'D', 'E', 'F', 'G']);
   await page.selectOption('[data-apt="dirt"]', 'C');
   await page.selectOption('[data-apt="sprint"]', 'D');
   const option = page.locator('[data-apt="end"] option[value="B"]');
-  assert.equal(await option.isDisabled(), true, 'a seventh spark cannot be selected');
-  assert.equal(await page.locator('[data-apt="dirt"] option[value="B"]').isDisabled(), true, 'more than four starting increases cannot be selected');
-  const before = (await state(page)).run;
-  await page.locator('[data-apt="end"]').evaluate((select) => {
-    select.value = 'B';
-    select.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  assert.deepEqual((await state(page)).run, before, 'the handler also rejects a forced disabled selection');
-  assert.equal(await page.inputValue('[data-apt="end"]'), 'C', 'rejected change restores the displayed grade');
-  assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
-  await page.selectOption('[data-apt="sprint"]', 'E');
+  assert.equal(await option.getAttribute('class'), 'dim');
   assert.equal(await option.isDisabled(), false);
   await page.selectOption('[data-apt="end"]', 'B');
-  assert.equal((await state(page)).run.pinkLineage.filter(Boolean).length, 6);
+  assert.equal(await page.inputValue('[data-apt="sprint"]'), 'E');
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
+  const saved = (await state(page)).run;
+  assert.equal(saved.pinkLineage.filter(Boolean).length, 6);
+  assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
+  await page.locator('[data-apt="end"]').evaluate((select) => {
+    select.value = 'G';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  assert.deepEqual((await state(page)).run, saved);
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
   await page.reload();
   await page.waitForSelector('[data-apt="end"]');
-  assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
-  assert.equal(await page.locator('[data-apt="sprint"] option[value="D"]').isDisabled(), true);
-  assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
+  assert.deepEqual((await state(page)).run, saved);
+  assert.equal(await page.locator('[data-apt="sprint"] option[value="D"]').getAttribute('class'), 'dim');
+  await page.click('[data-action="toggle-pink-sparks"]');
+  assert.equal(await page.evaluate(() => {
+    const stats = document.querySelector('.legacy-stats');
+    const button = document.querySelector('[data-action="toggle-pink-sparks"]');
+    const form = document.querySelector('[data-pink-sparks-form]');
+    const aptitudes = document.querySelector('.legacy-apts');
+    const before = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return before(stats, button) && before(button, form) && before(form, aptitudes);
+  }), true, 'pink controls sit between the stat gains and aptitude table');
 });

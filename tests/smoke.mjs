@@ -129,8 +129,8 @@ assert.deepEqual(legacyPlacement, { traineeApts: 0, legacyApts: 10, gains: 10, s
 assert.deepEqual(await page.$$eval('select[data-gain]', (els) => els.map((s) => s.value)), Array(10).fill('0'), 'a fresh run starts with no entered gains');
 await assertFieldsMatchState('after choosing the first trainee');
 const baseTurf = await page.inputValue('select[data-apt="turf"]');
-const overrideTurf = baseTurf === 'G' ? 'A' : 'G';
-await page.selectOption('select[data-apt="turf"]', overrideTurf);
+await page.selectOption('select[data-apt="end"]', 'A');
+await assertFieldsMatchState('after increasing End Closer');
 const pickTrainee = async (q) => {
   await page.click('button[data-action="clear-trainee"]');
   await page.fill('#trainee-search', q);
@@ -283,7 +283,7 @@ assert.ok(afterUnown.borrow?.includes('Light Hello'), `the unowned pin should be
 assert.equal(afterUnown.chip, 'borrow', 'the pinned chip says borrow');
 console.log('deck after marking Light Hello SSR not owned: borrow =', afterUnown.borrow);
 // the panel's Reset clears every gain and aptitude override at once
-await page.selectOption('select[data-apt="turf"]', 'G');
+await page.selectOption('select[data-apt="end"]', 'A');
 await page.click('button[data-action="reset-legacy"]');
 await page.waitForTimeout(200);
 await assertFieldsMatchState('after the legacy reset');
@@ -329,24 +329,27 @@ await assertFieldsMatchState('after clearing entered sparks again');
 assert.equal(await page.locator('select[data-gain] option.dim').count(), 0);
 await page.click('button[data-action="toggle-sparks"]');
 await assertFieldsMatchState('after closing the spark form');
-// Guard aptitude edits before they exceed six pink sparks.
+// Dimmed aptitude choices rebalance six pink sparks without going below base grades.
 await page.selectOption('[data-apt="dirt"]', 'C');
 await assertFieldsMatchState('after allocating four pink sparks to dirt');
 await page.selectOption('[data-apt="sprint"]', 'D');
 await assertFieldsMatchState('after filling all six pink slots');
-assert.equal(await page.locator('[data-apt="end"] option[value="B"]').isDisabled(), true);
+assert.equal(await page.locator('[data-apt="end"] option[value="B"]').getAttribute('class'), 'dim');
+assert.equal(await page.locator('[data-apt="end"] option[value="B"]').isDisabled(), false);
+await page.selectOption('[data-apt="end"]', 'B');
+await assertFieldsMatchState('after rebalancing a dimmed aptitude choice');
+assert.equal(await page.inputValue('[data-apt="sprint"]'), 'E');
+assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
+assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
+assert.equal(await page.locator('[data-apt="end"] option[value="D"]').count(), 0);
 await page.locator('[data-apt="end"]').evaluate((select) => {
-  select.value = 'B';
+  select.value = 'D';
   select.dispatchEvent(new Event('change', { bubbles: true }));
 });
-await assertFieldsMatchState('after rejecting an aptitude that needs a seventh spark');
-assert.equal(await page.inputValue('[data-apt="end"]'), 'C');
-assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
-await page.selectOption('[data-apt="sprint"]', 'E');
-await assertFieldsMatchState('after freeing a pink slot');
-assert.equal(await page.locator('[data-apt="end"] option[value="B"]').isDisabled(), false);
+await assertFieldsMatchState('after rejecting an aptitude below its base');
+assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
 await page.click('[data-action="reset-legacy"]');
-await assertFieldsMatchState('after resetting aptitude guard checks');
+await assertFieldsMatchState('after resetting aptitude rebalance checks');
 // Goal roles share the target chips. Editor selection is transient; goals and lineage persist.
 const deckBeforeGoal = await page.locator('.deck').innerText();
 await page.check('[data-goal-enabled]');

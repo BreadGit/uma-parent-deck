@@ -32,8 +32,10 @@ Starting inheritance caps at four increases and at A. Thus G can reach C before 
 C can reach A with at least 4 stars. Further increases require mid-run inspiration.
 A starting grade does not uniquely identify a star total, its distribution, or the ancestor slots.
 The app's inference uses minimum total stars, packed into the fewest slots, as an explicit tool
-assumption. For C to A this gives 3★ + 1★; 2★ + 2★ is another valid combination with different
-mid-run activation odds. Manual entries take precedence and unassigned slots remain unknown.
+assumption. For C to A an empty lineage gets 3★ + 1★; an existing 2★ entry can instead gain
+another 2★ entry. Those combinations have different mid-run activation odds. Selecting a dimmed
+aptitude can reassign other sparks, including manual entries, and lower their associated grades
+to make room. Unassigned slots remain unknown.
 
 ## Activation probability
 

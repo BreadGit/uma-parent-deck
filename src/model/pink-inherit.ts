@@ -1,56 +1,83 @@
 import type { AptKey, Grade } from '../types.ts';
-import { APTITUDE_KEYS, APTITUDE_LABELS, type PinkSpark } from './goal-input.ts';
+import { APTITUDE_KEYS, type PinkSpark } from './goal-input.ts';
 import { PINK_SPARK_START_STARS, STARS_PER_SPARK_MAX } from './rules.ts';
 
 const GRADES: Grade[] = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
 type Aptitudes = Record<AptKey, Grade>;
 export interface PinkInference { lineage: (PinkSpark | null)[]; issues: string[] }
 
-/**
- * Estimate the minimum stars behind raised starting grades. Several lineages can explain the same grade.
- * Keep manually entered sparks on their umas, then pack missing stars into as few inferred sparks as possible.
- * Unassigned slots remain unknown. If the six slots cannot fit all increases, do not infer a partial set.
- */
-export function inferPinkLineage(base: Aptitudes, entered: Aptitudes, current: (PinkSpark | null)[]): PinkInference {
-  const lineage = current.map((spark) => spark?.inferred ? null : spark);
-  const issues: string[] = [];
-  const wanted: PinkSpark[] = [];
-  for (const key of APTITUDE_KEYS) {
-    const steps = GRADES.indexOf(entered[key]) - GRADES.indexOf(base[key]);
-    if (steps <= 0) continue;
-    const minimum = PINK_SPARK_START_STARS[steps];
-    if (minimum === undefined || entered[key] === 'S') {
-      issues.push(`${APTITUDE_LABELS[key]} ${base[key]} to ${entered[key]} cannot be inferred from starting pink sparks. Starting inheritance raises at most four grades, up to A.`);
-      continue;
-    }
-    const manualStars = lineage.reduce((total, spark) => total + (spark?.aptitude === key ? spark.stars : 0), 0);
-    for (let missing = Math.max(0, minimum - manualStars); missing > 0;) {
-      const stars = Math.min(STARS_PER_SPARK_MAX, missing);
-      wanted.push({ aptitude: key, stars, inferred: true });
-      missing -= stars;
-    }
-  }
-  const slots = lineage.flatMap((spark, i) => spark === null ? [i] : []);
-  if (wanted.length > slots.length) {
-    issues.push(`The entered aptitude increases need ${wanted.length} additional pink sparks, but only ${slots.length} lineage slots are available. Check the grades or edit the manual pink sparks.`);
-    return { lineage, issues };
-  }
-  // Preserve matching inferred sparks on their umas before filling remaining free slots.
-  for (const i of [...slots]) {
-    const old = current[i];
-    const match = wanted.findIndex((spark) => spark.aptitude === old?.aptitude && spark.stars === old.stars);
-    if (match < 0) continue;
-    lineage[i] = wanted.splice(match, 1)[0]!;
-    slots.splice(slots.indexOf(i), 1);
-  }
-  wanted.forEach((spark, i) => { lineage[slots[i]!] = spark; });
-  return { lineage, issues };
+/** Starting inheritance can add at most four grades, ending at A. */
+export function pinkAptitudeGrades(base: Grade): Grade[] {
+  const from = Math.min(GRADES.indexOf(base), GRADES.indexOf('A'));
+  return GRADES.slice(from, Math.min(GRADES.indexOf('A'), from + PINK_SPARK_START_STARS.length - 1) + 1).reverse();
 }
 
-/** Reject grades that exceed inheritance limits; allow lower grades to repair an older invalid setup. */
-export function withPinkAptitude(base: Aptitudes, entered: Aptitudes, current: (PinkSpark | null)[], key: AptKey, grade: Grade): PinkInference | null {
-  if (!GRADES.includes(grade) || grade === 'S') return null;
-  const inferred = inferPinkLineage(base, { ...entered, [key]: grade }, current);
-  const lowersGrade = GRADES.indexOf(grade) < GRADES.indexOf(entered[key]);
-  return inferred.issues.length && !lowersGrade ? null : inferred;
+export function normalizeStartingAptitudes(base: Aptitudes, entered: Partial<Aptitudes>): Aptitudes {
+  return Object.fromEntries(APTITUDE_KEYS.map((key) => {
+    const range = pinkAptitudeGrades(base[key]);
+    const index = GRADES.indexOf(entered[key] ?? base[key]);
+    const low = GRADES.indexOf(range[range.length - 1]!);
+    const high = GRADES.indexOf(range[0]!);
+    return [key, GRADES[Math.max(low, Math.min(high, index))]!];
+  })) as Aptitudes;
+}
+
+const starsFor = (lineage: (PinkSpark | null)[], key: AptKey) => lineage.reduce((n, spark) => n + (spark?.aptitude === key ? spark.stars : 0), 0);
+const gradeFromStars = (base: Grade, stars: number): Grade => {
+  const steps = PINK_SPARK_START_STARS.filter((minimum) => stars >= minimum).length - 1;
+  return GRADES[Math.min(GRADES.indexOf('A'), GRADES.indexOf(base) + steps)]!;
+};
+
+/** Allocate one aptitude's sparks; reclaim the weakest other sparks only after using free slots. */
+function allocateGrade(base: Grade, current: (PinkSpark | null)[], key: AptKey, grade: Grade) {
+  if (gradeFromStars(base, starsFor(current, key)) === grade) return { lineage: [...current], reclaimed: false };
+  const steps = GRADES.indexOf(grade) - GRADES.indexOf(base);
+  const minimum = PINK_SPARK_START_STARS[steps]!;
+  const existing = current.filter((spark) => spark?.aptitude === key).map((spark) => spark!.stars);
+  const total = existing.reduce((n, stars) => n + stars, 0);
+  const pack = (total: number) => {
+    const packed: number[] = [];
+    for (let n = total; n > 0;) {
+      const stars = Math.min(STARS_PER_SPARK_MAX, n);
+      packed.push(stars); n -= stars;
+    }
+    return packed;
+  };
+  let wanted = total < minimum ? [...existing, ...pack(minimum - total)] : pack(minimum);
+  if (wanted.length > current.length) wanted = pack(minimum);
+  const slots: number[] = [];
+  const lineage = current.map((spark, i) => {
+    if (spark?.aptitude !== key) return spark;
+    const match = wanted.indexOf(spark.stars);
+    if (match >= 0) { wanted.splice(match, 1); return spark; }
+    slots.push(i); return null;
+  });
+  slots.push(...current.flatMap((spark, i) => spark === null ? [i] : []));
+  const others = lineage.map((spark, i) => ({ spark, i })).filter((x) => x.spark && x.spark.aptitude !== key)
+    .sort((a, b) => a.spark!.stars - b.spark!.stars || b.i - a.i);
+  let reclaimed = false;
+  for (const { i } of others) {
+    if (slots.length >= wanted.length) break;
+    lineage[i] = null; slots.push(i); reclaimed = true;
+  }
+  wanted.forEach((stars, i) => { lineage[slots[i]!] = { aptitude: key, stars, inferred: true }; });
+  return { lineage, reclaimed };
+}
+
+export interface PinkAptitudeChange extends PinkInference { aptitudes: Aptitudes; adjustsOthers: boolean }
+
+/** Honor the chosen grade, then derive every starting grade from the rebalanced six-spark lineage. */
+export function withPinkAptitude(base: Aptitudes, entered: Aptitudes, current: (PinkSpark | null)[], key: AptKey, grade: Grade): PinkAptitudeChange | null {
+  if (!pinkAptitudeGrades(base[key]).includes(grade)) return null;
+  const previous = normalizeStartingAptitudes(base, entered);
+  let lineage = [...current];
+  // Fill older grade-only inputs first. The explicitly selected aptitude gets the final allocation.
+  for (const other of APTITUDE_KEYS) {
+    if (other !== key) lineage = allocateGrade(base[other], lineage, other, previous[other]).lineage;
+  }
+  const selected = allocateGrade(base[key], lineage, key, grade);
+  lineage = selected.lineage;
+  const aptitudes = Object.fromEntries(APTITUDE_KEYS.map((other) => [other, gradeFromStars(base[other], starsFor(lineage, other))])) as Aptitudes;
+  const changedOtherSpark = current.some((spark, i) => spark && spark.aptitude !== key && (lineage[i]?.aptitude !== spark.aptitude || lineage[i]?.stars !== spark.stars));
+  return { lineage, aptitudes, issues: [], adjustsOthers: selected.reclaimed || changedOtherSpark || APTITUDE_KEYS.some((other) => other !== key && aptitudes[other] !== previous[other]) };
 }

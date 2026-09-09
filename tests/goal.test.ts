@@ -67,7 +67,7 @@ test('unknown ancestry and unsupported jumps are not declared impossible', () =>
 test('restored pink ancestry migration preserves old inputs and leaves v9 ancestry unknown', () => {
   const run = { aptOverrides: { end: 'B', mile: 'A' }, pinkLineage: lineage() };
   const old = migrate({ current: { version: 8, run } }, data);
-  assert.equal(old.version, 11);
+  assert.equal(old.version, 12);
   assert.deepEqual(old.run.pinkLineage, lineage());
   assert.deepEqual(old.run.aptOverrides, run.aptOverrides);
   const v9 = migrate({ current: { version: 9, run: { aptOverrides: run.aptOverrides } } }, data);

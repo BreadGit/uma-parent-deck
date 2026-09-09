@@ -37,13 +37,14 @@ already suggests so the probability breakdown is reviewable before it controls s
   goal and lineage headers; clicking it again closes the editor. Removal lives on the chip.
 - Four style grades in Legacy alongside its existing surface and distance grades. These describe
   the trainee after both parents are selected. Reuse the existing aptitude overrides.
-- A collapsed Pink sparks editor beside By stars in Legacy. It records pink aptitude and stars
+- A collapsed Pink sparks editor below the stat gains and above the aptitude inputs in Legacy. It records pink aptitude and stars
   for the two parents and four grandparents when modeling inspiration
   eligibility changes. Reuse the existing individual-affinity assumption. Leave unknown ancestry
   explicit and do not silently assign six favorable sparks. Raising a starting grade infers a
-  minimum-star set in the available slots, with Estimated labels. Preserve manually entered sparks
-  and allow the user to refine inferred entries in the advanced editor. Disable aptitude choices
-  that exceed the starting inheritance limit or six available lineage slots; reject them before saving.
+  minimum-star set, with Estimated labels and editable entries. Offer grades from the trainee's
+  base through the starting inheritance limit. Dim choices that need other sparks reassigned;
+  selecting one reclaims the weakest other sparks, including manual entries if needed, and
+  recalculates affected starting grades. No aptitude may drop below its base.
 
 Use the existing state migration path. Normalize skill-family identity and prevent a family from
 being both required and preferred. Existing saved targets should migrate as preferred targets

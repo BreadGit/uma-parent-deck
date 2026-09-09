@@ -3,100 +3,101 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { migrate } from '../src/state.ts';
 import { APTITUDE_KEYS, emptyPinkLineage, type PinkSpark } from '../src/model/goal-input.ts';
-import { inferPinkLineage, withPinkAptitude } from '../src/model/pink-inherit.ts';
+import { pinkAptitudeGrades, normalizeStartingAptitudes, withPinkAptitude } from '../src/model/pink-inherit.ts';
 import type { Aptitudes } from '../src/model/races.ts';
 
 const base = Object.fromEntries(APTITUDE_KEYS.map((key) => [key, 'G'])) as Aptitudes;
 const inferred = (aptitude: PinkSpark['aptitude'], stars: number): PinkSpark => ({ aptitude, stars, inferred: true });
 const filled = (lineage: (PinkSpark | null)[]) => lineage.filter((spark) => spark !== null);
 
-test('starting grade increases require 1, 4, 7, or 10 stars and never more than four grades', () => {
+test('starting grade choices stay at base or higher and cap at four increases and A', () => {
+  assert.deepEqual(pinkAptitudeGrades('A'), ['A']);
+  assert.deepEqual(pinkAptitudeGrades('C'), ['A', 'B', 'C']);
+  assert.deepEqual(pinkAptitudeGrades('G'), ['C', 'D', 'E', 'F', 'G']);
+  assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'B'), null);
+  assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'S'), null);
+  const native = { ...base, end: 'C' as const };
+  assert.equal(withPinkAptitude(native, native, emptyPinkLineage(), 'end', 'D'), null);
+  assert.equal(normalizeStartingAptitudes(native, { end: 'G' }).end, 'C');
+});
+
+test('empty ancestry needs minimum totals of 1, 4, 7, and 10 stars for starting increases', () => {
   for (const [grade, stars] of [['F', [1]], ['E', [3, 1]], ['D', [3, 3, 1]], ['C', [3, 3, 3, 1]]] as const) {
-    const result = inferPinkLineage(base, { ...base, end: grade }, emptyPinkLineage());
+    const result = withPinkAptitude(base, base, emptyPinkLineage(), 'end', grade)!;
     assert.deepEqual(filled(result.lineage), stars.map((n) => inferred('end', n)));
+    assert.equal(result.aptitudes.end, grade);
     assert.deepEqual(result.issues, []);
     assert.equal(result.lineage.length, 6);
   }
-  for (const grade of ['B', 'A', 'S'] as const) {
-    const result = inferPinkLineage(base, { ...base, end: grade }, emptyPinkLineage());
-    assert.deepEqual(filled(result.lineage), []);
-    assert.match(result.issues.join(' '), /at most four grades, up to A/);
-  }
-  const capped = inferPinkLineage({ ...base, end: 'C' }, { ...base, end: 'A' }, emptyPinkLineage());
-  assert.deepEqual(filled(capped.lineage), [inferred('end', 3), inferred('end', 1)]);
 });
 
-test('manual stars count toward a raised grade and stay on their entered umas', () => {
+test('an existing manual spark contributes to an increase and stays on its uma', () => {
+  const native = { ...base, turf: 'A' as const };
   const current = emptyPinkLineage();
   current[3] = { aptitude: 'end', stars: 2 };
   current[5] = { aptitude: 'turf', stars: 3 };
   const before = structuredClone(current);
-  const result = inferPinkLineage(base, { ...base, end: 'E' }, current);
+  const result = withPinkAptitude(native, { ...native, end: 'F' }, current, 'end', 'E')!;
   assert.deepEqual(result.lineage[3], current[3]);
   assert.deepEqual(result.lineage[5], current[5]);
   assert.deepEqual(result.lineage[0], inferred('end', 2));
+  assert.equal(result.adjustsOthers, false);
   assert.deepEqual(current, before);
-  assert.deepEqual(result.issues, []);
-  const lowered = inferPinkLineage(base, base, result.lineage);
-  assert.deepEqual(lowered.lineage, current, 'lowering to base clears only inferred sparks');
+  assert.deepEqual(withPinkAptitude(native, result.aptitudes, result.lineage, 'end', 'E')!.lineage, result.lineage);
+  const lowered = withPinkAptitude(native, result.aptitudes, result.lineage, 'end', 'G')!;
+  assert.equal(lowered.lineage.filter((spark) => spark?.aptitude === 'end').length, 0);
+  assert.deepEqual(lowered.lineage[5], current[5]);
 });
 
-test('inferred sparks update and stay stable when other aptitudes change', () => {
-  const grades = { ...base, end: 'E' as const };
-  const first = inferPinkLineage(base, grades, emptyPinkLineage());
-  assert.deepEqual(inferPinkLineage(base, grades, first.lineage), first);
-  const second = inferPinkLineage(base, { ...grades, mile: 'F' }, first.lineage);
-  assert.deepEqual(second.lineage.slice(0, 2), first.lineage.slice(0, 2));
-  assert.deepEqual(second.lineage[2], inferred('mile', 1));
-  const fewer = inferPinkLineage(base, { ...grades, end: 'F' }, second.lineage);
-  assert.deepEqual(filled(fewer.lineage), [inferred('end', 1)]);
-  const belowBase = inferPinkLineage({ ...base, end: 'B' }, { ...base, end: 'C' }, fewer.lineage);
-  assert.deepEqual(filled(belowBase.lineage), []);
+test('dimmed choices reclaim the weakest other sparks and honor the selected grade', () => {
+  const first = withPinkAptitude(base, base, emptyPinkLineage(), 'mile', 'D')!;
+  const full = withPinkAptitude(base, first.aptitudes, first.lineage, 'end', 'D')!;
+  const before = structuredClone(full.lineage);
+  const changed = withPinkAptitude(base, full.aptitudes, full.lineage, 'end', 'C')!;
+  assert.equal(changed.adjustsOthers, true);
+  assert.equal(changed.aptitudes.end, 'C');
+  assert.equal(changed.aptitudes.mile, 'E');
+  assert.equal(filled(changed.lineage).length, 6);
+  assert.deepEqual(full.lineage, before);
+  const lower = withPinkAptitude(base, full.aptitudes, full.lineage, 'mile', 'E')!;
+  assert.equal(lower.adjustsOthers, false);
+  assert.equal(filled(lower.lineage).length, 5);
+  const higher = withPinkAptitude(base, lower.aptitudes, lower.lineage, 'end', 'C')!;
+  assert.equal(higher.adjustsOthers, false);
+  assert.equal(filled(higher.lineage).length, 6);
 });
 
-test('inference shares six slots across aptitudes without replacing manual sparks or creating a partial set', () => {
-  const full = inferPinkLineage(base, { ...base, end: 'D', mile: 'D' }, emptyPinkLineage());
-  assert.equal(filled(full.lineage).length, 6);
-  assert.deepEqual(full.issues, []);
-  const over = inferPinkLineage(base, { ...base, end: 'C', mile: 'C' }, full.lineage);
-  assert.deepEqual(over.lineage, emptyPinkLineage());
-  assert.match(over.issues.join(' '), /8 additional pink sparks.*6 lineage slots/);
+test('manual sparks can be reassigned while affected aptitudes never fall below base', () => {
+  const native = { ...base, turf: 'A' as const, end: 'C' as const };
   const manual = Array.from({ length: 6 }, () => ({ aptitude: 'turf' as const, stars: 3 }));
-  const blocked = inferPinkLineage(base, { ...base, end: 'F' }, manual);
-  assert.deepEqual(blocked.lineage, manual);
-  assert.match(blocked.issues.join(' '), /1 additional pink sparks.*0 lineage slots/);
+  const changed = withPinkAptitude(native, native, manual, 'end', 'A')!;
+  assert.equal(changed.adjustsOthers, true);
+  assert.equal(changed.aptitudes.turf, 'A');
+  assert.equal(changed.aptitudes.end, 'A');
+  assert.deepEqual(changed.lineage.slice(0, 4), manual.slice(0, 4));
+  assert.equal(changed.lineage.filter((spark) => spark?.aptitude === 'end').length, 2);
+  const tiny = Array.from({ length: 6 }, () => ({ aptitude: 'end' as const, stars: 1 }));
+  const packed = withPinkAptitude(base, { ...base, end: 'E' }, tiny, 'end', 'C')!;
+  assert.equal(packed.aptitudes.end, 'C');
+  assert.equal(packed.lineage.length, 6);
+  assert.ok(filled(packed.lineage).length <= 6);
 });
 
-test('old manual ancestry stays manual and inferred provenance survives saved-state migration', () => {
+test('old invalid grade combinations rebalance into a supported six-spark setup', () => {
+  const old = { ...base, end: 'A' as const, mile: 'A' as const };
+  const repaired = withPinkAptitude(base, old, emptyPinkLineage(), 'end', 'C')!;
+  assert.deepEqual(repaired.issues, []);
+  assert.equal(repaired.aptitudes.end, 'C');
+  assert.equal(repaired.aptitudes.mile, 'E');
+  assert.equal(filled(repaired.lineage).length, 6);
+});
+
+test('saved grades clamp to the trainee range and inferred provenance survives reloads', () => {
   const data = loadData();
   const lineage = [inferred('end', 3), { aptitude: 'mile', stars: 2 }, null, null, null, null];
-  const saved = migrate({ current: { version: 10, run: { pinkLineage: lineage } } }, data);
-  assert.equal(saved.version, 11);
+  const saved = migrate({ current: { version: 11, run: { traineeCardId: 100101, pinkLineage: lineage, aptOverrides: { turf: 'G', end: 'G', dirt: 'A' } } } }, data);
+  assert.equal(saved.version, 12);
+  assert.deepEqual(saved.run.aptOverrides, { dirt: 'C' });
   assert.deepEqual(saved.run.pinkLineage, lineage);
   assert.deepEqual(migrate({ current: saved }, data), saved);
-});
-
-test('aptitude changes reject a seventh spark without losing the current estimates', () => {
-  const grades = { ...base, end: 'D' as const, mile: 'D' as const };
-  const current = inferPinkLineage(base, grades, emptyPinkLineage()).lineage;
-  const before = structuredClone(current);
-  assert.equal(withPinkAptitude(base, grades, current, 'end', 'C'), null);
-  assert.deepEqual(current, before);
-  const lower = withPinkAptitude(base, grades, current, 'mile', 'E')!;
-  assert.equal(filled(lower.lineage).length, 5);
-  const higher = withPinkAptitude(base, { ...grades, mile: 'E' }, lower.lineage, 'end', 'C')!;
-  assert.equal(filled(higher.lineage).length, 6);
-  assert.deepEqual(higher.issues, []);
-  assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'B'), null);
-  assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'S'), null);
-  const manual = Array.from({ length: 6 }, () => ({ aptitude: 'turf' as const, stars: 3 }));
-  assert.equal(withPinkAptitude(base, base, manual, 'end', 'F'), null);
-});
-
-test('lowering grades can repair an old setup even when several changes are needed', () => {
-  const old = { ...base, end: 'A' as const, mile: 'A' as const };
-  const lower = withPinkAptitude(base, old, emptyPinkLineage(), 'end', 'C');
-  assert.ok(lower);
-  assert.ok(lower.issues.length > 0, 'the other aptitude still exceeds the starting limit');
-  assert.equal(withPinkAptitude(base, old, emptyPinkLineage(), 'sprint', 'F'), null);
 });
