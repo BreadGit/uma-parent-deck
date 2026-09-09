@@ -114,7 +114,8 @@ names differ they are noted.
   The tool adds the minimum missing stars, keeping existing matching sparks where possible. A grade does not
   identify the actual lineage. Editing an inferred entry makes it manual; unassigned slots stay unknown.
 - **Pink lineage**: the aptitude and star count of each of the six ancestors' pink sparks. Unknown
-  entries do not mean zero matching sparks. The model predicts supported B-to-A increases; it does
+  entries do not mean zero matching sparks. With partial lineage, the estimate uses known sparks
+  and warns that unknown slots contribute no predicted increases. The model predicts supported B-to-A increases; it does
   not infer a below-B multi-grade jump.
 - **Source**: a way the run can end up with a target skill's hint: hint, chain event, random event,
   outing, scenario option or completion reward, trainee event (story, choice, outing or secret),

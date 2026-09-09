@@ -277,8 +277,8 @@ test('white target chips migrate old goals and support zero or many required spa
   await page.waitForSelector('[data-goal-result]');
   assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
   await page.selectOption('[data-apt="end"]', 'C');
-  assert.match(await page.locator('[data-goal-issues]').innerText(), /Open Pink sparks in Legacy/);
-  assert.equal(await page.locator('[data-goal-zero]').count(), 0);
+  assert.match(await page.locator('[data-goal-warnings]').innerText(), /Open Pink sparks in Legacy/);
+  assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
 });
 
 test('chip selection toggles its editor and removal updates goals without activating another chip', async (t) => {
@@ -330,8 +330,10 @@ test('Any pink defaults to two stars, updates estimates, and persists across rel
   assert.match(await pinkRow.innerText(), /10\.0%/);
   assert.notEqual(await page.locator('[data-goal-probability]').innerText(), chance);
   await page.selectOption('[data-goal-pink]', 'end');
-  assert.match(await page.locator('[data-goal-issues]').innerText(), /Open Pink sparks/);
+  assert.match(await page.locator('[data-goal-warnings]').innerText(), /Open Pink sparks/);
+  assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
   await page.selectOption('[data-goal-pink]', 'any');
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   await page.reload();
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
@@ -376,12 +378,19 @@ test('advanced pink inputs stay collapsed and retain inspiration data across tog
   const toggle = page.locator('[data-action="toggle-pink-sparks"]');
   assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
   assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0);
-  assert.match(await page.locator('[data-goal-issues]').innerText(), /Open Pink sparks in Legacy/);
+  assert.equal(await page.locator('[data-goal-warnings]').innerText(), 'Open Pink sparks in Legacy and enter all six lineage sparks to get a more accurate pink spark probability.');
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  assert.match(await page.locator('[data-goal-probability]').innerText(), /0%/);
+  assert.equal(await page.locator('[data-goal-attempts]').count(), 3);
   await toggle.press('Enter');
   assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
   assert.equal(await page.locator('[data-pink-lineage]').count(), 6);
   assert.equal(await page.locator('[data-pink-lineage-stars="0"]').isDisabled(), true);
-  for (let i = 0; i < 6; i++) await page.selectOption(`[data-pink-lineage="${i}"]`, 'end');
+  await page.selectOption('[data-pink-lineage="0"]', 'end');
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0, 'one known spark contributes before the other slots are entered');
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 1);
+  for (let i = 1; i < 6; i++) await page.selectOption(`[data-pink-lineage="${i}"]`, 'end');
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   await page.selectOption('[data-pink-lineage-stars="0"]', '3');
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
@@ -406,7 +415,9 @@ test('advanced pink inputs stay collapsed and retain inspiration data across tog
   assert.equal(await page.locator('[data-pink-lineage-stars="0"]').isDisabled(), true);
   assert.equal(await page.inputValue('[data-pink-lineage-stars="0"]'), '');
   assert.equal((await state(page)).run.pinkLineage[0], null);
-  assert.equal(await page.locator('[data-goal-zero]').count(), 0, 'unknown ancestry is not impossible');
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0, 'remaining known sparks still contribute');
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 1);
+  assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
   await page.click('[data-action="reset-legacy"]');
   assert.deepEqual((await state(page)).run.pinkLineage, Array(6).fill(null));
   assert.deepEqual((await state(page)).run.aptOverrides, {});

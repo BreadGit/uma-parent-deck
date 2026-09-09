@@ -24,8 +24,9 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
 Required/Preferred roles and minimum stars do not change selected cards or the prioritized list.
 Adding or removing a target chip changes the existing builder's target list. Changing shared run
 inputs, such as lineage, inventory, or agenda, can still change the suggested deck.
-For a specific pink target, unknown ancestry and matching pink sparks below starting B withhold
-the combined estimate. Any needs no ancestry when a starting A/S aptitude guarantees eligibility.
+Incomplete pink ancestry shows a warning while the combined estimate uses starting grades and
+known sparks. Matching pink sparks below starting B still withhold a specific target estimate.
+Any needs no ancestry when a starting A/S aptitude guarantees eligibility.
 A fully specified goal with no modeled source or eligibility has zero chance. Preferred extras
 are individual 2★-or-better probabilities, not conditional on successful required goals.
 With zero required white families, the white contribution is one and success depends on blue/pink.
@@ -145,7 +146,7 @@ they do not change its starting grade.
 Editing an advanced spark removes its Estimated marker. Advanced edits refine the inspiration
 inputs; starting grades are reconciled on the next aptitude edit. Changing the trainee clears
 inferred entries and starting overrides but preserves manual ancestry. Legacy Reset clears both.
-Unassigned slots remain unknown, so partial inference alone does not complete a specific pink target estimate.
+Unassigned slots remain unknown. Partial lineage gives an estimate with a warning instead of blocking it.
 Goal notes identify inferred inputs. The model assumes the same affinity for all six slots.
 
 ### Pink eligibility
@@ -154,11 +155,11 @@ Any accepts every eligible aptitude. With at least one starting A/S, its probabi
 minimum-star chance (1★+ = 100%, 2★+ = 80%, 3★ = 10%). Competing aptitudes do not dilute it,
 and unknown ancestry or unsupported jumps cannot block it. Without a guaranteed eligible aptitude,
 the model multiplies the star chance by the probability that at least one aptitude becomes eligible;
-unknown eligibility still withholds that estimate.
+unsupported below-B increases still withhold that estimate.
 
 Entered grades already include parent selection. The model adds only mid-run inspiration changes
 for final eligibility; it does not change the entered starting grades. Starting A/S aptitudes
-remain eligible. With complete ancestry, a B aptitude becomes eligible when any matching spark
+remain eligible. A B aptitude becomes eligible when any known matching spark
 procs at either inspiration event. Each proc uses its star rate times
 `1 + individualAffinity / 100`, capped at one. The existing affinity setting applies to all six.
 A small distribution over the number of other eligible aptitudes accounts for dilution when
@@ -167,6 +168,13 @@ competing B aptitudes become A. Generation selects uniformly among eligible apti
 A grade below B with matching ancestry needs an unknown aptitude-point distribution. It remains
 unestimated, including when it could dilute an already eligible target. No matching spark in
 complete ancestry gives zero chance of improvement. A/S versus S does not change selection odds.
+
+Incomplete ancestry uses only known sparks for mid-run increases. Unknown slots contribute no
+increases to either the target or its competitors. This approximation can overestimate or
+underestimate the true chance; a displayed zero is not proof that unknown ancestry cannot help.
+The nonblocking warning reads "Open Pink sparks in Legacy and enter all six lineage sparks to get
+a more accurate pink spark probability." It disappears when all six are entered, or when
+eligibility is already fixed for the goal. Other blocking issues still withhold the combined estimate.
 
 ### Attempts
 

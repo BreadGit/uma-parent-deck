@@ -21,14 +21,13 @@ export function attemptsFor(p: number, confidence: number): number {
   return Math.ceil(Math.log1p(-confidence) / Math.log1p(-p));
 }
 
-export interface PinkEstimate { probability: number | null; issues: string[]; eligibility: { aptitude: AptKey; probability: number | null }[] }
+export interface PinkEstimate { probability: number | null; issues: string[]; warnings: string[]; eligibility: { aptitude: AptKey; probability: number | null }[] }
 export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pink'], stars: number, lineage: (PinkSpark | null)[], affinity: number): PinkEstimate {
-  const issues: string[] = [];
+  const issues: string[] = [], warnings: string[] = [];
   const unknown = lineage.length !== 6 || lineage.some((p) => p === null);
   const eligibility = APTITUDE_KEYS.map((key) => {
     if (apt[key] === 'A' || apt[key] === 'S') return { aptitude: key, probability: 1 };
     const matching = lineage.filter((p): p is PinkSpark => p?.aptitude === key);
-    if (unknown) return { aptitude: key, probability: null };
     if (!matching.length) return { aptitude: key, probability: 0 };
     if (apt[key] !== 'B') {
       issues.push(`${APTITUDE_LABELS[key]} starts below B and has matching pink sparks. Its chance of reaching A is outside this estimate.`);
@@ -38,13 +37,13 @@ export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pin
     return { aptitude: key, probability: 1 - miss };
   });
   if (target === 'any' && eligibility.some((e) => e.probability === 1)) {
-    return { probability: starChance(PINK_GENERATION_RATES, stars), issues: [], eligibility };
+    return { probability: starChance(PINK_GENERATION_RATES, stars), issues: [], warnings, eligibility };
   }
-  if (unknown && eligibility.some((e) => e.probability === null)) issues.unshift('Open Pink sparks in Legacy and enter all six lineage sparks to estimate mid-run aptitude increases and competing pink types.');
-  if (issues.length) return { probability: null, issues, eligibility };
+  if (unknown && APTITUDE_KEYS.some((key) => apt[key] !== 'A' && apt[key] !== 'S')) warnings.push('Open Pink sparks in Legacy and enter all six lineage sparks to get a more accurate pink spark probability.');
+  if (issues.length) return { probability: null, issues, warnings, eligibility };
   if (target === 'any') {
     const noneEligible = eligibility.reduce((p, e) => p * (1 - e.probability!), 1);
-    return { probability: (1 - noneEligible) * starChance(PINK_GENERATION_RATES, stars), issues, eligibility };
+    return { probability: (1 - noneEligible) * starChance(PINK_GENERATION_RATES, stars), issues, warnings, eligibility };
   }
   const desired = eligibility.find((e) => e.aptitude === target)!.probability!;
   // The count of other eligible aptitudes is a Poisson-binomial distribution.
@@ -54,7 +53,7 @@ export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pin
     count.forEach((mass, k) => { next[k]! += mass * (1 - p); next[k + 1]! += mass * p; });
     count = next;
   }
-  return { probability: desired * starChance(PINK_GENERATION_RATES, stars) * count.reduce((p, mass, k) => p + mass / (k + 1), 0), issues, eligibility };
+  return { probability: desired * starChance(PINK_GENERATION_RATES, stars) * count.reduce((p, mass, k) => p + mass / (k + 1), 0), issues, warnings, eligibility };
 }
 
 export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number }
@@ -130,8 +129,9 @@ export function evaluateParentGoal(goal: ParentGoal, pinkLineage: (PinkSpark | n
   const skills = whiteGenerationMoments(joint, required.map(copies), ctx.settings);
   const moments = statGoalMoments(stats, goal);
   const pink = pinkEstimate(apt, goal.pink, goal.pinkStars, pinkLineage, ctx.settings.affinity);
-  issues.push(...(pink?.issues ?? []));
+  issues.push(...pink.issues);
   const notes = ['Starting aptitude grades already include parent selection. Pink ancestry estimates additional mid-run inspiration increases without changing the entered grades.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
+  if (pink.warnings.length) notes.push('Pink probabilities use the entered starting grades and known lineage sparks. Unknown slots contribute no additional aptitude increases in this estimate.');
   if (goal.pink === 'any') notes.push('Any pink aptitude counts toward the goal. With an A/S aptitude already eligible, only the minimum stars affect its chance.');
   if (pinkLineage.some((spark) => spark?.inferred)) notes.push('Some pink sparks are minimum-star estimates inferred from starting aptitude increases. Other lineages can produce the same grades. Refine them in Legacy > Pink sparks.');
   if (skills.approximate) notes.push('A large group of linked skill sources uses a fixed sample approximation. Very rare joint outcomes may be missed.');

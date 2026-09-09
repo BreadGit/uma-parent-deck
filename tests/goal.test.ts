@@ -68,7 +68,7 @@ test('Any pink counts all eligible types and needs no ancestry when one is alrea
   }
   const noA = { ...apt(), turf: 'B' as const };
   close(pinkEstimate(noA, 'any', 2, lineage(), 150).probability!, (1 - .875 ** 12) * .8);
-  assert.equal(pinkEstimate(noA, 'any', 2, emptyPinkLineage(), 150).probability, null);
+  assert.equal(pinkEstimate(noA, 'any', 2, emptyPinkLineage(), 150).probability, 0);
 });
 
 test('Any pink contributes its star chance to the complete goal', () => {
@@ -94,8 +94,30 @@ test('pink goals default to Any at two stars and migrate unchosen goals without 
   assert.equal(sanitizeGoal({ pink: 'end' }, data).pink, 'end');
 });
 
-test('unknown ancestry and unsupported jumps are not declared impossible', () => {
-  assert.equal(pinkEstimate(apt(), 'end', 2, emptyPinkLineage(), 150).probability, null);
+test('incomplete pink lineage warns and estimates from starting grades and known sparks', () => {
+  const grades = { ...apt(), end: 'B' as const };
+  const empty = pinkEstimate(grades, 'turf', 2, emptyPinkLineage(), 150);
+  close(empty.probability!, .8);
+  assert.deepEqual(empty.issues, []);
+  assert.deepEqual(empty.warnings, ['Open Pink sparks in Legacy and enter all six lineage sparks to get a more accurate pink spark probability.']);
+  close(pinkEstimate(grades, 'end', 2, emptyPinkLineage(), 150).probability!, 0);
+  const partial = [{ aptitude: 'end' as const, stars: 3 }, ...emptyPinkLineage().slice(1)];
+  const proc = 1 - .875 ** 2;
+  close(pinkEstimate(grades, 'end', 2, partial, 150).probability!, proc * .8 / 2);
+  close(pinkEstimate(grades, 'turf', 2, partial, 150).probability!, .8 * (1 - proc / 2));
+  assert.deepEqual(pinkEstimate(grades, 'end', 2, lineage(), 150).warnings, []);
+  assert.deepEqual(pinkEstimate(grades, 'any', 2, partial, 150).warnings, []);
+  const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
+  const stats = { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 3000, skillSd: 0 };
+  const goal = { ...DEFAULT_GOAL, enabled: true, pink: 'turf' as const };
+  const result = evaluateParentGoal(goal, emptyPinkLineage(), grades, [], ctx, stats, []);
+  close(result.probability!, .64);
+  assert.deepEqual(result.issues, []);
+  assert.equal(result.pink!.warnings.length, 1);
+  assert.equal(evaluateParentGoal(goal, partial, grades, [], ctx, stats, ['Incomplete deck']).probability, null);
+});
+
+test('unsupported jumps still withhold a specific pink estimate', () => {
   const result = pinkEstimate(apt(), 'end', 2, [{ aptitude: 'end', stars: 3 }, ...lineage().slice(1)], 150);
   assert.equal(result.probability, null);
   assert.match(result.issues.join(' '), /below B/);
