@@ -55,6 +55,45 @@ test('pink eligibility includes B-to-A and dilution from competing aptitudes', (
   close(pinkEstimate({ ...grades, end: 'A' }, 'end', 2, sparks, 150).probability!, .4);
 });
 
+test('Any pink counts all eligible types and needs no ancestry when one is already eligible', () => {
+  const allA = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
+  for (const grades of [apt(), allA, { ...apt(), end: 'B' as const }]) {
+    for (const sparks of [emptyPinkLineage(), lineage(), [{ aptitude: 'end' as const, stars: 3 }, ...lineage().slice(1)]]) {
+      for (const [stars, expected] of [[1, 1], [2, .8], [3, .1]]) {
+        const result = pinkEstimate(grades, 'any', stars!, sparks, 150);
+        close(result.probability!, expected!);
+        assert.deepEqual(result.issues, []);
+      }
+    }
+  }
+  const noA = { ...apt(), turf: 'B' as const };
+  close(pinkEstimate(noA, 'any', 2, lineage(), 150).probability!, (1 - .875 ** 12) * .8);
+  assert.equal(pinkEstimate(noA, 'any', 2, emptyPinkLineage(), 150).probability, null);
+});
+
+test('Any pink contributes its star chance to the complete goal', () => {
+  const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
+  const stats = { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 3000, skillSd: 0 };
+  for (const [pinkStars, expected] of [[2, .64], [3, .08]]) {
+    const result = evaluateParentGoal({ ...DEFAULT_GOAL, enabled: true, pinkStars: pinkStars! }, emptyPinkLineage(), apt(), [], ctx, stats, []);
+    assert.deepEqual(result.issues, []);
+    close(result.probability!, expected!);
+  }
+});
+
+test('pink goals default to Any at two stars and migrate unchosen goals without losing a star preference', () => {
+  assert.equal(defaultState(data).run.goal.pink, 'any');
+  assert.equal(defaultState(data).run.goal.pinkStars, 2);
+  for (const pink of [undefined, null, '', 'invalid', 'any']) {
+    const saved = migrate({ current: { version: 12, run: { goal: { enabled: true, pink, pinkStars: 3 } } } }, data);
+    assert.equal(saved.run.goal.pink, 'any');
+    assert.equal(saved.run.goal.pinkStars, 3);
+    assert.equal(saved.run.goal.enabled, true);
+    assert.deepEqual(migrate({ current: saved }, data), saved);
+  }
+  assert.equal(sanitizeGoal({ pink: 'end' }, data).pink, 'end');
+});
+
 test('unknown ancestry and unsupported jumps are not declared impossible', () => {
   assert.equal(pinkEstimate(apt(), 'end', 2, emptyPinkLineage(), 150).probability, null);
   const result = pinkEstimate(apt(), 'end', 2, [{ aptitude: 'end', stars: 3 }, ...lineage().slice(1)], 150);
@@ -67,7 +106,7 @@ test('unknown ancestry and unsupported jumps are not declared impossible', () =>
 test('restored pink ancestry migration preserves old inputs and leaves v9 ancestry unknown', () => {
   const run = { aptOverrides: { end: 'B', mile: 'A' }, pinkLineage: lineage() };
   const old = migrate({ current: { version: 8, run } }, data);
-  assert.equal(old.version, 12);
+  assert.equal(old.version, 13);
   assert.deepEqual(old.run.pinkLineage, lineage());
   assert.deepEqual(old.run.aptOverrides, run.aptOverrides);
   const v9 = migrate({ current: { version: 9, run: { aptOverrides: run.aptOverrides } } }, data);
@@ -206,7 +245,7 @@ test('unavailable required skills give zero; incomplete inputs give no complete 
   const stats = { rawMean: [1000, 1000, 1000, 1000, 1000], sd: [0, 0, 0, 0, 0], skillPoints: 3000, skillSd: 0 };
   const result = evaluateParentGoal(goal, lineage(), apt(), [], ctx, stats, []);
   assert.equal(result.probability, 0);
-  assert.equal(evaluateParentGoal({ ...goal, pink: null }, lineage(), apt(), [], ctx, stats, []).probability, null);
+  assert.equal(evaluateParentGoal({ ...goal, blueStats: [] }, lineage(), apt(), [], ctx, stats, []).probability, null);
 });
 type ParentGoalRequired = typeof DEFAULT_GOAL.required;
 

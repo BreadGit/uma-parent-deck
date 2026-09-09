@@ -69,7 +69,8 @@ names differ they are noted.
   Its collapsed Pink sparks editor enters each ancestor's pink aptitude and stars for mid-run
   inspiration estimates. Its button and editor sit between the stat gains and aptitude inputs.
   Dimmed aptitude choices reassign other sparks and adjust affected grades without going below base.
-  Closing the editor does not disable those estimates.
+  Closing the editor does not disable those estimates. Its Reset clears pink sparks and restores
+  base aptitudes, preserving blue sparks, white lineage, and goals.
 - **Inspiration events**: early April of Classic and Senior year, when sparks may proc again.
 - **White spark generation**: at run end each owned skill may become a white spark: 20% for a white
   skill, 25% for a ◎ skill, 40% for its gold version, times 1.1 per copy already in the lineage. The run
@@ -97,7 +98,9 @@ names differ they are noted.
   changes the builder's list. Changing its role or minimum stars changes the goal evaluation only.
 - **Parent goal**: the blue, pink, and required white spark conditions that one finished parent must
   meet together. Required whites can number zero or more. With none, success depends only on blue
-  and pink. Phase 1 evaluates the current suggested deck. Required/Preferred roles do not select cards.
+  and pink. The pink goal defaults to Any aptitude at 2★ or better; Any accepts every eligible
+  aptitude without dividing by the number of eligible types. Phase 1 evaluates the current suggested
+  deck. Required/Preferred roles do not select cards.
 - **Required white spark**: a target family that must appear at its chosen minimum stars. Every
   required family must succeed on the same parent. Gold and normal forms of Corner Recovery are
   one family, not two requirements.

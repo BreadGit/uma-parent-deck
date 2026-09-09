@@ -21,7 +21,7 @@ export function renderGoalEditor() {
       <label class="goal-field">Minimum stars<select data-goal-stars="blue" .value=${live(String(g.blueStars))} @change=${(e: Event) => change((g) => { g.blueStars = Number((e.target as HTMLSelectElement).value); })}>${stars(g.blueStars)}</select></label>
     </fieldset>
     <fieldset class="goal-group"><legend>Required pink spark</legend><div class="goal-pair">
-      <label class="goal-field">Aptitude<select data-goal-pink .value=${live(g.pink ?? '')} @change=${(e: Event) => change((g) => { g.pink = (e.target as HTMLSelectElement).value as ParentGoal['pink']; })}><option value="">Choose aptitude</option>${APTITUDE_KEYS.map((k) => html`<option value=${k} ?selected=${g.pink === k}>${APTITUDE_LABELS[k]}</option>`)}</select></label>
+      <label class="goal-field">Aptitude<select data-goal-pink .value=${live(g.pink)} @change=${(e: Event) => change((g) => { g.pink = (e.target as HTMLSelectElement).value as ParentGoal['pink']; })}><option value="any">Any</option>${APTITUDE_KEYS.map((k) => html`<option value=${k} ?selected=${g.pink === k}>${APTITUDE_LABELS[k]}</option>`)}</select></label>
       <label class="goal-field">Minimum stars<select data-goal-stars="pink" .value=${live(String(g.pinkStars))} @change=${(e: Event) => change((g) => { g.pinkStars = Number((e.target as HTMLSelectElement).value); })}>${stars(g.pinkStars)}</select></label>
     </div></fieldset>
   ` : html`<p class="small muted">Set the blue, pink, and white sparks you want on one finished parent.</p>`);
@@ -37,7 +37,7 @@ export function renderGoalResult(c: RunPlan) {
     ${p === 0 ? html`<p class="warn" data-goal-zero>The modeled outcomes give a zero estimate. Check blue spark thresholds, skill availability, and pink eligibility below.</p>` : nothing}
     <div class="scroll-x"><table class="goal-breakdown"><thead><tr><th>Required spark</th><th class="num">Available</th><th class="num">Spark chance</th></tr></thead><tbody>
       <tr><td>Blue (${store.run.goal.blueStats.length === 5 ? 'any stat' : store.run.goal.blueStats.map(capitalize).join(', ') || 'none selected'})</td><td class="num">Always</td><td class="num">${probability(result.blue)}</td></tr>
-      <tr><td>Pink (${store.run.goal.pink ? APTITUDE_LABELS[store.run.goal.pink] : 'choose aptitude'})</td><td class="num">A/S only</td><td class="num">${result.pink?.probability == null ? 'Needs inputs' : probability(result.pink.probability)}</td></tr>
+      <tr><td>Pink (${store.run.goal.pink === 'any' ? 'Any' : APTITUDE_LABELS[store.run.goal.pink]})</td><td class="num">A/S only</td><td class="num">${result.pink?.probability == null ? 'Needs inputs' : probability(result.pink.probability)}</td></tr>
       ${result.required.map((w) => html`<tr><td>${w.target.name}</td><td class="num">${probability(w.available)}</td><td class="num">${probability(w.probability)}</td></tr>`)}
     </tbody></table></div>
     <p class="small muted">${result.required.length ? `All ${result.required.length} required white skill${result.required.length === 1 ? '' : 's'} available ${probability(result.allAvailable)} · ` : 'No required white sparks · '}SS or better ${probability(result.pSS)}. Each spark chance is shown individually; shared events and rank affect the combined result.</p>

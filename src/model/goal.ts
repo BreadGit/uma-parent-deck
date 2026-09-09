@@ -22,7 +22,7 @@ export function attemptsFor(p: number, confidence: number): number {
 }
 
 export interface PinkEstimate { probability: number | null; issues: string[]; eligibility: { aptitude: AptKey; probability: number | null }[] }
-export function pinkEstimate(apt: Record<AptKey, Grade>, target: AptKey, stars: number, lineage: (PinkSpark | null)[], affinity: number): PinkEstimate {
+export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pink'], stars: number, lineage: (PinkSpark | null)[], affinity: number): PinkEstimate {
   const issues: string[] = [];
   const unknown = lineage.length !== 6 || lineage.some((p) => p === null);
   const eligibility = APTITUDE_KEYS.map((key) => {
@@ -37,8 +37,15 @@ export function pinkEstimate(apt: Record<AptKey, Grade>, target: AptKey, stars: 
     const miss = matching.reduce((p, spark) => p * (1 - Math.min(1, PINK_INSPIRATION_RATES[spark.stars]! * (1 + affinity / 100))) ** INSPIRATION_EVENTS, 1);
     return { aptitude: key, probability: 1 - miss };
   });
+  if (target === 'any' && eligibility.some((e) => e.probability === 1)) {
+    return { probability: starChance(PINK_GENERATION_RATES, stars), issues: [], eligibility };
+  }
   if (unknown && eligibility.some((e) => e.probability === null)) issues.unshift('Open Pink sparks in Legacy and enter all six lineage sparks to estimate mid-run aptitude increases and competing pink types.');
   if (issues.length) return { probability: null, issues, eligibility };
+  if (target === 'any') {
+    const noneEligible = eligibility.reduce((p, e) => p * (1 - e.probability!), 1);
+    return { probability: (1 - noneEligible) * starChance(PINK_GENERATION_RATES, stars), issues, eligibility };
+  }
   const desired = eligibility.find((e) => e.aptitude === target)!.probability!;
   // The count of other eligible aptitudes is a Poisson-binomial distribution.
   let count = [1];
@@ -108,7 +115,6 @@ export function evaluateParentGoal(goal: ParentGoal, pinkLineage: (PinkSpark | n
   if (!ctx.trainee) issues.push('Choose the trainee to estimate the parent goal.');
   if (ctx.settings.scenarioId !== OUR_GRAND_CONCERT) issues.push('Parent goals currently estimate Our Grand Concert independent training.');
   if (!goal.blueStats.length) issues.push('Choose at least one acceptable blue stat.');
-  if (!goal.pink) issues.push('Choose a pink spark target.');
   const required = goal.required.map((r) => resolveTarget(r.id, ctx.data)).filter((t): t is Target => !!t);
   if (required.length !== goal.required.length || new Set(required.map((t) => t.id)).size !== required.length) issues.push('Each required white spark must be a different valid skill family.');
   const preferred = goal.preferred.map((id) => resolveTarget(id, ctx.data)).filter((t): t is Target => !!t && !required.some((r) => r.id === t.id));
@@ -123,9 +129,10 @@ export function evaluateParentGoal(goal: ParentGoal, pinkLineage: (PinkSpark | n
   const copies = (t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
   const skills = whiteGenerationMoments(joint, required.map(copies), ctx.settings);
   const moments = statGoalMoments(stats, goal);
-  const pink = goal.pink ? pinkEstimate(apt, goal.pink, goal.pinkStars, pinkLineage, ctx.settings.affinity) : null;
+  const pink = pinkEstimate(apt, goal.pink, goal.pinkStars, pinkLineage, ctx.settings.affinity);
   issues.push(...(pink?.issues ?? []));
   const notes = ['Starting aptitude grades already include parent selection. Pink ancestry estimates additional mid-run inspiration increases without changing the entered grades.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
+  if (goal.pink === 'any') notes.push('Any pink aptitude counts toward the goal. With an A/S aptitude already eligible, only the minimum stars affect its chance.');
   if (pinkLineage.some((spark) => spark?.inferred)) notes.push('Some pink sparks are minimum-star estimates inferred from starting aptitude increases. Other lineages can produce the same grades. Refine them in Legacy > Pink sparks.');
   if (skills.approximate) notes.push('A large group of linked skill sources uses a fixed sample approximation. Very rare joint outcomes may be missed.');
   if (coverage.conflicts.length) notes.push('Some goal skills compete for event choices. This estimate follows the current prioritized-skill order.');

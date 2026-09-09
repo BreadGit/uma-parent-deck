@@ -62,7 +62,7 @@ async function assertFieldsMatchState(where) {
       if (el.checked !== goal.blueStats.includes(el.dataset.goalBlue)) out.push(`blue ${el.dataset.goalBlue} differs from state`);
     }
     for (const el of document.querySelectorAll('[data-goal-stars]')) check(el, goal[`${el.dataset.goalStars}Stars`]);
-    for (const el of document.querySelectorAll('[data-goal-pink]')) check(el, goal.pink ?? '');
+    for (const el of document.querySelectorAll('[data-goal-pink]')) check(el, goal.pink);
     for (const el of document.querySelectorAll('[data-target-stars]')) check(el, goal.required.find((r) => r.id === Number(el.dataset.targetStars)).stars);
     for (const el of document.querySelectorAll('[data-target-role]')) {
       const required = goal.required.some((r) => r.id === Number(el.dataset.id));
@@ -354,6 +354,16 @@ await assertFieldsMatchState('after resetting aptitude rebalance checks');
 const deckBeforeGoal = await page.locator('.deck').innerText();
 await page.check('[data-goal-enabled]');
 await assertFieldsMatchState('after enabling parent goal');
+assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
+assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
+await page.selectOption('[data-goal-pink]', 'end');
+await assertFieldsMatchState('after selecting a specific pink goal');
+await page.selectOption('[data-goal-pink]', 'any');
+await assertFieldsMatchState('after restoring Any pink');
+await page.selectOption('[data-apt="end"]', 'A');
+await assertFieldsMatchState('after raising aptitude before pink reset');
+await page.click('[data-action="reset-pink-sparks"]');
+await assertFieldsMatchState('after resetting pink sparks');
 await page.uncheck('[data-goal-blue="guts"]');
 await assertFieldsMatchState('after changing accepted blue stats');
 await page.click('[data-action="goal-any-blue"]');

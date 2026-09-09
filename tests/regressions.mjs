@@ -315,6 +315,56 @@ test('chip selection toggles its editor and removal updates goals without activa
 });
 
 
+test('Any pink defaults to two stars, updates estimates, and persists across reload', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.goal.enabled = true;
+  const page = await fresh(t, saved);
+  const pinkRow = page.locator('.goal-breakdown tr').filter({ hasText: 'Pink (' });
+  assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
+  assert.match(await pinkRow.innerText(), /80\.0%/);
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  const chance = await page.locator('[data-goal-probability]').innerText();
+  await page.selectOption('[data-goal-stars="pink"]', '3');
+  assert.match(await pinkRow.innerText(), /10\.0%/);
+  assert.notEqual(await page.locator('[data-goal-probability]').innerText(), chance);
+  await page.selectOption('[data-goal-pink]', 'end');
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /Open Pink sparks/);
+  await page.selectOption('[data-goal-pink]', 'any');
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  await page.reload();
+  assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '3');
+  assert.match(await pinkRow.innerText(), /10\.0%/);
+});
+
+test('pink reset clears manual and inferred sparks and starting increases while preserving other inputs', async (t) => {
+  const page = await fresh(t);
+  await trainee(page);
+  await target(page, 'Groundwork');
+  await page.selectOption('[data-gain="0-0"]', '63');
+  await page.selectOption('[data-apt="end"]', 'A');
+  await page.click('[data-action="toggle-pink-sparks"]');
+  await page.selectOption('[data-pink-lineage="5"]', 'turf');
+  const before = await state(page);
+  assert.ok(before.run.pinkLineage.some((p) => p?.inferred));
+  assert.ok(before.run.pinkLineage.some((p) => p && !p.inferred));
+  await page.click('[data-action="reset-pink-sparks"]');
+  const expected = structuredClone(before);
+  expected.run.pinkLineage = Array(6).fill(null);
+  expected.run.aptOverrides = {};
+  assert.deepEqual(await state(page), expected);
+  assert.equal(await page.inputValue('[data-apt="end"]'), data.charByCardId.get(100101).aptitudes.end);
+  assert.equal(await page.locator('[data-pink-sparks-form]').count(), 1);
+  assert.deepEqual(await page.locator('[data-pink-lineage]').evaluateAll((els) => els.map((el) => el.value)), Array(6).fill(''));
+  assert.equal(await page.locator('[data-pink-inferred]').count(), 0);
+  await page.reload();
+  assert.deepEqual(await state(page), expected);
+  await page.click('[data-action="reset-pink-sparks"]');
+  assert.deepEqual(await state(page), expected, 'reset also works when collapsed and already empty');
+});
+
 test('advanced pink inputs stay collapsed and retain inspiration data across toggles and reload', async (t) => {
   const saved = defaultState(data);
   saved.version = 9;

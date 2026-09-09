@@ -11,19 +11,21 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
    optional 2★+ extras. Zero required whites is valid. There is no maximum required count.
 3. Enter copies and stars under **White sparks in lineage** in the same editor. Select the active
    chip again to close it. The × on each chip removes the target and its goal and lineage entries.
-4. Enable **Evaluate goal** in Parent goal and choose blue and pink goals. Copy all starting aptitude
-   grades from the game's Legacy screen after selecting both parents. Open **Pink sparks** below
+4. Enable **Evaluate goal** in Parent goal and choose blue and pink goals.
+   Pink defaults to Any at 2★ or better. Copy all starting aptitude grades from the game's Legacy screen after selecting both parents. Open **Pink sparks** below
    the stat gains and above the aptitude inputs in Legacy to enter the six pink lineage sparks for mid-run inspiration estimates.
    Raising a grade above the trainee's base infers a minimum-star set in the available slots.
    The editor labels these entries Estimated; editing an entry makes it manual. Unassigned slots
-   remain unknown. The editor starts closed. Closing it keeps the saved inputs active.
+   remain unknown. Reset beside Pink sparks clears all six entries and restores base aptitudes.
+   Blue sparks, white lineage, and goals stay unchanged. The editor starts closed. Closing it keeps the saved inputs active.
 5. Read Parent goal estimate. It shows the complete probability, individual spark chances, all
    required skills' availability, SS chance, and 50% / 75% / 95% attempt counts.
 
 Required/Preferred roles and minimum stars do not change selected cards or the prioritized list.
 Adding or removing a target chip changes the existing builder's target list. Changing shared run
 inputs, such as lineage, inventory, or agenda, can still change the suggested deck.
-Unknown pink ancestry and matching pink sparks below starting B withhold the combined estimate.
+For a specific pink target, unknown ancestry and matching pink sparks below starting B withhold
+the combined estimate. Any needs no ancestry when a starting A/S aptitude guarantees eligibility.
 A fully specified goal with no modeled source or eligibility has zero chance. Preferred extras
 are individual 2★-or-better probabilities, not conditional on successful required goals.
 With zero required white families, the white contribution is one and success depends on blue/pink.
@@ -31,8 +33,9 @@ With zero required white families, the white contribution is one and success dep
 ## Data and ownership
 
 - `src/model/goal-input.ts` defines and normalizes the goal and six pink ancestry entries.
-- `src/state.ts` migrates saves to version 12. Saved aptitude overrides clamp to the
-  selected trainee's base and four-grade starting-inheritance range. Pink entries can carry `inferred: true`;
+- `src/state.ts` migrates saves to version 13. Missing, null, or invalid pink targets become `any`;
+  existing specific targets and minimum stars survive. New pink goals default to `any` at two stars.
+  Saved aptitude overrides clamp to the selected trainee's base and four-grade starting-inheritance range. Pink entries can carry `inferred: true`;
   old entries without the marker stay manual, and the marker survives reloads. Valid pink ancestry
   from older saves survives.
   Saves from version 9 have unknown ancestry because that version removed the data. Entered
@@ -142,10 +145,16 @@ they do not change its starting grade.
 Editing an advanced spark removes its Estimated marker. Advanced edits refine the inspiration
 inputs; starting grades are reconciled on the next aptitude edit. Changing the trainee clears
 inferred entries and starting overrides but preserves manual ancestry. Legacy Reset clears both.
-Unassigned slots remain unknown, so partial inference alone does not complete the pink estimate.
+Unassigned slots remain unknown, so partial inference alone does not complete a specific pink target estimate.
 Goal notes identify inferred inputs. The model assumes the same affinity for all six slots.
 
 ### Pink eligibility
+
+Any accepts every eligible aptitude. With at least one starting A/S, its probability is just the
+minimum-star chance (1★+ = 100%, 2★+ = 80%, 3★ = 10%). Competing aptitudes do not dilute it,
+and unknown ancestry or unsupported jumps cannot block it. Without a guaranteed eligible aptitude,
+the model multiplies the star chance by the probability that at least one aptitude becomes eligible;
+unknown eligibility still withholds that estimate.
 
 Entered grades already include parent selection. The model adds only mid-run inspiration changes
 for final eligibility; it does not change the entered starting grades. Starting A/S aptitudes

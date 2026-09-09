@@ -31,7 +31,7 @@ already suggests so the probability breakdown is reviewable before it controls s
 ### Inputs and persistence
 
 - Acceptable blue stats, including any stat, and minimum stars.
-- Desired pink aptitude and minimum stars.
+- Desired pink aptitude or Any, and minimum stars. Defaults to Any at 2★ or better.
 - Zero or more required white skill families and their minimum stars. Required and Preferred roles
   share the Target white sparks chip list. The selected chip opens a shared editor with separate
   goal and lineage headers; clicking it again closes the editor. Removal lives on the chip.

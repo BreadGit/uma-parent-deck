@@ -96,7 +96,7 @@ test('saved grades clamp to the trainee range and inferred provenance survives r
   const data = loadData();
   const lineage = [inferred('end', 3), { aptitude: 'mile', stars: 2 }, null, null, null, null];
   const saved = migrate({ current: { version: 11, run: { traineeCardId: 100101, pinkLineage: lineage, aptOverrides: { turf: 'G', end: 'G', dirt: 'A' } } } }, data);
-  assert.equal(saved.version, 12);
+  assert.equal(saved.version, 13);
   assert.deepEqual(saved.run.aptOverrides, { dirt: 'C' });
   assert.deepEqual(saved.run.pinkLineage, lineage);
   assert.deepEqual(migrate({ current: saved }, data), saved);

@@ -76,6 +76,7 @@ const sparksForm = () => html`<div class="legacy-sparks" data-sparks-form>
 /** Clear the entered sparks and restore the trainee's own aptitudes. */
 const resetLegacy = () => update((s) => { s.run.parentSparks = PARENTS.map(() => defaultParentSparks()); s.run.aptOverrides = {}; s.run.pinkLineage = emptyPinkLineage(); });
 const toggleSparks = () => { view.showSparks = !view.showSparks; refresh(); };
+const resetPinkSparks = () => update((s) => { s.run.pinkLineage = emptyPinkLineage(); s.run.aptOverrides = {}; });
 const togglePinkSparks = () => { view.showPinkSparks = !view.showPinkSparks; refresh(); };
 
 const PANEL_TIP = 'Copy the game\'s legacy screen, shown before the run starts: the "+XX" each parent adds above every stat, and the aptitudes after inheritance. "By stars" enters the blue spark of each uma instead, for a parent found on a database.';
@@ -117,7 +118,7 @@ export function renderLegacy(c: RunPlan) {
         <div class="head">${statIcon(st)}${capitalize(st)}</div>
         <div class="body"><div class="v">${t.baseStats[i]! + start}</div><div class="sub">base ${t.baseStats[i]}</div><div class="sub" title="${max ? `at most +${max}` : ''}">≈+${num(later)} later${i === 0 ? tip(LATER_TIP) : nothing}</div></div>
       </div>`; })}</div>
-    <div class="legacy-pink-controls"><button class="small ${view.showPinkSparks ? 'active' : ''}" data-action="toggle-pink-sparks" aria-expanded=${view.showPinkSparks} aria-controls="legacy-pink-sparks" title="Enter parent and grandparent pink sparks for mid-run aptitude estimates" @click=${togglePinkSparks}>Pink sparks</button></div>
+    <div class="legacy-pink-controls"><button class="small ${view.showPinkSparks ? 'active' : ''}" data-action="toggle-pink-sparks" aria-expanded=${view.showPinkSparks} aria-controls="legacy-pink-sparks" title="Enter parent and grandparent pink sparks for mid-run aptitude estimates" @click=${togglePinkSparks}>Pink sparks</button><button class="small" data-action="reset-pink-sparks" title="Clear pink sparks and restore the trainee's base aptitudes" @click=${resetPinkSparks}>Reset</button></div>
     ${view.showPinkSparks ? pinkForm() : nothing}
     <div class="legacy-apts">
       ${ROWS.map(([label, keys], ri) => html`<div class="rowlbl">${label}${ri === 0 ? tip(APT_TIP) : nothing}</div><div class="cells">${keys.map((k) => html`<span class="cell ${store.run.aptOverrides[k] ? 'over' : ''}">${APTITUDE_LABELS[k]} <select data-apt="${k}" .value=${live(c.apt[k] === 'S' ? 'A' : c.apt[k])} @change=${(e: Event) => setAptitude(k, (e.target as HTMLSelectElement).value as Grade)}>${pinkAptitudeGrades(t.aptitudes[k]).map((g) => html`<option value="${g}" class=${withPinkAptitude(t.aptitudes, c.apt, store.run.pinkLineage, k, g)?.adjustsOthers ? 'dim' : ''} ?selected=${(c.apt[k] === 'S' ? 'A' : c.apt[k]) === g}>${g}</option>`)}</select></span>`)}</div>`)}
