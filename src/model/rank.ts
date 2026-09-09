@@ -8,7 +8,7 @@ import { APTITUDE_BUCKET_MULTIPLIER, SKILL_SCORE, UNIQUE_LEVEL_CHECKS, UNIQUE_SK
  * Rating points per stat value, the game's table as reproduced by UmaTools (umakonga formula): per-point rates in
  * 50-point blocks up to 1200, 10-point blocks to 2000 and 25-point blocks to 2500, accumulated then divided by ten.
  */
-const MAX_STAT_VALUE = 2500;
+export const MAX_STAT_VALUE = 2500;
 const STAT_SCORES: number[] = (() => {
   const R1 = [5, 8, 10, 13, 16, 18, 21, 24, 26, 28, 29, 30, 31, 33, 34, 35, 39, 41, 42, 43, 52, 55, 66, 68, 68];
   const R2 = [79, 80, 81, 83, 84, 85, 86, 88, 89, 90, 92, 93, 94, 96, 97, 98, 100, 101, 102, 103, 105, 106, 107, 109, 110, 111, 113, 114, 115, 117, 118, 119, 121, 122, 123, 124, 126, 127, 128,

@@ -9,6 +9,7 @@ import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skill
 import { resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES, WHITE_GENERATION_BANDS } from '../src/model/rules.ts';
 import { statScore } from '../src/model/rank.ts';
+import { phi } from '../src/model/stats.ts';
 import { planRun, predictRunDeck } from '../src/model/run.ts';
 import { makeCtx } from '../src/model/deck.ts';
 import type { AptKey, Grade } from '../src/types.ts';
@@ -211,6 +212,40 @@ test('rank bands share a stat outcome with blue and both required white stars', 
   close(fixed(28800).whiteStars[0]!, .825);
   const capped = statGoalMoments({ rawMean: [2000, 0, 0, 0, 0], caps: [1099, 1200, 1200, 1200, 1200], sd: [0, 0, 0, 0, 0], skillPoints: 0, skillSd: 0 }, goal);
   close(capped.blue, .1);
+});
+
+test('rare blue thresholds retain finite attempts and their shared white-rank outcome', () => {
+  const goal = { ...structuredClone(DEFAULT_GOAL), enabled: true, blueStats: ['stamina' as const], blueStars: 3 };
+  const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id], awakeningSkills: [], eventSkills: [], events: [] };
+  const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
+  const stats = { rawMean: [1100, 490, 1100, 1100, 1100], sd: [0, 32, 0, 0, 0], skillPoints: 17500 - 4 * statScore(1100) - statScore(600), skillSd: 0 };
+  const expectedBlue = .01 * (phi((490 - 599.5) / 32) + phi((490 - 1099.5) / 32));
+  const estimate = (required = goal.required, caps?: number[]) => evaluateParentGoal({ ...goal, required }, emptyPinkLineage(), apt(), [], ctx, { ...stats, caps }, []);
+  const blueOnly = estimate();
+  close(blueOnly.blue / expectedBlue, 1);
+  close(blueOnly.probability! / (expectedBlue * .8), 1);
+  assert.ok(Number.isFinite(attemptsFor(blueOnly.probability!, .95)));
+  const required = [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }];
+  const withWhites = estimate(required);
+  // Every outcome that generates this blue spark also reaches SS, even though the mean rank is below SS.
+  close(withWhites.probability! / (expectedBlue * .8 * (.2 * .8) ** 2), 1);
+  assert.deepEqual(estimate(required), withWhites);
+  assert.equal(estimate(required, [1200, 599, 1200, 1200, 1200]).probability, 0);
+  assert.equal(attemptsFor(estimate([], [1200, 599, 1200, 1200, 1200]).probability!, .95), Infinity);
+});
+
+test('blue marginals integrate rounding, capped tails, and multiple acceptable stats', () => {
+  const stats = { rawMean: [590, 1090, 500, 590, 1090], sd: [32, 32, 0, 32, 32], caps: [599, 1099, 1200, 600, 1100], skillPoints: 3000, skillSd: 400 };
+  const goal = structuredClone(DEFAULT_GOAL);
+  const middleTail = phi((590 - 599.5) / 32), highTail = phi((1090 - 1099.5) / 32);
+  close(statGoalMoments(stats, { ...goal, blueStars: 1 }).blue, 1);
+  close(statGoalMoments({ ...stats, rawMean: Array(5).fill(599.5), sd: Array(5).fill(32) }, { ...goal, blueStars: 1 }).blue, 1);
+  close(statGoalMoments(stats, goal).blue, (.1 + .5 + .1 + (.1 + .4 * middleTail) + (.5 + .3 * highTail)) / 5);
+  close(statGoalMoments(stats, { ...goal, blueStars: 3 }).blue, (.05 + .05 * middleTail + .05 + .05 * highTail) / 5);
+  const extreme = { ...stats, rawMean: [0, 0, 0, 0, 0], sd: [70, 0, 0, 0, 0], caps: [1200, 1200, 1200, 1200, 1200] };
+  const rare = statGoalMoments(extreme, { ...goal, blueStats: ['speed'], blueStars: 3 });
+  close(rare.blue / (.01 * (phi(-599.5 / 70) + phi(-1099.5 / 70))), 1);
+  assert.ok(rare.blueAllWhiteStars > 0, 'upper tails smaller than machine epsilon remain reachable');
 });
 
 test('goal migration keeps old targets as preferred and normalizes family identities', () => {

@@ -5,7 +5,7 @@ import { BLUE_GENERATION_BANDS, WHITE_GENERATION_BANDS, PINK_GENERATION_RATES, P
 import { cardSourcesForTarget, lineageCount, resolveTarget, type Target } from './sparks.ts';
 import { jointSkillForms, whiteGenerationMoments } from './goal-skills.ts';
 import { phi } from './stats.ts';
-import { statScore } from './rank.ts';
+import { MAX_STAT_VALUE, statScore } from './rank.ts';
 
 export const starChance = (rates: readonly number[], stars: number, exact = false) => exact ? rates[stars - 1] ?? 0 : rates.slice(stars - 1).reduce((a, p) => a + p, 0);
 export function blueChance(stats: number[], accepted: string[], stars: number): number {
@@ -63,37 +63,82 @@ function halton(index: number, base: number): number {
   while (index > 0) { value += fraction * (index % base); index = Math.floor(index / base); fraction /= base; }
   return value;
 }
-function normalQuantile(p: number): number {
-  let low = -8, high = 8;
-  for (let i = 0; i < 32; i++) { const mid = (low + high) / 2; if (phi(mid) < p) low = mid; else high = mid; }
-  return (low + high) / 2;
-}
 let samples: number[][] | undefined;
 function statSamples(): number[][] {
-  return samples ??= Array.from({ length: 2048 }, (_, i) => [2, 3, 5, 7, 11].map((base) => normalQuantile(halton(i + 1, base))));
+  return samples ??= Array.from({ length: 2048 }, (_, i) => [2, 3, 5, 7, 11].map((base) => halton(i + 1, base)));
 }
 
-/** Share each sampled statline between blue bands and rank; integrate rank's remaining skill uncertainty. */
+interface StatMass { value: number; probability: number }
+interface StatDistribution { outcomes: { value: number; cumulative: number }[]; mass: number }
+/** Rounded normal outcomes, with the tails folded into zero and the cap. */
+function statMasses(mean: number, sd: number, cap = Infinity): StatMass[] {
+  // Higher values have the same rating and blue band, so they can share one outcome.
+  const maximum = Math.max(0, Math.min(Math.round(cap), MAX_STAT_VALUE));
+  if (sd === 0 || maximum === 0) return [{ value: Math.max(0, Math.min(maximum, Math.round(mean))), probability: 1 }];
+  return Array.from({ length: maximum + 1 }, (_, value) => {
+    const lower = value === 0 ? -Infinity : (value - .5 - mean) / sd;
+    const upper = value === maximum ? Infinity : (value + .5 - mean) / sd;
+    // Use the survival function in the upper tail to avoid subtracting two CDFs rounded to one.
+    const probability = lower > 0 ? phi(-lower) - phi(-upper) : phi(upper) - phi(lower);
+    return { value, probability };
+  }).filter((outcome) => outcome.probability > 0);
+}
+function statDistribution(outcomes: StatMass[]): StatDistribution {
+  let mass = 0;
+  return { outcomes: outcomes.map(({ value, probability }) => ({ value, cumulative: mass += probability })), mass };
+}
+function sampleStat(distribution: StatDistribution, quantile: number): number {
+  const q = quantile * distribution.mass;
+  let low = 0, high = distribution.outcomes.length - 1;
+  while (low < high) {
+    const mid = Math.floor((low + high) / 2);
+    if (distribution.outcomes[mid]!.cumulative < q) low = mid + 1; else high = mid;
+  }
+  return distribution.outcomes[low]!.value;
+}
+
+/** Integrate blue bands analytically; sample rank conditional on each selected stat and blue band. */
 export function statGoalMoments(input: GoalStats, goal: ParentGoal): StatGoalMoments {
   const result: StatGoalMoments = { blue: 0, whiteStars: goal.required.map(() => 0), blueAllWhiteStars: 0, preferredStars: 0, pSS: 0, approximateRank: 0 };
-  const draws = input.sd.every((sd) => sd === 0) ? [[0, 0, 0, 0, 0]] : statSamples();
-  for (const draw of draws) {
-    const stats = input.rawMean.map((mean, i) => Math.max(0, Math.round(Math.min(input.caps?.[i] ?? Infinity, mean + draw[i]! * (input.sd[i] ?? 0)))));
-    const blue = blueChance(stats, goal.blueStats, goal.blueStars);
-    const score = stats.reduce((a, v) => a + statScore(v), input.skillPoints);
+  const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i]));
+  const distributions = masses.map(statDistribution);
+  const draws = input.sd.every((sd) => sd === 0) ? [[.5, .5, .5, .5, .5]] : statSamples();
+  const statRatings = draws.map((draw) => distributions.map((distribution, i) => statScore(sampleStat(distribution, draw[i]!))));
+  const scores = statRatings.map((ratings) => ratings.reduce((sum, rating) => sum + rating, input.skillPoints));
+  const whiteProducts = WHITE_GENERATION_BANDS.map((band) => goal.required.reduce((p, r) => p * starChance(band.rates, r.stars), 1));
+  for (const score of scores) {
     const below = (limit: number) => input.skillSd > 0 ? phi((limit - score) / input.skillSd) : Number(score < limit);
-    result.blue += blue / draws.length;
     result.pSS += (1 - below(17500)) / draws.length;
     WHITE_GENERATION_BANDS.forEach((band, i) => {
       const upper = WHITE_GENERATION_BANDS[i + 1]?.min;
       const weight = ((upper === undefined ? 1 : below(upper)) - (i === 0 ? 0 : below(band.min))) / draws.length;
       const stars = goal.required.map((r) => starChance(band.rates, r.stars));
       stars.forEach((p, j) => { result.whiteStars[j]! += p * weight; });
-      result.blueAllWhiteStars += blue * stars.reduce((all, p) => all * p, 1) * weight;
       result.preferredStars += starChance(band.rates, 2) * weight;
       if (band.approximate) result.approximateRank += weight;
     });
   }
+  STATS.forEach((stat, i) => {
+    if (!goal.blueStats.includes(stat)) return;
+    BLUE_GENERATION_BANDS.forEach((band, b) => {
+      const distribution = statDistribution(masses[i]!.filter(({ value }) => value >= band.min && value < (BLUE_GENERATION_BANDS[b + 1]?.min ?? Infinity)));
+      const blue = distribution.mass * starChance(band.rates, goal.blueStars) / STATS.length;
+      result.blue += blue;
+      if (blue === 0) return;
+      if (goal.required.every((r) => r.stars === 1)) { result.blueAllWhiteStars += blue; return; }
+      for (let n = 0; n < draws.length; n++) {
+        const score = scores[n]! - statRatings[n]![i]! + statScore(sampleStat(distribution, draws[n]![i]!));
+        // Each higher rank band replaces the previous band's shared white-star product.
+        let white = whiteProducts[0]!;
+        for (let j = 1; j < WHITE_GENERATION_BANDS.length; j++) {
+          const min = WHITE_GENERATION_BANDS[j]!.min;
+          const above = input.skillSd > 0 ? phi((score - min) / input.skillSd) : Number(score >= min);
+          white += (whiteProducts[j]! - whiteProducts[j - 1]!) * above;
+        }
+        result.blueAllWhiteStars += blue * white / draws.length;
+      }
+    });
+  });
   return result;
 }
 

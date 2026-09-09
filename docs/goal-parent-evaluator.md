@@ -99,15 +99,26 @@ existing rank estimate; it does not impose a goal budget constraint.
 
 ### Stats and rank
 
-The evaluator uses 2,048 fixed Halton samples transformed to independent normal stat deviations.
-Each sample is rounded, bounded at zero, and clamped to the inherited scenario caps. That same
-statline determines its blue band and stat rating. The existing predicted skill-rating mean and
-normal spread complete the rank distribution; skill uncertainty is integrated analytically across
-rank bands. Zero stat spread uses one exact outcome. Fixed samples make repeated evaluations
-and future deck comparisons deterministic. In the initial two-family implementation, a local
-25-evaluation check with Special Week, two
-required families, and complete pink ancestry measured about 5 ms median and 7.5 ms at the 95th
-percentile for the warm evaluator alone. This excludes deck search and rendering.
+The evaluator integrates each rounded normal stat distribution into integer outcomes, bounded at
+zero and clamped to the inherited scenario caps. Outcomes above the rating table's maximum share
+one outcome because they have the same rating and blue band. Blue probabilities use the full mass
+of each band. Upper-tail calculations use the normal survival function, so rare outcomes remain
+represented even when a fixed sample would miss every value above 600 or 1,100. A cap below the
+required threshold still gives zero chance.
+
+For rank marginals, the evaluator draws 2,048 fixed Halton samples from the stat distributions.
+For the combined goal, it samples separately within each accepted stat's blue bands and weights
+each result by that band's probability and blue-star rate. The selected stat's conditional value
+also contributes to rank. This preserves blue/rank dependence without requiring an unconditional
+sample to reach a rare blue threshold. Goals with no white-star quality requirement use the
+analytic blue probability directly. Rank integration remains a sample approximation.
+
+The existing predicted skill-rating mean and normal spread complete the rank distribution;
+skill uncertainty is integrated analytically across rank bands. Zero stat spread uses one exact
+outcome. Fixed samples make repeated evaluations and future deck comparisons deterministic.
+A local 25-evaluation check after the blue-tail fix, with Special Week, two required families,
+and Any pink, measured about 15 ms median and 19 ms at the 95th percentile for the warm evaluator
+alone. This excludes deck search and rendering.
 
 All required white star rolls use the same rank outcome. This retains blue/SS and white/white dependence.
 For example, separately averaging two 50%/80% white-star regimes and multiplying loses their
