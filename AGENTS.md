@@ -1,9 +1,13 @@
 # Working rules for this repo
 
-Before saying something works, run `npx tsc --noEmit`, `npm test`, and `npm run smoke`. The smoke test
-drives headless Chromium through the main flows and checks for horizontal overflow at 390, 768, 1280, 1440,
-1680 and 1920 px in both themes. Layout bugs only ever surfaced there. `npm run test:e2e` runs the
-smoke test plus the browser regression cases; use it when changing those flows.
+Choose verification proportional to the change. For documentation-only edits, review the text, links,
+and diff. For isolated UI copy or styling edits, inspect the affected UI and run relevant layout or
+browser checks. For changes to calculations, state, data loading, or shared application code, run
+`npx tsc --noEmit`, `npm test`, and `npm run smoke`. Verify the requested behavior as well as test results.
+
+The smoke test drives headless Chromium through the main flows and checks for horizontal overflow at
+390, 768, 1280, 1440, 1680 and 1920 px in both themes. `npm run test:e2e` adds the browser regression
+cases; use it when changing those flows. Broaden checks when failures or unresolved risks justify it.
 
 Browser checks need a running dev or preview server. They default to port 5173; set `URL` for another
 address. Set `SCREENSHOT_PATH=''` to skip the smoke screenshot or set a temporary path to inspect it.
@@ -12,6 +16,18 @@ Edits: never rely on an anchor string matching. Assert that a replacement applie
 project's history silently did nothing because the surrounding text had changed.
 
 Code should be self documenting, with tests covering expected behaviors.
+
+## Product principles
+
+This tool prioritizes useful estimates and convenient data entry. Incomplete input and temporary
+editing states are expected. Distinguish them from malformed data and genuinely impossible outcomes.
+Preserve valid user-entered data across unrelated edits and saved-state migrations. Do not require
+complete input or discard saved choices merely to simplify implementation. Make consequential
+estimation assumptions explicit.
+
+Empty pink-lineage rows contribute zero sparks to the estimate. Partial pink input should still
+produce an estimate using the entered sparks. Do not invent sparks for empty rows or require all six
+rows to be filled before showing a result.
 
 ## Development server
 
