@@ -5,6 +5,24 @@ import { outcomeSkillShares, hasWhiteSpark, isEventSource, type EventSource, typ
 // Each digit records a family's best available form: none, white, circle, gold.
 interface Distribution { states: Map<string, number>; approximate: boolean }
 export interface FormDistribution { count: number; components: { indices: number[]; distribution: Distribution }[] }
+/** Project shared outcomes without drawing a different sample for the displayed marginals. */
+export function projectForms(forms: FormDistribution, selected: number[]): FormDistribution {
+  const components: FormDistribution['components'] = [];
+  for (const component of forms.components) {
+    const members = selected.flatMap((index, next) => {
+      const position = component.indices.indexOf(index);
+      return position < 0 ? [] : [{ position, next }];
+    });
+    if (!members.length) continue;
+    const states = new Map<string, number>();
+    for (const [state, p] of component.distribution.states) {
+      const projected = members.map((m) => state[m.position]).join('');
+      states.set(projected, (states.get(projected) ?? 0) + p);
+    }
+    components.push({ indices: members.map((m) => m.next), distribution: { states, approximate: component.distribution.approximate } });
+  }
+  return { count: selected.length, components };
+}
 const MAX_STATES = 4096;
 const MAX_COMBINATIONS = 65536;
 const add = (d: Map<string, number>, state: string, p: number) => { if (p > 0) d.set(state, (d.get(state) ?? 0) + p); };
@@ -169,4 +187,20 @@ export function whiteGenerationMoments(forms: FormDistribution, lineageCopies: n
     all *= generated; allAvailable *= obtained;
   }
   return { all, each, available, allAvailable, approximate };
+}
+
+/** Joint generation for a subset, projected from the same shared event outcomes. */
+export function subsetGeneration(forms: FormDistribution, copies: number[], selected: number[], settings: Settings): number {
+  const wanted = new Set(selected), rates = [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];
+  let probability = 1;
+  for (const { indices, distribution } of forms.components) {
+    const members = indices.flatMap((index, position) => wanted.has(index) ? [{ index, position }] : []);
+    if (!members.length) continue;
+    let sum = 0;
+    for (const [state, mass] of distribution.states) {
+      sum += mass * members.reduce((p, { index, position }) => p * clamp(rates[Number(state[position])]! * settings.lineageSparkMultiplier ** (copies[index] ?? 0)), 1);
+    }
+    probability *= sum;
+  }
+  return probability;
 }

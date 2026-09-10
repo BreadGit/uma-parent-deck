@@ -1,10 +1,11 @@
 // Drives the dev server in Chromium through the main flows and checks layout at four widths in both themes.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { assertFieldsMatchState } from './browser-fields.mjs';
+import { assertFieldsMatchState, settlePlanActions, waitForPlan } from './browser-fields.mjs';
 const url = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
+settlePlanActions(page);
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
@@ -106,6 +107,7 @@ await page.click('.chip button[data-action="unpin-card"]:not([data-id="30052"])'
 const rankingPin = page.locator('button[data-action="toggle-card-pin"][data-id="30028"]');
 assert.equal(await page.locator('button[data-action="toggle-card-pin"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has a pin button');
 await rankingPin.click();
+await waitForPlan(page);
 assert.equal(await rankingPin.getAttribute('aria-pressed'), 'true');
 assert.equal(await page.locator('.scroll tbody tr').nth(1).locator('button[data-action="toggle-card-pin"]').getAttribute('data-id'), '30028', 'new pin follows Light Hello at the top of the ranking');
 assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 1);
@@ -281,7 +283,6 @@ assert.equal(await page.inputValue('[data-apt="end"]'), 'D');
 await page.click('[data-action="reset-legacy"]');
 await assertFieldsMatchState(page, 'after resetting aptitude rebalance checks');
 // Goal roles share the target chips. Editor selection is transient; goals and lineage persist.
-const deckBeforeGoal = await page.locator('.deck').innerText();
 assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
 assert.equal(await page.locator('[data-goal-result]').count(), 1);
 await assertFieldsMatchState(page, 'with automatic parent goal evaluation');
@@ -310,7 +311,7 @@ for (const id of [200352, 201601, 200472]) {
   await assertFieldsMatchState(page, `after requiring target ${id}`);
 }
 assert.equal(await page.locator('[data-required-count]').innerText(), '3 required');
-assert.equal(await page.locator('.deck').innerText(), deckBeforeGoal, 'changing goal roles leaves selected cards unchanged');
+assert.equal(await page.locator('.deck .slot').count(), 6, 'goal search keeps a complete legal deck');
 assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0, 'pink ancestry starts collapsed');
 await page.click('[data-action="toggle-pink-sparks"]');
 await assertFieldsMatchState(page, 'after opening pink sparks');

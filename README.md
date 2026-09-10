@@ -12,8 +12,10 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 - Parent goal always evaluates your choices. Set acceptable blue stats and a pink aptitude, defaulting to Any
   at 2★ or better. The evaluator combines those with every required white spark and shows estimated attempts for 50%, 75%, and
   95% chance of success. With no required whites, success depends only on blue and pink. Changing
-  a target's Required/Preferred role does not change deck selection; adding or removing a target
-  still changes the builder's target list. Goal-driven deck optimization remains deferred.
+  a target's role or minimum stars changes the deck search. Required-goal chance comes first;
+  preferred sparks on successful parents distinguish decks within a tight, adjustable relative
+  window. Search runs in the background with a loading state. When a requirement is impossible,
+  the result explains it and separately estimates the best remaining goal found.
   Copy starting aptitude grades from the game after selecting both parents. Open Pink sparks
   below the stat gains in Legacy to enter the ancestors you know and include mid-run B-to-A increases.
   Empty rows count as zero sparks for the estimate, with the same blank placeholders as By stars.
@@ -41,18 +43,17 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 - Each card gets a spark score (expected sparks over the targets, given how likely the card
   is to actually hand over the skill) and a stat score (predicted contribution in independent
   training at your limit break). Ranking is by marginal spark gain, tie-broken by stats.
-- A greedy builder fills the five owned slots and the friend's slot, then tries single swaps until none
-  raises the expected sparks (or the focus-weighted stats at equal sparks). Pinned cards (Light Hello is
-  pinned by default for Our Grand Concert) go first, best marginal spark gain first, one card per
-  character: an owned pin takes an owned slot, and a pin you do not own asks for the friend's slot at
-  LB4. With six or more owned pins the leftover pins compete for the friend's slot too, unless the
-  "borrow best overall card" box is ticked. A friend's slot still open takes the best card overall,
-  owned slots still open fill from the rest of your inventory, and if a deck card's LB4 version would
-  serve better as the borrow it is swapped in and its slot refilled.
+- The deck search compares complete required-goal probabilities, then preferred sparks on successful
+  parents within a configurable 0.1% relative window. It uses multiple starting decks and bounded swaps,
+  including cards whose stats help the goal even without target hints. Pins constrain the five owned
+  slots and one borrowed slot, with one card per character. When the full goal has zero probability,
+  search favors the largest achievable subset and explains the remaining goal separately.
+  See [the search notes](docs/goal-parent-search.md) for constraints and approximation limits.
 - The predicted run shows expected stats (clamped to the scenario caps plus the blue sparks' start
   uncaps), chance of ≥600 and ≥1100 per stat (blue spark star bands), chance of SS rank and the
-  estimated SP against the worst-case cost of the targets, and a 10-skill priority list used by independent training with the skills that are
-  gated behind an event choice listed first. Only those ten entries steer event choices.
+  estimated SP against the worst-case cost of the targets, and a 10-skill priority list for independent
+  training. Required targets come first, followed by other skills with event choices. Only those ten entries
+  steer event choices. Custom ordering applies within those groups, and the list can be exported.
 - Every card counts as owned at a default limit break (4 for every rarity, editable) until you
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
@@ -82,11 +83,12 @@ Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live i
 
 - `src/model/`: the game and tool logic, with no DOM. `run.ts` turns the user's choices into the plan
   the page shows (schedule, deck, prediction, rank estimate, prioritized skills); `sparks.ts` finds skill
-  sources and resolves event conflicts; `deck.ts` scores cards and builds the deck; `goal.ts`
-  evaluates parent goals, with shared skill outcomes in `goal-skills.ts`; `stats.ts`,
+  sources and resolves event conflicts; `deck.ts` scores cards and supplies the initial deck;
+  `goal-deck.ts` searches complete decks using `goal-objective.ts`; `goal.ts` evaluates parent goals,
+  with shared skill outcomes in `goal-skills.ts`; `stats.ts`,
   `races.ts`, `rank.ts`, `inherit.ts` and `trainee.ts` are the individual models.
 - `src/state.ts`: the persisted state and its migration from older saves.
-- `src/ui/`: lit-html templates, one module per panel.
+- `src/ui/`: lit-html templates, one module per panel. `plan-worker.ts` runs deck search off the main thread.
 - `tests/`: model rules, the run pipeline, state migration, and data-shape checks; `smoke.mjs` drives
   the page in a browser.
 
@@ -189,9 +191,9 @@ loss penalty) are defaults in the advanced settings panel.
 ## Known gaps
 
 The [curated reference index](docs/refs/README.md) records source precedence and the
-[goal-parent deck plan](docs/goal-parent-decks-plan.md) records the completed phase 1 evaluator
-and the deferred deck optimizer. [Evaluator notes](docs/goal-parent-evaluator.md) explain its
-calculation and remaining approximations.
+[goal-parent deck plan](docs/goal-parent-decks-plan.md) records both completed deliveries.
+[Evaluator notes](docs/goal-parent-evaluator.md) explain the probability model;
+[search notes](docs/goal-parent-search.md) explain deck selection, fallbacks, and remaining search limits.
 
 - Independent-training hint pickup, random event rates, the Group finale rate, the trainee's outing rate
   and the fallback for secret-event conditions the tool cannot score (rival results, streaks, strategy)

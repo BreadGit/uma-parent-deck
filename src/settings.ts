@@ -2,6 +2,7 @@ import type { Focus } from './types.ts';
 import { OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
 
 export interface Settings {
+  goalTieTolerance: number;     // relative required-goal window in which preferred extras can decide
   // main page
   winThreshold: number;          // include a G1 when P(win) >= this
   focus: Focus;
@@ -45,6 +46,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  goalTieTolerance: 0.001,
   winThreshold: 0.8,
   focus: 'stamina',
   showUnowned: true,
@@ -126,6 +128,7 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   charConditionFallbackRate: rate,
   scenarioId: { kind: 'enum', values: SUPPORTED_SCENARIOS },
   goldRollStat: { kind: 'number', min: 0, max: 2500 },
+  goalTieTolerance: rate,
   goldSparkRate: rate,
   circleSparkRate: rate,
   whiteSparkRate: rate,
@@ -189,6 +192,7 @@ export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>
 
 /** User-facing note per advanced setting: what it does and where the default comes from. */
 export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
+  goalTieTolerance: 'How much required-goal chance you will trade for more preferred sparks on successful parents. A fraction, not percentage points: 0.001 allows a 0.1% relative difference. If the best chance found is 10%, decks at 9.99% or above can win on preferred extras. Zero allows only exact ties. Larger values give preferred sparks more influence. This is a preference, not a measure of model accuracy.',
   affinity: "Individual affinity score assumed for each of the six umas in the lineage (two parents, four grandparents). A blue or white spark procs at an inspiration event at its base chance times (1 + score/100), so 150 makes every blue spark proc. The game never shows individual scores, only their sum as ◎ (over 150), ○ (over 50) or △, and a ◎ made of six weak links procs far less than 150 each would; a compatibility calculator (GameTora, umaishow) gives the individual values. Default 150 is the optimistic assumption this tool has always used.",
   hintBase: 'Chance per turn that a card standing on a facility shows a hint, before Hint Frequency. Default 0.07 from a 1,024-turn manual-play sample (GameWith measured 6 to 9%). Nobody has measured hint pickup in independent training, so the whole hint model is an estimate.',
   hintScale: 'Multiplier on the whole hint model for independent training, where hint pickup is unmeasured. Default 0.75 so a 0% Hint Frequency card lands near 0.9 hints per run, in line with the 8 hints per deck fujikiseki measured in manual runs. Prioritized skills are assumed not to change which hints the run takes: that is documented for Auto-Train, not for independent training.',
@@ -234,6 +238,7 @@ const list = (key: keyof Settings, label: string): SettingField => ({ key, label
  * appears here exactly once (state.test.ts checks), except scenarioId, which has one supported value.
  */
 export const ADVANCED_SETTING_GROUPS: SettingGroup[] = [
+  { title: 'Deck search', fields: [n('goalTieTolerance', 'Required-goal tie tolerance (relative)', 0.001)] },
   { title: 'Lineage', fields: [n('affinity', 'Affinity per uma', 1), list('whiteSparkInheritRates', 'White spark hint rate, 1/2/3★'), list('pinkInspirationRates', 'Pink activation rate, 1/2/3★'), n('lineageSparkMultiplier', 'Spark chance × per lineage copy'), list('blueInspirationGainMean', 'Blue spark mean roll, 1/2/3★')] },
   { title: 'Hints', fields: [n('hintBase', 'Hint chance per card-turn'), n('hintScale', 'Hint model scale'), n('hintTurnsShare', 'Turns a card is on its facility')] },
   { title: 'Card events', fields: [list('chainRatesSSR', 'SSR chain reaches 1/2/3'), list('chainRatesSR', 'SR chain reaches 1/2'), n('randomEventRate', 'Random event fires'), n('palChainRate', 'Pal date chain completes'), n('groupOutingRate', 'Group member outing happens'), n('groupFinaleRate', 'Group finale happens'), n('specialEventRate', 'Unlock and New Year events'), n('goldRollStat', 'Stat at the gold-or-white roll', 10)] },

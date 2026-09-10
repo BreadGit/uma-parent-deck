@@ -293,7 +293,7 @@ test('goal migration keeps old targets as preferred and normalizes family identi
   assert.deepEqual(migrate({ current }, data), current);
 });
 
-test('goal editing leaves selected cards and current prioritized list unchanged', () => {
+test('goal editing drives selection while supplied-deck prediction stays consistent', () => {
   const input = structuredClone(DEFAULT_RUN);
   input.traineeCardId = data.characters.find((c) => c.name === 'Special Week')!.cardId;
   input.targets = [a.id, b.id].map((id) => ({ id, role: 'preferred', stars: 2 }));
@@ -302,8 +302,10 @@ test('goal editing leaves selected cards and current prioritized list unchanged'
   input.targets.forEach((t) => { t.role = 'required'; });
   input.pinkLineage = lineage();
   const after = planRun(input, settings, {}, data);
-  assert.deepEqual(after.deckResult.deck.map((d) => [d.card.id, d.lb, d.borrowed]), before.deckResult.deck.map((d) => [d.card.id, d.lb, d.borrowed]));
-  assert.deepEqual(after.wl, before.wl);
+  assert.ok(before.search && after.search);
+  assert.equal(after.search.score.total, 4);
+  assert.equal(before.search.score.total, 2);
+  assert.ok(after.search.score.comparison > 0);
   assert.ok(after.goalEstimate);
   assert.deepEqual(predictRunDeck(after.deckResult.deck, input, after.ctx, after.apt, after.sum.expectedLosses).finalMean, after.finalMean);
 });

@@ -5,6 +5,7 @@ import { data } from './context.ts';
 import { tip } from './tooltip.ts';
 
 export const pct = (x: number, d = 0) => `${(x * 100).toFixed(d)}%`;
+export const goalProbability = (p: number) => p === 0 ? '0%' : p < 0.00001 ? '<0.001%' : `${(p * 100).toFixed(p < 0.001 ? 3 : p < 0.01 ? 2 : 1)}%`;
 export const num = (x: number, d = 0) => x.toFixed(d);
 export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** Percentage in a rounded panel, e.g. [95%]. */

@@ -7,13 +7,12 @@ import { BLUE_GENERATION_BANDS } from '../../model/rules.ts';
 import { hasWhiteSpark } from '../../model/sparks.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { store, update } from '../context.ts';
-import { capitalize } from '../format.ts';
+import { capitalize, goalProbability as probability } from '../format.ts';
 import { panel } from '../panel.ts';
 import { renderTargets } from './targets.ts';
 import { openPinkSparks } from './legacy.ts';
 
 const change = (fn: (goal: ParentGoal) => void) => update((s) => { fn(s.run.goal); s.run.goal = sanitizeGoal(s.run.goal); });
-const probability = (p: number) => p === 0 ? '0%' : p < 0.00001 ? '<0.001%' : `${(p * 100).toFixed(p < 0.001 ? 3 : p < 0.01 ? 2 : 1)}%`;
 const stars = (current: number) => [1, 2, 3].map((n) => html`<option value=${n} ?selected=${current === n}>${n}★ or better</option>`);
 export function renderGoalEditor(c: RunPlan) {
   const g = store.run.goal;
@@ -39,6 +38,7 @@ function goalLimits(c: RunPlan): string[] {
   if (r.pink.upperProbability === 0) limits.push(`${pinkName} cannot reach final A/S under the entered grades and pink sparks. Empty lineage slots count as zero; check Legacy if sparks are missing.`);
   for (const w of r.required) {
     if (!hasWhiteSpark(w.target)) limits.push(`${w.target.name} is impossible as a white spark because it has no released white form.`);
+    else if (c.search?.unavailableWhiteIds.includes(w.target.id)) limits.push(`${w.target.name} is impossible under the current inputs: no modeled skill source exists in the allowed card pool, trainee, or lineage. Check excluded skill choices and source-rate settings.`);
     else if (w.available === 0) limits.push(`${w.target.name} has no estimated acquisition chance with this deck and its current event choices. Check its skill sources and the prioritized skill list.`);
     else if (w.probability === 0) limits.push(`${w.target.name} can be acquired, but has no estimated chance at the required stars with this deck. Check spark-generation settings and predicted rank.`);
   }
@@ -59,12 +59,18 @@ export function renderGoalResult(c: RunPlan) {
   const limits = goalLimits(c);
   const p = result.probability, upper = result.upperProbability;
   const range = (low: number, high: number) => low === high ? probability(low) : `${probability(low)} to ${probability(high)}`;
+  const selected = c.search?.score;
+  const kept = selected ? [...(selected.blue ? ['Blue'] : []), ...(selected.pink ? ['Pink'] : []), ...result.required.filter((w) => selected.whiteIds.includes(w.target.id)).map((w) => w.target.name)] : [];
   return panel({ title: 'Parent goal estimate' }, html`<div data-goal-result>
     ${p === null ? html`<p class="muted" data-goal-probability>Complete the goal inputs for a combined estimate.</p>` : html`<div class="goal-total" data-goal-probability>${range(p, upper ?? p)}<span class="small muted">Chance per final spark roll that the parent gets every required spark</span></div>`}
     ${result.issues.length ? html`<ul class="small" data-goal-issues>${result.issues.map((issue) => html`<li>${issue}</li>`)}</ul>` : nothing}
     ${result.pink.warnings.length ? html`<ul class="small warn" data-goal-warnings>${result.pink.warnings.map((warning) => html`<li>${warning}</li>`)}<li><button class="small" data-action="goal-refine-pink" @click=${openPinkSparks}>Edit pink sparks in Legacy</button></li></ul>` : nothing}
     ${upper === 0 ? html`<p class="warn" data-goal-zero>The modeled outcomes give a zero estimate. Check blue spark thresholds, skill availability, and pink eligibility below.</p>` : nothing}
     ${limits.length ? html`<ul class="small" data-goal-limits>${limits.map((limit) => html`<li>${limit}</li>`)}</ul>` : nothing}
+    ${selected && selected.count < selected.total ? html`<div data-goal-fallback><p class="warn">No complete success found under these estimates. This deck prioritizes ${selected.count} of ${selected.total} required sparks.</p>
+      ${selected.count ? html`<p class="small">Remaining goal: ${kept.join(', ')}. Chance per final spark roll for this set: ${range(selected.probability, selected.upperProbability)}.</p>` : html`<p class="small">No required spark was achievable in the search. The fallback favors preferred sparks, then stats.</p>`}
+      <p class="small muted">Your original requirements remain selected. ${selected.subsetApproximate ? 'The search also limits how many requirement subsets it checks. ' : ''}The original complete-goal estimate and attempts above and below still refer to every requirement.</p></div>` : nothing}
+    ${selected && result.preferred.length ? html`<p class="small" data-goal-preferred>${selected.preferred.toFixed(2)} preferred sparks on average ${selected.count ? 'on parents meeting ' + (selected.count === selected.total ? 'every requirement' : 'the remaining goal') : 'per final spark roll'}.</p>` : nothing}
     <div class="scroll-x"><table class="goal-breakdown"><thead><tr><th>Required spark</th><th class="num">Available</th><th class="num">Spark chance</th></tr></thead><tbody>
       <tr><td>Blue (${store.run.goal.blueStats.length === 5 ? 'any stat' : store.run.goal.blueStats.map(capitalize).join(', ') || 'none selected'})</td><td class="num">Always</td><td class="num">${probability(result.blue)}</td></tr>
       <tr><td>Pink (${store.run.goal.pink === 'any' ? 'Any' : APTITUDE_LABELS[store.run.goal.pink]})</td><td class="num">Needs final A/S</td><td class="num">${range(result.pink.probability, result.pink.upperProbability)}</td></tr>

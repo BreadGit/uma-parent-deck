@@ -1,7 +1,8 @@
 # Goal-parent deck plan
 
-Updated 2026-09-10. Phase 1 is implemented on `feature/goal-parent-decks`, including explanation
-and wording polish. Phase 2 is planned below and awaits review before implementation.
+Updated 2026-09-10. Both deliveries are implemented on `feature/goal-parent-decks`.
+See [deck search notes](goal-parent-search.md) for phase 2's bounded search, comparison rules,
+fallbacks, and responsiveness. The delivery sections below retain the agreed scope.
 The reviewed UI uses compact target chips with a shared editor.
 The required white list now supports zero or more families, superseding the initial two-slot design.
 The sections below record the current scope and acceptance criteria.
@@ -26,8 +27,8 @@ secondary. Do not implement a purchasing-budget optimizer or block ordinary goal
 
 ## Delivery 1: goal editor and evaluation of the current suggested deck
 
-The existing deck-selection objective remains in place for this delivery. Evaluate the deck it
-already suggests so the probability breakdown is reviewable before it controls selection.
+During phase 1, the existing deck-selection objective remained in place. Phase 2 now uses this
+evaluation to select decks. The unchanged-selection acceptance check below describes phase 1 only.
 
 ### Inputs and persistence
 
@@ -122,8 +123,8 @@ explanation of the approximation is enough. Report sensible rounded estimates, n
 
 ## Delivery 2: use the evaluator to select decks
 
-This section records the next implementation scope. The comparison setting, fallback search,
-and loading state are not part of the phase 1 polish.
+This section records the implemented phase 2 scope. The comparison setting, fallback search,
+and loading state were added after the phase 1 polish.
 
 ### Required goals and preferred extras
 
@@ -149,8 +150,8 @@ The default is `0.001`; accept finite fractions from zero through one through th
 specification and migration path. Zero permits only exact ties. The help text must say that larger
 values allow preferred extras to outweigh more required-goal chance. At the default, a best chance
 of 10% admits candidates at 9.99% or above. A best chance of 0.01% admits 0.00999% or above.
-This is a user preference, not a claim that the estimates are accurate to that precision. Add this
-control with phase 2, when it affects selection.
+This is a user preference, not a claim that the estimates are accurate to that precision. The
+control is now active in phase 2.
 
 ### Uncertain and impossible requirements
 
@@ -213,7 +214,9 @@ its field after edits and reloads.
 
 Describe the result as the best deck found under the estimates. A bounded heuristic search does
 not guarantee a global optimum. Measure evaluation time before deciding whether to use a worker.
-Measure full-search latency on representative inventories and target counts, including a phone.
+Measure full-search latency on representative inventories and target counts. Desktop measurements
+and a phone-width browser check are recorded in the search notes; physical-phone timing remains
+to be checked on the user's device.
 If search takes long enough to interrupt interaction, show a visible "Finding a deck…" loading
 state while work runs off the main thread or in yielding chunks. Allow input edits; cancel or
 ignore obsolete searches and never present old results as belonging to the new goal. Test that

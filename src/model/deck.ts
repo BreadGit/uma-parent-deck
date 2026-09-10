@@ -15,6 +15,7 @@ export interface Ctx {
   raceWins: RaceWins;            // win chance per agenda race, for the trainee's secret events
   lineage: Map<number, Lineage>; // target.id -> existing lineage sparks
   priority: number[];            // skill ids in prioritized-skill order (every form of a family); decides which option an event's choice goes to
+  excluded?: number[];           // explicitly excluded choice skills; ordinary hints remain available
   fansBefore?: (slot: number) => number; // the agenda's expected fans before a slot, for fan-scaled unique effects
 }
 /** A Ctx with no agenda, lineage or priority unless given; for tests and scripts. */
@@ -48,7 +49,7 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
  */
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const full = new Map<number, SkillSource[]>();
-  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars), ...scenarioCompletionSources(t, ctx.data, ctx.settings)]);
+  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars), ...scenarioCompletionSources(t, ctx.data, ctx.settings)].filter((s) => !s.isChoice || !ctx.excluded?.includes(s.skillId)));
   const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx), ctx.settings, targets);
   const sparks = new Map(targets.map((t) => [t.id, hasWhiteSpark(t) ? sparkChance(purchasedOwnership(t, combineSources(map.get(t.id) ?? [])), ctx.settings, lineageN(ctx, t)) : 0]));
   return { full, map, sparks, conflicts };
@@ -151,6 +152,13 @@ export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Map<
 
 /** The cards of a deck entry that matter to a run state: its sources and character. */
 type Entry = Pick<CardScore, 'card' | 'lb' | 'mine' | 'statPower' | 'borrowed'>;
+export function describeDeck(entries: { card: Card; lb: number; borrowed?: boolean }[], targets: Target[], ctx: Ctx): DeckResult {
+  const sourceEntries = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
+  const deck = sourceEntries.map((e, i) => ({ ...scoreCard(e.card, e.lb, targets, stateOf(sourceEntries.filter((_, j) => i !== j), targets, ctx), ctx), borrowed: e.borrowed }));
+  const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);
+  const borrowed = deck.find((e) => e.borrowed);
+  return { deck, coverage, sparks, conflicts, steps: [], borrow: borrowed ? { card: borrowed.card, replaces: null, gain: borrowed.marginalValue, statGain: borrowed.statPower } : null, borrowAlternatives: [] };
+}
 /** Run state for a set of cards on top of the trainee. */
 function stateOf(entries: Entry[], targets: Target[], ctx: Ctx): Existing {
   let e = traineeCoverage(targets, ctx);

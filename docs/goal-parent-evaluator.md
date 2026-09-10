@@ -1,8 +1,8 @@
 # Parent goal evaluator, phase 1
 
-Implemented 2026-09-08; phase 1 polish updated 2026-09-10. This delivery evaluates the current
-suggested deck. Goal-driven deck search is phase 2 and is not implemented. The agreed scope is in
-[the plan](goal-parent-decks-plan.md).
+Implemented 2026-09-08; phase 1 polish and phase 2 integration updated 2026-09-10. These notes
+describe the evaluator shared by the result panel and [goal-driven deck search](goal-parent-search.md).
+The agreed scope is in [the plan](goal-parent-decks-plan.md).
 
 ## Review flow
 
@@ -28,11 +28,13 @@ suggested deck. Goal-driven deck search is phase 2 and is not implemented. The a
    Individual chances do not establish which deck change would improve complete success the most.
    Missing inputs withhold this explanation; uncertain pink eligibility remains a range.
    A missing source in this deck does not establish impossibility across all legal decks, and a
-   sampled zero does not prove impossibility. Goal-driven fallback selection remains phase 2.
+   sampled zero does not prove impossibility. Phase 2 shows a separately labeled fallback goal
+   when the search finds no complete success.
 
-Required/Preferred roles and minimum stars do not change selected cards or the prioritized list.
-Adding or removing a target chip changes the existing builder's target list. Changing shared run
-inputs, such as lineage, inventory, or agenda, can still change the suggested deck.
+Required/Preferred roles, minimum stars, and target additions or removals now affect deck search.
+Required targets lead the prioritized list. Shared run inputs, such as lineage, inventory, or
+agenda, also affect the suggested deck. Phase 1 evaluated the old builder without changing selection;
+phase 2 supersedes that behavior.
 Partial pink ancestry gives an estimate using starting grades and entered or inferred sparks, with
 no missing-entry warning. Matching pink sparks below starting B produce lower and upper probability bounds.
 Buttons in the goal controls and warnings open and focus the pink-lineage editor in Legacy.
@@ -68,9 +70,9 @@ With zero required white families, the white contribution is one and success dep
   matching sparks where possible, reclaims other slots as needed, and derives the resulting grades.
   It never allocates more than six sparks. Unrelated manual sparks remain unchanged unless the
   selected grade needs their slots. Planning overrides do not allocate or remove sparks.
-- `src/model/run.ts` exposes `predictRunDeck()` for a supplied deck and calls `evaluateParentGoal()`
-  after the existing builder selects cards. The evaluator reuses the resolved deck coverage and
-  context. It does not rebuild sources, resolve choices again, or search for decks.
+- `src/model/run.ts` exposes `predictRunDeck()` for a supplied deck. Each search candidate resolves
+  its skill choices and shares that coverage, context, and stat/rank outcomes with the evaluator.
+  The evaluator does not rebuild sources, resolve choices again, or search for decks itself.
 - `src/model/goal-skills.ts` calculates a joint distribution over the best obtainable form of each
   required family. `src/model/goal.ts` combines this with stat, rank, pink, and star estimates.
 - `src/ui/panels/targets.ts` renders the target chips and shared goal/lineage editor. Its selected
@@ -114,9 +116,10 @@ approximation when used. It bounds state growth without imposing a target-count 
 joint acquisition outcomes can be missed. Independent groups still multiply analytically, which
 preserves tiny joint chances instead of relying on a sample that obtains every independent skill.
 
-The evaluator resolves event choices once for all required and preferred families using the
-current prioritized-skill order and its non-target blockers. It does not rewrite that list for
-the goal. Fallback choices for unprioritized skills retain the existing model's choice policy.
+Each candidate resolves event choices once for all required and preferred families. Required
+targets precede other skills; user ordering applies within each group. The evaluator follows that
+list and its non-target blockers. Explicitly excluded choice sources are not counted, while ordinary
+hints remain available. Fallback choices for unprioritized skills retain the existing model's policy.
 Available target skills and relevant upgrades are assumed purchased. SP contributes to the
 existing rank estimate; it does not impose a goal budget constraint.
 
@@ -238,7 +241,7 @@ independent chance. There is no attempts-per-career setting or selective-reroll 
   Race, scenario, green unique, and negative skill spark goals are outside this delivery.
 
 `tests/goal.test.ts` covers numeric boundaries, complete-goal arithmetic, shared events and chains,
-rank dependence, pink eligibility, migration, and unchanged deck selection. Browser smoke checks
+rank dependence, pink eligibility, migration, and supplied-deck prediction. Browser smoke checks
 all goal controls against saved state and tests responsive layouts in both themes. Browser
 regressions cover reloads, old saves, manual lineage preservation, planning overrides, uncertain
 versus impossible goals, and dimmed/disabled controls in both themes.

@@ -5,7 +5,7 @@ import { affinityMultiplier } from './inherit.ts';
 import { APTITUDE_LABELS, type ParentGoal, type ResolvedGoal, type PinkSpark } from './goal-input.ts';
 import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES, INSPIRATION_EVENTS } from './rules.ts';
 import { hasWhiteSpark, lineageCount, resolveTarget, type Target } from './sparks.ts';
-import { jointSkillForms, whiteGenerationMoments } from './goal-skills.ts';
+import { jointSkillForms, projectForms, whiteGenerationMoments, type FormDistribution } from './goal-skills.ts';
 import { phi } from './stats.ts';
 import { MAX_STAT_VALUE, statScore, thresholdFor } from './rank.ts';
 
@@ -57,6 +57,7 @@ export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pin
 
 export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number }
 export interface StatGoalMoments { blue: number; whiteStars: number[]; blueAllWhiteStars: number; preferredStars: number; pSS: number; approximateRank: number }
+export interface GoalRankBands { blue: number; rank: number[]; blueRank: number[]; pSS: number; approximateRank: number }
 function halton(index: number, base: number): number {
   let value = 0, fraction = 1 / base;
   while (index > 0) { value += fraction * (index % base); index = Math.floor(index / base); fraction /= base; }
@@ -97,25 +98,31 @@ function sampleStat(distribution: StatDistribution, quantile: number): number {
 }
 
 /** Integrate blue bands analytically; sample rank conditional on each selected stat and blue band. */
-export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS): StatGoalMoments {
+export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS, basis = goalRankBands(input, goal, ssThreshold, settings)): StatGoalMoments {
   const bands = whiteGenerationBands(settings);
-  const result: StatGoalMoments = { blue: 0, whiteStars: goal.required.map(() => 0), blueAllWhiteStars: 0, preferredStars: 0, pSS: 0, approximateRank: 0 };
+  const quality = (stars: number[]) => bands.map((band) => stars.reduce((p, n) => p * starChance(band.rates, n), 1));
+  const mean = (weights: number[], rates: number[]) => weights.reduce((p, w, i) => p + w * rates[i]!, 0);
+  return { blue: basis.blue, whiteStars: goal.required.map((r) => mean(basis.rank, quality([r.stars]))),
+    blueAllWhiteStars: goal.required.every((r) => r.stars === 1) ? basis.blue : mean(basis.blueRank, quality(goal.required.map((r) => r.stars))),
+    preferredStars: mean(basis.rank, quality([2])), pSS: basis.pSS, approximateRank: basis.approximateRank };
+}
+
+/** Shared rank weights let every required subset and preferred intersection reuse the same outcomes. */
+export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS): GoalRankBands {
+  const bands = whiteGenerationBands(settings);
+  const result: GoalRankBands = { blue: 0, rank: bands.map(() => 0), blueRank: bands.map(() => 0), pSS: 0, approximateRank: 0 };
   const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i]));
   const distributions = masses.map(statDistribution);
   const draws = input.sd.every((sd) => sd === 0) ? [[.5, .5, .5, .5, .5]] : statSamples();
   const statRatings = draws.map((draw) => distributions.map((distribution, i) => statScore(sampleStat(distribution, draw[i]!))));
   const scores = statRatings.map((ratings) => ratings.reduce((sum, rating) => sum + rating, input.skillPoints));
-  const whiteStars = bands.map((band) => goal.required.map((r) => starChance(band.rates, r.stars)));
-  const whiteProducts = whiteStars.map((rates) => rates.reduce((p, rate) => p * rate, 1));
-  const preferredStars = bands.map((band) => starChance(band.rates, 2));
   for (const score of scores) {
     const below = (limit: number) => input.skillSd > 0 ? phi((limit - score) / input.skillSd) : Number(score < limit);
     result.pSS += (1 - below(ssThreshold)) / draws.length;
     bands.forEach((band, i) => {
       const upper = bands[i + 1]?.min;
       const weight = ((upper === undefined ? 1 : below(upper)) - (i === 0 ? 0 : below(band.min))) / draws.length;
-      whiteStars[i]!.forEach((p, j) => { result.whiteStars[j]! += p * weight; });
-      result.preferredStars += preferredStars[i]! * weight;
+      result.rank[i]! += weight;
       if (band.approximate) result.approximateRank += weight;
     });
   }
@@ -126,17 +133,15 @@ export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshol
       const blue = distribution.mass * starChance(band.rates, goal.blueStars) / STATS.length;
       result.blue += blue;
       if (blue === 0) return;
-      if (goal.required.every((r) => r.stars === 1)) { result.blueAllWhiteStars += blue; return; }
       for (let n = 0; n < draws.length; n++) {
         const score = scores[n]! - statRatings[n]![i]! + statScore(sampleStat(distribution, draws[n]![i]!));
-        // Each higher rank band replaces the previous band's shared white-star product.
-        let white = whiteProducts[0]!;
-        for (let j = 1; j < bands.length; j++) {
-          const min = bands[j]!.min;
-          const above = input.skillSd > 0 ? phi((score - min) / input.skillSd) : Number(score >= min);
-          white += (whiteProducts[j]! - whiteProducts[j - 1]!) * above;
+        let abovePrevious = 1;
+        for (let j = 0; j < bands.length; j++) {
+          const next = bands[j + 1]?.min;
+          const above = next === undefined ? 0 : input.skillSd > 0 ? phi((score - next) / input.skillSd) : Number(score >= next);
+          result.blueRank[j]! += blue * (abovePrevious - above) / draws.length;
+          abovePrevious = above;
         }
-        result.blueAllWhiteStars += blue * white / draws.length;
       }
     });
   });
@@ -156,7 +161,7 @@ export interface GoalEstimate {
   allAvailable: number;
   pSS: number;
 }
-export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark | null)[], apt: Record<AptKey, Grade>, deck: Pick<DeckResult, 'coverage' | 'conflicts'>, ctx: Ctx, stats: GoalStats, runIssues: string[]): GoalEstimate {
+export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark | null)[], apt: Record<AptKey, Grade>, deck: Pick<DeckResult, 'coverage' | 'conflicts'>, ctx: Ctx, stats: GoalStats, runIssues: string[], basis?: GoalRankBands, forms?: FormDistribution): GoalEstimate {
   const issues = [...runIssues];
   if (!ctx.trainee) issues.push('Choose the trainee to estimate the parent goal.');
   if (!goal.blueStats.length) issues.push('Choose at least one acceptable blue stat.');
@@ -164,10 +169,10 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
   if (required.length !== goal.required.length || new Set(required.map((t) => t.id)).size !== required.length) issues.push('Each required white spark must be a different valid skill family.');
   const preferred = goal.preferred.map((id) => resolveTarget(id, ctx.data)).filter((t): t is Target => !!t && !required.some((r) => r.id === t.id));
   const coverage = deck.coverage;
-  const joint = jointSkillForms(required, coverage, ctx.data, ctx.settings);
+  const joint = forms ? projectForms(forms, required.map((_, i) => i)) : jointSkillForms(required, coverage, ctx.data, ctx.settings);
   const copies = (t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
   const skills = whiteGenerationMoments(joint, required.map(copies), ctx.settings);
-  const moments = statGoalMoments(stats, goal, thresholdFor('SS', ctx.data.ranks), ctx.settings);
+  const moments = statGoalMoments(stats, goal, thresholdFor('SS', ctx.data.ranks), ctx.settings, basis);
   const pink = pinkEstimate(apt, goal.pink, goal.pinkStars, pinkLineage, ctx.settings.affinity, ctx.settings.pinkInspirationRates);
   const notes = ['Known pink lineage determines starting aptitude grades. Grades outside the starting-inheritance range remain planning overrides. Inspiration estimates additional mid-run increases.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
   for (const target of [...required, ...preferred]) if (!hasWhiteSpark(target)) notes.push(`${target.name} has no released white form and cannot generate a white spark. Its saved target and lineage are retained for review.`);
@@ -183,7 +188,8 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
     issues, notes, blue: moments.blue, pink, allAvailable: skills.allAvailable, pSS: moments.pSS,
     required: required.map((target, i) => ({ target, available: skills.available[i]!, probability: skills.each[i]! * moments.whiteStars[goal.required.findIndex((r) => r.id === target.id)]! })),
     preferred: preferred.map((target) => {
-      const m = whiteGenerationMoments(jointSkillForms([target], coverage, ctx.data, ctx.settings), [copies(target)], ctx.settings);
+      const single = forms ? projectForms(forms, [required.length + goal.preferred.indexOf(target.id)]) : jointSkillForms([target], coverage, ctx.data, ctx.settings);
+      const m = whiteGenerationMoments(single, [copies(target)], ctx.settings);
       return { target, available: m.available[0]!, probability: m.each[0]! * moments.preferredStars };
     }),
   };

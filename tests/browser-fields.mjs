@@ -5,12 +5,24 @@ import { startingAptitudes } from '../src/model/pink-inherit.ts';
 import { migrate, STATE_KEY } from '../src/state.ts';
 const data = loadData();
 
+export async function waitForPlan(page) {
+  await page.waitForFunction(() => !document.querySelector('[data-plan-pending]'), undefined, { timeout: 30000 });
+}
+/** Existing interaction regressions inspect completed recommendations; loading has its own regression. */
+export function settlePlanActions(page) {
+  for (const name of ['click', 'selectOption', 'reload', 'setInputFiles', 'check', 'uncheck']) {
+    const action = page[name].bind(page);
+    page[name] = async (...args) => { const result = await action(...args); await waitForPlan(page); return result; };
+  }
+}
+
 /**
  * Every form field that mirrors persisted state must show that state. A <select> the user has changed ignores later
  * `selected` attribute changes on its options, so a field that lit reuses for a different card or stat would keep a
  * stale value unless its value is bound live; this catches that whatever the field.
  */
 export async function assertFieldsMatchState(page, where) {
+  await waitForPlan(page);
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), STATE_KEY);
   const saved = migrate({ current }, data);
   const trainee = data.charByCardId.get(saved.run?.traineeCardId);

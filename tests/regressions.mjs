@@ -1,10 +1,11 @@
 // Browser regressions use fresh storage and the same controls a player uses. They also run against a production build.
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { test, after } from 'node:test';
 import { chromium } from 'playwright';
 import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState } from './browser-fields.mjs';
+import { assertFieldsMatchState, settlePlanActions, waitForPlan } from './browser-fields.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
 
 const data = loadData();
@@ -12,7 +13,7 @@ const browser = await chromium.launch();
 const url = process.env.URL ?? 'http://localhost:5173/';
 after(() => browser.close());
 
-async function fresh(t, saved) {
+async function fresh(t, saved, settle = true) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   t.after(() => context.close());
   if (saved) await context.addInitScript(({ key, saved }) => {
@@ -28,6 +29,7 @@ async function fresh(t, saved) {
   t.after(() => assert.deepEqual(errors, [], 'browser errors'));
   await page.goto(url);
   await page.waitForSelector('#target-search');
+  if (settle) { await waitForPlan(page); settlePlanActions(page); }
   return page;
 }
 const state = (page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
@@ -42,6 +44,60 @@ const coverage = (page, skill) => page.locator('table').filter({ has: page.locat
 const inventoryFile = (inventory) => ({ name: 'inventory.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(inventory)) });
 const noCards = () => Object.fromEntries(data.cards.map((c) => [c.id, null]));
 const predictions = (page) => page.locator('h3', { hasText: 'Predicted run' });
+
+test('search stays responsive, ignores obsolete results, and persists the tie setting', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  const page = await fresh(t, saved, false);
+  assert.equal(await page.locator('[data-plan-pending]').count(), 1);
+  assert.equal(await page.locator('[data-goal-result]').count(), 0, 'old recommendations are hidden during search');
+  await page.locator('[data-goal-stars="blue"]').selectOption('3');
+  await page.locator('[data-goal-stars="pink"]').selectOption('3');
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '3', 'inputs respond during search');
+  await page.locator('[data-details="advanced"] > summary').click();
+  await page.fill('[data-setting="goalTieTolerance"]', '0');
+  await page.locator('[data-setting="goalTieTolerance"]').press('Tab');
+  await waitForPlan(page);
+  // Any 3-star blue is at most 10%, and Any 3-star pink is 10%. The final result must use both latest edits.
+  const probability = (await page.locator('[data-goal-probability]').innerText()).split('\n')[0];
+  assert.ok(parseFloat(probability) <= 1);
+  assert.equal((await state(page)).settings.goalTieTolerance, 0);
+  await assertFieldsMatchState(page, 'after replacing an active search');
+  await page.reload();
+  await waitForPlan(page);
+  assert.equal((await page.locator('[data-goal-probability]').innerText()).split('\n')[0], probability);
+  await page.locator('[data-details="advanced"] > summary').click();
+  assert.equal(await page.inputValue('[data-setting="goalTieTolerance"]'), '0');
+  await assertFieldsMatchState(page, 'after reloading the search preference');
+});
+
+test('required skill priority is visible and the export follows the displayed order and exclusions', async (t) => {
+  const saved = defaultState(data);
+  const focus = data.skills.find((s) => s.name === 'Focus');
+  const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power');
+  saved.run.traineeCardId = 100101;
+  saved.run.pinnedIds.push(falcon.id);
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }, { id: focus.id, role: 'preferred', stars: 2 }];
+  saved.run.wishlistOrder = [focus.id, 201601];
+  const page = await fresh(t, saved);
+  assert.equal(await page.locator('.wishlist li').first().getAttribute('data-wl-key'), '201601');
+  assert.match(await page.locator('.wishlist li').first().innerText(), /required/);
+  assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder);
+  const exported = page.waitForEvent('download');
+  await page.click('[data-action="wl-export"]');
+  const download = await exported;
+  assert.equal(download.suggestedFilename(), 'prioritized-skills.txt');
+  const lines = (await readFile(await download.path(), 'utf8')).trim().split('\n');
+  assert.equal(lines[0], 'Groundwork');
+  assert.equal(lines.length, await page.locator('.wishlist li').count());
+  await page.click('[data-action="wl-exclude"][data-id="201601"]');
+  assert.match(await page.locator('[data-priority-conflict]').innerText(), /Groundwork is required but excluded/);
+  assert.equal(await page.locator('.wishlist [data-wl-key="201601"]').count(), 0);
+  const secondExport = page.waitForEvent('download');
+  await page.click('[data-action="wl-export"]');
+  assert.ok(!(await readFile(await (await secondExport).path(), 'utf8')).split('\n').includes('Groundwork'));
+  await assertFieldsMatchState(page, 'after exporting the excluded required skill list');
+});
 
 test('the first reset clears targets, trainee, pins and inheritance while preserving settings and inventory', async (t) => {
   const page = await fresh(t);
@@ -112,6 +168,7 @@ test('Narita Brian displays one race per occupied slot and counts each goal once
 test('skill advice includes prerequisite costs and buyable circle upgrades', async (t) => {
   const page = await fresh(t);
   await trainee(page);
+  await pin(page, 'piece of mind');
   await target(page, 'Swinging Maestro');
   assert.match(await page.locator('div.small').filter({ hasText: /^Worst-case target SP cost:/ }).innerText(), /340 of/);
   await page.click('[data-action="remove-target"]');
@@ -124,13 +181,14 @@ test('skill advice includes prerequisite costs and buyable circle upgrades', asy
   assert.equal(await page.locator('.wishlist').getByText('Right-Handed ◎', { exact: true }).count(), 0);
 });
 
-test('the borrow description uses its marginal gain in the completed deck', async (t) => {
+test('the borrow description reports complete-deck goal chance', async (t) => {
   const page = await fresh(t);
   await trainee(page);
   for (const skill of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) await target(page, skill);
   const advice = await page.locator('.small.gap-top').filter({ hasText: /^Borrow:/ }).innerText();
-  assert.match(advice, /Smart Falcon/);
-  assert.match(advice, /\+4\.9% expected sparks/);
+  const chance = (await page.locator('[data-goal-probability]').innerText()).split('\n')[0];
+  assert.ok(advice.includes(`${chance} for every requirement`));
+  assert.doesNotMatch(advice, /expected sparks|best stat stick/);
 });
 
 test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious circle upgrades', async (t) => {
@@ -248,7 +306,6 @@ test('white target chips migrate old goals and support zero or many required spa
   saved.run.aptOverrides.end = 'B';
   saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
   const page = await fresh(t, saved);
-  const before = await page.locator('.deck').innerText();
   assert.equal(await page.locator('[data-required-count]').innerText(), '1 required');
   assert.equal(await page.locator('[data-action="select-target"]').count(), 4);
   assert.equal(await page.locator('[data-goal-required]').count(), 0);
@@ -257,7 +314,7 @@ test('white target chips migrate old goals and support zero or many required spa
     await page.click(`[data-target-role="required"][data-id="${id}"]`);
   }
   assert.equal(await page.locator('[data-required-count]').innerText(), '4 required');
-  assert.equal(await page.locator('.deck').innerText(), before, 'roles do not change deck ranking');
+  assert.equal(await page.locator('.deck .slot').count(), 6);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   await page.reload();
   await page.waitForSelector('[data-required-count]');
