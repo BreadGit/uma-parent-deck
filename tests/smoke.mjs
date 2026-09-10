@@ -282,8 +282,9 @@ await page.click('[data-action="reset-legacy"]');
 await assertFieldsMatchState(page, 'after resetting aptitude rebalance checks');
 // Goal roles share the target chips. Editor selection is transient; goals and lineage persist.
 const deckBeforeGoal = await page.locator('.deck').innerText();
-await page.check('[data-goal-enabled]');
-await assertFieldsMatchState(page, 'after enabling parent goal');
+assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
+assert.equal(await page.locator('[data-goal-result]').count(), 1);
+await assertFieldsMatchState(page, 'with automatic parent goal evaluation');
 assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
 assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
 await page.selectOption('[data-goal-pink]', 'end');

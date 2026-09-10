@@ -15,7 +15,7 @@ const probability = (p: number) => p === 0 ? '0%' : p < 0.00001 ? '<0.001%' : `$
 const stars = (current: number) => [1, 2, 3].map((n) => html`<option value=${n} ?selected=${current === n}>${n}★ or better</option>`);
 export function renderGoalEditor(c: RunPlan) {
   const g = store.run.goal;
-  return panel({ title: 'Parent goal', actions: html`<label><input type="checkbox" data-goal-enabled .checked=${live(g.enabled)} @change=${(e: Event) => change((g) => { g.enabled = (e.target as HTMLInputElement).checked; })} /> Evaluate goal</label>` }, html`${renderTargets(c)}${g.enabled ? html`
+  return panel({ title: 'Parent goal' }, html`${renderTargets(c)}
     <fieldset class="goal-group"><legend>Required blue spark</legend>
       <div class="goal-stats">${STATS.map((stat) => html`<label><input type="checkbox" data-goal-blue=${stat} .checked=${live(g.blueStats.includes(stat))} @change=${(e: Event) => change((g) => { g.blueStats = (e.target as HTMLInputElement).checked ? [...g.blueStats, stat] : g.blueStats.filter((s) => s !== stat); })} /> ${capitalize(stat)}</label>`)}
       <button class="small" data-action="goal-any-blue" @click=${() => change((g) => { g.blueStats = [...STATS]; })}>Any stat</button></div>
@@ -25,12 +25,11 @@ export function renderGoalEditor(c: RunPlan) {
       <label class="goal-field">Aptitude<select data-goal-pink .value=${live(g.pink)} @change=${(e: Event) => change((g) => { g.pink = (e.target as HTMLSelectElement).value as ParentGoal['pink']; })}><option value="any">Any</option>${APTITUDE_KEYS.map((k) => html`<option value=${k} ?selected=${g.pink === k}>${APTITUDE_LABELS[k]}</option>`)}</select></label>
       <label class="goal-field">Minimum stars<select data-goal-stars="pink" .value=${live(String(g.pinkStars))} @change=${(e: Event) => change((g) => { g.pinkStars = Number((e.target as HTMLSelectElement).value); })}>${stars(g.pinkStars)}</select></label>
     </div><button class="small" data-action="goal-open-pink" @click=${openPinkSparks}>Edit pink sparks in Legacy</button></fieldset>
-  ` : html`<p class="small muted">Set the blue, pink, and white sparks you want on one finished parent.</p>`}`);
+  `);
 }
 
 export function renderGoalResult(c: RunPlan) {
   const result = c.goalEstimate;
-  if (!result) return nothing;
   const p = result.probability, upper = result.upperProbability;
   const range = (low: number, high: number) => low === high ? probability(low) : `${probability(low)} to ${probability(high)}`;
   return panel({ title: 'Parent goal estimate' }, html`<div data-goal-result>

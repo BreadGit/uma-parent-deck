@@ -50,9 +50,6 @@ export async function assertFieldsMatchState(page, where) {
     }
     const goal = st.run?.goal;
     const check = (el, want) => { if (el.value !== String(want)) out.push(`${JSON.stringify(el.dataset)} shows ${el.value}, state ${want}`); };
-    for (const el of document.querySelectorAll('[data-goal-enabled]')) {
-      if (el.checked !== goal?.enabled) out.push('goal enabled differs from state');
-    }
     for (const el of document.querySelectorAll('[data-goal-blue]')) {
       if (el.checked !== goal.blueStats.includes(el.dataset.goalBlue)) out.push(`blue ${el.dataset.goalBlue} differs from state`);
     }

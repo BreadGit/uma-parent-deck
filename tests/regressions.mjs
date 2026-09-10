@@ -244,7 +244,7 @@ test('white target chips migrate old goals and support zero or many required spa
   saved.version = 7;
   saved.run.traineeCardId = 100101;
   saved.run.targets = [200012];
-  saved.run.goal = { ...saved.run.goal, enabled: true, pink: 'end', required: [{ id: null, stars: 2 }, { id: 200352, stars: 3 }], preferred: [201601, 200472] };
+  saved.run.goal = { ...saved.run.goal, pink: 'end', required: [{ id: null, stars: 2 }, { id: 200352, stars: 3 }], preferred: [201601, 200472] };
   saved.run.aptOverrides.end = 'B';
   saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
   const page = await fresh(t, saved);
@@ -316,10 +316,48 @@ test('chip selection toggles its editor and removal updates goals without activa
 });
 
 
+test('goal evaluation stays active for new sessions, resets, and saves with the old toggle off', async (t) => {
+  const page = await fresh(t);
+  assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
+  assert.equal(await page.locator('[data-goal-pink]').isVisible(), true);
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /Choose the trainee/);
+  await trainee(page);
+  assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
+  await assertFieldsMatchState(page, 'after selecting a trainee with automatic goal evaluation');
+  await page.selectOption('[data-goal-stars="pink"]', '3');
+  const chance = await page.locator('[data-goal-probability]').innerText();
+  await assertFieldsMatchState(page, 'after editing an automatically evaluated goal');
+  await page.reload();
+  assert.equal(await page.locator('[data-goal-probability]').innerText(), chance);
+  await assertFieldsMatchState(page, 'after reloading an automatically evaluated goal');
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.click('[data-action="reset-all"]');
+  assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
+  assert.match(await page.locator('[data-goal-issues]').innerText(), /Choose the trainee/);
+  await assertFieldsMatchState(page, 'after resetting with automatic goal evaluation');
+
+  const saved = defaultState(data);
+  saved.version = 14;
+  saved.run.traineeCardId = 100101;
+  saved.run.goal = { ...saved.run.goal, enabled: false, pink: 'turf', pinkStars: 3 };
+  const restored = await fresh(t, saved);
+  assert.equal(await restored.locator('[data-goal-enabled]').count(), 0);
+  assert.equal(await restored.inputValue('[data-goal-pink]'), 'turf');
+  assert.equal(await restored.inputValue('[data-goal-stars="pink"]'), '3');
+  assert.match(await restored.locator('[data-goal-probability]').innerText(), /%/);
+  await assertFieldsMatchState(restored, 'after loading a goal that was disabled');
+  await restored.selectOption('[data-goal-stars="pink"]', '2');
+  assert.ok(!('enabled' in (await state(restored)).run.goal));
+  await assertFieldsMatchState(restored, 'after saving a formerly disabled goal');
+  await restored.reload();
+  assert.match(await restored.locator('[data-goal-probability]').innerText(), /%/);
+  await assertFieldsMatchState(restored, 'after reloading a formerly disabled goal');
+});
+
 test('Any pink defaults to two stars, updates estimates, and persists across reload', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  saved.run.goal.enabled = true;
   const page = await fresh(t, saved);
   const pinkRow = page.locator('.goal-breakdown tr').filter({ hasText: 'Pink (' });
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
@@ -374,7 +412,7 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   delete saved.run.pinkLineage;
   saved.run.traineeCardId = 100101;
   saved.run.aptOverrides.end = 'B';
-  saved.run.goal = { ...saved.run.goal, enabled: true, pink: 'end' };
+  saved.run.goal = { ...saved.run.goal, pink: 'end' };
   const page = await fresh(t, saved);
   const toggle = page.locator('[data-action="toggle-pink-sparks"]');
   assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
@@ -524,7 +562,6 @@ test('dimmed aptitude choices rebalance pink sparks and planning overrides prese
 test('manual Mile sparks survive unrelated grades, trainee changes, and reload', async (t) => {
   const page = await fresh(t);
   await trainee(page);
-  await page.check('[data-goal-enabled]');
   await page.selectOption('[data-goal-pink]', 'turf');
   await page.click('[data-action="goal-open-pink"]');
   assert.equal(await page.locator('[data-pink-lineage="0"]').evaluate((el) => el === document.activeElement), true);
@@ -587,7 +624,7 @@ test('saved white siblings and gold-only targets stay visible and keep lineage',
 test('pink probability ranges remain visible and disabled and dimmed fields have a visual cue in both themes', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  saved.run.goal = { ...saved.run.goal, enabled: true, pink: 'turf' };
+  saved.run.goal = { ...saved.run.goal, pink: 'turf' };
   saved.run.pinkLineage = [{ aptitude: 'dirt', stars: 1 }, ...Array(5).fill(null)];
   const page = await fresh(t, saved);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /% to .*%/);

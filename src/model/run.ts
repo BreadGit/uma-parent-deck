@@ -35,7 +35,7 @@ export interface SpCost { total: number; incomplete: boolean; items: { target: T
 export interface StatCaps { cap: number[]; uncap: number[]; capped: boolean[] }
 
 export interface RunPlan {
-  goalEstimate: GoalEstimate | null;
+  goalEstimate: GoalEstimate;
   issues: string[];                        // correct these before using run predictions
   trainee: Character | null;
   apt: Aptitudes;
@@ -205,9 +205,9 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   }
   const prediction = predictRunDeck(deckResult.deck, input, ctx, apt, sum.expectedLosses);
   const { pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank } = prediction;
-  const goalEstimate = input.goal.enabled ? evaluateParentGoal(goalWithTargets(input.goal, input.targets), input.pinkLineage, apt, deckResult, ctx, {
+  const goalEstimate = evaluateParentGoal(goalWithTargets(input.goal, input.targets), input.pinkLineage, apt, deckResult, ctx, {
     rawMean: rawFinalMean, sd: pred.sd, caps: statCaps?.cap, skillPoints: rank.skillPts, skillSd: settings.skillScoreSd,
-  }, issues) : null;
+  }, issues);
   const spCost = targetSpCost(targets, deckResult.coverage);
   const candidates = wishlistCandidates(deckResult.deck, targets, ctx);
   const ordered = order(candidates);

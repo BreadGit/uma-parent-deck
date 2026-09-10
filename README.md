@@ -9,7 +9,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   and lineage; select it again to close. Remove a target with the × on its chip. Any number of targets,
   including zero, can be Required. Preferred targets are optional 2★+ extras. Required targets have
   individual minimum stars. Separate headers distinguish target goals from existing lineage.
-- Enable Evaluate goal to set acceptable blue stats and a pink aptitude, defaulting to Any
+- Parent goal always evaluates your choices. Set acceptable blue stats and a pink aptitude, defaulting to Any
   at 2★ or better. The evaluator combines those with every required white spark and shows estimated attempts for 50%, 75%, and
   95% chance of success. With no required whites, success depends only on blue and pink. Changing
   a target's Required/Preferred role does not change deck selection; adding or removing a target

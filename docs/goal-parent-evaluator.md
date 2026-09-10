@@ -11,7 +11,7 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
    optional 2★+ extras. Zero required whites is valid. There is no maximum required count.
 3. Enter copies and stars under **White sparks in lineage** in the same editor. Select the active
    chip again to close it. The × on each chip removes the target and its goal and lineage entries.
-4. Enable **Evaluate goal** in Parent goal and choose blue and pink goals.
+4. Choose blue and pink goals in Parent goal. Evaluation is always active and updates with each edit.
    Pink defaults to Any at 2★ or better. Copy all starting aptitude grades from the game's Legacy screen after selecting both parents. Open **Pink sparks** below
    the stat gains and above the aptitude inputs in Legacy to enter known pink lineage sparks for mid-run inspiration estimates.
    Raising a grade above the trainee's base infers a minimum-star set in the available slots.
@@ -37,7 +37,8 @@ With zero required white families, the white contribution is one and success dep
 ## Data and ownership
 
 - `src/model/goal-input.ts` defines and normalizes the goal and six pink ancestry entries.
-- `src/state.ts` migrates saves to version 14. Missing, null, or invalid pink targets become `any`;
+- `src/state.ts` migrates saves to version 15. The retired goal-enabled flag is discarded, so older
+  saves also evaluate automatically. Missing, null, or invalid pink targets become `any`;
   existing specific targets and minimum stars survive. New pink goals default to `any` at two stars.
   Saved A-through-G aptitude overrides survive, including grades outside starting inheritance.
   Pink entries can carry `inferred: true`;
@@ -49,7 +50,7 @@ With zero required white families, the white contribution is one and success dep
   slots disappear. Old goal-only families
   join the unified target list, which can change deck suggestions for saves with separate lists.
   `run.targets` stores `{ id, role, stars }` entries. The evaluator derives Required and Preferred
-  lists from it; `run.goal` stores only blue/pink choices and the enabled flag. Invalid IDs and
+  lists from it; `run.goal` stores only blue/pink choices. Invalid IDs and
   duplicates are removed. Focus and Gatekept remain distinct despite sharing Concentration.
   Gold-only targets remain visible and searchable with an explicit notice that they have no
   released white spark. Their generation probability is zero. Their saved lineage survives for
