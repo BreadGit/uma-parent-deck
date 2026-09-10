@@ -112,11 +112,12 @@ names differ they are noted.
   assume independent attempts with the same odds, even though a reroll keeps the trained parent.
 - **Inferred pink spark**: an estimated pink spark chosen to explain a starting aptitude increase.
   The tool adds the minimum missing stars, keeping existing matching sparks where possible. A grade does not
-  identify the actual lineage. Editing an inferred entry makes it manual; unassigned slots stay unknown.
-- **Pink lineage**: the aptitude and star count of each of the six ancestors' pink sparks. Unknown
-  entries do not mean zero matching sparks. With partial lineage, the estimate uses known sparks
-  and warns that unknown slots contribute no predicted increases. The model predicts supported B-to-A increases; it does
-  not infer a below-B multi-grade jump.
+  identify the actual lineage. Editing an inferred entry makes it manual; unassigned slots count as zero sparks in the estimate.
+- **Pink lineage**: the aptitude and star count of each of the six ancestors' pink sparks. Empty
+  entries count as zero sparks for the estimate, so users can enter only the sparks they know.
+  This is a planning default; each ancestor has a pink spark in the game. Entered and inferred sparks
+  determine modeled aptitude increases. The model predicts supported B-to-A increases and gives
+  probability bounds for below-B increases with matching sparks.
 - **Source**: a way the run can end up with a target skill's hint: hint, chain event, random event,
   outing, scenario option or completion reward, trainee event (story, choice, outing or secret),
   innate/awakening skill, or lineage. Each has an obtain chance. Sources from one option of one event are

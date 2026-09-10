@@ -18,7 +18,7 @@ const PARENTS = [0, 1];
 const UMAS = [0, 1, 2];
 const STAR_OPTIONS = [1, 2, 3];
 const ROWS: [string, AptKey[]][] = [['Track', ['turf', 'dirt']], ['Distance', ['sprint', 'mile', 'medium', 'long']], ['Style', ['front', 'pace', 'late', 'end']]];
-/** Stars a uma gets when her stat is picked in the form; rental parents on the databases are mostly 3★. */
+/** Stars a uma gets when her spark is picked in the form; rental parents on the databases are mostly 3★. */
 const NEW_SPARK_STARS = STARS_PER_SPARK_MAX;
 
 function setGain(pi: number, si: number, gain: number) {
@@ -100,15 +100,15 @@ function setPinkSpark(index: number, spark: PinkSpark | null) {
 
 function pinkForm() {
   return html`<div id="legacy-pink-sparks" data-pink-sparks-form><h3>Pink sparks in the six-uma lineage</h3>
-    <p class="small muted">Enter each parent's and grandparent's pink spark to derive starting grades and estimate mid-run inspiration increases. Changing the grades below estimates the minimum pink stars behind their increase. Estimated entries are editable. Dimmed aptitude choices can reassign other sparks, including manual entries, to make room. Unassigned slots remain unknown. Affinity uses the advanced setting.</p>
+    <p class="small muted">Enter the pink sparks you know to derive starting grades and estimate mid-run inspiration increases. Empty slots count as zero sparks for this estimate. Pick an aptitude to start at 3★, or clear it to return to zero. Changing the grades below estimates the minimum pink stars behind their increase. Estimated entries are editable. Dimmed aptitude choices can reassign other sparks, including manual entries, to make room. Affinity uses the advanced setting.</p>
     ${PARENTS.map((pi) => html`<div class="goal-pink-side"><b>Parent ${pi + 1} side</b>${UMAS.map((ui) => {
       const index = pi * 3 + ui, spark = store.run.pinkLineage[index];
       return html`<div class="goal-pink-row"><span>${UMA_LABELS[ui]}${spark?.inferred ? html`<small class="pink-inferred" data-pink-inferred=${index}>Estimated</small>` : nothing}</span>
-        <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink aptitude" data-pink-lineage=${index} .value=${live(spark?.aptitude ?? '')} @change=${(e: Event) => { const key = (e.target as HTMLSelectElement).value as AptKey; setPinkSpark(index, key ? { aptitude: key, stars: spark?.stars ?? 2 } : null); }}>
-          <option value="">Unknown</option>${APTITUDE_KEYS.map((k) => html`<option value=${k} ?selected=${spark?.aptitude === k}>${APTITUDE_LABELS[k]}</option>`)}
+        <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink aptitude" data-pink-lineage=${index} .value=${live(spark?.aptitude ?? '')} @change=${(e: Event) => { const key = (e.target as HTMLSelectElement).value as AptKey; setPinkSpark(index, key ? { aptitude: key, stars: spark?.stars ?? NEW_SPARK_STARS } : null); }}>
+          <option value="">—</option>${APTITUDE_KEYS.map((k) => html`<option value=${k} ?selected=${spark?.aptitude === k}>${APTITUDE_LABELS[k]}</option>`)}
         </select>
         <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink stars" data-pink-lineage-stars=${index} ?disabled=${!spark} .value=${live(spark ? String(spark.stars) : '')} @change=${(e: Event) => { if (spark) setPinkSpark(index, { aptitude: spark.aptitude, stars: Number((e.target as HTMLSelectElement).value) }); }}>
-          ${spark ? nothing : html`<option value="">?</option>`}${STAR_OPTIONS.map((n) => html`<option value=${n} ?selected=${spark?.stars === n}>${n}★</option>`)}
+          ${spark ? nothing : html`<option value="">—</option>`}${STAR_OPTIONS.map((n) => html`<option value=${n} ?selected=${spark?.stars === n}>${n}★</option>`)}
         </select>
       </div>`;
     })}</div>`)}

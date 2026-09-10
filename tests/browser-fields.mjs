@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { BLUE_SPARK_START_GAIN_BY_STARS } from '../src/model/rules.ts';
 import { loadData } from '../src/data.ts';
 import { startingAptitudes } from '../src/model/pink-inherit.ts';
+import { migrate, STATE_KEY } from '../src/state.ts';
 const data = loadData();
 
 /**
@@ -10,11 +11,11 @@ const data = loadData();
  * stale value unless its value is bound live; this catches that whatever the field.
  */
 export async function assertFieldsMatchState(page, where) {
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('uma-parent-deck.v4') ?? '{}'));
+  const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), STATE_KEY);
+  const saved = migrate({ current }, data);
   const trainee = data.charByCardId.get(saved.run?.traineeCardId);
   const expectedAptitudes = trainee ? startingAptitudes(trainee.aptitudes, saved.run.aptOverrides, saved.run.pinkLineage) : null;
-  const bad = await page.evaluate(({ gainByStars, expectedAptitudes }) => {
-    const st = JSON.parse(localStorage.getItem('uma-parent-deck.v4') ?? '{}');
+  const bad = await page.evaluate(({ gainByStars, expectedAptitudes, st }) => {
     const out = [];
     const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'];
     for (const el of document.querySelectorAll('select[data-lb]')) {
@@ -73,6 +74,6 @@ export async function assertFieldsMatchState(page, where) {
       if (el.hasAttribute('data-pink-lineage-stars') && el.disabled !== !spark) out.push(`pink stars ${index} disabled differs from state`);
     }
     return out;
-  }, { gainByStars: BLUE_SPARK_START_GAIN_BY_STARS, expectedAptitudes });
+  }, { gainByStars: BLUE_SPARK_START_GAIN_BY_STARS, expectedAptitudes, st: saved });
   assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
 }

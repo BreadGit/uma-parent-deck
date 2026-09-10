@@ -13,10 +13,12 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
    chip again to close it. The × on each chip removes the target and its goal and lineage entries.
 4. Enable **Evaluate goal** in Parent goal and choose blue and pink goals.
    Pink defaults to Any at 2★ or better. Copy all starting aptitude grades from the game's Legacy screen after selecting both parents. Open **Pink sparks** below
-   the stat gains and above the aptitude inputs in Legacy to enter the six pink lineage sparks for mid-run inspiration estimates.
+   the stat gains and above the aptitude inputs in Legacy to enter known pink lineage sparks for mid-run inspiration estimates.
    Raising a grade above the trainee's base infers a minimum-star set in the available slots.
    The editor labels these entries Estimated; editing an entry makes it manual. Unassigned slots
-   remain unknown. Clear pink sparks clears all six entries and restores base aptitudes.
+   count as zero sparks for the estimate. Both selects show the same blank placeholder as By stars;
+   the star select stays disabled until an aptitude is picked, which defaults to 3★. Clearing the
+   aptitude empties that row again. Clear pink sparks clears all six entries and restores base aptitudes.
    Blue sparks, white lineage, and goals stay unchanged. The editor starts closed. Closing it keeps the saved inputs active.
 5. Read Parent goal estimate. It shows the complete probability, individual spark chances, all
    required skills' availability, SS chance, and 50% / 75% / 95% attempt counts.
@@ -24,8 +26,8 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
 Required/Preferred roles and minimum stars do not change selected cards or the prioritized list.
 Adding or removing a target chip changes the existing builder's target list. Changing shared run
 inputs, such as lineage, inventory, or agenda, can still change the suggested deck.
-Incomplete pink ancestry shows a warning while the combined estimate uses starting grades and
-known sparks. Matching pink sparks below starting B produce lower and upper probability bounds.
+Partial pink ancestry gives an estimate using starting grades and entered or inferred sparks, with
+no missing-entry warning. Matching pink sparks below starting B produce lower and upper probability bounds.
 Buttons in the goal controls and warnings open and focus the pink-lineage editor in Legacy.
 Any needs no ancestry when a starting A/S aptitude guarantees eligibility.
 A fully specified goal with no modeled source or eligibility has zero chance. Preferred extras
@@ -41,7 +43,7 @@ With zero required white families, the white contribution is one and success dep
   Pink entries can carry `inferred: true`;
   old entries without the marker stay manual, and the marker survives reloads. Valid pink ancestry
   from older saves survives.
-  Saves from version 9 have unknown ancestry because that version removed the data. Entered
+  Saves from version 9 default to zero entered sparks because that version removed the data. Entered
   aptitude overrides survive; migration does not infer absent ancestry from them. Older deck targets
   default to Preferred; stored Required entries and their stars survive. The former empty required
   slots disappear. Old goal-only families
@@ -172,14 +174,14 @@ they do not change its starting grade.
 Editing a pink spark removes its Estimated marker and immediately updates the starting grade.
 Removing the last spark for an aptitude restores its base unless it has a planning override. Changing the trainee clears
 inferred entries and starting overrides but preserves manual ancestry. Legacy Reset clears both.
-Unassigned slots remain unknown. Partial lineage gives an estimate with a warning instead of blocking it.
+Unassigned slots count as zero sparks. Partial lineage gives an estimate without a missing-entry warning.
 Goal notes identify inferred inputs. The model assumes the same affinity for all six slots.
 
 ### Pink eligibility
 
 Any accepts every eligible aptitude. With at least one starting A/S, its probability is just the
 minimum-star chance (1★+ = 100%, 2★+ = 80%, 3★ = 10%). Competing aptitudes do not dilute it,
-and unknown ancestry or unsupported jumps cannot block it. Without a guaranteed eligible aptitude,
+and empty ancestry or unsupported jumps cannot block it. Without a guaranteed eligible aptitude,
 the model multiplies the star chance by the probability that at least one aptitude becomes eligible;
 unsupported below-B increases produce bounds for that estimate.
 
@@ -199,12 +201,11 @@ Both endpoints propagate into the complete goal and attempt counts. A zero lower
 positive upper bound is not labeled impossible. No matching spark in complete ancestry gives
 zero chance of improvement. A/S versus S does not change selection odds.
 
-Incomplete ancestry uses only known sparks for mid-run increases. Unknown slots contribute no
-increases to either the target or its competitors. This approximation can overestimate or
-underestimate the true chance; a displayed zero is not proof that unknown ancestry cannot help.
-The nonblocking warning reads "Open Pink sparks in Legacy and enter all six lineage sparks to get
-a more accurate pink spark probability." A button opens the editor. It disappears when all six are entered, or when
-eligibility is already fixed for the goal. Other blocking issues still withhold the combined estimate.
+Empty lineage slots count as zero sparks and contribute no increases to either the target or its
+competitors. This planning default lets users get an estimate with any number of entered sparks,
+including zero, even though each ancestor has a pink spark in the game. A note in the assumptions
+explains the default without asking users to complete all six entries. Omitting sparks can raise or
+lower the estimate relative to the full lineage. Other blocking issues still withhold the combined estimate.
 
 ### Attempts
 

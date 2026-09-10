@@ -106,17 +106,18 @@ test('pink goals default to Any at two stars and migrate unchosen goals without 
   assert.equal(migrateGoal({ pink: 'end' }, data).pink, 'end');
 });
 
-test('incomplete pink lineage warns and estimates from starting grades and known sparks', () => {
+test('empty pink slots count as zero sparks and partial lineage gives an estimate without a warning', () => {
   const grades = { ...apt(), end: 'B' as const };
   const empty = pinkEstimate(grades, 'turf', 2, emptyPinkLineage(), 150);
   close(empty.probability!, .8);
   assert.equal(empty.probability, empty.upperProbability);
-  assert.deepEqual(empty.warnings, ['Open Pink sparks in Legacy and enter all six lineage sparks to get a more accurate pink spark probability.']);
+  assert.deepEqual(empty.warnings, []);
   close(pinkEstimate(grades, 'end', 2, emptyPinkLineage(), 150).probability!, 0);
   const partial = [{ aptitude: 'end' as const, stars: 3 }, ...emptyPinkLineage().slice(1)];
   const proc = 1 - .875 ** 2;
   close(pinkEstimate(grades, 'end', 2, partial, 150).probability!, proc * .8 / 2);
   close(pinkEstimate(grades, 'turf', 2, partial, 150).probability!, .8 * (1 - proc / 2));
+  assert.deepEqual(pinkEstimate(grades, 'end', 2, partial, 150).warnings, []);
   assert.deepEqual(pinkEstimate(grades, 'end', 2, lineage(), 150).warnings, []);
   assert.deepEqual(pinkEstimate(grades, 'any', 2, partial, 150).warnings, []);
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
@@ -125,7 +126,8 @@ test('incomplete pink lineage warns and estimates from starting grades and known
   const result = evaluateTraineeGoal(goal, emptyPinkLineage(), grades, ctx, stats, []);
   close(result.probability!, .64);
   assert.deepEqual(result.issues, []);
-  assert.equal(result.pink.warnings.length, 1);
+  assert.deepEqual(result.pink.warnings, []);
+  assert.ok(result.notes.some((note) => note.includes('Empty pink slots count as zero sparks')));
   assert.equal(evaluateTraineeGoal(goal, partial, grades, ctx, stats, ['Incomplete deck']).probability, null);
 });
 
@@ -141,7 +143,7 @@ test('unsupported jumps bound target eligibility and competitor dilution', () =>
   close(pinkEstimate(allA, 'end', 2, emptyPinkLineage(), 150).probability!, .08, 1e-10);
 });
 
-test('restored pink ancestry migration preserves old inputs and leaves v9 ancestry unknown', () => {
+test('restored pink ancestry migration preserves old inputs and defaults missing ancestry to zero sparks', () => {
   const run = { aptOverrides: { end: 'B', mile: 'A' }, pinkLineage: lineage() };
   const old = migrate({ current: { version: 8, run } }, data);
   assert.equal(old.version, STATE_VERSION);

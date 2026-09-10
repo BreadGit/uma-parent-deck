@@ -26,7 +26,6 @@ export function attemptsFor(p: number, confidence: number): number {
 export interface PinkEstimate { probability: number; upperProbability: number; warnings: string[]; eligibility: { aptitude: AptKey; probability: number | null }[] }
 export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pink'], stars: number, lineage: (PinkSpark | null)[], affinity: number, rates = DEFAULT_SETTINGS.pinkInspirationRates): PinkEstimate {
   const warnings: string[] = [];
-  const unknown = lineage.length !== 6 || lineage.some((p) => p === null);
   const eligibility = APTITUDE_KEYS.map((key) => {
     if (apt[key] === 'A' || apt[key] === 'S') return { aptitude: key, probability: 1 };
     const matching = lineage.filter((p): p is PinkSpark => p?.aptitude === key);
@@ -39,7 +38,6 @@ export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pin
   if (target === 'any' && eligibility.some((e) => e.probability === 1)) {
     return { probability: starRate, upperProbability: starRate, warnings, eligibility };
   }
-  if (unknown && APTITUDE_KEYS.some((key) => apt[key] !== 'A' && apt[key] !== 'S')) warnings.push('Open Pink sparks in Legacy and enter all six lineage sparks to get a more accurate pink spark probability.');
   for (const e of eligibility.filter((e) => e.probability === null)) warnings.push(`${APTITUDE_LABELS[e.aptitude]} starts below B with matching pink sparks. The range allows it to finish either below A or at A/S.`);
   const bound = (upper: boolean) => {
     const chance = (e: typeof eligibility[number]) => e.probability ?? Number(target === 'any' || e.aptitude === target ? upper : !upper);
@@ -173,7 +171,7 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
   const pink = pinkEstimate(apt, goal.pink, goal.pinkStars, pinkLineage, ctx.settings.affinity, ctx.settings.pinkInspirationRates);
   const notes = ['Known pink lineage determines starting aptitude grades. Grades outside the starting-inheritance range remain planning overrides. Inspiration estimates additional mid-run increases.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
   for (const target of [...required, ...preferred]) if (!hasWhiteSpark(target)) notes.push(`${target.name} has no released white form and cannot generate a white spark. Its saved target and lineage are retained for review.`);
-  if (pink.warnings.length) notes.push('Pink probabilities use the entered starting grades and known lineage sparks. Unknown slots contribute no additional aptitude increases in this estimate.');
+  if (pinkLineage.length < 6 || pinkLineage.some((spark) => spark === null)) notes.push('Empty pink slots count as zero sparks for this estimate. Only entered or estimated sparks contribute additional aptitude increases.');
   if (goal.pink === 'any') notes.push('Any pink aptitude counts toward the goal. With an A/S aptitude already eligible, only the minimum stars affect its chance.');
   if (pinkLineage.some((spark) => spark?.inferred)) notes.push('Some pink sparks are minimum-star estimates inferred from starting aptitude increases. Other lineages can produce the same grades. Refine them in Legacy > Pink sparks.');
   if (skills.approximate) notes.push('A large group of linked skill sources uses a fixed sample approximation. Very rare joint outcomes may be missed.');

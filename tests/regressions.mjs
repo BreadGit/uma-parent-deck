@@ -278,7 +278,7 @@ test('white target chips migrate old goals and support zero or many required spa
   await page.waitForSelector('[data-goal-result]');
   assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
   await page.selectOption('[data-apt="end"]', 'C');
-  assert.match(await page.locator('[data-goal-warnings]').innerText(), /Open Pink sparks in Legacy/);
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
 });
 
@@ -331,7 +331,7 @@ test('Any pink defaults to two stars, updates estimates, and persists across rel
   assert.match(await pinkRow.innerText(), /10\.0%/);
   assert.notEqual(await page.locator('[data-goal-probability]').innerText(), chance);
   await page.selectOption('[data-goal-pink]', 'end');
-  assert.match(await page.locator('[data-goal-warnings]').innerText(), /Open Pink sparks/);
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
   await page.selectOption('[data-goal-pink]', 'any');
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
@@ -368,7 +368,7 @@ test('pink reset clears manual and inferred sparks and starting increases while 
   assert.deepEqual(await state(page), expected, 'reset also works when collapsed and already empty');
 });
 
-test('advanced pink inputs stay collapsed and retain inspiration data across toggles and reload', async (t) => {
+test('pink inputs default to zero sparks and retain partial estimates across edits and reload', async (t) => {
   const saved = defaultState(data);
   saved.version = 9;
   delete saved.run.pinkLineage;
@@ -379,17 +379,35 @@ test('advanced pink inputs stay collapsed and retain inspiration data across tog
   const toggle = page.locator('[data-action="toggle-pink-sparks"]');
   assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
   assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0);
-  assert.match(await page.locator('[data-goal-warnings]').innerText(), /Open Pink sparks in Legacy/);
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /0%/);
   assert.equal(await page.locator('[data-goal-attempts]').count(), 3);
   await toggle.press('Enter');
   assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
   assert.equal(await page.locator('[data-pink-lineage]').count(), 6);
+  await page.click('[data-action="toggle-sparks"]');
+  const blueBlank = await page.locator('[data-spark-stat="0-0"] option:checked').innerText();
+  const blueStarsBlank = await page.locator('[data-spark-stars="0-0"] option:checked').innerText();
+  assert.deepEqual(await page.locator('[data-pink-lineage] option:checked').allTextContents(), Array(6).fill(blueBlank));
+  assert.deepEqual(await page.locator('[data-pink-lineage-stars] option:checked').allTextContents(), Array(6).fill(blueStarsBlank));
+  await page.click('[data-action="toggle-sparks"]');
+  await assertFieldsMatchState(page, 'with zero pink sparks');
   assert.equal(await page.locator('[data-pink-lineage-stars="0"]').isDisabled(), true);
   await page.selectOption('[data-pink-lineage="0"]', 'end');
+  assert.equal(await page.inputValue('[data-pink-lineage-stars="0"]'), '3');
+  assert.equal(await page.locator('[data-pink-lineage-stars="0"]').isDisabled(), false);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0, 'one known spark contributes before the other slots are entered');
-  assert.equal(await page.locator('[data-goal-warnings]').count(), 1);
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
+  assert.deepEqual((await state(page)).run.pinkLineage, [{ aptitude: 'end', stars: 3 }, ...Array(5).fill(null)]);
+  await assertFieldsMatchState(page, 'after entering one pink spark');
+  const partialProbability = await page.locator('[data-goal-probability]').innerText();
+  await page.reload();
+  await page.waitForSelector('[data-goal-result]');
+  assert.equal(await page.locator('[data-goal-probability]').innerText(), partialProbability);
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
+  await toggle.click();
+  await assertFieldsMatchState(page, 'after reloading partial pink lineage');
   for (let i = 1; i < 6; i++) await page.selectOption(`[data-pink-lineage="${i}"]`, 'end');
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   await page.selectOption('[data-pink-lineage-stars="0"]', '3');
@@ -415,13 +433,16 @@ test('advanced pink inputs stay collapsed and retain inspiration data across tog
   await page.selectOption('[data-pink-lineage="0"]', '');
   assert.equal(await page.locator('[data-pink-lineage-stars="0"]').isDisabled(), true);
   assert.equal(await page.inputValue('[data-pink-lineage-stars="0"]'), '');
+  assert.equal(await page.locator('[data-pink-lineage-stars="0"] option:checked').innerText(), blueStarsBlank);
   assert.equal((await state(page)).run.pinkLineage[0], null);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0, 'remaining known sparks still contribute');
-  assert.equal(await page.locator('[data-goal-warnings]').count(), 1);
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
+  await assertFieldsMatchState(page, 'after clearing one pink spark');
   await page.click('[data-action="reset-legacy"]');
   assert.deepEqual((await state(page)).run.pinkLineage, Array(6).fill(null));
   assert.deepEqual((await state(page)).run.aptOverrides, {});
+  await assertFieldsMatchState(page, 'after resetting pink lineage to zero sparks');
 });
 
 test('aptitude increases infer editable pink sparks, preserve manual entries, and clear estimates on trainee change', async (t) => {
@@ -505,9 +526,9 @@ test('manual Mile sparks survive unrelated grades, trainee changes, and reload',
   await trainee(page);
   await page.check('[data-goal-enabled]');
   await page.selectOption('[data-goal-pink]', 'turf');
-  await page.click('[data-action="goal-refine-pink"]');
+  await page.click('[data-action="goal-open-pink"]');
   assert.equal(await page.locator('[data-pink-lineage="0"]').evaluate((el) => el === document.activeElement), true);
-  await assertFieldsMatchState(page, 'after opening lineage from the goal warning');
+  await assertFieldsMatchState(page, 'after opening lineage from the goal controls');
   await page.selectOption('[data-pink-lineage="4"]', 'mile');
   assert.equal(await page.inputValue('[data-apt="mile"]'), 'B');
   await assertFieldsMatchState(page, 'after adding manual Mile');

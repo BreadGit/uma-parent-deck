@@ -18,6 +18,7 @@ export function goalWithTargets(goal: ParentGoal, targets: WhiteTarget[]): Resol
 }
 export interface PinkSpark { aptitude: AptKey; stars: number; inferred?: true }
 export const DEFAULT_GOAL: ParentGoal = { enabled: false, blueStats: [...STATS], blueStars: 2, pink: 'any', pinkStars: 2 };
+/** Null slots represent zero entered sparks and contribute no aptitude increases to the estimate. */
 export const emptyPinkLineage = (): (PinkSpark | null)[] => Array.from({ length: 6 }, () => null);
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 const stars = (v: unknown) => typeof v === 'number' && [1, 2, 3].includes(v) ? v : 2;

@@ -35,7 +35,8 @@ The app's inference uses minimum total stars, packed into the fewest slots, as a
 assumption. For C to A an empty lineage gets 3★ + 1★; an existing 2★ entry can instead gain
 another 2★ entry. Those combinations have different mid-run activation odds. Selecting a dimmed
 aptitude can reassign other sparks, including manual entries, and lower their associated grades
-to make room. Unassigned slots remain unknown.
+to make room. Unassigned slots count as zero sparks for the estimate, so partial lineage is enough
+to get a result. This is a tool assumption, not a possible in-game lineage.
 
 ## Activation probability
 
@@ -81,8 +82,8 @@ exact probability for these paths needs the missing point distribution.
 ## Recommended initial scope
 
 - Read post-parent-selection grades from the Legacy panel, including all four running styles.
-- Record the pink aptitude and stars of each of the six lineage umas. Unknown entries must remain
-  distinguishable from confirmed entries that do not match a target.
+- Record the pink aptitude and stars entered for each of the six lineage umas. Empty slots remain
+  distinct from entered sparks but contribute zero increases in the estimate.
 - Include B-to-A increases for every aptitude with a matching source. An unwanted B-to-A increase
   also matters because it adds another eligible pink type and dilutes the desired type's chance.
 - Evaluate the desired type's `0.80 / eligible_count` for each final eligibility combination when

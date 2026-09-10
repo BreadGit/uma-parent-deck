@@ -15,12 +15,13 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   a target's Required/Preferred role does not change deck selection; adding or removing a target
   still changes the builder's target list. Goal-driven deck optimization remains deferred.
   Copy starting aptitude grades from the game after selecting both parents. Open Pink sparks
-  below the stat gains in Legacy to enter all six ancestors and include mid-run B-to-A increases.
+  below the stat gains in Legacy to enter the ancestors you know and include mid-run B-to-A increases.
+  Empty rows count as zero sparks for the estimate, with the same blank placeholders as By stars.
   Raising a grade above the trainee's base fills an estimated minimum-star set in that editor.
   Known lineage determines starting grades. Grades outside starting inheritance remain available as
   planning overrides, including below-base grades from older saves. Dimmed choices can reassign
-  other sparks when slots are full. Manual edits update starting grades immediately. Unknown
-  ancestry shows a warning; below-B increases give probability bounds. Buttons in Parent goal open
+  other sparks when slots are full. Manual edits update starting grades immediately. Partial
+  lineage gives an estimate without a missing-entry warning; below-B increases give probability bounds. Buttons in Parent goal open
   the pink editor directly. Clear pink sparks restores base grades and clears pink lineage.
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
