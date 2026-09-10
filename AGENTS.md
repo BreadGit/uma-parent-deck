@@ -19,15 +19,17 @@ Code should be self documenting, with tests covering expected behaviors.
 
 ## Product principles
 
-This tool prioritizes useful estimates and convenient data entry. Incomplete input and temporary
-editing states are expected. Distinguish them from malformed data and genuinely impossible outcomes.
-Preserve valid user-entered data across unrelated edits and saved-state migrations. Do not require
-complete input or discard saved choices merely to simplify implementation. Make consequential
-estimation assumptions explicit.
+This tool prioritizes useful estimates and convenient data entry. Support partial input where the
+model can produce a meaningful result, and make consequential assumptions or limitations clear.
 
-Empty pink-lineage rows contribute zero sparks to the estimate. Partial pink input should still
-produce an estimate using the entered sparks. Do not invent sparks for empty rows or require all six
-rows to be filled before showing a result.
+Distinguish incomplete input, malformed data, and genuinely impossible outcomes. Apply validation
+appropriate to each case.
+
+Preserve valid user-entered data across unrelated edits and saved-state migrations. Do not require
+additional input or discard saved choices merely to simplify implementation.
+
+Follow these principles across the project. Keep feature-specific defaults and calculation rules
+with the relevant implementation and domain documentation.
 
 ## Development server
 
