@@ -13,6 +13,19 @@ project's history silently did nothing because the surrounding text had changed.
 
 Code should be self documenting, with tests covering expected behaviors.
 
+## Development server
+
+Keep a development server running for this project so the user can review it from a phone or another
+device on the same local network. At the start of a work session, check for an existing project server
+and reuse it. If none is running, start `npm run dev` from the project root and leave it running after
+the task finishes, unless the user asks otherwise.
+
+`npm run dev` already uses `vite --host` to listen on all interfaces. Preserve that default. Do not add
+`--host 127.0.0.1` or `--host localhost` unless the user explicitly requests access only from this computer.
+If an existing project server listens only on loopback, restart it with `npm run dev`. Verify an HTTP
+response at the machine's LAN address and report the network URL printed by Vite, normally
+`http://<this machine's LAN IP>:5173`, so the user can open it from another device.
+
 ## Layout
 
 Game knowledge is curated and vendored in `docs/`. Use `docs/` to answer game knowledge questions or to get game data or facts about the game. If the information you're looking for is not in `docs/` then searching the internet is okay too. Game and project terms are defined in `docs/GLOSSARY.md`.
