@@ -96,7 +96,7 @@ export function withParentGain(sparks: ParentSparks, statIndex: number, gain: nu
  * Proc multiplier of a spark at an inspiration event: (1 + individual affinity/100) of the uma carrying it. The tool
  * assumes one score for every uma in the lineage (settings.affinity); the game shows only the sum as ◎/○/△.
  */
-export const affinityMultiplier = (settings: Settings) => 1 + Math.max(0, settings.affinity) / 100;
+export const affinityMultiplier = (settings: Pick<Settings, 'affinity'>) => 1 + Math.max(0, settings.affinity) / 100;
 
 export interface Inheritance {
   start: number;         // fixed gain at career start

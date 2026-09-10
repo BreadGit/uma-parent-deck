@@ -1,7 +1,7 @@
 // Drives the dev server in Chromium through the main flows and checks layout at four widths in both themes.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { BLUE_SPARK_START_GAIN_BY_STARS } from '../src/model/rules.ts';
+import { assertFieldsMatchState } from './browser-fields.mjs';
 const url = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
@@ -12,76 +12,6 @@ await page.goto(url);
 await page.waitForSelector('h1');
 await page.evaluate(() => localStorage.clear());
 await page.reload();
-
-/**
- * Every form field that mirrors persisted state must show that state. A <select> the user has changed ignores later
- * `selected` attribute changes on its options, so a field that lit reuses for a different card or stat would keep a
- * stale value unless its value is bound live; this catches that whatever the field.
- */
-async function assertFieldsMatchState(where) {
-  const bad = await page.evaluate((gainByStars) => {
-    const st = JSON.parse(localStorage.getItem('uma-parent-deck.v4') ?? '{}');
-    const out = [];
-    const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'];
-    for (const el of document.querySelectorAll('select[data-lb]')) {
-      const v = st.inventory?.[el.dataset.lb];
-      const want = v === null ? 'none' : String(v ?? 4);
-      if (el.value !== want) out.push(`LB select for ${el.dataset.lb} shows ${el.value}, state ${want}`);
-    }
-    for (const el of document.querySelectorAll('select[data-gain]')) {
-      const [p, i] = el.dataset.gain.split('-').map(Number);
-      const want = String((st.run?.parentSparks?.[p] ?? []).filter((s) => s?.stat === STATS[i]).reduce((a, s) => a + gainByStars[s.stars], 0));
-      if (el.value !== want) out.push(`gain select ${el.dataset.gain} shows ${el.value}, state makes ${want}`);
-    }
-    for (const el of document.querySelectorAll('select[data-spark-stat], select[data-spark-stars]')) {
-      const key = el.dataset.sparkStat ?? el.dataset.sparkStars;
-      const [p, u] = key.split('-').map(Number);
-      const spark = st.run?.parentSparks?.[p]?.[u] ?? null;
-      const want = el.dataset.sparkStat ? (spark?.stat ?? '') : spark ? String(spark.stars) : '';
-      if (el.value !== want) out.push(`spark select ${key} shows ${el.value}, state ${want}`);
-      if (el.dataset.sparkStars && el.disabled !== !spark) out.push(`stars select ${key} disabled=${el.disabled} for spark ${JSON.stringify(spark)}`);
-      if (!!el.querySelector('option[value=""]') !== !spark) out.push(`spark select ${key} offers "—" ${spark ? 'for a filled slot' : 'not at all for an empty slot'}`);
-    }
-    for (const el of document.querySelectorAll('select[data-apt]')) {
-      const over = st.run?.aptOverrides?.[el.dataset.apt];
-      if (over && el.value !== over) out.push(`aptitude select ${el.dataset.apt} shows ${el.value}, override ${over}`);
-    }
-    for (const el of document.querySelectorAll('select[data-select="trainee-stars"]')) {
-      if (el.value !== String(st.run?.traineeStars ?? 3)) out.push(`trainee stars shows ${el.value}, state ${st.run?.traineeStars}`);
-    }
-    for (const el of document.querySelectorAll('[data-setting]')) {
-      const v = st.settings?.[el.dataset.setting];
-      if (el.tagName === 'SELECT' && v !== undefined && el.value !== String(v)) out.push(`setting ${el.dataset.setting} shows ${el.value}, state ${v}`);
-    }
-    const goal = st.run?.goal;
-    const check = (el, want) => { if (el.value !== String(want)) out.push(`${JSON.stringify(el.dataset)} shows ${el.value}, state ${want}`); };
-    for (const el of document.querySelectorAll('[data-goal-enabled]')) {
-      if (el.checked !== goal?.enabled) out.push('goal enabled differs from state');
-    }
-    for (const el of document.querySelectorAll('[data-goal-blue]')) {
-      if (el.checked !== goal.blueStats.includes(el.dataset.goalBlue)) out.push(`blue ${el.dataset.goalBlue} differs from state`);
-    }
-    for (const el of document.querySelectorAll('[data-goal-stars]')) check(el, goal[`${el.dataset.goalStars}Stars`]);
-    for (const el of document.querySelectorAll('[data-goal-pink]')) check(el, goal.pink);
-    for (const el of document.querySelectorAll('[data-target-stars]')) check(el, goal.required.find((r) => r.id === Number(el.dataset.targetStars)).stars);
-    for (const el of document.querySelectorAll('[data-target-role]')) {
-      const required = goal.required.some((r) => r.id === Number(el.dataset.id));
-      if (el.getAttribute('aria-pressed') !== String(required === (el.dataset.targetRole === 'required'))) out.push('target role differs from state');
-    }
-    for (const el of document.querySelectorAll('[data-goal-lineage-k], [data-goal-lineage-p], [data-lineage-k], [data-lineage-p]')) {
-      const id = el.dataset.goalLineageK ?? el.dataset.goalLineageP ?? el.dataset.lineageK ?? el.dataset.lineageP;
-      check(el, st.run.targetLineage[id]?.[el.dataset.side] ?? 0);
-    }
-    for (const el of document.querySelectorAll('[data-pink-lineage], [data-pink-lineage-stars]')) {
-      const index = el.dataset.pinkLineage ?? el.dataset.pinkLineageStars;
-      const spark = st.run.pinkLineage[index];
-      check(el, el.hasAttribute('data-pink-lineage') ? spark?.aptitude ?? '' : spark?.stars ?? '');
-      if (el.hasAttribute('data-pink-lineage-stars') && el.disabled !== !spark) out.push(`pink stars ${index} disabled differs from state`);
-    }
-    return out;
-  }, BLUE_SPARK_START_GAIN_BY_STARS);
-  assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
-}
 
 // A range input must stay mounted while it is dragged. Replacing it on each input event
 // breaks pointer capture and prevents the thumb from reaching the pointer.
@@ -127,10 +57,10 @@ const legacyPlacement = await page.evaluate(() => {
 });
 assert.deepEqual(legacyPlacement, { traineeApts: 0, legacyApts: 10, gains: 10, styleSelects: 4 });
 assert.deepEqual(await page.$$eval('select[data-gain]', (els) => els.map((s) => s.value)), Array(10).fill('0'), 'a fresh run starts with no entered gains');
-await assertFieldsMatchState('after choosing the first trainee');
+await assertFieldsMatchState(page, 'after choosing the first trainee');
 const baseTurf = await page.inputValue('select[data-apt="turf"]');
 await page.selectOption('select[data-apt="end"]', 'A');
-await assertFieldsMatchState('after increasing End Closer');
+await assertFieldsMatchState(page, 'after increasing End Closer');
 const pickTrainee = async (q) => {
   await page.click('button[data-action="clear-trainee"]');
   await page.fill('#trainee-search', q);
@@ -143,12 +73,12 @@ assert.equal(await page.inputValue('select[data-apt="turf"]'), baseTurf, 'select
 await pickTrainee('haru urara');
 await page.selectOption('select[data-select="trainee-stars"]', '1');
 await page.waitForTimeout(200);
-await assertFieldsMatchState('after setting 1★ on Haru Urara');
+await assertFieldsMatchState(page, 'after setting 1★ on Haru Urara');
 await pickTrainee('special dreamer');
 await page.waitForTimeout(200);
 const starsAfterSwitch = await page.evaluate(() => ({ shown: document.querySelector('select[data-select="trainee-stars"]').value, saved: JSON.parse(localStorage.getItem('uma-parent-deck.v4')).run.traineeStars }));
 assert.deepEqual(starsAfterSwitch, { shown: '3', saved: 3 }, 'a 3★ trainee cannot keep a 1★ count');
-await assertFieldsMatchState('after switching trainee');
+await assertFieldsMatchState(page, 'after switching trainee');
 const searchWidths = await page.$$eval('input[type=search]', (els) => els.map((el) => ({ id: el.id, input: el.getBoundingClientRect().width, panel: el.closest('section.panel').getBoundingClientRect().width })));
 for (const w of searchWidths) assert.ok(w.input > w.panel * 0.8, `${w.id} is ${w.input}px wide in a ${w.panel}px panel`);
 await page.click('details[data-details="advanced"] > summary');
@@ -180,11 +110,11 @@ assert.equal(await rankingPin.getAttribute('aria-pressed'), 'true');
 assert.equal(await page.locator('.scroll tbody tr').nth(1).locator('button[data-action="toggle-card-pin"]').getAttribute('data-id'), '30028', 'new pin follows Light Hello at the top of the ranking');
 assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 1);
 assert.ok((await page.locator('.deck .slot .name').allTextContents()).some((name) => name.includes('Kitasan Black')), 'ranking pin adds the card to the deck');
-await assertFieldsMatchState('after pinning from the ranking');
+await assertFieldsMatchState(page, 'after pinning from the ranking');
 await rankingPin.press('Enter');
 assert.equal(await rankingPin.getAttribute('aria-pressed'), 'false');
 assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 0);
-await assertFieldsMatchState('after unpinning from the ranking');
+await assertFieldsMatchState(page, 'after unpinning from the ranking');
 await page.click('details:has(> summary:text("Where the stats come from")) > summary');
 const breakdownRows = await page.$$eval('details:has(> summary:text("Where the stats come from")) tbody tr', (r) => r.length);
 assert.ok(breakdownRows >= 10, `breakdown should list cards, career, inheritance, base, final, spread; got ${breakdownRows}`);
@@ -204,7 +134,7 @@ const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start
 assert.equal(powerCell.start, powerCell.base + powerCell.p1 + 54, 'the start value is base plus both parents');
 assert.ok(/\bp2\b/.test(powerCell.p2Class) && /\bset\b/.test(powerCell.p2Class), 'a picked gain is shown filled in parent 2 colour');
 assert.equal(await page.$eval('select[data-gain="1-0"]', (s) => s.value), '0', 'all three sparks are on Power on parent 2');
-await assertFieldsMatchState('after picking a start gain');
+await assertFieldsMatchState(page, 'after picking a start gain');
 // "By stars" opens the per-uma form; a spark set there shows up as the stat's "+XX" above
 assert.equal(await page.$('[data-sparks-form]'), null, 'the spark form starts closed');
 await page.click('button[data-action="toggle-sparks"]');
@@ -216,17 +146,17 @@ await page.selectOption('select[data-spark-stars="0-0"]', '2');
 await page.waitForTimeout(200);
 const afterSpark = await page.evaluate(() => ({ speed: document.querySelector('select[data-gain="0-0"]').value, guts: document.querySelector('select[data-gain="0-3"]').value, guts2: document.querySelector('select[data-gain="1-3"]').value }));
 assert.deepEqual(afterSpark, { speed: '0', guts: '12', guts2: '0' }, 'the parent has a 2★ Guts spark on her side only');
-await assertFieldsMatchState('after editing a spark by stars');
+await assertFieldsMatchState(page, 'after editing a spark by stars');
 await page.selectOption('select[data-gain="0-3"]', '0');
 await page.waitForTimeout(200);
 assert.equal(await page.$eval('select[data-spark-stat="0-0"]', (s) => s.value), '', 'setting the stat to +0 empties the uma\'s slot in the form');
-await assertFieldsMatchState('after emptying a slot from the dropdown');
+await assertFieldsMatchState(page, 'after emptying a slot from the dropdown');
 // +63 then +12 on one stat leaves two umas unentered: both of their selects show "—", not a stale star count
 await page.selectOption('select[data-gain="0-3"]', '63');
 await page.selectOption('select[data-gain="0-3"]', '12');
 await page.waitForTimeout(200);
 assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['guts', '2', '', '', '', ''], 'one 2★ Guts uma and two empty rows');
-await assertFieldsMatchState('after shrinking a start gain');
+await assertFieldsMatchState(page, 'after shrinking a start gain');
 // Editing an aggregate gain preserves an existing 1★ parent and changes only the 3★ grandparent.
 for (const [selector, value] of [
   ['data-spark-stat="0-0"', 'speed'], ['data-spark-stars="0-0"', '1'],
@@ -234,11 +164,11 @@ for (const [selector, value] of [
   ['data-spark-stat="0-2"', 'power'], ['data-spark-stars="0-2"', '2'],
 ]) {
   await page.selectOption(`select[${selector}]`, value);
-  await assertFieldsMatchState(`after entering ${selector}`);
+  await assertFieldsMatchState(page, `after entering ${selector}`);
 }
 assert.equal(await page.inputValue('select[data-gain="0-0"]'), '26');
 await page.selectOption('select[data-gain="0-0"]', '17');
-await assertFieldsMatchState('after reducing the grandparent spark through its gain');
+await assertFieldsMatchState(page, 'after reducing the grandparent spark through its gain');
 assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['speed', '1', 'speed', '2', 'power', '2']);
 assert.equal(await page.$$eval('.legacy-sparks', (els) => els.length), 1);
 assert.ok(await page.evaluate(() => document.querySelector('.legacy-sparks').compareDocumentPosition(document.querySelector('.legacy-legend')) & Node.DOCUMENT_POSITION_FOLLOWING), 'the spark form sits above the start gain row');
@@ -274,7 +204,7 @@ if (process.env.SCREENSHOT_PATH !== '') await page.screenshot({ path: process.en
 }
 await page.selectOption('select[data-lb="30028"]', '2');
 await page.waitForTimeout(300);
-await assertFieldsMatchState('after changing an LB in the ranking');
+await assertFieldsMatchState(page, 'after changing an LB in the ranking');
 await page.selectOption('select[data-lb="30052"]', 'none');
 await page.waitForTimeout(200);
 // the default Light Hello pin, once marked not owned, becomes a borrow request and takes the friend's slot
@@ -286,7 +216,7 @@ console.log('deck after marking Light Hello SSR not owned: borrow =', afterUnown
 await page.selectOption('select[data-apt="end"]', 'A');
 await page.click('button[data-action="reset-legacy"]');
 await page.waitForTimeout(200);
-await assertFieldsMatchState('after the legacy reset');
+await assertFieldsMatchState(page, 'after the legacy reset');
 const afterReset = await page.evaluate(() => ({ gains: [...document.querySelectorAll('select[data-gain]')].map((s) => s.value).join(','), turf: document.querySelector('select[data-apt="turf"]').value, options: document.querySelectorAll('select[data-gain="0-0"] option').length }));
 assert.equal(afterReset.gains, '0,0,0,0,0,0,0,0,0,0', 'reset clears every gain for entry');
 assert.equal(afterReset.turf, baseTurf, 'the aptitude override is gone');
@@ -294,14 +224,14 @@ assert.equal(afterReset.options, 20, 'every possible +XX is offered');
 assert.equal(await page.locator('select[data-gain] option.dim').count(), 0, 'empty sides do not dim any choices');
 await page.reload();
 await page.waitForSelector('select[data-gain]');
-await assertFieldsMatchState('after reloading cleared Legacy gains');
+await assertFieldsMatchState(page, 'after reloading cleared Legacy gains');
 assert.deepEqual(await page.$$eval('select[data-gain]', (els) => els.map((s) => s.value)), Array(10).fill('0'));
 await page.click('button[data-action="toggle-sparks"]');
-await assertFieldsMatchState('after opening cleared spark rows');
+await assertFieldsMatchState(page, 'after opening cleared spark rows');
 assert.deepEqual(await page.$$eval('.legacy-sparks select', (els) => els.map((s) => s.value)), Array(12).fill(''));
 // One occupied slot leaves room for at most two sparks on any other stat.
 await page.selectOption('select[data-gain="0-0"]', '12');
-await assertFieldsMatchState('after entering the first gain');
+await assertFieldsMatchState(page, 'after entering the first gain');
 assert.deepEqual(await page.$$eval('select[data-gain="0-1"] option.dim', (els) => els.map((o) => o.value)), ['15', '22', '29', '31', '36', '38', '45', '47', '54', '63']);
 assert.equal(await page.locator('select[data-gain="0-0"] option.dim').count(), 0, 'replacing the current stat can use its own slot');
 assert.equal(await page.locator('select[data-gain^="1-"] option.dim').count(), 0, 'the other parent side is independent');
@@ -317,142 +247,142 @@ await page.click('button[data-theme-pick="system"]');
 // A dimmed choice remains selectable and reallocates the side's existing sparks.
 assert.equal(await page.locator('select[data-gain] option:disabled').count(), 0);
 await page.selectOption('select[data-gain="0-1"]', '63');
-await assertFieldsMatchState('after selecting a dimmed gain');
+await assertFieldsMatchState(page, 'after selecting a dimmed gain');
 assert.equal(await page.locator('select[data-gain="0-0"]').inputValue(), '0');
 assert.equal(await page.locator('select[data-gain="0-1"]').inputValue(), '63');
 assert.deepEqual(await page.$$eval('select[data-gain="0-0"] option:not(.dim)', (els) => els.map((o) => o.value)), ['0']);
 await page.selectOption('select[data-spark-stat="0-0"]', 'power');
-await assertFieldsMatchState('after moving a spark to another stat');
+await assertFieldsMatchState(page, 'after moving a spark to another stat');
 assert.deepEqual(await page.$$eval('select[data-gain="0-1"] option.dim', (els) => els.map((o) => o.value)), ['15', '22', '29', '31', '36', '38', '45', '47', '54', '63']);
 await page.click('button[data-action="reset-legacy"]');
-await assertFieldsMatchState('after clearing entered sparks again');
+await assertFieldsMatchState(page, 'after clearing entered sparks again');
 assert.equal(await page.locator('select[data-gain] option.dim').count(), 0);
 await page.click('button[data-action="toggle-sparks"]');
-await assertFieldsMatchState('after closing the spark form');
+await assertFieldsMatchState(page, 'after closing the spark form');
 // Dimmed aptitude choices rebalance six pink sparks without going below base grades.
 await page.selectOption('[data-apt="dirt"]', 'C');
-await assertFieldsMatchState('after allocating four pink sparks to dirt');
+await assertFieldsMatchState(page, 'after allocating four pink sparks to dirt');
 await page.selectOption('[data-apt="sprint"]', 'D');
-await assertFieldsMatchState('after filling all six pink slots');
+await assertFieldsMatchState(page, 'after filling all six pink slots');
 assert.equal(await page.locator('[data-apt="end"] option[value="B"]').getAttribute('class'), 'dim');
 assert.equal(await page.locator('[data-apt="end"] option[value="B"]').isDisabled(), false);
 await page.selectOption('[data-apt="end"]', 'B');
-await assertFieldsMatchState('after rebalancing a dimmed aptitude choice');
+await assertFieldsMatchState(page, 'after rebalancing a dimmed aptitude choice');
 assert.equal(await page.inputValue('[data-apt="sprint"]'), 'E');
 assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
-assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
-assert.equal(await page.locator('[data-apt="end"] option[value="D"]').count(), 0);
+assert.equal(await page.locator('[data-apt="end"] option:checked').getAttribute('class'), '');
+assert.equal(await page.locator('[data-apt="end"] option[value="D"]').count(), 1);
 await page.locator('[data-apt="end"]').evaluate((select) => {
   select.value = 'D';
   select.dispatchEvent(new Event('change', { bubbles: true }));
 });
-await assertFieldsMatchState('after rejecting an aptitude below its base');
-assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
+await assertFieldsMatchState(page, 'after selecting a planning override below base');
+assert.equal(await page.inputValue('[data-apt="end"]'), 'D');
 await page.click('[data-action="reset-legacy"]');
-await assertFieldsMatchState('after resetting aptitude rebalance checks');
+await assertFieldsMatchState(page, 'after resetting aptitude rebalance checks');
 // Goal roles share the target chips. Editor selection is transient; goals and lineage persist.
 const deckBeforeGoal = await page.locator('.deck').innerText();
 await page.check('[data-goal-enabled]');
-await assertFieldsMatchState('after enabling parent goal');
+await assertFieldsMatchState(page, 'after enabling parent goal');
 assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
 assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
 await page.selectOption('[data-goal-pink]', 'end');
-await assertFieldsMatchState('after selecting a specific pink goal');
+await assertFieldsMatchState(page, 'after selecting a specific pink goal');
 await page.selectOption('[data-goal-pink]', 'any');
-await assertFieldsMatchState('after restoring Any pink');
+await assertFieldsMatchState(page, 'after restoring Any pink');
 await page.selectOption('[data-apt="end"]', 'A');
-await assertFieldsMatchState('after raising aptitude before pink reset');
+await assertFieldsMatchState(page, 'after raising aptitude before pink reset');
 await page.click('[data-action="reset-pink-sparks"]');
-await assertFieldsMatchState('after resetting pink sparks');
+await assertFieldsMatchState(page, 'after resetting pink sparks');
 await page.uncheck('[data-goal-blue="guts"]');
-await assertFieldsMatchState('after changing accepted blue stats');
+await assertFieldsMatchState(page, 'after changing accepted blue stats');
 await page.click('[data-action="goal-any-blue"]');
-await assertFieldsMatchState('after restoring any blue stat');
+await assertFieldsMatchState(page, 'after restoring any blue stat');
 for (const [selector, value] of [['[data-goal-stars="blue"]', '3'], ['[data-goal-stars="pink"]', '2'], ['[data-goal-pink]', 'turf']]) {
   await page.selectOption(selector, value);
-  await assertFieldsMatchState(`after ${selector} = ${value}`);
+  await assertFieldsMatchState(page, `after ${selector} = ${value}`);
 }
 for (const id of [200352, 201601, 200472]) {
   await page.click(`[data-action="select-target"][data-id="${id}"]`);
-  await assertFieldsMatchState(`after opening target ${id}`);
+  await assertFieldsMatchState(page, `after opening target ${id}`);
   await page.click(`[data-target-role="required"][data-id="${id}"]`);
-  await assertFieldsMatchState(`after requiring target ${id}`);
+  await assertFieldsMatchState(page, `after requiring target ${id}`);
 }
 assert.equal(await page.locator('[data-required-count]').innerText(), '3 required');
 assert.equal(await page.locator('.deck').innerText(), deckBeforeGoal, 'changing goal roles leaves selected cards unchanged');
 assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0, 'pink ancestry starts collapsed');
 await page.click('[data-action="toggle-pink-sparks"]');
-await assertFieldsMatchState('after opening pink sparks');
+await assertFieldsMatchState(page, 'after opening pink sparks');
 const startEnd = await page.inputValue('[data-apt="end"]');
 await page.selectOption('[data-apt="end"]', 'A');
-await assertFieldsMatchState('after inferring pink sparks from an aptitude increase');
+await assertFieldsMatchState(page, 'after inferring pink sparks from an aptitude increase');
 assert.equal(await page.locator('[data-pink-inferred]').count(), 2);
 await page.reload();
 await page.waitForSelector('[data-goal-result]');
 await page.click('[data-action="toggle-pink-sparks"]');
-await assertFieldsMatchState('after reloading inferred pink sparks');
+await assertFieldsMatchState(page, 'after reloading inferred pink sparks');
 assert.equal(await page.locator('[data-pink-inferred]').count(), 2);
 await page.selectOption('[data-apt="end"]', startEnd);
-await assertFieldsMatchState('after restoring the base aptitude');
+await assertFieldsMatchState(page, 'after restoring the base aptitude');
 assert.equal(await page.locator('[data-pink-inferred]').count(), 0);
 for (let i = 0; i < 6; i++) {
   await page.selectOption(`[data-pink-lineage="${i}"]`, 'turf');
-  await assertFieldsMatchState(`after pink lineage ${i}`);
+  await assertFieldsMatchState(page, `after pink lineage ${i}`);
 }
 await page.selectOption('[data-pink-lineage-stars="0"]', '3');
-await assertFieldsMatchState('after pink star edit');
+await assertFieldsMatchState(page, 'after pink star edit');
 const goalWithPinkSparks = await page.locator('[data-goal-probability]').innerText();
 await page.click('[data-action="toggle-pink-sparks"]');
-await assertFieldsMatchState('after closing pink sparks');
+await assertFieldsMatchState(page, 'after closing pink sparks');
 assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0);
 assert.equal(await page.locator('[data-goal-probability]').innerText(), goalWithPinkSparks, 'closing inputs keeps inspiration estimates');
 assert.equal(await page.locator('[data-goal-issues]').count(), 0);
 assert.equal(await page.locator('[data-goal-attempts]').count(), 3);
 await page.click('[data-action="select-target"][data-id="201601"]');
-await assertFieldsMatchState('after switching target editor');
+await assertFieldsMatchState(page, 'after switching target editor');
 await page.selectOption('[data-target-stars="201601"]', '3');
-await assertFieldsMatchState('after required star edit');
+await assertFieldsMatchState(page, 'after required star edit');
 await page.selectOption('[data-lineage-k="201601"][data-side="k1"]', '2');
-await assertFieldsMatchState('after white lineage copies');
+await assertFieldsMatchState(page, 'after white lineage copies');
 await page.selectOption('[data-lineage-p="201601"][data-side="p1"]', '5');
-await assertFieldsMatchState('after white lineage stars');
+await assertFieldsMatchState(page, 'after white lineage stars');
 await page.click('[data-action="select-target"][data-id="201601"]');
 assert.equal(await page.locator('[data-target-editor]').count(), 0, 'clicking the selected chip closes the editor');
-await assertFieldsMatchState('after closing target editor');
+await assertFieldsMatchState(page, 'after closing target editor');
 await page.click('[data-action="select-target"][data-id="201601"]');
-await assertFieldsMatchState('after reopening target editor');
+await assertFieldsMatchState(page, 'after reopening target editor');
 assert.equal(await page.locator('[data-target-editor] [data-action="remove-target"]').count(), 0, 'removal lives on the chip');
 for (const query of ['Lucky Seven', 'Right-Handed']) {
   await page.fill('#target-search', query);
   await page.locator('[data-action="add-target"]').first().click();
-  await assertFieldsMatchState(`after adding ${query} as preferred`);
+  await assertFieldsMatchState(page, `after adding ${query} as preferred`);
 }
 await page.click('[data-action="remove-target"][data-id="200012"]');
-await assertFieldsMatchState('after removing the active chip');
+await assertFieldsMatchState(page, 'after removing the active chip');
 assert.equal(await page.locator('[data-target-editor]').count(), 0);
 await page.reload();
 await page.waitForSelector('[data-goal-result]');
-await assertFieldsMatchState('after reloading goals');
+await assertFieldsMatchState(page, 'after reloading goals');
 for (const id of [200352, 201601, 200472]) {
   await page.click(`[data-action="select-target"][data-id="${id}"]`);
-  await assertFieldsMatchState(`after restoring editor ${id}`);
+  await assertFieldsMatchState(page, `after restoring editor ${id}`);
   if (id === 201601) {
     assert.equal(await page.inputValue('[data-target-stars="201601"]'), '3');
     assert.equal(await page.inputValue('[data-lineage-p="201601"][data-side="p1"]'), '5');
   }
   await page.click(`[data-target-role="preferred"][data-id="${id}"]`);
-  await assertFieldsMatchState(`after making ${id} preferred`);
+  await assertFieldsMatchState(page, `after making ${id} preferred`);
 }
 assert.equal(await page.locator('[data-required-count]').innerText(), '0 required');
 assert.equal(await page.locator('[data-goal-issues]').count(), 0, 'zero required whites is a complete white goal');
 await page.click('[data-target-role="required"][data-id="200472"]');
-await assertFieldsMatchState('after selecting one required white');
+await assertFieldsMatchState(page, 'after selecting one required white');
 assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0, 'pink editor stays closed after reload');
 await page.click('[data-action="toggle-pink-sparks"]');
-await assertFieldsMatchState('after restoring pink editor');
+await assertFieldsMatchState(page, 'after restoring pink editor');
 assert.equal(await page.inputValue('[data-pink-lineage-stars="0"]'), '3');
 await page.click('[data-action="toggle-sparks"]');
-await assertFieldsMatchState('with both advanced legacy forms open');
+await assertFieldsMatchState(page, 'with both advanced legacy forms open');
 // layout check: no horizontal overflow at common widths, both themes
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {

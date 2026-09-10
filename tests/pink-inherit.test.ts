@@ -1,24 +1,54 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
-import { migrate } from '../src/state.ts';
-import { APTITUDE_KEYS, emptyPinkLineage, type PinkSpark } from '../src/model/goal-input.ts';
-import { pinkAptitudeGrades, normalizeStartingAptitudes, withPinkAptitude } from '../src/model/pink-inherit.ts';
+import { migrate, STATE_VERSION } from '../src/state.ts';
+import { APTITUDE_KEYS } from '../src/types.ts';
+import { emptyPinkLineage, type PinkSpark } from '../src/model/goal-input.ts';
+import { pinkAptitudeGrades, startingAptitudes, withPinkLineage, withPinkAptitude } from '../src/model/pink-inherit.ts';
 import type { Aptitudes } from '../src/model/races.ts';
 
 const base = Object.fromEntries(APTITUDE_KEYS.map((key) => [key, 'G'])) as Aptitudes;
 const inferred = (aptitude: PinkSpark['aptitude'], stars: number): PinkSpark => ({ aptitude, stars, inferred: true });
 const filled = (lineage: (PinkSpark | null)[]) => lineage.filter((spark) => spark !== null);
 
+test('editing Dirt preserves a manually entered Mile spark and derives Mile from lineage', () => {
+  const native = { ...base, mile: 'C' as const };
+  const current = emptyPinkLineage();
+  current[4] = { aptitude: 'mile', stars: 2 };
+  const result = withPinkAptitude(native, native, current, 'dirt', 'F')!;
+  assert.deepEqual(result.lineage[4], current[4]);
+  assert.equal(result.aptitudes.mile, 'B');
+  assert.equal(result.adjustsOthers, false);
+});
+
+test('an unrelated no-op does not collapse six manual End sparks to an entered B', () => {
+  const native = { ...base, end: 'C' as const, turf: 'A' as const };
+  const current = Array.from({ length: 6 }, () => ({ aptitude: 'end' as const, stars: 3 }));
+  const result = withPinkAptitude(native, { ...native, end: 'B' }, current, 'turf', 'A')!;
+  assert.deepEqual(result.lineage, current);
+  assert.equal(result.aptitudes.end, 'A');
+  assert.equal(result.adjustsOthers, false);
+});
+
+test('manual lineage edits derive grades immediately and removing the last spark restores base', () => {
+  const native = { ...base, mile: 'C' as const };
+  const current = emptyPinkLineage();
+  const next = [...current]; next[4] = { aptitude: 'mile', stars: 2 };
+  const grades = withPinkLineage(native, {}, current, next);
+  assert.equal(grades.mile, 'B');
+  assert.equal(withPinkLineage(native, grades, next, current).mile, 'C');
+  assert.equal(startingAptitudes({ ...native, mile: 'B' }, {}, next).mile, 'A', 'switching trainee uses retained manual ancestry');
+});
+
 test('starting grade choices stay at base or higher and cap at four increases and A', () => {
   assert.deepEqual(pinkAptitudeGrades('A'), ['A']);
   assert.deepEqual(pinkAptitudeGrades('C'), ['A', 'B', 'C']);
   assert.deepEqual(pinkAptitudeGrades('G'), ['C', 'D', 'E', 'F', 'G']);
-  assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'B'), null);
+  assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'B')!.aptitudes.end, 'B');
   assert.equal(withPinkAptitude(base, base, emptyPinkLineage(), 'end', 'S'), null);
   const native = { ...base, end: 'C' as const };
-  assert.equal(withPinkAptitude(native, native, emptyPinkLineage(), 'end', 'D'), null);
-  assert.equal(normalizeStartingAptitudes(native, { end: 'G' }).end, 'C');
+  assert.equal(withPinkAptitude(native, native, emptyPinkLineage(), 'end', 'D')!.aptitudes.end, 'D');
+  assert.equal(startingAptitudes(native, { end: 'G' }, emptyPinkLineage()).end, 'G');
 });
 
 test('empty ancestry needs minimum totals of 1, 4, 7, and 10 stars for starting increases', () => {
@@ -26,7 +56,6 @@ test('empty ancestry needs minimum totals of 1, 4, 7, and 10 stars for starting 
     const result = withPinkAptitude(base, base, emptyPinkLineage(), 'end', grade)!;
     assert.deepEqual(filled(result.lineage), stars.map((n) => inferred('end', n)));
     assert.equal(result.aptitudes.end, grade);
-    assert.deepEqual(result.issues, []);
     assert.equal(result.lineage.length, 6);
   }
 });
@@ -83,21 +112,20 @@ test('manual sparks can be reassigned while affected aptitudes never fall below 
   assert.ok(filled(packed.lineage).length <= 6);
 });
 
-test('old invalid grade combinations rebalance into a supported six-spark setup', () => {
+test('editing a grade preserves unrelated grade-only planning overrides', () => {
   const old = { ...base, end: 'A' as const, mile: 'A' as const };
   const repaired = withPinkAptitude(base, old, emptyPinkLineage(), 'end', 'C')!;
-  assert.deepEqual(repaired.issues, []);
   assert.equal(repaired.aptitudes.end, 'C');
-  assert.equal(repaired.aptitudes.mile, 'E');
-  assert.equal(filled(repaired.lineage).length, 6);
+  assert.equal(repaired.aptitudes.mile, 'A');
+  assert.equal(filled(repaired.lineage).length, 4);
 });
 
-test('saved grades clamp to the trainee range and inferred provenance survives reloads', () => {
+test('saved planning grades and inferred provenance survive reloads', () => {
   const data = loadData();
   const lineage = [inferred('end', 3), { aptitude: 'mile', stars: 2 }, null, null, null, null];
   const saved = migrate({ current: { version: 11, run: { traineeCardId: 100101, pinkLineage: lineage, aptOverrides: { turf: 'G', end: 'G', dirt: 'A' } } } }, data);
-  assert.equal(saved.version, 13);
-  assert.deepEqual(saved.run.aptOverrides, { dirt: 'C' });
+  assert.equal(saved.version, STATE_VERSION);
+  assert.deepEqual(saved.run.aptOverrides, { turf: 'G', end: 'G', dirt: 'A' });
   assert.deepEqual(saved.run.pinkLineage, lineage);
   assert.deepEqual(migrate({ current: saved }, data), saved);
 });

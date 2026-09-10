@@ -1,10 +1,8 @@
-import type { AptKey, Grade } from '../types.ts';
-import { APTITUDE_KEYS, type PinkSpark } from './goal-input.ts';
+import { APTITUDE_KEYS, APT_GRADES as GRADES, type AptKey, type Grade } from '../types.ts';
+import type { PinkSpark } from './goal-input.ts';
 import { PINK_SPARK_START_STARS, STARS_PER_SPARK_MAX } from './rules.ts';
 
-const GRADES: Grade[] = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
 type Aptitudes = Record<AptKey, Grade>;
-export interface PinkInference { lineage: (PinkSpark | null)[]; issues: string[] }
 
 /** Starting inheritance can add at most four grades, ending at A. */
 export function pinkAptitudeGrades(base: Grade): Grade[] {
@@ -12,14 +10,22 @@ export function pinkAptitudeGrades(base: Grade): Grade[] {
   return GRADES.slice(from, Math.min(GRADES.indexOf('A'), from + PINK_SPARK_START_STARS.length - 1) + 1).reverse();
 }
 
-export function normalizeStartingAptitudes(base: Aptitudes, entered: Partial<Aptitudes>): Aptitudes {
+/** Known sparks determine starting grades. Out-of-range overrides remain explicit planning inputs. */
+export function startingAptitudes(base: Aptitudes, entered: Partial<Aptitudes>, lineage: (PinkSpark | null)[]): Aptitudes {
   return Object.fromEntries(APTITUDE_KEYS.map((key) => {
-    const range = pinkAptitudeGrades(base[key]);
-    const index = GRADES.indexOf(entered[key] ?? base[key]);
-    const low = GRADES.indexOf(range[range.length - 1]!);
-    const high = GRADES.indexOf(range[0]!);
-    return [key, GRADES[Math.max(low, Math.min(high, index))]!];
+    const grade = entered[key] ?? base[key];
+    const stars = starsFor(lineage, key);
+    return [key, stars && pinkAptitudeGrades(base[key]).includes(grade) ? gradeFromStars(base[key], stars) : grade];
   })) as Aptitudes;
+}
+
+/** Refresh grades for edited or reclaimed sparks, including an aptitude whose last spark was removed. */
+export function withPinkLineage(base: Aptitudes, entered: Partial<Aptitudes>, current: (PinkSpark | null)[], lineage: (PinkSpark | null)[]): Aptitudes {
+  const retained = { ...entered };
+  for (const key of APTITUDE_KEYS) {
+    if (starsFor(current, key) !== starsFor(lineage, key) && pinkAptitudeGrades(base[key]).includes(retained[key] ?? base[key])) delete retained[key];
+  }
+  return startingAptitudes(base, retained, lineage);
 }
 
 const starsFor = (lineage: (PinkSpark | null)[], key: AptKey) => lineage.reduce((n, spark) => n + (spark?.aptitude === key ? spark.stars : 0), 0);
@@ -64,20 +70,16 @@ function allocateGrade(base: Grade, current: (PinkSpark | null)[], key: AptKey, 
   return { lineage, reclaimed };
 }
 
-export interface PinkAptitudeChange extends PinkInference { aptitudes: Aptitudes; adjustsOthers: boolean }
+export interface PinkAptitudeChange { lineage: (PinkSpark | null)[]; aptitudes: Aptitudes; adjustsOthers: boolean }
 
 /** Honor the chosen grade, then derive every starting grade from the rebalanced six-spark lineage. */
 export function withPinkAptitude(base: Aptitudes, entered: Aptitudes, current: (PinkSpark | null)[], key: AptKey, grade: Grade): PinkAptitudeChange | null {
-  if (!pinkAptitudeGrades(base[key]).includes(grade)) return null;
-  const previous = normalizeStartingAptitudes(base, entered);
-  let lineage = [...current];
-  // Fill older grade-only inputs first. The explicitly selected aptitude gets the final allocation.
-  for (const other of APTITUDE_KEYS) {
-    if (other !== key) lineage = allocateGrade(base[other], lineage, other, previous[other]).lineage;
+  if (grade === 'S' || !GRADES.includes(grade)) return null;
+  if (!pinkAptitudeGrades(base[key]).includes(grade)) {
+    return { lineage: [...current], aptitudes: { ...startingAptitudes(base, entered, current), [key]: grade }, adjustsOthers: false };
   }
-  const selected = allocateGrade(base[key], lineage, key, grade);
-  lineage = selected.lineage;
-  const aptitudes = Object.fromEntries(APTITUDE_KEYS.map((other) => [other, gradeFromStars(base[other], starsFor(lineage, other))])) as Aptitudes;
-  const changedOtherSpark = current.some((spark, i) => spark && spark.aptitude !== key && (lineage[i]?.aptitude !== spark.aptitude || lineage[i]?.stars !== spark.stars));
-  return { lineage, aptitudes, issues: [], adjustsOthers: selected.reclaimed || changedOtherSpark || APTITUDE_KEYS.some((other) => other !== key && aptitudes[other] !== previous[other]) };
+  const selected = allocateGrade(base[key], current, key, grade);
+  const aptitudes = withPinkLineage(base, entered, current, selected.lineage);
+  aptitudes[key] = grade;
+  return { lineage: selected.lineage, aptitudes, adjustsOthers: selected.reclaimed };
 }

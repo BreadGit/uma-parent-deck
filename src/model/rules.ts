@@ -95,13 +95,9 @@ export const PINK_GENERATION_RATES = [0.2, 0.7, 0.1] as const;
 // Minimum total lineage stars for zero through four starting aptitude increases.
 // Source: docs/refs/umaguide-sparks.md, Starting Aptitude table. Starting grades cap at A.
 export const PINK_SPARK_START_STARS: readonly number[] = [0, 1, 4, 7, 10];
-export const PINK_INSPIRATION_RATES = [0, 0.01, 0.03, 0.05] as const;
-// Low and UE bands use Crazyfellow's community estimates; the goal output identifies their use.
 export const WHITE_GENERATION_BANDS = [
-  { min: 0, rates: [0.9, 0.1, 0], approximate: true },
   { min: 6500, rates: [0.5, 0.45, 0.05], approximate: false },
   { min: 17500, rates: [0.2, 0.7, 0.1], approximate: false },
-  { min: 28800, rates: [0.175, 0.7, 0.125], approximate: true },
 ] as const;
 /** Rating multiplier by the trainee's aptitude for a skill's condition (UmaTools buckets: S/A, B/C, D/E/F, G). */
 export const APTITUDE_BUCKET_MULTIPLIER = { good: 1.1, average: 0.9, bad: 0.8, terrible: 0.7 };

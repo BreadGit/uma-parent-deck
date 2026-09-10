@@ -55,7 +55,7 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.equal(s1.ui.sortKey, 'stats');
   const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { a: true, b: 'no' }, traineeStars: 'five' };
   const s2 = migrate({ state: v2 }, data);
-  assert.deepEqual(s2.run.targets, [200352]);
+  assert.deepEqual(s2.run.targets, [{ id: 200352, role: 'preferred', stars: 2 }]);
   assert.deepEqual(s2.run.pinnedIds, [30052, 30028]);
   assert.deepEqual(s2.run.parentSparks, [[{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 2 }, { stat: 'power', stars: 3 }], defaultParentSparks()], 'v2 stars per stat become one uma each; 4★ Guts and 5★ Wit pack into four sparks, so that side is the default');
   assert.deepEqual(s2.run.targetLineage, { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } });
@@ -101,7 +101,7 @@ test('legacy settings blobs: version bumps apply and invalid values are dropped'
 
 test('the current shape round-trips and wins over legacy keys', () => {
   const cur = migrate({}, data);
-  cur.run.targets = [201601]; cur.run.goal.preferred = [201601]; cur.settings.winThreshold = 0.6; cur.inventory = { '30028': 2, '30052': null }; cur.ui = { sortKey: 'sp', theme: 'dark' };
+  cur.run.targets = [{ id: 201601, role: 'preferred', stars: 2 }]; cur.settings.winThreshold = 0.6; cur.inventory = { '30028': 2, '30052': null }; cur.ui = { sortKey: 'sp', theme: 'dark' };
   const back = migrate({ current: JSON.parse(JSON.stringify(cur)), state: { targets: [999] }, settings: { winThreshold: 0.1 }, inventory: { '1': 1 }, theme: 'light' }, data);
   assert.deepEqual(back, cur);
 });

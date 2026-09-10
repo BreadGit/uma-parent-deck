@@ -1,10 +1,9 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
-import { STATS, type AptKey, type Data, type Grade, type Inventory } from './types.ts';
+import { STATS, APTITUDE_KEYS, APT_GRADES, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
-import { APTITUDE_KEYS, DEFAULT_GOAL, emptyPinkLineage, goalFamily, sanitizeGoal, sanitizePinkLineage } from './model/goal-input.ts';
-import { normalizeStartingAptitudes } from './model/pink-inherit.ts';
+import { DEFAULT_GOAL, emptyPinkLineage, goalFamily, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
@@ -14,7 +13,7 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState }
 
-export const STATE_VERSION = 13;
+export const STATE_VERSION = 14;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -38,8 +37,6 @@ export function defaultState(data: Data): AppState {
 type Json = Record<string, unknown>;
 const isObj = (v: unknown): v is Json => !!v && typeof v === 'object' && !Array.isArray(v);
 const numList = (v: unknown): number[] => (Array.isArray(v) ? v.filter((x): x is number => typeof x === 'number') : []);
-const APT_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
-const APT_GRADES: Grade[] = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 /** Stat arrays are positional. A malformed entry becomes zero without moving the entries after it. */
 const statValues = (raw: unknown): number[] => STATS.map((_, i) => {
   const v: unknown = Array.isArray(raw) ? raw[i] : undefined;
@@ -49,21 +46,16 @@ const statValues = (raw: unknown): number[] => STATS.map((_, i) => {
 /** Older shapes of the run state and what they turn into. */
 function migrateRun(raw: Json, data: Data): RunInput {
   const run: RunInput = { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) };
-  for (const k of ['targets', 'wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = numList(raw[k]);
+  for (const k of ['wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = numList(raw[k]);
   if (typeof raw.traineeCardId === 'number') run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
   // the star count belongs to the trainee: at least her rarity, at most five
   run.traineeStars = clampStars(run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) ?? null : null, run.traineeStars);
   if (typeof raw.borrowFromAll === 'boolean') run.borrowFromAll = raw.borrowFromAll;
   // aptitude overrides: S cannot show on the pre-run screen (only an inspiration event reaches it) and wins like A, so it becomes A
-  if (isObj(raw.aptOverrides)) for (const k of APT_KEYS) {
+  if (isObj(raw.aptOverrides)) for (const k of APTITUDE_KEYS) {
     const v = raw.aptOverrides[k];
     if (typeof v === 'string' && APT_GRADES.includes(v as Grade)) run.aptOverrides[k] = v === 'S' ? 'A' : v as Grade;
-  }
-  const trainee = run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) : null;
-  if (trainee) {
-    const aptitudes = normalizeStartingAptitudes(trainee.aptitudes, run.aptOverrides);
-    run.aptOverrides = Object.fromEntries(APTITUDE_KEYS.filter((key) => aptitudes[key] !== trainee.aptitudes[key]).map((key) => [key, aptitudes[key]]));
   }
   if (isObj(raw.raceOverrides)) run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([, v]) => typeof v === 'boolean')) as Record<string, boolean>;
   // pins: a single pinnedId (v1) became pinnedIds (v2)
@@ -92,10 +84,16 @@ function migrateRun(raw: Json, data: Data): RunInput {
     gains = [starsToGains(p1), starsToGains(all.map((v, i) => Math.min(MAX_PARENT_STARS, v - p1[i]!)))];
   }
   if (gains) run.parentSparks = gains.map(sideFromGains);
-  run.goal = sanitizeGoal(raw.goal, data, run.targets);
-  // All white targets share one editor. Preserve old goal-only families in the merged target list.
-  const ids = new Set([...run.goal.required.map((r) => r.id), ...run.goal.preferred]);
-  run.targets = [...new Set([...run.targets.map((id) => goalFamily(id, data)).filter((id): id is number => id !== null && ids.has(id)), ...ids])];
+  run.goal = sanitizeGoal(raw.goal);
+  run.targets = sanitizeTargets(raw.targets, data, raw.goal);
+  const lineage = run.targetLineage;
+  run.targetLineage = {};
+  for (const target of run.targets) {
+    // Prefer an exact white key over an old gold/circle alias of the same family.
+    const alias = Object.keys(lineage).find((key) => goalFamily(Number(key), data) === target.id);
+    const value = lineage[String(target.id)] ?? (alias ? lineage[alias] : undefined);
+    if (value) run.targetLineage[String(target.id)] = value;
+  }
   run.pinkLineage = sanitizePinkLineage(raw.pinkLineage);
   return run;
 }

@@ -5,7 +5,7 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
 
 ## Review flow
 
-1. Select a trainee, white targets, inventory, and agenda as before.
+1. Select a trainee, inventory, and agenda. Parent goal groups white targets and blue/pink controls.
 2. Select a target chip to open its shared editor. Choose Required or Preferred under **Goals for
    target white spark**. Required families have individual minimum stars; Preferred families are
    optional 2★+ extras. Zero required whites is valid. There is no maximum required count.
@@ -16,7 +16,7 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
    the stat gains and above the aptitude inputs in Legacy to enter the six pink lineage sparks for mid-run inspiration estimates.
    Raising a grade above the trainee's base infers a minimum-star set in the available slots.
    The editor labels these entries Estimated; editing an entry makes it manual. Unassigned slots
-   remain unknown. Reset beside Pink sparks clears all six entries and restores base aptitudes.
+   remain unknown. Clear pink sparks clears all six entries and restores base aptitudes.
    Blue sparks, white lineage, and goals stay unchanged. The editor starts closed. Closing it keeps the saved inputs active.
 5. Read Parent goal estimate. It shows the complete probability, individual spark chances, all
    required skills' availability, SS chance, and 50% / 75% / 95% attempt counts.
@@ -25,7 +25,8 @@ Required/Preferred roles and minimum stars do not change selected cards or the p
 Adding or removing a target chip changes the existing builder's target list. Changing shared run
 inputs, such as lineage, inventory, or agenda, can still change the suggested deck.
 Incomplete pink ancestry shows a warning while the combined estimate uses starting grades and
-known sparks. Matching pink sparks below starting B still withhold a specific target estimate.
+known sparks. Matching pink sparks below starting B produce lower and upper probability bounds.
+Buttons in the goal controls and warnings open and focus the pink-lineage editor in Legacy.
 Any needs no ancestry when a starting A/S aptitude guarantees eligibility.
 A fully specified goal with no modeled source or eligibility has zero chance. Preferred extras
 are individual 2★-or-better probabilities, not conditional on successful required goals.
@@ -34,9 +35,10 @@ With zero required white families, the white contribution is one and success dep
 ## Data and ownership
 
 - `src/model/goal-input.ts` defines and normalizes the goal and six pink ancestry entries.
-- `src/state.ts` migrates saves to version 13. Missing, null, or invalid pink targets become `any`;
+- `src/state.ts` migrates saves to version 14. Missing, null, or invalid pink targets become `any`;
   existing specific targets and minimum stars survive. New pink goals default to `any` at two stars.
-  Saved aptitude overrides clamp to the selected trainee's base and four-grade starting-inheritance range. Pink entries can carry `inferred: true`;
+  Saved A-through-G aptitude overrides survive, including grades outside starting inheritance.
+  Pink entries can carry `inferred: true`;
   old entries without the marker stay manual, and the marker survives reloads. Valid pink ancestry
   from older saves survives.
   Saves from version 9 have unknown ancestry because that version removed the data. Entered
@@ -44,12 +46,21 @@ With zero required white families, the white contribution is one and success dep
   default to Preferred; stored Required entries and their stars survive. The former empty required
   slots disappear. Old goal-only families
   join the unified target list, which can change deck suggestions for saves with separate lists.
-  Invalid families and duplicate required entries are removed. The required list defaults to empty.
+  `run.targets` stores `{ id, role, stars }` entries. The evaluator derives Required and Preferred
+  lists from it; `run.goal` stores only blue/pink choices and the enabled flag. Invalid IDs and
+  duplicates are removed. Focus and Gatekept remain distinct despite sharing Concentration.
+  Gold-only targets remain visible and searchable with an explicit notice that they have no
+  released white spark. Their generation probability is zero. Their saved lineage survives for
+  review but contributes no inherited hints. This also covers Risk-Maker, whose white form is
+  unreleased on Global. Old gold/circle lineage keys move to the canonical target key. An exact
+  white key takes precedence if both exist. Keys without a remaining target are removed.
 - `src/model/pink-inherit.ts` infers a minimum-star set when a Legacy grade changes. It preserves
   matching sparks where possible, reclaims other slots as needed, and derives the resulting grades.
-  It never allocates more than six sparks or lowers a grade below base.
+  It never allocates more than six sparks. Unrelated manual sparks remain unchanged unless the
+  selected grade needs their slots. Planning overrides do not allocate or remove sparks.
 - `src/model/run.ts` exposes `predictRunDeck()` for a supplied deck and calls `evaluateParentGoal()`
-  after the existing builder selects cards. It never searches decks from inside the goal evaluator.
+  after the existing builder selects cards. The evaluator reuses the resolved deck coverage and
+  context. It does not rebuild sources, resolve choices again, or search for decks.
 - `src/model/goal-skills.ts` calculates a joint distribution over the best obtainable form of each
   required family. `src/model/goal.ts` combines this with stat, rank, pink, and star estimates.
 - `src/ui/panels/targets.ts` renders the target chips and shared goal/lineage editor. Its selected
@@ -57,11 +68,12 @@ With zero required white families, the white contribution is one and success dep
   grades and pink lineage. Its Pink sparks toggle is transient view state, independent of By stars
   and the goal toggle. All saved edits use the existing persisted store.
 
-Generation constants live in `rules.ts`. Their provenance is the
-[Hakuraku note](refs/hakuraku-spark-generation.md), including the explicitly approximate low/UE
-white bands. Pink inspiration rates and their scope are in
-[aptitude inheritance](refs/aptitude-inheritance.md). The existing measured support-chain settings
-remain the defaults. New generation tables are not independent copies of tunable hint settings.
+Measured generation bands live in `rules.ts`. Their provenance is the
+[Hakuraku note](refs/hakuraku-spark-generation.md). The approximate below-B and UE white-star
+rates and pink inspiration rates are editable in `settings.ts`, with validation and user-facing
+source notes. White-star distributions must sum to one. Pink inspiration provenance is in
+[aptitude inheritance](refs/aptitude-inheritance.md). Blue band thresholds are shared with the deck
+panel. The SS threshold comes from the same ranking data as the rank panel.
 
 ## Calculation
 
@@ -81,7 +93,8 @@ Families sharing an event or chain form connected groups. Independent groups are
 separately, so fifty independent families do not create an exponential joint state table.
 Within each group, sources combine by retaining each family's best form. Shared events apply the
 decoded rewards together; alternative outcomes and random skill selections stay exclusive.
-The existing assumed outcome weights and gold-roll setting apply. A reached late chain stage
+The existing assumed outcome weights and gold-roll setting apply. Both estimators decode skill
+reward shares through `outcomeSkillShares`; duplicate rewards count once. A reached late chain stage
 implies all preceding stages. Repeated prerequisites still give one family roll.
 
 Small distributions are exact under the source assumptions. Large linked groups use at most
@@ -131,12 +144,14 @@ The starting thresholds are 1, 4, 7, and 10 total matching stars for one through
 increases. Starting inheritance cannot reach S or increase more than four grades. The table is
 vendored in `docs/refs/umaguide-sparks.md` and summarized in `refs/aptitude-inheritance.md`.
 
-The aptitude dropdowns offer only the trainee's base grade through four increases, capped at A.
-A forced out-of-range change is rejected before saving. Existing saves clamp to this range.
+The aptitude dropdowns offer A through G. Grades outside the trainee's starting-inheritance
+range are explicit planning overrides. They survive reloads and continue to control the agenda.
+They leave pink lineage unchanged, and the Legacy panel identifies them. S remains unavailable.
 The Pink sparks button and its editor sit after the blue stat gains and before the aptitude table.
 
-Changing a grade reconciles the entered aptitude increases with the six-spark lineage. The chosen
-grade gets the final allocation. Existing sparks are kept when their total already gives the
+Changing a supported grade allocates only that aptitude. Other aptitudes derive their grades
+from known lineage; the model does not rebuild their sparks to match stale entered grades.
+Grade-only inputs without matching sparks remain available as fallback planning inputs. Existing sparks are kept when their total already gives the
 requested grade. Otherwise the model adds the minimum missing stars in 3★ sparks and a remainder,
 or rebuilds a smaller total when the grade is lowered. Matching sparks stay on their umas where
 possible. If preserving many small sparks would require more than six slots, their stars are
@@ -145,17 +160,17 @@ packed into fewer sparks. These are estimates, not claims about the actual paren
 Free slots are used first. If more slots are needed, the model reassigns the weakest other sparks.
 Ties use reverse slot order. This can replace manual entries, just as selecting a dimmed blue
 gain can take another stat's sparks. Choices that adjust other sparks or grades are dimmed but
-remain selectable. After allocation, all starting grades are derived from the resulting lineage
-and trainee base. Each remains at least its base grade. The selected grade is honored, while
-other grades can decrease as their sparks are reassigned.
+remain selectable. The currently selected grade is never dimmed. After allocation, affected
+starting grades follow the resulting lineage and trainee base. Planning overrides stay explicit.
+The selected grade is honored; other grades can decrease if their slots are reassigned.
 
 For example, C to A needs at least 4 stars. An empty lineage gets 3★ + 1★; an existing 2★ spark
 can stay and gain another 2★ spark. Returning that aptitude to its base removes its unnecessary
 sparks, including manual entries. Sparks on an already native-A aptitude can remain because
 they do not change its starting grade.
 
-Editing an advanced spark removes its Estimated marker. Advanced edits refine the inspiration
-inputs; starting grades are reconciled on the next aptitude edit. Changing the trainee clears
+Editing a pink spark removes its Estimated marker and immediately updates the starting grade.
+Removing the last spark for an aptitude restores its base unless it has a planning override. Changing the trainee clears
 inferred entries and starting overrides but preserves manual ancestry. Legacy Reset clears both.
 Unassigned slots remain unknown. Partial lineage gives an estimate with a warning instead of blocking it.
 Goal notes identify inferred inputs. The model assumes the same affinity for all six slots.
@@ -166,30 +181,35 @@ Any accepts every eligible aptitude. With at least one starting A/S, its probabi
 minimum-star chance (1★+ = 100%, 2★+ = 80%, 3★ = 10%). Competing aptitudes do not dilute it,
 and unknown ancestry or unsupported jumps cannot block it. Without a guaranteed eligible aptitude,
 the model multiplies the star chance by the probability that at least one aptitude becomes eligible;
-unsupported below-B increases still withhold that estimate.
+unsupported below-B increases produce bounds for that estimate.
 
-Entered grades already include parent selection. The model adds only mid-run inspiration changes
-for final eligibility; it does not change the entered starting grades. Starting A/S aptitudes
+Starting grades use the deterministic lineage-star table where lineage is known. The model then
+adds mid-run inspiration changes for final eligibility. Planning overrides remain explicit. Starting A/S aptitudes
 remain eligible. A B aptitude becomes eligible when any known matching spark
 procs at either inspiration event. Each proc uses its star rate times
 `1 + individualAffinity / 100`, capped at one. The existing affinity setting applies to all six.
 A small distribution over the number of other eligible aptitudes accounts for dilution when
 competing B aptitudes become A. Generation selects uniformly among eligible aptitudes.
 
-A grade below B with matching ancestry needs an unknown aptitude-point distribution. It remains
-unestimated, including when it could dilute an already eligible target. No matching spark in
-complete ancestry gives zero chance of improvement. A/S versus S does not change selection odds.
+A grade below B with matching ancestry needs an unknown aptitude-point distribution. Its final
+eligibility is bounded between zero and one. For a specific target, the lower bound assumes all
+uncertain competitors qualify and an uncertain target does not. The upper bound reverses those
+assumptions. Any pink instead bounds the probability that at least one aptitude qualifies.
+Both endpoints propagate into the complete goal and attempt counts. A zero lower bound with a
+positive upper bound is not labeled impossible. No matching spark in complete ancestry gives
+zero chance of improvement. A/S versus S does not change selection odds.
 
 Incomplete ancestry uses only known sparks for mid-run increases. Unknown slots contribute no
 increases to either the target or its competitors. This approximation can overestimate or
 underestimate the true chance; a displayed zero is not proof that unknown ancestry cannot help.
 The nonblocking warning reads "Open Pink sparks in Legacy and enter all six lineage sparks to get
-a more accurate pink spark probability." It disappears when all six are entered, or when
+a more accurate pink spark probability." A button opens the editor. It disappears when all six are entered, or when
 eligibility is already fixed for the goal. Other blocking issues still withhold the combined estimate.
 
 ### Attempts
 
 Counts use `ceil(log1p(-confidence) / log1p(-p))`, with explicit zero and certain-success handling.
+Probability bounds produce attempt ranges. A zero lower probability has no finite upper attempt bound.
 One attempt is one final spark roll. By the agreed simplification, all attempts have the same
 independent chance. There is no attempts-per-career setting or selective-reroll model.
 
@@ -211,4 +231,5 @@ independent chance. There is no attempts-per-career setting or selective-reroll 
 `tests/goal.test.ts` covers numeric boundaries, complete-goal arithmetic, shared events and chains,
 rank dependence, pink eligibility, migration, and unchanged deck selection. Browser smoke checks
 all goal controls against saved state and tests responsive layouts in both themes. Browser
-regressions cover reloads, old saves, and unsupported versus impossible goals.
+regressions cover reloads, old saves, manual lineage preservation, planning overrides, uncertain
+versus impossible goals, and dimmed/disabled controls in both themes.

@@ -1,6 +1,6 @@
 import { STATS, type Card, type Character, type Focus, type StatModel, type UniqueEffect } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { FACILITY_LEVEL_MAX, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP } from './rules.ts';
+import { BLUE_GENERATION_BANDS, FACILITY_LEVEL_MAX, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP } from './rules.ts';
 
 export const EFFECT = {
   friendship: 1, mood: 2, statBonus: 3, trainingEff: 8, initialStat: 9, initialGauge: 14,
@@ -191,4 +191,4 @@ export function phi(z: number): number {
 export const pAbove = (mean: number, sd: number, threshold: number) => 1 - phi((threshold - mean) / Math.max(1, sd));
 
 /** Blue spark star bands: a stat at or above these values at run end raises the odds of 2★ and 3★ blue sparks. */
-export const BLUE_STAR_BANDS = { mid: 600, high: 1100 } as const;
+export const BLUE_STAR_BANDS = { mid: BLUE_GENERATION_BANDS[1].min, high: BLUE_GENERATION_BANDS[2].min } as const;

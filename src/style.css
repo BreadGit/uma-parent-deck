@@ -383,3 +383,6 @@ td.cover .t { display: inline-flex; margin: 1px 6px 1px 0; }
 .target-lineage-fields > div { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .target-lineage-fields select { min-width: 0; max-width: 105px; }
 @media (max-width: 600px) { .target-editor select { font-size: 16px; } }
+
+.legacy-apts select option.dim { color: var(--muted); }
+.target-editor select:disabled { opacity: .45; cursor: not-allowed; }

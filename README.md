@@ -5,11 +5,11 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 ## What it does
 
-- Target white sparks uses compact chips with one shared editor. Select a chip to edit its goal
+- Parent goal groups the blue, pink, and white goals. Target white sparks uses compact chips with one shared editor. Select a chip to edit its goal
   and lineage; select it again to close. Remove a target with the × on its chip. Any number of targets,
   including zero, can be Required. Preferred targets are optional 2★+ extras. Required targets have
   individual minimum stars. Separate headers distinguish target goals from existing lineage.
-- The optional Parent goal panel sets acceptable blue stats and a pink aptitude, defaulting to Any
+- Enable Evaluate goal to set acceptable blue stats and a pink aptitude, defaulting to Any
   at 2★ or better. The evaluator combines those with every required white spark and shows estimated attempts for 50%, 75%, and
   95% chance of success. With no required whites, success depends only on blue and pink. Changing
   a target's Required/Preferred role does not change deck selection; adding or removing a target
@@ -17,8 +17,11 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   Copy starting aptitude grades from the game after selecting both parents. Open Pink sparks
   below the stat gains in Legacy to enter all six ancestors and include mid-run B-to-A increases.
   Raising a grade above the trainee's base fills an estimated minimum-star set in that editor.
-  Grades cannot go below base. Dimmed choices are selectable and reassign other sparks, with
-  affected aptitudes adjusted to fit. You can refine the sparks manually. Unassigned slots remain unknown. Closing the editor keeps its inputs active. Missing ancestry and unsupported jumps are shown as incomplete estimates.
+  Known lineage determines starting grades. Grades outside starting inheritance remain available as
+  planning overrides, including below-base grades from older saves. Dimmed choices can reassign
+  other sparks when slots are full. Manual edits update starting grades immediately. Unknown
+  ancestry shows a warning; below-B increases give probability bounds. Buttons in Parent goal open
+  the pink editor directly. Clear pink sparks restores base grades and clears pink lineage.
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
   If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint. Predictions assume you buy

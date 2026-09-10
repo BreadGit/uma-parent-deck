@@ -1,5 +1,5 @@
 import type { Focus } from './types.ts';
-import { OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS } from './model/rules.ts';
+import { OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
 
 export interface Settings {
   // main page
@@ -30,6 +30,9 @@ export interface Settings {
   goldSparkRate: number;         // white spark chance at run end when the gold skill is owned
   circleSparkRate: number;       // ... when the ◎ form is owned
   whiteSparkRate: number;        // ... when the white skill is owned
+  pinkInspirationRates: number[]; // per-event activation rates for 1/2/3-star pink sparks at zero affinity
+  whiteStarsBelowB: number[];    // approximate 1/2/3-star distribution below rank B
+  whiteStarsUE: number[];        // approximate 1/2/3-star distribution at UE and above
   whiteSparkInheritRates: number[]; // chance per inspiration event that a 1/2/3★ white spark in the lineage gives its hint, at 0 affinity
   lineageSparkMultiplier: number;   // spark generation chance multiplier per lineage occurrence of the same spark
   blueInspirationGainMean: number[]; // assumed mean stat roll when a 1/2/3★ blue spark procs at an inspiration event
@@ -68,6 +71,9 @@ export const DEFAULT_SETTINGS: Settings = {
   goldSparkRate: 0.4,
   circleSparkRate: 0.25,
   whiteSparkRate: 0.2,
+  pinkInspirationRates: [0.01, 0.03, 0.05],
+  whiteStarsBelowB: [0.9, 0.1, 0],
+  whiteStarsUE: [0.175, 0.7, 0.125],
   whiteSparkInheritRates: [0.03, 0.06, 0.09],
   lineageSparkMultiplier: 1.1,
   blueInspirationGainMean: [5.5, 8.5, 14.5],
@@ -86,12 +92,13 @@ export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'showUnowned', 'defa
 export type SettingSpec =
   | { kind: 'number'; min: number; max: number }
   | { kind: 'number-or-null'; min: number; max: number }
-  | { kind: 'list'; length: number; min: number; max: number }
+  | { kind: 'list'; length: number; min: number; max: number; sum?: number }
   | { kind: 'enum'; values: readonly (string | number)[] }   // the saved value must be one of these, same type included
   | { kind: 'boolean' }
   | { kind: 'lb-defaults' };
 const rate: SettingSpec = { kind: 'number', min: 0, max: 1 };
 const odds: SettingSpec = { kind: 'list', length: 3, min: 0, max: 1 };
+const starDistribution: SettingSpec = { ...odds, sum: 1 };
 /** Overall affinity thresholds the game shows: ◎ above 150, ○ above 50, △ otherwise; the overall value is the sum of the six individual scores. */
 /** The race count the stat model was measured at; a total-turn override below it would scale card stats by zero or a negative number. */
 export const RACES_REFERENCE = 28;
@@ -122,6 +129,9 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   goldSparkRate: rate,
   circleSparkRate: rate,
   whiteSparkRate: rate,
+  pinkInspirationRates: odds,
+  whiteStarsBelowB: starDistribution,
+  whiteStarsUE: starDistribution,
   whiteSparkInheritRates: odds,
   lineageSparkMultiplier: { kind: 'number', min: 0, max: 10 },
   blueInspirationGainMean: { kind: 'list', length: 3, min: 0, max: 30 },
@@ -141,7 +151,8 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
   switch (spec.kind) {
     case 'number': return inRange(value, spec.min, spec.max);
     case 'number-or-null': return value === null || inRange(value, spec.min, spec.max);
-    case 'list': return Array.isArray(value) && value.length === spec.length && value.every((v) => inRange(v, spec.min, spec.max));
+    case 'list': return Array.isArray(value) && value.length === spec.length && value.every((v) => inRange(v, spec.min, spec.max))
+      && (spec.sum === undefined || Math.abs(value.reduce((sum, p) => sum + p, 0) - spec.sum) < 1e-9);
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
     case 'boolean': return typeof value === 'boolean';
     case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => inRange((value as Record<string, unknown>)[r], 0, 4));
@@ -199,6 +210,9 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   goldSparkRate: 'Chance a skill you own as gold becomes a white spark at run end. Default 0.4 from the mechanics document.',
   circleSparkRate: 'Chance a skill you own in its ◎ form becomes a white spark at run end. Default 0.25 (Crazyfellow\'s guide: 25% against 20% for the ○ form).',
   whiteSparkRate: 'Chance a skill you own as white becomes a white spark at run end. Default 0.2 from the mechanics document.',
+  pinkInspirationRates: 'Activation chance per inspiration event for 1/2/3-star pink sparks at zero individual affinity. Defaults 1/3/5% follow Crazyfellow and the inspected uma.moe model in docs/refs/aptitude-inheritance.md. Hidden aptitude-point rolls below B remain unmeasured.',
+  whiteStarsBelowB: 'Approximate 1/2/3-star white spark distribution below rank B. Defaults 90/10/0% come from Crazyfellow, as recorded in docs/refs/hakuraku-spark-generation.md. Values must sum to one.',
+  whiteStarsUE: 'Approximate 1/2/3-star white spark distribution at rank UE and above. Defaults 17.5/70/12.5% come from Crazyfellow, as recorded in docs/refs/hakuraku-spark-generation.md. Values must sum to one.',
   whiteSparkInheritRates: 'Chance, per inspiration event, that a 1/2/3★ white spark already in the lineage gives you its hint, at 0 affinity; scaled by (1 + individual affinity/100) of the uma carrying it. Defaults 3/6/9% from Polaris\'s zero-affinity data via Crazyfellow\'s guide.',
   lineageSparkMultiplier: 'Each time the same white spark already appears in the lineage, the chance of generating it again is multiplied by this. Default 1.1 from uma.guide (20% → 22% → 24.2% …), supported by a 26.5-million-trainee dataset.',
   blueInspirationGainMean: 'Assumed average stat gain when a 1★ / 2★ / 3★ blue spark procs at an inspiration event. The game rolls a random value between 1 and 10, 1 and 16, and 1 and 28 respectively, and higher stars are said to roll near the top more often, but the distribution has not been measured. Defaults are the midpoints of those ranges; they are an assumption, not a game rule.',
@@ -220,12 +234,21 @@ const list = (key: keyof Settings, label: string): SettingField => ({ key, label
  * appears here exactly once (state.test.ts checks), except scenarioId, which has one supported value.
  */
 export const ADVANCED_SETTING_GROUPS: SettingGroup[] = [
-  { title: 'Lineage', fields: [n('affinity', 'Affinity per uma', 1), list('whiteSparkInheritRates', 'White spark hint rate, 1/2/3★'), n('lineageSparkMultiplier', 'Spark chance × per lineage copy'), list('blueInspirationGainMean', 'Blue spark mean roll, 1/2/3★')] },
+  { title: 'Lineage', fields: [n('affinity', 'Affinity per uma', 1), list('whiteSparkInheritRates', 'White spark hint rate, 1/2/3★'), list('pinkInspirationRates', 'Pink activation rate, 1/2/3★'), n('lineageSparkMultiplier', 'Spark chance × per lineage copy'), list('blueInspirationGainMean', 'Blue spark mean roll, 1/2/3★')] },
   { title: 'Hints', fields: [n('hintBase', 'Hint chance per card-turn'), n('hintScale', 'Hint model scale'), n('hintTurnsShare', 'Turns a card is on its facility')] },
   { title: 'Card events', fields: [list('chainRatesSSR', 'SSR chain reaches 1/2/3'), list('chainRatesSR', 'SR chain reaches 1/2'), n('randomEventRate', 'Random event fires'), n('palChainRate', 'Pal date chain completes'), n('groupOutingRate', 'Group member outing happens'), n('groupFinaleRate', 'Group finale happens'), n('specialEventRate', 'Unlock and New Year events'), n('goldRollStat', 'Stat at the gold-or-white roll', 10)] },
   { title: 'Trainee events', fields: [n('charStoryEventRate', 'Story and choice events play'), n('charOutingRate', 'Outing event happens'), n('charUndecodedEventRate', 'Undecoded event skill obtained'), n('charConditionFallbackRate', 'Secret-event condition not scorable')] },
   { title: 'Scenario', fields: [n('scenarioPickRate', 'Skill event option taken'), n('scenarioSongsRate', '18 or more songs learned'), n('uniqueAprilBondRate', 'April bond check passes')] },
-  { title: 'Spark chance at run end', fields: [n('goldSparkRate', 'Gold skill owned'), n('circleSparkRate', '◎ form owned'), n('whiteSparkRate', 'White skill owned')] },
+  { title: 'Spark chance at run end', fields: [n('goldSparkRate', 'Gold skill owned'), n('circleSparkRate', '◎ form owned'), n('whiteSparkRate', 'White skill owned'), list('whiteStarsBelowB', 'White stars below B, 1/2/3★'), list('whiteStarsUE', 'White stars at UE+, 1/2/3★')] },
   { title: 'Rank score', fields: [n('skillScorePerSp', 'Points per SP spent'), n('skillScoreSd', 'Skill score spread', 10), n('innateSkillBuyShare', 'Innate skills counted')] },
   { title: 'Stat model', fields: [n('lossPenalty', 'Stat lost per expected race loss', 1), n('totalTurnsOverride', 'Total career turns', 1)] },
 ];
+
+/** Measured middle bands plus the tunable community estimates at either end. */
+export function whiteGenerationBands(settings: Settings) {
+  return [
+    { min: 0, rates: settings.whiteStarsBelowB, approximate: true },
+    ...WHITE_GENERATION_BANDS,
+    { min: 28800, rates: settings.whiteStarsUE, approximate: true },
+  ];
+}

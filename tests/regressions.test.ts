@@ -28,7 +28,7 @@ test('card event sources follow changes to the same settings object, including n
 
 test('new states and resets do not share mutable run or settings defaults', () => {
   const a = defaultState(data), b = defaultState(data);
-  a.run.targets.push(201601);
+  a.run.targets.push({ id: 201601, role: 'preferred', stars: 2 });
   a.run.parentSparks[0]![0] = { stat: 'guts', stars: 3 };
   a.settings.chainRatesSSR[0] = 0;
   assert.deepEqual(b.run.targets, []);
@@ -75,7 +75,7 @@ test('bundled career goals contain no repeated race objective at the same slot',
 });
 
 test('gold purchase includes the white prerequisite and deduplicates target families', () => {
-  const p = planRun({ ...input(), targets: [200352], pinnedIds: [30052, 30016] }, settings(), {}, data);
+  const p = planRun({ ...input(), targets: [200352].map((id) => ({ id, role: 'preferred' as const, stars: 2 })), pinnedIds: [30052, 30016] }, settings(), {}, data);
   const target = resolveTarget(200352, data)!;
   assert.equal(p.spCost.total, 340);
   assert.equal(targetSpCost([target, target], p.deckResult.coverage).total, 340);
@@ -84,7 +84,7 @@ test('gold purchase includes the white prerequisite and deduplicates target fami
 });
 
 test('a normal hint permits buying its circle upgrade without inventing a circle hint', () => {
-  const p = planRun({ ...input(), targets: [200012] }, settings(), {}, data);
+  const p = planRun({ ...input(), targets: [200012].map((id) => ({ id, role: 'preferred' as const, stars: 2 })) }, settings(), {}, data);
   const hints = combineSources(p.deckResult.coverage.get(200012)!);
   assert.equal(hints.pCircle, 0);
   assert.equal(hints.pGold, 0);
@@ -169,7 +169,7 @@ test('event choice scoring accounts for a purchasable circle upgrade', () => {
 });
 
 test('borrow gain uses the final five owned cards as its baseline', () => {
-  const p = planRun({ ...input(), targets: [200352, 201601, 200472] }, settings(), {}, data);
+  const p = planRun({ ...input(), targets: [200352, 201601, 200472].map((id) => ({ id, role: 'preferred' as const, stars: 2 })) }, settings(), {}, data);
   const owned = traineeCoverage(p.targets, p.ctx);
   for (const entry of p.deckResult.deck.filter((c) => !c.borrowed)) {
     owned.chars.add(entry.card.charId);

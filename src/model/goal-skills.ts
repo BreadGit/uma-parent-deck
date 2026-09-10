@@ -1,6 +1,6 @@
 import type { Data, Reward } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { goldRollChance, isEventSource, type EventSource, type SkillSource, type Target } from './sparks.ts';
+import { outcomeSkillShares, hasWhiteSpark, isEventSource, type EventSource, type SkillSource, type Target } from './sparks.ts';
 
 // Each digit records a family's best available form: none, white, circle, gold.
 interface Distribution { states: Map<string, number>; approximate: boolean }
@@ -56,24 +56,22 @@ function fires(d: Distribution, p: number, count: number): Distribution {
 }
 function skillState(id: number, targets: Target[], data: Data): string {
   return targets.map((t) => {
-    if (!t.familyIds.has(id)) return '0';
+    if (!hasWhiteSpark(t) || !t.familyIds.has(id)) return '0';
     const skill = data.skillById.get(id);
     return skill?.rarity === 2 ? '3' : (t.circle && !t.circle.unreleasedEn) || skill?.name.includes('◎') ? '2' : '1';
   }).join('');
 }
 function rewardsDistribution(rewards: Reward[], targets: Target[], data: Data, settings: Settings): Distribution {
   let dist = empty(targets.length);
+  const seen = new Set<string>();
   for (const reward of rewards) {
-    if (reward.t === 'sk' && typeof reward.d === 'number') {
-      dist = combine(dist, fixed(skillState(reward.d, targets, data)));
-    } else if (reward.t === 'sr' && Array.isArray(reward.d) && reward.d.length) {
-      const ids = reward.d.map((r) => r.d);
-      const gold = ids.find((id) => data.skillById.get(id)?.rarity === 2);
-      const pair = ids.length === 2 && gold !== undefined && data.skillById.get(gold)!.versions.includes(ids.find((id) => id !== gold)!);
-      const states = new Map<string, number>();
-      for (const id of ids) add(states, skillState(id, targets, data), pair ? (id === gold ? goldRollChance(settings.goldRollStat) : 1 - goldRollChance(settings.goldRollStat)) : 1 / ids.length);
-      dist = combine(dist, { states, approximate: false });
-    }
+    const shares = [...outcomeSkillShares([reward], data, settings)].sort(([a], [b]) => a - b);
+    const key = JSON.stringify(shares);
+    if (!shares.length || seen.has(key)) continue;
+    seen.add(key);
+    const states = new Map<string, number>();
+    for (const [id, { share }] of shares) add(states, skillState(id, targets, data), share);
+    dist = combine(dist, { states, approximate: false });
   }
   return dist;
 }

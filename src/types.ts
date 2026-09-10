@@ -75,6 +75,9 @@ export interface Skill {
 
 export type AptKey = 'turf' | 'dirt' | 'sprint' | 'mile' | 'medium' | 'long' | 'front' | 'pace' | 'late' | 'end';
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
+export const APTITUDE_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
+/** Ascending aptitude strength. Starting inheritance stops at A. */
+export const APT_GRADES: Grade[] = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
 
 export interface Character {
   cardId: number;

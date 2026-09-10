@@ -1,6 +1,7 @@
 import { STATS, type Card, type Character, type Data, type Inventory, type Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import type { ParentGoal, PinkSpark } from './goal-input.ts';
+import { goalWithTargets, type ParentGoal, type PinkSpark, type WhiteTarget } from './goal-input.ts';
+import { startingAptitudes } from './pink-inherit.ts';
 import { evaluateParentGoal, type GoalEstimate } from './goal.ts';
 import { buildDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
@@ -15,7 +16,7 @@ import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARI
 export interface RunInput {
   goal: ParentGoal;
   pinkLineage: (PinkSpark | null)[];
-  targets: number[];                       // target family ids (the white form's skill id)
+  targets: WhiteTarget[];                  // one entry per family, with its goal role and minimum stars
   targetLineage: Record<string, Lineage>;  // target id -> copies of the spark already in the lineage
   wishlistOrder: number[];                 // prioritized-skill keys the user arranged, in order
   wishlistExcluded: number[];              // prioritized-skill keys the user removed
@@ -170,11 +171,11 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const traineeCard = input.traineeCardId != null ? data.charByCardId.get(input.traineeCardId) ?? null : null;
   const stars = clampStars(traineeCard, input.traineeStars);
   const trainee = traineeCard ? traineeAt(traineeCard, stars) : null;
-  const apt = traineeAptitudes(trainee, input.aptOverrides);
+  const apt = trainee ? startingAptitudes(trainee.aptitudes, input.aptOverrides, input.pinkLineage) : traineeAptitudes(trainee, input.aptOverrides);
   const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(input.raceOverrides)), racePopularityMap(data), goalRaces(traineeCard));
   const sum = scheduleSummary(schedule);
   const turns = totalTurns(data.model, settings);
-  const targets = input.targets.map((id) => resolveTarget(id, data)).filter((t): t is Target => !!t);
+  const targets = input.targets.map(({ id }) => resolveTarget(id, data)).filter((t): t is Target => !!t);
   const lineage = new Map<number, Lineage>();
   for (const t of targets) { const l = input.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
   const fansBySlot = Array.from({ length: SLOT_COUNT + 1 }, (_, s) => expectedFansBefore(schedule, s));
@@ -204,9 +205,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   }
   const prediction = predictRunDeck(deckResult.deck, input, ctx, apt, sum.expectedLosses);
   const { pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank } = prediction;
-  const goalLineage = new Map(ctx.lineage);
-  for (const [key, value] of Object.entries(input.targetLineage)) goalLineage.set(Number(key), value);
-  const goalEstimate = input.goal.enabled ? evaluateParentGoal(input.goal, input.pinkLineage, apt, deckResult.deck, { ...ctx, lineage: goalLineage }, {
+  const goalEstimate = input.goal.enabled ? evaluateParentGoal(goalWithTargets(input.goal, input.targets), input.pinkLineage, apt, deckResult, ctx, {
     rawMean: rawFinalMean, sd: pred.sd, caps: statCaps?.cap, skillPoints: rank.skillPts, skillSd: settings.skillScoreSd,
   }, issues) : null;
   const spCost = targetSpCost(targets, deckResult.coverage);

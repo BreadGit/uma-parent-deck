@@ -4,6 +4,7 @@ import { test, after } from 'node:test';
 import { chromium } from 'playwright';
 import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
+import { assertFieldsMatchState } from './browser-fields.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
 
 const data = loadData();
@@ -174,12 +175,12 @@ test('saved spark ownership survives gain edits and reload; malformed aptitudes 
   saved.run.aptOverrides = { turf: 'Z', dirt: 'B', luck: 'A' };
   const page = await fresh(t, saved);
   assert.equal(await page.inputValue('[data-apt="turf"]'), data.charByCardId.get(100101).aptitudes.turf);
-  assert.equal(await page.inputValue('[data-apt="dirt"]'), 'C');
+  assert.equal(await page.inputValue('[data-apt="dirt"]'), 'B');
   await page.selectOption('[data-gain="0-0"]', '17');
   await page.reload();
   await page.waitForSelector('[data-gain]');
   assert.deepEqual((await state(page)).run.parentSparks, [[{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 2 }, { stat: 'power', stars: 2 }], [null, null, null]]);
-  assert.deepEqual((await state(page)).run.aptOverrides, { dirt: 'C' });
+  assert.deepEqual((await state(page)).run.aptOverrides, { dirt: 'B' });
   await page.click('[data-action="toggle-sparks"]');
   assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['speed', '1', 'speed', '2', 'power', '2']);
 });
@@ -268,7 +269,7 @@ test('white target chips migrate old goals and support zero or many required spa
     await page.click(`[data-action="select-target"][data-id="${id}"]`);
     await page.click(`[data-target-role="preferred"][data-id="${id}"]`);
   }
-  assert.deepEqual((await state(page)).run.goal.required, []);
+  assert.deepEqual((await state(page)).run.targets.filter((t) => t.role === 'required'), []);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
   assert.match(await page.locator('[data-goal-result]').innerText(), /No required white sparks/);
@@ -302,12 +303,12 @@ test('chip selection toggles its editor and removal updates goals without activa
   assert.equal(await page.locator('[data-target-editor]').count(), 1);
   await page.click('[data-action="remove-target"][data-id="201562"]');
   assert.equal(await page.locator('[data-target-editor]').getAttribute('data-target-editor'), '201601');
-  assert.deepEqual((await state(page)).run.goal.preferred, []);
+  assert.deepEqual((await state(page)).run.targets.filter((t) => t.role === 'preferred'), []);
   await page.click('[data-action="remove-target"][data-id="201601"]');
   assert.equal(await page.locator('[data-target-editor]').count(), 0);
   const after = await state(page);
   assert.deepEqual(after.run.targets, []);
-  assert.deepEqual(after.run.goal.required, []);
+  assert.deepEqual(after.run.targets.filter((t) => t.role === 'required'), []);
   assert.deepEqual(after.run.targetLineage, {});
   await page.reload();
   await page.waitForSelector('#target-search');
@@ -378,7 +379,7 @@ test('advanced pink inputs stay collapsed and retain inspiration data across tog
   const toggle = page.locator('[data-action="toggle-pink-sparks"]');
   assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
   assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0);
-  assert.equal(await page.locator('[data-goal-warnings]').innerText(), 'Open Pink sparks in Legacy and enter all six lineage sparks to get a more accurate pink spark probability.');
+  assert.match(await page.locator('[data-goal-warnings]').innerText(), /Open Pink sparks in Legacy/);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /0%/);
   assert.equal(await page.locator('[data-goal-attempts]').count(), 3);
@@ -394,7 +395,7 @@ test('advanced pink inputs stay collapsed and retain inspiration data across tog
   await page.selectOption('[data-pink-lineage-stars="0"]', '3');
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
-  assert.equal(await page.inputValue('[data-apt="end"]'), 'B', 'inspiration does not edit starting grades');
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'A', 'known lineage determines the starting grade');
   const probability = await page.locator('[data-goal-probability]').innerText();
   const ancestry = (await state(page)).run.pinkLineage;
   await page.click('[data-action="toggle-sparks"]');
@@ -460,11 +461,11 @@ test('aptitude increases infer editable pink sparks, preserve manual entries, an
   assert.deepEqual((await state(page)).run.pinkLineage, Array(6).fill(null));
 });
 
-test('dimmed aptitude choices rebalance pink sparks and stay between base and starting limits', async (t) => {
+test('dimmed aptitude choices rebalance pink sparks and planning overrides preserve them', async (t) => {
   const page = await fresh(t);
   await trainee(page);
-  assert.deepEqual(await page.locator('[data-apt="turf"] option').evaluateAll((options) => options.map((o) => o.value)), ['A']);
-  assert.deepEqual(await page.locator('[data-apt="dirt"] option').evaluateAll((options) => options.map((o) => o.value)), ['C', 'D', 'E', 'F', 'G']);
+  assert.deepEqual(await page.locator('[data-apt="turf"] option').evaluateAll((options) => options.map((o) => o.value)), ['A', 'B', 'C', 'D', 'E', 'F', 'G']);
+  assert.deepEqual(await page.locator('[data-apt="dirt"] option').evaluateAll((options) => options.map((o) => o.value)), ['A', 'B', 'C', 'D', 'E', 'F', 'G']);
   await page.selectOption('[data-apt="dirt"]', 'C');
   await page.selectOption('[data-apt="sprint"]', 'D');
   const option = page.locator('[data-apt="end"] option[value="B"]');
@@ -475,13 +476,15 @@ test('dimmed aptitude choices rebalance pink sparks and stay between base and st
   assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
   const saved = (await state(page)).run;
   assert.equal(saved.pinkLineage.filter(Boolean).length, 6);
-  assert.equal(await page.locator('[data-pink-inference-issues]').count(), 0);
+  assert.equal(await page.locator('[data-apt="end"] option:checked').getAttribute('class'), '');
   await page.locator('[data-apt="end"]').evaluate((select) => {
     select.value = 'G';
     select.dispatchEvent(new Event('change', { bubbles: true }));
   });
+  saved.aptOverrides.end = 'G';
   assert.deepEqual((await state(page)).run, saved);
-  assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'G');
+  await assertFieldsMatchState(page, 'after a below-base planning override');
   await page.reload();
   await page.waitForSelector('[data-apt="end"]');
   assert.deepEqual((await state(page)).run, saved);
@@ -495,4 +498,91 @@ test('dimmed aptitude choices rebalance pink sparks and stay between base and st
     const before = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
     return before(stats, button) && before(button, form) && before(form, aptitudes);
   }), true, 'pink controls sit between the stat gains and aptitude table');
+});
+
+test('manual Mile sparks survive unrelated grades, trainee changes, and reload', async (t) => {
+  const page = await fresh(t);
+  await trainee(page);
+  await page.check('[data-goal-enabled]');
+  await page.selectOption('[data-goal-pink]', 'turf');
+  await page.click('[data-action="goal-refine-pink"]');
+  assert.equal(await page.locator('[data-pink-lineage="0"]').evaluate((el) => el === document.activeElement), true);
+  await assertFieldsMatchState(page, 'after opening lineage from the goal warning');
+  await page.selectOption('[data-pink-lineage="4"]', 'mile');
+  assert.equal(await page.inputValue('[data-apt="mile"]'), 'B');
+  await assertFieldsMatchState(page, 'after adding manual Mile');
+  const spark = (await state(page)).run.pinkLineage[4];
+  await page.selectOption('[data-apt="dirt"]', 'F');
+  assert.deepEqual((await state(page)).run.pinkLineage[4], spark);
+  assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  await assertFieldsMatchState(page, 'after the unrelated Dirt edit');
+  await page.click('[data-action="clear-trainee"]');
+  await trainee(page, 'haru urara');
+  await assertFieldsMatchState(page, 'after switching trainee with manual ancestry');
+  await page.selectOption('[data-apt="dirt"]', 'A');
+  assert.deepEqual((await state(page)).run.pinkLineage[4], spark);
+  await assertFieldsMatchState(page, 'after another unrelated grade edit');
+  await page.reload();
+  assert.equal(await page.inputValue('[data-apt="mile"]'), 'A');
+  await assertFieldsMatchState(page, 'after reloading manual ancestry');
+});
+
+test('six manual End sparks stay intact on an unrelated grade selection', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.aptOverrides.end = 'B';
+  saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
+  const page = await fresh(t, saved);
+  assert.equal(await page.inputValue('[data-apt="end"]'), 'A');
+  assert.equal(await page.locator('[data-apt="turf"] option:checked').getAttribute('class'), '');
+  await page.selectOption('[data-apt="turf"]', 'A');
+  assert.deepEqual((await state(page)).run.pinkLineage, saved.run.pinkLineage);
+  await assertFieldsMatchState(page, 'after selecting Turf with six manual End sparks');
+  await page.reload();
+  assert.deepEqual((await state(page)).run.pinkLineage, saved.run.pinkLineage);
+  await assertFieldsMatchState(page, 'after reloading six manual End sparks');
+});
+
+test('saved white siblings and gold-only targets stay visible and keep lineage', async (t) => {
+  const gold = data.skills.find((s) => s.name === 'Runaway');
+  const saved = { version: 6, run: { targets: [200433, 200432, gold.id], targetLineage: { 200433: { k1: 1, k2: 0, p1: 2, p2: 0 }, [gold.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } } } };
+  const page = await fresh(t, saved);
+  for (const id of saved.run.targets) assert.equal(await page.locator(`[data-action="select-target"][data-id="${id}"]`).count(), 1);
+  await page.click(`[data-action="select-target"][data-id="${gold.id}"]`);
+  assert.match(await page.locator('[data-target-unsupported]').innerText(), /no released white spark/);
+  assert.equal(await page.inputValue(`[data-lineage-p="${gold.id}"][data-side="p1"]`), '3');
+  await page.click('[data-target-role="required"]');
+  await assertFieldsMatchState(page, 'after editing a preserved gold-only target');
+  assert.deepEqual((await state(page)).run.targetLineage, saved.run.targetLineage);
+  await page.reload();
+  assert.deepEqual((await state(page)).run.targets.map((t) => t.id), saved.run.targets);
+  await page.fill('#target-search', 'Runaway');
+  await page.click(`[data-action="add-target"][data-id="${gold.id}"]`);
+  assert.equal((await state(page)).run.targets.length, 3, 'search resolves the retained target without duplicating it');
+  await assertFieldsMatchState(page, 'after finding the preserved gold-only target');
+});
+
+test('pink probability ranges remain visible and disabled and dimmed fields have a visual cue in both themes', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.goal = { ...saved.run.goal, enabled: true, pink: 'turf' };
+  saved.run.pinkLineage = [{ aptitude: 'dirt', stars: 1 }, ...Array(5).fill(null)];
+  const page = await fresh(t, saved);
+  assert.match(await page.locator('[data-goal-probability]').innerText(), /% to .*%/);
+  assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  assert.match(await page.locator('[data-goal-attempts="0.5"]').innerText(), / to .* attempts/);
+  await page.click('[data-action="reset-pink-sparks"]');
+  await page.selectOption('[data-apt="dirt"]', 'C');
+  await page.selectOption('[data-apt="sprint"]', 'D');
+  await target(page, 'Groundwork');
+  for (const theme of ['light', 'dark']) {
+    await page.click(`[data-theme-pick="${theme}"]`);
+    const colors = await page.locator('[data-apt="end"]').evaluate((s) => ({ normal: getComputedStyle(s.querySelector('option[value="C"]')).color, dim: getComputedStyle(s.querySelector('option[value="B"]')).color }));
+    assert.notEqual(colors.normal, colors.dim, theme);
+    const disabled = page.locator('[data-lineage-p="201601"][data-side="p1"]');
+    assert.equal(await disabled.isDisabled(), true);
+    assert.ok(await disabled.evaluate((el) => Number(getComputedStyle(el).opacity) < 1), theme);
+    await assertFieldsMatchState(page, `after checking field cues in ${theme}`);
+  }
 });

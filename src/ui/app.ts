@@ -4,7 +4,6 @@ import meta from '../../data/meta.json' with { type: 'json' };
 import { resetRun, saveState, type Theme } from '../state.ts';
 import { data, onRender, plan, store, update } from './context.ts';
 import { installTooltips } from './tooltip.ts';
-import { renderTargets } from './panels/targets.ts';
 import { renderGoalEditor, renderGoalResult } from './panels/goal.ts';
 import { renderTrainee } from './panels/trainee.ts';
 import { renderLegacy } from './panels/legacy.ts';
@@ -39,7 +38,7 @@ function page() {
       </span>
     </header>
     <main>
-      <div>${renderTrainee(c)}${renderTargets(c)}${renderGoalEditor()}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
+      <div>${renderTrainee(c)}${renderGoalEditor(c)}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
       <div>${renderDeck(c)}${renderGoalResult(c)}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div id="tooltip" role="tooltip"></div>

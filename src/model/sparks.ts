@@ -14,6 +14,7 @@ export interface Target {
   gold: Skill | null;    // gold upgrade
   familyIds: Set<number>;
 }
+export const hasWhiteSpark = (target: Target): boolean => !!target.white && !target.white.unreleasedEn;
 
 const isGold = (s: Skill) => s.rarity === 2;
 const isCircle = (s: Skill) => s.rarity === 1 && s.name.includes('◎');
@@ -27,9 +28,10 @@ export function resolveTarget(id: number, data: Data): Target | null {
   const gold = members.find(isGold) ?? null;
   const circle = members.find(isCircle) ?? null;
   const white = members.find((m) => m.rarity === 1 && !isCircle(m) && !isCross(m)) ?? (s.rarity === 1 ? s : null);
-  const familyIds = new Set(members.filter((m) => !isCross(m)).map((m) => m.id));
   const base = white ?? circle ?? gold ?? s;
-  return { id: base.id, name: base.name.replace(/ ○$/, ''), white, circle, gold, familyIds };
+  const familyIds = new Set(members.filter((m) => !isCross(m) && (m.rarity !== 1 || m.id === white?.id || m.id === circle?.id)).map((m) => m.id));
+  const name = base.unreleasedEn && gold && !gold.unreleasedEn ? gold.name : base.name;
+  return { id: base.id, name: name.replace(/ ○$/, ''), white, circle, gold, familyIds };
 }
 
 /** Which form of a skill a source hands over. */
@@ -79,7 +81,7 @@ export function goldRollChance(stat: number): number {
  * writes conditional branches into one list) counts once. A "random skill" reward that is a gold skill and its own
  * white form is the stat-gated gold roll; any other random list splits evenly.
  */
-function outcomeSkillShares(outcome: Reward[], data: Data, settings: Settings): Map<number, { share: number; rolled: boolean }> {
+export function outcomeSkillShares(outcome: Reward[], data: Data, settings: Settings): Map<number, { share: number; rolled: boolean }> {
   const out = new Map<number, { share: number; rolled: boolean }>();
   const put = (id: number, share: number, rolled: boolean) => { const cur = out.get(id); if (!cur || cur.share < share) out.set(id, { share, rolled: rolled || !!cur?.rolled }); };
   for (const r of outcome) {
@@ -271,7 +273,7 @@ export const lineageSparks = (l: Lineage): number[] => lineageSparksBySide(l).fl
 
 /** Inherited white sparks roll at each of the two inspiration events, at the assumed affinity, and hand over the white hint. */
 export function lineageSources(target: Target, lineage: Lineage | undefined, settings: Settings): SkillSource[] {
-  if (!lineage || lineageCount(lineage) <= 0) return [];
+  if (!hasWhiteSpark(target) || !lineage || lineageCount(lineage) <= 0) return [];
   let miss = 1;
   const parts: string[] = [];
   for (const stars of lineageSparks(lineage)) {
