@@ -3,6 +3,8 @@ import { live } from 'lit-html/directives/live.js';
 import { STATS, APTITUDE_KEYS } from '../../types.ts';
 import { APTITUDE_LABELS, sanitizeGoal, type ParentGoal } from '../../model/goal-input.ts';
 import { attemptsFor } from '../../model/goal.ts';
+import { BLUE_GENERATION_BANDS } from '../../model/rules.ts';
+import { hasWhiteSpark } from '../../model/sparks.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { store, update } from '../context.ts';
 import { capitalize } from '../format.ts';
@@ -28,15 +30,41 @@ export function renderGoalEditor(c: RunPlan) {
   `);
 }
 
+function goalLimits(c: RunPlan): string[] {
+  const r = c.goalEstimate, g = store.run.goal;
+  if (r.probability === null) return [];
+  const pinkName = g.pink === 'any' ? 'Any pink aptitude' : `${APTITUDE_LABELS[g.pink]} pink`;
+  const limits: string[] = [];
+  if (r.blue === 0) limits.push(`Required blue spark has no estimated chance with this deck at ${g.blueStars}★ or better. Check the accepted stats and their predicted values below the suggested deck.`);
+  if (r.pink.upperProbability === 0) limits.push(`${pinkName} cannot reach final A/S under the entered grades and pink sparks. Empty lineage slots count as zero; check Legacy if sparks are missing.`);
+  for (const w of r.required) {
+    if (!hasWhiteSpark(w.target)) limits.push(`${w.target.name} is impossible as a white spark because it has no released white form.`);
+    else if (w.available === 0) limits.push(`${w.target.name} has no estimated acquisition chance with this deck and its current event choices. Check its skill sources and the prioritized skill list.`);
+    else if (w.probability === 0) limits.push(`${w.target.name} can be acquired, but has no estimated chance at the required stars with this deck. Check spark-generation settings and predicted rank.`);
+  }
+  if (limits.length) return limits;
+  if (r.upperProbability === 0) return ['The model found no outcome with every required spark together, even though each has an individual chance. Shared event choices can prevent joint success; large sampled groups can also miss rare outcomes.'];
+  if (r.pink.probability !== r.pink.upperProbability) return ['Pink eligibility is uncertain, so the complete goal is shown as a range. A zero lower estimate does not mean the goal is impossible. Review the pink aptitude explanation below.'];
+  const candidates = [
+    { name: `Blue at ${g.blueStars}★ or better`, p: r.blue, detail: g.blueStars === 3 ? ` A 3★ blue spark needs at least ${BLUE_GENERATION_BANDS[1].min} in the selected stat, with better odds at ${BLUE_GENERATION_BANDS[2].min}.` : ' Both the chosen stat and its stars must match your goal.' },
+    { name: `${pinkName} at ${g.pinkStars}★ or better`, p: r.pink.probability, detail: g.pink === 'any' ? ' Any accepts every eligible aptitude; the star requirement still applies.' : ' The aptitude must finish at A/S, then be selected from the eligible aptitudes and roll enough stars.' },
+    ...r.required.map((w) => ({ name: w.target.name, p: w.probability, detail: ` Its skill has a ${probability(w.available)} acquisition chance; it must then generate a spark with enough stars.` })),
+  ];
+  const lowest = candidates.reduce((a, b) => a.p <= b.p ? a : b);
+  return lowest.p < 1 ? [`Lowest individual chance is ${lowest.name} at ${probability(lowest.p)}.${lowest.detail} Shared events and rank also affect complete success, so this alone does not identify the best deck change.`] : [];
+}
+
 export function renderGoalResult(c: RunPlan) {
   const result = c.goalEstimate;
+  const limits = goalLimits(c);
   const p = result.probability, upper = result.upperProbability;
   const range = (low: number, high: number) => low === high ? probability(low) : `${probability(low)} to ${probability(high)}`;
   return panel({ title: 'Parent goal estimate' }, html`<div data-goal-result>
-    ${p === null ? html`<p class="muted" data-goal-probability>Complete the goal inputs for a combined estimate.</p>` : html`<div class="goal-total" data-goal-probability>${range(p, upper ?? p)}<span class="small muted">Chance per career that the parent gets every required spark</span></div>`}
+    ${p === null ? html`<p class="muted" data-goal-probability>Complete the goal inputs for a combined estimate.</p>` : html`<div class="goal-total" data-goal-probability>${range(p, upper ?? p)}<span class="small muted">Chance per final spark roll that the parent gets every required spark</span></div>`}
     ${result.issues.length ? html`<ul class="small" data-goal-issues>${result.issues.map((issue) => html`<li>${issue}</li>`)}</ul>` : nothing}
     ${result.pink.warnings.length ? html`<ul class="small warn" data-goal-warnings>${result.pink.warnings.map((warning) => html`<li>${warning}</li>`)}<li><button class="small" data-action="goal-refine-pink" @click=${openPinkSparks}>Edit pink sparks in Legacy</button></li></ul>` : nothing}
     ${upper === 0 ? html`<p class="warn" data-goal-zero>The modeled outcomes give a zero estimate. Check blue spark thresholds, skill availability, and pink eligibility below.</p>` : nothing}
+    ${limits.length ? html`<ul class="small" data-goal-limits>${limits.map((limit) => html`<li>${limit}</li>`)}</ul>` : nothing}
     <div class="scroll-x"><table class="goal-breakdown"><thead><tr><th>Required spark</th><th class="num">Available</th><th class="num">Spark chance</th></tr></thead><tbody>
       <tr><td>Blue (${store.run.goal.blueStats.length === 5 ? 'any stat' : store.run.goal.blueStats.map(capitalize).join(', ') || 'none selected'})</td><td class="num">Always</td><td class="num">${probability(result.blue)}</td></tr>
       <tr><td>Pink (${store.run.goal.pink === 'any' ? 'Any' : APTITUDE_LABELS[store.run.goal.pink]})</td><td class="num">Needs final A/S</td><td class="num">${range(result.pink.probability, result.pink.upperProbability)}</td></tr>

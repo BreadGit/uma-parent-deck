@@ -1,7 +1,8 @@
 # Parent goal evaluator, phase 1
 
-Implemented 2026-09-08. This delivery evaluates the current suggested deck. Goal-driven deck search
-is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent-decks-plan.md).
+Implemented 2026-09-08; phase 1 polish updated 2026-09-10. This delivery evaluates the current
+suggested deck. Goal-driven deck search is phase 2 and is not implemented. The agreed scope is in
+[the plan](goal-parent-decks-plan.md).
 
 ## Review flow
 
@@ -22,6 +23,12 @@ is phase 2 and is not implemented. The agreed scope is in [the plan](goal-parent
    Blue sparks, white lineage, and goals stay unchanged. The editor starts closed. Closing it keeps the saved inputs active.
 5. Read Parent goal estimate. It shows the complete probability, individual spark chances, all
    required skills' availability, SS chance, and 50% / 75% / 95% attempt counts.
+   The headline says "Chance per final spark roll". An explanation names unavailable requirements
+   or the lowest individual chance, with relevant eligibility, acquisition, or blue-threshold context.
+   Individual chances do not establish which deck change would improve complete success the most.
+   Missing inputs withhold this explanation; uncertain pink eligibility remains a range.
+   A missing source in this deck does not establish impossibility across all legal decks, and a
+   sampled zero does not prove impossibility. Goal-driven fallback selection remains phase 2.
 
 Required/Preferred roles and minimum stars do not change selected cards or the prioritized list.
 Adding or removing a target chip changes the existing builder's target list. Changing shared run
@@ -68,8 +75,8 @@ With zero required white families, the white contribution is one and success dep
   required family. `src/model/goal.ts` combines this with stat, rank, pink, and star estimates.
 - `src/ui/panels/targets.ts` renders the target chips and shared goal/lineage editor. Its selected
   chip is transient view state. `goal.ts` renders blue/pink controls and results. Legacy owns starting
-  grades and pink lineage. Its Pink sparks toggle is transient view state, independent of By stars
-  and the goal toggle. All saved edits use the existing persisted store.
+  grades and pink lineage. Its Pink sparks toggle is transient view state, independent of By stars.
+  Goal evaluation is always active. All saved edits use the existing persisted store.
 
 Measured generation bands live in `rules.ts`. Their provenance is the
 [Hakuraku note](refs/hakuraku-spark-generation.md). The approximate below-B and UE white-star

@@ -621,6 +621,41 @@ test('saved white siblings and gold-only targets stay visible and keep lineage',
   await assertFieldsMatchState(page, 'after finding the preserved gold-only target');
 });
 
+test('goal explanations distinguish a difficult requirement, missing pink eligibility, and an impossible white spark', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.goal = { ...saved.run.goal, blueStars: 1, pinkStars: 3 };
+  const page = await fresh(t, saved);
+  const limits = page.locator('[data-goal-limits]');
+  assert.match(await page.locator('[data-goal-probability]').innerText(), /Chance per final spark roll/);
+  // Any 1-star blue is certain. Any 3-star pink is 10%, so pink is the limiting individual roll.
+  assert.match(await limits.innerText(), /Lowest individual chance is Any pink aptitude at 3★ or better at 10\.0%/);
+  await page.selectOption('[data-goal-pink]', 'end');
+  assert.match(await limits.innerText(), /End Closer pink cannot reach final A\/S under the entered grades and pink sparks/);
+  assert.doesNotMatch(await limits.innerText(), /Lowest individual chance/);
+  await assertFieldsMatchState(page, 'after explaining missing pink eligibility');
+  const runaway = data.skills.find((s) => s.name === 'Runaway');
+  await page.fill('#target-search', 'Runaway');
+  await page.click(`[data-action="add-target"][data-id="${runaway.id}"]`);
+  await page.click('[data-target-role="required"]');
+  assert.match(await limits.innerText(), /Runaway is impossible as a white spark because it has no released white form/);
+  assert.match(await limits.innerText(), /End Closer pink cannot reach/);
+  await assertFieldsMatchState(page, 'after explaining two blocked requirements');
+  await page.selectOption('[data-goal-pink]', 'any');
+  assert.doesNotMatch(await limits.innerText(), /cannot reach final A\/S/);
+  await page.click('[data-target-role="preferred"]');
+  assert.doesNotMatch(await limits.innerText(), /impossible/);
+  await assertFieldsMatchState(page, 'after removing a blocked requirement from the goal');
+  await page.selectOption('[data-goal-stars="pink"]', '1');
+  await page.selectOption('[data-goal-stars="blue"]', '3');
+  assert.match(await limits.innerText(), /Lowest individual chance is Blue at 3★/);
+  assert.match(await limits.innerText(), /needs at least 600.*better odds at 1100/);
+  await assertFieldsMatchState(page, 'after explaining the blue threshold');
+  for (const stat of ['speed', 'stamina', 'power', 'guts', 'wit']) await page.uncheck(`[data-goal-blue="${stat}"]`);
+  assert.equal(await limits.count(), 0, 'incomplete input is not diagnosed as an impossible goal');
+  await assertFieldsMatchState(page, 'after clearing acceptable blue stats');
+});
+
 test('pink probability ranges remain visible and disabled and dimmed fields have a visual cue in both themes', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
@@ -629,6 +664,7 @@ test('pink probability ranges remain visible and disabled and dimmed fields have
   const page = await fresh(t, saved);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /% to .*%/);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  assert.match(await page.locator('[data-goal-limits]').innerText(), /Pink eligibility is uncertain/);
   assert.match(await page.locator('[data-goal-attempts="0.5"]').innerText(), / to .* attempts/);
   await page.click('[data-action="reset-pink-sparks"]');
   await page.selectOption('[data-apt="dirt"]', 'C');

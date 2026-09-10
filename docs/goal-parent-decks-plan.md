@@ -1,7 +1,8 @@
 # Goal-parent deck plan
 
-Updated 2026-09-08. Phase 1 is implemented on `feature/goal-parent-decks` for review.
-Phase 2 remains deferred. The reviewed UI uses compact target chips with a shared editor.
+Updated 2026-09-10. Phase 1 is implemented on `feature/goal-parent-decks`, including explanation
+and wording polish. Phase 2 is planned below and awaits review before implementation.
+The reviewed UI uses compact target chips with a shared editor.
 The required white list now supports zero or more families, superseding the initial two-slot design.
 The sections below record the current scope and acceptance criteria.
 See [phase 1 evaluator notes](goal-parent-evaluator.md) for the implemented calculation and limits.
@@ -39,16 +40,22 @@ already suggests so the probability breakdown is reviewable before it controls s
   the trainee after both parents are selected. Reuse the existing aptitude overrides.
 - A collapsed Pink sparks editor below the stat gains and above the aptitude inputs in Legacy. It records pink aptitude and stars
   for the two parents and four grandparents when modeling inspiration
-  eligibility changes. Reuse the existing individual-affinity assumption. Leave unknown ancestry
-  explicit and do not silently assign six favorable sparks. Raising a starting grade infers a
-  minimum-star set, with Estimated labels and editable entries. Offer grades from the trainee's
-  base through the starting inheritance limit. Dim choices that need other sparks reassigned;
+  eligibility changes. Reuse the existing individual-affinity assumption. Empty slots count as
+  zero sparks. Partial lineage gives an estimate without a missing-entry warning; the assumptions
+  explain this default. Raising a supported starting grade infers a minimum-star set, with
+  Estimated labels and editable entries. Offer A through G. Grades outside the trainee's
+  starting-inheritance range, including below-base grades, are explicit planning overrides that
+  survive reloads and leave pink lineage unchanged. S is unavailable.
+  Dim choices that need other sparks reassigned;
   selecting one reclaims the weakest other sparks, including manual entries if needed, and
-  recalculates affected starting grades. No aptitude may drop below its base.
+  recalculates affected starting grades. Reallocation does not push derived grades below base;
+  explicit planning overrides remain intact. Preserve unrelated manual sparks unless their slots
+  are needed. Clear pink sparks restores base grades without clearing blue sparks or white goals.
 
 Use the existing state migration path. Normalize skill-family identity and prevent a family from
 being both required and preferred. Existing saved targets should migrate as preferred targets
 with no required white families selected until the user chooses them.
+Evaluate automatically, including saves with the retired goal toggle off.
 
 ### Probability evaluator
 
@@ -81,6 +88,10 @@ out-of-scope outcome must not silently be treated as a normal supported outcome.
 Show the required-goal probability and a breakdown explaining the main limiting target or
 threshold. Identify impossible combinations only when the modeled sources and eligibility inputs
 establish impossibility. Distinguish missing inputs and unsupported aptitude jumps from zero chance.
+Name unavailable required whites, explain pink eligibility under the entered lineage, and identify
+the lowest individual spark chance for a supported positive estimate. This is an explanation of
+the current deck, not proof that another deck cannot meet the requirement or advice based on
+independent marginal probabilities. Sampled zeros do not prove impossibility.
 
 Use a simple "attempts" display. With estimated per-attempt success `p`, show the attempt counts
 for 50%, 75%, and 95% chance of at least one success:
@@ -88,7 +99,8 @@ for 50%, 75%, and 95% chance of at least one success:
 `ceil(log(1 - confidence) / log(1 - p))`
 
 Use stable `log1p` arithmetic and handle `p = 0` and `p = 1` explicitly. One attempt means a final
-spark roll. By user choice, approximate attempts as independent with the same probability. Do not
+spark roll, including a reroll. Label the result "Chance per final spark roll". By user choice,
+approximate attempts as independent with the same probability. Do not
 add attempts-per-career settings, grouped reroll mathematics, or a selective-reroll policy. A short
 explanation of the approximation is enough. Report sensible rounded estimates, not long decimals.
 
@@ -110,26 +122,102 @@ explanation of the approximation is enough. Report sensible rounded estimates, n
 
 ## Delivery 2: use the evaluator to select decks
 
+This section records the next implementation scope. The comparison setting, fallback search,
+and loading state are not part of the phase 1 polish.
+
+### Required goals and preferred extras
+
 Rank complete legal decks by the same required-goal probability shown in delivery 1. Search from
 several starting decks, retain promising alternatives, and improve them with swaps. Do not prune
 every card without a direct target hint; stats and rank can make it valuable to the complete goal.
 
-Use expected preferred sparks on successful parents as the secondary objective when required-goal
-probabilities are tied within a documented numerical tolerance. If every candidate has zero
-required-goal probability, report that before applying a documented fallback ranking.
+Use expected preferred sparks on successful parents as the secondary objective. For each preferred
+family, calculate the probability of both it and the required goal succeeding, then divide by the
+required-goal probability. Sum those conditional probabilities. Reuse shared events and rank when
+calculating the intersections; the current unconditional preferred estimates cannot substitute.
+Show what this comparison means in ordinary language, such as average preferred sparks on parents
+meeting all requirements.
+
+Default to a tight relative tie window of 0.1%. Let `pBest` be the highest required-goal probability
+found. Only positive-probability candidates with `p >= pBest * (1 - tolerance)` can win on preferred
+extras. Anchor the window to `pBest`, not successive pairwise ties, so repeated comparisons cannot
+drift farther from the best required chance. If preferred scores tie, prefer the higher required
+chance, then use a stable deck order. A positive required chance always beats zero.
+
+Add `goalTieTolerance` to Advanced settings with label "Required-goal tie tolerance (relative)".
+The default is `0.001`; accept finite fractions from zero through one through the existing setting
+specification and migration path. Zero permits only exact ties. The help text must say that larger
+values allow preferred extras to outweigh more required-goal chance. At the default, a best chance
+of 10% admits candidates at 9.99% or above. A best chance of 0.01% admits 0.00999% or above.
+This is a user preference, not a claim that the estimates are accurate to that precision. Add this
+control with phase 2, when it affects selection.
+
+### Uncertain and impossible requirements
+
+Keep the original goal and its displayed probability intact. A zero in one candidate does not
+justify dropping a requirement that another legal deck can satisfy. First search for complete
+success and check source, eligibility, and legality constraints across the allowed pool.
+
+When a required spark is impossible across legal decks under the fixed inputs, identify it and its
+reason. Optimize the joint chance of all remaining required sparks, then preferred extras on
+parents meeting those remaining requirements, with the same tight tie window. Do not let an
+impossible pink goal or unavailable white family erase the value of improving the other goals.
+Display the original complete goal as zero and label any remaining-goal probability separately.
+Never remove the saved requirement or change its role without a user edit.
+
+If the remaining requirements are individually possible but cannot all succeed together, seek the
+largest jointly achievable subset of required sparks. Compare subset size first, its joint chance
+second, and preferred extras within the tie window third. Keep the compared subset size common
+across decks, so a deck cannot win simply by omitting a difficult requirement. Explain incompatible
+requirements together rather than calling each one individually impossible. If no required spark
+is achievable, report that and use expected preferred sparks, then existing stat strength and
+stable deck order. This final fallback must be labeled as having no achievable required sparks.
+
+Do not turn a zero sample estimate into a claim of impossibility. When the bounded search or source
+sampling finds no complete success without proof, say "No complete success found under these
+estimates" and label the remaining-goal recommendation as a fallback. Distinguish proved
+constraints from the best subset found by a bounded search.
+
+Pink uncertainty currently multiplies every candidate's blue/white result by the same interval
+because trainee, grades, and lineage stay fixed. If its upper bound is positive, compare the
+blue/white part with that common factor removed, including when the pink lower bound is zero.
+Continue displaying the full probability range; do not substitute a midpoint or treat zero lower
+bounds as impossible. With the current independence assumptions, the common pink factor also
+cancels in preferred-on-success comparisons. If future modeling makes that factor depend on the
+deck, revisit this comparison rule before extending the search.
+
+### Skill choices and recommendation text
 
 Adapt borrow alternatives and explanatory text to the new objective. Keep standalone card
 statistics informative but avoid suggesting that card scores add up to a complete-deck success rate.
 Apply required-target priority consistently to event choices and the exported prioritized-skill
 list; a preferred skill must not displace a required target from a contested choice by accident.
+Preserve user ordering within Required and within the other skills, while Required takes precedence
+between those groups. Make that precedence visible and keep saved custom ordering intact. An
+explicitly excluded required skill should produce a clear conflict notice; do not silently undo
+the exclusion or pretend that its contested source is available. Resolve choices for each complete
+candidate so search, evaluation, displayed advice, and export describe the same deck behavior.
+
+### Verification and responsiveness
 
 Verify the search on small pools where exhaustive enumeration is possible. Add cases where a
 stronger stat card wins through blue or SS odds, and where balanced required-target coverage beats
 a larger sum of marginal sparks. Check recommendation sensitivity to the existing uncertain hint
 and rank settings. Use the same samples across candidate decks if sampling is needed.
+Test both tie-window boundaries, zero tolerance, rare goals, order independence, and repeated
+comparisons near the window edge. Test a preferred spark that mostly occurs on unsuccessful parents.
+Test an impossible white or pink requirement with several remaining requirements, a requirement
+unavailable only in the initial deck, incompatible choices, and uncertain pink ranges starting at
+zero. Verify that saved goals survive every fallback and that the new setting persists and matches
+its field after edits and reloads.
 
 Describe the result as the best deck found under the estimates. A bounded heuristic search does
 not guarantee a global optimum. Measure evaluation time before deciding whether to use a worker.
+Measure full-search latency on representative inventories and target counts, including a phone.
+If search takes long enough to interrupt interaction, show a visible "Finding a deck…" loading
+state while work runs off the main thread or in yielding chunks. Allow input edits; cancel or
+ignore obsolete searches and never present old results as belonging to the new goal. Test that
+loading is visible, inputs stay responsive, and only the latest search can publish a result.
 
 ## Deferred work
 
