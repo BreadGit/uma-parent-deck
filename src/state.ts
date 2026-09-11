@@ -1,5 +1,6 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
+import { parseRecommendation, type SavedRecommendation } from './recommendation.ts';
 import { STATS, APTITUDE_KEYS, APT_GRADES, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
@@ -11,9 +12,9 @@ import { clampStars } from './model/trainee.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme }
-export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState }
+export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; recommendation?: SavedRecommendation }
 
-export const STATE_VERSION = 15;
+export const STATE_VERSION = 16;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -137,7 +138,9 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
   const base = defaultState(data);
   if (isObj(saved.current) && typeof saved.current.version === 'number' && saved.current.version >= 4) {
     const c = saved.current;
+    const recommendation = c.version === STATE_VERSION ? parseRecommendation(c.recommendation) : undefined;
     return {
+      ...(recommendation ? { recommendation } : {}),
       version: STATE_VERSION,
       run: isObj(c.run) ? migrateRun(c.run, data) : base.run,
       settings: isObj(c.settings) ? sanitizeSettings(c.settings as Partial<Record<keyof Settings, unknown>>) : base.settings,
@@ -168,5 +171,13 @@ export function saveState(state: AppState) {
 }
 /** Forget the run choices only; settings and inventory stay. */
 export function resetRun(state: AppState, data: Data): AppState {
-  return { ...state, run: { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) } };
+  const reset = { ...state, run: { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) } };
+  delete reset.recommendation;
+  return reset;
+}
+
+/** Optional cached results must not prevent the current recommendation from appearing if storage is full. */
+export function saveRecommendation(state: AppState, recommendation: SavedRecommendation) {
+  state.recommendation = recommendation;
+  try { saveState(state); } catch { delete state.recommendation; }
 }

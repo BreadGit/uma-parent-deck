@@ -69,10 +69,34 @@ function statSamples(count: number): number[][] {
   return samples.get(count)!;
 }
 
-interface StatMass { value: number; probability: number }
+interface StatMass { readonly value: number; readonly probability: number }
 interface StatDistribution { outcomes: { value: number; cumulative: number }[]; mass: number }
 /** Rounded normal outcomes, with the tails folded into zero and the cap. */
-function statMasses(mean: number, sd: number, cap = Infinity): StatMass[] {
+const massCache = new Map<string, readonly StatMass[]>();
+let cachedOutcomes = 0;
+const MAX_CACHED_DISTRIBUTIONS = 512;
+const MAX_CACHED_OUTCOMES = 250_000;
+
+function statMasses(mean: number, sd: number, cap = Infinity): readonly StatMass[] {
+  const key = `${mean}:${sd}:${cap}`;
+  const hit = massCache.get(key);
+  if (hit) {
+    massCache.delete(key);
+    massCache.set(key, hit);
+    return hit;
+  }
+  const value = computeStatMasses(mean, sd, cap);
+  massCache.set(key, value);
+  cachedOutcomes += value.length;
+  while (massCache.size > MAX_CACHED_DISTRIBUTIONS || cachedOutcomes > MAX_CACHED_OUTCOMES) {
+    const oldest = massCache.keys().next().value!;
+    cachedOutcomes -= massCache.get(oldest)!.length;
+    massCache.delete(oldest);
+  }
+  return value;
+}
+
+function computeStatMasses(mean: number, sd: number, cap: number): readonly StatMass[] {
   // Higher values have the same rating and blue band, so they can share one outcome.
   const maximum = Math.max(0, Math.min(Math.round(cap), MAX_STAT_VALUE));
   if (sd === 0 || maximum === 0) return [{ value: Math.max(0, Math.min(maximum, Math.round(mean))), probability: 1 }];
@@ -84,7 +108,7 @@ function statMasses(mean: number, sd: number, cap = Infinity): StatMass[] {
     return { value, probability };
   }).filter((outcome) => outcome.probability > 0);
 }
-function statDistribution(outcomes: StatMass[]): StatDistribution {
+function statDistribution(outcomes: readonly StatMass[]): StatDistribution {
   let mass = 0;
   return { outcomes: outcomes.map(({ value, probability }) => ({ value, cumulative: mass += probability })), mass };
 }

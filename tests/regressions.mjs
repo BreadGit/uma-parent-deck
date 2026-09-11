@@ -33,6 +33,14 @@ async function fresh(t, saved, settle = true) {
   return page;
 }
 const state = (page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
+async function discardRecommendation(page) {
+  await page.evaluate((key) => {
+    const saved = JSON.parse(localStorage.getItem(key));
+    delete saved.recommendation;
+    localStorage.setItem(key, JSON.stringify(saved));
+  }, STATE_KEY);
+}
+
 async function pick(page, selector, query, action) {
   await page.fill(selector, query);
   await page.locator(`[data-action="${action}"]`).first().click();
@@ -108,6 +116,7 @@ test('a failed refinement preserves the checked deck and can be retried', async 
       }
     };
   });
+  await discardRecommendation(page);
   await page.reload();
   assert.match(await page.locator('[role="alert"]').innerText(), /displayed deck's estimates match your current inputs/);
   assert.equal(await page.locator('.deck .slot').count(), 6);
@@ -162,6 +171,7 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
       deliver(selection, complete = true) { this.onmessage({ data: { id: this.request.id, selection, complete } }); }
     };
   });
+  await discardRecommendation(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
   await page.waitForFunction(() => window.searchWorkers.length === 1);
@@ -579,7 +589,11 @@ test('pink reset clears manual and inferred sparks and starting increases while 
   const expected = structuredClone(before);
   expected.run.pinkLineage = Array(6).fill(null);
   expected.run.aptOverrides = {};
-  assert.deepEqual(await state(page), expected);
+  const reset = await state(page);
+  assert.ok(reset.recommendation);
+  assert.deepEqual(JSON.parse(reset.recommendation.key), [reset.run, reset.settings, reset.inventory]);
+  expected.recommendation = reset.recommendation;
+  assert.deepEqual(reset, expected);
   assert.equal(await page.inputValue('[data-apt="end"]'), data.charByCardId.get(100101).aptitudes.end);
   assert.equal(await page.locator('[data-pink-sparks-form]').count(), 1);
   assert.deepEqual(await page.locator('[data-pink-lineage]').evaluateAll((els) => els.map((el) => el.value)), Array(6).fill(''));
@@ -627,7 +641,7 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   const partialPinkProbability = await pinkProbability(), partialRun = (await state(page)).run;
   await page.reload();
   await page.waitForSelector('[data-goal-result]');
-  // Reload starts a fresh deck search; the pink marginal and saved inputs must stay unchanged.
+  // Reload restores the completed deck; the pink marginal and saved inputs must stay unchanged.
   assert.equal(await pinkProbability(), partialPinkProbability);
   assert.deepEqual((await state(page)).run, partialRun);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
@@ -869,4 +883,92 @@ test('pink probability ranges remain visible and disabled and dimmed fields have
     assert.ok(await disabled.evaluate((el) => Number(getComputedStyle(el).opacity) < 1), theme);
     await assertFieldsMatchState(page, `after checking field cues in ${theme}`);
   }
+});
+
+
+test('completed recommendations survive reload without a worker, while changed inputs and versions search again', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  const page = await fresh(t, saved);
+  const finished = await state(page);
+  assert.ok(finished.recommendation?.summary.evaluated > 0);
+  const deck = () => page.locator('.deck .card-link').evaluateAll((els) => els.map((e) => e.getAttribute('href')));
+  const original = await deck();
+  const originalChance = await page.locator('[data-goal-probability]').innerText();
+  await page.addInitScript(() => {
+    window.searchWorkers = [];
+    window.Worker = class {
+      constructor() { window.searchWorkers.push(this); }
+      postMessage(request) { this.request = request; }
+      terminate() { this.terminated = true; }
+    };
+  });
+  await page.reload();
+  assert.equal(await page.locator('[data-plan-pending]').count(), 0);
+  assert.deepEqual(await deck(), original);
+  assert.equal(await page.locator('[data-goal-probability]').innerText(), originalChance);
+  await page.waitForTimeout(500);
+  assert.equal(await page.evaluate(() => window.searchWorkers.length), 0);
+  await assertFieldsMatchState(page, 'after restoring a completed recommendation');
+
+  // A view-only edit must neither search nor walk the unchanged ranking's bindings.
+  await page.evaluate(() => {
+    window.rankingReads = 0;
+    window.rankingField = document.querySelector('section.panel:last-child [data-lb]');
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+    Object.defineProperty(window.rankingField, 'value', { configurable: true,
+      get() { window.rankingReads++; return descriptor.get.call(this); },
+      set(value) { descriptor.set.call(this, value); },
+    });
+    window.rankingMutations = 0;
+    window.rankingObserver = new MutationObserver((records) => window.rankingMutations += records.length);
+    window.rankingObserver.observe(document.querySelector('section.panel:last-child'), { subtree: true, attributes: true, childList: true, characterData: true });
+  });
+  for (let i = 0; i < 4; i++) await page.locator('[data-action="select-target"]').first().click();
+  await page.fill('#target-search', 'ground');
+  assert.equal(await page.evaluate(() => window.rankingMutations), 0);
+  assert.equal(await page.evaluate(() => window.rankingReads), 0, 'view edits do not read unchanged ranking fields');
+  assert.equal(await page.evaluate(() => window.searchWorkers.length), 0);
+  await page.evaluate(() => { window.rankingObserver.disconnect(); delete window.rankingField.value; });
+  await page.locator('[data-sort="speed"]').click();
+  assert.equal((await state(page)).ui.sortKey, 'speed');
+  await assertFieldsMatchState(page, 'after sorting a restored recommendation');
+  await page.locator('section.panel:last-child [data-lb]').first().evaluate((el) => { el.value = el.value === '0' ? '4' : '0'; });
+  await page.locator('[data-sort="speed"]').click();
+  await assertFieldsMatchState(page, 'after a repeated sort restores a stale field');
+  // Restore the complete baseline before testing each reload invalidation independently.
+  for (const [label, change] of [
+    ['build', (s) => { s.recommendation.build = 'old-build'; }],
+    ['input', (s) => { s.run.goal.blueStars = 3; }],
+    ['inventory', (s) => { s.inventory[s.recommendation.selection.find((e) => !e.borrowed).id] = null; }],
+    ['malformed summary', (s) => { s.recommendation.summary = {}; }],
+    ['illegal selection', (s) => { s.recommendation.selection[1] = s.recommendation.selection[0]; }],
+  ]) {
+    const current = structuredClone(finished); change(current);
+    await page.evaluate(({ key, current }) => localStorage.setItem(key, JSON.stringify(current)), { key: STATE_KEY, current });
+    await page.goto(url);
+    await page.waitForSelector('#target-search');
+    await page.waitForFunction(() => window.searchWorkers.length === 1);
+    assert.equal(await page.locator('[data-plan-pending]').count(), 1, label);
+  }
+  await page.evaluate(({ key, finished }) => localStorage.setItem(key, JSON.stringify(finished)), { key: STATE_KEY, finished });
+  await page.reload();
+  await page.locator('[data-goal-stars="blue"]').selectOption('3');
+  assert.equal((await state(page)).recommendation, undefined, 'an input edit removes the saved recommendation');
+  await page.waitForFunction(() => window.searchWorkers.length === 1);
+  await page.locator('[data-goal-stars="blue"]').selectOption('2');
+  await page.waitForFunction(() => window.searchWorkers.length === 2);
+  await page.evaluate((result) => {
+    const worker = window.searchWorkers[0];
+    worker.onmessage({ data: { id: worker.request.id, complete: true, selection: result.selection, summary: result.summary } });
+  }, finished.recommendation);
+  assert.equal((await state(page)).recommendation, undefined, 'an obsolete result cannot repopulate the cache after A to B to A');
+  assert.equal(await page.locator('[data-plan-pending]').count(), 1);
+  await page.evaluate((result) => {
+    const worker = window.searchWorkers[1];
+    worker.onmessage({ data: { id: worker.request.id, complete: true, selection: result.selection, summary: result.summary } });
+  }, finished.recommendation);
+  await assertFieldsMatchState(page, 'after publishing the current result');
+  assert.deepEqual((await state(page)).recommendation, finished.recommendation);
 });

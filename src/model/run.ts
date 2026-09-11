@@ -131,6 +131,18 @@ export function applyUserOrder(cands: WishlistEntry[], order: number[], excluded
   return cands.filter((w) => !excluded.includes(w.key)).slice().sort((a, b) => index(a) - index(b) || (b.weight - a.weight));
 }
 
+/** Validate restored results with the same ownership, borrow and pin rules used by search. */
+export function isLegalRunSelection(selection: DeckSelection, input: RunInput, settings: Settings, inventory: Inventory, data: Data): boolean {
+  if (!input.traineeCardId || !input.goal.blueStats.length) return false;
+  const trainee = data.charByCardId.get(input.traineeCardId);
+  if (!trainee || selection.some((e) => !data.cardById.has(e.id))) return false;
+  const { pool, unowned } = cardPool(data, inventory, settings);
+  const constraints = goalDeckConstraints({ owned: pool.filter((e) => !unowned.has(e.card.id)),
+    borrows: data.cards.map((card) => ({ card, lb: BORROWED_LB })),
+    pinnedIds: input.pinnedIds.filter((id) => data.cardById.has(id)), borrowFromAll: input.borrowFromAll, traineeId: trainee.charId });
+  return !!constraints?.legal(selection.map((e) => ({ ...e, card: data.cardById.get(e.id)! })));
+}
+
 /**
  * The priority list an event's single choice is resolved by: skill ids in prioritized-skill order, with every
  * form of a family ranked together at the family's first appearance, so a gold/normal flip keeps the same rank.

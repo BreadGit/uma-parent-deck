@@ -56,7 +56,7 @@ test('the star count is clamped to the trainee: a count below her rarity cannot 
   assert.equal(clampStars(null, 1), 1);
   const urara = data.characters.find((c) => c.name === 'Haru Urara')!;
   assert.equal(clampStars(urara, 1), 1, 'a 1★ uma can be 1★');
-  const at = (traineeStars: number) => planRun({ ...empty, traineeCardId: sw.cardId, traineeStars }, settings, {}, data);
+  const at = (traineeStars: number) => planRun({ ...empty, traineeCardId: sw.cardId, traineeStars }, settings, {}, data, { search: false });
   const p1 = at(1), p3 = at(3), p5 = at(5);
   assert.equal(p1.rank.uniqueLevel, p3.rank.uniqueLevel);
   assert.equal(p1.rank.score, p3.rank.score, 'a stale 1★ scores like 3★');

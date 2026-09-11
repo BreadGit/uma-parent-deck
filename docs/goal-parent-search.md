@@ -50,7 +50,9 @@ up to 24 seeds across six borrow choices and the owned-card orderings. It uses a
 stream, so the same inputs and seeds produce the same result. Pins stay constrained, including
 exchanges between competing pins when not all can fit. A previous recommendation is an additional
 candidate, rescored with current limit breaks and inputs. It cannot bypass ownership or pin rules.
-It is remembered only within the current page session, so a reload can explore different decks.
+Completed recommendations are saved with their inputs and a source/data fingerprint. An unchanged
+reload restores the same selected deck without another search. An input edit or changed build
+invalidates that saved result; subsequent search still rescores and validates its in-session seed.
 
 Normal searches perform at most 208 full evaluations plus 1,536 cheaper screenings. Screening
 changes only the rank integration sample count. Blue-tail probabilities remain analytic, and
@@ -102,7 +104,14 @@ stays visible in the result. A genuinely zero upper bound makes pink unavailable
 
 ## Responsiveness and measurements
 
-`src/ui/plan-worker.ts` runs search in a worker after a 400 ms pause in input edits. The deck and
+`src/ui/plan-worker.ts` runs search in a worker after a 400 ms pause in input edits when there is no
+matching saved recommendation. The restored deck is checked against the current ownership, limit
+breaks, pins, borrowed slots and trainee exclusion before reuse. Only completed searches are saved.
+Malformed cache entries and caches from older state schemas are discarded without changing run inputs.
+The source/data fingerprint updates automatically in builds and during development.
+See [performance implementation](performance-implementation.md) for cache boundaries and measurements.
+
+The UI publishes only the completed recommendation. The deck and
 prioritized-skill editor remain mounted throughout the search. A spinner beside Suggested deck is
 the only normal search indicator. It rotates more slowly when reduced motion is enabled, and a
 visually hidden status announces the search to screen readers. There is no search control panel.

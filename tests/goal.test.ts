@@ -4,7 +4,7 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, whiteGenerationBands } from '../src/settings.ts';
 import { DEFAULT_RUN, migrate, defaultState, STATE_VERSION } from '../src/state.ts';
 import { DEFAULT_GOAL as BASE_GOAL, emptyPinkLineage, sanitizePinkLineage, goalFamily, goalWithTargets, type ResolvedGoal } from '../src/model/goal-input.ts';
-import { attemptsFor, blueChance, pinkEstimate, starChance, statGoalMoments as integrateStats, evaluateParentGoal as evaluateGoal, type GoalStats } from '../src/model/goal.ts';
+import { goalRankBands, attemptsFor, blueChance, pinkEstimate, starChance, statGoalMoments as integrateStats, evaluateParentGoal as evaluateGoal, type GoalStats } from '../src/model/goal.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
 import { resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES } from '../src/model/rules.ts';
@@ -272,7 +272,7 @@ test('goal evaluation runs by default and ignores the retired toggle in saved go
     assert.ok(!('enabled' in saved.run.goal));
     assert.equal(saved.run.goal.pink, goal?.pink ?? 'any');
     assert.equal(saved.run.goal.pinkStars, goal?.pinkStars ?? 2);
-    const result = planRun(saved.run, saved.settings, saved.inventory, data).goalEstimate;
+    const result = planRun(saved.run, saved.settings, saved.inventory, data, { search: false }).goalEstimate;
     assert.ok(result);
     assert.ok(result.probability !== null && result.probability > 0);
     assert.deepEqual(migrate({ current: saved }, data), saved);
@@ -406,4 +406,24 @@ test('v7 required slots become a variable list and old goal-only skills join the
   assert.deepEqual(goal.preferred, []);
   assert.deepEqual(migrateGoal({ required: [] }, data).required, []);
   assert.deepEqual(migrateGoal({ required: [{ id: 200432, stars: 2 }, { id: 200433, stars: 2 }] }, data).required, [{ id: 200432, stars: 2 }, { id: 200433, stars: 2 }], 'distinct white skills sharing a gold upgrade remain separate targets');
+});
+
+
+test('warm stat distributions respect changed means, spread, caps and blue requirements', () => {
+  const stats = { rawMean: [600, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], caps: [1200, 0, 0, 0, 0], skillPoints: 0, skillSd: 0 };
+  const goal = { ...structuredClone(DEFAULT_GOAL), blueStats: ['speed' as const], blueStars: 3 };
+  const estimate = () => goalRankBands(stats, goal, 17500).blue;
+  close(estimate(), .01);
+  stats.rawMean[0] = 599;
+  close(estimate(), 0);
+  stats.rawMean[0] = 600; stats.sd[0] = 32;
+  close(estimate(), .01 * (phi(.5 / 32) + phi(-499.5 / 32)));
+  stats.caps[0] = 599;
+  close(estimate(), 0);
+  stats.caps[0] = 1200; stats.sd[0] = 0;
+  close(estimate(), .01);
+  goal.blueStars = 2;
+  close(estimate(), .1);
+  goal.blueStats = [];
+  close(estimate(), 0);
 });
