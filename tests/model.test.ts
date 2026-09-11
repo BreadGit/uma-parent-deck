@@ -173,6 +173,10 @@ test('ownership odds combine sources the way the game runs them: duplicates in o
   const pruned = pruneConflicts(new Map([[1, twoOptions]]), [1]).map.get(1)!;
   assert.equal(pruned.length, 1);
   assert.ok(Math.abs(combineSources(pruned).pAny - 0.5) < 1e-9);
+  // left unpruned, a second option on the same chain stage adds to the stage rather than replacing it
+  const unequal = twoOptions.map((s, i) => ({ ...s, pObtain: i ? 0.2 : 0.5, chain: { key: 'x:chain', stage: 1, pReach: 1 } }));
+  assert.ok(Math.abs(combineSources(unequal).pAny - (1 - 0.5 * 0.8)) < 1e-9, 'both options count');
+  assert.ok(Math.abs(combineSources([...unequal].reverse()).pAny - (1 - 0.5 * 0.8)) < 1e-9, 'in either order');
   // and the option kept is the one worth the most to the target as a whole, not the one with the single best source:
   // Sasami Anshinzawa's Date 3 offers Nothing Ventured (gold) in both options and Risky Business (white) in the second only
   const sasami = data.cardById.get(30080)!;

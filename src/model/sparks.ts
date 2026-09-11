@@ -472,11 +472,14 @@ export function purchasedOwnership(target: Target, hints: Ownership): Ownership 
   return { ...hints, pCircle: hints.pCircle + hints.pWhite, pWhite: 0 };
 }
 interface Mass { any: number; goldOrCircle: number; gold: number }
+const ZERO_MASS: Mass = { any: 0, goldOrCircle: 0, gold: 0 };
 const massOf = (s: SkillSource, p: number): Mass => ({ any: p, goldOrCircle: s.gold || s.circle ? p : 0, gold: s.gold ? p : 0 });
 
 /**
  * Combine a target's sources into ownership odds using resolved event outcomes. Chain stages are nested
  * (stage k implies every earlier stage), so a skill offered by several stages counts once per run.
+ * Callers prune each event to its taken option first (`pruneConflicts`); options left unpruned combine as
+ * independent groups, on a chain stage as much as on any other event.
  */
 export function combineSources(sources: SkillSource[]): Ownership {
   const groups = new Map<string, Mass>();
@@ -487,7 +490,8 @@ export function combineSources(sources: SkillSource[]): Ownership {
     const q = { any: rollChance(roll, () => true), goldOrCircle: rollChance(roll, (s) => s.gold || s.circle), gold: rollChance(roll, (s) => s.gold) };
     if (chain) {
       const stages = chains.get(chain.key) ?? new Map<number, { pReach: number; q: Mass }>();
-      stages.set(chain.stage, { pReach: chain.pReach, q });
+      const cur = stages.get(chain.stage)?.q ?? ZERO_MASS;
+      stages.set(chain.stage, { pReach: chain.pReach, q: { any: 1 - (1 - cur.any) * (1 - q.any), goldOrCircle: 1 - (1 - cur.goldOrCircle) * (1 - q.goldOrCircle), gold: 1 - (1 - cur.gold) * (1 - q.gold) } });
       chains.set(chain.key, stages);
     } else groups.set(`${event.key}#${event.optionIndex}`, { any: roll.pFire * q.any, goldOrCircle: roll.pFire * q.goldOrCircle, gold: roll.pFire * q.gold });
   }
