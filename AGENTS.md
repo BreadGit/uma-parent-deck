@@ -6,8 +6,15 @@ browser checks. For changes to calculations, state, data loading, or shared appl
 `npx tsc --noEmit`, `npm test`, and `npm run smoke`. Verify the requested behavior as well as test results.
 
 The smoke test drives headless Chromium through the main flows and checks for horizontal overflow at
-390, 768, 1280, 1440, 1680 and 1920 px in both themes. `npm run test:e2e` adds the browser regression
-cases; use it when changing those flows. Broaden checks when failures or unresolved risks justify it.
+390, 768, 1280, 1440, 1680 and 1920 px in both themes. Reserve the browser regression suite for large
+changes or code review of a branch about to merge. Large changes include work spanning several user
+flows or substantial changes to shared planning, persistence, or worker behavior. Routine isolated
+changes use the checks above and direct verification of the affected behavior; changing a browser
+interaction alone does not require the regression suite.
+
+`npm run test:e2e` runs smoke followed by browser regressions. When those regressions are warranted,
+run it once instead of also running smoke separately. If smoke already passed on the same code and
+server, run `node tests/regressions.mjs` to avoid repeating it.
 
 Browser checks need a running dev or preview server. They default to port 5173; set `URL` for another
 address. Set `SCREENSHOT_PATH=''` to skip the smoke screenshot or set a temporary path to inspect it.
