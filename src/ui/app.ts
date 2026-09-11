@@ -6,6 +6,7 @@ import { resetRun, saveState, type Theme } from '../state.ts';
 import { data, onRender, plan, retrySearch, searchState, stateRevision, store, update, view } from './context.ts';
 import { panel } from './panel.ts';
 import { installTooltips } from './tooltip.ts';
+import { installScrollAnchor } from './scroll-anchor.ts';
 import { renderGoalEditor, renderGoalResult } from './panels/goal.ts';
 import { renderTrainee } from './panels/trainee.ts';
 import { renderLegacy } from './panels/legacy.ts';
@@ -56,7 +57,8 @@ function page() {
 }
 
 export function mount(root: HTMLElement) {
-  const draw = () => render(page(), root);
+  const preserveScroll = installScrollAnchor(root);
+  const draw = () => preserveScroll(() => render(page(), root));
   onRender(draw);
   systemDark.addEventListener('change', applyTheme);
   installTooltips(root);

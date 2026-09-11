@@ -203,8 +203,16 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   await page.evaluate((selection) => window.searchWorkers[0].deliver(selection), alternative);
   assert.deepEqual(await cards(), original, 'a cancelled search cannot publish a late result');
   assert.equal(await page.evaluate(() => window.retainedDeck === document.querySelector('.deck') && window.retainedList === document.querySelector('.wishlist')), true);
+  const retainedControl = page.locator('[data-action="wl-exclude"][data-id="201601"]');
+  await retainedControl.evaluate((el) => { el.focus({ preventScroll: true }); window.scrollTo(0, el.getBoundingClientRect().top + scrollY - 200); });
+  await page.waitForTimeout(220);
+  const anchorBefore = await retainedControl.evaluate((el) => ({ viewport: el.getBoundingClientRect().top, document: el.getBoundingClientRect().top + scrollY }));
   await page.evaluate((selection) => window.searchWorkers[1].deliver(selection), alternative);
   await waitForPlan(page);
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const anchorAfter = await retainedControl.evaluate((el) => ({ viewport: el.getBoundingClientRect().top, document: el.getBoundingClientRect().top + scrollY }));
+  assert.ok(Math.abs(anchorAfter.document - anchorBefore.document) > 20, 'the final deck changes the content height above the skill');
+  assert.ok(Math.abs(anchorAfter.viewport - anchorBefore.viewport) <= 1, 'the skill control stays at the same screen position');
   assert.notDeepEqual(await cards(), original, 'the final result replaces the cards once');
   assert.equal(await page.locator('.deck .slot').count(), 6);
   await assertFieldsMatchState(page, 'after debounced search and skill reordering');

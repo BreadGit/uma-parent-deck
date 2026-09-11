@@ -130,6 +130,16 @@ the repeated collapse and expansion caused by hiding the deck. Search errors kee
 deck and its current estimates, with Retry search below the result. The worker never accesses
 localStorage.
 
+Page renders preserve the viewport position of a visible focused control, with nearby surviving
+rows, controls and headings as fallbacks. This also applies when the final search result changes
+the deck panel's height. The correction measures the remaining displacement after rendering, so
+it cooperates with native browser scroll anchoring. It pauses during manual scrolling and for
+180 ms after the last scroll event, and leaves readers at the page top there. Anchors are temporary
+DOM references; no scroll position is saved to localStorage. Browser checks cover growth, shrinkage,
+removed rows, offscreen focus, manual scrolling, and a final deck replacement on a phone viewport.
+Rows inside the inventory's scroll area keep that area fixed on the page rather than shifting the
+outer page when an internal row moves.
+
 A fresh visit uses the normal empty trainee and target inputs, the default Light Hello pin, and
 the available inventory. The initial builder chooses cards by modeled stat contribution until the
 user supplies targets. The specialized Fuji Kiseki/Groundwork fixture and its Maruzensky/Smart

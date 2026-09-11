@@ -12,9 +12,10 @@ flows or substantial changes to shared planning, persistence, or worker behavior
 changes use the checks above and direct verification of the affected behavior; changing a browser
 interaction alone does not require the regression suite.
 
-`npm run test:e2e` runs smoke followed by browser regressions. When those regressions are warranted,
-run it once instead of also running smoke separately. If smoke already passed on the same code and
-server, run `node tests/regressions.mjs` to avoid repeating it.
+`npm run test:e2e` runs smoke followed by browser regressions and scroll-anchor checks. When those
+regressions are warranted, run it once instead of also running smoke separately. If smoke already
+passed on the same code and server, run `node tests/regressions.mjs && node --test tests/scroll-anchor.mjs`
+to avoid repeating it.
 
 Browser checks need a running dev or preview server. They default to port 5173; set `URL` for another
 address. Set `SCREENSHOT_PATH=''` to skip the smoke screenshot or set a temporary path to inspect it.

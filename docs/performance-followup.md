@@ -95,3 +95,9 @@ The visibility migration also has moderate implementation risk because it moves 
 Migration and browser tests cover preservation, UI precedence, reloads and zero searches on toggles.
 After migration, keeping the preference outside model settings removes an unnecessary search
 dependency and avoids special cache-invalidation rules.
+
+## Deferred scope
+
+First-load rendering changes are deferred. This branch keeps the existing initial panel rendering,
+complete ranking, and synchronous data loading. Deferred ranking rendering, creating advanced
+settings on first expansion, pagination, and data splitting remain proposals, not implemented work.
