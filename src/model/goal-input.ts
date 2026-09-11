@@ -1,4 +1,4 @@
-import { STATS, APTITUDE_KEYS, type AptKey, type Data, type Stat } from '../types.ts';
+import { STATS, APTITUDE_KEYS, isPlainObject, type AptKey, type Data, type Stat } from '../types.ts';
 import { resolveTarget } from './sparks.ts';
 
 export const APTITUDE_LABELS: Record<AptKey, string> = { turf: 'Turf', dirt: 'Dirt', sprint: 'Sprint', mile: 'Mile', medium: 'Medium', long: 'Long', front: 'Front Runner', pace: 'Pace Chaser', late: 'Late Surger', end: 'End Closer' };
@@ -19,7 +19,7 @@ export interface PinkSpark { aptitude: AptKey; stars: number; inferred?: true }
 export const DEFAULT_GOAL: ParentGoal = { blueStats: [...STATS], blueStars: 2, pink: 'any', pinkStars: 2 };
 /** Null slots represent zero entered sparks and contribute no aptitude increases to the estimate. */
 export const emptyPinkLineage = (): (PinkSpark | null)[] => Array.from({ length: 6 }, () => null);
-const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
+const object = (v: unknown): Record<string, unknown> => isPlainObject(v) ? v : {};
 const stars = (v: unknown) => typeof v === 'number' && [1, 2, 3].includes(v) ? v : 2;
 export const goalFamily = (id: unknown, data: Data): number | null => {
   if (typeof id !== 'number') return null;

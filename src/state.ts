@@ -1,7 +1,7 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
 import { parseRecommendation, type SavedRecommendation } from './recommendation.ts';
-import { STATS, APTITUDE_KEYS, APT_GRADES, type Data, type Grade, type Inventory } from './types.ts';
+import { STATS, APTITUDE_KEYS, APT_GRADES, isPlainObject, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, goalFamily, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
@@ -36,7 +36,6 @@ export function defaultState(data: Data): AppState {
 }
 
 type Json = Record<string, unknown>;
-const isObj = (v: unknown): v is Json => !!v && typeof v === 'object' && !Array.isArray(v);
 const numList = (v: unknown): number[] => (Array.isArray(v) ? v.filter((x): x is number => typeof x === 'number') : []);
 /** Stat arrays are positional. A malformed entry becomes zero without moving the entries after it. */
 const statValues = (raw: unknown): number[] => STATS.map((_, i) => {
@@ -54,18 +53,18 @@ function migrateRun(raw: Json, data: Data): RunInput {
   run.traineeStars = clampStars(run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) ?? null : null, run.traineeStars);
   if (typeof raw.borrowFromAll === 'boolean') run.borrowFromAll = raw.borrowFromAll;
   // aptitude overrides: S cannot show on the pre-run screen (only an inspiration event reaches it) and wins like A, so it becomes A
-  if (isObj(raw.aptOverrides)) for (const k of APTITUDE_KEYS) {
+  if (isPlainObject(raw.aptOverrides)) for (const k of APTITUDE_KEYS) {
     const v = raw.aptOverrides[k];
     if (typeof v === 'string' && APT_GRADES.includes(v as Grade)) run.aptOverrides[k] = v === 'S' ? 'A' : v as Grade;
   }
-  if (isObj(raw.raceOverrides)) run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([, v]) => typeof v === 'boolean')) as Record<string, boolean>;
+  if (isPlainObject(raw.raceOverrides)) run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([, v]) => typeof v === 'boolean')) as Record<string, boolean>;
   // pins: a single pinnedId (v1) became pinnedIds (v2)
   if (Array.isArray(raw.pinnedIds)) run.pinnedIds = numList(raw.pinnedIds);
   else if (typeof raw.pinnedId === 'number') run.pinnedIds = [raw.pinnedId];
   // lineage: {n, stars} (v1) became per-side counts and star totals {k1, k2, p1, p2} (v2)
   run.targetLineage = {};
-  if (isObj(raw.targetLineage)) for (const [k, v] of Object.entries(raw.targetLineage)) {
-    if (!isObj(v)) continue;
+  if (isPlainObject(raw.targetLineage)) for (const [k, v] of Object.entries(raw.targetLineage)) {
+    if (!isPlainObject(v)) continue;
     const l = migrateLineage(v);
     if (l) run.targetLineage[k] = l;
   }
@@ -120,7 +119,7 @@ function migrateSettings(raw: Json): Settings {
 /** Keep only well-formed inventory entries: numeric card id -> LB 0..4 or null. */
 export function sanitizeInventory(raw: unknown): Inventory {
   const out: Inventory = {};
-  if (!isObj(raw)) return out;
+  if (!isPlainObject(raw)) return out;
   for (const [k, v] of Object.entries(raw)) {
     if (!/^\d+$/.test(k)) continue;
     if (v === null) out[k] = null;
@@ -135,27 +134,27 @@ export function sanitizeInventory(raw: unknown): Inventory {
  */
 export function migrate(saved: { current?: unknown; state?: unknown; settings?: unknown; inventory?: unknown; theme?: unknown }, data: Data): AppState {
   const base = defaultState(data);
-  if (isObj(saved.current) && typeof saved.current.version === 'number' && saved.current.version >= 4) {
+  if (isPlainObject(saved.current) && typeof saved.current.version === 'number' && saved.current.version >= 4) {
     const c = saved.current;
     const recommendation = c.version === STATE_VERSION ? parseRecommendation(c.recommendation) : undefined;
     return {
       ...(recommendation ? { recommendation } : {}),
       version: STATE_VERSION,
-      run: isObj(c.run) ? migrateRun(c.run, data) : base.run,
-      settings: isObj(c.settings) ? sanitizeSettings(c.settings as Partial<Record<keyof Settings, unknown>>) : base.settings,
+      run: isPlainObject(c.run) ? migrateRun(c.run, data) : base.run,
+      settings: isPlainObject(c.settings) ? sanitizeSettings(c.settings as Partial<Record<keyof Settings, unknown>>) : base.settings,
       inventory: sanitizeInventory(c.inventory),
-      ui: { sortKey: isObj(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isObj(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,
-        showUnowned: isObj(c.ui) && typeof c.ui.showUnowned === 'boolean' ? c.ui.showUnowned
-          : isObj(c.settings) && typeof c.settings.showUnowned === 'boolean' ? c.settings.showUnowned : DEFAULT_UI.showUnowned },
+      ui: { sortKey: isPlainObject(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isPlainObject(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,
+        showUnowned: isPlainObject(c.ui) && typeof c.ui.showUnowned === 'boolean' ? c.ui.showUnowned
+          : isPlainObject(c.settings) && typeof c.settings.showUnowned === 'boolean' ? c.settings.showUnowned : DEFAULT_UI.showUnowned },
     };
   }
   return {
     version: STATE_VERSION,
-    run: isObj(saved.state) ? migrateRun(saved.state, data) : base.run,
-    settings: isObj(saved.settings) ? migrateSettings(saved.settings) : base.settings,
+    run: isPlainObject(saved.state) ? migrateRun(saved.state, data) : base.run,
+    settings: isPlainObject(saved.settings) ? migrateSettings(saved.settings) : base.settings,
     inventory: sanitizeInventory(saved.inventory),
-    ui: { sortKey: isObj(saved.state) && typeof saved.state.sortKey === 'string' ? saved.state.sortKey : DEFAULT_UI.sortKey, theme: isTheme(saved.theme) ? saved.theme : DEFAULT_UI.theme,
-      showUnowned: isObj(saved.settings) && typeof saved.settings.version === 'number' && saved.settings.version >= 3
+    ui: { sortKey: isPlainObject(saved.state) && typeof saved.state.sortKey === 'string' ? saved.state.sortKey : DEFAULT_UI.sortKey, theme: isTheme(saved.theme) ? saved.theme : DEFAULT_UI.theme,
+      showUnowned: isPlainObject(saved.settings) && typeof saved.settings.version === 'number' && saved.settings.version >= 3
         && typeof saved.settings.showUnowned === 'boolean' ? saved.settings.showUnowned : DEFAULT_UI.showUnowned },
   };
 }
