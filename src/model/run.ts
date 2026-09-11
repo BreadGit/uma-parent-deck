@@ -5,7 +5,8 @@ import { startingAptitudes } from './pink-inherit.ts';
 import { evaluateParentGoal, goalRankBands, pinkEstimate, type GoalEstimate } from './goal.ts';
 import { buildDeck, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
-import { goalDeckKey, searchGoalDeck, type GoalDeckEntry } from './goal-deck.ts';
+import { SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
+import { goalDeckKey, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
@@ -70,13 +71,17 @@ export interface RunPlan {
 export interface GoalSearchSummary {
   score: GoalScore;
   evaluated: number;
+  screened: number;
   exhaustive: boolean;
   alternatives: { cardId: number; score: GoalScore }[];
   unavailableWhiteIds: number[];
 }
+export type DeckSelection = { id: number; lb: number; borrowed?: boolean }[];
 export interface RunOptions {
   search?: boolean;
-  selection?: { id: number; lb: number; borrowed?: boolean }[];
+  selection?: DeckSelection;
+  previous?: DeckSelection;
+  onProgress?: (selection: DeckSelection, summary: GoalSearchSummary) => void;
   summary?: GoalSearchSummary;
   budget?: number;
 }
@@ -220,7 +225,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   if (ownedCount !== DECK_SIZE - BORROWED_SLOTS || borrowedCount !== BORROWED_SLOTS) {
     issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
   }
-  const evaluateCandidate = (entries: GoalDeckEntry[]) => {
+  const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048) => {
     const preliminary = describeDeck(entries, targets, baseCtx);
     const candidates = wishlistCandidates(preliminary.deck, targets, baseCtx), ordered = order(candidates);
     const priority = derivePriority(ordered, targets.filter((t) => !input.wishlistExcluded.some((id) => t.familyIds.has(id))), data, input.wishlistExcluded);
@@ -228,7 +233,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const deckResult = describeDeck(entries, targets, ctx);
     const prediction = predictRunDeck(entries, input, ctx, apt, sum.expectedLosses);
     const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.pred.sd, caps: prediction.statCaps?.cap, skillPoints: prediction.rank.skillPts, skillSd: settings.skillScoreSd };
-    const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings);
+    const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
     const sources = goalSources(goal, deckResult.coverage, ctx);
     const score = scoreGoal(goal, sources, basis, pink, settings);
     return { score, statPower: deckResult.deck.reduce((n, d) => n + d.statPower, 0), value: { ctx, deckResult, prediction, goalStats, basis, sources, candidates, ordered } };
@@ -242,27 +247,37 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       ranking.slice().sort((a, b) => b.statPower + b.sp - a.statPower - a.sp),
       ...goal.blueStats.map((stat) => ranking.slice().sort((a, b) => b.stats[STATS.indexOf(stat)]! - a.stats[STATS.indexOf(stat)]!)),
       ...goal.required.map((r) => ranking.slice().sort((a, b) => (b.coverage.find((c) => c.target.id === r.id)?.spark ?? 0) - (a.coverage.find((c) => c.target.id === r.id)?.spark ?? 0)))];
-    const found = searchGoalDeck({ owned: deckPool, borrows: borrowPool, ownedOrders: orders(baseRanking), borrowOrders: orders(borrowRanking),
-      seeds: [initial.deck], pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId,
-      tolerance: settings.goalTieTolerance, budget: options.budget, evaluate: evaluateCandidate });
-    if (found) {
-      chosen = found.best;
-      // An optimistic union can prove that no source exists, without mistaking a failed bounded search for proof.
-      const optimistic = traineeCoverage(targets, baseCtx);
-      for (const card of [...baseRanking, ...borrowRanking]) {
-        optimistic.chars.add(card.card.charId);
-        for (const [id, sources] of card.mine) optimistic.sources.set(id, [...(optimistic.sources.get(id) ?? []), ...sources]);
-      }
-      const allSources = evaluateSources(optimistic, targets, { ...baseCtx, excluded: input.wishlistExcluded }).full;
-      const unavailableWhiteIds = goal.required.filter((r) => !(allSources.get(r.id) ?? []).some((s) => s.pObtain > 0)).map((r) => r.id);
+    // An optimistic union can prove that no source exists, without mistaking a failed bounded search for proof.
+    const optimistic = traineeCoverage(targets, baseCtx);
+    for (const card of [...baseRanking, ...borrowRanking]) {
+      optimistic.chars.add(card.card.charId);
+      for (const [id, sources] of card.mine) optimistic.sources.set(id, [...(optimistic.sources.get(id) ?? []), ...sources]);
+    }
+    const allSources = evaluateSources(optimistic, targets, { ...baseCtx, excluded: input.wishlistExcluded }).full;
+    const unavailableWhiteIds = goal.required.filter((r) => !(allSources.get(r.id) ?? []).some((s) => s.pObtain > 0)).map((r) => r.id);
+    const summarize = (found: GoalSearchResult<typeof chosen.value>): GoalSearchSummary => {
       const owned = found.best.entries.filter((e) => !e.borrowed);
       const alternatives = found.candidates.filter((c) => {
         const candidateOwned = c.entries.filter((e) => !e.borrowed);
         return c.key !== found.best.key && goalDeckKey(candidateOwned) === goalDeckKey(owned);
       }).sort((a, b) => b.score.count - a.score.count || b.score.comparison - a.score.comparison || a.key.localeCompare(b.key));
-      search = { score: chosen.score, evaluated: found.evaluated, exhaustive: found.exhaustive, unavailableWhiteIds,
+      return { score: found.best.score, evaluated: found.evaluated, screened: found.screened, exhaustive: found.exhaustive, unavailableWhiteIds,
         alternatives: alternatives.slice(0, 5).map((c) => ({ cardId: c.entries.find((e) => e.borrowed)!.card.id, score: c.score })) };
-    }
+    };
+    const previous = options.previous?.flatMap((e) => {
+      const card = data.cardById.get(e.id);
+      if (!card) return [];
+      const lb = e.borrowed ? BORROWED_LB : effectiveLb(inventory, card, settings.defaultLb);
+      return lb === null ? [] : [{ card, lb, borrowed: e.borrowed }];
+    });
+    const found = searchGoalDeck({ owned: deckPool, borrows: borrowPool, ownedOrders: orders(baseRanking), borrowOrders: orders(borrowRanking),
+      seeds: [initial.deck, ...(previous ? [previous] : [])], pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId,
+      tolerance: settings.goalTieTolerance, budget: options.budget, evaluate: evaluateCandidate,
+      screen: (entries) => { const { score, statPower } = evaluateCandidate(entries, SEARCH_RANK_SAMPLES); return { score, statPower }; },
+      screenBudget: options.budget === undefined ? SCREENED_DECKS : options.budget * 8,
+      onProgress: options.onProgress ? (progress) => options.onProgress!(progress.best.entries.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), summarize(progress)) : undefined,
+    });
+    if (found) { chosen = found.best; search = summarize(found); }
   }
   const { ctx, deckResult, prediction, goalStats, basis, sources, candidates, ordered } = chosen.value;
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);
@@ -273,7 +288,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     .map((id) => `${data.skillById.get(id)?.name ?? id} is required but excluded from the prioritized list. Its excluded choice sources are not counted. Restore it or reset the list to use those choices.`);
   goalEstimate.notes.push(...priorityIssues);
   if (search) {
-    deckResult.steps = [`Best deck found after evaluating ${search.evaluated} legal decks${search.exhaustive ? '; every legal deck in this small pool was checked' : '; bounded search does not guarantee the global best'}.`,
+    deckResult.steps = [`Best deck found after fully evaluating ${search.evaluated} legal decks${search.screened ? ` and screening ${search.screened} decks with a cheaper estimate` : ''}${search.exhaustive ? '; every legal deck in this small pool was checked' : '; bounded search does not guarantee the global best'}.`,
       `Required goals come first. Preferred sparks on successful parents can decide within ${(settings.goalTieTolerance * 100).toLocaleString()}% of the best required chance found.`,
       ...pinnedIds.filter((id) => !deckResult.deck.some((e) => e.card.id === id)).map((id) => `${data.cardById.get(id)!.name} was not selected. Pins compete when slots or character restrictions prevent including them together.`)];
   } else deckResult.steps = initial.steps;

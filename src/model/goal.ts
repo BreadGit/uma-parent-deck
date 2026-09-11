@@ -63,9 +63,10 @@ function halton(index: number, base: number): number {
   while (index > 0) { value += fraction * (index % base); index = Math.floor(index / base); fraction /= base; }
   return value;
 }
-let samples: number[][] | undefined;
-function statSamples(): number[][] {
-  return samples ??= Array.from({ length: 2048 }, (_, i) => [2, 3, 5, 7, 11].map((base) => halton(i + 1, base)));
+const samples = new Map<number, number[][]>();
+function statSamples(count: number): number[][] {
+  if (!samples.has(count)) samples.set(count, Array.from({ length: count }, (_, i) => [2, 3, 5, 7, 11].map((base) => halton(i + 1, base))));
+  return samples.get(count)!;
 }
 
 interface StatMass { value: number; probability: number }
@@ -108,12 +109,12 @@ export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshol
 }
 
 /** Shared rank weights let every required subset and preferred intersection reuse the same outcomes. */
-export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS): GoalRankBands {
+export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS, sampleCount = 2048): GoalRankBands {
   const bands = whiteGenerationBands(settings);
   const result: GoalRankBands = { blue: 0, rank: bands.map(() => 0), blueRank: bands.map(() => 0), pSS: 0, approximateRank: 0 };
   const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i]));
   const distributions = masses.map(statDistribution);
-  const draws = input.sd.every((sd) => sd === 0) ? [[.5, .5, .5, .5, .5]] : statSamples();
+  const draws = input.sd.every((sd) => sd === 0) ? [[.5, .5, .5, .5, .5]] : statSamples(sampleCount);
   const statRatings = draws.map((draw) => distributions.map((distribution, i) => statScore(sampleStat(distribution, draw[i]!))));
   const scores = statRatings.map((ratings) => ratings.reduce((sum, rating) => sum + rating, input.skillPoints));
   for (const score of scores) {

@@ -29,18 +29,39 @@ the number of compatible pins; owned pins take priority for owned slots when pin
 Borrow from all controls whether leftover owned pins constrain the borrowed slot. Impossible pin
 combinations receive an explanation in How the deck was built.
 
-For pools of at most ten owned and ten borrow entries, search enumerates every legal deck if the
-result fits the evaluation budget. Larger pools use a deterministic budget of 192 complete-deck
-evaluations. The existing builder supplies a starting deck. Other seeds favor target coverage,
-stats and SP, individual accepted blue stats, and each required white family. These are seed and
-candidate-order heuristics only; complete goal scores decide the result.
+Search first tries to enumerate the legal decks after applying pins and character restrictions.
+If there are at most 384 and enumeration finishes within 10,000 partial combinations, it evaluates
+every legal deck. A large inventory can therefore receive exhaustive search when pins leave few
+choices. Otherwise search uses two stages.
 
-Three rounds retain up to two unexpanded alternatives at a time and try legal single-card swaps.
-Replacement candidates interleave the leading cards from each ordering and include pins. Cards
-without direct target hints can enter through their stats. Search also tries changing which of the
-six cards is borrowed when both ownership and limit breaks allow it. This is a bounded search,
-not a guarantee of the global optimum. Borrow alternatives report complete-deck probabilities for
-evaluated alternatives with the same owned cards. Their displayed percentages are not additive gains.
+1. Fully evaluate up to 192 decks and publish an initial recommendation. The existing builder
+   supplies a starting deck. Other seeds favor target coverage, stats and SP, individual accepted
+   blue stats, and each required white family. Three rounds retain up to two unexpanded alternatives
+   and try single-card swaps from the leading cards in each ordering. They also try changing which
+   card is borrowed when ownership and limit breaks allow it.
+2. Screen up to 1,536 complete legal decks with 32 rank samples instead of 2,048. Keep a population
+   of twelve promising decks and propose one-card changes, or two-card changes 25% of the time.
+   Rankings bias the proposals, but every eligible card remains available. Ten percent of card
+   proposals sample uniformly from the full pool. Fully evaluate the sixteen best screened decks,
+   then choose among all fully evaluated candidates from both stages.
+
+The second stage starts with the initial recommendation, any previous legal recommendation, and
+up to 24 seeds across six borrow choices and the owned-card orderings. It uses a fixed random
+stream, so the same inputs and seeds produce the same result. Pins stay constrained, including
+exchanges between competing pins when not all can fit. A previous recommendation is an additional
+candidate, rescored with current limit breaks and inputs. It cannot bypass ownership or pin rules.
+It is remembered only within the current page session, so a reload can explore different decks.
+
+Normal searches perform at most 208 full evaluations plus 1,536 cheaper screenings. Screening
+changes only the rank integration sample count. Blue-tail probabilities remain analytic, and
+displayed estimates always use the full evaluator. A poor screening score cannot discard the
+initial recommendation. Final selection still applies the required-goal tie tolerance across all
+fully evaluated candidates. A slightly lower required chance can therefore win on preferred sparks
+within that configured window.
+
+This remains a bounded search. Screening can misorder decks and exploration can miss the global
+optimum. Borrow alternatives report full probabilities for evaluated alternatives with the same
+owned cards. Their displayed percentages are not additive gains.
 
 `src/model/run.ts` resolves each candidate's prioritized list, sources, stats, and rank. It passes
 those outcomes to `goal-objective.ts`. `goal.ts` integrates shared rank-band weights once per deck;
@@ -81,10 +102,23 @@ stays visible in the result. A genuinely zero upper bound makes pink unavailable
 ## Responsiveness and measurements
 
 `src/ui/plan-worker.ts` runs search in a worker. The main thread renders current inputs and a
-Finding a deck loading state. A new input cancels an unfinished worker. Request IDs and input keys
-prevent obsolete results from replacing newer ones. Completed workers send only the card selection
-and search summary; the main thread reconstructs the displayed plan using that supplied deck.
+Finding a deck loading state until the first fully evaluated recommendation arrives. That deck and
+its estimates stay visible while a Looking for a better deck message identifies the refinement.
+A new input cancels an unfinished worker and hides the obsolete recommendation. Request IDs and
+input keys prevent obsolete results from replacing newer ones. Each worker update sends only the
+card selection and search summary; the main thread reconstructs the plan using that supplied deck.
 The worker does not access localStorage. Search errors retain saved inputs and offer Retry search.
+If refinement fails, the initial checked recommendation remains visible.
+
+For Fuji Kiseki with Groundwork required at two stars and SSR power Smart Falcon unowned, the
+previous search found 4.5763%. Manually pinning SSR speed Maruzensky exposed a 4.8843% alternative.
+The two-stage search finds 5.0391% without that extra pin. A desktop check measured about 2.9 seconds
+to the initial result and 7.7 seconds total, with other verification running concurrently. In the
+preceding disposable comparison across five goal fixtures, the proposed search improved four
+results and matched one. Exhaustive enumeration of a restricted 336-deck fixture established a
+5.0461% best result, which the broader search also found in that restricted pool.
+
+The following measurements predate the second stage and describe only the original search.
 
 Initial desktop checks with Special Week and 192 evaluations took about 2.7 seconds with no required
 whites and 2.9 seconds with two required whites. A separate sensitivity check with Corner Recovery
@@ -104,5 +138,7 @@ timing on a physical phone has not been measured.
 
 `tests/goal-deck.test.ts` checks the comparison window, conditional preferred probabilities, shared
 rank, fallback subsets, exhaustive small pools, blue thresholds, balanced required coverage, and
-settings migration. Browser checks cover loading and replacement searches, export order, exclusions,
-saved state, and layout in both themes. Existing evaluator and run tests remain in place.
+settings migration. It also covers the Fuji regression, misleading screening scores, competing
+pins, constrained exhaustive search, and reuse of previous decks under changed ownership and pins.
+Browser checks cover initial results, refinement, cancellation, retry after failure, export order,
+exclusions, saved state, and layout in both themes. Existing evaluator and run tests remain in place.

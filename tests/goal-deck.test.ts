@@ -216,3 +216,92 @@ test('an excluded required skill keeps its warning when the deck has no source f
   assert.deepEqual(result.wlExcluded, [], 'this deck does not offer the excluded skill');
   assert.ok(result.priorityIssues.some((s) => s.includes('Runaway is required but excluded')));
 });
+
+test('screening scores never replace fully evaluated scores or discard a stronger incumbent', () => {
+  const owned = Array.from({ length: 30 }, (_, i) => card(i + 1));
+  const actual = (entries: GoalDeckEntry[]) => entries.some((e) => e.card.id === 2) ? .8 : .1;
+  const progress: number[] = [];
+  const found = searchGoalDeck({ owned, borrows: [], ownedOrders: [owned], borrowOrders: [],
+    pinnedIds: [1], borrowFromAll: false, traineeId: null, size: 2, tolerance: 0, budget: 1, screenBudget: 128,
+    seeds: [[owned[0]!, owned[1]!]],
+    evaluate: (entries) => ({ score: score(actual(entries)), statPower: 0, value: null }),
+    screen: (entries) => ({ score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }),
+    onProgress: (result) => progress.push(result.best.score.probability),
+  })!;
+  assert.deepEqual(progress, [.8]);
+  assert.ok(found.screened > 1);
+  assert.equal(found.best.score.probability, .8);
+  for (const c of found.candidates) assert.equal(c.score.probability, actual(c.entries));
+});
+
+test('many owned cards with five fixed pins still use exhaustive search when only two decks are legal', () => {
+  const owned = Array.from({ length: 30 }, (_, i) => card(i + 1)), borrows = [card(31), card(32)];
+  const found = searchGoalDeck({ owned, borrows, ownedOrders: [owned], borrowOrders: [borrows],
+    pinnedIds: [1, 2, 3, 4, 5], borrowFromAll: false, traineeId: null, tolerance: 0,
+    evaluate: (entries) => ({ score: score(entries.find((e) => e.borrowed)!.card.id / 100), statPower: 0, value: null }),
+    screen: () => { throw new Error('Small legal spaces do not need screening'); },
+  })!;
+  assert.equal(found.evaluated, 2);
+  assert.ok(found.exhaustive);
+  assert.equal(found.screened, 0);
+  assert.equal(found.best.score.probability, .32);
+});
+
+test('screening can exchange competing pins without weakening the pin constraint', () => {
+  const owned = Array.from({ length: 30 }, (_, i) => card(i + 1));
+  const rate = (entries: GoalDeckEntry[]) => entries.some((e) => e.card.id === 30) ? .9 : .1;
+  const found = searchGoalDeck({ owned, borrows: [], ownedOrders: [owned], borrowOrders: [],
+    pinnedIds: owned.map((e) => e.card.id), borrowFromAll: false, traineeId: null, size: 2, tolerance: 0, budget: 1, screenBudget: 256,
+    evaluate: (entries) => ({ score: score(rate(entries)), statPower: 0, value: null }),
+    screen: (entries) => ({ score: score(rate(entries)), statPower: 0 }),
+  })!;
+  assert.ok(found.screened > 1);
+  assert.equal(found.best.score.probability, .9);
+  assert.ok(found.candidates.every((c) => found.legal(c.entries)));
+});
+
+test('cheap rank sampling leaves analytic blue odds and subsequent full evaluations intact', () => {
+  const stats = { rawMean: [1000, 900, 800, 700, 600], sd: [50, 50, 50, 50, 50], skillPoints: 5000, skillSd: 400 };
+  const full = goalRankBands(stats, goal, 17500, settings);
+  const cheap = goalRankBands(stats, goal, 17500, settings, 32);
+  assert.equal(cheap.blue, full.blue);
+  assert.deepEqual(goalRankBands(stats, goal, 17500, settings), full);
+});
+
+test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin without requiring the pin', () => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100501;
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.inventory['30017'] = null;
+  const before = structuredClone(saved);
+  const progress: number[] = [];
+  const result = planRun(saved.run, saved.settings, saved.inventory, data, { onProgress: (selection, summary) => {
+    const check = planRun(saved.run, saved.settings, saved.inventory, data, { selection });
+    assert.equal(check.goalEstimate.probability, summary.score.probability);
+    progress.push(summary.score.probability);
+  } });
+  // Independently established with the user's six-card pinned deck, evaluated without the pin.
+  assert.ok(result.goalEstimate.probability! >= .04884270928688582);
+  assert.ok(progress.length && result.goalEstimate.probability! >= progress[0]!);
+  assert.ok(result.search!.screened > 0);
+  assert.ok(!result.deckResult.deck.some((e) => e.card.id === 30017 && !e.borrowed));
+  assert.deepEqual(saved, before);
+});
+
+test('previous recommendations are rescored at current limit breaks and rejected when they break current ownership or pins', () => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100501;
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.inventory['30017'] = null;
+  const previous = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
+  const reused = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
+  assert.ok(reused.goalEstimate.probability! >= .04884270928688582);
+  saved.inventory['30107'] = 0;
+  const changed = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
+  for (const e of changed.deckResult.deck) if (e.card.id === 30107 && !e.borrowed) assert.equal(e.lb, 0);
+  saved.inventory['30107'] = null;
+  saved.run.pinnedIds.push(30028);
+  const invalid = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
+  assert.ok(!invalid.deckResult.deck.some((e) => e.card.id === 30107 && !e.borrowed));
+  assert.ok(invalid.deckResult.deck.some((e) => e.card.id === 30028));
+});

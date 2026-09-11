@@ -1,9 +1,11 @@
 import type { Card } from '../types.ts';
 import { chooseGoal, type GoalScore } from './goal-objective.ts';
 import { DECK_SIZE } from './rules.ts';
+import { screenGoalDecks, SCREENED_DECKS, SEARCH_FINALISTS } from './goal-population.ts';
 
 export interface GoalDeckEntry { card: Card; lb: number; borrowed?: boolean }
 export interface GoalCandidate<T> { entries: GoalDeckEntry[]; key: string; score: GoalScore; statPower: number; value: T }
+export interface GoalSearchResult<T> { best: GoalCandidate<T>; candidates: GoalCandidate<T>[]; exhaustive: boolean; evaluated: number; screened: number }
 export interface GoalSearchOptions<T> {
   owned: GoalDeckEntry[];
   borrows: GoalDeckEntry[];
@@ -15,6 +17,9 @@ export interface GoalSearchOptions<T> {
   traineeId: number | null;
   tolerance: number;
   evaluate: (entries: GoalDeckEntry[]) => { score: GoalScore; statPower: number; value: T };
+  screen?: (entries: GoalDeckEntry[]) => { score: GoalScore; statPower: number };
+  onProgress?: (result: GoalSearchResult<T>) => void;
+  screenBudget?: number;
   budget?: number;
   size?: number;
 }
@@ -50,28 +55,39 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
   const bestPins = legalSeeds.map(pinProfile).sort((a, b) => profileOrder(b, a))[0]!;
   const legal = (entries: GoalDeckEntry[]) => basicLegal(entries) && profileOrder(pinProfile(entries), bestPins) === 0;
   const evaluated = new Map<string, GoalCandidate<T>>();
-  const evaluate = (entries: GoalDeckEntry[]) => {
+  const evaluate = (entries: GoalDeckEntry[], limit = budget) => {
     if (!legal(entries)) return;
     const key = goalDeckKey(entries);
     if (evaluated.has(key)) return evaluated.get(key)!;
-    if (evaluated.size >= budget) return;
+    if (evaluated.size >= limit) return;
     const value = { entries, key, ...options.evaluate(entries) };
     evaluated.set(key, value);
     return value;
   };
   let exhaustive = false;
-  if (owned.length <= 10 && borrows.length <= 10) {
+  const exhaustiveLimit = options.budget ?? 384;
+  {
     const all: GoalDeckEntry[][] = [];
-    const enumerate = (entries: GoalDeckEntry[], from: number) => {
-      if (all.length > budget) return;
-      if (entries.length === size) { if (legal(entries)) all.push(entries); return; }
-      for (let i = from; i < owned.length; i++) {
-        const e = owned[i]!;
-        if (!entries.some((x) => x.card.charId === e.card.charId)) enumerate([...entries, { ...e, borrowed: false }], i + 1);
+    let nodes = 0;
+    const chooseOwned = (entries: GoalDeckEntry[], pool: GoalDeckEntry[], count: number, done: (entries: GoalDeckEntry[]) => void, from = 0) => {
+      if (all.length > exhaustiveLimit || ++nodes > 10000) return;
+      if (!count) { done(entries); return; }
+      for (let i = from; i <= pool.length - count; i++) {
+        const e = pool[i]!;
+        if (!entries.some((x) => x.card.charId === e.card.charId)) chooseOwned([...entries, { ...e, borrowed: false }], pool, count - 1, done, i + 1);
+        if (all.length > exhaustiveLimit || nodes > 10000) break;
       }
     };
-    for (const b of borrows.length ? borrows : [undefined]) enumerate(b ? [{ ...b, borrowed: true }] : [], 0);
-    if (all.length <= budget) { all.forEach(evaluate); exhaustive = true; }
+    for (const b of borrows.length ? borrows : [undefined]) {
+      const borrowedPin = Number(!!b && pins.has(b.card.id) && (!ownById.has(b.card.id) || !options.borrowFromAll));
+      if (bestPins[1]! + borrowedPin !== bestPins[0]) continue;
+      const eligible = owned.filter((e) => e.card.charId !== b?.card.charId);
+      chooseOwned(b ? [{ ...b, borrowed: true }] : [], eligible.filter((e) => pins.has(e.card.id)), bestPins[1]!, (entries) => {
+        chooseOwned(entries, eligible.filter((e) => !pins.has(e.card.id)), ownedSlots - bestPins[1]!, (deck) => { if (legal(deck)) all.push(deck); });
+      });
+      if (all.length > exhaustiveLimit || nodes > 10000) break;
+    }
+    if (nodes <= 10000 && all.length <= exhaustiveLimit) { all.forEach((entries) => evaluate(entries, exhaustiveLimit)); exhaustive = true; }
   }
   if (!exhaustive) {
     for (const seed of options.seeds ?? []) evaluate(seed);
@@ -114,6 +130,18 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
       }
     }
   }
-  const candidates = [...evaluated.values()];
-  return { best: chooseGoal(candidates, options.tolerance), candidates, exhaustive, evaluated: candidates.length, legal };
+  let screened = 0;
+  const result = (): GoalSearchResult<T> => {
+    const candidates = [...evaluated.values()];
+    return { best: chooseGoal(candidates, options.tolerance), candidates, exhaustive, evaluated: candidates.length, screened };
+  };
+  if (!exhaustive && options.screen) {
+    const initial = result();
+    options.onProgress?.(initial);
+    const exploration = screenGoalDecks({ ...options, owned, borrows, legal, fill, key: goalDeckKey, screen: options.screen,
+      seeds: [...(options.seeds ?? []), initial.best.entries], budget: options.screenBudget ?? SCREENED_DECKS });
+    screened = exploration.screened;
+    for (const entries of exploration.finalists) evaluate(entries, budget + SEARCH_FINALISTS);
+  }
+  return { ...result(), legal };
 }

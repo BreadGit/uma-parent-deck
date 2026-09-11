@@ -139,6 +139,11 @@ also contributes to rank. This preserves blue/rank dependence without requiring 
 sample to reach a rare blue threshold. Goals with no white-star quality requirement use the
 analytic blue probability directly. Rank integration remains a sample approximation.
 
+Deck search also uses a cheaper 32-sample rank integration to screen candidates during its second
+stage. The sixteen finalists receive the full 2,048-sample evaluation before they can replace the
+initial recommendation. Screening never supplies a displayed probability or changes the analytic
+blue bands. Sample arrays are cached separately by count; screening cannot alter later full results.
+
 The existing predicted skill-rating mean and normal spread complete the rank distribution;
 skill uncertainty is integrated analytically across rank bands. Zero stat spread uses one exact
 outcome. Fixed samples make repeated evaluations and future deck comparisons deterministic.
