@@ -7,7 +7,6 @@ import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
 import { assertFieldsMatchState, settlePlanActions, waitForPlan } from './browser-fields.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
-import { planRun } from '../src/model/run.ts';
 
 const data = loadData();
 const browser = await chromium.launch();
@@ -202,97 +201,6 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   assert.notDeepEqual(await cards(), original, 'the final result replaces the cards once');
   assert.equal(await page.locator('.deck .slot').count(), 6);
   await assertFieldsMatchState(page, 'after debounced search and skill reordering');
-});
-
-function fixedPriorityState(role = 'required') {
-  const saved = defaultState(data);
-  saved.run.traineeCardId = 100501;
-  saved.run.targets = [{ id: 201601, role, stars: 2 }, { id: 200432, role, stars: 2 }];
-  saved.inventory = noCards();
-  const owned = [30052, 30017, 20030, 30028, 30020];
-  for (const id of owned) saved.inventory[id] = 4;
-  saved.run.pinnedIds = [...owned, 30107];
-  saved.run.wishlistOrder = planRun(saved.run, saved.settings, saved.inventory, data, { search: false }).wl.map((w) => w.key);
-  return saved;
-}
-async function deferSearches(page) {
-  await page.evaluate(() => {
-    window.searchWorkers = [];
-    window.Worker = class {
-      constructor() { window.searchWorkers.push(this); }
-      postMessage(request) { this.request = structuredClone(request); }
-      terminate() { this.terminated = true; }
-      finish() { this.onmessage({ data: { id: this.request.id, complete: true, selection: this.request.previous } }); }
-    };
-  });
-}
-const nonTargetMove = (page) => page.locator('.wishlist li').filter({ has: page.locator('.wl-kind', { hasText: /^not a target$/ }) })
-  .locator('[data-action="wl-down"]:not([disabled])').first();
-
-test('harmless saved reorders refresh advice without searching, and do not restart an active search', async (t) => {
-  const saved = fixedPriorityState();
-  const page = await fresh(t, saved, false);
-  await waitForPlan(page);
-  await deferSearches(page);
-  const probability = await page.locator('[data-goal-probability]').innerText();
-  const explanation = await page.getByText(/^Best deck found after fully evaluating/).innerText();
-  await nonTargetMove(page).click();
-  assert.equal(await page.locator('[data-plan-pending]').count(), 0);
-  await page.waitForTimeout(500);
-  assert.equal(await page.evaluate(() => window.searchWorkers.length), 0);
-  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
-  assert.equal(await page.getByText(/^Best deck found after fully evaluating/).innerText(), explanation, 'the valid search summary is retained');
-  assert.notDeepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder);
-  await assertFieldsMatchState(page, 'after reusing a completed search');
-  const exported = page.waitForEvent('download');
-  await page.click('[data-action="wl-export"]');
-  const lines = (await readFile(await (await exported).path(), 'utf8')).trim().split('\n');
-  const visible = await page.locator('.wishlist li').evaluateAll((els) => els.map((el) => Number(el.dataset.wlKey)));
-  assert.deepEqual(lines, visible.map((id) => data.skillById.get(id).name));
-
-  // A goal edit starts real work. A safe reorder during the delay and another during the worker
-  // must keep that request alive; its eventual selection must render the newest skill order.
-  await page.selectOption('[data-goal-stars="pink"]', '3');
-  await nonTargetMove(page).click();
-  await page.waitForFunction(() => window.searchWorkers.length === 1);
-  await nonTargetMove(page).click();
-  await page.waitForTimeout(500);
-  assert.equal(await page.evaluate(() => window.searchWorkers.length), 1);
-  assert.notEqual(await page.evaluate(() => window.searchWorkers[0].terminated), true);
-  const latest = (await state(page)).run.wishlistOrder;
-  await page.evaluate(() => window.searchWorkers[0].finish());
-  await waitForPlan(page);
-  assert.deepEqual(await page.locator('.wishlist li').evaluateAll((els) => els.map((el) => Number(el.dataset.wlKey))), latest);
-  assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) <= 1);
-  await assertFieldsMatchState(page, 'after applying a worker result to a harmless newer order');
-
-  await page.selectOption('[data-goal-stars="pink"]', '2');
-  await page.waitForFunction(() => window.searchWorkers.length === 2);
-  await page.locator('.wishlist li').filter({ has: page.locator('.wl-kind', { hasText: /^required$/ }) })
-    .locator('[data-action="wl-down"]:not([disabled])').first().click();
-  assert.equal(await page.evaluate(() => window.searchWorkers[1].terminated), true, 'moving a required target cancels obsolete work');
-  await page.waitForFunction(() => window.searchWorkers.length === 3);
-  await page.evaluate(() => window.searchWorkers[1].finish());
-  assert.equal(await page.locator('[data-plan-pending]').count(), 1, 'late results from the changed target order are ignored');
-  await page.evaluate(() => window.searchWorkers[2].finish());
-  await waitForPlan(page);
-  await assertFieldsMatchState(page, 'after searching for a changed required target order');
-});
-
-test('preferred targets and first-time ordering always start a new search', async (t) => {
-  const implicit = fixedPriorityState();
-  implicit.run.wishlistOrder = [];
-  for (const saved of [fixedPriorityState('preferred'), implicit]) {
-    const page = await fresh(t, saved, false);
-    await waitForPlan(page);
-    await deferSearches(page);
-    await nonTargetMove(page).click();
-    assert.equal(await page.locator('[data-plan-pending]').count(), 1);
-    await page.waitForFunction(() => window.searchWorkers.length === 1);
-    await page.evaluate(() => window.searchWorkers[0].finish());
-    await waitForPlan(page);
-    await assertFieldsMatchState(page, 'after a conservative fallback search');
-  }
 });
 
 test('required skill priority is visible and the export follows the displayed order and exclusions', async (t) => {

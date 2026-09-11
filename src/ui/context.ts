@@ -3,7 +3,6 @@
 import { loadData } from '../data.ts';
 import { loadState, saveState, type AppState } from '../state.ts';
 import { planRun, type RunPlan, type DeckSelection } from '../model/run.ts';
-import { canReusePrioritySearch } from '../model/priority-search.ts';
 import type { PlanWorkerRequest, PlanWorkerResponse } from './plan-worker.ts';
 import defaultInventory from '../../inventory.json' with { type: 'json' };
 
@@ -28,7 +27,7 @@ export function refresh() { renderer(); }
 /** Apply a change to the persisted state, save it and re-render. */
 export function update(fn: (s: AppState) => void) { fn(store); saveState(store); renderer(); }
 
-let cache: { key: string; inputsKey: string; order: number[]; value: RunPlan } | null = null;
+let cache: { key: string; value: RunPlan } | null = null;
 export const searchState = { pending: false, error: '' };
 let worker: Worker | null = null, requestId = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -38,27 +37,17 @@ export function retrySearch() { cache = null; renderer(); }
 export function plan(): RunPlan {
   const key = JSON.stringify([store.run, store.settings, store.inventory]);
   if (cache?.key === key) return cache.value;
-  const { wishlistOrder, ...otherRunInputs } = store.run;
-  const inputsKey = JSON.stringify([otherRunInputs, store.settings, store.inventory]);
-  // A compatible reorder keeps the request generation; its response uses the latest order below.
-  if (cache?.inputsKey === inputsKey && !searchState.error && canReusePrioritySearch(cache.order, wishlistOrder, store.run.targets, data)) {
-    const selection = cache.value.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
-    const value = planRun(store.run, store.settings, store.inventory, data,
-      { selection, summary: cache.value.search ?? undefined, search: false });
-    cache = { key, inputsKey, order: [...wishlistOrder], value };
-    return value;
-  }
   clearTimeout(timer);
   worker?.terminate(); worker = null;
   const id = ++requestId;
   const value = planRun(store.run, store.settings, store.inventory, data, { previous, search: false });
   previous = value.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
-  cache = { key, inputsKey, order: [...wishlistOrder], value };
+  cache = { key, value };
   searchState.error = '';
   searchState.pending = !!value.trainee && !value.issues.length && store.run.goal.blueStats.length > 0;
   if (searchState.pending) timer = setTimeout(() => {
     const fail = () => {
-      if (id !== requestId || cache?.inputsKey !== inputsKey) return;
+      if (id !== requestId || cache?.key !== key) return;
       searchState.pending = false;
       searchState.error = 'Deck search could not finish.';
       worker?.terminate(); worker = null;
@@ -68,7 +57,7 @@ export function plan(): RunPlan {
       worker = new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
       worker.onerror = fail;
       worker.onmessage = (event: MessageEvent<PlanWorkerResponse>) => {
-        if (id !== requestId || event.data.id !== id || cache?.inputsKey !== inputsKey) return;
+        if (id !== requestId || event.data.id !== id || cache?.key !== key) return;
         if (event.data.error) { fail(); return; }
         // Publish once, after both search stages, so intermediate results do not move the editor.
         if (!event.data.complete || !event.data.selection) return;

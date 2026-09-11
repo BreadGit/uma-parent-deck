@@ -69,29 +69,6 @@ those outcomes to `goal-objective.ts`. `goal.ts` integrates shared rank-band wei
 every subset and preferred intersection reuses them. Skill marginals and the displayed complete
 probability project the same shared skill distribution used by search, including any bounded sample.
 
-## Conservative reuse after skill reordering
-
-`src/model/priority-search.ts` permits reuse only for a permutation of the same known skills in an
-already-saved list of at most ten entries. Every selected white target must be Required, and every
-target entry must stay at its original position. Gold and circle forms count as target entries.
-The first explicit ordering, any Preferred target, additions, removals, duplicate or unknown IDs,
-and changes to other run inputs, settings or inventory still require the normal search.
-
-This rule depends on required families being placed first for every candidate deck, before the
-list's ten-skill cutoff. The current stat and rank predictions do not depend on non-target event
-choices. If either assumption changes, disable or revisit reuse. This deliberately leaves some
-harmless edits uncached rather than trying to infer every possible event dependency.
-
-The UI always saves the new order and reevaluates the displayed deck's advice. A reusable completed
-search keeps its summary. A reusable pending search keeps its timer or worker, and its result is
-rendered using the latest order. Request generations still reject obsolete results after any
-non-reusable edit. Errors and explicit retries follow the normal search path.
-
-Tests enumerate every legal deck in a small pool and compare target probabilities, predictions and
-rank before and after accepted reorders. Counterexamples cover competing Required targets and a
-Preferred target awarded alongside only one of two non-target event options. Browser regressions
-check saved order, export, completed reuse, in-flight reuse, cancellation and conservative fallbacks.
-
 ## Zero and uncertain goals
 
 A complete positive goal always beats a partial goal. When full success is zero, search compares
@@ -137,7 +114,7 @@ initial builder supplies a replacement. While the trainee or blue requirement is
 fast builder continues to respond to partial inputs without starting a full search. An inventory
 without enough eligible cards still shows what is available and explains the incomplete deck.
 
-An edit that changes the search inputs cancels the previous worker and restarts the delay. Request IDs and input keys reject
+A new edit cancels the previous worker and restarts the delay. Request IDs and input keys reject
 late results. The UI ignores intermediate recommendations and replaces the displayed cards only
 when the full search finishes. A completed replacement can change content height; the page avoids
 the repeated collapse and expansion caused by hiding the deck. Search errors keep the displayed
