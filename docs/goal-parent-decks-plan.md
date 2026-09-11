@@ -213,14 +213,18 @@ zero. Verify that saved goals survive every fallback and that the new setting pe
 its field after edits and reloads.
 
 Describe the result as the best deck found under the estimates. A bounded heuristic search does
-not guarantee a global optimum. Measure evaluation time before deciding whether to use a worker.
-Measure full-search latency on representative inventories and target counts. Desktop measurements
-and a phone-width browser check are recorded in the search notes; physical-phone timing remains
-to be checked on the user's device.
-If search takes long enough to interrupt interaction, show a visible "Finding a deck…" loading
-state while work runs off the main thread or in yielding chunks. Allow input edits; cancel or
-ignore obsolete searches and never present old results as belonging to the new goal. Test that
-loading is visible, inputs stay responsive, and only the latest search can publish a result.
+not guarantee a global optimum. The implemented search runs in a worker and fully evaluates up to
+192 decks for an initial result. It then screens up to 1,536 decks across the full eligible card
+pool with a cheaper rank estimate and fully evaluates sixteen finalists. Final comparison keeps
+all fully checked candidates, including the initial recommendation. Small legal spaces use
+exhaustive search instead. The [search notes](goal-parent-search.md) record limits and measurements;
+physical-phone timing remains to be checked on the user's device.
+
+Show "Finding a deck…" until the first checked result, then keep that result visible while
+"Looking for a better deck…" identifies refinement. Allow input edits; cancel or ignore obsolete
+searches and never present old results as belonging to the new goal. Reuse a previous recommendation
+as a seed only after validating it against current inputs and rescoring it. Keep the checked result
+if refinement fails, and offer retry. Browser tests cover these states and input responsiveness.
 
 ## Deferred work
 

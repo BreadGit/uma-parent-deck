@@ -45,6 +45,64 @@ const inventoryFile = (inventory) => ({ name: 'inventory.json', mimeType: 'appli
 const noCards = () => Object.fromEntries(data.cards.map((c) => [c.id, null]));
 const predictions = (page) => page.locator('h3', { hasText: 'Predicted run' });
 
+test('a fully checked recommendation stays visible during refinement and edits replace obsolete progress', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100501;
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.inventory['30017'] = null;
+  const page = await fresh(t, saved, false);
+  const chance = async () => parseFloat((await page.locator('[data-goal-probability]').innerText()).split('\n')[0]);
+  await page.waitForSelector('[data-plan-refining]');
+  assert.equal(await page.locator('.deck .slot').count(), 6);
+  const initial = await chance();
+  assert.ok(initial > 0);
+  await waitForPlan(page);
+  const finished = await chance();
+  assert.ok(finished >= initial && finished >= 4.9, 'find the known better Fuji deck without a Maruzensky pin');
+  await page.selectOption('[data-goal-stars="pink"]', '3');
+  await page.waitForSelector('[data-plan-refining]');
+  assert.ok(await chance() < 1, 'the intermediate estimate uses the new pink requirement');
+  await page.selectOption('[data-goal-stars="pink"]', '2');
+  assert.equal(await page.locator('[data-goal-result]').count(), 0, 'obsolete progress is hidden after an edit');
+  await waitForPlan(page);
+  assert.ok(await chance() >= finished, 'a previously discovered legal deck remains a candidate after edits');
+  await assertFieldsMatchState(page, 'after replacing a refinement in progress');
+});
+
+test('a failed refinement preserves the checked deck and can be retried', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100501;
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.inventory['30017'] = null;
+  const page = await fresh(t, saved);
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    let failed = false;
+    window.Worker = class extends NativeWorker {
+      constructor(...args) {
+        super(...args);
+        this.addEventListener('message', (event) => {
+          if (event.data.complete || failed) return;
+          failed = true;
+          setTimeout(() => {
+            this.terminate();
+            this.dispatchEvent(new MessageEvent('message', { data: { id: event.data.id, complete: true, error: 'Injected refinement failure' } }));
+          }, 0);
+        });
+      }
+    };
+  });
+  await page.reload();
+  assert.match(await page.locator('[role="alert"]').innerText(), /fully checked recommendation below is still available/);
+  assert.equal(await page.locator('.deck .slot').count(), 6);
+  assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) > 0);
+  assert.deepEqual((await state(page)).run.targets, saved.run.targets);
+  await page.click('[data-action="retry-search"]');
+  assert.equal(await page.locator('[data-action="retry-search"]').count(), 0);
+  assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) >= 4.9);
+  await assertFieldsMatchState(page, 'after retrying a failed refinement');
+});
+
 test('search stays responsive, ignores obsolete results, and persists the tie setting', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
@@ -496,10 +554,14 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.deepEqual((await state(page)).run.pinkLineage, [{ aptitude: 'end', stars: 3 }, ...Array(5).fill(null)]);
   await assertFieldsMatchState(page, 'after entering one pink spark');
-  const partialProbability = await page.locator('[data-goal-probability]').innerText();
+  const pinkProbability = () => page.locator('[data-goal-result] tbody tr').filter({ hasText: /^Pink \(/ }).locator('td').last().innerText();
+  const partialPinkProbability = await pinkProbability(), partialRun = (await state(page)).run;
   await page.reload();
   await page.waitForSelector('[data-goal-result]');
-  assert.equal(await page.locator('[data-goal-probability]').innerText(), partialProbability);
+  // Reload starts a fresh deck search; the pink marginal and saved inputs must stay unchanged.
+  assert.equal(await pinkProbability(), partialPinkProbability);
+  assert.deepEqual((await state(page)).run, partialRun);
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0);
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   await toggle.click();
   await assertFieldsMatchState(page, 'after reloading partial pink lineage');
@@ -509,8 +571,8 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
   assert.equal(await page.inputValue('[data-apt="end"]'), 'A', 'known lineage determines the starting grade');
-  const probability = await page.locator('[data-goal-probability]').innerText();
-  const ancestry = (await state(page)).run.pinkLineage;
+  const probability = await page.locator('[data-goal-probability]').innerText(), completePinkProbability = await pinkProbability();
+  const completeRun = (await state(page)).run, ancestry = completeRun.pinkLineage;
   await page.click('[data-action="toggle-sparks"]');
   assert.equal(await page.locator('[data-sparks-form]').count(), 1);
   await toggle.click();
@@ -521,7 +583,9 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   await page.reload();
   await page.waitForSelector('[data-goal-result]');
   assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
-  assert.equal(await page.locator('[data-goal-probability]').innerText(), probability);
+  assert.equal(await pinkProbability(), completePinkProbability);
+  assert.deepEqual((await state(page)).run, completeRun);
+  assert.equal(await page.locator('[data-goal-zero]').count(), 0);
   await toggle.click();
   assert.equal(await page.inputValue('[data-pink-lineage="0"]'), 'end');
   assert.equal(await page.inputValue('[data-pink-lineage-stars="0"]'), '3');

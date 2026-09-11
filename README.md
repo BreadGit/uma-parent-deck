@@ -44,8 +44,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   is to actually hand over the skill) and a stat score (predicted contribution in independent
   training at your limit break). Ranking is by marginal spark gain, tie-broken by stats.
 - The deck search compares complete required-goal probabilities, then preferred sparks on successful
-  parents within a configurable 0.1% relative window. It uses multiple starting decks and bounded swaps,
-  including cards whose stats help the goal even without target hints. Pins constrain the five owned
+  parents within a configurable 0.1% relative window. It shows an initial checked recommendation,
+  then screens a broader set of decks in the background and fully evaluates promising alternatives.
+  Cards whose stats help the goal can win even without target hints. Pins constrain the five owned
   slots and one borrowed slot, with one card per character. When the full goal has zero probability,
   search favors the largest achievable subset and explains the remaining goal separately.
   See [the search notes](docs/goal-parent-search.md) for constraints and approximation limits.

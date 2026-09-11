@@ -2,7 +2,8 @@
 // Panels mutate the store through update(), which persists and re-renders.
 import { loadData } from '../data.ts';
 import { loadState, saveState, type AppState } from '../state.ts';
-import { planRun, type RunPlan, type RunOptions } from '../model/run.ts';
+import { planRun, type RunPlan, type DeckSelection } from '../model/run.ts';
+import type { PlanWorkerRequest, PlanWorkerResponse } from './plan-worker.ts';
 import defaultInventory from '../../inventory.json' with { type: 'json' };
 
 export const data = loadData();
@@ -27,8 +28,9 @@ export function refresh() { renderer(); }
 export function update(fn: (s: AppState) => void) { fn(store); saveState(store); renderer(); }
 
 let cache: { key: string; value: RunPlan } | null = null;
-export const searchState = { pending: false, error: '' };
+export const searchState = { pending: false, refining: false, error: '' };
 let worker: Worker | null = null, requestId = 0;
+let previous: DeckSelection | undefined;
 export function retrySearch() { cache = null; renderer(); }
 /** The current run plan, recomputed only when the run, settings or inventory changed. */
 export function plan(): RunPlan {
@@ -39,24 +41,31 @@ export function plan(): RunPlan {
   const value = planRun(store.run, store.settings, store.inventory, data, { search: false });
   cache = { key, value };
   searchState.error = '';
+  searchState.refining = false;
   searchState.pending = !!value.trainee && !value.issues.length && store.run.goal.blueStats.length > 0;
   if (searchState.pending) {
     worker ??= new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
-    worker.onmessage = (event: MessageEvent<RunOptions & { id: number; error?: string }>) => {
+    worker.onmessage = (event: MessageEvent<PlanWorkerResponse>) => {
       if (event.data.id !== requestId || cache?.key !== key) return;
-      searchState.pending = false;
+      searchState.pending = !event.data.complete;
+      searchState.refining = !event.data.complete;
       searchState.error = event.data.error ?? '';
-      if (!searchState.error) cache.value = planRun(store.run, store.settings, store.inventory, data, { ...event.data, search: false });
+      if (!searchState.error && event.data.selection) {
+        cache.value = planRun(store.run, store.settings, store.inventory, data, { selection: event.data.selection, summary: event.data.summary, search: false });
+        previous = event.data.selection;
+      }
+      if (searchState.error) { worker?.terminate(); worker = null; }
       renderer();
     };
     worker.onerror = () => {
       if (id !== requestId) return;
       searchState.pending = false;
+      searchState.refining = false;
       searchState.error = 'Deck search could not finish.';
       worker?.terminate(); worker = null;
       renderer();
     };
-    worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory });
+    worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory, previous } satisfies PlanWorkerRequest);
   }
   return value;
 }
