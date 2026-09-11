@@ -228,6 +228,9 @@ only the final result. Keep the displayed deck if search fails and offer retry b
 Remove the separate Borrow paragraph and prototype search panel. A fresh visit uses the normal
 inventory-based starting deck with empty trainee and target inputs, without the prototype fixture.
 Browser tests cover these states, input responsiveness, and a retained phone editor.
+Proven harmless permutations of saved non-target skills can reuse a search when all targets are
+Required and every target position stays fixed. All other edits retain normal invalidation; the
+[search notes](goal-parent-search.md#conservative-reuse-after-skill-reordering) record the rule and its model assumptions.
 
 ## Deferred work
 
