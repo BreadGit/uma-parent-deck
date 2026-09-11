@@ -40,10 +40,9 @@ function page() {
     </header>
     <main>
       <div>${renderTrainee(c)}${renderGoalEditor(c)}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
-      <div>${searchState.pending && !searchState.refining ? panel({ title: 'Suggested deck' }, html`<div data-plan-pending role="status" aria-live="polite" aria-busy="true"><p>Finding a deck…</p><p class="small muted">Comparing your required goals and preferred sparks. You can keep editing your inputs.</p></div>`)
-        : html`${searchState.refining ? html`<span class="visually-hidden" data-plan-refining role="status" aria-live="polite">Searching for a better deck…</span>` : nothing}
-          ${searchState.error ? panel({ title: 'Deck search' }, html`<p role="alert">Deck search could not finish. ${c.search ? 'The fully checked recommendation below is still available.' : 'Your inputs are saved.'}</p><button data-action="retry-search" @click=${retrySearch}>Retry search</button>`) : nothing}
-          ${!searchState.error || c.search ? html`${renderDeck(c)}${renderGoalResult(c)}` : nothing}`}${renderSchedule(c)}${renderRanking(c)}</div>
+      <div>${searchState.pending ? html`<span class="visually-hidden" data-plan-pending role="status" aria-live="polite">Searching for a better deck…</span>` : nothing}
+        ${renderDeck(c)}${renderGoalResult(c)}
+        ${searchState.error ? panel({ title: 'Deck search' }, html`<p role="alert">Deck search could not finish. The displayed deck's estimates match your current inputs.</p><button data-action="retry-search" @click=${retrySearch}>Retry search</button>`) : nothing}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>
     <div id="tooltip" role="tooltip"></div>
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;

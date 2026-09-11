@@ -60,8 +60,9 @@ fully evaluated candidates. A slightly lower required chance can therefore win o
 within that configured window.
 
 This remains a bounded search. Screening can misorder decks and exploration can miss the global
-optimum. Borrow alternatives report full probabilities for evaluated alternatives with the same
-owned cards. Their displayed percentages are not additive gains.
+optimum. Search summaries retain evaluated borrow alternatives for the same owned cards. The UI
+shows the borrowed card's badge and the complete Parent goal estimate; it omits the separate Borrow
+paragraph to keep the deck panel's height steadier.
 
 `src/model/run.ts` resolves each candidate's prioritized list, sources, stats, and rank. It passes
 those outcomes to `goal-objective.ts`. `goal.ts` integrates shared rank-band weights once per deck;
@@ -101,16 +102,33 @@ stays visible in the result. A genuinely zero upper bound makes pink unavailable
 
 ## Responsiveness and measurements
 
-`src/ui/plan-worker.ts` runs search in a worker. The main thread renders current inputs and a
-Finding a deck loading state until the first fully evaluated recommendation arrives. That deck and
-its estimates stay visible while a spinner beside Suggested deck identifies the refinement.
-The spinner uses a slower rotation when reduced motion is enabled. A screen-reader status announces
-that the search is continuing without adding a visible message above the deck.
-A new input cancels an unfinished worker and hides the obsolete recommendation. Request IDs and
-input keys prevent obsolete results from replacing newer ones. Each worker update sends only the
-card selection and search summary; the main thread reconstructs the plan using that supplied deck.
-The worker does not access localStorage. Search errors retain saved inputs and offer Retry search.
-If refinement fails, the initial checked recommendation remains visible.
+`src/ui/plan-worker.ts` runs search in a worker after a 400 ms pause in input edits. The deck and
+prioritized-skill editor remain mounted throughout the search. A spinner beside Suggested deck is
+the only normal search indicator. It rotates more slowly when reduced motion is enabled, and a
+visually hidden status announces the search to screen readers. There is no search control panel.
+
+The main thread immediately reevaluates the displayed cards for the latest inputs. It normalizes
+owned limit breaks and checks ownership, pins, borrowed slots, character uniqueness, and trainee
+exclusion through the same constraints used by search. If those cards are no longer legal, the
+initial builder supplies a replacement. While the trainee or blue requirement is missing, that
+fast builder continues to respond to partial inputs without starting a full search. An inventory
+without enough eligible cards still shows what is available and explains the incomplete deck.
+
+A new edit cancels the previous worker and restarts the delay. Request IDs and input keys reject
+late results. The UI ignores intermediate recommendations and replaces the displayed cards only
+when the full search finishes. A completed replacement can change content height; the page avoids
+the repeated collapse and expansion caused by hiding the deck. Search errors keep the displayed
+deck and its current estimates, with Retry search below the result. The worker never accesses
+localStorage.
+
+A fresh visit uses the normal empty trainee and target inputs, the default Light Hello pin, and
+the available inventory. The initial builder chooses cards by modeled stat contribution until the
+user supplies targets. The specialized Fuji Kiseki/Groundwork fixture and its Maruzensky/Smart
+Falcon deck belonged only to the prototype and are not startup defaults. Saved inputs are preserved.
+
+This adopts prototype A's automatic search and retained editor from prototype commit `0bb3bef`,
+with the search panel and Borrow paragraph removed. The user selected this behavior on 2026-09-11
+and requested removal of the prototype worktree, branch and server after integration.
 
 For Fuji Kiseki with Groundwork required at two stars and SSR power Smart Falcon unowned, the
 previous search found 4.5763%. Manually pinning SSR speed Maruzensky exposed a 4.8843% alternative.
@@ -142,5 +160,5 @@ timing on a physical phone has not been measured.
 rank, fallback subsets, exhaustive small pools, blue thresholds, balanced required coverage, and
 settings migration. It also covers the Fuji regression, misleading screening scores, competing
 pins, constrained exhaustive search, and reuse of previous decks under changed ownership and pins.
-Browser checks cover initial results, refinement, cancellation, retry after failure, export order,
+Browser checks cover retained results, debouncing, cancellation, retry after failure, export order,
 exclusions, saved state, and layout in both themes. Existing evaluator and run tests remain in place.

@@ -25,9 +25,9 @@ export interface GoalSearchOptions<T> {
 }
 export const goalDeckKey = (entries: GoalDeckEntry[]) => entries.map((e) => `${e.borrowed ? 'b' : 'o'}:${e.card.id}:${e.lb}`).sort().join('|');
 
-/** Deterministic complete-deck search, exhaustive for small pools and bounded for normal inventories. */
-export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
-  const size = options.size ?? DECK_SIZE, ownedSlots = size - Number(options.borrows.length > 0), budget = options.budget ?? 192;
+/** Shared constraints for search and retaining a displayed deck after edits. */
+export function goalDeckConstraints(options: Pick<GoalSearchOptions<unknown>, 'owned' | 'borrows' | 'pinnedIds' | 'borrowFromAll' | 'traineeId' | 'size'>) {
+  const size = options.size ?? DECK_SIZE, ownedSlots = size - Number(options.borrows.length > 0);
   const owned = options.owned.filter((e) => e.card.charId !== options.traineeId);
   const borrows = options.borrows.filter((e) => e.card.charId !== options.traineeId);
   const ownById = new Map(owned.map((e) => [e.card.id, e])), borrowById = new Map(borrows.map((e) => [e.card.id, e]));
@@ -54,6 +54,15 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
   if (!legalSeeds.length) return null;
   const bestPins = legalSeeds.map(pinProfile).sort((a, b) => profileOrder(b, a))[0]!;
   const legal = (entries: GoalDeckEntry[]) => basicLegal(entries) && profileOrder(pinProfile(entries), bestPins) === 0;
+  return { size, ownedSlots, owned, borrows, ownById, borrowById, pins, fill, legalSeeds, bestPins, legal };
+}
+
+/** Deterministic complete-deck search, exhaustive for small pools and bounded for normal inventories. */
+export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
+  const constraints = goalDeckConstraints(options);
+  if (!constraints) return null;
+  const { size, ownedSlots, owned, borrows, ownById, borrowById, pins, fill, legalSeeds, bestPins, legal } = constraints;
+  const budget = options.budget ?? 192;
   const evaluated = new Map<string, GoalCandidate<T>>();
   const evaluate = (entries: GoalDeckEntry[], limit = budget) => {
     if (!legal(entries)) return;

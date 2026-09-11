@@ -198,3 +198,40 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking');
   assert.ok(!planRun(empty, { ...settings, showUnowned: false }, { '30052': null }, data).ranking.some((r) => r.card.id === 30052));
 });
+
+test('retained decks update estimates and limit breaks, but cannot bypass ownership, pins or trainee exclusion', () => {
+  const input = { ...structuredClone(empty), traineeCardId: sw.cardId };
+  const initial = planRun(input, settings, {}, data, { search: false });
+  const previous = initial.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
+  const edited = { ...input, goal: { ...input.goal, pinkStars: 3 as const } };
+  const retained = planRun(edited, settings, {}, data, { previous, search: false });
+  const explicit = planRun(edited, settings, {}, data, { selection: previous, search: false });
+  assert.deepEqual(retained.deckResult.deck.map((e) => e.card.id), previous.map((e) => e.id));
+  assert.deepEqual(retained.goalEstimate, explicit.goalEstimate, 'retention evaluates the latest goal');
+  assert.notDeepEqual(retained.goalEstimate, initial.goalEstimate);
+  const owned = previous.find((e) => !e.borrowed)!;
+  const lower = planRun(input, settings, { [owned.id]: 0 }, data, { previous, search: false });
+  assert.equal(lower.deckResult.deck.find((e) => e.card.id === owned.id && !e.borrowed)?.lb, 0);
+  const unowned = planRun(input, settings, { [owned.id]: null }, data, { previous, search: false });
+  assert.ok(!unowned.deckResult.deck.some((e) => e.card.id === owned.id && !e.borrowed));
+  const pin = data.cards.find((c) => c.charId !== sw.charId && !previous.some((e) => e.id === c.id))!;
+  const pinned = planRun({ ...input, pinnedIds: [pin.id] }, settings, {}, data, { previous, search: false });
+  assert.ok(pinned.deckResult.deck.some((e) => e.card.id === pin.id));
+  const nextTrainee = data.characters.find((c) => previous.some((e) => data.cardById.get(e.id)!.charId === c.charId))!;
+  const changed = planRun({ ...input, traineeCardId: nextTrainee.cardId }, settings, {}, data, { previous, search: false });
+  assert.ok(changed.deckResult.deck.every((e) => e.card.charId !== nextTrainee.charId));
+  const incomplete = planRun(input, settings, Object.fromEntries(data.cards.map((c) => [c.id, null])), data, { previous, search: false });
+  assert.ok(incomplete.issues.some((s) => s.includes('Incomplete deck')));
+  assert.ok(incomplete.deckResult.deck.every((e) => e.borrowed));
+});
+
+test('partial input still builds for new white targets when a full goal search cannot run', () => {
+  const initial = planRun(empty, settings, {}, data, { search: false });
+  const previous = initial.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
+  const target = resolveTarget(200352, data)!;
+  const input = { ...empty, targets: [{ id: target.id, role: 'required' as const, stars: 2 as const }] };
+  const partial = planRun(input, settings, {}, data, { previous, search: false });
+  const expected = planRun(input, settings, {}, data, { search: false });
+  assert.deepEqual(partial.deckResult.deck.map((e) => e.card.id), expected.deckResult.deck.map((e) => e.card.id));
+  assert.ok(partial.deckResult.sparks.get(target.id)! > 0, 'white target coverage remains useful without a trainee');
+});

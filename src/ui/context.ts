@@ -28,44 +28,48 @@ export function refresh() { renderer(); }
 export function update(fn: (s: AppState) => void) { fn(store); saveState(store); renderer(); }
 
 let cache: { key: string; value: RunPlan } | null = null;
-export const searchState = { pending: false, refining: false, error: '' };
+export const searchState = { pending: false, error: '' };
 let worker: Worker | null = null, requestId = 0;
+let timer: ReturnType<typeof setTimeout> | undefined;
 let previous: DeckSelection | undefined;
 export function retrySearch() { cache = null; renderer(); }
-/** The current run plan, recomputed only when the run, settings or inventory changed. */
+/** Keep the displayed cards while updating their estimates and searching after a pause in editing. */
 export function plan(): RunPlan {
   const key = JSON.stringify([store.run, store.settings, store.inventory]);
-  if (cache && cache.key === key) return cache.value;
-  if (searchState.pending) { worker?.terminate(); worker = null; }
+  if (cache?.key === key) return cache.value;
+  clearTimeout(timer);
+  worker?.terminate(); worker = null;
   const id = ++requestId;
-  const value = planRun(store.run, store.settings, store.inventory, data, { search: false });
+  const value = planRun(store.run, store.settings, store.inventory, data, { previous, search: false });
+  previous = value.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   cache = { key, value };
   searchState.error = '';
-  searchState.refining = false;
   searchState.pending = !!value.trainee && !value.issues.length && store.run.goal.blueStats.length > 0;
-  if (searchState.pending) {
-    worker ??= new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
-    worker.onmessage = (event: MessageEvent<PlanWorkerResponse>) => {
-      if (event.data.id !== requestId || cache?.key !== key) return;
-      searchState.pending = !event.data.complete;
-      searchState.refining = !event.data.complete;
-      searchState.error = event.data.error ?? '';
-      if (!searchState.error && event.data.selection) {
-        cache.value = planRun(store.run, store.settings, store.inventory, data, { selection: event.data.selection, summary: event.data.summary, search: false });
-        previous = event.data.selection;
-      }
-      if (searchState.error) { worker?.terminate(); worker = null; }
-      renderer();
-    };
-    worker.onerror = () => {
-      if (id !== requestId) return;
+  if (searchState.pending) timer = setTimeout(() => {
+    const fail = () => {
+      if (id !== requestId || cache?.key !== key) return;
       searchState.pending = false;
-      searchState.refining = false;
       searchState.error = 'Deck search could not finish.';
       worker?.terminate(); worker = null;
       renderer();
     };
-    worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory, previous } satisfies PlanWorkerRequest);
-  }
+    try {
+      worker = new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
+      worker.onerror = fail;
+      worker.onmessage = (event: MessageEvent<PlanWorkerResponse>) => {
+        if (id !== requestId || event.data.id !== id || cache?.key !== key) return;
+        if (event.data.error) { fail(); return; }
+        // Publish once, after both search stages, so intermediate results do not move the editor.
+        if (!event.data.complete || !event.data.selection) return;
+        cache.value = planRun(store.run, store.settings, store.inventory, data,
+          { selection: event.data.selection, summary: event.data.summary, search: false });
+        previous = event.data.selection;
+        searchState.pending = false;
+        worker?.terminate(); worker = null;
+        renderer();
+      };
+      worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory, previous } satisfies PlanWorkerRequest);
+    } catch { fail(); }
+  }, 400);
   return value;
 }

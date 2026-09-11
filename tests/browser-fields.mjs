@@ -6,7 +6,7 @@ import { migrate, STATE_KEY } from '../src/state.ts';
 const data = loadData();
 
 export async function waitForPlan(page) {
-  await page.waitForFunction(() => !document.querySelector('[data-plan-pending], [data-plan-refining]'), undefined, { timeout: 45000 });
+  await page.waitForFunction(() => !document.querySelector('[data-plan-pending]'), undefined, { timeout: 45000 });
 }
 /** Existing interaction regressions inspect completed recommendations; loading has its own regression. */
 export function settlePlanActions(page) {

@@ -6,7 +6,7 @@ import { evaluateParentGoal, goalRankBands, pinkEstimate, type GoalEstimate } fr
 import { buildDeck, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
-import { goalDeckKey, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
+import { goalDeckConstraints, goalDeckKey, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
@@ -80,7 +80,7 @@ export type DeckSelection = { id: number; lb: number; borrowed?: boolean }[];
 export interface RunOptions {
   search?: boolean;
   selection?: DeckSelection;
-  previous?: DeckSelection;
+  previous?: DeckSelection;              // search seed, or a retained legal deck when search is disabled
   onProgress?: (selection: DeckSelection, summary: GoalSearchSummary) => void;
   summary?: GoalSearchSummary;
   budget?: number;
@@ -217,8 +217,16 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const order = (cands: WishlistEntry[]) => applyUserOrder(cands, input.wishlistOrder, input.wishlistExcluded, data)
     .sort((a, b) => Number(isRequired(b)) - Number(isRequired(a)));
   const pink = pinkEstimate(apt, goal.pink, goal.pinkStars, input.pinkLineage, settings.affinity, settings.pinkInspirationRates);
+  const previous = options.previous?.flatMap((e) => {
+    const card = data.cardById.get(e.id);
+    if (!card) return [];
+    const lb = e.borrowed ? BORROWED_LB : effectiveLb(inventory, card, settings.defaultLb);
+    return lb === null ? [] : [{ card, lb, borrowed: e.borrowed }];
+  });
+  const retained = options.search === false && trainee && goal.blueStats.length > 0 && previous && goalDeckConstraints({ owned: deckPool, borrows: borrowPool,
+    pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee?.charId ?? null })?.legal(previous) ? previous : undefined;
   const initial = options.selection ? describeDeck(options.selection.map((e) => ({ card: data.cardById.get(e.id)!, lb: e.lb, borrowed: e.borrowed })), targets, baseCtx)
-    : buildDeck(deckPool, targets, baseCtx, { ...build, swapPasses: 0 });
+    : retained ? describeDeck(retained, targets, baseCtx) : buildDeck(deckPool, targets, baseCtx, { ...build, swapPasses: 0 });
   const issues: string[] = [];
   const ownedCount = initial.deck.filter((d) => !d.borrowed).length;
   const borrowedCount = initial.deck.filter((d) => d.borrowed).length;
@@ -264,12 +272,6 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       return { score: found.best.score, evaluated: found.evaluated, screened: found.screened, exhaustive: found.exhaustive, unavailableWhiteIds,
         alternatives: alternatives.slice(0, 5).map((c) => ({ cardId: c.entries.find((e) => e.borrowed)!.card.id, score: c.score })) };
     };
-    const previous = options.previous?.flatMap((e) => {
-      const card = data.cardById.get(e.id);
-      if (!card) return [];
-      const lb = e.borrowed ? BORROWED_LB : effectiveLb(inventory, card, settings.defaultLb);
-      return lb === null ? [] : [{ card, lb, borrowed: e.borrowed }];
-    });
     const found = searchGoalDeck({ owned: deckPool, borrows: borrowPool, ownedOrders: orders(baseRanking), borrowOrders: orders(borrowRanking),
       seeds: [initial.deck, ...(previous ? [previous] : [])], pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId,
       tolerance: settings.goalTieTolerance, budget: options.budget, evaluate: evaluateCandidate,
@@ -291,7 +293,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     deckResult.steps = [`Best deck found after fully evaluating ${search.evaluated} legal decks${search.screened ? ` and screening ${search.screened} decks with a cheaper estimate` : ''}${search.exhaustive ? '; every legal deck in this small pool was checked' : '; bounded search does not guarantee the global best'}.`,
       `Required goals come first. Preferred sparks on successful parents can decide within ${(settings.goalTieTolerance * 100).toLocaleString()}% of the best required chance found.`,
       ...pinnedIds.filter((id) => !deckResult.deck.some((e) => e.card.id === id)).map((id) => `${data.cardById.get(id)!.name} was not selected. Pins compete when slots or character restrictions prevent including them together.`)];
-  } else deckResult.steps = initial.steps;
+  } else deckResult.steps = retained ? ['Kept the displayed cards and updated their estimates for your current inputs.'] : initial.steps;
   const spCost = targetSpCost(targets, deckResult.coverage);
   return {
     search, priorityIssues, goalEstimate, issues, trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,

@@ -34,16 +34,14 @@ main { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 16px; pa
 section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; box-shadow: 0 1px 2px var(--shadow); }
 .panel-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; min-height: 26px; flex-wrap: wrap; }
 .panel-head h2 { font-size: 15px; margin: 0; }
-section.panel:has([data-plan-pending]) > .panel-head::before,
-[data-plan-refining] + section.panel > .panel-head::before {
+[data-plan-pending] + section.panel > .panel-head::before {
   content: ''; box-sizing: border-box; width: 22px; height: 22px; flex-shrink: 0;
   border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%;
   animation: deck-search-spin .8s linear infinite;
 }
 @keyframes deck-search-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) {
-  section.panel:has([data-plan-pending]) > .panel-head::before,
-  [data-plan-refining] + section.panel > .panel-head::before { animation-duration: 2s; }
+  [data-plan-pending] + section.panel > .panel-head::before { animation-duration: 2s; }
 }
 .panel-sub, .sub-note { color: var(--muted); font-size: 12px; font-weight: 400; text-transform: none; letter-spacing: 0; }
 .panel-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }

@@ -45,7 +45,7 @@ const inventoryFile = (inventory) => ({ name: 'inventory.json', mimeType: 'appli
 const noCards = () => Object.fromEntries(data.cards.map((c) => [c.id, null]));
 const predictions = (page) => page.locator('h3', { hasText: 'Predicted run' });
 
-test('a fully checked recommendation stays visible during refinement and edits replace obsolete progress', async (t) => {
+test('the deck stays mounted during search and edits update its estimates immediately', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100501;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
@@ -53,7 +53,7 @@ test('a fully checked recommendation stays visible during refinement and edits r
   const page = await fresh(t, saved, false);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const chance = async () => parseFloat((await page.locator('[data-goal-probability]').innerText()).split('\n')[0]);
-  await page.waitForSelector('[data-plan-refining]');
+  await page.waitForSelector('[data-plan-pending]', { state: 'attached' });
   const head = page.locator('.panel-head').filter({ has: page.getByRole('heading', { name: 'Suggested deck', exact: true }) });
   const spinner = await head.evaluate((el) => {
     const style = getComputedStyle(el, '::before');
@@ -73,11 +73,13 @@ test('a fully checked recommendation stays visible during refinement and edits r
   assert.equal(await head.evaluate((el) => getComputedStyle(el, '::before').content), 'none');
   const finished = await chance();
   assert.ok(finished >= initial && finished >= 4.9, 'find the known better Fuji deck without a Maruzensky pin');
+  await page.evaluate(() => { window.retainedDeck = document.querySelector('.deck'); window.retainedList = document.querySelector('.wishlist'); });
   await page.selectOption('[data-goal-stars="pink"]', '3');
-  await page.waitForSelector('[data-plan-refining]');
+  await page.waitForSelector('[data-plan-pending]', { state: 'attached' });
   assert.ok(await chance() < 1, 'the intermediate estimate uses the new pink requirement');
   await page.selectOption('[data-goal-stars="pink"]', '2');
-  assert.equal(await page.locator('[data-goal-result]').count(), 0, 'obsolete progress is hidden after an edit');
+  assert.equal(await page.locator('[data-goal-result]').count(), 1, 'current estimates remain visible after an edit');
+  assert.equal(await page.evaluate(() => window.retainedDeck === document.querySelector('.deck') && window.retainedList === document.querySelector('.wishlist')), true, 'deck and skill editor remain mounted');
   await waitForPlan(page);
   assert.ok(await chance() >= finished, 'a previously discovered legal deck remains a candidate after edits');
   await assertFieldsMatchState(page, 'after replacing a refinement in progress');
@@ -107,7 +109,7 @@ test('a failed refinement preserves the checked deck and can be retried', async 
     };
   });
   await page.reload();
-  assert.match(await page.locator('[role="alert"]').innerText(), /fully checked recommendation below is still available/);
+  assert.match(await page.locator('[role="alert"]').innerText(), /displayed deck's estimates match your current inputs/);
   assert.equal(await page.locator('.deck .slot').count(), 6);
   assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) > 0);
   assert.deepEqual((await state(page)).run.targets, saved.run.targets);
@@ -122,7 +124,8 @@ test('search stays responsive, ignores obsolete results, and persists the tie se
   saved.run.traineeCardId = 100101;
   const page = await fresh(t, saved, false);
   assert.equal(await page.locator('[data-plan-pending]').count(), 1);
-  assert.equal(await page.locator('[data-goal-result]').count(), 0, 'old recommendations are hidden during search');
+  assert.equal(await page.locator('[data-goal-result]').count(), 1, 'the displayed deck has current estimates during search');
+  assert.equal(await page.locator('.deck .slot').count(), 6);
   await page.locator('[data-goal-stars="blue"]').selectOption('3');
   await page.locator('[data-goal-stars="pink"]').selectOption('3');
   assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '3', 'inputs respond during search');
@@ -141,6 +144,55 @@ test('search stays responsive, ignores obsolete results, and persists the tie se
   await page.locator('[data-details="advanced"] > summary').click();
   assert.equal(await page.inputValue('[data-setting="goalTieTolerance"]'), '0');
   await assertFieldsMatchState(page, 'after reloading the search preference');
+});
+
+test('editing waits for a pause, ignores intermediate and cancelled results, and keeps the phone editor in place', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100501;
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.inventory['30017'] = null;
+  const page = await fresh(t, saved, false);
+  await waitForPlan(page);
+  await page.addInitScript(() => {
+    window.searchWorkers = [];
+    window.Worker = class {
+      constructor() { window.searchWorkers.push(this); }
+      postMessage(request) { this.request = request; }
+      terminate() { this.terminated = true; }
+      deliver(selection, complete = true) { this.onmessage({ data: { id: this.request.id, selection, complete } }); }
+    };
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await page.waitForFunction(() => window.searchWorkers.length === 1);
+  const cards = () => page.locator('.deck .card-link').evaluateAll((els) => els.map((el) => el.getAttribute('href')));
+  const original = await cards();
+  const alternative = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
+  await page.evaluate((selection) => window.searchWorkers[0].deliver(selection, false), alternative);
+  assert.deepEqual(await cards(), original, 'the first search stage does not replace the deck');
+  await page.evaluate(() => { window.retainedDeck = document.querySelector('.deck'); window.retainedList = document.querySelector('.wishlist'); });
+  const heading = page.locator('h3').filter({ hasText: 'Prioritized skills' });
+  await heading.scrollIntoViewIfNeeded();
+  const position = () => heading.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+  const before = await position();
+  await page.locator('[data-action="wl-down"]:not([disabled])').first().click();
+  assert.ok(Math.abs(await position() - before) <= 1, 'reordering does not collapse the content above the editor');
+  await page.evaluate(() => {
+    const field = document.querySelector('[data-goal-stars="pink"]');
+    for (const value of ['3', '1', '2']) { field.value = value; field.dispatchEvent(new Event('change', { bubbles: true })); }
+  });
+  assert.equal(await page.evaluate(() => window.searchWorkers.length), 1, 'rapid edits wait before starting another worker');
+  assert.equal(await page.evaluate(() => window.searchWorkers[0].terminated), true);
+  await page.waitForFunction(() => window.searchWorkers.length === 2);
+  assert.equal(await page.evaluate(() => window.searchWorkers[1].request.run.goal.pinkStars), 2);
+  await page.evaluate((selection) => window.searchWorkers[0].deliver(selection), alternative);
+  assert.deepEqual(await cards(), original, 'a cancelled search cannot publish a late result');
+  assert.equal(await page.evaluate(() => window.retainedDeck === document.querySelector('.deck') && window.retainedList === document.querySelector('.wishlist')), true);
+  await page.evaluate((selection) => window.searchWorkers[1].deliver(selection), alternative);
+  await waitForPlan(page);
+  assert.notDeepEqual(await cards(), original, 'the final result replaces the cards once');
+  assert.equal(await page.locator('.deck .slot').count(), 6);
+  await assertFieldsMatchState(page, 'after debounced search and skill reordering');
 });
 
 test('required skill priority is visible and the export follows the displayed order and exclusions', async (t) => {
@@ -253,14 +305,17 @@ test('skill advice includes prerequisite costs and buyable circle upgrades', asy
   assert.equal(await page.locator('.wishlist').getByText('Right-Handed ◎', { exact: true }).count(), 0);
 });
 
-test('the borrow description reports complete-deck goal chance', async (t) => {
+test('a fresh visit shows a general starting deck without prototype controls or borrow prose', async (t) => {
   const page = await fresh(t);
-  await trainee(page);
-  for (const skill of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) await target(page, skill);
-  const advice = await page.locator('.small.gap-top').filter({ hasText: /^Borrow:/ }).innerText();
-  const chance = (await page.locator('[data-goal-probability]').innerText()).split('\n')[0];
-  assert.ok(advice.includes(`${chance} for every requirement`));
-  assert.doesNotMatch(advice, /expected sparks|best stat stick/);
+  assert.equal(await page.locator('.deck .slot').count(), 6);
+  assert.equal(await page.locator('.deck .slot').filter({ hasText: /Maruzensky|Smart Falcon/ }).count(), 0);
+  assert.equal(await page.locator('.deck .tag.borrow').count(), 1, 'the borrowed card still has its badge');
+  assert.equal(await page.locator('[data-goal-borrow]').count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Search again', exact: true }).count(), 0);
+  assert.equal(await page.getByText('Complete the required inputs to search.', { exact: true }).count(), 0);
+  assert.equal(await page.inputValue('#trainee-search'), '');
+  assert.equal(await page.locator('.target-row').count(), 0);
+  await assertFieldsMatchState(page, 'general starting deck');
 });
 
 test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious circle upgrades', async (t) => {

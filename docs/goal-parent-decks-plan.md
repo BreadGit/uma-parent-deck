@@ -189,7 +189,7 @@ deck, revisit this comparison rule before extending the search.
 
 ### Skill choices and recommendation text
 
-Adapt borrow alternatives and explanatory text to the new objective. Keep standalone card
+Keep the borrowed-card badge; omit the separate Borrow paragraph. Keep standalone card
 statistics informative but avoid suggesting that card scores add up to a complete-deck success rate.
 Apply required-target priority consistently to event choices and the exported prioritized-skill
 list; a preferred skill must not displace a required target from a contested choice by accident.
@@ -220,11 +220,14 @@ all fully checked candidates, including the initial recommendation. Small legal 
 exhaustive search instead. The [search notes](goal-parent-search.md) record limits and measurements;
 physical-phone timing remains to be checked on the user's device.
 
-Show "Finding a deck…" until the first checked result, then keep that result visible while
-the spinner beside Suggested deck identifies refinement. Allow input edits; cancel or ignore obsolete
-searches and never present old results as belonging to the new goal. Reuse a previous recommendation
-as a seed only after validating it against current inputs and rescoring it. Keep the checked result
-if refinement fails, and offer retry. Browser tests cover these states and input responsiveness.
+Keep the deck and skill editor visible while a spinner beside Suggested deck identifies search.
+Update the displayed deck's estimates immediately after input changes. Reuse its cards only after
+checking current ownership, limit breaks, pins and trainee constraints. Build a legal replacement
+when needed. Wait 400 ms after the last edit before searching, cancel obsolete workers, and apply
+only the final result. Keep the displayed deck if search fails and offer retry below the result.
+Remove the separate Borrow paragraph and prototype search panel. A fresh visit uses the normal
+inventory-based starting deck with empty trainee and target inputs, without the prototype fixture.
+Browser tests cover these states, input responsiveness, and a retained phone editor.
 
 ## Deferred work
 

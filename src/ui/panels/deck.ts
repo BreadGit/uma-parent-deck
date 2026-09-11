@@ -11,7 +11,7 @@ import { BLUE_STAR_BANDS, cardContribution, EFFECT, pAbove, passives, raceScale,
 import { statScore } from '../../model/rank.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { data, plan, store, update } from '../context.ts';
-import { capitalize, cardLink, cardThumb, goalProbability, num, pct, pill, skillName, skillWithTip, typeIcon } from '../format.ts';
+import { capitalize, cardLink, cardThumb, num, pct, pill, skillName, skillWithTip, typeIcon } from '../format.ts';
 import { panel, sub } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 import { lbSelect } from './ranking.ts';
@@ -112,12 +112,8 @@ export function renderDeck(c: RunPlan) {
       <div class="lb">${cs.borrowed ? html`LB4 (friend's)` : html`LB ${lbSelect(cs.card, cs.lb, 'small')}`}</div>
       <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} <span class="n"><span class="muted">spark</span> ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span></span>`)}</div>
     </div>`)}</div>` : html`<div class="muted">No owned cards. Mark the cards you own in the card ranking.</div>`;
-  const scoreText = (score: NonNullable<RunPlan['search']>['score']) => `${goalProbability(score.probability)}${score.probability === score.upperProbability ? '' : ' to ' + goalProbability(score.upperProbability)} for ${score.count === score.total ? 'every requirement' : score.count + ' of ' + score.total + ' requirements'}`;
-  const borrow = d.borrow ? html`<div class="small gap-top" data-goal-borrow><b>Borrow:</b> ${cardLink(d.borrow.card)} at LB4.
-    ${c.search ? html`This complete deck has ${scoreText(c.search.score)}.
-      ${c.search.alternatives.length ? html`<span class="muted">Other legal borrows with the same owned cards: ${c.search.alternatives.map((o) => `${data.cardById.get(o.cardId)!.name} (${scoreText(o.score)})`).join('; ')}.</span>` : nothing}` : nothing}</div>` : nothing;
   return panel({ title: 'Suggested deck', tip: 'Five owned cards and one borrowed card. Search favors completing every required spark, then preferred sparks on successful parents within the advanced tie tolerance. This is the best deck found under the estimates, not a guaranteed global optimum. Standalone card spark chances do not add up to this complete-deck probability.' }, html`
-    ${deck}${borrow}
+    ${deck}
     ${c.issues.length ? html`<div role="alert" data-plan-issues>${c.issues.map((issue) => html`<p class="warn">${issue}</p>`)}</div>` : renderPrediction(c)}
     <details><summary>How the deck was built</summary><ol class="small">${d.steps.map((s) => html`<li>${s}</li>`)}</ol></details>`);
 }
