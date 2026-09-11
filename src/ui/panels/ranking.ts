@@ -9,7 +9,7 @@ import { cardTargetChances, compareTargetChances, type TargetSparkChance } from 
 import { MODELLED_UNIQUE_TYPES, uniqueNote } from '../../model/stats.ts';
 import { modelContribution } from '../../model/stats.ts';
 import { data, store, update } from '../context.ts';
-import { cardThumb, cardUrl, num, pct, pill, skillName, typeIcon } from '../format.ts';
+import { cardThumb, cardUrl, goalProbability, num, pct, skillName, typeIcon } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 import { pinCard, unpinCard } from './run.ts';
@@ -53,16 +53,17 @@ const SORT_KEYS: Record<string, (x: CardScore) => number> = {
   speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
 };
 const TARGET_TIP = 'Sorted by the sum of Required target chances, then Preferred target chances, then Total stat gain. Each percentage uses this card\'s own skill sources and assumes rank SS for star quality. Required sparks use your minimum stars; Preferred sparks use 2★+. Current skill priorities and lineage generation bonuses apply. Trainee, scenario, inherited hints and other cards are excluded. These are individual chances, not the improvement from replacing a card or the chance of completing your parent goal.';
-const targetLabel = (x: TargetSparkChance) => `${x.role === 'required' ? 'Required' : 'Preferred'} · ${x.target.name} ${x.stars}★+`;
+const targetLabel = (x: TargetSparkChance) => `${x.target.name} ${x.stars}★+`;
 const sourceDetails = (x: TargetSparkChance) => x.sources.length
   ? x.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)} skill acquisition`).join('\n')
   : 'No available source on this card under the current skill priorities.';
-const targetDetails = (x: TargetSparkChance) => `${targetLabel(x)}: ${pct(x.probability, 1)}\n${sourceDetails(x)}`;
+const targetDetails = (x: TargetSparkChance) => `${targetLabel(x)}: ${goalProbability(x.probability)}\n${sourceDetails(x)}`;
 function targetChancesCell(targets: TargetSparkChance[]) {
-  const hidden = targets.slice(4);
+  const available = targets.filter((x) => x.probability > 0);
+  const hidden = available.slice(4);
   const more = hidden.map(targetDetails).join('\n\n');
   return html`<td class="cover target-chances" data-target-chances>
-    ${targets.length ? targets.slice(0, 4).map((x) => html`<div class="target-spark" data-target-spark="${x.target.id}"><span>${targetLabel(x)}</span> <span class="target-spark-value">${pill(x.probability, '', 1)}${tip(sourceDetails(x))}</span></div>`) : html`<span class="muted">No targets selected</span>`}
+    ${available.slice(0, 4).map((x) => html`<div class="target-spark" data-target-spark="${x.target.id}"><span>${targetLabel(x)}</span> <span class="target-spark-value"><span class="pill">${goalProbability(x.probability)}</span>${tip(sourceDetails(x))}</span></div>`)}
     ${hidden.length ? html`<button type="button" class="target-more" data-target-more data-tip="${more}" aria-label="${hidden.length} more targets. ${more}">+${hidden.length} more</button>` : nothing}
   </td>`;
 }

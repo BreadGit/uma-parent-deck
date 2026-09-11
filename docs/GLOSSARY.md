@@ -138,8 +138,8 @@ names differ they are noted.
   and other cards. Star quality assumes rank SS on every run. Required targets use their selected
   minimum stars, and Preferred targets use 2★+. These are not changes to the suggested deck's goal
   estimate. Cards sort by the sum of Required chances, then Preferred chances, then Total stat gain;
-  sums are not displayed. Pins follow the selected sort. Required targets appear first, with at most
-  four targets visible per card and the rest available in a tooltip.
+  sums are not displayed. Pins follow the selected sort. Only positive chances appear, with Required
+  targets first and no role labels. At most four targets are visible per card; the rest are in a tooltip.
 - **Coverage**: which target hints the run can obtain and through which sources. Spark chance assumes the
   player buys the gold form when available, otherwise a released ◎ upgrade if that family has one, otherwise the base skill.
   **Worst-case target SP cost**: the total base cost of those purchases, including every lower form required,
