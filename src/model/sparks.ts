@@ -55,7 +55,11 @@ interface SourceBase extends SkillForm {
 /** A source that is not tied to an event choice. */
 export interface PlainSource extends SourceBase { kind: 'hint' | 'innate' | 'awakening' | 'char-event' | 'lineage'; isChoice: false }
 /** A source from a card event, one of the trainee's own events, or the scenario. Choice-gated when the skill comes from one option among several. */
-export interface EventSource extends SourceBase { kind: CardEvent['kind'] | TraineeEvent['kind'] | 'scenario'; isChoice: boolean; event: EventRef; linkedCharId?: number; chain?: ChainRef; roll?: { pFire: number; outcomes: Reward[][] } }
+export interface EventSource extends SourceBase { kind: CardEvent['kind'] | TraineeEvent['kind'] | 'scenario'; isChoice: boolean; event: EventRef; linkedCharId?: number; chain?: ChainRef; roll?: EventRoll }
+export interface SkillReward extends SkillForm { skillId: number; share: number; rolled: boolean }
+/** Equally likely outcomes contain independent reward draws; skills within each draw are exclusive. */
+export interface EventRoll { pFire: number; outcomes: SkillReward[][][] }
+export interface ResolvedEvent { event: EventRef; chain?: ChainRef; roll: EventRoll }
 export type SkillSource = PlainSource | EventSource;
 export type SourceKind = SkillSource['kind'];
 /** Narrow to a choice-gated source, which always has its event. */
@@ -101,6 +105,49 @@ export function outcomeSkillShares(outcome: Reward[], data: Data, settings: Sett
   return out;
 }
 
+/** Decode raw rewards once, before either estimator sees an event. Duplicate reward draws count once. */
+export function decodeEventRoll(raw: { pFire: number; outcomes: Reward[][] }, data: Data, settings: Settings): EventRoll {
+  return { pFire: raw.pFire, outcomes: raw.outcomes.map((outcome) => {
+    const draws = new Map<string, SkillReward[]>();
+    for (const reward of outcome) {
+      const shares = [...outcomeSkillShares([reward], data, settings)].sort(([a], [b]) => a - b);
+      if (shares.length) draws.set(JSON.stringify(shares), shares.map(([skillId, chance]) => ({ skillId, ...chance, ...formOf(skillId, data) })));
+    }
+    return [...draws.values()];
+  }) };
+}
+
+/** Conditional chance of any matching skill, retaining both shared outcomes and independent draws. */
+function rollChance(roll: EventRoll, matches: (reward: SkillReward) => boolean): number {
+  return roll.outcomes.reduce((p, outcome) => p + (1 - outcome.reduce((miss, draw) =>
+    miss * (1 - Math.min(1, draw.reduce((sum, reward) => sum + (matches(reward) ? reward.share : 0), 0))), 1)) / roll.outcomes.length, 0);
+}
+
+/** Resolve retained sources into the event outcomes shared by coverage and joint estimation.
+ * Removing a reward leaves its probability as no skill; the remaining shares never renormalize.
+ */
+export function resolveEventSources(sources: EventSource[]): ResolvedEvent[] {
+  const groups = new Map<string, EventSource[]>();
+  for (const source of sources) {
+    const key = `${source.event.key}#${source.event.optionIndex}`;
+    const group = groups.get(key) ?? [];
+    group.push(source); groups.set(key, group);
+  }
+  return [...groups.values()].map((group) => {
+    const first = group[0]!, allowed = new Set(group.map((s) => s.skillId));
+    let roll: EventRoll;
+    if (first.roll) roll = { pFire: first.roll.pFire,
+      outcomes: first.roll.outcomes.map((outcome) => outcome.map((draw) => draw.filter((reward) => allowed.has(reward.skillId)))) };
+    else {
+      // Completion rewards and undecoded events retain their existing exclusive marginal rates.
+      const unique = [...new Map(group.map((s) => [s.skillId, s])).values()];
+      const pFire = first.chain?.pReach ?? Math.min(1, unique.reduce((p, s) => p + s.pObtain, 0));
+      roll = { pFire, outcomes: [[unique.map((s) => ({ skillId: s.skillId, gold: s.gold, circle: s.circle, rolled: false, share: pFire ? s.pObtain / pFire : 0 }))]] };
+    }
+    return { event: first.event, chain: first.chain, roll };
+  });
+}
+
 const EVENT_LABEL: Record<CardEvent['kind'], string> = { chain: 'Chain event', random: 'Random event', recreation: 'Outing', special: 'Special event' };
 
 /** Settings are edited in place, so the cache key must reflect their current values. */
@@ -141,22 +188,21 @@ function scanEvent(ev: CardEvent | TraineeEvent, pFire: number, label: string, o
   const name = `${label} ${ev.index}${ev.name ? ` "${ev.name}"` : ''}`;
   const perChoice = ev.choices.map((choice) => {
     const nOut = choice.outcomes.length;
+    const roll = decodeEventRoll({ pFire, outcomes: choice.outcomes }, data, settings);
     const perSkill = new Map<number, { p: number; rolled: boolean }>();
-    for (const outcome of choice.outcomes) {
-      for (const [id, { share, rolled }] of outcomeSkillShares(outcome, data, settings)) {
-        const cur = perSkill.get(id) ?? { p: 0, rolled: false };
-        perSkill.set(id, { p: Math.min(1, cur.p + share / nOut), rolled: cur.rolled || rolled });
-      }
+    for (const reward of roll.outcomes.flat(2)) {
+      const cur = perSkill.get(reward.skillId);
+      perSkill.set(reward.skillId, { p: cur?.p ?? rollChance(roll, (r) => r.skillId === reward.skillId), rolled: reward.rolled || !!cur?.rolled });
     }
-    return { nOut, perSkill };
+    return { nOut, perSkill, roll };
   });
-  perChoice.forEach(({ nOut, perSkill }, ci) => {
+  perChoice.forEach(({ nOut, perSkill, roll }, ci) => {
     for (const [id, { p, rolled }] of perSkill) {
       const inAll = perChoice.every((c) => c.perSkill.has(id));
       const how = [nOut > 1 ? `one of ${nOut} outcomes` : '', rolled ? 'gold rolled against the white form' : ''].filter(Boolean).join(', ');
       out.push({ kind: ev.kind, skillId: id, gold: false, circle: false, pObtain: pFire * p, isChoice: nChoices > 1 && !inAll,
         event: { key: `${keyPrefix}:${ev.kind}:${ev.index}`, label: `${owner}'s ${name.charAt(0).toLowerCase()}${name.slice(1)}`, option: `option ${ci + 1}`, optionIndex: ci },
-        detail: `${name}${how ? ` (${how})` : ''}`, roll: { pFire, outcomes: ev.choices[ci]!.outcomes }, ...extra });
+        detail: `${name}${how ? ` (${how})` : ''}`, roll, ...extra });
     }
   });
   return out;
@@ -344,7 +390,7 @@ function computeScenarioOptions(data: Data, settings: Settings, present: Set<num
 
 export function scenarioSources(target: Target, data: Data, settings: Settings, present: Set<number>): SkillSource[] {
   return scenarioOptions(data, settings, present).filter((o) => target.familyIds.has(o.skillId))
-    .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...formOf(o.skillId, data), pObtain: settings.scenarioPickRate, isChoice: true, event: o.event, detail: o.detail, roll: { pFire: settings.scenarioPickRate, outcomes: [[{ t: 'sk', d: o.skillId }]] }, ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
+    .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...formOf(o.skillId, data), pObtain: settings.scenarioPickRate, isChoice: true, event: o.event, detail: o.detail, roll: decodeEventRoll({ pFire: settings.scenarioPickRate, outcomes: [[{ t: 'sk', d: o.skillId }]] }, data, settings), ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
 }
 
 /**
@@ -427,29 +473,23 @@ export function purchasedOwnership(target: Target, hints: Ownership): Ownership 
 }
 interface Mass { any: number; goldOrCircle: number; gold: number }
 const massOf = (s: SkillSource, p: number): Mass => ({ any: p, goldOrCircle: s.gold || s.circle ? p : 0, gold: s.gold ? p : 0 });
-const addMass = (a: Mass, b: Mass): Mass => ({ any: Math.min(1, a.any + b.any), goldOrCircle: Math.min(1, a.goldOrCircle + b.goldOrCircle), gold: Math.min(1, a.gold + b.gold) });
-const ZERO: Mass = { any: 0, goldOrCircle: 0, gold: 0 };
 
 /**
- * Combine a target's sources into ownership odds. Sources from one option of one event are mutually exclusive
- * outcomes and add up; a card's chain stages are nested (stage k implies every earlier stage), so a skill offered by
- * several stages is counted once per run; everything else is independent.
+ * Combine a target's sources into ownership odds using resolved event outcomes. Chain stages are nested
+ * (stage k implies every earlier stage), so a skill offered by several stages counts once per run.
  */
 export function combineSources(sources: SkillSource[]): Ownership {
   const groups = new Map<string, Mass>();
   const chains = new Map<string, Map<number, { pReach: number; q: Mass }>>();
   let n = 0;
-  for (const s of sources) {
-    if (isEventSource(s) && s.chain) {
-      const stages = chains.get(s.chain.key) ?? new Map<number, { pReach: number; q: Mass }>();
-      const cur = stages.get(s.chain.stage) ?? { pReach: s.chain.pReach, q: ZERO };
-      const q = s.chain.pReach > 0 ? s.pObtain / s.chain.pReach : 0; // chance given the stage is reached
-      stages.set(s.chain.stage, { pReach: cur.pReach, q: addMass(cur.q, massOf(s, q)) });
-      chains.set(s.chain.key, stages);
-      continue;
-    }
-    const key = isEventSource(s) ? `${s.event.key}#${s.event.optionIndex}` : `plain:${n++}`;
-    groups.set(key, addMass(groups.get(key) ?? ZERO, massOf(s, s.pObtain)));
+  for (const s of sources) if (!isEventSource(s)) groups.set(`plain:${n++}`, massOf(s, s.pObtain));
+  for (const { event, chain, roll } of resolveEventSources(sources.filter(isEventSource))) {
+    const q = { any: rollChance(roll, () => true), goldOrCircle: rollChance(roll, (s) => s.gold || s.circle), gold: rollChance(roll, (s) => s.gold) };
+    if (chain) {
+      const stages = chains.get(chain.key) ?? new Map<number, { pReach: number; q: Mass }>();
+      stages.set(chain.stage, { pReach: chain.pReach, q });
+      chains.set(chain.key, stages);
+    } else groups.set(`${event.key}#${event.optionIndex}`, { any: roll.pFire * q.any, goldOrCircle: roll.pFire * q.goldOrCircle, gold: roll.pFire * q.gold });
   }
   for (const [key, stages] of chains) {
     const ordered = [...stages].sort((a, b) => a[0] - b[0]);

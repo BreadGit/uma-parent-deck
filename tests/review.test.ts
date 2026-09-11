@@ -6,7 +6,7 @@ import { defaultState, migrate, STATE_VERSION } from '../src/state.ts';
 import { goalFamily, goalWithTargets } from '../src/model/goal-input.ts';
 import { evaluateParentGoal, pinkEstimate } from '../src/model/goal.ts';
 import { makeCtx, evaluate, traineeCoverage } from '../src/model/deck.ts';
-import { resolveTarget, outcomeSkillShares, type EventSource } from '../src/model/sparks.ts';
+import { decodeEventRoll, resolveTarget, outcomeSkillShares, type EventSource } from '../src/model/sparks.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
 import { planRun } from '../src/model/run.ts';
 
@@ -56,8 +56,8 @@ test('distinct whites sharing a gold upgrade do not supply each other', () => {
   const focus = resolveTarget(200432, data)!, gatekept = resolveTarget(200433, data)!;
   assert.equal(focus.familyIds.has(gatekept.id), false);
   assert.equal(gatekept.familyIds.has(focus.id), false);
-  const source: EventSource = { kind: 'random', skillId: focus.id, pObtain: 1, gold: false, circle: false, isChoice: false, detail: 'Focus only', event: { key: 'focus', label: 'Focus', option: 'one', optionIndex: 0 }, roll: { pFire: 1, outcomes: [[{ t: 'sk', d: focus.id }]] } };
-  const forms = jointSkillForms([focus, gatekept], new Map([[focus.id, [source]]]), data, DEFAULT_SETTINGS);
+  const source: EventSource = { kind: 'random', skillId: focus.id, pObtain: 1, gold: false, circle: false, isChoice: false, detail: 'Focus only', event: { key: 'focus', label: 'Focus', option: 'one', optionIndex: 0 }, roll: decodeEventRoll({ pFire: 1, outcomes: [[{ t: 'sk', d: focus.id }]] }, data, DEFAULT_SETTINGS) };
+  const forms = jointSkillForms([focus, gatekept], new Map([[focus.id, [source]]]), data);
   assert.deepEqual(whiteGenerationMoments(forms, [], DEFAULT_SETTINGS).available, [1, 0]);
 });
 
@@ -77,8 +77,8 @@ test('gold-roll decoding and duplicate rewards agree between joint and marginal 
   const target = resolveTarget(200352, data)!;
   const reward = { t: 'sr', d: [{ d: target.gold!.id, v: '1' }, { d: target.id, v: '1' }] };
   const shares = outcomeSkillShares([reward, reward], data, DEFAULT_SETTINGS);
-  const source: EventSource = { kind: 'random', skillId: target.id, pObtain: 1, gold: false, circle: false, isChoice: false, detail: 'Roll', event: { key: 'roll', label: 'Roll', option: 'one', optionIndex: 0 }, roll: { pFire: 1, outcomes: [[reward, reward]] } };
-  const result = whiteGenerationMoments(jointSkillForms([target], new Map([[target.id, [source]]]), data, DEFAULT_SETTINGS), [], DEFAULT_SETTINGS);
+  const source: EventSource = { kind: 'random', skillId: target.id, pObtain: 1, gold: false, circle: false, isChoice: false, detail: 'Roll', event: { key: 'roll', label: 'Roll', option: 'one', optionIndex: 0 }, roll: decodeEventRoll({ pFire: 1, outcomes: [[reward, reward]] }, data, DEFAULT_SETTINGS) };
+  const result = whiteGenerationMoments(jointSkillForms([target], new Map([[target.id, [source, { ...source, skillId: target.gold!.id, gold: true }]]]), data), [], DEFAULT_SETTINGS);
   close(result.each[0]!, shares.get(target.gold!.id)!.share * DEFAULT_SETTINGS.goldSparkRate + shares.get(target.id)!.share * DEFAULT_SETTINGS.whiteSparkRate);
 });
 

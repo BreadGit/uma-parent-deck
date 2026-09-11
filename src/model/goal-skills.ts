@@ -1,6 +1,6 @@
-import type { Data, Reward } from '../types.ts';
+import type { Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { outcomeSkillShares, hasWhiteSpark, isEventSource, type EventSource, type SkillSource, type Target } from './sparks.ts';
+import { resolveEventSources, hasWhiteSpark, isEventSource, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
 
 // Each digit records a family's best available form: none, white, circle, gold.
 interface Distribution { states: Map<string, number>; approximate: boolean }
@@ -79,57 +79,34 @@ function skillState(id: number, targets: Target[], data: Data): string {
     return skill?.rarity === 2 ? '3' : (t.circle && !t.circle.unreleasedEn) || skill?.name.includes('◎') ? '2' : '1';
   }).join('');
 }
-function rewardsDistribution(rewards: Reward[], targets: Target[], data: Data, settings: Settings): Distribution {
-  let dist = empty(targets.length);
-  const seen = new Set<string>();
-  for (const reward of rewards) {
-    const shares = [...outcomeSkillShares([reward], data, settings)].sort(([a], [b]) => a - b);
-    const key = JSON.stringify(shares);
-    if (!shares.length || seen.has(key)) continue;
-    seen.add(key);
-    const states = new Map<string, number>();
-    for (const [id, { share }] of shares) add(states, skillState(id, targets, data), share);
-    dist = combine(dist, { states, approximate: false });
-  }
-  return dist;
-}
-function eventDistribution(sources: EventSource[], targets: Target[], data: Data, settings: Settings): { conditional: Distribution; pFire: number } {
-  const first = sources[0]!;
-  if (first.roll) {
-    const states = new Map<string, number>();
-    let approximate = false;
-    for (const outcome of first.roll.outcomes) {
-      const dist = rewardsDistribution(outcome, targets, data, settings);
-      approximate ||= dist.approximate;
-      for (const [state, p] of dist.states) add(states, state, p / first.roll.outcomes.length);
-    }
-    return { conditional: states.size ? bound({ states, approximate }) : empty(targets.length), pFire: first.roll.pFire };
-  }
-  // Scenario completion and undecoded individual events use their existing marginal source rates.
+function eventDistribution(roll: EventRoll, targets: Target[], data: Data): Distribution {
   const states = new Map<string, number>();
-  const unique = [...new Map(sources.map((s) => [s.skillId, s])).values()];
-  const pFire = first.chain?.pReach ?? Math.min(1, unique.reduce((a, s) => a + s.pObtain, 0));
-  let total = 0;
-  for (const s of unique) {
-    const p = pFire ? s.pObtain / pFire : 0;
-    add(states, skillState(s.skillId, targets, data), p); total += p;
+  let approximate = false;
+  for (const outcome of roll.outcomes) {
+    let dist = empty(targets.length);
+    for (const draw of outcome) {
+      const rewards = new Map<string, number>();
+      let total = 0;
+      for (const { skillId, share } of draw) { add(rewards, skillState(skillId, targets, data), share); total += share; }
+      add(rewards, '0'.repeat(targets.length), Math.max(0, 1 - total));
+      dist = combine(dist, { states: rewards, approximate: false });
+    }
+    approximate ||= dist.approximate;
+    for (const [state, p] of dist.states) add(states, state, p / roll.outcomes.length);
   }
-  add(states, '0'.repeat(targets.length), Math.max(0, 1 - total));
-  return { conditional: { states, approximate: false }, pFire };
+  return states.size ? bound({ states, approximate }) : empty(targets.length);
 }
-function componentForms(targets: Target[], coverage: Map<number, SkillSource[]>, data: Data, settings: Settings): Distribution {
-  const events = new Map<string, EventSource[]>();
+function componentForms(targets: Target[], coverage: Map<number, SkillSource[]>, data: Data): Distribution {
+  const events: EventSource[] = [];
   let dist = empty(targets.length);
   for (const t of targets) for (const s of coverage.get(t.id) ?? []) {
     if (isEventSource(s)) {
-      const group = events.get(s.event.key) ?? [];
-      group.push(s); events.set(s.event.key, group);
+      events.push(s);
     } else dist = combine(dist, fires(fixed(skillState(s.skillId, targets, data)), s.pObtain, targets.length));
   }
   const chains = new Map<string, { stage: number; pReach: number; conditional: Distribution }[]>();
-  for (const sources of events.values()) {
-    const { conditional, pFire } = eventDistribution(sources, targets, data, settings);
-    const chain = sources[0]!.chain;
+  for (const { chain, roll } of resolveEventSources(events)) {
+    const conditional = eventDistribution(roll, targets, data), pFire = roll.pFire;
     if (!chain) { dist = combine(dist, fires(conditional, pFire, targets.length)); continue; }
     const stages = chains.get(chain.key) ?? [];
     stages.push({ stage: chain.stage, pReach: clamp(chain.pReach), conditional }); chains.set(chain.key, stages);
@@ -150,7 +127,7 @@ function componentForms(targets: Target[], coverage: Map<number, SkillSource[]>,
 }
 
 /** Factor independent families before evaluating shared events and chains. There is no target-count limit. */
-export function jointSkillForms(targets: Target[], coverage: Map<number, SkillSource[]>, data: Data, settings: Settings): FormDistribution {
+export function jointSkillForms(targets: Target[], coverage: Map<number, SkillSource[]>, data: Data): FormDistribution {
   const parents = targets.map((_, i) => i), sourceOwner = new Map<string, number>();
   const root = (i: number): number => parents[i] === i ? i : (parents[i] = root(parents[i]!));
   targets.forEach((target, i) => {
@@ -164,7 +141,7 @@ export function jointSkillForms(targets: Target[], coverage: Map<number, SkillSo
   });
   const groups = new Map<number, number[]>();
   targets.forEach((_, i) => { const key = root(i), group = groups.get(key) ?? []; group.push(i); groups.set(key, group); });
-  return { count: targets.length, components: [...groups.values()].map((indices) => ({ indices, distribution: componentForms(indices.map((i) => targets[i]!), coverage, data, settings) })) };
+  return { count: targets.length, components: [...groups.values()].map((indices) => ({ indices, distribution: componentForms(indices.map((i) => targets[i]!), coverage, data) })) };
 }
 export function whiteGenerationMoments(forms: FormDistribution, lineageCopies: number[], settings: Settings): { all: number; each: number[]; available: number[]; allAvailable: number; approximate: boolean } {
   const rates = [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];

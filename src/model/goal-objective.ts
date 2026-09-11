@@ -32,7 +32,7 @@ export function chooseGoal<T extends { score: GoalScore; key: string; statPower:
 export interface GoalSources { forms: FormDistribution; copies: number[] }
 export function goalSources(goal: ResolvedGoal, coverage: Map<number, SkillSource[]>, ctx: Ctx): GoalSources {
   const targets = [...goal.required.map((r) => r.id), ...goal.preferred].map((id) => resolveTarget(id, ctx.data)!);
-  return { forms: jointSkillForms(targets, coverage, ctx.data, ctx.settings), copies: targets.map((t) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; }) };
+  return { forms: jointSkillForms(targets, coverage, ctx.data), copies: targets.map((t) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; }) };
 }
 
 /** Score complete success first; bounded subset exploration supplies a useful fallback for zero goals. */

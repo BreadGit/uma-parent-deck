@@ -6,7 +6,7 @@ import { DEFAULT_RUN, migrate, defaultState, STATE_VERSION } from '../src/state.
 import { DEFAULT_GOAL as BASE_GOAL, emptyPinkLineage, sanitizePinkLineage, goalFamily, goalWithTargets, type ResolvedGoal } from '../src/model/goal-input.ts';
 import { goalRankBands, attemptsFor, blueChance, pinkEstimate, starChance, statGoalMoments as integrateStats, evaluateParentGoal as evaluateGoal, type GoalStats } from '../src/model/goal.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
-import { resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
+import { decodeEventRoll, resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES } from '../src/model/rules.ts';
 import { statScore, thresholdFor } from '../src/model/rank.ts';
 import { phi } from '../src/model/stats.ts';
@@ -33,7 +33,7 @@ const close = (actual: number, expected: number, tolerance = 1e-10) => assert.ok
 const apt = (): Record<AptKey, Grade> => Object.fromEntries(APTITUDE_KEYS.map((k) => [k, k === 'turf' ? 'A' : 'G'])) as Record<AptKey, Grade>;
 const lineage = () => Array.from({ length: 6 }, () => ({ aptitude: 'turf' as const, stars: 3 }));
 const plain = (skillId: number, pObtain = 1): SkillSource => ({ kind: 'hint', skillId, pObtain, gold: false, circle: false, isChoice: false, detail: 'Test hint' });
-const event = (skillId: number, overrides: Partial<EventSource> = {}): EventSource => ({ kind: 'random', skillId, pObtain: 0.5, gold: false, circle: false, isChoice: false, detail: 'Test event', event: { key: 'event', label: 'Event', option: 'one', optionIndex: 0 }, ...overrides });
+const event = (skillId: number, { roll, ...overrides }: Omit<Partial<EventSource>, 'roll'> & { roll?: Parameters<typeof decodeEventRoll>[0] } = {}): EventSource => ({ kind: 'random', skillId, pObtain: 0.5, gold: false, circle: false, isChoice: false, detail: 'Test event', event: { key: 'event', label: 'Event', option: 'one', optionIndex: 0 }, ...overrides, ...(roll ? { roll: decodeEventRoll(roll, data, settings) } : {}) });
 
 test('generation defaults use audited star tables and inclusive blue boundaries', () => {
   assert.deepEqual(BLUE_GENERATION_BANDS.map((b) => b.rates), [[.9, .1, 0], [.5, .45, .05], [.2, .7, .1]]);
@@ -165,9 +165,9 @@ test('inspiration prediction does not mutate or reapply inheritance to entered g
 });
 
 test('joint skill model preserves simultaneous and mutually exclusive event outcomes', () => {
-  const check = (outcomes: EventSource['roll']) => {
+  const check = (outcomes: Parameters<typeof decodeEventRoll>[0]) => {
     const sources = new Map([[a.id, [event(a.id, { roll: outcomes })]], [b.id, [event(b.id, { roll: outcomes })]]]);
-    return whiteGenerationMoments(jointSkillForms([a, b], sources, data, settings), [0, 0], settings);
+    return whiteGenerationMoments(jointSkillForms([a, b], sources, data), [0, 0], settings);
   };
   const exclusive = check({ pFire: 1, outcomes: [[{ t: 'sk', d: a.id }], [{ t: 'sk', d: b.id }]] });
   close(exclusive.all, 0);
@@ -180,7 +180,7 @@ test('joint skill model preserves simultaneous and mutually exclusive event outc
 });
 
 test('independent hint pickups combine without double-counting repeated sources', () => {
-  const forms = jointSkillForms([a, b], new Map([[a.id, [plain(a.id, .5), plain(a.id, .5)]], [b.id, [plain(b.id, .4)]]]), data, settings);
+  const forms = jointSkillForms([a, b], new Map([[a.id, [plain(a.id, .5), plain(a.id, .5)]], [b.id, [plain(b.id, .4)]]]), data);
   const result = whiteGenerationMoments(forms, [0, 0], settings);
   close(result.available[0]!, .75);
   close(result.available[1]!, .4);
@@ -191,12 +191,12 @@ test('independent hint pickups combine without double-counting repeated sources'
 test('one event choice cannot supply two conflicting required targets', () => {
   const sources = new Map<number, SkillSource[]>([[a.id, [event(a.id, { isChoice: true, pObtain: 1 })]], [b.id, [event(b.id, { isChoice: true, pObtain: 1, event: { key: 'event', label: 'Event', option: 'two', optionIndex: 1 } })]]]);
   const { map } = pruneConflicts(sources, [a.id, b.id], [], settings, [a, b]);
-  close(whiteGenerationMoments(jointSkillForms([a, b], map, data, settings), [], settings).all, 0);
+  close(whiteGenerationMoments(jointSkillForms([a, b], map, data), [], settings).all, 0);
 });
 
 test('later chain stage implies earlier stages without independent reach rolls', () => {
   const stage = (skillId: number, index: number, pReach: number) => event(skillId, { kind: 'chain', event: { key: `chain:${index}`, label: 'Chain', option: '', optionIndex: 0 }, chain: { key: 'card', stage: index, pReach }, roll: { pFire: pReach, outcomes: [[{ t: 'sk', d: skillId }]] } });
-  const forms = jointSkillForms([a, b], new Map([[a.id, [stage(a.id, 1, .7)]], [b.id, [stage(b.id, 3, .2)]]]), data, settings);
+  const forms = jointSkillForms([a, b], new Map([[a.id, [stage(a.id, 1, .7)]], [b.id, [stage(b.id, 3, .2)]]]), data);
   close([...forms.components[0]!.distribution.states.values()].reduce((x, p) => x + p, 0), 1);
   const result = whiteGenerationMoments(forms, [0, 0], settings);
   close(result.allAvailable, .2);
@@ -208,9 +208,9 @@ test('gold-or-white outcome and duplicate prerequisite rewards yield one family 
   const roll = { pFire: 1, outcomes: [[{ t: 'sr', d: [{ d: b.gold!.id, v: '1' }, { d: b.id, v: '1' }] }]] };
   const goldSource = event(b.gold!.id, { gold: true, roll });
   const whiteSource = event(b.id, { roll });
-  const forms = jointSkillForms([b], new Map([[b.id, [goldSource, whiteSource]]]), data, settings);
+  const forms = jointSkillForms([b], new Map([[b.id, [goldSource, whiteSource]]]), data);
   close(whiteGenerationMoments(forms, [2], settings).each[0]!, (.75 * .4 + .25 * .2) * 1.1 ** 2);
-  const doubled = jointSkillForms([b], new Map([[b.id, [event(b.id, { roll: { pFire: 1, outcomes: [[{ t: 'sk', d: b.id }, { t: 'sk', d: b.id }]] } })]]]), data, settings);
+  const doubled = jointSkillForms([b], new Map([[b.id, [event(b.id, { roll: { pFire: 1, outcomes: [[{ t: 'sk', d: b.id }, { t: 'sk', d: b.id }]] } })]]]), data);
   close(whiteGenerationMoments(doubled, [0], settings).each[0]!, .2);
 });
 
@@ -359,8 +359,8 @@ test('three families connected through overlapping events keep their joint avail
   const c = target('Lucky Seven');
   const ab = { pFire: .5, outcomes: [[{ t: 'sk', d: a.id }, { t: 'sk', d: b.id }]] };
   const bc = { pFire: .4, outcomes: [[{ t: 'sk', d: b.id }, { t: 'sk', d: c.id }]] };
-  const source = (id: number, key: string, roll: EventSource['roll']) => event(id, { event: { key, label: key, option: '', optionIndex: 0 }, roll });
-  const forms = jointSkillForms([a, b, c], new Map([[a.id, [source(a.id, 'ab', ab)]], [b.id, [source(b.id, 'ab', ab), source(b.id, 'bc', bc)]], [c.id, [source(c.id, 'bc', bc)]]]), data, settings);
+  const source = (id: number, key: string, roll: Parameters<typeof decodeEventRoll>[0]) => event(id, { event: { key, label: key, option: '', optionIndex: 0 }, roll });
+  const forms = jointSkillForms([a, b, c], new Map([[a.id, [source(a.id, 'ab', ab)]], [b.id, [source(b.id, 'ab', ab), source(b.id, 'bc', bc)]], [c.id, [source(c.id, 'bc', bc)]]]), data);
   const result = whiteGenerationMoments(forms, [0, 0, 0], settings);
   close(result.allAvailable, .5 * .4);
   close(result.available[1]!, .7);
@@ -372,7 +372,7 @@ const manyFamilies = [...new Map(data.skills.map((s) => resolveTarget(s.id, data
 test('many independent required families retain tiny probabilities without exponential expansion', () => {
   const targets = manyFamilies.slice(0, 50);
   assert.equal(targets.length, 50);
-  const forms = jointSkillForms(targets, new Map(targets.map((t) => [t.id, [plain(t.id, .5)]])), data, settings);
+  const forms = jointSkillForms(targets, new Map(targets.map((t) => [t.id, [plain(t.id, .5)]])), data);
   assert.equal(forms.components.length, 50);
   const result = whiteGenerationMoments(forms, [], settings);
   close(result.all / (.5 * .2) ** 50, 1);
@@ -385,8 +385,8 @@ test('large linked outcome groups are bounded, deterministic, and marked approxi
   const targets = [...new Map(manyFamilies.filter((t) => t.gold && !t.gold.unreleasedEn).map((t) => [t.gold!.id, t])).values()].slice(0, 16);
   assert.equal(targets.length, 16);
   const rewards = targets.map((t) => ({ t: 'sr', d: [{ d: t.gold!.id, v: '1' }, { d: t.id, v: '1' }] }));
-  const coverage = new Map(targets.map((t) => [t.id, [event(t.id, { roll: { pFire: 1, outcomes: [rewards] } })]]));
-  const evaluate = () => whiteGenerationMoments(jointSkillForms(targets, coverage, data, settings), [], settings);
+  const coverage = new Map(targets.map((t) => [t.id, [t.id, t.gold!.id].map((id) => event(id, { roll: { pFire: 1, outcomes: [rewards] } }))]));
+  const evaluate = () => whiteGenerationMoments(jointSkillForms(targets, coverage, data), [], settings);
   const first = evaluate();
   assert.equal(first.approximate, true);
   close(first.allAvailable, 1);

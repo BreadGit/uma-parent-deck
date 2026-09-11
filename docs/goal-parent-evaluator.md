@@ -105,8 +105,11 @@ Families sharing an event or chain form connected groups. Independent groups are
 separately, so fifty independent families do not create an exponential joint state table.
 Within each group, sources combine by retaining each family's best form. Shared events apply the
 decoded rewards together; alternative outcomes and random skill selections stay exclusive.
-The existing assumed outcome weights and gold-roll setting apply. Both estimators decode skill
-reward shares through `outcomeSkillShares`; duplicate rewards count once. A reached late chain stage
+The existing assumed outcome weights and gold-roll setting apply. Event sources decode raw rewards
+once through `decodeEventRoll`. Coverage and joint estimation both use `resolveEventSources` to keep
+only rewards allowed by the resolved choices and exclusions. Removed rewards leave their original
+probability as no skill; the remaining rewards do not gain probability. Each decoded outcome retains
+its simultaneous rewards and exclusive random draws. Duplicate rewards count once. A reached late chain stage
 implies all preceding stages. Repeated prerequisites still give one family roll.
 
 Small distributions are exact under the source assumptions. Large linked groups use at most

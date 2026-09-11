@@ -194,7 +194,7 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
   if (required.length !== goal.required.length || new Set(required.map((t) => t.id)).size !== required.length) issues.push('Each required white spark must be a different valid skill family.');
   const preferred = goal.preferred.map((id) => resolveTarget(id, ctx.data)).filter((t): t is Target => !!t && !required.some((r) => r.id === t.id));
   const coverage = deck.coverage;
-  const joint = forms ? projectForms(forms, required.map((_, i) => i)) : jointSkillForms(required, coverage, ctx.data, ctx.settings);
+  const joint = forms ? projectForms(forms, required.map((_, i) => i)) : jointSkillForms(required, coverage, ctx.data);
   const copies = (t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
   const skills = whiteGenerationMoments(joint, required.map(copies), ctx.settings);
   const moments = statGoalMoments(stats, goal, thresholdFor('SS', ctx.data.ranks), ctx.settings, basis);
@@ -213,7 +213,7 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
     issues, notes, blue: moments.blue, pink, allAvailable: skills.allAvailable, pSS: moments.pSS,
     required: required.map((target, i) => ({ target, available: skills.available[i]!, probability: skills.each[i]! * moments.whiteStars[goal.required.findIndex((r) => r.id === target.id)]! })),
     preferred: preferred.map((target) => {
-      const single = forms ? projectForms(forms, [required.length + goal.preferred.indexOf(target.id)]) : jointSkillForms([target], coverage, ctx.data, ctx.settings);
+      const single = forms ? projectForms(forms, [required.length + goal.preferred.indexOf(target.id)]) : jointSkillForms([target], coverage, ctx.data);
       const m = whiteGenerationMoments(single, [copies(target)], ctx.settings);
       return { target, available: m.available[0]!, probability: m.each[0]! * moments.preferredStars };
     }),
