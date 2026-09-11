@@ -5,6 +5,7 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import { STATS, type Card } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
+import { cardTargetChances, compareTargetChances, type TargetSparkChance } from '../../model/card-ranking.ts';
 import { MODELLED_UNIQUE_TYPES, uniqueNote } from '../../model/stats.ts';
 import { modelContribution } from '../../model/stats.ts';
 import { data, store, update } from '../context.ts';
@@ -48,11 +49,23 @@ function basisTip(x: CardScore): string {
 }
 
 const SORT_KEYS: Record<string, (x: CardScore) => number> = {
-  score: (x) => x.marginalValue * 1000 + x.statPower / 1000, spark: (x) => x.sparkValue, stats: (x) => x.statPower, sp: (x) => x.sp,
+  stats: (x) => x.statPower, sp: (x) => x.sp,
   speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
 };
-/** The added-spark bar tops out here: a card that adds half a spark on its own fills it. */
-const BAR_MAX = 0.5;
+const TARGET_TIP = 'Sorted by the sum of Required target chances, then Preferred target chances, then Total stat gain. Each percentage uses this card\'s own skill sources and assumes rank SS for star quality. Required sparks use your minimum stars; Preferred sparks use 2★+. Current skill priorities and lineage generation bonuses apply. Trainee, scenario, inherited hints and other cards are excluded. These are individual chances, not the improvement from replacing a card or the chance of completing your parent goal.';
+const targetLabel = (x: TargetSparkChance) => `${x.role === 'required' ? 'Required' : 'Preferred'} · ${x.target.name} ${x.stars}★+`;
+const sourceDetails = (x: TargetSparkChance) => x.sources.length
+  ? x.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)} skill acquisition`).join('\n')
+  : 'No available source on this card under the current skill priorities.';
+const targetDetails = (x: TargetSparkChance) => `${targetLabel(x)}: ${pct(x.probability, 1)}\n${sourceDetails(x)}`;
+function targetChancesCell(targets: TargetSparkChance[]) {
+  const hidden = targets.slice(4);
+  const more = hidden.map(targetDetails).join('\n\n');
+  return html`<td class="cover target-chances" data-target-chances>
+    ${targets.length ? targets.slice(0, 4).map((x) => html`<div class="target-spark" data-target-spark="${x.target.id}"><span>${targetLabel(x)}</span> <span class="target-spark-value">${pill(x.probability, '', 1)}${tip(sourceDetails(x))}</span></div>`) : html`<span class="muted">No targets selected</span>`}
+    ${hidden.length ? html`<button type="button" class="target-more" data-target-more data-tip="${more}" aria-label="${hidden.length} more targets. ${more}">+${hidden.length} more</button>` : nothing}
+  </td>`;
+}
 
 /** A compound unique effect: whether the model evaluates it, with GameTora's text and the assumption behind the evaluation. */
 function uniqueTag(c: RunPlan, card: Card) {
@@ -64,15 +77,17 @@ function uniqueTag(c: RunPlan, card: Card) {
 const PANEL_TIP = 'Every Global support card scored against your targets. Set the limit break of the cards you own here (or mark them not owned); the deck and the predictions follow.';
 
 export function renderRanking(c: RunPlan) {
-  const fn = SORT_KEYS[store.ui.sortKey] ?? SORT_KEYS.score!;
+  const fn = SORT_KEYS[store.ui.sortKey];
+  const sortKey = fn ? store.ui.sortKey : 'score';
+  const chances = new Map(c.ranking.map((x) => [x.card.id, cardTargetChances(x, store.run.targets, c.ctx)]));
   // per-stat cells carry the training focus multipliers, like the Total column (their focus-weighted sum)
   const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
-  const pinRank = (x: CardScore) => { const i = store.run.pinnedIds.indexOf(x.card.id); return i < 0 ? Infinity : i; };
-  const rows = c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)).sort((a, b) => pinRank(a) - pinRank(b) || fn(b) - fn(a));
-  const th = (k: string, label: string | TemplateResult, cls = 'num') => html`<th class="${cls} sortable" data-sort="${k}" @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${store.ui.sortKey === k ? ' ▾' : ''}</th>`;
+  const rows = c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)).sort((a, b) =>
+    fn ? fn(b) - fn(a) : compareTargetChances(chances.get(a.card.id)!, chances.get(b.card.id)!));
+  const th = (k: string, label: string | TemplateResult, cls = 'num') => html`<th class="${cls} sortable" data-sort="${k}" @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${sortKey === k ? ' ▾' : ''}</th>`;
   const actions = html`<label class="row"><span class="k">Show not owned</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.ui.showUnowned)} @change=${(e: Event) => update((s) => { s.ui.showUnowned = (e.target as HTMLInputElement).checked; })} /></label>`;
   return panel({ title: 'Card ranking', subtitle: `(${rows.length} cards · click a header to sort)`, tip: PANEL_TIP, actions }, html`
-    <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Added spark chance${tip('How much this card would raise the total expected white sparks over your targets if added to what is already covered by the trainee and the cards picked so far. Overlap with existing sources counts for less, so two cards giving the same skill do not both score full value.')}`)}${th('spark', html`Spark chance alone${tip('Expected white sparks over your targets from this card on its own: the chance it hands over each skill (hint, event, or outing) times the spark rate for the gold or white form.')}`)}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(`What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. The deck builder uses this value when two cards give the same sparks.`)}`)}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
+    <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Target spark chances${tip(TARGET_TIP)}`, '')}${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(`What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. Target spark sorting uses Total when Required and Preferred chances both tie.`)}`)}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
       ${repeat(rows, (x) => x.card.id, (x) => {
         const owned = !c.unowned.has(x.card.id);
         const pinned = store.run.pinnedIds.includes(x.card.id);
@@ -83,11 +98,9 @@ export function renderRanking(c: RunPlan) {
             <button type="button" class="ranking-pin ${pinned ? 'active' : ''}" data-action="toggle-card-pin" data-id="${x.card.id}" aria-label="${pinLabel}" aria-pressed="${pinned}" title="${pinLabel}" @click=${() => pinned ? unpinCard(x.card.id) : pinCard(x.card.id)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22.3126 10.1753L20.8984 11.5895L20.1913 10.8824L15.9486 15.125L15.2415 18.6606L13.8273 20.0748L9.58466 15.8321L4.63492 20.7819L3.2207 19.3677L8.17045 14.4179L3.92781 10.1753L5.34202 8.76107L8.87756 8.05396L13.1202 3.81132L12.4131 3.10422L13.8273 1.69L22.3126 10.1753Z"></path></svg></button>
           </div></td>
           <td>${lbSelect(c, x.card, x.lb)}</td>
-          <td class="num"><div class="spark-score"><meter class="bar" min="0" max="${BAR_MAX}" value="${Math.min(BAR_MAX, x.marginalValue)}"></meter>${pill(x.marginalValue, '', 1)}</div></td>
-          <td class="num">${pill(x.sparkValue, '', 1)}</td>
-          <td class="cover">${x.coverage.map((cv) => html`<span class="t">${cv.target.name} ${pill(cv.spark)}${tip(cv.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)}`).join('\n'))}</span>`)}</td>
-          ${x.stats.map((v, i) => html`<td class="num">${num(v * (focusMul[i] ?? 1))}</td>`)}
-          <td class="num"><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
+          ${targetChancesCell(chances.get(x.card.id)!.targets)}
+          ${x.stats.map((v, i) => html`<td class="num" data-card-stat="${STATS[i]}">${num(v * (focusMul[i] ?? 1))}</td>`)}
+          <td class="num" data-card-stat-total><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
           <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${uniqueTag(c, x.card)}</td>
         </tr>`;
       })}

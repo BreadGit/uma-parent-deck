@@ -132,9 +132,14 @@ names differ they are noted.
   order decides which option wins a conflict, which the game does not confirm.
 - **Choice conflict**: two or more targets (or a ranked non-target option) competing for one event's
   single option. The higher entry in the prioritized list takes it.
-- **Spark chance**: expected chance a target becomes a white spark at run end. **Added spark chance**
-  (marginal): how much a card raises the total over what the trainee and deck already cover.
-  **Spark chance alone**: the card by itself.
+- **Spark chance**: estimated chance a target becomes a white spark at run end.
+  **Target spark chances** in Card ranking use each card's own hint and event sources, current
+  skill priorities, and lineage generation bonuses. They exclude trainee, scenario, inherited hints
+  and other cards. Star quality assumes rank SS on every run. Required targets use their selected
+  minimum stars, and Preferred targets use 2★+. These are not changes to the suggested deck's goal
+  estimate. Cards sort by the sum of Required chances, then Preferred chances, then Total stat gain;
+  sums are not displayed. Pins follow the selected sort. Required targets appear first, with at most
+  four targets visible per card and the rest available in a tooltip.
 - **Coverage**: which target hints the run can obtain and through which sources. Spark chance assumes the
   player buys the gold form when available, otherwise a released ◎ upgrade if that family has one, otherwise the base skill.
   **Worst-case target SP cost**: the total base cost of those purchases, including every lower form required,

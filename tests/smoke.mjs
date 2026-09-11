@@ -95,22 +95,20 @@ for (const q of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) {
   await page.click('li[data-action="add-target"]');
 }
 await page.waitForTimeout(300);
-// pin a card by search and check it leads the ranking and sits in the deck
+// Pin a card by search and check its ranking control and deck slot.
 await page.fill('#card-search', 'kitasan');
 await page.waitForSelector('li[data-action="pin-card"]');
 await page.click('li[data-action="pin-card"]');
 await page.waitForTimeout(200);
-const topRanked = await page.$$eval('section.panel:last-child tbody tr td:nth-child(2)', (tds) => tds.slice(0, 2).map((td) => ({ name: td.textContent, pinned: td.querySelector('.ranking-pin')?.getAttribute('aria-pressed') === 'true' })));
-assert.ok(topRanked.some((t) => t.name.includes('Kitasan Black') && t.pinned), `pinned card should sit with the pinned rows at the top, got: ${JSON.stringify(topRanked)}`);
+assert.equal(await page.locator('[data-action="toggle-card-pin"][data-id="30028"]').getAttribute('aria-pressed'), 'true');
 assert.ok((await page.$$eval('.deck .slot .name', (n) => n.map((x) => x.textContent))).some((n) => n.includes('Kitasan Black')), 'pinned card should be in the deck');
 await page.click('.chip button[data-action="unpin-card"]:not([data-id="30052"])');
-// Pin directly from the ranking, then unpin with the keyboard after the row moves.
+// Pin directly from the ranking, then unpin with the keyboard.
 const rankingPin = page.locator('button[data-action="toggle-card-pin"][data-id="30028"]');
 assert.equal(await page.locator('button[data-action="toggle-card-pin"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has a pin button');
 await rankingPin.click();
 await assertFieldsMatchState(page, 'with immediate deck estimates');
 assert.equal(await rankingPin.getAttribute('aria-pressed'), 'true');
-assert.equal(await page.locator('.scroll tbody tr').nth(1).locator('button[data-action="toggle-card-pin"]').getAttribute('data-id'), '30028', 'new pin follows Light Hello at the top of the ranking');
 assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 1);
 assert.ok((await page.locator('.deck .slot .name').allTextContents()).some((name) => name.includes('Kitasan Black')), 'ranking pin adds the card to the deck');
 await assertFieldsMatchState(page, 'after pinning from the ranking');
@@ -191,8 +189,8 @@ const summary = await page.evaluate(() => ({
 console.log(JSON.stringify(summary, null, 1));
 // the ranking's five stat cells carry the focus multipliers, so they add up to the Total cell (within rounding)
 const rowSums = await page.evaluate(() => [...document.querySelectorAll('section.panel:last-child tbody tr')].slice(0, 5).map((r) => {
-  const cells = [...r.children].map((td) => Number(td.textContent.trim()));
-  return { sum: cells.slice(6, 11).reduce((a, b) => a + b, 0), total: cells[11] };
+  const stats = [...r.querySelectorAll('[data-card-stat]')].map((td) => Number(td.textContent.trim()));
+  return { sum: stats.reduce((a, b) => a + b, 0), total: Number(r.querySelector('[data-card-stat-total]').textContent.trim()) };
 }));
 for (const { sum, total } of rowSums) assert.ok(Number.isFinite(total) && Math.abs(sum - total) <= 3, `ranking stat cells ${sum} vs total ${total}`);
 if (process.env.SCREENSHOT_PATH !== '') await page.screenshot({ path: process.env.SCREENSHOT_PATH ?? 'docs/screenshot.png', fullPage: true });
@@ -395,9 +393,10 @@ for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.setViewportSize({ width, height: 1000 });
     await page.waitForTimeout(100);
-    const sparkBars = await page.locator('meter.bar').evaluateAll((bars) => bars.map((bar) => ({ left: bar.getBoundingClientRect().left, right: bar.getBoundingClientRect().right })));
-    assert.ok(sparkBars.length > 1, 'ranking has bars to compare');
-    assert.ok(sparkBars.every((bar) => Math.abs(bar.left - sparkBars[0].left) < 0.5 && Math.abs(bar.right - sparkBars[0].right) < 0.5), `added spark bars should align at ${width}px ${scheme}`);
+    assert.match(await page.locator('[data-sort="score"]').innerText(), /^Target spark chances.*▾$/);
+    assert.equal(await page.getByText('Added spark chance', { exact: true }).count(), 0);
+    assert.equal(await page.getByText('Spark chance alone', { exact: true }).count(), 0);
+    assert.ok(await page.locator('[data-target-chances]').evaluateAll((cells) => cells.every((cell) => cell.querySelectorAll('[data-target-spark]').length <= 4)));
     const over = await page.evaluate(() => {
       const w = document.documentElement.clientWidth; const bad = [];
       if (document.documentElement.scrollWidth > w + 1) bad.push(`document ${document.documentElement.scrollWidth} > ${w}`);
