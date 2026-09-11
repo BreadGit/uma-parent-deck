@@ -41,7 +41,7 @@ function page() {
     <main>
       <div>${renderTrainee(c)}${renderGoalEditor(c)}${renderLegacy(c)}${renderRun(c)}${renderSettings()}</div>
       <div>${searchState.pending && !searchState.refining ? panel({ title: 'Suggested deck' }, html`<div data-plan-pending role="status" aria-live="polite" aria-busy="true"><p>Finding a deck…</p><p class="small muted">Comparing your required goals and preferred sparks. You can keep editing your inputs.</p></div>`)
-        : html`${searchState.refining ? html`<p class="small muted" data-plan-refining role="status" aria-live="polite">Looking for a better deck… The recommendation below is fully checked for your current inputs.</p>` : nothing}
+        : html`${searchState.refining ? html`<span class="visually-hidden" data-plan-refining role="status" aria-live="polite">Searching for a better deck…</span>` : nothing}
           ${searchState.error ? panel({ title: 'Deck search' }, html`<p role="alert">Deck search could not finish. ${c.search ? 'The fully checked recommendation below is still available.' : 'Your inputs are saved.'}</p><button data-action="retry-search" @click=${retrySearch}>Retry search</button>`) : nothing}
           ${!searchState.error || c.search ? html`${renderDeck(c)}${renderGoalResult(c)}` : nothing}`}${renderSchedule(c)}${renderRanking(c)}</div>
     </main>

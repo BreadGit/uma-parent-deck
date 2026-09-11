@@ -221,7 +221,7 @@ exhaustive search instead. The [search notes](goal-parent-search.md) record limi
 physical-phone timing remains to be checked on the user's device.
 
 Show "Finding a deck…" until the first checked result, then keep that result visible while
-"Looking for a better deck…" identifies refinement. Allow input edits; cancel or ignore obsolete
+the spinner beside Suggested deck identifies refinement. Allow input edits; cancel or ignore obsolete
 searches and never present old results as belonging to the new goal. Reuse a previous recommendation
 as a seed only after validating it against current inputs and rescoring it. Keep the checked result
 if refinement fails, and offer retry. Browser tests cover these states and input responsiveness.

@@ -103,7 +103,9 @@ stays visible in the result. A genuinely zero upper bound makes pink unavailable
 
 `src/ui/plan-worker.ts` runs search in a worker. The main thread renders current inputs and a
 Finding a deck loading state until the first fully evaluated recommendation arrives. That deck and
-its estimates stay visible while a Looking for a better deck message identifies the refinement.
+its estimates stay visible while a spinner beside Suggested deck identifies the refinement.
+The spinner uses a slower rotation when reduced motion is enabled. A screen-reader status announces
+that the search is continuing without adding a visible message above the deck.
 A new input cancels an unfinished worker and hides the obsolete recommendation. Request IDs and
 input keys prevent obsolete results from replacing newer ones. Each worker update sends only the
 card selection and search summary; the main thread reconstructs the plan using that supplied deck.

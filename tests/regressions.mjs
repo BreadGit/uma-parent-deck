@@ -51,12 +51,26 @@ test('a fully checked recommendation stays visible during refinement and edits r
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
   saved.inventory['30017'] = null;
   const page = await fresh(t, saved, false);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   const chance = async () => parseFloat((await page.locator('[data-goal-probability]').innerText()).split('\n')[0]);
   await page.waitForSelector('[data-plan-refining]');
+  const head = page.locator('.panel-head').filter({ has: page.getByRole('heading', { name: 'Suggested deck', exact: true }) });
+  const spinner = await head.evaluate((el) => {
+    const style = getComputedStyle(el, '::before');
+    return { width: style.width, transform: style.transform };
+  });
+  assert.equal(spinner.width, '22px');
+  assert.notEqual(spinner.transform, 'none');
+  await page.waitForFunction((before) => {
+    const heading = [...document.querySelectorAll('.panel-head')].find((el) => el.querySelector('h2')?.textContent === 'Suggested deck');
+    return heading && getComputedStyle(heading, '::before').transform !== before;
+  }, spinner.transform);
+  assert.equal(await page.getByText('Looking for a better deck… The recommendation below is fully checked for your current inputs.', { exact: true }).count(), 0);
   assert.equal(await page.locator('.deck .slot').count(), 6);
   const initial = await chance();
   assert.ok(initial > 0);
   await waitForPlan(page);
+  assert.equal(await head.evaluate((el) => getComputedStyle(el, '::before').content), 'none');
   const finished = await chance();
   assert.ok(finished >= initial && finished >= 4.9, 'find the known better Fuji deck without a Maruzensky pin');
   await page.selectOption('[data-goal-stars="pink"]', '3');
