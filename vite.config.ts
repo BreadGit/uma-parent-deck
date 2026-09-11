@@ -19,4 +19,5 @@ function recommendationVersion(): Plugin {
   };
 }
 
-export default defineConfig({ plugins: [recommendationVersion()], build: { chunkSizeWarningLimit: 2000 } });
+// Bundled game data is intentional; review size growth above 3,000 kB per chunk or sooner if loading slows.
+export default defineConfig({ plugins: [recommendationVersion()], build: { chunkSizeWarningLimit: 3000 } });
