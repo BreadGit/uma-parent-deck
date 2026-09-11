@@ -35,7 +35,7 @@ function fanRampShare(fansBefore: (slot: number) => number, step: number, cap: n
 }
 
 /**
- * Passives a card's compound unique effect adds (docs/refs/gametora-unique-effects.md), evaluated at run time so the
+ * Passives a card's compound unique effect adds (docs/umamusume/refs/gametora-unique-effects.md), evaluated at run time so the
  * fit script can do the same sums from the same payload. Ramping effects (bond, friendship count, total bond, facility
  * level) count for `model.uniqueRampShare` of the run, a fitted share; type 104 (per fans) follows the agenda's fan
  * curve when it is given and the same share otherwise; types 103 and 105 are exact given the deck.

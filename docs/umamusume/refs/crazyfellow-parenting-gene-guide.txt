@@ -2,9 +2,9 @@ Source: Crazyfellow's Parenting & Gene guide
 Original: https://docs.google.com/document/d/1Q3IJKbtkplmuY-PAJMNjYiLtasv0eU0aIBEqp8_C3tg
 Exported: 2026-09-06
 Format: Google Docs plain-text export. Images and visual table formatting are not preserved.
-Terminology note: This source uses JP-community terms. Project code and reports should use Global terms; see ../new-player-info.txt.
+Terminology note: This source uses JP-community terms. For Global terminology, see ../new-player-info.txt.
 
-IMPORTANT MODE DISTINCTION FOR PROJECT AGENTS
+Mode distinction
 
 This guide discusses two separate game features:
 

@@ -1,4 +1,4 @@
-// Renders a reference web page in headless Chromium and saves its main content as Markdown under docs/refs/.
+// Renders a reference web page in headless Chromium and saves its main content as Markdown under docs/umamusume/refs/.
 // Usage: node scripts/save-reference.mjs <url> <name>
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
@@ -33,6 +33,6 @@ const md = await page.evaluate(() => {
   return out.join('\n').replace(/\n{3,}/g, '\n\n');
 });
 const header = `<!-- Saved from ${url} on ${new Date().toISOString().slice(0, 10)} for reference. Rendered page text, converted to Markdown. -->\n\n# ${await page.title()}\n\nSource: ${url}\n\n`;
-await fs.writeFile(`docs/refs/${name}.md`, header + md.trim() + '\n');
+await fs.writeFile(`docs/umamusume/refs/${name}.md`, header + md.trim() + '\n');
 console.log(`${name}: ${md.length} chars`);
 await browser.close();

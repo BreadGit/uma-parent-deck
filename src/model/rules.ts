@@ -85,7 +85,7 @@ export const UNIQUE_LEVEL_CHECKS: { slot: number; fans: number; dirtFans: number
 /** Base rating of a skill by rarity, before the aptitude bucket: white, ◎ and gold (GameWith). */
 export const SKILL_SCORE = { white: 217, circle: 262, gold: 508 };
 
-// Generation defaults and evidence: docs/refs/hakuraku-spark-generation.md.
+// Generation defaults and evidence: docs/umamusume/refs/hakuraku-spark-generation.md.
 export const BLUE_GENERATION_BANDS = [
   { min: 0, rates: [0.9, 0.1, 0] },
   { min: 600, rates: [0.5, 0.45, 0.05] },
@@ -93,7 +93,7 @@ export const BLUE_GENERATION_BANDS = [
 ] as const;
 export const PINK_GENERATION_RATES = [0.2, 0.7, 0.1] as const;
 // Minimum total lineage stars for zero through four starting aptitude increases.
-// Source: docs/refs/umaguide-sparks.md, Starting Aptitude table. Starting grades cap at A.
+// Source: docs/umamusume/refs/umaguide-sparks.md, Starting Aptitude table. Starting grades cap at A.
 export const PINK_SPARK_START_STARS: readonly number[] = [0, 1, 4, 7, 10];
 export const WHITE_GENERATION_BANDS = [
   { min: 6500, rates: [0.5, 0.45, 0.05], approximate: false },

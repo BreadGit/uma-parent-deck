@@ -51,7 +51,8 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   Cards whose stats help the goal can win even without target hints. Pins constrain the five owned
   slots and one borrowed slot, with one card per character. When the full goal has zero probability,
   search favors the largest achievable subset and explains the remaining goal separately.
-  See [the search notes](docs/goal-parent-search.md) for constraints and approximation limits.
+  Search is exhaustive when the constrained deck pool is small; otherwise its bounded exploration
+  and cheaper candidate screening can miss the best deck. Displayed probabilities use the full evaluator.
 - The predicted run shows expected stats (clamped to the scenario caps plus the blue sparks' start
   uncaps), chance of ≥600 and ≥1100 per stat (blue spark star bands), chance of SS rank and the
   estimated SP against the worst-case cost of the targets, and a 10-skill priority list for independent
@@ -79,7 +80,10 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   than its stat already has takes them from the other stats, fewest stars first, so those drop. A saved side
   the screen could not show is replaced by the default side rather than warned about.
 
-Terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md). Game constants live in
+Game information lives in [docs/umamusume/](docs/umamusume/README.md). That directory is for game
+information only, including guides, mechanics, and reference datasets. Project documentation stays
+outside it. See the [game glossary](docs/umamusume/GLOSSARY.md) and [tool glossary](docs/GLOSSARY.md)
+for terminology. Game constants live in
 `src/model/rules.ts`, tunable estimates in `src/settings.ts`.
 
 ## Code layout
@@ -130,7 +134,7 @@ and only re-downloads files whose manifest hash changed. Run it when a new card 
   come from the per-card page JSON (the static feed scrambles them), fetched once per card. A
   conditional unique effect (GameTora type 100 and up) keeps its payload and the text GameTora
   renders for it, fetched from the card page (`data/raw/unique-effect-texts.json`); the decoded
-  meaning of each type is in `docs/refs/gametora-unique-effects.md`.
+  meaning of each type is in `docs/umamusume/refs/gametora-unique-effects.md`.
 - `data/skills.json`: all skills with rarity (1 white, 2 gold), SP cost, family links.
 - `data/characters.json`: Global character cards with aptitudes, growth, base stats at every listed
   star count, innate and awakening skills, career goals (with the placement each needs and the fans a
@@ -145,7 +149,7 @@ and only re-downloads files whose manifest hash changed. Run it when a new card 
 ## Stat model
 
 Independent training card stats are close to deterministic per card and limit break. The
-fit uses the Loopacord "Independent Training Research" sheet (`docs/`), 169 card-LB rows at
+fit uses the Loopacord "Independent Training Research" sheet (`docs/umamusume/`), 169 card-LB rows at
 28 G1 races in Our Grand Concert with Light Hello SSR in the deck:
 
 - Outside its own facility a card adds a floor of about 23 to every stat plus its
@@ -163,7 +167,7 @@ fit uses the Loopacord "Independent Training Research" sheet (`docs/`), 169 card
   Rudolf's initial stats per card) are counted from the cards around them, in the deck builder as
   well as in the prediction. The fit writes what it added per card to
   `data/unique-extras-fixture.json` and the data test checks the app reproduces it. See
-  `docs/refs/gametora-unique-effects.md`.
+  `docs/umamusume/refs/gametora-unique-effects.md`.
 - Every card stat scales by (T - races) / (T - 28) with T ≈ 72 turns, from the same decks
   run at 28 and 23 races.
 - Event stats (which include race rewards) are deck independent: about 640/243/398/337/457
@@ -192,19 +196,55 @@ stages nested so a skill offered by two stages counts once per run. Outcomes of 
 assumed equally likely; the game does not publish their odds.
 
 Support chain completion defaults use the Loopacord measurements in
-`docs/loopacord-independent-training-research.xlsx`, sheet "Chain Finish Rate Data".
+`docs/umamusume/loopacord-independent-training-research.xlsx`, sheet "Chain Finish Rate Data".
 
 Numbers with no measurement behind them (random event rate, Group outing rates, hint acquisition
 scaling, the stat assumed for the gold roll, the song count for the scenario's completion skill,
 loss penalty) are defaults in the advanced settings panel.
 
+Skill rating applies the [UmaTools aptitude multipliers](docs/umamusume/refs/umatools-rating-tables.md)
+to base scores of 217 (white), 262 (◎), and 508 (gold), using GameTora's skill tags. It does not
+copy UmaTools' per-skill bucket scores or include negative skills. The trainee's potential level
+is assumed maxed, so all awakening skills are available.
+
+### Conditional unique effects
+
+The independent-training stat model (`data/stat-model.json`, `src/model/stats.ts`) is a fit on passives. The
+normalizer keeps the compound payload in `unique` (with `fromLb`, the first limit break that unlocks the effect) and
+folds nothing; `uniqueExtras()` in `src/model/stats.ts` adds the passives below at run time, and `unique_extras()` in
+`analysis/fit_stat_model.py` does the same sums for the fit. The fit writes its result per card and limit break to
+`data/unique-extras-fixture.json`, and `tests/data.test.ts` checks that the app reproduces it.
+
+| Type | Added as | Assumption |
+|---:|---|---|
+| 101 | effect value_1 +value_2 × share, effect value_3 +value_4 × share | bond `value` reached for a share of the run |
+| 104 | Training Effectiveness +value_1 × (run average of min(cap, fans / value) / cap) from the agenda's expected fans before each slot; +value_1 × share when there is no agenda (the fit) | fans from the agenda's wins only |
+| 106 | Friendship Bonus +value × value_2 × share | the `value` friendship trainings done for a share of the run |
+| 109 | Training Effectiveness +(600 / value_1) × share | 600 total bond reached for a share of the run |
+| 111 | Training Effectiveness +value_1 × 5 × share | facility level 5 for a share of the run |
+| 103 | Training Effectiveness +value_1 with `value` card types in the deck | exact, given the deck |
+| 105 | initial stat per card of that type, value_1 per Pal or Group card | exact, given the deck |
+| 102, 107, 108, 110, 112, 113, 114 | nothing | turn-by-turn state (facility, energy, crowding) |
+
+The share is `uniqueRampShare` in `data/stat-model.json`, fitted: `npm run fit` refits the card model at every share
+from 0 to 1 in steps of 0.05 and keeps the one with the lowest card RMSE (0.70; RMSE 4.64 at 0, 3.93 at 0.25, 3.35 at
+0.5, 3.19 at 0.75, 3.52 at 1.0). It is fitted on the same 271 rows the slopes are, not measured from bond or facility
+logs. The deck builder evaluates the extras against the cards already in the run state, so a card that needs the deck
+is valued the same way in selection and in the prediction. Extras only reach model-based contributions: an observed
+row already contains the effect at the deck it was logged with, and an LB shift cancels it.
+
 ## Known gaps
 
-The [curated reference index](docs/refs/README.md) records source precedence and the
-[goal-parent deck plan](docs/goal-parent-decks-plan.md) records both completed deliveries.
-[Evaluator notes](docs/goal-parent-evaluator.md) explain the probability model;
-[search notes](docs/goal-parent-search.md) explain deck selection, fallbacks, and remaining search limits.
+The [curated game reference index](docs/umamusume/refs/README.md) records source scope and conflicting evidence.
 
+- Complete-goal estimates preserve shared skill outcomes and final-rank dependence. Blue bands use
+  analytic probabilities; rank integration and large linked skill groups use fixed samples. Rare
+  joint outcomes can be missed. Skill acquisition is independent of sampled stats and rank, and
+  assumed skill purchases have no SP budget constraint.
+- Deck and fallback-subset searches are bounded. Failure to find a complete goal does not establish
+  impossibility. Attempt counts assume independent final spark rolls with unchanged odds, including rerolls.
+- White-star rates below rank B and at UE or above use approximate community tables outside the
+  main Hakuraku sample. Possible separate low-rank generation effects are not quantified.
 - Independent-training hint pickup, random event rates, the Group finale rate, the trainee's outing rate
   and the fallback for secret-event conditions the tool cannot score (rival results, streaks, strategy)
   are unmeasured; the defaults are guesses marked as such in the advanced settings. Whether

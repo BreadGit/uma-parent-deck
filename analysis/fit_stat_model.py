@@ -2,9 +2,9 @@
 
 Inputs
   data/cards.json                       GameTora card passives per limit break
-  docs/loopacord-card-data.csv          Loopacord per-card, per-LB card stats (28 G1 races, Grand Concert, Light Hello SSR in deck)
-  docs/loopacord-independent-training-research.xlsx   run totals used for the event-stat baseline, race scaling, focus modes
-  docs/fujikiseki-card-table.json       fujikiseki per-card medians (mixed LB) used as a second observation source
+  docs/umamusume/loopacord-card-data.csv          Loopacord per-card, per-LB card stats (28 G1 races, Grand Concert, Light Hello SSR in deck)
+  docs/umamusume/loopacord-independent-training-research.xlsx   run totals used for the event-stat baseline, race scaling, focus modes
+  docs/umamusume/fujikiseki-card-table.json       fujikiseki per-card medians (mixed LB) used as a second observation source
   data/characters.json                  growth rates of the trainees in the Loopacord runs
 
 Model (per card, per stat s, at R races and a training focus):
@@ -20,8 +20,8 @@ import openpyxl
 ROOT = __import__('pathlib').Path(__file__).resolve().parent.parent
 cards = json.load(open(ROOT / 'data/cards.json'))
 chars = json.load(open(ROOT / 'data/characters.json'))
-rows = list(csv.DictReader(open(ROOT / 'docs/loopacord-card-data.csv')))
-fuji = json.load(open(ROOT / 'docs/fujikiseki-card-table.json'))
+rows = list(csv.DictReader(open(ROOT / 'docs/umamusume/loopacord-card-data.csv')))
+fuji = json.load(open(ROOT / 'docs/umamusume/fujikiseki-card-table.json'))
 
 STATS = ['speed', 'stamina', 'power', 'guts', 'wit']
 LB = {'0LB': 0, '1LB': 1, '2LB': 2, '3LB': 3, 'MLB': 4}
@@ -43,7 +43,7 @@ def find_card(char, rarity, typ):
     return cs
 
 # Compound unique effects (types 100 and up) are not in effectsByLb; the same sums as uniqueExtras() in
-# src/model/stats.ts, for the types that do not need the deck (docs/refs/gametora-unique-effects.md). The share of the
+# src/model/stats.ts, for the types that do not need the deck (docs/umamusume/refs/gametora-unique-effects.md). The share of the
 # run a ramping effect counts for is fitted below; the app reads it back from the model as uniqueRampShare.
 TRAINING_EFF, FRIENDSHIP = 8, 1
 UNIQUE_TOTAL_BOND_CAP, FACILITY_LEVEL_MAX = 600, 5   # mirror src/model/rules.ts
@@ -72,7 +72,7 @@ def passives(card, lb, share):
 # ---------- observations ----------
 # The sheet identifies each card by a GameTora image formula in column B (support_card_s_<id>.png),
 # which disambiguates characters with two cards of the same rarity and type. Names are the fallback.
-wb_f = openpyxl.load_workbook(ROOT / 'docs/loopacord-independent-training-research.xlsx', read_only=True, data_only=False)
+wb_f = openpyxl.load_workbook(ROOT / 'docs/umamusume/loopacord-independent-training-research.xlsx', read_only=True, data_only=False)
 sheet_ids = []
 for row in wb_f['Grand Live Card Data'].iter_rows():
     cells = list(row) + [None] * 20
@@ -176,7 +176,7 @@ print(f'SP: const={cs_[0]:.1f} wit={cs_[1]:.1f} friend/group={cs_[2]:.1f} skillP
 SP = dict(base=float(cs_[0]), wit=float(cs_[1]), friend=float(cs_[2]), skillPointBonus=float(cs_[3]))
 
 # ---------- race scaling, event baseline, focus, sigma (from the research workbook) ----------
-wb = openpyxl.load_workbook(ROOT / 'docs/loopacord-independent-training-research.xlsx', read_only=True, data_only=True)
+wb = openpyxl.load_workbook(ROOT / 'docs/umamusume/loopacord-independent-training-research.xlsx', read_only=True, data_only=True)
 ws = wb['Race Schedule Data']
 blocks = []  # per (races, block) list of per-run [speed..wit, sp]
 races = None

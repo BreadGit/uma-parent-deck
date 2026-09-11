@@ -5,9 +5,7 @@ field `unique`) stores it as `{ level, effects: [{ type, value, value_1..value_4
 passives with the same ids as `support_effects.json` (1 Friendship Bonus, 2 Mood Effect, 3 to 7 stat bonuses,
 8 Training Effectiveness, 9 to 13 Initial Stats, 14 Initial Bond, 15 Race Bonus, 16 Fan Bonus, 17 Hint Levels,
 18 Hint Frequency, 19 Specialty Priority, 30 Skill Point Bonus, and so on). Types 100 and up are conditional
-effects whose meaning the feed does not define; GameTora renders them on the card page from the payload. The
-rendered English text per card is cached in `data/raw/unique-effect-texts.json` by `scripts/fetch-event-names.mjs`
-and copied to `cards.json` as `unique.text`.
+effects whose meaning the feed does not define; GameTora renders them on the card page from the payload.
 
 Schemas decoded 2026-09-06 from one card per type (the feed's Global cards use types 101 to 114 and 9991):
 
@@ -30,29 +28,3 @@ Schemas decoded 2026-09-06 from one card per type (the feed's Global cards use t
 | 9991 | none | "Increases skill point gain when training together" (GameTora's own placeholder id) | Haru Urara 30098 |
 
 Payload fields marked `?` did not match the rendered text one to one; check the text before using them.
-
-## What the stat model does with them
-
-The independent-training stat model (`data/stat-model.json`, `src/model/stats.ts`) is a fit on passives. The
-normalizer keeps the compound payload in `unique` (with `fromLb`, the first limit break that unlocks the effect) and
-folds nothing; `uniqueExtras()` in `src/model/stats.ts` adds the passives below at run time, and `unique_extras()` in
-`analysis/fit_stat_model.py` does the same sums for the fit. The fit writes its result per card and limit break to
-`data/unique-extras-fixture.json`, and `tests/data.test.ts` checks that the app reproduces it.
-
-| Type | Added as | Assumption |
-|---:|---|---|
-| 101 | effect value_1 +value_2 × share, effect value_3 +value_4 × share | bond `value` reached for a share of the run |
-| 104 | Training Effectiveness +value_1 × (run average of min(cap, fans / value) / cap) from the agenda's expected fans before each slot; +value_1 × share when there is no agenda (the fit) | fans from the agenda's wins only |
-| 106 | Friendship Bonus +value × value_2 × share | the `value` friendship trainings done for a share of the run |
-| 109 | Training Effectiveness +(600 / value_1) × share | 600 total bond reached for a share of the run |
-| 111 | Training Effectiveness +value_1 × 5 × share | facility level 5 for a share of the run |
-| 103 | Training Effectiveness +value_1 with `value` card types in the deck | exact, given the deck |
-| 105 | initial stat per card of that type, value_1 per Pal or Group card | exact, given the deck |
-| 102, 107, 108, 110, 112, 113, 114 | nothing | turn-by-turn state (facility, energy, crowding) |
-
-The share is `uniqueRampShare` in `data/stat-model.json`, fitted: `npm run fit` refits the card model at every share
-from 0 to 1 in steps of 0.05 and keeps the one with the lowest card RMSE (0.70; RMSE 4.64 at 0, 3.93 at 0.25, 3.35 at
-0.5, 3.19 at 0.75, 3.52 at 1.0). It is fitted on the same 271 rows the slopes are, not measured from bond or facility
-logs. The deck builder evaluates the extras against the cards already in the run state, so a card that needs the deck
-is valued the same way in selection and in the prediction. Extras only reach model-based contributions: an observed
-row already contains the effect at the deck it was logged with, and an LB shift cancels it.

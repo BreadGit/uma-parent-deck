@@ -1,15 +1,14 @@
 # Spark generation measurements
 
-Reviewed 2026-09-08. Curated numeric data and implementation guidance, paraphrased from
+Reviewed 2026-09-08. Curated measurements and probability tables, paraphrased from
 [Hakuraku's spark-generation research](https://hakuraku.moe/notes/spark_generation).
 The site's [Markdown source](https://hakuraku.moe/notes/spark-generation.md) is readable without
 JavaScript. Its manifest dates the note to 2026-03-28; the document includes later additions.
 
 ## Source precedence and scope
 
-Use this note for the goal-parent feature's generation defaults. The project owner accepts Hakuraku's
-measurements as the preferred evidence when older community tables disagree. These are empirical
-estimates, not a claim to have recovered the game's server implementation.
+Hakuraku's measured counts support these estimates where older community tables disagree.
+They are empirical estimates, not a claim to have recovered the game's server implementation.
 
 The main study uses deduplicated CM10-CM12 room-match veterans. It includes 107,159 veterans with
 rank score at least 1,000 for blue and pink analysis. White analysis uses 83,169 veterans in the
@@ -66,8 +65,8 @@ Selected measurements supporting the exponential formula:
 | Gold | 4 | 8,796 | 58.34% | 58.564% |
 
 Hakuraku reports goodness-of-fit p-values of at least 0.84 for the exponential model across the
-three forms. Other fitted formulas also fit; this supports retaining the simpler existing
-`settings.lineageSparkMultiplier = 1.1`. It does not establish a change to Global game rules.
+three forms. Other fitted formulas also fit; the exponential formula is a simple fit consistent
+with these observations. It does not establish a change to Global game rules.
 
 ## White star quality
 
@@ -81,12 +80,10 @@ These probabilities apply after the skill spark generates.
 Do not extrapolate the high band to every later rank. The Crazyfellow snapshot discusses an
 additional UE threshold. The main Hakuraku white analysis omits scores below 6,500 for insufficient
 samples. Its separate green-spark analysis has much larger samples but must not silently substitute
-for missing direct white evidence. Scope the first goal evaluator to the supported ordinary
-parent-farming bands and handle unsupported outcomes explicitly.
+for missing direct white evidence.
 
-Phase 1 uses the additional community bands below so low-probability tails still receive a rate.
-These are approximations outside Hakuraku's main white sample, not additional Hakuraku findings.
-The output identifies their use when more than 0.1% of predicted outcomes fall in these bands.
+The additional community bands below are approximations outside Hakuraku's main white sample,
+not additional Hakuraku findings.
 
 | Overall rank score | Approximate 1-star | Approximate 2-star | Approximate 3-star |
 |---|---:|---:|---:|
@@ -95,9 +92,8 @@ The output identifies their use when more than 0.1% of predicted outcomes fall i
 
 Source: [Crazyfellow snapshot](crazyfellow-parenting-gene-guide.txt), "Chance of Stars for white
 genes", and the numeric rank boundaries in [Umaguide's table](umaguide-sparks.md#white-sparks).
-The 17,500 band ends at 28,799 in the implementation. The normal white generation multiplier
-is retained in low-rank tails; possible separate low-rank generation effects discussed in the guide
-are not quantified by this feature.
+With the additional UE band, the 17,500 band ends at 28,799. Possible separate low-rank
+generation effects discussed in the guide remain unquantified here.
 
 ## Modeling implications
 

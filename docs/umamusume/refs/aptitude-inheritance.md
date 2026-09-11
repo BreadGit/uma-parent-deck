@@ -1,8 +1,6 @@
 # Aptitude increases at inspiration events
 
 Reviewed 2026-09-08. This is a curated research note for predicting final pink-spark eligibility.
-The phase 1 evaluator implements the B-to-A scope below. Parent and grandparent inputs live in
-the collapsed Pink sparks editor in Legacy. See [the current evaluator](../goal-parent-evaluator.md#pink-eligibility).
 
 ## Sources
 
@@ -31,12 +29,8 @@ The Crazyfellow snapshot's Chapter 3 also gives G to C with at least 10 total ma
 Starting inheritance caps at four increases and at A. Thus G can reach C before the run;
 C can reach A with at least 4 stars. Further increases require mid-run inspiration.
 A starting grade does not uniquely identify a star total, its distribution, or the ancestor slots.
-The app's inference uses minimum total stars, packed into the fewest slots, as an explicit tool
-assumption. For C to A an empty lineage gets 3★ + 1★; an existing 2★ entry can instead gain
-another 2★ entry. Those combinations have different mid-run activation odds. Selecting a dimmed
-aptitude can reassign other sparks, including manual entries, and lower their associated grades
-to make room. Unassigned slots count as zero sparks for the estimate, so partial lineage is enough
-to get a result. This is a tool assumption, not a possible in-game lineage.
+For example, 3★ + 1★ and 2★ + 2★ both provide the four stars needed for C to A,
+but those distributions have different mid-run activation odds.
 
 ## Activation probability
 
@@ -54,9 +48,7 @@ of a particular aptitude activates is `1 - product((1 - p_i)^2)` over its source
 
 Individual affinity belongs to the uma carrying the spark. The overall displayed compatibility
 symbol is not that score. Do not halve grandparents' probabilities after applying their individual
-affinity; their lower affinity already accounts for the distinction. This app currently assumes
-the same individual score for all six umas through `settings.affinity`. Reusing that assumption
-is sufficient for the first implementation; a complete compatibility calculator is separate work.
+affinity; their lower affinity already accounts for the distinction.
 
 At assumed individual affinity 150, one 3-star pink spark has a 12.5% chance per event and a
 23.4375% chance over both. Six matching 3-star sparks at that same assumed affinity give
@@ -79,19 +71,11 @@ is not generally the chance of reaching A. For example, the guide describes C to
 large activation, or C to B at the first event followed by B to A at the second. Computing an
 exact probability for these paths needs the missing point distribution.
 
-## Recommended initial scope
+## Final pink-spark selection
 
-- Read post-parent-selection grades from the Legacy panel, including all four running styles.
-- Record the pink aptitude and stars entered for each of the six lineage umas. Empty slots remain
-  distinct from entered sparks but contribute zero increases in the estimate.
-- Include B-to-A increases for every aptitude with a matching source. An unwanted B-to-A increase
-  also matters because it adds another eligible pink type and dilutes the desired type's chance.
-- Evaluate the desired type's `0.80 / eligible_count` for each final eligibility combination when
-  the goal is at least 2 stars. Do not divide by an expected, fractional eligibility count.
-- For below-B grades with matching lineage sparks, expose the limitation or accept an explicitly
-  assumed final grade. Do not label the goal impossible or invent a hidden-point distribution.
-- Initially use these transitions for final pink eligibility. Retain the chosen agenda and its
-  current start-grade race estimates; propagating aptitude changes into race results is later work.
+A B-to-A increase adds another eligible pink type, so even an increase in a competing aptitude
+changes the desired type's selection chance. For at least 2 stars, the desired eligible type has
+chance `0.80 / eligible_count` for each final eligibility combination. Averaging these combinations
+preserves the effect of competing aptitudes; dividing by an expected count does not.
 
-The two inspiration events are part of one career. They are separate from the proposed goal
-display's "attempts", which count final spark rolls under a deliberately simplified model.
+The two inspiration events happen during one career. Final spark generation occurs at its end.

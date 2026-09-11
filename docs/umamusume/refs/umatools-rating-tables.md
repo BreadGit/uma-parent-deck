@@ -6,8 +6,6 @@ buckets). Saved 2026-09-06. UmaTools credits the umakonga formula and GameWith d
 game's evaluation screen exactly in the community's checks; the aptitude multipliers are UmaTools' fallback for
 skills whose per-bucket scores are not listed, so treat them as an approximation.
 
-Used by `src/model/rank.ts` (`statScore`, `skillScore`, `uniqueSkillScore`) with tests in `tests/model.test.ts`.
-
 ## Stat rating
 
 Rating points for one stat value are the sum of a per-point rate over every point from 1 to the value, divided by
@@ -46,7 +44,7 @@ raw = 142796; idx = 0; let rate = 183;
 for (let c = 2001; c <= 2500; c++) { if (idx >= 25) { rate++; idx = 0; } raw += rate; idx++; sc[c] = Math.round(raw / 10); }
 ```
 
-Anchor values computed from that code (use these in tests, not rounded guesses):
+Anchor values computed from that code:
 
 | Stat | Points |
 |---:|---:|
@@ -67,7 +65,7 @@ Anchor values computed from that code (use these in tests, not rounded guesses):
 
 `uniqueBonus = multiplier × uniqueLevel`, with multiplier 120 for a 1★ or 2★ trainee and 170 for 3★ and above.
 The level starts at the trainee's star count and rises by one at each in-career level-up (see
-`docs/refs/gametora-our-grand-concert.md`, "Unique Skill Level-ups"), capped at 6.
+`docs/umamusume/refs/gametora-our-grand-concert.md`, "Unique Skill Level-ups"), capped at 6.
 
 ## Skill rating and aptitude buckets
 
@@ -82,9 +80,7 @@ grade for that aptitude:
 | G | terrible | 0.7 |
 
 For a skill conditioned on several aptitudes (a `checkType` such as `sprint/turf`), UmaTools takes the best
-multiplier within each group (surface, distance, style) and multiplies across groups. This project applies the same
-multipliers to the base scores 217 (white), 262 (◎) and 508 (gold) from GameTora's skill tags (`sho`, `mil`, `med`,
-`lng`, `dir`, `tur`, `run`, `ldr`, `btw`, `cha`). UmaTools' per-skill bucket scores were not copied.
+multiplier within each group (surface, distance, style) and multiplies across groups.
 
 Purple (negative) skills convert from their removal SP cost: 100 or more SP is −262, 70 or more is −174, anything
-above 0 is −129, with a few named exceptions. Not used by this project.
+above 0 is −129, with a few named exceptions.

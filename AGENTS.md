@@ -54,7 +54,7 @@ response at the machine's LAN address and report the network URL printed by Vite
 
 ## Layout
 
-Game knowledge is curated and vendored in `docs/`. Use `docs/` to answer game knowledge questions or to get game data or facts about the game. If the information you're looking for is not in `docs/` then searching the internet is okay too. Game and project terms are defined in `docs/GLOSSARY.md`.
+Game information is curated and vendored in `docs/umamusume/`. This directory is for game information only, including mechanics, guides, and reference datasets. Use it to answer game knowledge questions before searching the internet. Keep project architecture, implementation notes, and plans outside this directory. Game terms are defined in `docs/umamusume/GLOSSARY.md`; tool terms are defined in `docs/GLOSSARY.md`.
 
 - `src/model/`: pure game and tool logic, no DOM. `run.ts` has `planRun()`, the whole pipeline from the
   user's choices to the plan the page shows. Named game constants in `rules.ts`; tunable estimates with

@@ -2,12 +2,10 @@
 
 Source: https://docs.google.com/spreadsheets/d/1e6KPdIXPM7-8e9So3Bd3Pl3arO0aTeFdjI0P_1-4iFo/edit?gid=1621158841
 (sheet 「自主トレ育成＆継承専用ウマ娘」レース勝率), linked from Crazyfellow's Parenting & Gene guide
-(`docs/refs/crazyfellow-parenting-gene-guide.txt`, "Special race win chance mechanics"). Exported 2026-09-06 as CSV.
+(`docs/umamusume/refs/crazyfellow-parenting-gene-guide.txt`, "Special race win chance mechanics"). Exported 2026-09-06 as CSV.
 The 110% base for A/A is a Cygames statement; the penalties are Shoppo_ura's fitted values, corrected on
 2026-07-26 after earlier interpolation of E and F. The empirical sample below is from Shoppo_ura's tweets as quoted
 in the guide.
-
-Used by `src/model/races.ts` (`rawWinScore`, `winChance`) and `src/model/rules.ts` with tests in `tests/model.test.ts`.
 
 ## Model
 
@@ -62,7 +60,7 @@ Values above 100% are the raw score; the displayed probability is 100%.
 The sheet also lists the expected finishing place when the roll fails, by score: 100% and above always win; 95 and
 90 give 2nd; 85 and 80 give 2nd; 75 and 70 give 3rd; 65 and 60 give 4th; 55 gives 5th; 50 gives 6th; 45 gives 7th;
 40 gives 8th; 35 gives 9th; 30 gives 10th; 25 gives 11th; 20 gives 12th; 15 gives 14th; 10 gives 15th; 5 gives 17th;
-0 gives 18th. Not used by this project.
+0 gives 18th.
 
 ## Empirical sample (Shoppo_ura's tweets, quoted in the guide)
 
