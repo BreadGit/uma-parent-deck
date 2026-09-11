@@ -109,7 +109,18 @@ matching saved recommendation. The restored deck is checked against the current 
 breaks, pins, borrowed slots and trainee exclusion before reuse. Only completed searches are saved.
 Malformed cache entries and caches from older state schemas are discarded without changing run inputs.
 The source/data fingerprint updates automatically in builds and during development.
-See [performance implementation](performance-implementation.md) for cache boundaries and measurements.
+
+Only the latest completed recommendation is persisted. Its key covers the full run, settings and
+inventory; object keys are canonicalized, while array order remains significant. Presentation
+preferences, including ranking visibility, live in UI state and do not invalidate the recommendation.
+The build fingerprint covers source, normalized data, default inventory, dependencies and build
+configuration. Restoring a recommendation skips optimization but recalculates its displayed estimates.
+Workers terminate after completion or cancellation; results are not cached across different inputs.
+
+Exact stat distributions are cached by mean, standard deviation and cap, with limits of 512 entries
+and 250,000 retained outcomes. Goal scores are not cached, so current requirements and probability
+settings apply on every evaluation. Event-settings fingerprints compare scalar values and copied
+array contents on each lookup to detect edits made in place.
 
 The UI publishes only the completed recommendation. The deck and
 prioritized-skill editor remain mounted throughout the search. A spinner beside Suggested deck is
@@ -129,6 +140,11 @@ when the full search finishes. A completed replacement can change content height
 the repeated collapse and expansion caused by hiding the deck. Search errors keep the displayed
 deck and its current estimates, with Retry search below the result. The worker never accesses
 localStorage.
+
+Panel render guards depend on plan identity, a persisted-state revision and relevant transient view
+fields. Every persisted update increments the revision, including no-op edits, to preserve live field
+correction. New view-only controls must appear in their panel's guard dependencies. Worker publication
+provides a new plan; unchanged panels skip target-editor selection and search-text refreshes.
 
 Page renders preserve the viewport position of a visible focused control, with nearby surviving
 rows, controls and headings as fallbacks. This also applies when the final search result changes
