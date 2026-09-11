@@ -67,7 +67,7 @@ test('the star count is clamped to the trainee: a count below her rarity cannot 
 test('the dirt fan thresholds follow the character, so an aptitude override on the legacy screen cannot switch them', () => {
   // Special Week made dirt A / turf G at a 95% threshold: her agenda's fans sit between the dirt and the turf thresholds
   const strict = { ...settings, winThreshold: 0.95 };
-  const p = planRun({ ...empty, traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: { turf: 'G', dirt: 'A' } }, strict, {}, data);
+  const p = planRun({ ...empty, traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: { turf: 'G', dirt: 'A' } }, strict, {}, data, { search: false });
   const fans = (slot: number) => expectedFansBefore(p.schedule, slot);
   assert.ok(fans(50) > 40000 && fans(50) < 60000, `fans before February ${fans(50)}`);
   assert.equal(uniqueSkillLevel(3, p.apt, fans, strict), 3.5, 'the overridden table would call her dirt-oriented');
@@ -108,13 +108,13 @@ test('the scenario completion reward is a source for I Wanna Win with You and On
 test("predicted stats are clamped to the scenario caps plus the blue sparks' start uncaps", () => {
   const caps = SCENARIO_STAT_CAPS[3]!;
   const heavy: RunInput = { ...empty, traineeCardId: sw.cardId, parentSparks: [Array(3).fill({ stat: 'stamina', stars: 3 }), Array(3).fill({ stat: 'stamina', stars: 3 })] };
-  const plan = planRun(heavy, settings, {}, data);
+  const plan = planRun(heavy, settings, {}, data, { search: false });
   assert.deepEqual(plan.issues, []);
   assert.ok(plan.statCaps);
   assert.deepEqual(plan.statCaps!.uncap, [0, 96, 0, 0, 0], 'six 3★ stamina sparks raise only the stamina cap by 16 each');
   plan.finalMean.forEach((v, i) => { assert.ok(v <= caps[i]! + plan.statCaps!.uncap[i]! + 1e-9, `stat ${i} ${v} within cap`); assert.ok(v <= plan.rawFinalMean[i]! + 1e-9); });
   assert.equal(plan.statCaps!.capped.some(Boolean), plan.rawFinalMean.some((v, i) => v > caps[i]! + plan.statCaps!.uncap[i]!));
-  const light = planRun({ ...empty, traineeCardId: sw.cardId }, settings, {}, data);
+  const light = planRun({ ...empty, traineeCardId: sw.cardId }, settings, {}, data, { search: false });
   assert.deepEqual(light.finalMean, light.rawFinalMean, 'nothing to clamp without inheritance');
 });
 
@@ -196,7 +196,7 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data);
   assert.ok(!unowned.deckResult.deck.some((d) => d.card.id === 30052 && !d.borrowed), 'an unowned pin is skipped');
   assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking');
-  assert.ok(!planRun(empty, { ...settings, showUnowned: false }, { '30052': null }, data).ranking.some((r) => r.card.id === 30052));
+  assert.ok(unowned.ranking.some((r) => r.card.id === 30052), 'the model retains unowned cards for the UI visibility filter');
 });
 
 test('retained decks update estimates and limit breaks, but cannot bypass ownership, pins or trainee exclusion', () => {

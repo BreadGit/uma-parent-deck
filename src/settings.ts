@@ -6,7 +6,6 @@ export interface Settings {
   // main page
   winThreshold: number;          // include a G1 when P(win) >= this
   focus: Focus;
-  showUnowned: boolean;          // show cards marked "not owned" in the ranking (dimmed)
   defaultLb: { R: number; SR: number; SSR: number }; // assumed limit break for cards without an inventory entry
   // advanced: independent-training rates the game does not publish
   affinity: number;              // individual affinity score assumed for every uma in the lineage; each spark procs at (1 + affinity/100)
@@ -49,7 +48,6 @@ export const DEFAULT_SETTINGS: Settings = {
   goalTieTolerance: 0.001,
   winThreshold: 0.8,
   focus: 'stamina',
-  showUnowned: true,
   defaultLb: { R: 4, SR: 4, SSR: 4 },
   affinity: 150,
   hintBase: 0.07,
@@ -88,7 +86,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 /** Settings kept when the advanced panel is reset: the ones on the main page. */
-export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'showUnowned', 'defaultLb'] as const satisfies readonly (keyof Settings)[];
+export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'defaultLb'] as const satisfies readonly (keyof Settings)[];
 
 /** What each setting accepts. Values that fail the spec are rejected in favour of the current value. */
 export type SettingSpec =
@@ -107,7 +105,6 @@ export const RACES_REFERENCE = 28;
 export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   winThreshold: rate,
   focus: { kind: 'enum', values: ['balanced', 'stamina', 'sprint'] },
-  showUnowned: { kind: 'boolean' },
   defaultLb: { kind: 'lb-defaults' },
   affinity: { kind: 'number', min: 0, max: 1000 },
   hintBase: rate,

@@ -3,6 +3,9 @@
 These changes follow the [performance audit](performance-audit-2026-09-11.md). They preserve search
 budgets, probability rules, candidate ordering, and the worker's existing cancellation behavior.
 
+The subsequent [rendering and test follow-up](performance-followup.md) records further changes,
+current suite timings, and their fragility assessment.
+
 ## Calculation cache
 
 `goal.ts` caches exact rounded stat distributions by mean, standard deviation and cap. It does not

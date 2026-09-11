@@ -11,7 +11,7 @@ import { data, store, update } from '../context.ts';
 import { cardThumb, cardUrl, num, pct, pill, skillName, typeIcon } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
-import { pinCard, setSetting, unpinCard } from './run.ts';
+import { pinCard, unpinCard } from './run.ts';
 
 /** Set a card's limit break, or mark it not owned. The rarity's default LB means "no entry". */
 function setLb(card: Card, value: string) {
@@ -68,9 +68,9 @@ export function renderRanking(c: RunPlan) {
   // per-stat cells carry the training focus multipliers, like the Total column (their focus-weighted sum)
   const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
   const pinRank = (x: CardScore) => { const i = store.run.pinnedIds.indexOf(x.card.id); return i < 0 ? Infinity : i; };
-  const rows = c.ranking.slice().sort((a, b) => pinRank(a) - pinRank(b) || fn(b) - fn(a));
+  const rows = c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)).sort((a, b) => pinRank(a) - pinRank(b) || fn(b) - fn(a));
   const th = (k: string, label: string | TemplateResult, cls = 'num') => html`<th class="${cls} sortable" data-sort="${k}" @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${store.ui.sortKey === k ? ' ▾' : ''}</th>`;
-  const actions = html`<label class="row"><span class="k">Show not owned</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.settings.showUnowned)} @change=${(e: Event) => setSetting('showUnowned', (e.target as HTMLInputElement).checked)} /></label>`;
+  const actions = html`<label class="row"><span class="k">Show not owned</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.ui.showUnowned)} @change=${(e: Event) => update((s) => { s.ui.showUnowned = (e.target as HTMLInputElement).checked; })} /></label>`;
   return panel({ title: 'Card ranking', subtitle: `(${rows.length} cards · click a header to sort)`, tip: PANEL_TIP, actions }, html`
     <div class="scroll"><table><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Added spark chance${tip('How much this card would raise the total expected white sparks over your targets if added to what is already covered by the trainee and the cards picked so far. Overlap with existing sources counts for less, so two cards giving the same skill do not both score full value.')}`)}${th('spark', html`Spark chance alone${tip('Expected white sparks over your targets from this card on its own: the chance it hands over each skill (hint, event, or outing) times the spark rate for the gold or white form.')}`)}<th>Targets</th>${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(`What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. The deck builder uses this value when two cards give the same sparks.`)}`)}${th('sp', 'SP')}<th>Basis${tip('Where the stat numbers come from. "Observed" means the Loopacord logs have this card at this limit break, "observed at another LB" shifts a logged limit break by the model, and "model" is the fitted formula from the card passives.')}</th></tr></thead><tbody>
       ${repeat(rows, (x) => x.card.id, (x) => {

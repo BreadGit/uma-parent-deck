@@ -1,11 +1,12 @@
-// Drives the dev server in Chromium through the main flows and checks layout at four widths in both themes.
+// Checks editor flows with search held pending, then completes a real search and checks six widths in both themes.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { assertFieldsMatchState, settlePlanActions, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
+import { holdSearch, releaseSearch } from './browser-search.mjs';
 const url = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
-settlePlanActions(page);
+await holdSearch(page);
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
@@ -107,7 +108,7 @@ await page.click('.chip button[data-action="unpin-card"]:not([data-id="30052"])'
 const rankingPin = page.locator('button[data-action="toggle-card-pin"][data-id="30028"]');
 assert.equal(await page.locator('button[data-action="toggle-card-pin"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has a pin button');
 await rankingPin.click();
-await waitForPlan(page);
+await assertFieldsMatchState(page, 'with immediate deck estimates');
 assert.equal(await rankingPin.getAttribute('aria-pressed'), 'true');
 assert.equal(await page.locator('.scroll tbody tr').nth(1).locator('button[data-action="toggle-card-pin"]').getAttribute('data-id'), '30028', 'new pin follows Light Hello at the top of the ranking');
 assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 1);
@@ -385,6 +386,9 @@ await assertFieldsMatchState(page, 'after restoring pink editor');
 assert.equal(await page.inputValue('[data-pink-lineage-stars="0"]'), '3');
 await page.click('[data-action="toggle-sparks"]');
 await assertFieldsMatchState(page, 'with both advanced legacy forms open');
+await releaseSearch(page);
+await waitForPlan(page);
+await assertFieldsMatchState(page, 'after the native worker publishes the completed deck');
 // layout check: no horizontal overflow at common widths, both themes
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {

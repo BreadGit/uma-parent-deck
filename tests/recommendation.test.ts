@@ -30,6 +30,7 @@ test('recommendation fingerprints include every run, setting and inventory field
   }
   const changedUi = structuredClone(state);
   changedUi.ui.theme = 'dark'; changedUi.ui.sortKey = 'stats';
+  changedUi.ui.showUnowned = false;
   assert.equal(keyOf(changedUi), keyOf());
   const reordered = { ...state, run: Object.fromEntries(Object.entries(state.run).reverse()) as typeof state.run };
   assert.equal(keyOf(reordered), keyOf());

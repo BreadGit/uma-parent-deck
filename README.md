@@ -104,6 +104,13 @@ npm run test:e2e   # smoke walk-through plus browser regression cases against th
 npm run build
 ```
 
+Browser regression cases use `editor()` for inputs, migration, and immediate estimates with search
+held pending, or `fresh()` for real optimizer integration. `assertFieldsMatchState()` checks the
+current fields immediately. Use `waitForPlan()` explicitly for assertions about completed search;
+it rejects search failures and held workers. Smoke holds search during editor checks, then releases
+the latest request to a real worker before checking the completed result at all six layout widths.
+Keep search-quality and publication assertions in the real-worker cases.
+
 `npm run dev` binds to all interfaces (`vite --host`). Vite prints the network URL on start.
 Browser checks accept `URL` for another server, including `npm run preview`. Set `SCREENSHOT_PATH` to choose
 where the smoke screenshot goes, or to an empty string to skip writing it.

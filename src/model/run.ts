@@ -102,14 +102,14 @@ export function effectiveLb(inv: Inventory, card: Card, defaults: { R: number; S
   return defaults[card.rarity];
 }
 
-/** The card pool from the inventory: owned cards at their LB, plus unowned ones at the default LB when they are shown. */
+/** The card pool from the inventory: owned cards at their LB, plus unowned ones at the default LB for display. */
 function cardPool(data: Data, inventory: Inventory, settings: Settings) {
   const pool: { card: Card; lb: number }[] = [];
   const unowned = new Set<number>();
   for (const card of data.cards) {
     const lb = effectiveLb(inventory, card, settings.defaultLb);
     if (lb != null) pool.push({ card, lb });
-    else { unowned.add(card.id); if (settings.showUnowned) pool.push({ card, lb: settings.defaultLb[card.rarity] }); }
+    else { unowned.add(card.id); pool.push({ card, lb: settings.defaultLb[card.rarity] }); }
   }
   return { pool, unowned };
 }

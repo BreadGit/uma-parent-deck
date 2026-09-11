@@ -5,7 +5,8 @@ import { test, after } from 'node:test';
 import { chromium } from 'playwright';
 import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, settlePlanActions, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
+import { holdSearch } from './browser-search.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
 
 const data = loadData();
@@ -13,7 +14,7 @@ const browser = await chromium.launch();
 const url = process.env.URL ?? 'http://localhost:5173/';
 after(() => browser.close());
 
-async function fresh(t, saved, settle = true) {
+async function fresh(t, saved, { held = false, settle = !held } = {}) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   t.after(() => context.close());
   if (saved) await context.addInitScript(({ key, saved }) => {
@@ -23,15 +24,17 @@ async function fresh(t, saved, settle = true) {
     }
   }, { key: STATE_KEY, saved });
   const page = await context.newPage();
+  if (held) await holdSearch(page);
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (e) => { if (e.type() === 'error') errors.push(e.text()); });
   t.after(() => assert.deepEqual(errors, [], 'browser errors'));
   await page.goto(url);
   await page.waitForSelector('#target-search');
-  if (settle) { await waitForPlan(page); settlePlanActions(page); }
+  if (settle) await waitForPlan(page);
   return page;
 }
+const editor = (t, saved) => fresh(t, saved, { held: true });
 const state = (page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
 async function discardRecommendation(page) {
   await page.evaluate((key) => {
@@ -58,7 +61,7 @@ test('the deck stays mounted during search and edits update its estimates immedi
   saved.run.traineeCardId = 100501;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
   saved.inventory['30017'] = null;
-  const page = await fresh(t, saved, false);
+  const page = await fresh(t, saved, { settle: false });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const chance = async () => parseFloat((await page.locator('[data-goal-probability]').innerText()).split('\n')[0]);
   await page.waitForSelector('[data-plan-pending]', { state: 'attached' });
@@ -118,11 +121,13 @@ test('a failed refinement preserves the checked deck and can be retried', async 
   });
   await discardRecommendation(page);
   await page.reload();
+  await page.waitForSelector('[data-action="retry-search"]');
   assert.match(await page.locator('[role="alert"]').innerText(), /displayed deck's estimates match your current inputs/);
   assert.equal(await page.locator('.deck .slot').count(), 6);
   assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) > 0);
   assert.deepEqual((await state(page)).run.targets, saved.run.targets);
   await page.click('[data-action="retry-search"]');
+  await waitForPlan(page);
   assert.equal(await page.locator('[data-action="retry-search"]').count(), 0);
   assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) >= 4.9);
   await assertFieldsMatchState(page, 'after retrying a failed refinement');
@@ -131,7 +136,7 @@ test('a failed refinement preserves the checked deck and can be retried', async 
 test('search stays responsive, ignores obsolete results, and persists the tie setting', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  const page = await fresh(t, saved, false);
+  const page = await fresh(t, saved, { settle: false });
   assert.equal(await page.locator('[data-plan-pending]').count(), 1);
   assert.equal(await page.locator('[data-goal-result]').count(), 1, 'the displayed deck has current estimates during search');
   assert.equal(await page.locator('.deck .slot').count(), 6);
@@ -160,7 +165,7 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   saved.run.traineeCardId = 100501;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
   saved.inventory['30017'] = null;
-  const page = await fresh(t, saved, false);
+  const page = await fresh(t, saved, { settle: false });
   await waitForPlan(page);
   await page.addInitScript(() => {
     window.searchWorkers = [];
@@ -213,7 +218,7 @@ test('required skill priority is visible and the export follows the displayed or
   saved.run.pinnedIds.push(falcon.id);
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }, { id: focus.id, role: 'preferred', stars: 2 }];
   saved.run.wishlistOrder = [focus.id, 201601];
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   assert.equal(await page.locator('.wishlist li').first().getAttribute('data-wl-key'), '201601');
   assert.match(await page.locator('.wishlist li').first().innerText(), /required/);
   assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder);
@@ -234,7 +239,7 @@ test('required skill priority is visible and the export follows the displayed or
 });
 
 test('the first reset clears targets, trainee, pins and inheritance while preserving settings and inventory', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await target(page, 'Groundwork');
   await trainee(page);
   await pin(page, 'fire at my heels');
@@ -257,8 +262,8 @@ test('the first reset clears targets, trainee, pins and inheritance while preser
 test('ranking pins persist and an unowned pin requests a borrowed card', async (t) => {
   const saved = defaultState(data);
   saved.inventory['30028'] = null;
-  saved.settings.showUnowned = true;
-  const page = await fresh(t, saved);
+  saved.ui.showUnowned = true;
+  const page = await editor(t, saved);
   const button = page.locator('button[data-action="toggle-card-pin"][data-id="30028"]');
   await button.click();
   assert.equal(await button.getAttribute('aria-pressed'), 'true');
@@ -275,7 +280,7 @@ test('ranking pins persist and an unowned pin requests a borrowed card', async (
 });
 
 test('SSR event-rate edits update gold coverage immediately and survive reload unchanged', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await target(page, 'Corner Recovery');
   await pin(page, 'piece of mind');
   await page.click('[data-details="advanced"] > summary');
@@ -291,7 +296,7 @@ test('SSR event-rate edits update gold coverage immediately and survive reload u
 });
 
 test('Narita Brian displays one race per occupied slot and counts each goal once', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await trainee(page, 'narita brian maverick');
   const heading = await page.locator('h2', { hasText: 'G1 agenda' }).innerText();
   assert.match(heading, /18 races.*11 career goals/);
@@ -300,7 +305,7 @@ test('Narita Brian displays one race per occupied slot and counts each goal once
 });
 
 test('skill advice includes prerequisite costs and buyable circle upgrades', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await trainee(page);
   await pin(page, 'piece of mind');
   await target(page, 'Swinging Maestro');
@@ -316,7 +321,7 @@ test('skill advice includes prerequisite costs and buyable circle upgrades', asy
 });
 
 test('a fresh visit shows a general starting deck without prototype controls or borrow prose', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   assert.equal(await page.locator('.deck .slot').count(), 6);
   assert.equal(await page.locator('.deck .slot').filter({ hasText: /Maruzensky|Smart Falcon/ }).count(), 0);
   assert.equal(await page.locator('.deck .tag.borrow').count(), 1, 'the borrowed card still has its badge');
@@ -335,7 +340,7 @@ test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious cir
   // Isolate inherited hints while still building a complete deck through the regular UI.
   Object.assign(saved.settings, { hintBase: 0, chainRatesSSR: [0, 0, 0], chainRatesSR: [0, 0], randomEventRate: 0,
     palChainRate: 0, groupOutingRate: 0, groupFinaleRate: 0, specialEventRate: 0 });
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   for (const [name, spark] of [['Corner Recovery', '9%'], ['Lucky Seven', '9%'], ['Right-Handed', '11%'], ['Mile Straightaways', '11%']]) {
     const row = coverage(page, name);
     assert.equal(await row.locator('td').nth(1).innerText(), '0%');
@@ -348,7 +353,7 @@ test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious cir
 });
 
 test('start gains share a side\'s three umas: a bigger gain takes the weakest umas from the other stats, and the sparks persist', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await trainee(page);
   await page.selectOption('[data-gain="0-0"]', '63');
   assert.equal(await page.locator('[data-gain="0-1"]').inputValue(), '0', 'all three sparks are on Speed');
@@ -368,7 +373,7 @@ test('saved spark ownership survives gain edits and reload; malformed aptitudes 
   saved.run.traineeCardId = 100101;
   saved.run.parentSparks[0] = [{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 3 }, { stat: 'power', stars: 2 }];
   saved.run.aptOverrides = { turf: 'Z', dirt: 'B', luck: 'A' };
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   assert.equal(await page.inputValue('[data-apt="turf"]'), data.charByCardId.get(100101).aptitudes.turf);
   assert.equal(await page.inputValue('[data-apt="dirt"]'), 'B');
   await page.selectOption('[data-gain="0-0"]', '17');
@@ -384,7 +389,7 @@ test('a malformed saved side becomes the default side without a warning, and the
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
   saved.run.parentSparks = [[{ stat: 'speed', stars: 3 }, { stat: 'speed', stars: 3 }, { stat: 'luck', stars: 3 }], [{ stat: 'wit', stars: 3 }, { stat: 'wit', stars: 3 }, { stat: 'wit', stars: 3 }]];
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   assert.equal(await page.locator('[data-plan-issues]').count(), 0);
   assert.equal(await predictions(page).count(), 1);
   assert.deepEqual(await page.$$eval('[data-gain]', (els) => els.map((e) => e.value)), ['0', '0', '0', '0', '0', '0', '0', '0', '0', '63'], 'side 1 is empty, side 2 keeps its three 3★ Wit');
@@ -393,7 +398,7 @@ test('a malformed saved side becomes the default side without a warning, and the
 });
 
 test('invalid inventory imports preserve inventory, while valid export and import round-trip', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await page.setInputFiles('#import-file', inventoryFile({ 30052: null, 30028: 2, 20009: 0 }));
   await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).inventory['30052'] === null, STATE_KEY);
   const before = (await state(page)).inventory;
@@ -420,7 +425,7 @@ test('invalid inventory imports preserve inventory, while valid export and impor
 });
 
 test('zero through four owned characters show an incomplete deck, and five restore predictions', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await trainee(page);
   const cards = [30052, 30028, 30016, 30083, 20009];
   for (let n = 0; n <= 5; n++) {
@@ -467,6 +472,7 @@ test('white target chips migrate old goals and support zero or many required spa
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
   assert.match(await page.locator('[data-goal-result]').innerText(), /No required white sparks/);
+  await waitForPlan(page);
   const probability = await page.locator('[data-goal-probability]').innerText();
   await page.reload();
   await page.waitForSelector('[data-goal-result]');
@@ -477,7 +483,7 @@ test('white target chips migrate old goals and support zero or many required spa
 });
 
 test('chip selection toggles its editor and removal updates goals without activating another chip', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await target(page, 'Groundwork');
   assert.equal(await page.locator('[data-target-editor]').getAttribute('data-target-editor'), '201601');
   await page.click('[data-target-role="required"]');
@@ -511,7 +517,7 @@ test('chip selection toggles its editor and removal updates goals without activa
 
 
 test('goal evaluation stays active for new sessions, resets, and saves with the old toggle off', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
   assert.equal(await page.locator('[data-goal-pink]').isVisible(), true);
   assert.match(await page.locator('[data-goal-issues]').innerText(), /Choose the trainee/);
@@ -535,7 +541,7 @@ test('goal evaluation stays active for new sessions, resets, and saves with the 
   saved.version = 14;
   saved.run.traineeCardId = 100101;
   saved.run.goal = { ...saved.run.goal, enabled: false, pink: 'turf', pinkStars: 3 };
-  const restored = await fresh(t, saved);
+  const restored = await editor(t, saved);
   assert.equal(await restored.locator('[data-goal-enabled]').count(), 0);
   assert.equal(await restored.inputValue('[data-goal-pink]'), 'turf');
   assert.equal(await restored.inputValue('[data-goal-stars="pink"]'), '3');
@@ -552,7 +558,7 @@ test('goal evaluation stays active for new sessions, resets, and saves with the 
 test('Any pink defaults to two stars, updates estimates, and persists across reload', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   const pinkRow = page.locator('.goal-breakdown tr').filter({ hasText: 'Pink (' });
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
   assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
@@ -582,6 +588,7 @@ test('pink reset clears manual and inferred sparks and starting increases while 
   await page.selectOption('[data-apt="end"]', 'A');
   await page.click('[data-action="toggle-pink-sparks"]');
   await page.selectOption('[data-pink-lineage="5"]', 'turf');
+  await waitForPlan(page);
   const before = await state(page);
   assert.ok(before.run.pinkLineage.some((p) => p?.inferred));
   assert.ok(before.run.pinkLineage.some((p) => p && !p.inferred));
@@ -589,6 +596,7 @@ test('pink reset clears manual and inferred sparks and starting increases while 
   const expected = structuredClone(before);
   expected.run.pinkLineage = Array(6).fill(null);
   expected.run.aptOverrides = {};
+  await waitForPlan(page);
   const reset = await state(page);
   assert.ok(reset.recommendation);
   assert.deepEqual(JSON.parse(reset.recommendation.key), [reset.run, reset.settings, reset.inventory]);
@@ -611,7 +619,7 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   saved.run.traineeCardId = 100101;
   saved.run.aptOverrides.end = 'B';
   saved.run.goal = { ...saved.run.goal, pink: 'end' };
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   const toggle = page.locator('[data-action="toggle-pink-sparks"]');
   assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
   assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0);
@@ -641,7 +649,7 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   const partialPinkProbability = await pinkProbability(), partialRun = (await state(page)).run;
   await page.reload();
   await page.waitForSelector('[data-goal-result]');
-  // Reload restores the completed deck; the pink marginal and saved inputs must stay unchanged.
+  // The pink marginal and saved inputs stay unchanged while search is held pending after reload.
   assert.equal(await pinkProbability(), partialPinkProbability);
   assert.deepEqual((await state(page)).run, partialRun);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
@@ -688,7 +696,7 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
 });
 
 test('aptitude increases infer editable pink sparks, preserve manual entries, and clear estimates on trainee change', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await trainee(page);
   assert.equal(await page.inputValue('[data-apt="end"]'), 'C');
   await page.selectOption('[data-apt="end"]', 'A');
@@ -725,7 +733,7 @@ test('aptitude increases infer editable pink sparks, preserve manual entries, an
 });
 
 test('dimmed aptitude choices rebalance pink sparks and planning overrides preserve them', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await trainee(page);
   assert.deepEqual(await page.locator('[data-apt="turf"] option').evaluateAll((options) => options.map((o) => o.value)), ['A', 'B', 'C', 'D', 'E', 'F', 'G']);
   assert.deepEqual(await page.locator('[data-apt="dirt"] option').evaluateAll((options) => options.map((o) => o.value)), ['A', 'B', 'C', 'D', 'E', 'F', 'G']);
@@ -764,7 +772,7 @@ test('dimmed aptitude choices rebalance pink sparks and planning overrides prese
 });
 
 test('manual Mile sparks survive unrelated grades, trainee changes, and reload', async (t) => {
-  const page = await fresh(t);
+  const page = await editor(t);
   await trainee(page);
   await page.selectOption('[data-goal-pink]', 'turf');
   await page.click('[data-action="goal-open-pink"]');
@@ -795,7 +803,7 @@ test('six manual End sparks stay intact on an unrelated grade selection', async 
   saved.run.traineeCardId = 100101;
   saved.run.aptOverrides.end = 'B';
   saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   assert.equal(await page.inputValue('[data-apt="end"]'), 'A');
   assert.equal(await page.locator('[data-apt="turf"] option:checked').getAttribute('class'), '');
   await page.selectOption('[data-apt="turf"]', 'A');
@@ -809,7 +817,7 @@ test('six manual End sparks stay intact on an unrelated grade selection', async 
 test('saved white siblings and gold-only targets stay visible and keep lineage', async (t) => {
   const gold = data.skills.find((s) => s.name === 'Runaway');
   const saved = { version: 6, run: { targets: [200433, 200432, gold.id], targetLineage: { 200433: { k1: 1, k2: 0, p1: 2, p2: 0 }, [gold.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } } } };
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   for (const id of saved.run.targets) assert.equal(await page.locator(`[data-action="select-target"][data-id="${id}"]`).count(), 1);
   await page.click(`[data-action="select-target"][data-id="${gold.id}"]`);
   assert.match(await page.locator('[data-target-unsupported]').innerText(), /no released white spark/);
@@ -829,7 +837,7 @@ test('goal explanations distinguish a difficult requirement, missing pink eligib
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
   saved.run.goal = { ...saved.run.goal, blueStars: 1, pinkStars: 3 };
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   const limits = page.locator('[data-goal-limits]');
   assert.match(await page.locator('[data-goal-probability]').innerText(), /Chance per final spark roll/);
   // Any 1-star blue is certain. Any 3-star pink is 10%, so pink is the limiting individual roll.
@@ -865,7 +873,7 @@ test('pink probability ranges remain visible and disabled and dimmed fields have
   saved.run.traineeCardId = 100101;
   saved.run.goal = { ...saved.run.goal, pink: 'turf' };
   saved.run.pinkLineage = [{ aptitude: 'dirt', stars: 1 }, ...Array(5).fill(null)];
-  const page = await fresh(t, saved);
+  const page = await editor(t, saved);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /% to .*%/);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.match(await page.locator('[data-goal-limits]').innerText(), /Pink eligibility is uncertain/);
@@ -890,6 +898,7 @@ test('completed recommendations survive reload without a worker, while changed i
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.inventory['30028'] = null;
   const page = await fresh(t, saved);
   const finished = await state(page);
   assert.ok(finished.recommendation?.summary.evaluated > 0);
@@ -914,6 +923,15 @@ test('completed recommendations survive reload without a worker, while changed i
 
   // A view-only edit must neither search nor walk the unchanged ranking's bindings.
   await page.evaluate(() => {
+    window.panelReads = 0;
+    window.panelFields = ['[data-apt="end"]', '[data-slot]', '[data-setting-list="chainRatesSSR"]', '[data-select="trainee-stars"]', '[data-setting="focus"]', '.deck [data-lb]'].map((selector) => document.querySelector(selector));
+    for (const field of window.panelFields) {
+      const descriptor = Object.getOwnPropertyDescriptor(field instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype, 'value');
+      Object.defineProperty(field, 'value', { configurable: true,
+        get() { window.panelReads++; return descriptor.get.call(this); },
+        set(value) { descriptor.set.call(this, value); },
+      });
+    }
     window.rankingReads = 0;
     window.rankingField = document.querySelector('section.panel:last-child [data-lb]');
     const descriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
@@ -929,14 +947,29 @@ test('completed recommendations survive reload without a worker, while changed i
   await page.fill('#target-search', 'ground');
   assert.equal(await page.evaluate(() => window.rankingMutations), 0);
   assert.equal(await page.evaluate(() => window.rankingReads), 0, 'view edits do not read unchanged ranking fields');
+  assert.equal(await page.evaluate(() => window.panelReads), 0, 'view edits do not walk unchanged panels');
   assert.equal(await page.evaluate(() => window.searchWorkers.length), 0);
-  await page.evaluate(() => { window.rankingObserver.disconnect(); delete window.rankingField.value; });
+  await page.evaluate(() => { window.rankingObserver.disconnect(); delete window.rankingField.value; for (const field of window.panelFields) delete field.value; });
   await page.locator('[data-sort="speed"]').click();
   assert.equal((await state(page)).ui.sortKey, 'speed');
   await assertFieldsMatchState(page, 'after sorting a restored recommendation');
   await page.locator('section.panel:last-child [data-lb]').first().evaluate((el) => { el.value = el.value === '0' ? '4' : '0'; });
   await page.locator('[data-sort="speed"]').click();
   await assertFieldsMatchState(page, 'after a repeated sort restores a stale field');
+  const unownedRow = page.locator('section.panel:last-child [data-lb="30028"]');
+  assert.equal(await unownedRow.count(), 1);
+  await page.uncheck('[data-setting="showUnowned"]');
+  assert.equal(await unownedRow.count(), 0);
+  assert.equal((await state(page)).ui.showUnowned, false);
+  assert.deepEqual((await state(page)).recommendation, finished.recommendation);
+  await page.reload();
+  assert.equal(await unownedRow.count(), 0);
+  await page.check('[data-setting="showUnowned"]');
+  assert.equal(await unownedRow.count(), 1);
+  await page.waitForTimeout(500);
+  assert.equal(await page.evaluate(() => window.searchWorkers.length), 0);
+  assert.deepEqual(await deck(), original);
+  await assertFieldsMatchState(page, 'after changing unowned visibility without search');
   // Restore the complete baseline before testing each reload invalidation independently.
   for (const [label, change] of [
     ['build', (s) => { s.recommendation.build = 'old-build'; }],

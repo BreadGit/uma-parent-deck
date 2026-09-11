@@ -94,6 +94,22 @@ test('prediction: focus multiplies the split, growth raises event stats, race lo
 
 // ----- sources: hints and events -----
 
+test('cached event rates follow scalar edits, nested array edits, replacements and restored values', () => {
+  const current = structuredClone(settings);
+  const fine = data.cardById.get(30010)!;
+  const gold = () => eventSources(fine, current, data).find((s) => s.event.key.endsWith(':chain:3') && data.skillById.get(s.skillId)?.name === 'Speed Star')!.pObtain;
+  const initial = gold();
+  assert.equal(gold(), initial);
+  current.chainRatesSSR[2] = .8;
+  assert.ok(Math.abs(gold() - .8 * goldRollChance(current.goldRollStat)) < 1e-9);
+  current.chainRatesSSR = [.5, .4, .2];
+  assert.ok(Math.abs(gold() - .2 * goldRollChance(current.goldRollStat)) < 1e-9);
+  current.goldRollStat = 399;
+  assert.ok(Math.abs(gold() - .2 * .3) < 1e-9);
+  Object.assign(current, structuredClone(settings));
+  assert.equal(gold(), initial);
+});
+
 test('hints: a card is a hint source for its hint skills, with hints per run from turns off the track and Hint Frequency', () => {
   const corner = resolveTarget(200352, data)!; // Corner Recovery ○, on Kitasan's hint list
   const hint = cardSourcesForTarget(kitasan, 4, corner, 28, T, data, settings).find((s) => s.kind === 'hint' && s.skillId === 200352)!;

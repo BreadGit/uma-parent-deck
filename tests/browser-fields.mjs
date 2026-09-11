@@ -6,14 +6,10 @@ import { migrate, STATE_KEY } from '../src/state.ts';
 const data = loadData();
 
 export async function waitForPlan(page) {
+  assert.notEqual(await page.evaluate(() => window.__searchHeld), true, 'release held search before asserting optimizer completion');
+  await page.waitForSelector('#target-search');
   await page.waitForFunction(() => !document.querySelector('[data-plan-pending]'), undefined, { timeout: 45000 });
-}
-/** Existing interaction regressions inspect completed recommendations; loading has its own regression. */
-export function settlePlanActions(page) {
-  for (const name of ['click', 'selectOption', 'reload', 'setInputFiles', 'check', 'uncheck']) {
-    const action = page[name].bind(page);
-    page[name] = async (...args) => { const result = await action(...args); await waitForPlan(page); return result; };
-  }
+  assert.equal(await page.locator('[data-action="retry-search"]').count(), 0, 'search completed successfully');
 }
 
 /**
@@ -22,7 +18,7 @@ export function settlePlanActions(page) {
  * stale value unless its value is bound live; this catches that whatever the field.
  */
 export async function assertFieldsMatchState(page, where) {
-  await waitForPlan(page);
+  await page.waitForSelector('#target-search');
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), STATE_KEY);
   const saved = migrate({ current }, data);
   const trainee = data.charByCardId.get(saved.run?.traineeCardId);
@@ -59,6 +55,9 @@ export async function assertFieldsMatchState(page, where) {
     for (const el of document.querySelectorAll('[data-setting]')) {
       const v = st.settings?.[el.dataset.setting];
       if (el.tagName === 'SELECT' && v !== undefined && el.value !== String(v)) out.push(`setting ${el.dataset.setting} shows ${el.value}, state ${v}`);
+    }
+    for (const el of document.querySelectorAll('[data-setting="showUnowned"]')) {
+      if (el.checked !== st.ui.showUnowned) out.push('unowned visibility differs from state');
     }
     const goal = st.run?.goal;
     const check = (el, want) => { if (el.value !== String(want)) out.push(`${JSON.stringify(el.dataset)} shows ${el.value}, state ${want}`); };

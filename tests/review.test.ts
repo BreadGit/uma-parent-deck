@@ -47,7 +47,7 @@ test('saved planning overrides preserve the agenda', () => {
   const trainee = data.characters.find((c) => c.name === 'Oguri Cap')!;
   const saved = migrate({ current: { version: 6, run: { traineeCardId: trainee.cardId, aptOverrides: { dirt: 'G' } } } }, data);
   assert.equal(saved.run.aptOverrides.dirt, 'G');
-  const plan = planRun(saved.run, saved.settings, {}, data);
+  const plan = planRun(saved.run, saved.settings, {}, data, { search: false });
   assert.equal(plan.apt.dirt, 'G');
   assert.equal(plan.schedule.filter((r) => r.selected && r.race.surface === 'dirt' && !r.goal).length, 0);
 });

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
-import { defaultPins, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
+import { defaultPins, defaultState, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
 import { defaultParentSparks, gainsOfParentSparks } from '../src/model/inherit.ts';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, parseSetting, sanitizeSettings, SETTING_HELP, type Settings } from '../src/settings.ts';
 
@@ -42,7 +42,7 @@ test('nothing saved, or garbage in every slot, gives the defaults with Light Hel
   assert.equal(data.cardById.get(s.run.pinnedIds[0]!)?.charName, 'Light Hello');
   assert.deepEqual(s.settings, DEFAULT_SETTINGS);
   assert.deepEqual(s.inventory, {});
-  assert.deepEqual(s.ui, { sortKey: 'score', theme: 'system' });
+  assert.deepEqual(s.ui, { sortKey: 'score', theme: 'system', showUnowned: true });
   assert.deepEqual(migrate({ current: 'nope', state: 42, settings: [1], inventory: 'x', theme: 'neon' }, data), s);
 });
 
@@ -91,19 +91,33 @@ test('v6 sparks per uma round-trip, a null slot survives, and a malformed slot r
 test('legacy settings blobs: version bumps apply and invalid values are dropped', () => {
   const s1 = migrate({ settings: { version: 1, defaultLb: { R: 4, SR: 4, SSR: 0 }, showUnowned: false, chainRatesSSR: [0.5, 0.5], hintBase: 0.1 } }, data);
   assert.equal(s1.settings.defaultLb.SSR, 4, 'v1 -> SSR default LB becomes 4');
-  assert.equal(s1.settings.showUnowned, true, 'v2 -> unowned shown by default');
+  assert.equal(s1.ui.showUnowned, true, 'v2 -> unowned shown by default');
   assert.deepEqual(s1.settings.chainRatesSSR, DEFAULT_SETTINGS.chainRatesSSR, 'a two-entry list is rejected');
   assert.equal(s1.settings.hintBase, 0.1);
   const s3 = migrate({ settings: { version: 3, showUnowned: false, defaultLb: { R: 2, SR: 3, SSR: 1 } } }, data);
-  assert.equal(s3.settings.showUnowned, false);
+  assert.equal(s3.ui.showUnowned, false);
   assert.deepEqual(s3.settings.defaultLb, { R: 2, SR: 3, SSR: 1 });
 });
 
 test('the current shape round-trips and wins over legacy keys', () => {
   const cur = migrate({}, data);
-  cur.run.targets = [{ id: 201601, role: 'preferred', stars: 2 }]; cur.settings.winThreshold = 0.6; cur.inventory = { '30028': 2, '30052': null }; cur.ui = { sortKey: 'sp', theme: 'dark' };
+  cur.run.targets = [{ id: 201601, role: 'preferred', stars: 2 }]; cur.settings.winThreshold = 0.6; cur.inventory = { '30028': 2, '30052': null }; cur.ui = { sortKey: 'sp', theme: 'dark', showUnowned: false };
   const back = migrate({ current: JSON.parse(JSON.stringify(cur)), state: { targets: [999] }, settings: { winThreshold: 0.1 }, inventory: { '1': 1 }, theme: 'light' }, data);
   assert.deepEqual(back, cur);
+});
+
+test('ranking visibility moves from saved settings to UI state without losing the saved choice', () => {
+  for (const showUnowned of [false, true]) {
+    const saved = defaultState(data);
+    const old = { ...saved, version: 16, ui: { sortKey: 'speed', theme: 'dark' }, settings: { ...saved.settings, showUnowned } };
+    const restored = migrate({ current: old }, data);
+    assert.equal(restored.ui.showUnowned, showUnowned);
+    assert.equal('showUnowned' in restored.settings, false);
+    assert.deepEqual(restored.run, saved.run);
+    assert.deepEqual(restored.inventory, saved.inventory);
+    assert.deepEqual(migrate({ current: restored }, data), restored);
+    assert.equal(migrate({ current: { ...old, ui: { ...old.ui, showUnowned: !showUnowned } } }, data).ui.showUnowned, !showUnowned);
+  }
 });
 
 test('validation: inventory entries are numeric ids with LB 0..4 or null; every setting is parsed against its spec and retired keys are dropped', () => {
@@ -117,7 +131,6 @@ test('validation: inventory entries are numeric ids with LB 0..4 or null; every 
   assert.equal(parseSetting('totalTurnsOverride', '70'), 70);
   assert.equal(parseSetting('focus', 'sprint'), 'sprint');
   assert.equal(parseSetting('focus', 'fast'), undefined);
-  assert.equal(parseSetting('showUnowned', false), false);
   assert.equal(parseSetting('defaultLb', '4'), undefined);
   assert.equal(parseSetting('scenarioId', '5'), undefined, 'only the supported scenario');
   assert.equal(parseSetting('scenarioId', '3'), 3);

@@ -11,10 +11,10 @@ import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParen
 import { clampStars } from './model/trainee.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
-export interface UiState { sortKey: string; theme: Theme }
+export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; recommendation?: SavedRecommendation }
 
-export const STATE_VERSION = 16;
+export const STATE_VERSION = 17;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -24,7 +24,7 @@ export const DEFAULT_RUN: RunInput = {
   targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
   aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [defaultParentSparks(), defaultParentSparks()],
 };
-export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system' };
+export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system', showUnowned: true };
 
 /** Light Hello is mandatory in Our Grand Concert, so she starts pinned (SSR if present, else R). */
 export function defaultPins(data: Data): number[] {
@@ -114,7 +114,6 @@ function migrateSettings(raw: Json): Settings {
   delete saved.version;
   const merged = sanitizeSettings(saved as Partial<Record<keyof Settings, unknown>>);
   if (version < 2) merged.defaultLb = { ...merged.defaultLb, SSR: 4 }; // default SSR LB changed from 0 to 4
-  if (version < 3) merged.showUnowned = true;                            // now shown by default
   return merged;
 }
 
@@ -145,7 +144,9 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
       run: isObj(c.run) ? migrateRun(c.run, data) : base.run,
       settings: isObj(c.settings) ? sanitizeSettings(c.settings as Partial<Record<keyof Settings, unknown>>) : base.settings,
       inventory: sanitizeInventory(c.inventory),
-      ui: { sortKey: isObj(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isObj(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme },
+      ui: { sortKey: isObj(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isObj(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,
+        showUnowned: isObj(c.ui) && typeof c.ui.showUnowned === 'boolean' ? c.ui.showUnowned
+          : isObj(c.settings) && typeof c.settings.showUnowned === 'boolean' ? c.settings.showUnowned : DEFAULT_UI.showUnowned },
     };
   }
   return {
@@ -153,7 +154,9 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
     run: isObj(saved.state) ? migrateRun(saved.state, data) : base.run,
     settings: isObj(saved.settings) ? migrateSettings(saved.settings) : base.settings,
     inventory: sanitizeInventory(saved.inventory),
-    ui: { sortKey: isObj(saved.state) && typeof saved.state.sortKey === 'string' ? saved.state.sortKey : DEFAULT_UI.sortKey, theme: isTheme(saved.theme) ? saved.theme : DEFAULT_UI.theme },
+    ui: { sortKey: isObj(saved.state) && typeof saved.state.sortKey === 'string' ? saved.state.sortKey : DEFAULT_UI.sortKey, theme: isTheme(saved.theme) ? saved.theme : DEFAULT_UI.theme,
+      showUnowned: isObj(saved.settings) && typeof saved.settings.version === 'number' && saved.settings.version >= 3
+        && typeof saved.settings.showUnowned === 'boolean' ? saved.settings.showUnowned : DEFAULT_UI.showUnowned },
   };
 }
 const isTheme = (v: unknown): v is Theme => v === 'system' || v === 'light' || v === 'dark';

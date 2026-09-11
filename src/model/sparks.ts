@@ -104,9 +104,18 @@ export function outcomeSkillShares(outcome: Reward[], data: Data, settings: Sett
 const EVENT_LABEL: Record<CardEvent['kind'], string> = { chain: 'Chain event', random: 'Random event', recreation: 'Outing', special: 'Special event' };
 
 /** Settings are edited in place, so the cache key must reflect their current values. */
+const eventSettingsKeys = new WeakMap<Settings, { parts: (number | number[])[]; key: string }>();
 function eventSettingsKey(s: Settings): string {
-  return [s.chainRatesSSR, s.chainRatesSR, s.randomEventRate, s.palChainRate, s.groupOutingRate, s.groupFinaleRate, s.specialEventRate, s.goldRollStat,
-    s.charStoryEventRate, s.charOutingRate, s.charUndecodedEventRate, s.charConditionFallbackRate].flat().join(',');
+  const parts = [s.chainRatesSSR, s.chainRatesSR, s.randomEventRate, s.palChainRate, s.groupOutingRate, s.groupFinaleRate, s.specialEventRate, s.goldRollStat,
+    s.charStoryEventRate, s.charOutingRate, s.charUndecodedEventRate, s.charConditionFallbackRate];
+  const previous = eventSettingsKeys.get(s);
+  if (previous && parts.every((part, i) => {
+    const old = previous.parts[i];
+    return Array.isArray(part) ? Array.isArray(old) && part.length === old.length && part.every((v, j) => v === old[j]) : part === old;
+  })) return previous.key;
+  const key = parts.flat().join(',');
+  eventSettingsKeys.set(s, { parts: parts.map((part) => Array.isArray(part) ? [...part] : part), key });
+  return key;
 }
 const eventSourceCache = new WeakMap<Card, { key: string; value: EventSource[] }>();
 

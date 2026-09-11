@@ -75,7 +75,7 @@ test('bundled career goals contain no repeated race objective at the same slot',
 });
 
 test('gold purchase includes the white prerequisite and deduplicates target families', () => {
-  const p = planRun({ ...input(), targets: [200352].map((id) => ({ id, role: 'preferred' as const, stars: 2 })), pinnedIds: [30052, 30016] }, settings(), {}, data);
+  const p = planRun({ ...input(), targets: [200352].map((id) => ({ id, role: 'preferred' as const, stars: 2 })), pinnedIds: [30052, 30016] }, settings(), {}, data, { search: false });
   const target = resolveTarget(200352, data)!;
   assert.equal(p.spCost.total, 340);
   assert.equal(targetSpCost([target, target], p.deckResult.coverage).total, 340);
@@ -84,7 +84,7 @@ test('gold purchase includes the white prerequisite and deduplicates target fami
 });
 
 test('a normal hint permits buying its circle upgrade without inventing a circle hint', () => {
-  const p = planRun({ ...input(), targets: [200012].map((id) => ({ id, role: 'preferred' as const, stars: 2 })) }, settings(), {}, data);
+  const p = planRun({ ...input(), targets: [200012].map((id) => ({ id, role: 'preferred' as const, stars: 2 })) }, settings(), {}, data, { search: false });
   const hints = combineSources(p.deckResult.coverage.get(200012)!);
   assert.equal(hints.pCircle, 0);
   assert.equal(hints.pGold, 0);
@@ -201,7 +201,7 @@ test('plans with fewer than five usable owned characters are explicitly incomple
 });
 
 test('the plan shows the start gains the sparks make, and a full side never raises an issue', () => {
-  const p = planRun({ ...input(), parentSparks: [[{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 2 }, { stat: 'power', stars: 3 }], [{ stat: 'guts', stars: 3 }, { stat: 'guts', stars: 3 }, { stat: 'wit', stars: 2 }]] }, settings(), {}, data);
+  const p = planRun({ ...input(), parentSparks: [[{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 2 }, { stat: 'power', stars: 3 }], [{ stat: 'guts', stars: 3 }, { stat: 'guts', stars: 3 }, { stat: 'wit', stars: 2 }]] }, settings(), {}, data, { search: false });
   assert.deepEqual(p.parentGains, [[5, 12, 21, 0, 0], [0, 0, 0, 42, 12]]);
   assert.deepEqual(p.issues, []);
 });
