@@ -262,6 +262,7 @@ table.coverage td.src-list { width: 55%; }
 .cover .pill { font-size: 11px; padding: 0 4px; }
 td.cover { white-space: normal; max-width: 340px; min-width: 200px; }
 td.cover .t { display: inline-flex; margin: 1px 6px 1px 0; }
+td.target-chances { min-width: 280px; }
 .target-chances .target-spark { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 6px; margin: 5px 0; }
 .target-spark-value { white-space: nowrap; }
 .target-more { margin-top: 4px; font-size: 12px; }
