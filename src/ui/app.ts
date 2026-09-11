@@ -50,7 +50,7 @@ function page() {
       </div>
       <div>${searchState.pending ? html`<span class="visually-hidden" data-plan-pending role="status" aria-live="polite">Searching for a better deck…</span>` : nothing}
         ${guard([c, stateRevision, searchState.pending], () => renderDeck(c))}${guard([c, stateRevision], () => renderGoalResult(c))}
-        ${searchState.error ? panel({ title: 'Deck search' }, html`<p role="alert">Deck search could not finish. The displayed deck's estimates match your current inputs.</p><button data-action="retry-search" @click=${retrySearch}>Retry search</button>`) : nothing}${guard([c, stateRevision], () => renderSchedule(c))}${guard([c, stateRevision], () => renderRanking(c))}</div>
+        ${searchState.error ? panel({ title: 'Deck search' }, html`<p role="alert">Deck search could not finish. The displayed deck's estimates match your current inputs.</p><button data-action="retry-search" @click=${retrySearch}>Retry search</button>`) : nothing}${guard([c, stateRevision], () => renderSchedule(c))}${guard([c, stateRevision, view.expandedRankingCards], () => renderRanking(c))}</div>
     </main>
     <div id="tooltip" role="tooltip"></div>
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;

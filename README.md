@@ -40,9 +40,11 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   penalty per surface and distance grade and per consecutive race, clamped to 100%, with stats and
   skills playing no part. A career goal the run would end on losing is always won. A win-chance
   threshold you set on the main page and per-race picks complete the agenda.
-- Each card gets a spark score (expected sparks over the targets, given how likely the card
-  is to actually hand over the skill) and a stat score (predicted contribution in independent
-  training at your limit break). Ranking is by marginal spark gain, tie-broken by stats.
+- Card ranking shows each card's own target spark chances at rank SS, using Required minimum stars
+  and 2★+ for Preferred targets. It sorts by the sum of Required chances, then Preferred chances,
+  then predicted stat contribution at your limit break. These individual chances are not the complete
+  parent-goal probability. Each row shows four targets initially. Select "+N more" to expand the rest
+  in the row, with a source tooltip for each target, or "Show fewer" to collapse them.
 - The deck search compares complete required-goal probabilities, then preferred sparks on successful
   parents within a configurable 0.1% relative window. It shows an initial checked recommendation,
   then screens a broader set of decks in the background and fully evaluates promising alternatives.

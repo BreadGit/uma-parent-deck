@@ -22,6 +22,7 @@ export const view = {
   showAdvanced: false,
   showSparks: false,
   showPinkSparks: false,
+  expandedRankingCards: [] as number[],
 };
 
 let renderer: () => void = () => {};

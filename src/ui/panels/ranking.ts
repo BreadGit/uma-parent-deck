@@ -8,7 +8,7 @@ import type { CardScore } from '../../model/deck.ts';
 import { cardTargetChances, compareTargetChances, type TargetSparkChance } from '../../model/card-ranking.ts';
 import { MODELLED_UNIQUE_TYPES, uniqueNote } from '../../model/stats.ts';
 import { modelContribution } from '../../model/stats.ts';
-import { data, store, update } from '../context.ts';
+import { data, refresh, store, update, view } from '../context.ts';
 import { cardThumb, cardUrl, goalProbability, num, pct, skillName, typeIcon } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
@@ -57,14 +57,20 @@ const targetLabel = (x: TargetSparkChance) => `${x.target.name} ${x.stars}★+`;
 const sourceDetails = (x: TargetSparkChance) => x.sources.length
   ? x.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)} skill acquisition`).join('\n')
   : 'No available source on this card under the current skill priorities.';
-const targetDetails = (x: TargetSparkChance) => `${targetLabel(x)}: ${goalProbability(x.probability)}\n${sourceDetails(x)}`;
-function targetChancesCell(targets: TargetSparkChance[]) {
+const targetChance = (x: TargetSparkChance) => html`<div class="target-spark" data-target-spark=${x.target.id}><span>${targetLabel(x)}</span> <span class="target-spark-value"><span class="pill">${goalProbability(x.probability)}</span>${tip(sourceDetails(x))}</span></div>`;
+function toggleTargets(cardId: number) {
+  view.expandedRankingCards = view.expandedRankingCards.includes(cardId)
+    ? view.expandedRankingCards.filter((id) => id !== cardId) : [...view.expandedRankingCards, cardId];
+  refresh();
+}
+function targetChancesCell(cardId: number, targets: TargetSparkChance[]) {
   const available = targets.filter((x) => x.probability > 0);
   const hidden = available.slice(4);
-  const more = hidden.map(targetDetails).join('\n\n');
+  const expanded = view.expandedRankingCards.includes(cardId), detailsId = `card-targets-${cardId}`;
   return html`<td class="cover target-chances" data-target-chances>
-    ${available.slice(0, 4).map((x) => html`<div class="target-spark" data-target-spark="${x.target.id}"><span>${targetLabel(x)}</span> <span class="target-spark-value"><span class="pill">${goalProbability(x.probability)}</span>${tip(sourceDetails(x))}</span></div>`)}
-    ${hidden.length ? html`<button type="button" class="target-more" data-target-more data-tip="${more}" aria-label="${hidden.length} more targets. ${more}">+${hidden.length} more</button>` : nothing}
+    ${available.slice(0, 4).map(targetChance)}
+    ${hidden.length ? html`<button type="button" class="target-more" data-target-more aria-expanded=${expanded} aria-controls=${detailsId} @click=${() => toggleTargets(cardId)}>${expanded ? 'Show fewer' : `+${hidden.length} more`}</button>
+      <div id=${detailsId} ?hidden=${!expanded}>${expanded ? hidden.map(targetChance) : nothing}</div>` : nothing}
   </td>`;
 }
 
@@ -99,7 +105,7 @@ export function renderRanking(c: RunPlan) {
             <button type="button" class="ranking-pin ${pinned ? 'active' : ''}" data-action="toggle-card-pin" data-id="${x.card.id}" aria-label="${pinLabel}" aria-pressed="${pinned}" title="${pinLabel}" @click=${() => pinned ? unpinCard(x.card.id) : pinCard(x.card.id)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22.3126 10.1753L20.8984 11.5895L20.1913 10.8824L15.9486 15.125L15.2415 18.6606L13.8273 20.0748L9.58466 15.8321L4.63492 20.7819L3.2207 19.3677L8.17045 14.4179L3.92781 10.1753L5.34202 8.76107L8.87756 8.05396L13.1202 3.81132L12.4131 3.10422L13.8273 1.69L22.3126 10.1753Z"></path></svg></button>
           </div></td>
           <td>${lbSelect(c, x.card, x.lb)}</td>
-          ${targetChancesCell(chances.get(x.card.id)!.targets)}
+          ${targetChancesCell(x.card.id, chances.get(x.card.id)!.targets)}
           ${x.stats.map((v, i) => html`<td class="num" data-card-stat="${STATS[i]}">${num(v * (focusMul[i] ?? 1))}</td>`)}
           <td class="num" data-card-stat-total><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
           <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${uniqueTag(c, x.card)}</td>

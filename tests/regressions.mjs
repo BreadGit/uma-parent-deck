@@ -56,6 +56,48 @@ const inventoryFile = (inventory) => ({ name: 'inventory.json', mimeType: 'appli
 const noCards = () => Object.fromEntries(data.cards.map((c) => [c.id, null]));
 const predictions = (page) => page.locator('h3', { hasText: 'Predicted run' });
 
+test('ranking expands all target chances and keeps the last target reachable on phones', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  // Breakaway Battleship Gold Ship offers these 18 target families through hints and events.
+  saved.run.targets = [200622, 200642, 200752, 201212, 201232, 201472, 201482, 201502, 201512,
+    201552, 201581, 201591, 201601, 201631, 202022, 200342, 202032, 200052]
+    .map((id) => ({ id, role: 'preferred', stars: 2 }));
+  const page = await editor(t, saved);
+  const row = page.locator('tr').filter({ has: page.locator('[data-lb="30004"]') });
+  const more = row.locator('[data-target-more]');
+  for (const width of [390, 1440]) for (const theme of ['light', 'dark']) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.click(`[data-theme-pick="${theme}"]`);
+    assert.equal(await row.locator('[data-target-spark]:visible').count(), 4);
+    assert.equal(await more.getAttribute('aria-expanded'), 'false');
+    assert.equal(await more.getAttribute('data-tip'), null);
+    await more.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await more.getAttribute('aria-expanded'), 'true');
+    assert.equal(await more.innerText(), 'Show fewer');
+    assert.equal(await row.locator('[data-target-spark]:visible').count(), 18);
+    // A persisted presentation change must not collapse the card's transient expansion.
+    await page.click('[data-sort="sp"]');
+    assert.equal(await row.locator('[data-target-spark]:visible').count(), 18);
+    const last = row.locator('[data-target-spark="200052"]');
+    assert.match(await last.innerText(), /Hanshin Racecourse/);
+    await last.locator('.tip').focus();
+    assert.equal(await last.evaluate((el) => {
+      const rect = el.getBoundingClientRect(), scroll = el.closest('.scroll').getBoundingClientRect();
+      return rect.top >= Math.max(0, scroll.top) && rect.bottom <= Math.min(innerHeight, scroll.bottom);
+    }), true, `last target is reachable at ${width}px in ${theme}`);
+    assert.match(await page.locator('#tooltip').innerText(), /Hanshin Racecourse/);
+    await more.focus();
+    await page.keyboard.press('Space');
+    assert.equal(await more.getAttribute('aria-expanded'), 'false');
+    assert.equal(await row.locator('[data-target-spark]:visible').count(), 4);
+    await assertFieldsMatchState(page, `after expanding and collapsing targets at ${width}px in ${theme}`);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  }
+  assert.deepEqual((await state(page)).run, saved.run, 'expansion preserves run inputs');
+});
+
 test('the deck stays mounted during search and edits update its estimates immediately', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100501;
