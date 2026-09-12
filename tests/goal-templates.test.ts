@@ -70,27 +70,26 @@ test('all supplied templates produce finite estimates without modifying the cata
     saved.run.traineeCardId = 100101;
     saved.run.goal = copy.goal;
     saved.run.targets = copy.targets;
+    Object.assign(saved.run.targetLineage, copy.targetLineage);
     const plan = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
     assert.ok(Number.isFinite(plan.goalEstimate.probability), template.name);
+    if (template.targetLineage) assert.ok(plan.goalEstimate.probability! > 0, template.name);
     assert.equal(plan.goalEstimate.required.length, template.targets.filter((t) => t.role === 'required').length);
     assert.equal(plan.goalEstimate.preferred.length, template.targets.filter((t) => t.role === 'preferred').length);
   }
   assert.deepEqual(GOAL_TEMPLATES, original);
 });
 
-test('godly defaults cover every target without a support-card source and make inherited hints available', async () => {
-  const { cardSourcesForTarget, lineageSources } = await import('../src/model/sparks.ts');
+test('godly defaults give every required white spark inherited hints and accept Any pink at two stars', async () => {
+  const { lineageSources } = await import('../src/model/sparks.ts');
   const { DEFAULT_SETTINGS } = await import('../src/settings.ts');
-  const expectedIds = new Set([210052, 210101, 210111, 202462, 202161, 202452]);
-  const found = new Set<number>();
+  assert.equal(GOAL_TEMPLATES.filter((t) => t.name.endsWith('(godly)')).length, 4);
   for (const template of GOAL_TEMPLATES.filter((t) => t.name.endsWith('(godly)'))) {
-    const missing = template.targets.filter((g) => {
-      const target = resolveTarget(g.id, data)!;
-      return !data.cards.some((card) => cardSourcesForTarget(card, 4, target, 20, 72, data, DEFAULT_SETTINGS).some((source) => source.pObtain > 0));
-    });
-    assert.deepEqual(Object.keys(template.targetLineage!).map(Number).sort(), missing.map((g) => g.id).sort(), template.name);
-    for (const goal of missing) {
-      found.add(goal.id);
+    const required = template.targets.filter((g) => g.role === 'required');
+    assert.deepEqual(template.goal.pink, [{ aptitude: 'any', stars: 2 }]);
+    assert.doesNotMatch(template.description!, /turf|stand-in|track distance/i);
+    assert.deepEqual(Object.keys(template.targetLineage!).map(Number).sort(), required.map((g) => g.id).sort(), template.name);
+    for (const goal of required) {
       const lineage = template.targetLineage![goal.id]!;
       assert.deepEqual(lineage, { k1: 3, p1: 7, k2: 3, p2: 7 });
       const target = resolveTarget(goal.id, data)!;
@@ -102,6 +101,5 @@ test('godly defaults cover every target without a support-card source and make i
       assert.ok(Math.abs(inherited[0]!.pObtain - (1 - (1 - p3) ** 4 * (1 - p2) ** 8)) < 1e-12);
     }
   }
-  assert.deepEqual(found, expectedIds);
   assert.ok(GOAL_TEMPLATES.filter((t) => !t.name.endsWith('(godly)')).every((t) => !t.targetLineage));
 });

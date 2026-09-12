@@ -1155,7 +1155,7 @@ test('templates preview without edits, confirm replacement, and preserve unrelat
   await picker.selectOption(godly.id);
   await assertFieldsMatchState(page, 'after previewing a template');
   assert.deepEqual(await state(page), before);
-  assert.match(await page.locator('[data-template-preview]').innerText(), /Turf 2★\+/);
+  assert.match(await page.locator('[data-template-preview]').innerText(), /Required pink spark: Any 2★\+/);
   assert.match(await page.locator('[data-template-preview]').innerText(), /priority 1/);
   page.once('dialog', (dialog) => {
     assert.equal(dialog.type(), 'confirm');
@@ -1225,6 +1225,9 @@ test('template Load and pink controls share rows at phone and desktop widths', a
   assert.equal((await state(page)).run.targetLineage[210052].p1, 8);
   await page.locator('[data-goal-templates] summary').click();
   await page.selectOption('[data-goal-template]', godly.id);
+  assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
+  await page.click('[data-action="add-pink-goal"]');
   await page.click('[data-action="add-pink-goal"]');
   assert.equal(await page.locator('[data-action="add-pink-goal"]').innerText(), 'Add spark');
   assert.equal(await page.locator('[data-action="reset-pink-goal"]').innerText(), 'Reset');

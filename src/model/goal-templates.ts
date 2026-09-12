@@ -10,7 +10,7 @@ export interface GoalTemplate {
   targetLineage?: Record<string, Lineage>;
 }
 
-const GODLY_DESCRIPTION = "dont take this build too seriously, its more just to show the probability of getting a parent with this many spark goals. turf 2* is used here as a stand-in for whatever track distance you want to target. you could of course make this even crazier with more 3*s and more required white sparks, but at that point it enters the realm being outright impossible.";
+const GODLY_DESCRIPTION = "dont take this build too seriously, its more just to show the probability of getting a parent with this many spark goals. you could of course make this even crazier with more 3*s and more required white sparks, but at that point it enters the realm being outright impossible.";
 
 /** Curated from docs/spark-goal-templates.md. IDs identify templates independently of their display names. */
 export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
@@ -63,10 +63,14 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
   {
     id: 'front-runner-parent-godly', name: 'Front runner parent (godly)',
     description: GODLY_DESCRIPTION,
-    goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'turf', stars: 2 }] },
+    goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'any', stars: 2 }] },
     targetLineage: {
+      201601: { k1: 3, p1: 7, k2: 3, p2: 7 },
       210052: { k1: 3, p1: 7, k2: 3, p2: 7 },
       210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      200452: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201262: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201611: { k1: 3, p1: 7, k2: 3, p2: 7 },
       202462: { k1: 3, p1: 7, k2: 3, p2: 7 },
     },
     targets: [
@@ -148,10 +152,15 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
   {
     id: 'pace-chaser-parent-godly', name: 'Pace chaser parent (godly)',
     description: GODLY_DESCRIPTION,
-    goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'turf', stars: 2 }] },
+    goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'any', stars: 2 }] },
     targetLineage: {
+      201601: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      200492: { k1: 3, p1: 7, k2: 3, p2: 7 },
       210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
       210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201591: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201611: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201332: { k1: 3, p1: 7, k2: 3, p2: 7 },
     },
     targets: [
       { id: 201601, role: 'required', stars: 2, priority: 0 }, // Groundwork
@@ -213,12 +222,16 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
   {
     id: 'late-surger-parent-godly', name: 'Late surger parent (godly)',
     description: GODLY_DESCRIPTION,
-    goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'turf', stars: 2 }] },
+    goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'any', stars: 2 }] },
     targetLineage: {
+      201591: { k1: 3, p1: 7, k2: 3, p2: 7 },
       202161: { k1: 3, p1: 7, k2: 3, p2: 7 },
       210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
       202452: { k1: 3, p1: 7, k2: 3, p2: 7 },
       210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201611: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      200492: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      200602: { k1: 3, p1: 7, k2: 3, p2: 7 },
     },
     targets: [
       { id: 201591, role: 'required', stars: 2, priority: 0 }, // Uma Stan
@@ -272,11 +285,15 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
   {
     id: 'end-closer-parent-godly', name: 'End closer parent (godly)',
     description: GODLY_DESCRIPTION,
-    goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'turf', stars: 2 }] },
+    goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'any', stars: 2 }] },
     targetLineage: {
+      201591: { k1: 3, p1: 7, k2: 3, p2: 7 },
       202161: { k1: 3, p1: 7, k2: 3, p2: 7 },
       210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
       210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201611: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      200492: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      200642: { k1: 3, p1: 7, k2: 3, p2: 7 },
     },
     targets: [
       { id: 201591, role: 'required', stars: 2, priority: 0 }, // Uma Stan

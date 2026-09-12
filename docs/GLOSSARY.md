@@ -12,7 +12,7 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
 - **Parent goal template**: a generic starting point that replaces the blue goal, pink alternatives, and
   white target list after confirmation. Loaded fields are ordinary editable input. Loading preserves
   unrelated inputs and valid white lineage, including targets absent from the loaded template.
-  Godly templates supply missing lineage for skills without support-card sources, with 3 copies totaling
+  Godly templates supply missing lineage for every required white spark, with 3 copies totaling
   7★ per parent side. Existing lineage entries take precedence over these defaults.
 - **Required white spark**: a target family that must appear at its chosen minimum stars. Every
   required family must succeed on the same parent. Gold and normal forms of Corner Recovery are
