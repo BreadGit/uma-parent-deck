@@ -24,23 +24,21 @@ export function renderGoalEditor(c: RunPlan) {
       <button class="small" data-action="goal-any-blue" @click=${() => change((g) => { g.blueStats = [...STATS]; })}>Any stat</button></div>
       <label class="goal-field">Minimum stars<select data-goal-stars="blue" .value=${live(String(g.blueStars))} @change=${(e: Event) => change((g) => { g.blueStars = Number((e.target as HTMLSelectElement).value); })}>${stars(g.blueStars)}</select></label>
     </fieldset>
-    <fieldset class="goal-group"><legend>Required pink spark</legend>
+    <fieldset class="goal-group"><legend class="goal-group-header"><span>Required pink spark</span><button class="small" data-action="reset-pink-goal" @click=${() => change((g) => { g.pink = []; })}>Reset</button></legend>
       <p class="small muted">Any one of these results satisfies the pink requirement.</p>
-      ${repeat(g.pink, (p) => p.aptitude, (p) => html`<div class="goal-pair" data-pink-goal-row=${p.aptitude}>
-        <label class="goal-field">Aptitude<select data-goal-pink=${p.aptitude} .value=${live(p.aptitude)} @change=${(e: Event) => change((g) => { g.pink.find((r) => r.aptitude === p.aptitude)!.aptitude = (e.target as HTMLSelectElement).value as PinkGoal['aptitude']; })}>
+      ${repeat(g.pink, (p) => p.aptitude, (p) => html`<div class="pink-goal-fields" data-pink-goal-row=${p.aptitude}>
+        <label class="goal-field"><select aria-label="Aptitude" data-goal-pink=${p.aptitude} .value=${live(p.aptitude)} @change=${(e: Event) => change((g) => { g.pink.find((r) => r.aptitude === p.aptitude)!.aptitude = (e.target as HTMLSelectElement).value as PinkGoal['aptitude']; })}>
           ${p.aptitude === 'any' ? html`<option value="any">Any</option>` : nothing}
           ${APTITUDE_KEYS.filter((k) => k === p.aptitude || !g.pink.some((r) => r.aptitude === k)).map((k) => html`<option value=${k} ?selected=${p.aptitude === k}>${APTITUDE_LABELS[k]}</option>`)}
         </select></label>
-        <label class="goal-field">Minimum stars<select data-goal-stars="pink" data-pink-aptitude=${p.aptitude} .value=${live(String(p.stars))} @change=${(e: Event) => change((g) => { g.pink.find((r) => r.aptitude === p.aptitude)!.stars = Number((e.target as HTMLSelectElement).value); })}>${stars(p.stars)}</select></label>
-        ${p.aptitude !== 'any' ? html`<button class="small" data-action="remove-pink-goal" data-aptitude=${p.aptitude} @click=${() => change((g) => { g.pink = g.pink.filter((r) => r.aptitude !== p.aptitude); })}>Remove ${APTITUDE_LABELS[p.aptitude]}</button>` : nothing}
+        <label class="goal-field"><select aria-label="Minimum stars" data-goal-stars="pink" data-pink-aptitude=${p.aptitude} .value=${live(String(p.stars))} @change=${(e: Event) => change((g) => { g.pink.find((r) => r.aptitude === p.aptitude)!.stars = Number((e.target as HTMLSelectElement).value); })}>${stars(p.stars)}</select></label>
+        ${p.aptitude !== 'any' ? html`<button class="small" data-action="remove-pink-goal" data-aptitude=${p.aptitude} aria-label=${`Remove ${APTITUDE_LABELS[p.aptitude]}`} @click=${() => change((g) => { g.pink = g.pink.filter((r) => r.aptitude !== p.aptitude); })}>×</button>` : nothing}
       </div>`)}
       <div class="goal-stats">
         <button class="small" data-action="add-pink-goal" ?disabled=${g.pink.length >= APTITUDE_KEYS.length} @click=${() => change((g) => {
           const aptitude = APTITUDE_KEYS.find((k) => !g.pink.some((r) => r.aptitude === k));
           if (aptitude) g.pink = g.pink[0]?.aptitude === 'any' ? [{ aptitude, stars: g.pink[0].stars }] : [...g.pink, { aptitude, stars: 2 }];
-        })}>Add pink alternative</button>
-        <button class="small" data-action="reset-pink-goal" @click=${() => change((g) => { g.pink = []; })}>Reset pink goal</button>
-        <button class="small" data-action="goal-open-pink" @click=${openPinkSparks}>Edit pink sparks in Legacy</button>
+        })}>Add spark</button>
       </div>
     </fieldset>
   `);

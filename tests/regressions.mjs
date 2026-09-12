@@ -826,9 +826,8 @@ test('manual Mile sparks survive unrelated grades, trainee changes, and reload',
   const page = await editor(t);
   await trainee(page);
   await page.selectOption('[data-goal-pink]', 'turf');
-  await page.click('[data-action="goal-open-pink"]');
-  assert.equal(await page.locator('[data-pink-lineage="0"]').evaluate((el) => el === document.activeElement), true);
-  await assertFieldsMatchState(page, 'after opening lineage from the goal controls');
+  await page.click('[data-action="toggle-pink-sparks"]');
+  await assertFieldsMatchState(page, 'after opening pink lineage in Legacy');
   await page.selectOption('[data-pink-lineage="4"]', 'mile');
   assert.equal(await page.inputValue('[data-apt="mile"]'), 'B');
   await assertFieldsMatchState(page, 'after adding manual Mile');
@@ -1174,6 +1173,7 @@ test('templates preview without edits, confirm replacement, and preserve unrelat
     const expected = structuredClone(before);
     expected.run.goal = template.goal;
     expected.run.targets = template.targets;
+    for (const [id, lineage] of Object.entries(GOAL_TEMPLATES[2].targetLineage)) expected.run.targetLineage[id] ??= lineage;
     delete expected.recommendation;
     assert.deepEqual(await state(page), expected);
   };
@@ -1183,7 +1183,7 @@ test('templates preview without edits, confirm replacement, and preserve unrelat
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   await page.reload();
   await assertFieldsMatchState(page, 'after reloading a loaded template');
-  assert.deepEqual((await state(page)).run.targetLineage, saved.run.targetLineage);
+  assert.deepEqual((await state(page)).run.targetLineage, { ...godly.targetLineage, ...saved.run.targetLineage });
   assert.equal(await details.getAttribute('open'), null);
   await target(page, 'ignited spirit wit');
   assert.equal(await page.inputValue('[data-lineage-k="210052"][data-side="k1"]'), '1');
@@ -1199,4 +1199,52 @@ test('templates preview without edits, confirm replacement, and preserve unrelat
   await load(godly);
   assert.equal(GOAL_TEMPLATES[2].goal.blueStars, 3);
   assert.equal(GOAL_TEMPLATES[2].targets.find((target) => target.id === 200012).priority, 0);
+});
+
+test('template Load and pink controls share rows at phone and desktop widths', async (t) => {
+  const { GOAL_TEMPLATES } = await import('../src/model/goal-templates.ts');
+  const page = await editor(t);
+  const godly = GOAL_TEMPLATES.find((template) => template.name === 'Front runner parent (godly)');
+  await page.locator('[data-goal-templates] summary').click();
+  await page.selectOption('[data-goal-template]', godly.id);
+  assert.ok((await page.locator('[data-template-preview]').innerText()).includes(godly.description));
+  assert.match(await page.locator('[data-template-preview]').innerText(), /Parent 1: 3× 7★ · Parent 2: 3× 7★/);
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.click('[data-action="load-goal-template"]');
+  await assertFieldsMatchState(page, 'after applying missing godly lineage');
+  assert.deepEqual((await state(page)).run.targetLineage, godly.targetLineage);
+  await page.click('[data-action="select-target"][data-id="210052"]');
+  for (const side of ['k1', 'k2']) assert.equal(await page.inputValue(`[data-lineage-k="210052"][data-side="${side}"]`), '3');
+  for (const side of ['p1', 'p2']) assert.equal(await page.inputValue(`[data-lineage-p="210052"][data-side="${side}"]`), '7');
+  await page.selectOption('[data-lineage-p="210052"][data-side="p1"]', '8');
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.click('[data-action="load-goal-template"]');
+  assert.equal((await state(page)).run.targetLineage[210052].p1, 8);
+  await page.reload();
+  await assertFieldsMatchState(page, 'after reloading edited template lineage');
+  assert.equal((await state(page)).run.targetLineage[210052].p1, 8);
+  await page.locator('[data-goal-templates] summary').click();
+  await page.selectOption('[data-goal-template]', godly.id);
+  await page.click('[data-action="add-pink-goal"]');
+  assert.equal(await page.locator('[data-action="add-pink-goal"]').innerText(), 'Add spark');
+  assert.equal(await page.locator('[data-action="reset-pink-goal"]').innerText(), 'Reset');
+  assert.equal(await page.locator('[data-action="goal-open-pink"]').count(), 0);
+  for (const width of [390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const controls = await page.evaluate(() => {
+      const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+      const picker = rect('[data-goal-template]'), load = rect('[data-action="load-goal-template"]');
+      const reset = rect('[data-action="reset-pink-goal"]'), header = rect('.goal-group-header span');
+      return { templateSameRow: load.left >= picker.right && load.top < picker.bottom && load.bottom > picker.top,
+        resetTopRight: reset.left >= header.right && reset.top < header.bottom && reset.bottom > header.top,
+        pinkRows: [...document.querySelectorAll('[data-pink-goal-row]')].map((row) => {
+          const [apt, stars, remove] = [...row.querySelectorAll('select, button')].map((el) => el.getBoundingClientRect());
+          return stars.left >= apt.right && remove.left >= stars.right && remove.top < apt.bottom && remove.bottom > apt.top;
+        }), overflow: document.documentElement.scrollWidth > innerWidth };
+    });
+    assert.deepEqual(controls, { templateSameRow: true, resetTopRight: true, pinkRows: [true, true], overflow: false }, `${width}px`);
+    assert.doesNotMatch(await page.locator('[data-pink-goal-row]').first().innerText(), /Aptitude|Minimum stars|Remove/);
+    assert.equal(await page.locator('[data-action="remove-pink-goal"]').first().innerText(), '×');
+    await assertFieldsMatchState(page, `after compact pink layout at ${width}px`);
+  }
 });

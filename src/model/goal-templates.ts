@@ -1,4 +1,5 @@
 import type { ParentGoal, WhiteTarget } from './goal-input.ts';
+import type { Lineage } from './sparks.ts';
 
 export interface GoalTemplate {
   id: string;
@@ -6,9 +7,10 @@ export interface GoalTemplate {
   description?: string;
   goal: ParentGoal;
   targets: WhiteTarget[];
+  targetLineage?: Record<string, Lineage>;
 }
 
-const GODLY_DESCRIPTION = "This template illustrates the chance of producing a parent with many spark requirements. Turf 2★+ is a placeholder; replace it with your desired aptitude, such as a distance. More 3★ requirements or required white sparks can make the result even less likely.";
+const GODLY_DESCRIPTION = "dont take this build too seriously, its more just to show the probability of getting a parent with this many spark goals. turf 2* is used here as a stand-in for whatever track distance you want to target. you could of course make this even crazier with more 3*s and more required white sparks, but at that point it enters the realm being outright impossible.";
 
 /** Curated from docs/spark-goal-templates.md. IDs identify templates independently of their display names. */
 export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
@@ -62,6 +64,11 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
     id: 'front-runner-parent-godly', name: 'Front runner parent (godly)',
     description: GODLY_DESCRIPTION,
     goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'turf', stars: 2 }] },
+    targetLineage: {
+      210052: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      202462: { k1: 3, p1: 7, k2: 3, p2: 7 },
+    },
     targets: [
       { id: 201601, role: 'required', stars: 2, priority: 0 }, // Groundwork
       { id: 210052, role: 'required', stars: 2, priority: 0 }, // Ignited Spirit WIT
@@ -142,6 +149,10 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
     id: 'pace-chaser-parent-godly', name: 'Pace chaser parent (godly)',
     description: GODLY_DESCRIPTION,
     goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'turf', stars: 2 }] },
+    targetLineage: {
+      210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
+    },
     targets: [
       { id: 201601, role: 'required', stars: 2, priority: 0 }, // Groundwork
       { id: 200492, role: 'required', stars: 2, priority: 0 }, // Nimble Navigator
@@ -203,6 +214,12 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
     id: 'late-surger-parent-godly', name: 'Late surger parent (godly)',
     description: GODLY_DESCRIPTION,
     goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'turf', stars: 2 }] },
+    targetLineage: {
+      202161: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      202452: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
+    },
     targets: [
       { id: 201591, role: 'required', stars: 2, priority: 0 }, // Uma Stan
       { id: 202161, role: 'required', stars: 2, priority: 0 }, // Restraint
@@ -256,6 +273,11 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
     id: 'end-closer-parent-godly', name: 'End closer parent (godly)',
     description: GODLY_DESCRIPTION,
     goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'turf', stars: 2 }] },
+    targetLineage: {
+      202161: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
+    },
     targets: [
       { id: 201591, role: 'required', stars: 2, priority: 0 }, // Uma Stan
       { id: 202161, role: 'required', stars: 2, priority: 0 }, // Restraint

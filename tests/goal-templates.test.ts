@@ -42,8 +42,7 @@ test('template catalog preserves supplied names, order, spark requirements, and 
     assert.deepEqual(sanitizeGoal(template.goal), template.goal);
     assert.deepEqual(sanitizeTargets(template.targets, data), template.targets);
     if (body.includes('optional description')) {
-      assert.match(template.description!, /Turf 2★\+ is a placeholder/);
-      assert.doesNotMatch(template.description!, /impossible|track distance/);
+      assert.equal(template.description, field('optional description'));
     }
   }
 });
@@ -77,4 +76,32 @@ test('all supplied templates produce finite estimates without modifying the cata
     assert.equal(plan.goalEstimate.preferred.length, template.targets.filter((t) => t.role === 'preferred').length);
   }
   assert.deepEqual(GOAL_TEMPLATES, original);
+});
+
+test('godly defaults cover every target without a support-card source and make inherited hints available', async () => {
+  const { cardSourcesForTarget, lineageSources } = await import('../src/model/sparks.ts');
+  const { DEFAULT_SETTINGS } = await import('../src/settings.ts');
+  const expectedIds = new Set([210052, 210101, 210111, 202462, 202161, 202452]);
+  const found = new Set<number>();
+  for (const template of GOAL_TEMPLATES.filter((t) => t.name.endsWith('(godly)'))) {
+    const missing = template.targets.filter((g) => {
+      const target = resolveTarget(g.id, data)!;
+      return !data.cards.some((card) => cardSourcesForTarget(card, 4, target, 20, 72, data, DEFAULT_SETTINGS).some((source) => source.pObtain > 0));
+    });
+    assert.deepEqual(Object.keys(template.targetLineage!).map(Number).sort(), missing.map((g) => g.id).sort(), template.name);
+    for (const goal of missing) {
+      found.add(goal.id);
+      const lineage = template.targetLineage![goal.id]!;
+      assert.deepEqual(lineage, { k1: 3, p1: 7, k2: 3, p2: 7 });
+      const target = resolveTarget(goal.id, data)!;
+      assert.deepEqual(lineageSources(target, undefined, DEFAULT_SETTINGS), []);
+      const inherited = lineageSources(target, lineage, DEFAULT_SETTINGS);
+      // Each side spreads seven stars as 3, 2, 2. Each copy rolls at both inspiration events.
+      const p3 = Math.min(1, DEFAULT_SETTINGS.whiteSparkInheritRates[2]! * (1 + DEFAULT_SETTINGS.affinity / 100));
+      const p2 = Math.min(1, DEFAULT_SETTINGS.whiteSparkInheritRates[1]! * (1 + DEFAULT_SETTINGS.affinity / 100));
+      assert.ok(Math.abs(inherited[0]!.pObtain - (1 - (1 - p3) ** 4 * (1 - p2) ** 8)) < 1e-12);
+    }
+  }
+  assert.deepEqual(found, expectedIds);
+  assert.ok(GOAL_TEMPLATES.filter((t) => !t.name.endsWith('(godly)')).every((t) => !t.targetLineage));
 });
