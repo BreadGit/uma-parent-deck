@@ -1,5 +1,7 @@
 // The app's shared context: the loaded data, the persisted store, transient view state, and the memoized run plan.
-// Panels mutate the store through update(), which persists and re-renders.
+// Panels mutate the store through update(), which persists and re-renders; view-only changes go through refresh().
+import { guard } from 'lit-html/directives/guard.js';
+import type { TemplateResult } from 'lit-html';
 import { BUILD_VERSION } from 'virtual:build-version';
 import { planningKey } from '../recommendation.ts';
 import { loadData } from '../data.ts';
@@ -13,18 +15,54 @@ export const store: AppState = loadState(data, defaultInventory);
 let inputKey = planningKey(store.run, store.settings, store.inventory);
 export let stateRevision = 0;
 
-/** State that is not persisted: search boxes, open panels, slider previews. */
-export const view = {
+/** State that is not persisted: search boxes, open panels, the highlighted suggestion, drag state. */
+const viewState = {
   query: '',
   targetEditorId: null as number | null,
   goalTemplateId: '',
   traineeQuery: '',
   cardQuery: '',
+  /** Keyboard highlight in whichever suggestion list is open; -1 is none. */
+  suggestIndex: -1,
   showAdvanced: false,
   showSparks: false,
   showPinkSparks: false,
+  showAgenda: false,
   expandedRankingCards: [] as number[],
+  /** Advanced settings whose last typed value was rejected, with the accepted range. */
+  settingErrors: {} as Record<string, string>,
+  /** The prioritized-skill row being dragged and the row under the pointer. */
+  drag: { key: null as number | null, over: null as number | null },
 };
+export type View = typeof viewState;
+
+// Each panel is rendered inside trackedPanel(), which records the view fields it reads and their values, so the
+// panel re-renders only when the plan, the persisted state, its extra dependencies or one of those fields changed.
+// Adding a view field never needs a dependency list updated by hand.
+interface PanelMemo { token: object; deps: unknown[]; values: Map<keyof View, unknown> }
+const panels = new Map<string, PanelMemo>();
+let renderingPanel: string | null = null;
+export const view: View = new Proxy(viewState, {
+  get(target, key) {
+    const k = key as keyof View;
+    if (renderingPanel) panels.get(renderingPanel)?.values.set(k, target[k]);
+    return target[k];
+  },
+}) as View;
+
+/**
+ * lit commits a template's children before moving to the next sibling, so every view read during this panel's
+ * render, including inside repeat() item templates, lands in its own memo. The guard token only changes when a
+ * dependency or a recorded view value changed, so an unchanged panel is skipped without walking its bindings.
+ */
+export function trackedPanel(name: string, deps: unknown[], render: () => TemplateResult) {
+  let memo = panels.get(name);
+  const stale = !memo || memo.deps.length !== deps.length || memo.deps.some((d, i) => d !== deps[i])
+    || [...memo.values].some(([k, v]) => viewState[k] !== v);
+  if (stale) { memo = { token: {}, deps, values: new Map() }; panels.set(name, memo); }
+  return guard([memo!.token], () => { renderingPanel = name; return render(); });
+}
+export function endPanelTracking() { renderingPanel = null; }
 
 let renderer: () => void = () => {};
 export function onRender(fn: () => void) { renderer = fn; }

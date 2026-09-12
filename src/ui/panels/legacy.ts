@@ -1,6 +1,7 @@
 // The legacy screen: what the game shows before a run. Per stat, each parent's "+XX" start gain from her side's
 // blue sparks, the trainee's start value, and the aptitude table with the surface, distance, and style overrides. The
-// "By stars" form underneath enters the same sparks per uma, for a parent read off a database instead of the screen.
+// "By stars" form enters the same sparks per uma, for a parent read off a database instead of the screen, and the
+// pink form enters the ancestors' pink sparks behind the aptitude grades.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { STATS, APTITUDE_KEYS, APT_GRADES, type AptKey, type Grade, type Stat } from '../../types.ts';
@@ -8,18 +9,23 @@ import { APTITUDE_LABELS, emptyPinkLineage, type PinkSpark } from '../../model/g
 import { pinkAptitudeGrades, withPinkAptitude, withPinkLineage } from '../../model/pink-inherit.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { defaultParentSparks, inheritedFromGain, START_GAINS, UMA_LABELS, withParentGain, type BlueSpark } from '../../model/inherit.ts';
-import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
+import { STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
+import { COPY } from '../copy.ts';
+import { numbered, options, selectValue } from '../fields.ts';
 import { capitalize, num, statIcon } from '../format.ts';
-import { panel } from '../panel.ts';
+import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
-const PARENTS = [0, 1];
-const UMAS = [0, 1, 2];
+const PARENTS = [0, 1] as const;
+const UMAS = [0, 1, 2] as const;
 const STAR_OPTIONS = [1, 2, 3];
+const STAR_CHOICES = numbered(STAR_OPTIONS, (n) => `${n}★`);
+const STAT_CHOICES = STATS.map((st) => ({ value: st, label: capitalize(st) }));
 const ROWS: [string, AptKey[]][] = [['Track', ['turf', 'dirt']], ['Distance', ['sprint', 'mile', 'medium', 'long']], ['Style', ['front', 'pace', 'late', 'end']]];
 /** Stars a uma gets when her spark is picked in the form; rental parents on the databases are mostly 3★. */
 const NEW_SPARK_STARS = STARS_PER_SPARK_MAX;
+const EMPTY = { value: '', label: '—' };
 
 function setGain(pi: number, si: number, gain: number) {
   update((s) => { s.run.parentSparks = s.run.parentSparks.map((p, j) => (j === pi ? withParentGain(p, si, gain) : p)); });
@@ -46,46 +52,6 @@ function setAptitude(k: AptKey, grade: Grade) {
     s.run.pinkLineage = inferred.lineage;
   });
 }
-
-const gainSelect = (c: RunPlan, pi: number, si: number) => {
-  // Empty slots and this stat's current sparks are available without changing another stat.
-  const available = UMAS_PER_PARENT_SIDE - store.run.parentSparks[pi]!.filter((s) => s && s.stat !== STATS[si]).length;
-  return html`<select class="gain p${pi + 1} ${c.parentGains[pi]![si] ? 'set' : ''}" data-gain="${pi}-${si}" title="Parent ${pi + 1}" .value=${live(String(c.parentGains[pi]![si]))} @change=${(e: Event) => setGain(pi, si, Number((e.target as HTMLSelectElement).value))}>
-    ${START_GAINS.map((g) => html`<option class=${g.stars.length > available ? 'dim' : ''} value="${g.gain}" ?selected=${c.parentGains[pi]![si] === g.gain}>+${g.gain}</option>`)}</select>`;
-};
-
-/**
- * One uma's row in the "By stars" form: who she is, the stat her blue spark raises, and its stars. An empty slot
- * (its stat was set to +0 above) shows "—" in both selects, offers no "—" once a stat is picked, and keeps the stars
- * select disabled until then.
- */
-const sparkRow = (pi: number, ui: number) => {
-  const spark = store.run.parentSparks[pi]![ui] ?? null;
-  return html`<span class="who">${UMA_LABELS[ui]}</span>
-    <select data-spark-stat="${pi}-${ui}" .value=${live(spark?.stat ?? '')} @change=${(e: Event) => setSpark(pi, ui, { stat: (e.target as HTMLSelectElement).value as Stat })}>
-      ${spark ? nothing : html`<option value="" selected>—</option>`}
-      ${STATS.map((st) => html`<option value="${st}" ?selected=${spark?.stat === st}>${capitalize(st)}</option>`)}</select>
-    <select data-spark-stars="${pi}-${ui}" ?disabled=${!spark} .value=${live(spark ? String(spark.stars) : '')} @change=${(e: Event) => setSpark(pi, ui, { stars: Number((e.target as HTMLSelectElement).value) })}>
-      ${spark ? nothing : html`<option value="" selected>—</option>`}
-      ${STAR_OPTIONS.map((k) => html`<option value="${k}" ?selected=${spark?.stars === k}>${k}★</option>`)}</select>`;
-};
-const sparksForm = () => html`<div class="legacy-sparks" data-sparks-form>
-  ${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><div class="side-head">Parent ${pi + 1}${pi === 0 ? tip(SPARKS_TIP) : nothing}</div>${UMAS.map((ui) => sparkRow(pi, ui))}</div>`)}
-</div>`;
-
-/** Clear the entered sparks and restore the trainee's own aptitudes. */
-const resetLegacy = () => update((s) => { s.run.parentSparks = PARENTS.map(() => defaultParentSparks()); s.run.aptOverrides = {}; s.run.pinkLineage = emptyPinkLineage(); });
-const toggleSparks = () => { view.showSparks = !view.showSparks; refresh(); };
-const resetPinkSparks = () => update((s) => { s.run.pinkLineage = emptyPinkLineage(); s.run.aptOverrides = {}; });
-export const openPinkSparks = () => { view.showPinkSparks = true; refresh(); document.querySelector<HTMLElement>('[data-pink-lineage="0"]')?.focus(); };
-const togglePinkSparks = () => { view.showPinkSparks = !view.showPinkSparks; refresh(); };
-
-const PANEL_TIP = 'Copy the game\'s legacy screen, shown before the run starts: the "+XX" each parent adds above every stat, and the aptitudes after inheritance. "By stars" enters the blue spark of each uma instead, for a parent found on a database.';
-const GAINS_TIP = `The "+XX" above each stat on the legacy screen, per parent. Each value decodes to the blue sparks behind it. One parent side has ${UMAS_PER_PARENT_SIDE} umas (the parent and her two grandparents) with one blue spark each. Dimmed choices need sparks already assigned to other stats. You can still select them. They take those sparks, fewest stars first, so the other gains drop. +0 is always available; Reset clears all gains to +0.`;
-const SPARKS_TIP = `Each parent and her two grandparents carry one blue spark: a stat and 1 to ${STARS_PER_SPARK_MAX} stars, as a database lists them. The "+XX" above each stat follows from these. A slot shows — after its stat was set to +0 above; every real uma has a spark, so pick her stat to fill it.`;
-const LATER_TIP = `Expected extra stat from the two inspiration events, from the sparks behind each +XX. A 3★ spark procs at 90%, 2★ at 80%, 1★ at 70%, times (1 + affinity/100) with the affinity from the advanced settings. Each proc rolls 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[1]![1]} for 1★, 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[2]![1]} for 2★, 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[3]![1]} for 3★; the average assumed per star is an advanced setting. Each spark also raises the stat's cap at the start by +${BLUE_SPARK_START_UNCAP_BY_STARS[1]} / +${BLUE_SPARK_START_UNCAP_BY_STARS[2]} / +${BLUE_SPARK_START_UNCAP_BY_STARS[3]} by stars.`;
-const APT_TIP = 'Copy all grades from the legacy screen after selecting both parents. The agenda uses the starting surface and distance grades. These grades already include starting increases from parent sparks. Raising a grade above the trainee\'s base estimates the minimum pink stars behind it. Grades outside the starting-inheritance range are planning overrides and keep the pink lineage unchanged. Dimmed choices need slots used by other pink sparks. Selecting one reassigns the weakest other sparks and adjusts the affected aptitudes, never below their base. Open Pink sparks to review or refine the estimate. Parent goals use Pink sparks to estimate mid-run increases. Unknown below-B eligibility produces a probability range. S is reached only during a career.';
-
 function setPinkSpark(index: number, spark: PinkSpark | null) {
   update((s) => {
     const next = [...s.run.pinkLineage]; next[index] = spark;
@@ -97,46 +63,94 @@ function setPinkSpark(index: number, spark: PinkSpark | null) {
     s.run.pinkLineage = next;
   });
 }
+/** Clear the entered sparks and restore the trainee's own aptitudes. */
+const resetLegacy = () => update((s) => { s.run.parentSparks = PARENTS.map(() => defaultParentSparks()); s.run.aptOverrides = {}; s.run.pinkLineage = emptyPinkLineage(); });
+const resetPinkSparks = () => update((s) => { s.run.pinkLineage = emptyPinkLineage(); s.run.aptOverrides = {}; });
+const toggleSparks = () => { view.showSparks = !view.showSparks; refresh(); };
+const togglePinkSparks = () => { view.showPinkSparks = !view.showPinkSparks; refresh(); };
 
-function pinkForm() {
-  return html`<div id="legacy-pink-sparks" data-pink-sparks-form><h3>Pink sparks in the six-uma lineage</h3>
-    <p class="small muted">Enter the pink sparks you know to derive starting grades and estimate mid-run inspiration increases. Empty slots count as zero sparks for this estimate. Pick an aptitude to start at 3★, or clear it to return to zero. Changing the grades below estimates the minimum pink stars behind their increase. Estimated entries are editable. Dimmed aptitude choices can reassign other sparks, including manual entries, to make room. Affinity uses the advanced setting.</p>
-    ${PARENTS.map((pi) => html`<div class="goal-pink-side"><b>Parent ${pi + 1} side</b>${UMAS.map((ui) => {
-      const index = pi * 3 + ui, spark = store.run.pinkLineage[index];
-      return html`<div class="goal-pink-row"><span>${UMA_LABELS[ui]}${spark?.inferred ? html`<small class="pink-inferred" data-pink-inferred=${index}>Estimated</small>` : nothing}</span>
-        <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink aptitude" data-pink-lineage=${index} .value=${live(spark?.aptitude ?? '')} @change=${(e: Event) => { const key = (e.target as HTMLSelectElement).value as AptKey; setPinkSpark(index, key ? { aptitude: key, stars: spark?.stars ?? NEW_SPARK_STARS } : null); }}>
-          <option value="">—</option>${APTITUDE_KEYS.map((k) => html`<option value=${k} ?selected=${spark?.aptitude === k}>${APTITUDE_LABELS[k]}</option>`)}
-        </select>
-        <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink stars" data-pink-lineage-stars=${index} ?disabled=${!spark} .value=${live(spark ? String(spark.stars) : '')} @change=${(e: Event) => { if (spark) setPinkSpark(index, { aptitude: spark.aptitude, stars: Number((e.target as HTMLSelectElement).value) }); }}>
-          ${spark ? nothing : html`<option value="">—</option>`}${STAR_OPTIONS.map((n) => html`<option value=${n} ?selected=${spark?.stars === n}>${n}★</option>`)}
-        </select>
-      </div>`;
-    })}</div>`)}
+function gainSelect(c: RunPlan, pi: number, si: number) {
+  // Empty slots and this stat's current sparks are available without changing another stat.
+  const available = UMAS_PER_PARENT_SIDE - store.run.parentSparks[pi]!.filter((s) => s && s.stat !== STATS[si]).length;
+  const current = String(c.parentGains[pi]![si]);
+  const items = START_GAINS.map((g) => ({ value: String(g.gain), label: `+${g.gain}`, cls: g.stars.length > available ? 'dim' : '' }));
+  return html`<select class="gain p${pi + 1} ${c.parentGains[pi]![si] ? 'set' : ''}" data-gain="${pi}-${si}" aria-label="Parent ${pi + 1} ${capitalize(STATS[si]!)} gain" .value=${live(current)} @change=${(e: Event) => setGain(pi, si, Number(selectValue(e)))}>${options(items, current)}</select>`;
+}
+
+/**
+ * One uma's row in the "By stars" form: who she is, the stat her blue spark raises, and its stars. An empty slot
+ * (its stat was set to +0 above) shows "—" in both selects, offers no "—" once a stat is picked, and keeps the stars
+ * select disabled until then.
+ */
+function sparkRow(pi: number, ui: number) {
+  const spark = store.run.parentSparks[pi]![ui] ?? null;
+  const stat = spark?.stat ?? '', stars = spark ? String(spark.stars) : '';
+  return html`<span class="who">${UMA_LABELS[ui]}</span>
+    <select data-spark-stat="${pi}-${ui}" aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} stat" .value=${live(stat)} @change=${(e: Event) => setSpark(pi, ui, { stat: selectValue(e) as Stat })}>${options(spark ? STAT_CHOICES : [EMPTY, ...STAT_CHOICES], stat)}</select>
+    <select data-spark-stars="${pi}-${ui}" aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} stars" ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => setSpark(pi, ui, { stars: Number(selectValue(e)) })}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>`;
+}
+const sparksForm = () => html`<div class="legacy-sparks" data-sparks-form>
+  ${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><div class="side-head">Parent ${pi + 1}${pi === 0 ? tip(COPY.legacy.sparksTip) : nothing}</div>${UMAS.map((ui) => sparkRow(pi, ui))}</div>`)}
+</div>`;
+
+function pinkRow(pi: number, ui: number) {
+  const index = pi * 3 + ui, spark = store.run.pinkLineage[index];
+  const aptitude = spark?.aptitude ?? '', stars = spark ? String(spark.stars) : '';
+  const aptitudes = [EMPTY, ...APTITUDE_KEYS.map((k) => ({ value: k, label: APTITUDE_LABELS[k] }))];
+  return html`<div class="goal-pink-row"><span>${UMA_LABELS[ui]}${spark?.inferred ? html`<small class="pink-inferred" data-pink-inferred=${index}>Estimated</small>` : nothing}</span>
+    <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink aptitude" data-pink-lineage=${index} .value=${live(aptitude)} @change=${(e: Event) => { const key = selectValue(e) as AptKey | ''; setPinkSpark(index, key ? { aptitude: key, stars: spark?.stars ?? NEW_SPARK_STARS } : null); }}>${options(aptitudes, aptitude)}</select>
+    <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink stars" data-pink-lineage-stars=${index} ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => { if (spark) setPinkSpark(index, { aptitude: spark.aptitude, stars: Number(selectValue(e)) }); }}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>
+  </div>`;
+}
+const pinkForm = () => html`<div id="legacy-pink-sparks" data-pink-sparks-form><h3>${COPY.legacy.pinkHeading}${tip(COPY.legacy.pinkTip)}</h3>
+  ${PARENTS.map((pi) => html`<div class="goal-pink-side"><b>Parent ${pi + 1} side</b>${UMAS.map((ui) => pinkRow(pi, ui))}</div>`)}
+</div>`;
+
+function statColumn(c: RunPlan, i: number) {
+  const st = STATS[i]!, t = c.trainee!;
+  const gains = PARENTS.map((pi) => c.parentGains[pi]![i]!);
+  const start = gains[0]! + gains[1]!;
+  const parts = PARENTS.map((pi) => inheritedFromGain(gains[pi]!, store.settings));
+  const later = parts.reduce((a, x) => a + x.inspiration, 0);
+  const max = parts.reduce((a, x) => a + x.inspirationMax, 0);
+  return html`<div class="legacy-stat">
+    <div class="gains">${PARENTS.map((pi) => gainSelect(c, pi, i))}</div>
+    <div class="head">${statIcon(st)}${capitalize(st)}</div>
+    <div class="body"><div class="legacy-v">${t.baseStats[i]! + start}</div><div class="legacy-sub">base ${t.baseStats[i]}</div><div class="legacy-sub" data-tip=${max ? `at most +${max}` : nothing}>≈+${num(later)} later${i === 0 ? tip(COPY.legacy.laterTip) : nothing}</div></div>
   </div>`;
 }
 
-export function renderLegacy(c: RunPlan) {
-  const t = c.trainee;
-  const body = t ? html`
+function aptitudeCell(c: RunPlan, k: AptKey) {
+  const t = c.trainee!;
+  const current = c.apt[k] === 'S' ? 'A' : c.apt[k];
+  const grades = APT_GRADES.filter((g) => g !== 'S').slice().reverse().map((g) => ({
+    value: g, label: g, cls: g !== c.apt[k] && withPinkAptitude(t.aptitudes, c.apt, store.run.pinkLineage, k, g)?.adjustsOthers ? 'dim' : '',
+  }));
+  return html`<span class="cell ${store.run.aptOverrides[k] ? 'over' : ''}">${APTITUDE_LABELS[k]} <select data-apt="${k}" aria-label="${APTITUDE_LABELS[k]} grade" .value=${live(current)} @change=${(e: Event) => setAptitude(k, selectValue(e) as Grade)}>${options(grades, current)}</select></span>`;
+}
+
+function body(c: RunPlan) {
+  const t = c.trainee!;
+  const overridden = APTITUDE_KEYS.some((key) => !pinkAptitudeGrades(t.aptitudes[key]).includes(c.apt[key]));
+  return html`
     ${view.showSparks ? sparksForm() : nothing}
-    <div class="legacy-legend"><span class="p1">Parent 1</span><span class="p2">Parent 2</span><span>start gain per stat${tip(GAINS_TIP)}</span></div>
-    <div class="legacy-stats">${STATS.map((st, i) => {
-      const gains = PARENTS.map((pi) => c.parentGains[pi]![i]!);
-      const start = gains[0]! + gains[1]!;
-      const parts = PARENTS.map((pi) => inheritedFromGain(gains[pi]!, store.settings));
-      const later = parts.reduce((a, x) => a + x.inspiration, 0);
-      const max = parts.reduce((a, x) => a + x.inspirationMax, 0);
-      return html`<div class="legacy-stat">
-        <div class="gains">${PARENTS.map((pi) => gainSelect(c, pi, i))}</div>
-        <div class="head">${statIcon(st)}${capitalize(st)}</div>
-        <div class="body"><div class="v">${t.baseStats[i]! + start}</div><div class="sub">base ${t.baseStats[i]}</div><div class="sub" title="${max ? `at most +${max}` : ''}">≈+${num(later)} later${i === 0 ? tip(LATER_TIP) : nothing}</div></div>
-      </div>`; })}</div>
-    <div class="legacy-pink-controls"><button class="small ${view.showPinkSparks ? 'active' : ''}" data-action="toggle-pink-sparks" aria-expanded=${view.showPinkSparks} aria-controls="legacy-pink-sparks" title="Enter parent and grandparent pink sparks for mid-run aptitude estimates" @click=${togglePinkSparks}>Pink sparks</button><button class="small" data-action="reset-pink-sparks" title="Clear pink sparks and restore the trainee's base aptitudes" @click=${resetPinkSparks}>Clear pink sparks</button></div>
+    <div class="legacy-legend"><span class="p1">Parent 1</span><span class="p2">Parent 2</span><span>${COPY.legacy.gainsLabel}${tip(COPY.legacy.gainsTip)}</span></div>
+    <div class="legacy-stats">${STATS.map((_, i) => statColumn(c, i))}</div>
+    <div class="legacy-pink-controls">
+      <button class="small ${view.showPinkSparks ? 'active' : ''}" data-action="toggle-pink-sparks" aria-expanded=${view.showPinkSparks} aria-controls="legacy-pink-sparks" data-tip=${COPY.legacy.pinkSparksTip} @click=${togglePinkSparks}>${COPY.legacy.pinkSparks}</button>
+      <button class="small" data-action="reset-pink-sparks" data-tip=${COPY.legacy.resetPinkTip} @click=${resetPinkSparks}>${COPY.legacy.resetPink}</button>
+    </div>
     ${view.showPinkSparks ? pinkForm() : nothing}
-    ${APTITUDE_KEYS.some((key) => !pinkAptitudeGrades(t.aptitudes[key]).includes(c.apt[key])) ? html`<p class="small warn" data-apt-planning-override>Some grades are planning overrides outside starting inheritance. They still control the agenda. Pink sparks remain unchanged.</p>` : nothing}
+    ${overridden ? html`<p class="small warn" data-apt-planning-override>${COPY.legacy.planningOverride}</p>` : nothing}
     <div class="legacy-apts">
-      ${ROWS.map(([label, keys], ri) => html`<div class="rowlbl">${label}${ri === 0 ? tip(APT_TIP) : nothing}</div><div class="cells">${keys.map((k) => html`<span class="cell ${store.run.aptOverrides[k] ? 'over' : ''}">${APTITUDE_LABELS[k]} <select data-apt="${k}" .value=${live(c.apt[k] === 'S' ? 'A' : c.apt[k])} @change=${(e: Event) => setAptitude(k, (e.target as HTMLSelectElement).value as Grade)}>${APT_GRADES.filter((g) => g !== 'S').slice().reverse().map((g) => html`<option value="${g}" title=${pinkAptitudeGrades(t.aptitudes[k]).includes(g) ? '' : 'Planning override outside starting inheritance'} class=${g !== c.apt[k] && withPinkAptitude(t.aptitudes, c.apt, store.run.pinkLineage, k, g)?.adjustsOthers ? 'dim' : ''} ?selected=${(c.apt[k] === 'S' ? 'A' : c.apt[k]) === g}>${g}</option>`)}</select></span>`)}</div>`)}
-    </div>` : html`<div class="small muted">Pick a trainee first.</div>`;
-  const actions = t ? html`<button class="small ${view.showSparks ? 'active' : ''}" data-action="toggle-sparks" aria-expanded="${view.showSparks}" title="Enter each uma's blue spark by stars instead of the +XX" @click=${toggleSparks}>By stars</button><button class="small" data-action="reset-legacy" title="Clear all gains to +0 and restore the trainee's own aptitudes" @click=${resetLegacy}>Reset</button>` : nothing;
-  return panel({ title: 'Legacy', tip: PANEL_TIP, actions }, body);
+      ${ROWS.map(([label, keys], ri) => html`<div class="rowlbl">${label}${ri === 0 ? tip(COPY.legacy.aptTip) : nothing}</div><div class="cells">${keys.map((k) => aptitudeCell(c, k))}</div>`)}
+    </div>
+    ${about(COPY.legacy.aboutTitle, COPY.legacy.about)}`;
+}
+
+export function renderLegacy(c: RunPlan) {
+  const actions = c.trainee ? html`
+    <button class="small ${view.showSparks ? 'active' : ''}" data-action="toggle-sparks" aria-expanded="${view.showSparks}" data-tip=${COPY.legacy.byStarsTip} @click=${toggleSparks}>${COPY.legacy.byStars}</button>
+    <button class="small" data-action="reset-legacy" data-tip=${COPY.legacy.resetTip} @click=${resetLegacy}>${COPY.legacy.reset}</button>` : nothing;
+  return panel({ title: COPY.legacy.title, step: 3, tip: COPY.legacy.tip, actions }, c.trainee ? body(c) : html`<div class="small muted">${COPY.legacy.pickTrainee}</div>`);
 }

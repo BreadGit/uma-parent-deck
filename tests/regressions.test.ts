@@ -34,10 +34,15 @@ test('new states and resets do not share mutable run or settings defaults', () =
   assert.deepEqual(b.run.targets, []);
   assert.deepEqual(b.run.parentSparks, [defaultParentSparks(), defaultParentSparks()]);
   assert.equal(b.settings.chainRatesSSR[0], 0.69);
+  a.settings.focus = 'sprint'; a.settings.winThreshold = 0.5; a.settings.affinity = 175;
   const reset = resetRun(a, data);
   assert.deepEqual(reset.run.targets, []);
   assert.deepEqual(reset.run.parentSparks[0], defaultParentSparks());
-  assert.equal(reset.settings, a.settings);
+  // Reset all returns the run-level settings to their defaults and keeps the advanced ones
+  assert.equal(reset.settings.focus, DEFAULT_SETTINGS.focus);
+  assert.equal(reset.settings.winThreshold, DEFAULT_SETTINGS.winThreshold);
+  assert.equal(reset.settings.affinity, 175);
+  assert.equal(reset.inventory, a.inventory);
 });
 
 test('migrated states and sanitized settings own their mutable values', () => {

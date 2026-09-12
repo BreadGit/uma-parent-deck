@@ -10,7 +10,7 @@ export interface GoalTemplate {
   targetLineage?: Record<string, Lineage>;
 }
 
-const GODLY_DESCRIPTION = "dont take this build too seriously, its more just to show the probability of getting a parent with this many spark goals. you could of course make this even crazier with more 3*s and more required white sparks, but at that point it enters the realm being outright impossible.";
+const GODLY_DESCRIPTION = 'A stretch goal, not a plan. It shows the odds of a parent that meets this many spark goals at once. More 3★ requirements or more required white sparks would push it from unlikely to outright impossible.';
 
 /** Curated from docs/spark-goal-templates.md. IDs identify templates independently of their display names. */
 export const GOAL_TEMPLATES: readonly GoalTemplate[] = [

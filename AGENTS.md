@@ -76,7 +76,15 @@ root. An element a handler writes to directly (the threshold `<output>`) is boun
 that mirrors state (inputs the user types into and every `<select>`) binds `.value=${live(...)}`: a `<select>`
 the user has changed ignores later `?selected` changes on its options, so one that lit reuses for a different
 card or stat keeps a stale value (the deck LB dropdowns did). Render a list whose rows carry fields with
-`repeat()` keyed by identity, so a row that changes identity gets a new element. The smoke test's
+`repeat()` keyed by identity, so a row that changes identity gets a new element. Build `<option>` lists with
+`options()` from `src/ui/fields.ts`: it keys options by value, so a placeholder that disappears does not shift the
+selected index onto a different entry. Read event values through `selectValue()`, `inputValue()` and `isChecked()`
+rather than casting `e.target`. Panels render inside `trackedPanel()` in `src/ui/app.ts`, which records the `view`
+fields a panel reads and re-renders it only when one of them, the plan or the persisted state changes; no
+dependency list is kept by hand, but a view change made without `refresh()` leaves that panel's memo stale.
+User-facing sentences live in `src/ui/copy.ts`; confirmations and notices use `src/ui/dialog.ts`, not
+`window.confirm` or `alert`. Interactive elements may carry `data-tip` for hover and focus help, and only
+non-interactive elements pin the tooltip on click. The smoke test's
 `assertFieldsMatchState` compares every state-bound field with the saved state; call it after any new
 interaction. Keep the
 `data-*` attributes on interactive elements: the smoke test selects by them.

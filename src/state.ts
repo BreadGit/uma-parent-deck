@@ -171,9 +171,13 @@ export function loadState(data: Data, fallbackInventory: Inventory): AppState {
 export function saveState(state: AppState) {
   localStorage.setItem(STATE_KEY, JSON.stringify(state));
 }
-/** Forget the run choices only; settings and inventory stay. */
+/** Start over: a fresh run and the run-level settings (training focus, win threshold) back at their defaults. */
 export function resetRun(state: AppState, data: Data): AppState {
-  const reset = { ...state, run: { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) } };
+  const reset = {
+    ...state,
+    run: { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) },
+    settings: { ...state.settings, focus: DEFAULT_SETTINGS.focus, winThreshold: DEFAULT_SETTINGS.winThreshold },
+  };
   delete reset.recommendation;
   return reset;
 }

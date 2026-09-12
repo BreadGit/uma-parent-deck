@@ -21,7 +21,7 @@ The application catalog is maintained in [goal-templates.ts](../src/model/goal-t
 	- preferred: right-handed p=0, left-handed p=0, Front Runner Corners p=0, Front Runner Straightaways p=0, Front Runner Savvy p=1, fall runner p=1, winter runner p=1, spring runner p=1, firm conditions p=1, wet conditions p=1, standard distance p=1, non-standard distance p=1
 	- blue sparks: speed, stamina, power 3*
 	- pink sparks: any 2*
-	- optional description: dont take this build too seriously, its more just to show the probability of getting a parent with this many spark goals. you could of course make this even crazier with more 3*s and more required white sparks, but at that point it enters the realm being outright impossible.
+	- optional description: A stretch goal, not a plan. It shows the odds of a parent that meets this many spark goals at once. More 3★ requirements or more required white sparks would push it from unlikely to outright impossible.
 - Pace chaser parent (lite)
 	- required: nimble navigator 2*
 	- preferred: groundwork p=0, uma stan p=0, tail held high p=0, shrewd step p=0, right-handed p=0, left-handed p=0, ramp up p=0, playtime's over! p=0, slipstream p=0, pace chaser Corners p=0, pace chaser Straightaways p=0, pace chaser Savvy p=1, fall runner p=1, winter runner p=1, spring runner p=1, firm conditions p=1, wet conditions p=1, standard distance p=1, non-standard distance p=1
@@ -37,7 +37,7 @@ The application catalog is maintained in [goal-templates.ts](../src/model/goal-t
 	- preferred: right-handed p=0, left-handed p=0, ramp up p=0, playtime's over! p=0, slipstream p=0, pace chaser Corners p=0, pace chaser Straightaways p=0, pace chaser Savvy p=1, fall runner p=1, winter runner p=1, spring runner p=1, firm conditions p=1, wet conditions p=1, standard distance p=1, non-standard distance p=1
 	- blue sparks: speed, stamina, power 3*
 	- pink sparks: any 2*
-	- optional description: dont take this build too seriously, its more just to show the probability of getting a parent with this many spark goals. you could of course make this even crazier with more 3*s and more required white sparks, but at that point it enters the realm being outright impossible.
+	- optional description: A stretch goal, not a plan. It shows the odds of a parent that meets this many spark goals at once. More 3★ requirements or more required white sparks would push it from unlikely to outright impossible.
 - Late surger parent (lite)
 	- required: uma stan 2*
 	- preferred: tail held high p=0, nimble navigator p=0, late surger Corners p=0, late surger Straightaways p=0, ramp up p=0, playtime's over p=0, slipstream p=0
@@ -53,7 +53,7 @@ The application catalog is maintained in [goal-templates.ts](../src/model/goal-t
 	- preferred: late surger Corners p=0, late surger Straightaways p=0, ramp up p=0, playtime's over p=0, slipstream p=0
 	- blue sparks: speed, stamina, power 3*
 	- pink sparks: any 2*
-	- optional description: dont take this build too seriously, its more just to show the probability of getting a parent with this many spark goals. you could of course make this even crazier with more 3*s and more required white sparks, but at that point it enters the realm being outright impossible.
+	- optional description: A stretch goal, not a plan. It shows the odds of a parent that meets this many spark goals at once. More 3★ requirements or more required white sparks would push it from unlikely to outright impossible.
 - End closer parent (lite)
 	- required: uma stan 2*
 	- preferred: tail held high p=0, nimble navigator p=0, end closer Corners p=0, end closer Straightaways p=0, ramp up p=0, playtime's over p=0, slipstream p=0, straightaway spurt p=0
@@ -69,4 +69,4 @@ The application catalog is maintained in [goal-templates.ts](../src/model/goal-t
 	- preferred: end closer Corners p=0, end closer Straightaways p=0, ramp up p=0, playtime's over p=0, slipstream p=0
 	- blue sparks: speed, stamina, power 3*
 	- pink sparks: any 2*
-	- optional description: dont take this build too seriously, its more just to show the probability of getting a parent with this many spark goals. you could of course make this even crazier with more 3*s and more required white sparks, but at that point it enters the realm being outright impossible.
+	- optional description: A stretch goal, not a plan. It shows the odds of a parent that meets this many spark goals at once. More 3★ requirements or more required white sparks would push it from unlikely to outright impossible.

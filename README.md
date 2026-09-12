@@ -5,6 +5,22 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 ## What it does
 
+- The page is two columns. The left column is the input flow, numbered in order: Trainee, Parent goal,
+  Legacy, Run, then Inventory & settings. The right column is every result, most useful first: Suggested
+  deck, Parent goal estimate, Prioritized skills, G1 agenda, Predicted run, Target coverage, Card ranking.
+  Until a trainee is picked the results are dimmed behind a note that says where to start. While a better
+  deck is being searched the deck panel says so; the estimates shown already match the deck on screen.
+  Reset all in the header clears every choice, including the training focus and win threshold, and keeps
+  the inventory and advanced settings. Below 1200 px the page is one column.
+- Every chance is formatted the same way: one decimal above 1%, more below, so a card's own spark chance
+  in Card ranking and the deck's spark chance in Target coverage read alike. Race win chances come in 5%
+  steps and stay whole numbers. Pills are neutral; colour is reserved for a real warning such as a
+  streak-reduced win chance.
+- Long explanations sit behind "How …" disclosures at the end of a panel (Legacy, G1 agenda, Card
+  ranking) rather than in tooltips. Confirmations use the page's own dialog. Search boxes take arrow
+  keys, Enter and Escape, and close on a click elsewhere. Advanced settings show each field's default,
+  mark changed values, and explain the accepted range when a value is rejected.
+
 - Parent goal groups the blue, pink, and white goals. Target white sparks uses compact chips with one shared editor. Select a chip to edit its goal
   and lineage; select it again to close. Remove a target with the × on its chip. Any number of targets,
   including zero, can be Required. Preferred targets are optional 2★+ extras. Required targets have
@@ -24,7 +40,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   planning overrides, including below-base grades from older saves. Dimmed choices can reassign
   other sparks when slots are full. Manual edits update starting grades immediately. Partial
   lineage gives an estimate without a missing-entry warning; below-B increases give probability bounds. Buttons in Parent goal open
-  the pink editor directly. Clear pink sparks restores base grades and clears pink lineage.
+  the pink editor directly. Reset pink sparks restores base grades and clears pink lineage.
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
   If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint. Predictions assume you buy
@@ -39,7 +55,8 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 - The G1 schedule uses independent training's own win odds (Shoppo_ura's data): 110% at A/A minus a
   penalty per surface and distance grade and per consecutive race, clamped to 100%, with stats and
   skills playing no part. A career goal the run would end on losing is always won. A win-chance
-  threshold you set on the main page and per-race picks complete the agenda.
+  threshold you set in Run and per-race picks complete the agenda. The race grid mirrors the game's
+  layout and is collapsed until you open it; the summary line and fan estimate stay visible.
 - Card ranking shows each card's own target spark chances at rank SS, using Required minimum stars
   and 2★+ for Preferred targets. It sorts by the sum of Required chances, then Preferred chances,
   then predicted stat contribution at your limit break. These individual chances are not the complete

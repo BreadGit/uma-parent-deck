@@ -54,7 +54,10 @@ const pin = (page, query) => pick(page, '#card-search', query, 'pin-card');
 const coverage = (page, skill) => page.locator('table').filter({ has: page.locator('th', { hasText: 'Gold hint' }) }).locator('tbody tr').filter({ has: page.locator('td:first-child', { hasText: skill }) });
 const inventoryFile = (inventory) => ({ name: 'inventory.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(inventory)) });
 const noCards = () => Object.fromEntries(data.cards.map((c) => [c.id, null]));
-const predictions = (page) => page.locator('h3', { hasText: 'Predicted run' });
+const predictions = (page) => page.locator('h2', { hasText: 'Predicted run' });
+/** The app's own <dialog> replaces window.confirm and alert. */
+const confirmDialog = async (page) => { await page.waitForSelector('dialog[data-dialog][open]'); await page.click('[data-dialog-confirm]'); };
+const openAgenda = (page) => page.click('details[data-agenda] > summary');
 
 test('ranking expands all target chances and keeps the last target reachable on phones', async (t) => {
   const saved = defaultState(data);
@@ -229,7 +232,7 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   await page.evaluate((selection) => window.searchWorkers[0].deliver(selection, false), alternative);
   assert.deepEqual(await cards(), original, 'the first search stage does not replace the deck');
   await page.evaluate(() => { window.retainedDeck = document.querySelector('.deck'); window.retainedList = document.querySelector('.wishlist'); });
-  const heading = page.locator('h3').filter({ hasText: 'Prioritized skills' });
+  const heading = page.locator('h2').filter({ hasText: 'Prioritized skills' });
   await heading.scrollIntoViewIfNeeded();
   const position = () => heading.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
   const before = await position();
@@ -298,15 +301,15 @@ test('the first reset clears targets, trainee, pins and inheritance while preser
   await page.selectOption('[data-setting="focus"]', 'sprint');
   await page.setInputFiles('#import-file', inventoryFile({ 30028: 2 }));
   await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).inventory['30028'] === 2, STATE_KEY);
-  page.once('dialog', (dialog) => dialog.accept());
   await page.click('[data-action="reset-all"]');
+  await confirmDialog(page);
   await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).run.traineeCardId === null, STATE_KEY);
   assert.equal(await page.locator('.target-row').count(), 0);
   const saved = await state(page);
   assert.deepEqual(saved.run.targets, []);
   assert.deepEqual(saved.run.parentSparks, [[null, null, null], [null, null, null]]);
   assert.deepEqual(saved.run.pinnedIds, [30052]);
-  assert.equal(saved.settings.focus, 'sprint');
+  assert.equal(saved.settings.focus, 'stamina', 'Reset all returns the training focus to its default');
   assert.equal(saved.inventory['30028'], 2);
 });
 
@@ -336,11 +339,11 @@ test('SSR event-rate edits update gold coverage immediately and survive reload u
   await pin(page, 'piece of mind');
   await page.click('[data-details="advanced"] > summary');
   const gold = coverage(page, 'Corner Recovery').locator('td').nth(1);
-  assert.notEqual(await gold.innerText(), '100%');
+  assert.notEqual(await gold.innerText(), '100.0%');
   await page.fill('[data-setting-list="chainRatesSSR"]', '1,1,1');
   await page.locator('[data-setting-list="chainRatesSSR"]').press('Tab');
-  assert.equal(await gold.innerText(), '100%');
-  assert.equal(await coverage(page, 'Corner Recovery').locator('td').nth(3).innerText(), '40%');
+  assert.equal(await gold.innerText(), '100.0%');
+  assert.equal(await coverage(page, 'Corner Recovery').locator('td').nth(3).innerText(), '40.0%');
   const before = await coverage(page, 'Corner Recovery').innerText();
   await page.reload();
   assert.equal(await coverage(page, 'Corner Recovery').innerText(), before);
@@ -349,10 +352,11 @@ test('SSR event-rate edits update gold coverage immediately and survive reload u
 test('Narita Brian displays one race per occupied slot and counts each goal once', async (t) => {
   const page = await editor(t);
   await trainee(page, 'narita brian maverick');
-  const heading = await page.locator('h2', { hasText: 'G1 agenda' }).innerText();
+  const heading = await page.locator('section.panel').filter({ has: page.getByRole('heading', { name: 'G1 agenda', exact: true }) }).locator('[data-panel-sub]').innerText();
   assert.match(heading, /18 races.*11 career goals/);
+  await openAgenda(page);
   assert.equal(await page.locator('.agenda-cell.sel').count(), 18);
-  assert.equal(Number(heading.match(/\((\d+) races/)[1]), await page.locator('.agenda-cell.sel').count());
+  assert.equal(Number(heading.match(/^(\d+) races/)[1]), await page.locator('.agenda-cell.sel').count());
 });
 
 test('skill advice includes prerequisite costs and buyable circle upgrades', async (t) => {
@@ -392,10 +396,11 @@ test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious cir
   Object.assign(saved.settings, { hintBase: 0, chainRatesSSR: [0, 0, 0], chainRatesSR: [0, 0], randomEventRate: 0,
     palChainRate: 0, groupOutingRate: 0, groupFinaleRate: 0, specialEventRate: 0 });
   const page = await editor(t, saved);
-  for (const [name, spark] of [['Corner Recovery', '9%'], ['Lucky Seven', '9%'], ['Right-Handed', '11%'], ['Mile Straightaways', '11%']]) {
+  // one 3★ copy: 9% per inspiration event at affinity 150 is 22.5%, so 39.9% over two events
+  for (const [name, spark] of [['Corner Recovery', '8.8%'], ['Lucky Seven', '8.8%'], ['Right-Handed', '11.0%'], ['Mile Straightaways', '11.0%']]) {
     const row = coverage(page, name);
     assert.equal(await row.locator('td').nth(1).innerText(), '0%');
-    assert.equal(await row.locator('td').nth(2).innerText(), '40%');
+    assert.equal(await row.locator('td').nth(2).innerText(), '39.9%');
     assert.equal(await row.locator('td').nth(3).innerText(), spark, name);
     assert.match(await row.locator('td').nth(4).innerText(), /Lineage/);
   }
@@ -454,12 +459,10 @@ test('invalid inventory imports preserve inventory, while valid export and impor
   await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).inventory['30052'] === null, STATE_KEY);
   const before = (await state(page)).inventory;
   for (const value of [{ garbage: 'data' }, [], { 30052: 4, 30028: 7 }]) {
-    const dialog = page.waitForEvent('dialog');
-    const upload = page.setInputFiles('#import-file', inventoryFile(value));
-    const alert = await dialog;
-    assert.match(alert.message(), /Import failed/);
-    await alert.accept();
-    await upload;
+    await page.setInputFiles('#import-file', inventoryFile(value));
+    await page.waitForSelector('dialog[data-dialog][open]');
+    assert.match(await page.locator('[data-dialog-message]').innerText(), /Import failed/);
+    await page.click('[data-dialog-confirm]');
     assert.deepEqual((await state(page)).inventory, before);
   }
   const downloaded = page.waitForEvent('download');
@@ -581,8 +584,8 @@ test('goal evaluation stays active for new sessions, resets, and saves with the 
   await page.reload();
   assert.equal(await page.locator('[data-goal-probability]').innerText(), chance);
   await assertFieldsMatchState(page, 'after reloading an automatically evaluated goal');
-  page.once('dialog', (dialog) => dialog.accept());
   await page.click('[data-action="reset-all"]');
+  await confirmDialog(page);
   assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
   assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
   assert.match(await page.locator('[data-goal-issues]').innerText(), /Choose the trainee/);
@@ -972,6 +975,7 @@ test('completed recommendations survive reload without a worker, while changed i
   await assertFieldsMatchState(page, 'after restoring a completed recommendation');
 
   // A view-only edit must neither search nor walk the unchanged ranking's bindings.
+  await openAgenda(page);
   await page.evaluate(() => {
     window.panelReads = 0;
     window.panelFields = ['[data-apt="end"]', '[data-slot]', '[data-setting-list="chainRatesSSR"]', '[data-select="trainee-stars"]', '[data-setting="focus"]', '.deck [data-lb]'].map((selector) => document.querySelector(selector));
@@ -1131,6 +1135,7 @@ test('preferred white priority edits persist and role changes retain required st
 
 test('templates preview without edits, confirm replacement, and preserve unrelated input and inactive lineage', async (t) => {
   const { GOAL_TEMPLATES } = await import('../src/model/goal-templates.ts');
+  const { COPY } = await import('../src/ui/copy.ts');
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
   saved.run.targets = [{ id: 210052, role: 'required', stars: 3, priority: 0 }];
@@ -1149,7 +1154,7 @@ test('templates preview without edits, confirm replacement, and preserve unrelat
   assert.equal(await picker.locator('optgroup').count(), 0);
   assert.equal(await page.locator('[data-action="load-goal-template"]').isDisabled(), true);
   await details.locator('.tip').focus();
-  assert.equal(await page.locator('#tooltip').innerText(), 'These are generic starting points for parents at different effort levels. "lite" is for a low effort but usable parent in a pinch, "decent" is for a medium effort decent parent, "godly" is for everything possible stacked on');
+  assert.equal(await page.locator('#tooltip').innerText(), COPY.templates.tip);
   const before = await state(page);
   const godly = GOAL_TEMPLATES[2], lite = GOAL_TEMPLATES[0];
   await picker.selectOption(godly.id);
@@ -1157,18 +1162,16 @@ test('templates preview without edits, confirm replacement, and preserve unrelat
   assert.deepEqual(await state(page), before);
   assert.match(await page.locator('[data-template-preview]').innerText(), /Required pink spark: Any 2★\+/);
   assert.match(await page.locator('[data-template-preview]').innerText(), /priority 1/);
-  page.once('dialog', (dialog) => {
-    assert.equal(dialog.type(), 'confirm');
-    assert.equal(dialog.message(), `Load "${godly.name}"? This replaces your current goal requirements and target list.`);
-    return dialog.dismiss();
-  });
   await page.click('[data-action="load-goal-template"]');
+  await page.waitForSelector('dialog[data-dialog][open]');
+  assert.equal(await page.locator('[data-dialog-message]').innerText(), `Load "${godly.name}"? This replaces your current goal requirements and target list.`);
+  await page.click('[data-dialog-cancel]');
   await assertFieldsMatchState(page, 'after canceling template loading');
   assert.deepEqual(await state(page), before);
   const load = async (template) => {
     await picker.selectOption(template.id);
-    page.once('dialog', (dialog) => dialog.accept());
     await page.click('[data-action="load-goal-template"]');
+    await confirmDialog(page);
     await assertFieldsMatchState(page, `after loading ${template.name}`);
     const expected = structuredClone(before);
     expected.run.goal = template.goal;
@@ -1209,16 +1212,16 @@ test('template Load and pink controls share rows at phone and desktop widths', a
   await page.selectOption('[data-goal-template]', godly.id);
   assert.ok((await page.locator('[data-template-preview]').innerText()).includes(godly.description));
   assert.match(await page.locator('[data-template-preview]').innerText(), /Parent 1: 3× 7★ · Parent 2: 3× 7★/);
-  page.once('dialog', (dialog) => dialog.accept());
   await page.click('[data-action="load-goal-template"]');
+  await confirmDialog(page);
   await assertFieldsMatchState(page, 'after applying missing godly lineage');
   assert.deepEqual((await state(page)).run.targetLineage, godly.targetLineage);
   await page.click('[data-action="select-target"][data-id="210052"]');
   for (const side of ['k1', 'k2']) assert.equal(await page.inputValue(`[data-lineage-k="210052"][data-side="${side}"]`), '3');
   for (const side of ['p1', 'p2']) assert.equal(await page.inputValue(`[data-lineage-p="210052"][data-side="${side}"]`), '7');
   await page.selectOption('[data-lineage-p="210052"][data-side="p1"]', '8');
-  page.once('dialog', (dialog) => dialog.accept());
   await page.click('[data-action="load-goal-template"]');
+  await confirmDialog(page);
   assert.equal((await state(page)).run.targetLineage[210052].p1, 8);
   await page.reload();
   await assertFieldsMatchState(page, 'after reloading edited template lineage');

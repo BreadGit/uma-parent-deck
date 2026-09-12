@@ -1,7 +1,8 @@
 // Custom tooltips: one floating box positioned next to the hovered, focused or clicked ⓘ.
 import { html } from 'lit-html';
 
-/** Info icon that opens the tooltip on hover or focus; a click pins it until the next click elsewhere. */
+/** Info icon that opens the tooltip on hover or focus; a click pins it until the next click elsewhere. Any element
+ * with a data-tip attribute shows the same box; only non-interactive ones pin on click. */
 export const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
 
 let pinned: HTMLElement | null = null;
@@ -25,6 +26,8 @@ function hide(force = false) {
   if (force) { pinned?.classList.remove('pinned'); pinned = null; }
 }
 const tipOf = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]');
+/** Buttons and links carry a tip for hover and focus only; a click on them must reach their own handler. */
+const interactive = (el: HTMLElement) => !!el.closest('button, a, select, input, summary, label');
 
 export function installTooltips(root: HTMLElement) {
   root.addEventListener('mouseover', (ev) => { if (pinned) return; const el = tipOf(ev); if (el) show(el); });
@@ -33,7 +36,7 @@ export function installTooltips(root: HTMLElement) {
   root.addEventListener('focusout', (ev) => { if (tipOf(ev)) hide(); });
   document.addEventListener('click', (ev) => {
     const el = tipOf(ev);
-    if (el) {
+    if (el && !interactive(el)) {
       if (pinned === el) { hide(true); return; }
       hide(true); pinned = el; el.classList.add('pinned'); show(el);
       ev.stopPropagation(); return;

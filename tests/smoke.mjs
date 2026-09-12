@@ -131,7 +131,7 @@ assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks s
 // picking a start gain fills the dropdown in its parent's colour and raises the start value
 await page.selectOption('select[data-gain="1-2"]', '54');
 await page.waitForTimeout(200);
-const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start: Number(el.querySelector('.body .v').textContent), base: Number(el.querySelector('.body .sub').textContent.replace(/\D/g, '')), p1: Number(el.querySelector('select[data-gain="0-2"]').value), p2Class: el.querySelector('select[data-gain="1-2"]').className }));
+const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start: Number(el.querySelector('.legacy-v').textContent), base: Number(el.querySelector('.legacy-sub').textContent.replace(/\D/g, '')), p1: Number(el.querySelector('select[data-gain="0-2"]').value), p2Class: el.querySelector('select[data-gain="1-2"]').className }));
 assert.equal(powerCell.start, powerCell.base + powerCell.p1 + 54, 'the start value is base plus both parents');
 assert.ok(/\bp2\b/.test(powerCell.p2Class) && /\bset\b/.test(powerCell.p2Class), 'a picked gain is shown filled in parent 2 colour');
 assert.equal(await page.$eval('select[data-gain="1-0"]', (s) => s.value), '0', 'all three sparks are on Power on parent 2');
@@ -179,10 +179,10 @@ assert.equal(await page.$('[data-sparks-form]'), null, 'the toggle closes the fo
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
   deck: [...document.querySelectorAll('.deck .slot .name')].map((n) => n.textContent.trim()),
-  stats: [...document.querySelectorAll('.stat .v')].map((n) => n.textContent.trim()),
+  stats: [...document.querySelectorAll('.stat-v')].map((n) => n.textContent.trim()),
   pSS: document.querySelector('.stat.outcome .pill')?.textContent,
   wishlist: [...document.querySelectorAll('ol li')].slice(0, 10).map((n) => n.textContent.trim().slice(0, 80)),
-  races: document.querySelector('h2:has(+ .scroll)')?.textContent,
+  races: document.querySelector('section.panel:has([data-agenda]) [data-panel-sub]')?.textContent,
   rankingRows: document.querySelectorAll('section.panel:last-child tbody tr').length,
   top3: [...document.querySelectorAll('section.panel:last-child tbody tr')].slice(0, 3).map((r) => r.children[1].textContent.trim().split('\n')[0]),
 }));
@@ -196,6 +196,9 @@ for (const { sum, total } of rowSums) assert.ok(Number.isFinite(total) && Math.a
 if (process.env.SCREENSHOT_PATH !== '') await page.screenshot({ path: process.env.SCREENSHOT_PATH ?? 'docs/screenshot.png', fullPage: true });
 // exercise a race override, an LB change, a "not owned" mark and a blue spark slider
 {
+  // the race grid is collapsed until asked for; it stays open for the layout checks below
+  await page.click('details[data-agenda] > summary');
+  await page.waitForSelector('select[data-slot]');
   const firstSelected = await page.$('select[data-slot]:has(option[selected][value]:not([value=""]))');
   const before = await page.$$eval('.agenda-cell.sel', (n) => n.length);
   await firstSelected.selectOption('');
