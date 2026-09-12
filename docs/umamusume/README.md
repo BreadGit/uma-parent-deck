@@ -12,6 +12,8 @@ rule applies to Global or JP. The [curated reference index](refs/README.md) desc
   the Global reference PDFs stored alongside them.
 - [Curated references](refs/README.md): spark generation, inheritance, race odds, rating tables,
   support effects, and saved scenario guides.
+- [Two Fuji independent-training runs](fuji-independent-training-runs.json): user-reported inputs,
+  race finishes, final stats, fans and ratings. Two observations, not a calibration dataset.
 - [Loopacord workbook](loopacord-independent-training-research.xlsx) and
   [card data](loopacord-card-data.csv): independent-training measurements, including chain completion.
 - [Fujikiseki report](fujikiseki-insights-2026-09-04.html), [CSV](fujikiseki-card-table.csv), and

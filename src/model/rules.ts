@@ -61,6 +61,21 @@ export const DISTANCE_PENALTY: Record<Grade, number> = { S: 0, A: 0, B: 0.1, C: 
 /** Penalty by position in a streak of consecutive races (index = races in a row); the last entry applies to longer streaks. */
 export const STREAK_PENALTY = [0, 0, 0, 0.05, 0.2, 0.3, 0.5];
 
+/** Fan payouts relative to a win, indexed by finishing place. See refs/fan-rewards.md. */
+export const FAN_PAYOUT_BY_PLACE = [0, 1, 0.4, 0.25, 0.15, 0.1];
+/** Shoppo's loss places for 18 runners, indexed by win chance in five percentage point steps. */
+export const LOSS_PLACE_BY_WIN_CHANCE = [18, 17, 15, 14, 12, 11, 10, 9, 8, 7, 6, 5, 4, 4, 3, 3, 2, 2, 2, 2, 1];
+/** URA finale wins on a completed run, separate from the 72-slot training agenda. */
+export const SCENARIO_FINALE_FANS: Record<number, readonly number[]> = { [OUR_GRAND_CONCERT]: [7000, 10000, 30000] };
+/** Concert rewards arrive after these turns, before the following calendar slot. Manual JP measurements. */
+export const CONCERT_FANS = [
+  { slot: 23, success: 100, great: 1000 },
+  { slot: 35, success: 200, great: 2000 },
+  { slot: 47, success: 550, great: 5500 },
+  { slot: 59, success: 650, great: 6500 },
+];
+export const GRAND_CONCERT_FANS = { slot: 71, success: 200, great: 2000, special: 9000 };
+
 // --- event outcomes ---
 /** Chance a final chain event hands over the gold skill instead of its white form, by the stat of the card's type at the time (mechanics document). */
 export const GOLD_ROLL_BY_STAT: [number, number][] = [[1000, 0.9], [800, 0.8], [700, 0.75], [600, 0.65], [400, 0.6], [0, 0.3]];

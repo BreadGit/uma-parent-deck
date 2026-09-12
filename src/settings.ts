@@ -21,6 +21,7 @@ export interface Settings {
   specialEventRate: number;      // Pal/Group unlock and New Year events (never seen in independent training)
   scenarioPickRate: number;      // the scenario's linked-skill event fires and the prioritized option is taken
   scenarioSongsRate: number;     // the run learns enough songs for the scenario's gold completion skill
+  concertGreatSuccessRate: number; // promotional and ordinary final concerts reach great success
   charStoryEventRate: number;    // the trainee's own story and choice events play during the run
   charOutingRate: number;        // one of the trainee's own outing events happens
   charUndecodedEventRate: number; // a skill GameTora lists for the trainee's events without a decoded event behind it (outfit-specific events)
@@ -62,6 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   specialEventRate: 0,
   scenarioPickRate: 1,
   scenarioSongsRate: 0.9,
+  concertGreatSuccessRate: 1,
   charStoryEventRate: 1,
   charOutingRate: 0.5,
   charUndecodedEventRate: 0.5,
@@ -119,6 +121,7 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   specialEventRate: rate,
   scenarioPickRate: rate,
   scenarioSongsRate: rate,
+  concertGreatSuccessRate: rate,
   charStoryEventRate: rate,
   charOutingRate: rate,
   charUndecodedEventRate: rate,
@@ -189,6 +192,7 @@ export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>
 
 /** User-facing note per advanced setting: what it does and where the default comes from. */
 export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
+  concertGreatSuccessRate: 'Assumed chance of great success for each promotional concert and an ordinary final concert. Default 1 assumes great success; independent-training rates are unmeasured. Fan rewards use mee1080/umasim manual JP observations, without a deck Fan Bonus on concerts. The 18-song setting approximates the chance of the special final concert (9,000 fans); the source also requires two new songs in the final period.',
   goalTieTolerance: 'How much required-goal chance you will trade for more preferred sparks on successful parents. A fraction, not percentage points: 0.001 allows a 0.1% relative difference. If the best chance found is 10%, decks at 9.99% or above can win on preferred extras. Zero allows only exact ties. Larger values give preferred sparks more influence. This is a preference, not a measure of model accuracy.',
   affinity: "Individual affinity score assumed for each of the six umas in the lineage (two parents, four grandparents). A blue or white spark procs at an inspiration event at its base chance times (1 + score/100), so 150 makes every blue spark proc. The game never shows individual scores, only their sum as ◎ (over 150), ○ (over 50) or △, and a ◎ made of six weak links procs far less than 150 each would; a compatibility calculator (GameTora, umaishow) gives the individual values. Default 150 is the optimistic assumption this tool has always used.",
   hintBase: 'Chance per turn that a card standing on a facility shows a hint, before Hint Frequency. Default 0.07 from a 1,024-turn manual-play sample (GameWith measured 6 to 9%). Nobody has measured hint pickup in independent training, so the whole hint model is an estimate.',
@@ -217,7 +221,7 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   whiteSparkInheritRates: 'Chance, per inspiration event, that a 1/2/3★ white spark already in the lineage gives you its hint, at 0 affinity; scaled by (1 + individual affinity/100) of the uma carrying it. Defaults 3/6/9% from Polaris\'s zero-affinity data via Crazyfellow\'s guide.',
   lineageSparkMultiplier: 'Each time the same white spark already appears in the lineage, the chance of generating it again is multiplied by this. Default 1.1 from uma.guide (20% → 22% → 24.2% …), supported by a 26.5-million-trainee dataset.',
   blueInspirationGainMean: 'Assumed average stat gain when a 1★ / 2★ / 3★ blue spark procs at an inspiration event. The game rolls a random value between 1 and 10, 1 and 16, and 1 and 28 respectively, and higher stars are said to roll near the top more often, but the distribution has not been measured. Defaults are the midpoints of those ranges; they are an assumption, not a game rule.',
-  uniqueAprilBondRate: "The unique skill gains a level at three fan checks: Senior early February (60,000 fans), early April (70,000 fans and a green bond with the chairperson) and late December (120,000 fans); dirt-oriented trainees need 40,000 / 60,000 / 80,000. Fans come from the agenda; the April bond check is not predicted, so this is the chance it passes. 0.5 is a placeholder.",
+  uniqueAprilBondRate: "The unique skill gains a level at three fan checks: Senior early February (60,000 fans), early April (70,000 fans and a green bond with the chairperson) and late December (120,000 fans); dirt-oriented trainees need 40,000 / 60,000 / 80,000. Fans include earlier calendar placing rewards with the deck Fan Bonus and earlier concerts. Finales arrive too late for these checks. The April bond check is not predicted, so this is the chance it passes. 0.5 is a placeholder.",
   lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. Default 0 because the effect of losses and conditions like Skin Outbreak has not been measured.',
   skillScorePerSp: 'Rank-score points bought per skill point at the end of the run. Default 1.4: a white skill is 217 points for about 150 SP after hint discounts. An estimate, not a game rule.',
   skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. Default 400, roughly two skills either way.',
@@ -240,7 +244,7 @@ export const ADVANCED_SETTING_GROUPS: SettingGroup[] = [
   { title: 'Hints', fields: [n('hintBase', 'Hint chance per card-turn'), n('hintScale', 'Hint model scale'), n('hintTurnsShare', 'Turns a card is on its facility')] },
   { title: 'Card events', fields: [list('chainRatesSSR', 'SSR chain reaches 1/2/3'), list('chainRatesSR', 'SR chain reaches 1/2'), n('randomEventRate', 'Random event fires'), n('palChainRate', 'Pal date chain completes'), n('groupOutingRate', 'Group member outing happens'), n('groupFinaleRate', 'Group finale happens'), n('specialEventRate', 'Unlock and New Year events'), n('goldRollStat', 'Stat at the gold-or-white roll', 10)] },
   { title: 'Trainee events', fields: [n('charStoryEventRate', 'Story and choice events play'), n('charOutingRate', 'Outing event happens'), n('charUndecodedEventRate', 'Undecoded event skill obtained'), n('charConditionFallbackRate', 'Secret-event condition not scorable')] },
-  { title: 'Scenario', fields: [n('scenarioPickRate', 'Skill event option taken'), n('scenarioSongsRate', '18 or more songs learned'), n('uniqueAprilBondRate', 'April bond check passes')] },
+  { title: 'Scenario', fields: [n('scenarioPickRate', 'Skill event option taken'), n('scenarioSongsRate', '18 or more songs learned'), n('concertGreatSuccessRate', 'Concert great success'), n('uniqueAprilBondRate', 'April bond check passes')] },
   { title: 'Spark chance at run end', fields: [n('goldSparkRate', 'Gold skill owned'), n('circleSparkRate', '◎ form owned'), n('whiteSparkRate', 'White skill owned'), list('whiteStarsBelowB', 'White stars below B, 1/2/3★'), list('whiteStarsUE', 'White stars at UE+, 1/2/3★')] },
   { title: 'Rank score', fields: [n('skillScorePerSp', 'Points per SP spent'), n('skillScoreSd', 'Skill score spread', 10), n('innateSkillBuyShare', 'Innate skills counted')] },
   { title: 'Stat model', fields: [n('lossPenalty', 'Stat lost per expected race loss', 1), n('totalTurnsOverride', 'Total career turns', 1)] },

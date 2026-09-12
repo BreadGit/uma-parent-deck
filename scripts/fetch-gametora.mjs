@@ -88,14 +88,18 @@ function unlockLb(rarity, level) {
   return i < 0 ? 5 : i;
 }
 
-function fillForward(row) {
-  const out = [];
-  let cur = 0;
-  for (let i = 1; i < row.length; i++) {
-    if (row[i] !== -1) cur = row[i];
-    out.push(cur);
-  }
-  return out;
+function interpolateEffects(row) {
+  const values = row.slice(1);
+  return LEVELS.map((level, i) => {
+    if (values[i] !== -1) return values[i];
+    let left = i - 1, right = i + 1;
+    while (left >= 0 && values[left] === -1) left--;
+    // Missing values before the unlock stay at zero.
+    if (left < 0) return 0;
+    while (right < values.length && values[right] === -1) right++;
+    if (right === values.length) return values[left];
+    return Math.floor(values[left] + (values[right] - values[left]) * (level - LEVELS[left]) / (LEVELS[right] - LEVELS[left]));
+  });
 }
 
 // Reward ids in the training_events files are offset by 36 from their index in
@@ -162,7 +166,7 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
     if (!c.release_en) continue;
     const rarity = RARITY[c.rarity];
     const effects = {};
-    for (const row of c.effects) effects[row[0]] = fillForward(row);
+    for (const row of c.effects) effects[row[0]] = interpolateEffects(row);
     const effectsByLb = LB_LEVEL[rarity].map((lvl) => {
       const idx = LEVELS.indexOf(lvl);
       const e = {};

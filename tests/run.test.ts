@@ -6,7 +6,6 @@ import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
 import { applyUserOrder, derivePriority, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankEstimate, uniqueSkillLevel } from '../src/model/rank.ts';
-import { expectedFansBefore } from '../src/model/races.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
 import { SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
 import { raceScale } from '../src/model/stats.ts';
@@ -65,15 +64,14 @@ test('the star count is clamped to the trainee: a count below her rarity cannot 
 });
 
 test('the dirt fan thresholds follow the character, so an aptitude override on the legacy screen cannot switch them', () => {
-  // Special Week made dirt A / turf G at a 95% threshold: her agenda's fans sit between the dirt and the turf thresholds
+  // Aptitude overrides do not change which fan thresholds the character uses.
   const strict = { ...settings, winThreshold: 0.95 };
   const p = planRun({ ...empty, traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: { turf: 'G', dirt: 'A' } }, strict, {}, data, { search: false });
-  const fans = (slot: number) => expectedFansBefore(p.schedule, slot);
-  assert.ok(fans(50) > 40000 && fans(50) < 60000, `fans before February ${fans(50)}`);
-  assert.equal(uniqueSkillLevel(3, p.apt, fans, strict), 3.5, 'the overridden table would call her dirt-oriented');
+  const fans = p.ctx.fansBefore!;
   assert.equal(p.rank.uniqueLevel, uniqueSkillLevel(3, sw.aptitudes, fans, strict), 'the plan uses her own table');
-  assert.ok(fans(71) < 120000 && fans(72) >= 120000, 'only the final Arima pushes fans above the Christmas threshold');
-  assert.equal(p.rank.uniqueLevel, 1, 'no turf fan check is met; Arima fans arrive too late for Christmas');
+  const lowFans = (slot: number) => slot < 54 ? 50000 : slot < 71 ? 65000 : 90000;
+  assert.equal(uniqueSkillLevel(3, p.apt, lowFans, strict), 3.5, 'an overridden dirt table would use lower thresholds');
+  assert.equal(uniqueSkillLevel(3, sw.aptitudes, lowFans, strict), 1, 'her own turf table does not pass these checks');
 });
 
 test('a total-turn override at or below the reference race count is rejected and cannot divide by zero', () => {

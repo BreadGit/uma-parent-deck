@@ -74,6 +74,8 @@ export function renderSchedule(c: RunPlan) {
         @input=${(e: Event) => { const out = (e.target as HTMLElement).parentElement?.querySelector('output'); if (out) out.value = pct(Number((e.target as HTMLInputElement).value)); }}
         @change=${(e: Event) => setSetting('winThreshold', (e.target as HTMLInputElement).value)} /><output data-setting-output="winThreshold" .value=${live(pct(store.settings.winThreshold))}></output></label>`;
   return panel({ title: 'G1 agenda', subtitle, tip: AGENDA_TIP, actions }, html`
+    <p class="muted" data-fan-estimate>Fans at run completion: ${Math.round(c.fans.calendar).toLocaleString('en-US')} from the agenda + ${Math.round(c.fans.finale).toLocaleString('en-US')} from finales + ${Math.round(c.fans.concerts).toLocaleString('en-US')} from concerts.
+      ${tip(`Race rewards include the selected deck's ${c.fans.bonus}% Fan Bonus and estimated non-win placings. Finale rewards assume completion and do not add to the calendar race count or earlier fan checks. Concert rewards use manual JP measurements and the Scenario settings. Independent-training concert outcomes and Fan Bonus on concerts are unverified. Random race reward increases are omitted, so the estimate can remain low.`)}</p>
     <div class="agenda">
       ${YEARS.map((y, yi) => html`<div class="agenda-year"><div class="agenda-year-head">${y}</div><div class="agenda-grid">${Array.from({ length: 24 }, (_, i) => cell(yi * 24 + i, bySlot.get(yi * 24 + i) ?? []))}</div></div>`)}
     </div>`);

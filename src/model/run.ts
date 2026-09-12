@@ -9,11 +9,12 @@ import { SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, goalDeckKey, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
-import { buildSchedule, expectedFansBefore, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
+import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
+import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
 import { rankEstimate, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { gainsOfParentSparks, inheritedFromParents, type Inheritance, type ParentSparks } from './inherit.ts';
 import { clampStars, traineeAt } from './trainee.ts';
-import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS, SLOT_COUNT } from './rules.ts';
+import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS } from './rules.ts';
 
 /** Everything the user chose about the run. The app persists exactly this (plus UI-only fields). */
 export interface RunInput {
@@ -46,6 +47,7 @@ export interface RunPlan {
   apt: Aptitudes;
   schedule: ScheduledRace[];
   sum: ReturnType<typeof scheduleSummary>;
+  fans: FanEstimate;
   ctx: Ctx;
   targets: Target[];
   pool: { card: Card; lb: number }[];      // every card in the ranking, at its effective LB
@@ -213,8 +215,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const targets = input.targets.map(({ id }) => resolveTarget(id, data)).filter((t): t is Target => !!t);
   const lineage = new Map<number, Lineage>();
   for (const t of targets) { const l = input.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
-  const fansBySlot = Array.from({ length: SLOT_COUNT + 1 }, (_, s) => expectedFansBefore(schedule, s));
-  const fansBefore = (slot: number) => fansBySlot[Math.max(0, Math.min(SLOT_COUNT, slot))] ?? 0;
+  const baseFans = estimateFans(schedule, [], settings);
+  const fansBefore = (slot: number) => fansBeforeSlot(baseFans, slot);
   const baseCtx: Ctx = { data, settings, races: sum.count, totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage, priority: [], fansBefore };
   const { pool, unowned } = cardPool(data, inventory, settings);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
@@ -246,17 +248,19 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
   }
   const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048) => {
-    const preliminary = describeDeck(entries, targets, baseCtx);
-    const candidates = wishlistCandidates(preliminary.deck, targets, baseCtx), ordered = order(candidates);
+    const fans = estimateFans(schedule, entries, settings);
+    const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
+    const preliminary = describeDeck(entries, targets, candidateCtx);
+    const candidates = wishlistCandidates(preliminary.deck, targets, candidateCtx), ordered = order(candidates);
     const priority = derivePriority(ordered, targets.filter((t) => !input.wishlistExcluded.some((id) => t.familyIds.has(id))), data, input.wishlistExcluded);
-    const ctx: Ctx = { ...baseCtx, priority, excluded: input.wishlistExcluded };
+    const ctx: Ctx = { ...candidateCtx, priority, excluded: input.wishlistExcluded };
     const deckResult = describeDeck(entries, targets, ctx);
     const prediction = predictRunDeck(entries, input, ctx, apt, sum.expectedLosses);
     const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.pred.sd, caps: prediction.statCaps?.cap, skillPoints: prediction.rank.skillPts, skillSd: settings.skillScoreSd };
     const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
     const sources = goalSources(goal, deckResult.coverage, ctx);
     const score = scoreGoal(goal, sources, basis, pink, settings);
-    return { score, statPower: deckResult.deck.reduce((n, d) => n + d.statPower, 0), value: { ctx, deckResult, prediction, goalStats, basis, sources, candidates, ordered } };
+    return { score, statPower: deckResult.deck.reduce((n, d) => n + d.statPower, 0), value: { ctx, fans, deckResult, prediction, goalStats, basis, sources, candidates, ordered } };
   };
   let chosen = evaluateCandidate(initial.deck);
   let search: GoalSearchSummary | null = options.summary ?? null;
@@ -293,7 +297,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     });
     if (found) { chosen = found.best; search = summarize(found); }
   }
-  const { ctx, deckResult, prediction, goalStats, basis, sources, candidates, ordered } = chosen.value;
+  const { ctx, fans, deckResult, prediction, goalStats, basis, sources, candidates, ordered } = chosen.value;
+  sum.expectedFans = fans.total;
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);
   const { pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank } = prediction;
   const goalEstimate = evaluateParentGoal(goal, input.pinkLineage, apt, deckResult, ctx, goalStats, issues, basis, sources.forms);
@@ -308,7 +313,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   } else deckResult.steps = retained ? ['Kept the displayed cards and updated their estimates for your current inputs.'] : initial.steps;
   const spCost = targetSpCost(targets, deckResult.coverage);
   return {
-    search, priorityIssues, goalEstimate, issues, trainee, apt, schedule, sum, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
+    search, priorityIssues, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
     wl: ordered.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: ordered.slice(PRIORITIZED_SKILLS_MAX), wlExcluded: excluded,
   };
 }

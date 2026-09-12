@@ -13,6 +13,19 @@ const APT_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 
 const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 const skillExists = (id: number) => data.skillById.has(id);
 
+test('support effects interpolate with floor rounding between anchors, without unlocking early', () => {
+  const hello = data.cardById.get(30052)!;
+  assert.deepEqual(hello.effectsByLb.map((e) => e[16]), [5, 6, 8, 10, 10]);
+  assert.deepEqual(hello.effectsByLb.map((e) => e[15]), [1, 2, 3, 5, 5]);
+  assert.deepEqual(hello.effectsByLb.map((e) => e[8] ?? 0), [0, 5, 10, 10, 10], 'training effectiveness unlocks at level 35');
+  assert.deepEqual(hello.effectsByLb.map((e) => e[12]), [25, 26, 27, 28, 30], 'floor each interpolation');
+  assert.deepEqual(hello.effectsByLb.map((e) => e[9] ?? 0), [0, 0, 0, 15, 30], 'initial speed unlocks at level 45');
+  const special = data.cardById.get(10001)!;
+  assert.deepEqual(special.effectsByLb.map((e) => e[1]), [10, 11, 13, 15, 15], 'R level caps and trailing plateau');
+  const digital = data.cardById.get(20005)!;
+  assert.deepEqual(digital.effectsByLb.map((e) => e[16]), [10, 11, 12, 13, 15], 'SR level caps');
+});
+
 test('cards carry the fields the stat and spark models read', () => {
   assert.ok(data.cards.length > 100);
   for (const c of data.cards) {

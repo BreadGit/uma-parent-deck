@@ -218,7 +218,7 @@ folds nothing; `uniqueExtras()` in `src/model/stats.ts` adds the passives below 
 | Type | Added as | Assumption |
 |---:|---|---|
 | 101 | effect value_1 +value_2 × share, effect value_3 +value_4 × share | bond `value` reached for a share of the run |
-| 104 | Training Effectiveness +value_1 × (run average of min(cap, fans / value) / cap) from the agenda's expected fans before each slot; +value_1 × share when there is no agenda (the fit) | fans from the agenda's wins only |
+| 104 | Training Effectiveness +value_1 × (run average of min(cap, fans / value) / cap) from expected fans before each slot; +value_1 × share when there is no agenda (the fit) | calendar placing rewards with deck Fan Bonus, plus timed concert rewards |
 | 106 | Friendship Bonus +value × value_2 × share | the `value` friendship trainings done for a share of the run |
 | 109 | Training Effectiveness +(600 / value_1) × share | 600 total bond reached for a share of the run |
 | 111 | Training Effectiveness +value_1 × 5 × share | facility level 5 for a share of the run |
@@ -266,6 +266,22 @@ The [curated game reference index](docs/umamusume/refs/README.md) records source
   (list order), not a measured rule.
 - Forfeited stat rewards from the event option not taken are not modelled.
 - Slot tiebreaks use how many umas can run a race comfortably, not how common it is on parents.
+
+Fan estimates include calendar wins and estimated loss placings, the selected deck's Fan Bonus,
+URA finale rewards, and timed concert rewards. Each candidate deck gets its own fan curve for
+stat and unique-skill checks. Finales contribute only to the completed-run fan total; they do not
+change the calendar race count used by the fitted stat model. The agenda shows the reward breakdown.
+
+Concert rewards use [manual JP measurements](docs/umamusume/refs/fan-rewards.md). The advanced
+Scenario settings assume great promotional concerts by default and reuse the 18-song probability
+as an approximation for the special final concert. That final also requires two new songs in the last
+period. Neither concert outcome rates nor a deck Fan Bonus on concerts is verified for independent
+training. Concert rewards receive no deck multiplier. Random race reward increases remain omitted.
+Fan thresholds use expected cumulative fans, not the probability distribution around each threshold.
+
+The [two Fuji observations](docs/umamusume/fuji-independent-training-runs.json) are validation cases.
+`tests/fans.test.ts` checks their schedule and deterministic payout subtotals separately from the
+observed random totals. They are not inputs to the stat-model fit and do not calibrate its uncertainty.
 - Career goals come per character, so an alternate outfit shows the base outfit's goals.
 - The two Group cards' random events and Team Sirius's sixth chain event are incomplete in the data.
 - Exclusivity is enforced per event only; two targets on different events are independent.

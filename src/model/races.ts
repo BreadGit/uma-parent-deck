@@ -1,5 +1,5 @@
 import type { AptKey, Character, Grade, Race } from '../types.ts';
-import { DISTANCE_PENALTY, RACE_WIN_BASE, SLOT_COUNT, STREAK_PENALTY, SURFACE_PENALTY } from './rules.ts';
+import { DISTANCE_PENALTY, FAN_PAYOUT_BY_PLACE, LOSS_PLACE_BY_WIN_CHANCE, RACE_WIN_BASE, SLOT_COUNT, STREAK_PENALTY, SURFACE_PENALTY } from './rules.ts';
 export { SLOT_COUNT };
 
 /** Race distance category by metres, the same bands the game uses for distance aptitude. */
@@ -186,9 +186,24 @@ export function raceWinChances(sched: ScheduledRace[]): RaceWins {
   return out;
 }
 
-/** Expected fans gained by the agenda's wins before a calendar slot (fans from a loss are ignored, so this is conservative). */
+/** Approximate loss place from Shoppo's 18-runner table, using the final odds after streak penalties. */
+export function lossPlace(pWin: number): number {
+  return LOSS_PLACE_BY_WIN_CHANCE[Math.round(Math.max(0, Math.min(1, pWin)) * 20)]!;
+}
+
+/** Base payout before deck bonuses. Finishes below fifth have no placing reward. */
+export function raceFansForPlace(winFans: number, place: number): number {
+  return winFans * (FAN_PAYOUT_BY_PLACE[place] ?? 0);
+}
+
+export function expectedRaceFans(s: ScheduledRace): number {
+  const p = Math.max(0, Math.min(1, s.pWin));
+  return s.race.fansGain * p + raceFansForPlace(s.race.fansGain, lossPlace(p)) * (1 - p);
+}
+
+/** Base calendar fans before a slot, including the estimated payout on a loss. */
 export function expectedFansBefore(sched: ScheduledRace[], slot: number): number {
-  return sched.filter((s) => s.selected && s.slot < slot).reduce((a, s) => a + s.race.fansGain * Math.min(1, s.pWin), 0);
+  return sched.filter((s) => s.selected && s.slot < slot).reduce((a, s) => a + expectedRaceFans(s), 0);
 }
 
 export function scheduleSummary(sched: ScheduledRace[]) {
@@ -197,8 +212,7 @@ export function scheduleSummary(sched: ScheduledRace[]) {
   const unique = new Set(sel.map((s) => s.race.raceId)).size;
   const goals = sel.filter((s) => s.goal).length;
   const longestStreak = sel.reduce((a, s) => Math.max(a, s.consecutive), 0);
-  // fans come only from wins: a lost race pays nothing, so each race counts its fans times its win chance
-  const expectedFans = sel.reduce((a, s) => a + s.race.fansGain * Math.min(1, s.pWin), 0);
+  const expectedFans = expectedFansBefore(sched, SLOT_COUNT);
   return { count: sel.length, unique, goals, expectedWins: wins, expectedLosses: sel.length - wins, longestStreak, expectedFans };
 }
 

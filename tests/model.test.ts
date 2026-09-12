@@ -621,12 +621,12 @@ test('the swap pass never leaves the deck worse than the greedy build, reports e
   buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'balanced' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v) => a + v, 0)) < 1e-6));
 });
 
-test('expected fans sum each scheduled race\'s fans times its win chance, the same total the unique-skill checks use', () => {
+test('base schedule fans include the placing reward for likely losses', () => {
   const brian = data.charByCardId.get(101601)!;
   const sched = buildSchedule(data.races, brian.aptitudes, 0.8, new Map(), new Map(), goalRaces(brian));
   const sum = scheduleSummary(sched);
   assert.ok(sum.expectedFans > 0);
   assert.equal(sum.expectedFans, expectedFansBefore(sched, SLOT_COUNT));
-  const byHand = sched.filter((s) => s.selected).reduce((a, s) => a + s.race.fansGain * Math.min(1, s.pWin), 0);
-  assert.equal(sum.expectedFans, byHand);
+  const winsOnly = sched.filter((s) => s.selected).reduce((a, s) => a + s.race.fansGain * Math.min(1, s.pWin), 0);
+  assert.ok(sum.expectedFans >= winsOnly);
 });
