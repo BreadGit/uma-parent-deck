@@ -4,11 +4,11 @@ import { resolveTarget } from './sparks.ts';
 export const APTITUDE_LABELS: Record<AptKey, string> = { turf: 'Turf', dirt: 'Dirt', sprint: 'Sprint', mile: 'Mile', medium: 'Medium', long: 'Long', front: 'Front Runner', pace: 'Pace Chaser', late: 'Late Surger', end: 'End Closer' };
 export interface WhiteGoal { id: number; stars: number }
 export interface WhiteTarget extends WhiteGoal { role: 'required' | 'preferred' }
+export interface PinkGoal { aptitude: AptKey | 'any'; stars: number }
 export interface ParentGoal {
   blueStats: Stat[];
   blueStars: number;
-  pink: AptKey | 'any';
-  pinkStars: number;
+  pink: PinkGoal[];
 }
 /** Derived for evaluation, never persisted alongside the target list. */
 export interface ResolvedGoal extends ParentGoal { required: WhiteGoal[]; preferred: number[] }
@@ -16,7 +16,7 @@ export function goalWithTargets(goal: ParentGoal, targets: WhiteTarget[]): Resol
   return { ...goal, required: targets.filter((t) => t.role === 'required').map(({ id, stars }) => ({ id, stars })), preferred: targets.filter((t) => t.role === 'preferred').map((t) => t.id) };
 }
 export interface PinkSpark { aptitude: AptKey; stars: number; inferred?: true }
-export const DEFAULT_GOAL: ParentGoal = { blueStats: [...STATS], blueStars: 2, pink: 'any', pinkStars: 2 };
+export const DEFAULT_GOAL: ParentGoal = { blueStats: [...STATS], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] };
 /** Null slots represent zero entered sparks and contribute no aptitude increases to the estimate. */
 export const emptyPinkLineage = (): (PinkSpark | null)[] => Array.from({ length: 6 }, () => null);
 const object = (v: unknown): Record<string, unknown> => isPlainObject(v) ? v : {};
@@ -31,8 +31,20 @@ export function sanitizeGoal(raw: unknown): ParentGoal {
   const v = object(raw);
   return {
     blueStats: Array.isArray(v.blueStats) ? STATS.filter((s) => (v.blueStats as unknown[]).includes(s)) : [...STATS],
-    blueStars: stars(v.blueStars), pink: APTITUDE_KEYS.includes(v.pink as AptKey) ? v.pink as AptKey : 'any', pinkStars: stars(v.pinkStars),
+    blueStars: stars(v.blueStars),
+    pink: sanitizePinkGoals(Array.isArray(v.pink) ? v.pink : 'pink' in v || 'pinkStars' in v
+      ? [{ aptitude: APTITUDE_KEYS.includes(v.pink as AptKey) ? v.pink : 'any', stars: stars(v.pinkStars) }] : []),
   };
+}
+
+export function sanitizePinkGoals(raw: unknown): PinkGoal[] {
+  const entries = new Map<PinkGoal['aptitude'], PinkGoal>();
+  for (const value of Array.isArray(raw) ? raw : []) {
+    const v = object(value), aptitude = v.aptitude as PinkGoal['aptitude'];
+    if ((aptitude === 'any' || APTITUDE_KEYS.includes(aptitude)) && !entries.has(aptitude)) entries.set(aptitude, { aptitude, stars: stars(v.stars) });
+  }
+  if (entries.size > 1) entries.delete('any');
+  return entries.size ? [...entries.values()] : [{ aptitude: 'any', stars: 1 }];
 }
 
 /** Keep target order and migrate the former goal lists into one authoritative list. */

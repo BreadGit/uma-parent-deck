@@ -100,6 +100,7 @@ test('ranking expands all target chances and keeps the last target reachable on 
 
 test('the deck stays mounted during search and edits update its estimates immediately', async (t) => {
   const saved = defaultState(data);
+  saved.run.goal.pink = [{ aptitude: 'any', stars: 2 }];
   saved.run.traineeCardId = 100501;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
   saved.inventory['30017'] = null;
@@ -241,7 +242,7 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   assert.equal(await page.evaluate(() => window.searchWorkers.length), 1, 'rapid edits wait before starting another worker');
   assert.equal(await page.evaluate(() => window.searchWorkers[0].terminated), true);
   await page.waitForFunction(() => window.searchWorkers.length === 2);
-  assert.equal(await page.evaluate(() => window.searchWorkers[1].request.run.goal.pinkStars), 2);
+  assert.equal(await page.evaluate(() => window.searchWorkers[1].request.run.goal.pink[0].stars), 2);
   await page.evaluate((selection) => window.searchWorkers[0].deliver(selection), alternative);
   assert.deepEqual(await cards(), original, 'a cancelled search cannot publish a late result');
   assert.equal(await page.evaluate(() => window.retainedDeck === document.querySelector('.deck') && window.retainedList === document.querySelector('.wishlist')), true);
@@ -583,7 +584,7 @@ test('goal evaluation stays active for new sessions, resets, and saves with the 
   page.once('dialog', (dialog) => dialog.accept());
   await page.click('[data-action="reset-all"]');
   assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
-  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
   assert.match(await page.locator('[data-goal-issues]').innerText(), /Choose the trainee/);
   await assertFieldsMatchState(page, 'after resetting with automatic goal evaluation');
 
@@ -605,14 +606,14 @@ test('goal evaluation stays active for new sessions, resets, and saves with the 
   await assertFieldsMatchState(restored, 'after reloading a formerly disabled goal');
 });
 
-test('Any pink defaults to two stars, updates estimates, and persists across reload', async (t) => {
+test('Any pink defaults to one star, updates estimates, and persists across reload', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
   const page = await editor(t, saved);
   const pinkRow = page.locator('.goal-breakdown tr').filter({ hasText: 'Pink (' });
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
-  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '2');
-  assert.match(await pinkRow.innerText(), /80\.0%/);
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
+  assert.match(await pinkRow.innerText(), /100(?:\.0)?%/);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   const chance = await page.locator('[data-goal-probability]').innerText();
   await page.selectOption('[data-goal-stars="pink"]', '3');
@@ -621,13 +622,13 @@ test('Any pink defaults to two stars, updates estimates, and persists across rel
   await page.selectOption('[data-goal-pink]', 'end');
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
-  await page.selectOption('[data-goal-pink]', 'any');
+  await page.click('[data-action="reset-pink-goal"]');
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   await page.reload();
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
-  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '3');
-  assert.match(await pinkRow.innerText(), /10\.0%/);
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
+  assert.match(await pinkRow.innerText(), /100(?:\.0)?%/);
 });
 
 test('pink reset clears manual and inferred sparks and starting increases while preserving other inputs', async (t) => {
@@ -886,7 +887,7 @@ test('saved white siblings and gold-only targets stay visible and keep lineage',
 test('goal explanations distinguish a difficult requirement, missing pink eligibility, and an impossible white spark', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  saved.run.goal = { ...saved.run.goal, blueStars: 1, pinkStars: 3 };
+  saved.run.goal = { ...saved.run.goal, blueStars: 1, pink: [{ aptitude: 'any', stars: 3 }] };
   const page = await editor(t, saved);
   const limits = page.locator('[data-goal-limits]');
   assert.match(await page.locator('[data-goal-probability]').innerText(), /Chance per final spark roll/);
@@ -903,7 +904,7 @@ test('goal explanations distinguish a difficult requirement, missing pink eligib
   assert.match(await limits.innerText(), /Runaway is impossible as a white spark because it has no released white form/);
   assert.match(await limits.innerText(), /End Closer pink cannot reach/);
   await assertFieldsMatchState(page, 'after explaining two blocked requirements');
-  await page.selectOption('[data-goal-pink]', 'any');
+  await page.click('[data-action="reset-pink-goal"]');
   assert.doesNotMatch(await limits.innerText(), /cannot reach final A\/S/);
   await page.click('[data-target-role="preferred"]');
   assert.doesNotMatch(await limits.innerText(), /impossible/);
@@ -1054,4 +1055,39 @@ test('completed recommendations survive reload without a worker, while changed i
   }, finished.recommendation);
   await assertFieldsMatchState(page, 'after publishing the current result');
   assert.deepEqual((await state(page)).recommendation, finished.recommendation);
+});
+
+test('pink alternatives inherit the first threshold, default additions to two, exclude Any, and reset only pink', async (t) => {
+  const page = await editor(t);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.selectOption('[data-goal-stars="pink"]', '3');
+  await page.selectOption('[data-goal-pink]', 'turf');
+  await assertFieldsMatchState(page, 'after replacing Any with Turf');
+  assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '3');
+  assert.equal(await page.locator('[data-goal-pink] option[value="any"]').count(), 0);
+  await page.click('[data-action="add-pink-goal"]');
+  await assertFieldsMatchState(page, 'after adding a second pink alternative');
+  assert.equal(await page.inputValue('[data-pink-aptitude="dirt"]'), '2');
+  await page.selectOption('[data-goal-pink="dirt"]', 'mile');
+  await page.selectOption('[data-pink-aptitude="turf"]', '2');
+  await page.selectOption('[data-pink-aptitude="mile"]', '3');
+  await assertFieldsMatchState(page, 'after editing both pink thresholds');
+  assert.equal(await page.locator('[data-goal-pink="turf"] option[value="mile"]').count(), 0);
+  assert.equal(await page.locator('[data-goal-pink="mile"] option[value="turf"]').count(), 0);
+  const before = (await state(page)).run;
+  await page.reload();
+  await assertFieldsMatchState(page, 'after reloading pink alternatives');
+  assert.deepEqual((await state(page)).run, before);
+  await page.click('[data-action="remove-pink-goal"][data-aptitude="turf"]');
+  await assertFieldsMatchState(page, 'after removing the first pink alternative');
+  assert.equal(await page.inputValue('[data-pink-aptitude="mile"]'), '3');
+  await page.click('[data-action="remove-pink-goal"][data-aptitude="mile"]');
+  await assertFieldsMatchState(page, 'after removing the last pink alternative');
+  assert.deepEqual((await state(page)).run.goal.pink, [{ aptitude: 'any', stars: 1 }]);
+  await page.selectOption('[data-goal-pink]', 'end');
+  const reset = (await state(page)).run;
+  reset.goal.pink = [{ aptitude: 'any', stars: 1 }];
+  await page.click('[data-action="reset-pink-goal"]');
+  await assertFieldsMatchState(page, 'after resetting only the pink goal');
+  assert.deepEqual((await state(page)).run, reset);
 });

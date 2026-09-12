@@ -2,7 +2,7 @@ import { STATS, APTITUDE_KEYS, type AptKey, type Grade } from '../types.ts';
 import type { Ctx, DeckResult } from './deck.ts';
 import { DEFAULT_SETTINGS, whiteGenerationBands, type Settings } from '../settings.ts';
 import { affinityMultiplier } from './inherit.ts';
-import { APTITUDE_LABELS, type ParentGoal, type ResolvedGoal, type PinkSpark } from './goal-input.ts';
+import { APTITUDE_LABELS, type ParentGoal, type PinkGoal, type ResolvedGoal, type PinkSpark } from './goal-input.ts';
 import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES, INSPIRATION_EVENTS } from './rules.ts';
 import { hasWhiteSpark, lineageCount, resolveTarget, type Target } from './sparks.ts';
 import { jointSkillForms, projectForms, whiteGenerationMoments, type FormDistribution } from './goal-skills.ts';
@@ -23,9 +23,13 @@ export function attemptsFor(p: number, confidence: number): number {
   return Math.ceil(Math.log1p(-confidence) / Math.log1p(-p));
 }
 
-export interface PinkEstimate { probability: number; upperProbability: number; warnings: string[]; eligibility: { aptitude: AptKey; probability: number | null }[] }
-export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pink'], stars: number, lineage: (PinkSpark | null)[], affinity: number, rates = DEFAULT_SETTINGS.pinkInspirationRates): PinkEstimate {
-  const warnings: string[] = [];
+export interface PinkEstimate { probability: number; upperProbability: number; warnings: string[]; eligibility: { aptitude: AptKey; probability: number | null }[]; alternatives?: (PinkGoal & { probability: number; upperProbability: number })[] }
+export function pinkEstimate(apt: Record<AptKey, Grade>, target: PinkGoal['aptitude'], stars: number, lineage: (PinkSpark | null)[], affinity: number, rates = DEFAULT_SETTINGS.pinkInspirationRates): PinkEstimate {
+  return pinkGoalsEstimate(apt, [{ aptitude: target, stars }], lineage, affinity, rates);
+}
+
+/** Enumerate shared eligibility scenarios so alternatives with different thresholds have consistent bounds. */
+export function pinkGoalsEstimate(apt: Record<AptKey, Grade>, goals: PinkGoal[], lineage: (PinkSpark | null)[], affinity: number, rates = DEFAULT_SETTINGS.pinkInspirationRates): PinkEstimate {
   const eligibility = APTITUDE_KEYS.map((key) => {
     if (apt[key] === 'A' || apt[key] === 'S') return { aptitude: key, probability: 1 };
     const matching = lineage.filter((p): p is PinkSpark => p?.aptitude === key);
@@ -34,25 +38,33 @@ export function pinkEstimate(apt: Record<AptKey, Grade>, target: ParentGoal['pin
     const miss = matching.reduce((p, spark) => p * (1 - Math.min(1, rates[spark.stars - 1]! * affinityMultiplier({ affinity }))) ** INSPIRATION_EVENTS, 1);
     return { aptitude: key, probability: 1 - miss };
   });
-  const starRate = starChance(PINK_GENERATION_RATES, stars);
-  if (target === 'any' && eligibility.some((e) => e.probability === 1)) {
-    return { probability: starRate, upperProbability: starRate, warnings, eligibility };
+  const unknown = eligibility.filter((e) => e.probability === null);
+  const warnings = unknown.map((e) => `${APTITUDE_LABELS[e.aptitude]} starts below B with matching pink sparks. The range allows it to finish either below A or at A/S.`);
+  const alternatives = goals.map((g) => ({ ...g, probability: Infinity, upperProbability: 0 }));
+  let probability = Infinity, upperProbability = 0;
+  for (let scenario = 0; scenario < 2 ** unknown.length; scenario++) {
+    const chances = eligibility.map((e) => e.probability ?? Number(!!(scenario & (1 << unknown.indexOf(e)))));
+    const contributions = goals.map(() => 0);
+    const visit = (i: number, mass: number, selected: number[]) => {
+      if (mass === 0) return;
+      if (i < chances.length) {
+        visit(i + 1, mass * (1 - chances[i]!), selected);
+        visit(i + 1, mass * chances[i]!, [...selected, i]);
+        return;
+      }
+      if (!selected.length) return;
+      goals.forEach((g, j) => {
+        const share = g.aptitude === 'any' ? 1 : Number(selected.some((k) => eligibility[k]!.aptitude === g.aptitude)) / selected.length;
+        contributions[j]! += mass * share * starChance(PINK_GENERATION_RATES, g.stars);
+      });
+    };
+    visit(0, 1, []);
+    const total = contributions.reduce((sum, p) => sum + p, 0);
+    probability = Math.min(probability, total);
+    upperProbability = Math.max(upperProbability, total);
+    alternatives.forEach((g, i) => { g.probability = Math.min(g.probability, contributions[i]!); g.upperProbability = Math.max(g.upperProbability, contributions[i]!); });
   }
-  for (const e of eligibility.filter((e) => e.probability === null)) warnings.push(`${APTITUDE_LABELS[e.aptitude]} starts below B with matching pink sparks. The range allows it to finish either below A or at A/S.`);
-  const bound = (upper: boolean) => {
-    const chance = (e: typeof eligibility[number]) => e.probability ?? Number(target === 'any' || e.aptitude === target ? upper : !upper);
-    if (target === 'any') return (1 - eligibility.reduce((p, e) => p * (1 - chance(e)), 1)) * starRate;
-    const desired = chance(eligibility.find((e) => e.aptitude === target)!);
-    // The count of other eligible aptitudes is a Poisson-binomial distribution.
-    let count = [1];
-    for (const e of eligibility.filter((e) => e.aptitude !== target)) {
-      const next = Array<number>(count.length + 1).fill(0), p = chance(e);
-      count.forEach((mass, k) => { next[k]! += mass * (1 - p); next[k + 1]! += mass * p; });
-      count = next;
-    }
-    return desired * starRate * count.reduce((p, mass, k) => p + mass / (k + 1), 0);
-  };
-  return { probability: bound(false), upperProbability: bound(true), warnings, eligibility };
+  return { probability, upperProbability, warnings: probability === upperProbability ? [] : warnings, eligibility, alternatives };
 }
 
 export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number }
@@ -198,11 +210,11 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
   const copies = (t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
   const skills = whiteGenerationMoments(joint, required.map(copies), ctx.settings);
   const moments = statGoalMoments(stats, goal, thresholdFor('SS', ctx.data.ranks), ctx.settings, basis);
-  const pink = pinkEstimate(apt, goal.pink, goal.pinkStars, pinkLineage, ctx.settings.affinity, ctx.settings.pinkInspirationRates);
+  const pink = pinkGoalsEstimate(apt, goal.pink, pinkLineage, ctx.settings.affinity, ctx.settings.pinkInspirationRates);
   const notes = ['Known pink lineage determines starting aptitude grades. Grades outside the starting-inheritance range remain planning overrides. Inspiration estimates additional mid-run increases.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
   for (const target of [...required, ...preferred]) if (!hasWhiteSpark(target)) notes.push(`${target.name} has no released white form and cannot generate a white spark. Its saved target and lineage are retained for review.`);
   if (pinkLineage.length < 6 || pinkLineage.some((spark) => spark === null)) notes.push('Empty pink slots count as zero sparks for this estimate. Only entered or estimated sparks contribute additional aptitude increases.');
-  if (goal.pink === 'any') notes.push('Any pink aptitude counts toward the goal. With an A/S aptitude already eligible, only the minimum stars affect its chance.');
+  if (goal.pink[0]?.aptitude === 'any') notes.push('Any pink aptitude counts toward the goal. With an A/S aptitude already eligible, only the minimum stars affect its chance.');
   if (pinkLineage.some((spark) => spark?.inferred)) notes.push('Some pink sparks are minimum-star estimates inferred from starting aptitude increases. Other lineages can produce the same grades. Refine them in Legacy > Pink sparks.');
   if (skills.approximate) notes.push('A large group of linked skill sources uses a fixed sample approximation. Very rare joint outcomes may be missed.');
   if (deck.conflicts.length) notes.push('Some goal skills compete for event choices. This estimate follows the current prioritized-skill order.');

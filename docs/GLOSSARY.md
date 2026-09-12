@@ -6,8 +6,9 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   Each target is Required or Preferred. Its role and minimum stars affect deck selection and goal evaluation.
 - **Parent goal**: the blue, pink, and required white spark conditions that one finished parent must
   meet together. Required whites can number zero or more. With none, success depends only on blue
-  and pink. The pink goal defaults to Any aptitude at 2★ or better; Any accepts every eligible
-  aptitude without dividing by the number of eligible types. Deck search compares complete-goal chances.
+  and pink. The pink goal accepts any one listed aptitude at its own minimum stars. It defaults to Any
+  aptitude at 1★ or better. Any accepts every eligible aptitude and cannot coexist with specifics.
+  Deck search compares complete-goal chances.
 - **Required white spark**: a target family that must appear at its chosen minimum stars. Every
   required family must succeed on the same parent. Gold and normal forms of Corner Recovery are
   one family, not two requirements.

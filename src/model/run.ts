@@ -2,7 +2,7 @@ import { STATS, type Card, type Character, type Data, type Inventory, type Skill
 import type { Settings } from '../settings.ts';
 import { goalWithTargets, type ParentGoal, type PinkSpark, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
-import { evaluateParentGoal, goalRankBands, pinkEstimate, type GoalEstimate } from './goal.ts';
+import { evaluateParentGoal, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
 import { buildDeck, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
@@ -230,7 +230,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const isRequired = (w: WishlistEntry) => required.has(resolveTarget(w.skillId, data)?.id ?? w.skillId);
   const order = (cands: WishlistEntry[]) => applyUserOrder(cands, input.wishlistOrder, input.wishlistExcluded, data)
     .sort((a, b) => Number(isRequired(b)) - Number(isRequired(a)));
-  const pink = pinkEstimate(apt, goal.pink, goal.pinkStars, input.pinkLineage, settings.affinity, settings.pinkInspirationRates);
+  const pink = pinkGoalsEstimate(apt, goal.pink, input.pinkLineage, settings.affinity, settings.pinkInspirationRates);
   const previous = options.previous?.flatMap((e) => {
     const card = data.cardById.get(e.id);
     if (!card) return [];

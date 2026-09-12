@@ -64,8 +64,8 @@ export async function assertFieldsMatchState(page, where) {
     for (const el of document.querySelectorAll('[data-goal-blue]')) {
       if (el.checked !== goal.blueStats.includes(el.dataset.goalBlue)) out.push(`blue ${el.dataset.goalBlue} differs from state`);
     }
-    for (const el of document.querySelectorAll('[data-goal-stars]')) check(el, goal[`${el.dataset.goalStars}Stars`]);
-    for (const el of document.querySelectorAll('[data-goal-pink]')) check(el, goal.pink);
+    for (const el of document.querySelectorAll('[data-goal-stars]')) check(el, el.dataset.goalStars === 'pink' ? goal.pink.find((p) => p.aptitude === el.dataset.pinkAptitude).stars : goal.blueStars);
+    for (const el of document.querySelectorAll('[data-goal-pink]')) check(el, goal.pink.find((p) => p.aptitude === el.dataset.goalPink).aptitude);
     for (const el of document.querySelectorAll('[data-target-stars]')) check(el, st.run.targets.find((r) => r.id === Number(el.dataset.targetStars)).stars);
     for (const el of document.querySelectorAll('[data-target-role]')) {
       const required = st.run.targets.some((r) => r.id === Number(el.dataset.id) && r.role === 'required');

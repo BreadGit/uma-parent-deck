@@ -13,7 +13,7 @@ import type { Card } from '../src/types.ts';
 
 const data = loadData();
 const settings = { ...DEFAULT_SETTINGS, whiteSparkRate: 1, whiteStarsBelowB: [0, 1, 0] };
-const goal: ResolvedGoal = { ...DEFAULT_GOAL, blueStars: 1, pinkStars: 1, required: [], preferred: [] };
+const goal: ResolvedGoal = { ...DEFAULT_GOAL, blueStars: 1, required: [], preferred: [] };
 const basis: GoalRankBands = { blue: 1, rank: [1, 0, 0, 0], blueRank: [1, 0, 0, 0], pSS: 0, approximateRank: 1 };
 const pink = { probability: 1, upperProbability: 1, warnings: [], eligibility: [] };
 const distribution = (count: number, states: [string, number][]): FormDistribution => ({ count, components: [{ indices: Array.from({ length: count }, (_, i) => i), distribution: { states: new Map(states), approximate: false } }] });

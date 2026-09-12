@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, whiteGenerationBands } from '../src/settings.ts';
 import { DEFAULT_RUN, migrate, defaultState, STATE_VERSION } from '../src/state.ts';
-import { DEFAULT_GOAL as BASE_GOAL, emptyPinkLineage, sanitizePinkLineage, goalFamily, goalWithTargets, type ResolvedGoal } from '../src/model/goal-input.ts';
-import { goalRankBands, attemptsFor, blueChance, pinkEstimate, starChance, statGoalMoments as integrateStats, evaluateParentGoal as evaluateGoal, type GoalStats } from '../src/model/goal.ts';
+import { DEFAULT_GOAL as BASE_GOAL, emptyPinkLineage, sanitizePinkLineage, sanitizeGoal, goalFamily, goalWithTargets, type ResolvedGoal } from '../src/model/goal-input.ts';
+import { goalRankBands, attemptsFor, blueChance, pinkEstimate, pinkGoalsEstimate, starChance, statGoalMoments as integrateStats, evaluateParentGoal as evaluateGoal, type GoalStats } from '../src/model/goal.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
 import { decodeEventRoll, resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES } from '../src/model/rules.ts';
@@ -87,23 +87,21 @@ test('Any pink contributes its star chance to the complete goal', () => {
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
   const stats = { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 3000, skillSd: 0 };
   for (const [pinkStars, expected] of [[2, .64], [3, .08]]) {
-    const result = evaluateTraineeGoal({ ...DEFAULT_GOAL, pinkStars: pinkStars! }, emptyPinkLineage(), apt(), ctx, stats, []);
+    const result = evaluateTraineeGoal({ ...DEFAULT_GOAL, pink: [{ aptitude: 'any', stars: pinkStars! }] }, emptyPinkLineage(), apt(), ctx, stats, []);
     assert.deepEqual(result.issues, []);
     close(result.probability!, expected!);
   }
 });
 
-test('pink goals default to Any at two stars and migrate unchosen goals without losing a star preference', () => {
-  assert.equal(defaultState(data).run.goal.pink, 'any');
-  assert.equal(defaultState(data).run.goal.pinkStars, 2);
+test('pink goals default to Any at one star and migrate unchosen goals without losing a star preference', () => {
+  assert.deepEqual(defaultState(data).run.goal.pink, [{ aptitude: 'any', stars: 1 }]);
   for (const pink of [undefined, null, '', 'invalid', 'any']) {
     const saved = migrate({ current: { version: 12, run: { goal: { enabled: true, pink, pinkStars: 3 } } } }, data);
-    assert.equal(saved.run.goal.pink, 'any');
-    assert.equal(saved.run.goal.pinkStars, 3);
+    assert.deepEqual(saved.run.goal.pink, [{ aptitude: 'any', stars: 3 }]);
     assert.ok(!('enabled' in saved.run.goal));
     assert.deepEqual(migrate({ current: saved }, data), saved);
   }
-  assert.equal(migrateGoal({ pink: 'end' }, data).pink, 'end');
+  assert.deepEqual(migrateGoal({ pink: 'end' }, data).pink, [{ aptitude: 'end', stars: 2 }]);
 });
 
 test('empty pink slots count as zero sparks and partial lineage gives an estimate without a warning', () => {
@@ -122,7 +120,7 @@ test('empty pink slots count as zero sparks and partial lineage gives an estimat
   assert.deepEqual(pinkEstimate(grades, 'any', 2, partial, 150).warnings, []);
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
   const stats = { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 3000, skillSd: 0 };
-  const goal = { ...DEFAULT_GOAL, pink: 'turf' as const };
+  const goal = { ...DEFAULT_GOAL, pink: [{ aptitude: 'turf' as const, stars: 2 }] };
   const result = evaluateTraineeGoal(goal, emptyPinkLineage(), grades, ctx, stats, []);
   close(result.probability!, .64);
   assert.deepEqual(result.issues, []);
@@ -232,7 +230,7 @@ test('rank bands share a stat outcome with blue and both required white stars', 
 });
 
 test('rare blue thresholds retain finite attempts and their shared white-rank outcome', () => {
-  const goal = { ...structuredClone(DEFAULT_GOAL), blueStats: ['stamina' as const], blueStars: 3 };
+  const goal = { ...structuredClone(DEFAULT_GOAL), blueStats: ['stamina' as const], blueStars: 3, pink: [{ aptitude: 'any' as const, stars: 2 }] };
   const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
   const stats = { rawMean: [1100, 490, 1100, 1100, 1100], sd: [0, 32, 0, 0, 0], skillPoints: 17500 - 4 * statScore(1100) - statScore(600), skillSd: 0 };
@@ -270,8 +268,7 @@ test('goal evaluation runs by default and ignores the retired toggle in saved go
   for (const goal of goals) {
     const saved = migrate({ current: { version: 14, run: { traineeCardId: 100101, goal } } }, data);
     assert.ok(!('enabled' in saved.run.goal));
-    assert.equal(saved.run.goal.pink, goal?.pink ?? 'any');
-    assert.equal(saved.run.goal.pinkStars, goal?.pinkStars ?? 2);
+    assert.deepEqual(saved.run.goal.pink, sanitizeGoal(goal).pink);
     const result = planRun(saved.run, saved.settings, saved.inventory, data, { search: false }).goalEstimate;
     assert.ok(result);
     assert.ok(result.probability !== null && result.probability > 0);
@@ -298,7 +295,7 @@ test('goal editing drives selection while supplied-deck prediction stays consist
   input.traineeCardId = data.characters.find((c) => c.name === 'Special Week')!.cardId;
   input.targets = [a.id, b.id].map((id) => ({ id, role: 'preferred', stars: 2 }));
   const before = planRun(input, settings, {}, data);
-  input.goal = { ...structuredClone(BASE_GOAL), pink: 'turf' };
+  input.goal = { ...structuredClone(BASE_GOAL), pink: [{ aptitude: 'turf', stars: 2 }] };
   input.targets.forEach((t) => { t.role = 'required'; });
   input.pinkLineage = lineage();
   const after = planRun(input, settings, {}, data);
@@ -311,7 +308,7 @@ test('goal editing drives selection while supplied-deck prediction stays consist
 });
 
 test('complete goal uses both required sparks while preferred extras do not constrain success', () => {
-  const goal = { ...structuredClone(DEFAULT_GOAL), pink: 'turf' as const, required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
+  const goal = { ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
   const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
   const grades = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
@@ -330,7 +327,7 @@ test('complete goal uses both required sparks while preferred extras do not cons
 });
 
 test('unavailable required skills give zero; incomplete inputs give no complete estimate', () => {
-  const goal = { ...structuredClone(DEFAULT_GOAL), pink: 'turf' as const, required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
+  const goal = { ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
   const trainee = { ...data.characters[0]!, innateSkills: [], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings: { ...settings, scenarioPickRate: 0 }, races: 0, totalTurns: 72, trainee });
   const stats = { rawMean: [1000, 1000, 1000, 1000, 1000], sd: [0, 0, 0, 0, 0], skillPoints: 3000, skillSd: 0 };
@@ -348,7 +345,7 @@ test('zero, one, and many required whites use a product within each shared rank 
   const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
   const requirements = [{ id: a.id, stars: 2 }, { id: b.id, stars: 3 }, { id: c.id, stars: 1 }];
   for (const n of [0, 1, 2, 3]) {
-    const result = evaluateTraineeGoal({ ...structuredClone(DEFAULT_GOAL), pink: 'turf', required: requirements.slice(0, n), preferred: [] }, emptyPinkLineage(), grades, ctx, stats, []);
+    const result = evaluateTraineeGoal({ ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf', stars: 2 }], required: requirements.slice(0, n), preferred: [] }, emptyPinkLineage(), grades, ctx, stats, []);
     close(result.probability!, .8 * .08 * [.2 * .8, .2 * .1, .25].slice(0, n).reduce((all, p) => all * p, 1));
     close(result.allAvailable, 1);
     assert.equal(result.required.length, n);
@@ -426,4 +423,36 @@ test('warm stat distributions respect changed means, spread, caps and blue requi
   close(estimate(), .1);
   goal.blueStats = [];
   close(estimate(), 0);
+});
+
+test('pink alternatives add exclusive outcomes and share uncertainty scenarios', () => {
+  const goals = [{ aptitude: 'turf' as const, stars: 2 }, { aptitude: 'mile' as const, stars: 3 }];
+  const grades = { ...apt(), mile: 'A' as const, medium: 'A' as const };
+  const estimate = pinkGoalsEstimate(grades, goals, emptyPinkLineage(), 150);
+  close(estimate.probability, .3);
+  close(estimate.upperProbability, .3);
+  close(estimate.alternatives![0]!.probability, .8 / 3);
+  close(estimate.alternatives![1]!.probability, .1 / 3);
+  const impossible = pinkGoalsEstimate(apt(), goals, emptyPinkLineage(), 150);
+  close(impossible.probability, .8);
+  // Unknown Mile can dilute the stronger Turf result. Both bounds use one shared eligibility set.
+  const uncertain = pinkGoalsEstimate({ ...apt(), mile: 'C' }, goals, [{ aptitude: 'mile', stars: 3 }], 150);
+  close(uncertain.probability, .45);
+  close(uncertain.upperProbability, .8);
+  assert.ok(uncertain.warnings.length);
+  for (const g of goals) {
+    const single = pinkEstimate(grades, g.aptitude, g.stars, [], 150);
+    assert.ok(estimate.probability >= single.probability);
+    assert.deepEqual(pinkGoalsEstimate(grades, [g], [], 150), single);
+  }
+});
+
+test('pink list validation preserves specific thresholds and excludes Any and duplicate aptitudes', () => {
+  const pink = [{ aptitude: 'any', stars: 3 }, { aptitude: 'turf', stars: 2 }, { aptitude: 'turf', stars: 3 }, { aptitude: 'mile', stars: 3 }, { aptitude: 'bogus', stars: 1 }];
+  const goal = sanitizeGoal({ pink });
+  assert.deepEqual(goal.pink, [{ aptitude: 'turf', stars: 2 }, { aptitude: 'mile', stars: 3 }]);
+  assert.deepEqual(sanitizeGoal({ pink: [] }).pink, [{ aptitude: 'any', stars: 1 }]);
+  const saved = migrate({ current: { version: STATE_VERSION, run: { goal } } }, data);
+  assert.deepEqual(saved.run.goal, goal);
+  assert.deepEqual(migrate({ current: saved }, data), saved);
 });

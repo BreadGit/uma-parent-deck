@@ -201,7 +201,7 @@ test('retained decks update estimates and limit breaks, but cannot bypass owners
   const input = { ...structuredClone(empty), traineeCardId: sw.cardId };
   const initial = planRun(input, settings, {}, data, { search: false });
   const previous = initial.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
-  const edited = { ...input, goal: { ...input.goal, pinkStars: 3 as const } };
+  const edited = { ...input, goal: { ...input.goal, pink: [{ aptitude: 'any' as const, stars: 3 }] } };
   const retained = planRun(edited, settings, {}, data, { previous, search: false });
   const explicit = planRun(edited, settings, {}, data, { selection: previous, search: false });
   assert.deepEqual(retained.deckResult.deck.map((e) => e.card.id), previous.map((e) => e.id));
