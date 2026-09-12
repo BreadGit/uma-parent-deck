@@ -4,7 +4,7 @@ import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
 import type { RunPlan } from '../../model/run.ts';
 import { hasWhiteSpark, lineageCount, NO_LINEAGE, resolveTarget, type Lineage } from '../../model/sparks.ts';
-import { goalFamily } from '../../model/goal-input.ts';
+import { goalFamily, sanitizePriority } from '../../model/goal-input.ts';
 import { LINEAGE_MAX_PER_SIDE, STARS_PER_SPARK_MAX } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { pct, skillIcon } from '../format.ts';
@@ -26,7 +26,7 @@ function addTarget(id: number) {
   if (base === null) return;
   view.query = ''; view.targetEditorId = base;
   update((s) => {
-    if (!s.run.targets.some((t) => t.id === base)) s.run.targets.push({ id: base, role: 'preferred', stars: 2 });
+    if (!s.run.targets.some((t) => t.id === base)) s.run.targets.push({ id: base, role: 'preferred', stars: 2, priority: 0 });
   });
 }
 function removeTarget(id: number) {
@@ -72,7 +72,7 @@ export function renderTargets(c: RunPlan) {
     const required = store.run.targets.find((r) => r.id === t.id && r.role === 'required');
     return html`<span class="target-token target-row ${view.targetEditorId === t.id ? 'selected' : ''}">
       <button class="target-token-select" data-action="select-target" data-id=${t.id} aria-expanded=${view.targetEditorId === t.id} aria-controls="target-editor" @click=${() => selectTarget(t.id)}>
-        <img src=${skillIcon(t.white ?? t.gold ?? undefined)} alt="" /><span>${t.name}<small class=${required ? 'required' : ''}>${!hasWhiteSpark(t) ? 'No white spark' : required ? `Required · ${required.stars}★+` : 'Preferred · 2★+'}</small></span>
+        <img src=${skillIcon(t.white ?? t.gold ?? undefined)} alt="" /><span>${t.name}<small class=${required ? 'required' : ''}>${!hasWhiteSpark(t) ? 'No white spark' : required ? `Required · ${required.stars}★+` : `Preferred · priority ${store.run.targets.find((r) => r.id === t.id)!.priority}`}</small></span>
       </button><button class="target-token-remove" data-action="remove-target" data-id=${t.id} aria-label="Remove ${t.name}" title="Remove target" @click=${() => removeTarget(t.id)}>×</button>
     </span>`;
   });
@@ -89,7 +89,11 @@ export function renderTargets(c: RunPlan) {
         <div class="target-editor-controls"><div class="target-roles" role="group" aria-label="Goal for ${t.name}">
           ${(['required', 'preferred'] as const).map((role) => html`<button data-target-role=${role} data-id=${t.id} class=${!!required === (role === 'required') ? 'active' : ''} aria-pressed=${!!required === (role === 'required')} @click=${() => setRole(t.id, role === 'required')}>${role === 'required' ? 'Required' : 'Preferred'}</button>`)}
         </div>${required ? html`<label class="target-stars">Minimum stars <select data-target-stars=${t.id} .value=${live(String(required.stars))} @change=${(e: Event) => update((s) => { const r = s.run.targets.find((r) => r.id === t.id); if (r) r.stars = Number((e.target as HTMLSelectElement).value); })}>
-          ${[1, 2, 3].map((n) => html`<option value=${n} ?selected=${required.stars === n}>${n}★+</option>`)}</select></label>` : html`<span class="small muted">Preferred at 2★+</span>`}</div>
+          ${[1, 2, 3].map((n) => html`<option value=${n} ?selected=${required.stars === n}>${n}★+</option>`)}</select></label>` : html`<label class="target-stars">Priority ${tip('Lower numbers give more weight: priority 0 = 1, priority 1 = 0.5, priority 2 = 0.25. Preferred white sparks count at any star level. Several lower-weight sparks can outweigh one higher-weight spark. This does not change the prioritized-skills list.')}
+          <input type="number" min="0" max=${Number.MAX_SAFE_INTEGER} step="1" data-target-priority=${t.id} .value=${live(String(store.run.targets.find((r) => r.id === t.id)!.priority))} @change=${(e: Event) => update((s) => {
+            const target = s.run.targets.find((r) => r.id === t.id);
+            if (target) target.priority = sanitizePriority((e.target as HTMLInputElement).valueAsNumber);
+          })} /></label>`}</div>
       </div>
       <div class="target-editor-lineage"><h3>White sparks in lineage${tip(lineageTip())}</h3>
         <div class="target-lineage-fields">${([0, 1] as const).map((side) => {

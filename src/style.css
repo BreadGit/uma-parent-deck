@@ -213,6 +213,7 @@ table.coverage td.src-list { width: 55%; }
 .goal-group legend { font-weight: 600; padding: 0 4px; }
 .goal-field { display: grid; gap: 4px; min-width: 0; font-size: 12px; }
 .goal-field select { width: 100%; min-width: 0; max-width: 100%; }
+.target-stars input { width: 100px; max-width: 100%; }
 .goal-pair { margin-bottom: 10px; display: grid; grid-template-columns: minmax(0, 1fr) 125px; gap: 8px; }
 .goal-stats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
 .pink-inferred { display: block; color: var(--muted); font-size: 10px; }

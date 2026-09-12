@@ -93,7 +93,7 @@ test('the scenario completion reward is a source for I Wanna Win with You and On
   assert.equal(data.skillById.get(spec.white)!.name, 'On the Way to Our Dream');
   const target = resolveTarget(spec.white, data)!;
   assert.equal(target.gold?.id, spec.gold);
-  const plan = planRun({ ...empty, targets: [target.id].map((id) => ({ id, role: 'preferred' as const, stars: 2 })) }, { ...settings, scenarioSongsRate: 0.8 }, {}, data);
+  const plan = planRun({ ...empty, targets: [target.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })) }, { ...settings, scenarioSongsRate: 0.8 }, {}, data);
   const srcs = plan.deckResult.coverage.get(target.id)!.filter((s) => s.kind === 'scenario');
   assert.equal(srcs.length, 2);
   assert.ok(Math.abs(srcs.find((s) => s.gold)!.pObtain - 0.8) < 1e-9 && Math.abs(srcs.find((s) => !s.gold)!.pObtain - 0.2) < 1e-9);
@@ -118,7 +118,7 @@ test("predicted stats are clamped to the scenario caps plus the blue sparks' sta
 
 test('worst-case target SP cost: each family once with prerequisite costs, missing costs mark it incomplete', () => {
   const corner = resolveTarget(200352, data)!; // Corner Recovery ○ / Swinging Maestro
-  const plan = planRun({ ...empty, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2 })), pinnedIds: [30028] }, settings, {}, data);
+  const plan = planRun({ ...empty, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), pinnedIds: [30028] }, settings, {}, data);
   const cost = targetSpCost([corner], new Map([[corner.id, plan.deckResult.coverage.get(corner.id)!]]));
   const goldCost = corner.gold!.cost!, whiteCost = corner.white!.cost!;
   assert.equal(cost.total, goldCost + whiteCost, 'buying the gold also requires buying the white form');
@@ -149,7 +149,7 @@ test('planRun: the prioritized order decides a shared event, and only the first 
   const groundwork = resolveTarget(201601, data)!;
   const focus = resolveTarget(byName('Focus').id, data)!;
   const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!;
-  const base: RunInput = { ...empty, targets: [groundwork.id, focus.id].map((id) => ({ id, role: 'preferred' as const, stars: 2 })), pinnedIds: [falcon.id] };
+  const base: RunInput = { ...empty, targets: [groundwork.id, focus.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), pinnedIds: [falcon.id] };
   const a = planRun({ ...base, wishlistOrder: [groundwork.id, focus.id] }, settings, {}, data);
   const b = planRun({ ...base, wishlistOrder: [focus.id, groundwork.id] }, settings, {}, data);
   const falconEvent = (p: typeof a) => p.deckResult.conflicts.find((c) => c.eventKey.startsWith(`${falcon.id}:chain`));
@@ -160,7 +160,7 @@ test('planRun: the prioritized order decides a shared event, and only the first 
   const seen = new Set([sw.charId, falcon.charId]);
   const pins = [30052, falcon.id];
   for (const c of data.cards) { if (pins.length === 6) break; if (c.rarity === 'SSR' && !seen.has(c.charId) && c.charName !== 'Light Hello') { seen.add(c.charId); pins.push(c.id); } }
-  const fixed: RunInput = { ...empty, targets: [focus.id].map((id) => ({ id, role: 'preferred' as const, stars: 2 })), traineeCardId: sw.cardId, pinnedIds: pins };
+  const fixed: RunInput = { ...empty, targets: [focus.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), traineeCardId: sw.cardId, pinnedIds: pins };
   const probe = planRun(fixed, settings, {}, data);
   // fillers: candidates that are neither the target family nor another option of the scenario event
   const others = [...probe.wl, ...probe.wlRest].filter((w) => w.key !== lane.id && !focus.familyIds.has(w.key) && !w.reason.startsWith('Scenario')).map((w) => w.key);
@@ -184,7 +184,7 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.equal(plan.ranking.length, data.cards.length);
   assert.ok(plan.rank.pSS >= 0 && plan.rank.pSS <= 1);
   const corner = resolveTarget(200352, data)!;
-  const input: RunInput = { ...empty, traineeCardId: sw.cardId, traineeStars: 3, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2 })), targetLineage: { [corner.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } }, pinnedIds: [30052] };
+  const input: RunInput = { ...empty, traineeCardId: sw.cardId, traineeStars: 3, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: { [corner.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } }, pinnedIds: [30052] };
   const withTrainee = planRun(input, settings, {}, data);
   assert.equal(withTrainee.trainee?.name, 'Special Week');
   assert.ok(withTrainee.deckResult.deck.some((d) => d.card.id === 30052), 'pinned Light Hello is in the deck');
@@ -227,7 +227,7 @@ test('partial input still builds for new white targets when a full goal search c
   const initial = planRun(empty, settings, {}, data, { search: false });
   const previous = initial.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   const target = resolveTarget(200352, data)!;
-  const input = { ...empty, targets: [{ id: target.id, role: 'required' as const, stars: 2 as const }] };
+  const input = { ...empty, targets: [{ id: target.id, role: 'required' as const, stars: 2, priority: 0 as const }] };
   const partial = planRun(input, settings, {}, data, { previous, search: false });
   const expected = planRun(input, settings, {}, data, { search: false });
   assert.deepEqual(partial.deckResult.deck.map((e) => e.card.id), expected.deckResult.deck.map((e) => e.card.id));

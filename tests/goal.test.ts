@@ -23,7 +23,7 @@ const migrateGoal = (raw: unknown, data: Parameters<typeof migrate>[1]) => {
   return goalWithTargets(run.goal, run.targets);
 };
 function evaluateTraineeGoal(goal: ResolvedGoal, lineage: Parameters<typeof evaluateGoal>[1], apt: Parameters<typeof evaluateGoal>[2], ctx: Ctx, stats: GoalStats, issues: string[]) {
-  const targets = [...goal.required.map((r) => r.id), ...goal.preferred].map((id) => resolveTarget(id, ctx.data)!);
+  const targets = [...goal.required.map((r) => r.id), ...goal.preferred.map((p) => p.id)].map((id) => resolveTarget(id, ctx.data)!);
   const result = evaluate(traineeCoverage(targets, ctx), targets, ctx);
   return evaluateGoal(goal, lineage, apt, { coverage: result.map, conflicts: result.conflicts }, ctx, stats, issues);
 }
@@ -279,11 +279,11 @@ test('goal evaluation runs by default and ignores the retired toggle in saved go
 test('goal migration keeps old targets as preferred and normalizes family identities', () => {
   const saved = migrate({ current: { version: 6, run: { targets: [b.gold!.id, b.id, a.id] } } }, data);
   assert.ok(!('enabled' in saved.run.goal));
-  assert.deepEqual(goalWithTargets(saved.run.goal, saved.run.targets).preferred, [b.id, a.id]);
+  assert.deepEqual(goalWithTargets(saved.run.goal, saved.run.targets).preferred, [{ id: b.id, priority: 0 }, { id: a.id, priority: 0 }]);
   assert.deepEqual(goalWithTargets(saved.run.goal, saved.run.targets).required.map((r) => r.id), []);
   const goal = migrateGoal({ enabled: true, required: [{ id: b.gold!.id, stars: 3 }, { id: b.id, stars: 99 }], preferred: [b.id, a.id, -1], blueStats: ['power', 'nope', 'power'], pink: 'end' }, data);
   assert.deepEqual(goal.required, [{ id: b.id, stars: 3 }]);
-  assert.deepEqual(goal.preferred, [a.id]);
+  assert.deepEqual(goal.preferred, [{ id: a.id, priority: 0 }]);
   assert.deepEqual(goal.blueStats, ['power']);
   assert.deepEqual(sanitizePinkLineage([{ aptitude: 'end', stars: 3 }, { aptitude: 'end', stars: 4 }]), [{ aptitude: 'end', stars: 3 }, null, null, null, null, null]);
   const current = migrate({ current: { version: 13, run: { goal } } }, data);
@@ -293,7 +293,7 @@ test('goal migration keeps old targets as preferred and normalizes family identi
 test('goal editing drives selection while supplied-deck prediction stays consistent', () => {
   const input = structuredClone(DEFAULT_RUN);
   input.traineeCardId = data.characters.find((c) => c.name === 'Special Week')!.cardId;
-  input.targets = [a.id, b.id].map((id) => ({ id, role: 'preferred', stars: 2 }));
+  input.targets = [a.id, b.id].map((id) => ({ id, role: 'preferred', stars: 2, priority: 0 }));
   const before = planRun(input, settings, {}, data);
   input.goal = { ...structuredClone(BASE_GOAL), pink: [{ aptitude: 'turf', stars: 2 }] };
   input.targets.forEach((t) => { t.role = 'required'; });
@@ -320,7 +320,7 @@ test('complete goal uses both required sparks while preferred extras do not cons
   const partial = evaluateTraineeGoal({ ...goal, required: [{ id: b.id, stars: 3 }] }, emptyPinkLineage(), grades, ctx, stats, []);
   close(partial.probability!, .8 * .08 * .2 * .1);
   close(partial.required[0]!.probability, .2 * .1);
-  const preferred = evaluateTraineeGoal({ ...goal, preferred: [target('Lucky Seven').id] }, emptyPinkLineage(), grades, ctx, stats, []);
+  const preferred = evaluateTraineeGoal({ ...goal, preferred: [{ id: target('Lucky Seven').id, priority: 0 }] }, emptyPinkLineage(), grades, ctx, stats, []);
   close(preferred.probability!, result.probability!);
   close(preferred.preferred[0]!.probability, 0);
   assert.equal(evaluateTraineeGoal(goal, emptyPinkLineage(), grades, ctx, stats, ['Incomplete deck']).probability, null);
@@ -395,7 +395,7 @@ test('v7 required slots become a variable list and old goal-only skills join the
   const raw = { version: 7, run: { targets: [a.id], goal: { enabled: true, required: [{ id: null, stars: 2 }, { id: b.id, stars: 3 }], preferred: [200012] } } };
   const saved = migrate({ current: raw }, data);
   assert.deepEqual(goalWithTargets(saved.run.goal, saved.run.targets).required, [{ id: b.id, stars: 3 }]);
-  assert.deepEqual(goalWithTargets(saved.run.goal, saved.run.targets).preferred, [a.id, 200012]);
+  assert.deepEqual(goalWithTargets(saved.run.goal, saved.run.targets).preferred, [{ id: a.id, priority: 0 }, { id: 200012, priority: 0 }]);
   assert.deepEqual(new Set(saved.run.targets.map((t) => t.id)), new Set([a.id, b.id, 200012]));
   const targets = manyFamilies.slice(0, 25);
   const goal = migrateGoal({ required: [{ id: null }, ...targets.map((t) => ({ id: t.id, stars: 3 })), { id: targets[0]!.id, stars: 1 }], preferred: targets.map((t) => t.id) }, data);
@@ -455,4 +455,18 @@ test('pink list validation preserves specific thresholds and excludes Any and du
   const saved = migrate({ current: { version: STATE_VERSION, run: { goal } } }, data);
   assert.deepEqual(saved.run.goal, goal);
   assert.deepEqual(migrate({ current: saved }, data), saved);
+});
+
+test('preferred targets migrate priority zero and count one-star sparks without constraining required goals', () => {
+  const saved = migrate({ current: { version: 18, run: { targets: [{ id: a.id, role: 'preferred', stars: 3 }] } } }, data);
+  assert.deepEqual(saved.run.targets, [{ id: a.id, role: 'preferred', stars: 3, priority: 0 }]);
+  assert.deepEqual(migrate({ current: saved }, data), saved);
+  const goal = goalWithTargets(saved.run.goal, saved.run.targets);
+  const trainee = { ...data.characters[0]!, innateSkills: [a.id], awakeningSkills: [], eventSkills: [], events: [] };
+  const oneStar = { ...settings, whiteSparkRate: .2, whiteStarsBelowB: [1, 0, 0] };
+  const ctx = makeCtx({ data, settings: oneStar, races: 0, totalTurns: 72, trainee });
+  const stats = { rawMean: Array(5).fill(0), sd: Array(5).fill(0), skillPoints: 0, skillSd: 0 };
+  const result = evaluateTraineeGoal(goal, [], apt(), ctx, stats, []);
+  close(result.preferred[0]!.probability, .2);
+  close(result.probability!, evaluateTraineeGoal({ ...goal, preferred: [] }, [], apt(), ctx, stats, []).probability!);
 });

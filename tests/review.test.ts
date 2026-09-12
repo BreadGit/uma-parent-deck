@@ -37,7 +37,7 @@ test('migration moves old gold lineage aliases to white keys and removes orphan 
 
 test('required roles and stars migrate into the sole target list without changing its order', () => {
   const saved = migrate({ current: { version: 13, run: { targets: [200433, 200432], goal: { required: [{ id: 200432, stars: 3 }], preferred: [201601] } } } }, data);
-  assert.deepEqual(saved.run.targets, [{ id: 200433, role: 'preferred', stars: 2 }, { id: 200432, role: 'required', stars: 3 }, { id: 201601, role: 'preferred', stars: 2 }]);
+  assert.deepEqual(saved.run.targets, [{ id: 200433, role: 'preferred', stars: 2, priority: 0 }, { id: 200432, role: 'required', stars: 3, priority: 0 }, { id: 201601, role: 'preferred', stars: 2, priority: 0 }]);
   assert.equal('required' in saved.run.goal, false);
   assert.equal('preferred' in saved.run.goal, false);
   assert.deepEqual(migrate({ current: saved }, data), saved);
@@ -67,7 +67,7 @@ test('gold-only targets visibly contribute zero white spark chance in both estim
   const ctx = makeCtx({ data, settings: DEFAULT_SETTINGS, trainee, races: 0, totalTurns: 72 });
   const coverage = evaluate(traineeCoverage([target], ctx), [target], ctx);
   assert.equal(coverage.sparks.get(target.id), 0);
-  const goal = goalWithTargets(defaultState(data).run.goal, [{ id: target.id, role: 'required', stars: 2 }]);
+  const goal = goalWithTargets(defaultState(data).run.goal, [{ id: target.id, role: 'required', stars: 2, priority: 0 }]);
   const result = evaluateParentGoal(goal, [], trainee.aptitudes, { coverage: coverage.map, conflicts: coverage.conflicts }, ctx, { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 10000, skillSd: 0 }, []);
   assert.equal(result.probability, 0);
   assert.match(result.notes.join(' '), /no released white form/);

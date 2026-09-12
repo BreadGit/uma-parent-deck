@@ -3,7 +3,10 @@ import { resolveTarget } from './sparks.ts';
 
 export const APTITUDE_LABELS: Record<AptKey, string> = { turf: 'Turf', dirt: 'Dirt', sprint: 'Sprint', mile: 'Mile', medium: 'Medium', long: 'Long', front: 'Front Runner', pace: 'Pace Chaser', late: 'Late Surger', end: 'End Closer' };
 export interface WhiteGoal { id: number; stars: number }
-export interface WhiteTarget extends WhiteGoal { role: 'required' | 'preferred' }
+export interface PreferredGoal { id: number; priority: number }
+export interface WhiteTarget extends WhiteGoal, PreferredGoal { role: 'required' | 'preferred' }
+export const sanitizePriority = (v: unknown): number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0 ? v : 0;
+export const preferredWeight = (priority: number): number => 2 ** -sanitizePriority(priority);
 export interface PinkGoal { aptitude: AptKey | 'any'; stars: number }
 export interface ParentGoal {
   blueStats: Stat[];
@@ -11,9 +14,9 @@ export interface ParentGoal {
   pink: PinkGoal[];
 }
 /** Derived for evaluation, never persisted alongside the target list. */
-export interface ResolvedGoal extends ParentGoal { required: WhiteGoal[]; preferred: number[] }
+export interface ResolvedGoal extends ParentGoal { required: WhiteGoal[]; preferred: PreferredGoal[] }
 export function goalWithTargets(goal: ParentGoal, targets: WhiteTarget[]): ResolvedGoal {
-  return { ...goal, required: targets.filter((t) => t.role === 'required').map(({ id, stars }) => ({ id, stars })), preferred: targets.filter((t) => t.role === 'preferred').map((t) => t.id) };
+  return { ...goal, required: targets.filter((t) => t.role === 'required').map(({ id, stars }) => ({ id, stars })), preferred: targets.filter((t) => t.role === 'preferred').map(({ id, priority }) => ({ id, priority })) };
 }
 export interface PinkSpark { aptitude: AptKey; stars: number; inferred?: true }
 export const DEFAULT_GOAL: ParentGoal = { blueStats: [...STATS], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] };
@@ -53,17 +56,18 @@ export function sanitizeTargets(raw: unknown, data: Data, oldGoal?: unknown): Wh
   for (const value of Array.isArray(raw) ? raw : []) {
     const entry = typeof value === 'number' ? { id: value } : object(value);
     const id = goalFamily(entry.id, data);
-    if (id !== null && !targets.has(id)) targets.set(id, { id, role: entry.role === 'required' ? 'required' : 'preferred', stars: stars(entry.stars) });
+    if (id !== null && !targets.has(id)) targets.set(id, { id, role: entry.role === 'required' ? 'required' : 'preferred', stars: stars(entry.stars), priority: sanitizePriority(entry.priority) });
   }
   const goal = object(oldGoal), required = new Set<number>();
   for (const value of Array.isArray(goal.required) ? goal.required : []) {
     const entry = object(value), id = goalFamily(entry.id, data);
     if (id === null || required.has(id)) continue;
-    required.add(id); targets.set(id, { id, role: 'required', stars: stars(entry.stars) });
+    required.add(id); targets.set(id, { id, role: 'required', stars: stars(entry.stars), priority: sanitizePriority(entry.priority) });
   }
   for (const value of Array.isArray(goal.preferred) ? goal.preferred : []) {
-    const id = goalFamily(value, data);
-    if (id !== null && !targets.has(id)) targets.set(id, { id, role: 'preferred', stars: 2 });
+    const entry = typeof value === 'number' ? { id: value } : object(value);
+    const id = goalFamily(entry.id, data);
+    if (id !== null && !targets.has(id)) targets.set(id, { id, role: 'preferred', stars: 2, priority: sanitizePriority(entry.priority) });
   }
   return [...targets.values()];
 }

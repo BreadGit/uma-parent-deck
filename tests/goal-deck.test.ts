@@ -31,7 +31,7 @@ test('relative ties stay anchored to the best chance, including rare goals and z
 });
 
 test('preferred extras count on successful parents and preserve shared source outcomes', () => {
-  const g = { ...goal, required: [{ id: 10, stars: 1 }], preferred: [11] };
+  const g = { ...goal, required: [{ id: 10, stars: 1 }], preferred: [{ id: 11, priority: 0 }] };
   const a = scoreGoal(g, { copies: [0, 0], forms: distribution(2, [['11', .01], ['10', .09], ['01', .29], ['00', .61]]) }, basis, pink, settings);
   const b = scoreGoal(g, { copies: [0, 0], forms: distribution(2, [['11', .06], ['10', .04], ['01', .04], ['00', .86]]) }, basis, pink, settings);
   assert.ok(Math.abs(a.comparison - .1) < 1e-12);
@@ -40,12 +40,12 @@ test('preferred extras count on successful parents and preserve shared source ou
   assert.equal(chooseGoal([{ key: 'a', score: a, statPower: 0 }, { key: 'b', score: b, statPower: 0 }], .001).key, 'b');
 });
 
-test('preferred quality uses the same blue and rank outcome as required white quality', () => {
-  const g = { ...goal, required: [{ id: 10, stars: 2 }], preferred: [11] };
+test('preferred appearances retain required blue and rank coupling without an extra star condition', () => {
+  const g = { ...goal, required: [{ id: 10, stars: 2 }], preferred: [{ id: 11, priority: 0 }] };
   const shared = { ...basis, blue: .6, rank: [0, .5, .5, 0], blueRank: [0, .2, .4, 0] };
   const result = scoreGoal(g, { copies: [0, 0], forms: distribution(2, [['11', 1]]) }, shared, pink, settings);
   assert.ok(Math.abs(result.comparison - (.2 * .5 + .4 * .8)) < 1e-12);
-  assert.ok(Math.abs(result.preferred - (.2 * .5 * .5 + .4 * .8 * .8) / .42) < 1e-12);
+  assert.ok(Math.abs(result.preferred - 1) < 1e-12);
 });
 
 test('a zero required spark preserves the other required goals; uncertain pink is not discarded', () => {
@@ -91,7 +91,7 @@ test('a bounded conflict search still retains achievable requirements', () => {
 });
 
 test('fallback subset scoring does not spend the relative tie window before deck comparison', () => {
-  const g = { ...goal, required: [{ id: 10, stars: 1 }, { id: 11, stars: 1 }], preferred: [12] };
+  const g = { ...goal, required: [{ id: 10, stars: 1 }, { id: 11, stars: 1 }], preferred: [{ id: 12, priority: 0 }] };
   const forms = distribution(3, [['101', .1], ['010', .10005], ['000', .79995]]);
   const result = scoreGoal(g, { copies: [0, 0, 0], forms }, basis, pink, settings);
   assert.deepEqual(result.whiteIds, [11]);
@@ -173,7 +173,7 @@ test('required targets outrank custom preferred ordering and excluded choices re
   const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!;
   saved.run.traineeCardId = 100101;
   saved.run.pinnedIds.push(falcon.id);
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }, { id: focus.id, role: 'preferred', stars: 2 }];
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }];
   saved.run.wishlistOrder = [focus.id, 201601];
   const preferredFirst = structuredClone(saved.run.wishlistOrder);
   const plan = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 8 });
@@ -190,14 +190,14 @@ test('required targets outrank custom preferred ordering and excluded choices re
 test('complete search and displayed goal agree; fallback preserves the original requirements', () => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  saved.run.targets = [{ id: 200352, role: 'required', stars: 2 }, { id: 201601, role: 'preferred', stars: 2 }];
+  saved.run.targets = [{ id: 200352, role: 'required', stars: 2, priority: 0 }, { id: 201601, role: 'preferred', stars: 2, priority: 0 }];
   const full = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 16 });
   assert.ok(Math.abs(full.goalEstimate.probability! - full.search!.score.probability) < 1e-12);
   const selection = full.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   const restored = planRun(saved.run, saved.settings, saved.inventory, data, { selection, summary: full.search! });
   assert.equal(goalDeckKey(restored.deckResult.deck), goalDeckKey(full.deckResult.deck));
   assert.equal(restored.goalEstimate.probability, full.goalEstimate.probability);
-  saved.run.targets.push({ id: data.skills.find((s) => s.name === 'Runaway')!.id, role: 'required', stars: 2 });
+  saved.run.targets.push({ id: data.skills.find((s) => s.name === 'Runaway')!.id, role: 'required', stars: 2, priority: 0 });
   const before = structuredClone(saved.run);
   const fallback = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 16 });
   assert.equal(fallback.goalEstimate.probability, 0);
@@ -210,7 +210,7 @@ test('an excluded required skill keeps its warning when the deck has no source f
   const saved = defaultState(data);
   const id = data.skills.find((s) => s.name === 'Runaway')!.id;
   saved.run.traineeCardId = 100101;
-  saved.run.targets = [{ id, role: 'required', stars: 2 }];
+  saved.run.targets = [{ id, role: 'required', stars: 2, priority: 0 }];
   saved.run.wishlistExcluded = [id];
   const result = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
   assert.deepEqual(result.wlExcluded, [], 'this deck does not offer the excluded skill');
@@ -271,7 +271,7 @@ test('cheap rank sampling leaves analytic blue odds and subsequent full evaluati
 test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin without requiring the pin', () => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100501;
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;
   const before = structuredClone(saved);
   const progress: number[] = [];
@@ -291,7 +291,7 @@ test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin w
 test('previous recommendations are rescored at current limit breaks and rejected when they break current ownership or pins', () => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100501;
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;
   const previous = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
   const reused = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
@@ -304,4 +304,22 @@ test('previous recommendations are rescored at current limit breaks and rejected
   const invalid = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
   assert.ok(!invalid.deckResult.deck.some((e) => e.card.id === 30107 && !e.borrowed));
   assert.ok(invalid.deckResult.deck.some((e) => e.card.id === 30028));
+});
+
+test('preferred priorities weight any-star appearances without changing required success', () => {
+  const g = { ...goal, required: [{ id: 10, stars: 2 }], preferred: [{ id: 11, priority: 0 }, { id: 12, priority: 1 }] };
+  const sources = { copies: [0, 0, 0], forms: distribution(3, [['111', .2], ['110', .2], ['101', .1], ['100', .5]]) };
+  const lowRank = { ...settings, whiteStarsBelowB: [1, 0, 0] };
+  // Required cannot roll 2 stars here; its fallback leaves blue and pink, with .4 + .3/2 preferred score.
+  const fallback = scoreGoal(g, sources, basis, pink, lowRank);
+  assert.equal(fallback.count, 2);
+  assert.ok(Math.abs(fallback.preferred - .55) < 1e-12);
+  const original = scoreGoal(g, sources, basis, pink, settings);
+  const changed = scoreGoal({ ...g, preferred: [{ id: 11, priority: 2 }, { id: 12, priority: 2 }] }, sources, basis, pink, settings);
+  assert.equal(changed.probability, original.probability);
+  assert.equal(changed.comparison, original.comparison);
+  assert.ok(Math.abs(changed.preferred - .175) < 1e-12);
+  const huge = scoreGoal({ ...g, preferred: g.preferred.map((p) => ({ ...p, priority: Number.MAX_SAFE_INTEGER })) }, sources, basis, pink, settings);
+  assert.equal(huge.preferred, 0);
+  assert.equal(huge.probability, original.probability);
 });

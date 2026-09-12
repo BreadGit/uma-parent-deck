@@ -3,7 +3,7 @@
 Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamusume terminology.
 
 - **Deck target** (target white spark): a white skill family the deck search tries to spark.
-  Each target is Required or Preferred. Its role and minimum stars affect deck selection and goal evaluation.
+  Each target is Required or Preferred. Its role, required minimum stars, and preferred priority affect deck selection and goal evaluation.
 - **Parent goal**: the blue, pink, and required white spark conditions that one finished parent must
   meet together. Required whites can number zero or more. With none, success depends only on blue
   and pink. The pink goal accepts any one listed aptitude at its own minimum stars. It defaults to Any
@@ -12,9 +12,13 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
 - **Required white spark**: a target family that must appear at its chosen minimum stars. Every
   required family must succeed on the same parent. Gold and normal forms of Corner Recovery are
   one family, not two requirements.
-- **Preferred white spark**: an optional family tracked at 2★ or better. Its absence does not make the
-  parent goal fail, and it cannot also be a required family. The expected number of preferred sparks
-  on successful parents distinguishes decks within the required-goal tie tolerance.
+- **Preferred white spark**: an optional family tracked at any star level. Its absence does not make the
+  parent goal fail, and it cannot also be a required family. Its nonnegative integer priority defaults to 0.
+  The weight is `2 ** -priority`, so priorities 0, 1, and 2 have weights 1, 0.5, and 0.25.
+- **Preferred score**: the sum of priority-weighted preferred appearance probabilities on parents meeting
+  the selected required goal. It distinguishes decks within the required-goal tie tolerance. Several
+  lower-weight sparks can outweigh one higher-weight spark. This priority does not change event choices
+  in the separate prioritized-skills list.
 - **Complete-goal chance**: the estimated probability that every required condition holds on the same
   parent. It is not the sum of target chances. Shared event rewards and the final rank affect it.
 - **Attempt**: one final spark roll, including the initial result or a reroll. The displayed counts
@@ -45,8 +49,8 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   **Target spark chances** in Card ranking use each card's own hint and event sources, current
   skill priorities, and lineage generation bonuses. They exclude trainee, scenario, inherited hints
   and other cards. Star quality assumes rank SS on every run. Required targets use their selected
-  minimum stars, and Preferred targets use 2★+. These are not changes to the suggested deck's goal
-  estimate. Cards sort by the sum of Required chances, then Preferred chances, then Total stat gain;
+  minimum stars, and Preferred targets count at any star level. These are not changes to the suggested deck's goal
+  estimate. Cards sort by the sum of Required chances, then priority-weighted Preferred chances, then Total stat gain;
   sums are not displayed. Pins follow the selected sort. Only positive chances appear, with Required
   targets first and no role labels. Four targets are initially visible per card; "+N more" expands the rest in the row.
 - **Coverage**: which target hints the run can obtain and through which sources. Spark chance assumes the

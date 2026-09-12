@@ -52,8 +52,8 @@ const SORT_KEYS: Record<string, (x: CardScore) => number> = {
   stats: (x) => x.statPower, sp: (x) => x.sp,
   speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
 };
-const TARGET_TIP = 'Sorted by the sum of Required target chances, then Preferred target chances, then Total stat gain. Each percentage uses this card\'s own skill sources and assumes rank SS for star quality. Required sparks use your minimum stars; Preferred sparks use 2★+. Current skill priorities and lineage generation bonuses apply. Trainee, scenario, inherited hints and other cards are excluded. These are individual chances, not the improvement from replacing a card or the chance of completing your parent goal.';
-const targetLabel = (x: TargetSparkChance) => `${x.target.name} ${x.stars}★+`;
+const TARGET_TIP = 'Sorted by the sum of Required target chances, then priority-weighted Preferred target chances, then Total stat gain. Each percentage uses this card\'s own skill sources and assumes rank SS for star quality. Required sparks use your minimum stars; Preferred sparks count at any star level. Their ranking weights halve with each priority step; individual percentages are unweighted. Current skill priorities and lineage generation bonuses apply. Trainee, scenario, inherited hints and other cards are excluded. These are individual chances, not the improvement from replacing a card or the chance of completing your parent goal.';
+const targetLabel = (x: TargetSparkChance) => `${x.target.name}${x.role === 'required' ? ` ${x.stars}★+` : ''}`;
 const sourceDetails = (x: TargetSparkChance) => x.sources.length
   ? x.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${pct(s.pObtain)} skill acquisition`).join('\n')
   : 'No available source on this card under the current skill priorities.';

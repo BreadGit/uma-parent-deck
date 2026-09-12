@@ -1,4 +1,4 @@
-import type { ResolvedGoal } from './goal-input.ts';
+import { preferredWeight, type ResolvedGoal } from './goal-input.ts';
 import { starChance, type GoalRankBands, type PinkEstimate } from './goal.ts';
 import { jointSkillForms, subsetGeneration, type FormDistribution } from './goal-skills.ts';
 import { lineageCount, resolveTarget, type SkillSource } from './sparks.ts';
@@ -11,7 +11,7 @@ export interface GoalScore {
   comparison: number; // common positive pink factor removed, so a zero pink lower bound can still rank decks
   probability: number;
   upperProbability: number;
-  preferred: number; // expected preferred sparks conditional on the selected required subset succeeding
+  preferred: number; // weighted preferred appearances conditional on the selected required subset succeeding
   whiteIds: number[];
   blue: boolean;
   pink: boolean;
@@ -31,7 +31,7 @@ export function chooseGoal<T extends { score: GoalScore; key: string; statPower:
 
 export interface GoalSources { forms: FormDistribution; copies: number[] }
 export function goalSources(goal: ResolvedGoal, coverage: Map<number, SkillSource[]>, ctx: Ctx): GoalSources {
-  const targets = [...goal.required.map((r) => r.id), ...goal.preferred].map((id) => resolveTarget(id, ctx.data)!);
+  const targets = [...goal.required.map((r) => r.id), ...goal.preferred.map((p) => p.id)].map((id) => resolveTarget(id, ctx.data)!);
   return { forms: jointSkillForms(targets, coverage, ctx.data), copies: targets.map((t) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; }) };
 }
 
@@ -45,16 +45,16 @@ export function scoreGoal(goal: ResolvedGoal, sources: GoalSources, basis: GoalR
     if (p === undefined) { p = subsetGeneration(forms, copies, indices, settings); generated.set(key, p); }
     return p;
   };
-  const quality = (indices: number[], blue: boolean, extra = false) => {
-    if (!extra && indices.every((i) => goal.required[i]!.stars === 1)) return blue ? basis.blue : 1;
-    return (blue ? basis.blueRank : basis.rank).reduce((p, weight, band) => p + weight * indices.reduce((v, i) => v * starChance(bands[band]!.rates, goal.required[i]!.stars), extra ? starChance(bands[band]!.rates, 2) : 1), 0);
+  const quality = (indices: number[], blue: boolean) => {
+    if (indices.every((i) => goal.required[i]!.stars === 1)) return blue ? basis.blue : 1;
+    return (blue ? basis.blueRank : basis.rank).reduce((p, weight, band) => p + weight * indices.reduce((v, i) => v * starChance(bands[band]!.rates, goal.required[i]!.stars), 1), 0);
   };
   const approximate = forms.components.some((c) => c.distribution.approximate);
   const make = (indices: number[], blue: boolean): GoalScore => {
     const chance = generation(indices) * quality(indices, blue);
     let preferred = 0;
     if (chance > 0) for (let i = 0; i < goal.preferred.length; i++) {
-      preferred += generation([...indices, goal.required.length + i]) * quality(indices, blue, true) / chance;
+      preferred += generation([...indices, goal.required.length + i]) * quality(indices, blue) * preferredWeight(goal.preferred[i]!.priority) / chance;
     }
     const hasPink = pink.upperProbability > 0;
     return { count: indices.length + Number(blue) + Number(hasPink), total: goal.required.length + 2,

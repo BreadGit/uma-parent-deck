@@ -14,24 +14,24 @@ const card = scoreCard(data.cardById.get(30017)!, 4, [groundwork], traineeCovera
 const fixture = (sources: SkillSource[]): CardScore => ({ ...card, coverage: [{ target: groundwork, sources, own: { pGold: 0, pWhite: 0.5, pCircle: 0, pAny: 0.5 }, spark: 0.1, marginal: 0.1 }] });
 const close = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < 1e-12, `${actual} != ${expected}`);
 
-test('card chances apply SS star quality to the selected Required stars and 2+ Preferred stars', () => {
+test('card chances apply SS star quality to the selected Required stars and any-star Preferred sparks', () => {
   // Half the runs obtain the white skill; one fifth generate its spark. SS is 20/70/10% stars.
   for (const [stars, expected] of [[1, 0.1], [2, 0.08], [3, 0.01]]) {
-    const result = cardTargetChances(fixture([source]), [{ id: groundwork.id, role: 'required', stars: stars! }], ctx);
+    const result = cardTargetChances(fixture([source]), [{ id: groundwork.id, role: 'required', stars: stars!, priority: 0 }], ctx);
     close(result.required, expected!);
     assert.equal(result.preferred, 0);
   }
-  const preferred = cardTargetChances(fixture([source]), [{ id: groundwork.id, role: 'preferred', stars: 3 }], ctx);
-  close(preferred.preferred, 0.08);
-  assert.equal(preferred.targets[0]!.stars, 2);
+  const preferred = cardTargetChances(fixture([source]), [{ id: groundwork.id, role: 'preferred', stars: 3, priority: 0 }], ctx);
+  close(preferred.preferred, 0.1);
+  assert.equal(preferred.targets[0]!.stars, 1);
   const otherRankRates = { ...ctx, settings: { ...ctx.settings, whiteStarsBelowB: [1, 0, 0], whiteStarsUE: [0, 0, 1] } };
-  close(cardTargetChances(fixture([source]), [{ id: groundwork.id, role: 'required', stars: 2 }], otherRankRates).required, 0.08);
+  close(cardTargetChances(fixture([source]), [{ id: groundwork.id, role: 'required', stars: 2, priority: 0 }], otherRankRates).required, 0.08);
 });
 
 test('card chances exclude scenario rewards, retain lineage generation bonuses and handle missing sources', () => {
   const scenario: SkillSource = { kind: 'scenario', skillId: groundwork.id, gold: true, circle: false, pObtain: 1, isChoice: false,
     detail: 'Scenario reward', event: { key: 'scenario:test', label: 'Scenario', option: '', optionIndex: 0 } };
-  const goals = [{ id: groundwork.id, role: 'required' as const, stars: 2 }];
+  const goals = [{ id: groundwork.id, role: 'required' as const, stars: 2, priority: 0 }];
   close(cardTargetChances(fixture([source, scenario]), goals, ctx).required, 0.08);
   close(cardTargetChances(fixture([scenario]), goals, ctx).required, 0);
   const lineageCtx = { ...ctx, lineage: new Map([[groundwork.id, { k1: 1, p1: 1, k2: 0, p2: 0 }]]) };
@@ -45,7 +45,7 @@ test('card chances exclude scenario rewards, retain lineage generation bonuses a
 test('real card estimates respect conflicting event choices and put Required targets first', () => {
   const focus = resolveTarget(200432, data)!;
   const targets = [groundwork, focus];
-  const goals = [{ id: focus.id, role: 'preferred' as const, stars: 2 }, { id: groundwork.id, role: 'required' as const, stars: 2 }];
+  const goals = [{ id: focus.id, role: 'preferred' as const, stars: 2, priority: 0 }, { id: groundwork.id, role: 'required' as const, stars: 2, priority: 0 }];
   const compute = (priority: number[]) => {
     const current = { ...ctx, priority };
     const scored = scoreCard(card.card, 4, targets, traineeCoverage(targets, current), current);
@@ -65,4 +65,12 @@ test('ranking compares Required totals, then Preferred totals, then stat gain, i
   assert.ok(compareTargetChances(entry(0, 0.1, 1), entry(0, 0.09, 999)) < 0);
   assert.ok(compareTargetChances(entry(0, 0, 100), entry(0, 0, 90)) < 0);
   assert.deepEqual(cardTargetChances(card, [], ctx), { targets: [], required: 0, preferred: 0, statPower: card.statPower });
+});
+
+test('preferred ranking weights halve per priority while individual probabilities stay unweighted', () => {
+  for (const [priority, weight] of [[0, 1], [1, .5], [2, .25], [3, .125], [Number.MAX_SAFE_INTEGER, 0]]) {
+    const estimate = cardTargetChances(fixture([source]), [{ id: groundwork.id, role: 'preferred', stars: 3, priority: priority! }], ctx);
+    close(estimate.targets[0]!.probability, .1);
+    close(estimate.preferred, .1 * weight!);
+  }
 });

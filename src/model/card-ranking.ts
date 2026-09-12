@@ -1,5 +1,5 @@
 import type { CardScore, Ctx } from './deck.ts';
-import type { WhiteTarget } from './goal-input.ts';
+import { preferredWeight, type WhiteTarget } from './goal-input.ts';
 import { starChance } from './goal.ts';
 import { thresholdFor } from './rank.ts';
 import { whiteGenerationBands } from '../settings.ts';
@@ -27,13 +27,13 @@ export function cardTargetChances(card: CardScore, goals: WhiteTarget[], ctx: Ct
     const target = resolveTarget(goal.id, ctx.data);
     if (!target) continue;
     const sources = (card.coverage.find((c) => c.target.id === target.id)?.sources ?? []).filter((s) => s.kind !== 'scenario');
-    const stars = goal.role === 'required' ? goal.stars : 2;
+    const stars = goal.role === 'required' ? goal.stars : 1;
     const lineage = ctx.lineage.get(target.id);
     const probability = hasWhiteSpark(target)
       ? sparkChance(purchasedOwnership(target, combineSources(sources)), ctx.settings, lineage ? lineageCount(lineage) : 0) * starChance(rates, stars) : 0;
     targets.push({ target, role: goal.role, stars, probability, sources });
     if (goal.role === 'required') required += probability;
-    else preferred += probability;
+    else preferred += probability * preferredWeight(goal.priority);
   }
   targets.sort((a, b) => Number(b.role === 'required') - Number(a.role === 'required'));
   return { targets, required, preferred, statPower: card.statPower };

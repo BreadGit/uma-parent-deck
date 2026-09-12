@@ -68,7 +68,7 @@ export function pinkGoalsEstimate(apt: Record<AptKey, Grade>, goals: PinkGoal[],
 }
 
 export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number }
-export interface StatGoalMoments { blue: number; whiteStars: number[]; blueAllWhiteStars: number; preferredStars: number; pSS: number; approximateRank: number }
+export interface StatGoalMoments { blue: number; whiteStars: number[]; blueAllWhiteStars: number; pSS: number; approximateRank: number }
 export interface GoalRankBands { blue: number; rank: number[]; blueRank: number[]; pSS: number; approximateRank: number }
 function halton(index: number, base: number): number {
   let value = 0, fraction = 1 / base;
@@ -141,7 +141,7 @@ export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshol
   const mean = (weights: number[], rates: number[]) => weights.reduce((p, w, i) => p + w * rates[i]!, 0);
   return { blue: basis.blue, whiteStars: goal.required.map((r) => mean(basis.rank, quality([r.stars]))),
     blueAllWhiteStars: goal.required.every((r) => r.stars === 1) ? basis.blue : mean(basis.blueRank, quality(goal.required.map((r) => r.stars))),
-    preferredStars: mean(basis.rank, quality([2])), pSS: basis.pSS, approximateRank: basis.approximateRank };
+    pSS: basis.pSS, approximateRank: basis.approximateRank };
 }
 
 /** Shared rank weights let every required subset and preferred intersection reuse the same outcomes. */
@@ -204,7 +204,7 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
   if (!goal.blueStats.length) issues.push('Choose at least one acceptable blue stat.');
   const required = goal.required.map((r) => resolveTarget(r.id, ctx.data)).filter((t): t is Target => !!t);
   if (required.length !== goal.required.length || new Set(required.map((t) => t.id)).size !== required.length) issues.push('Each required white spark must be a different valid skill family.');
-  const preferred = goal.preferred.map((id) => resolveTarget(id, ctx.data)).filter((t): t is Target => !!t && !required.some((r) => r.id === t.id));
+  const preferred = goal.preferred.map(({ id }) => resolveTarget(id, ctx.data)).filter((t): t is Target => !!t && !required.some((r) => r.id === t.id));
   const coverage = deck.coverage;
   const joint = forms ? projectForms(forms, required.map((_, i) => i)) : jointSkillForms(required, coverage, ctx.data);
   const copies = (t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
@@ -225,9 +225,9 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
     issues, notes, blue: moments.blue, pink, allAvailable: skills.allAvailable, pSS: moments.pSS,
     required: required.map((target, i) => ({ target, available: skills.available[i]!, probability: skills.each[i]! * moments.whiteStars[goal.required.findIndex((r) => r.id === target.id)]! })),
     preferred: preferred.map((target) => {
-      const single = forms ? projectForms(forms, [required.length + goal.preferred.indexOf(target.id)]) : jointSkillForms([target], coverage, ctx.data);
+      const single = forms ? projectForms(forms, [required.length + goal.preferred.findIndex((p) => p.id === target.id)]) : jointSkillForms([target], coverage, ctx.data);
       const m = whiteGenerationMoments(single, [copies(target)], ctx.settings);
-      return { target, available: m.available[0]!, probability: m.each[0]! * moments.preferredStars };
+      return { target, available: m.available[0]!, probability: m.each[0]! };
     }),
   };
 }

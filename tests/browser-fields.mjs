@@ -67,6 +67,7 @@ export async function assertFieldsMatchState(page, where) {
     for (const el of document.querySelectorAll('[data-goal-stars]')) check(el, el.dataset.goalStars === 'pink' ? goal.pink.find((p) => p.aptitude === el.dataset.pinkAptitude).stars : goal.blueStars);
     for (const el of document.querySelectorAll('[data-goal-pink]')) check(el, goal.pink.find((p) => p.aptitude === el.dataset.goalPink).aptitude);
     for (const el of document.querySelectorAll('[data-target-stars]')) check(el, st.run.targets.find((r) => r.id === Number(el.dataset.targetStars)).stars);
+    for (const el of document.querySelectorAll('[data-target-priority]')) check(el, st.run.targets.find((r) => r.id === Number(el.dataset.targetPriority)).priority);
     for (const el of document.querySelectorAll('[data-target-role]')) {
       const required = st.run.targets.some((r) => r.id === Number(el.dataset.id) && r.role === 'required');
       if (el.getAttribute('aria-pressed') !== String(required === (el.dataset.targetRole === 'required'))) out.push('target role differs from state');

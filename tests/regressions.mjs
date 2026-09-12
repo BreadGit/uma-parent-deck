@@ -62,7 +62,7 @@ test('ranking expands all target chances and keeps the last target reachable on 
   // Breakaway Battleship Gold Ship offers these 18 target families through hints and events.
   saved.run.targets = [200622, 200642, 200752, 201212, 201232, 201472, 201482, 201502, 201512,
     201552, 201581, 201591, 201601, 201631, 202022, 200342, 202032, 200052]
-    .map((id) => ({ id, role: 'preferred', stars: 2 }));
+    .map((id) => ({ id, role: 'preferred', stars: 2, priority: 0 }));
   const page = await editor(t, saved);
   const row = page.locator('tr').filter({ has: page.locator('[data-lb="30004"]') });
   const more = row.locator('[data-target-more]');
@@ -102,7 +102,7 @@ test('the deck stays mounted during search and edits update its estimates immedi
   const saved = defaultState(data);
   saved.run.goal.pink = [{ aptitude: 'any', stars: 2 }];
   saved.run.traineeCardId = 100501;
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;
   const page = await fresh(t, saved, { settle: false });
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -142,7 +142,7 @@ test('the deck stays mounted during search and edits update its estimates immedi
 test('a failed refinement preserves the checked deck and can be retried', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100501;
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;
   const page = await fresh(t, saved);
   await page.addInitScript(() => {
@@ -206,7 +206,7 @@ test('search stays responsive, ignores obsolete results, and persists the tie se
 test('editing waits for a pause, ignores intermediate and cancelled results, and keeps the phone editor in place', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100501;
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;
   const page = await fresh(t, saved, { settle: false });
   await waitForPlan(page);
@@ -267,7 +267,7 @@ test('required skill priority is visible and the export follows the displayed or
   const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power');
   saved.run.traineeCardId = 100101;
   saved.run.pinnedIds.push(falcon.id);
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }, { id: focus.id, role: 'preferred', stars: 2 }];
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }];
   saved.run.wishlistOrder = [focus.id, 201601];
   const page = await editor(t, saved);
   assert.equal(await page.locator('.wishlist li').first().getAttribute('data-wl-key'), '201601');
@@ -948,7 +948,7 @@ test('pink probability ranges remain visible and disabled and dimmed fields have
 test('completed recommendations survive reload without a worker, while changed inputs and versions search again', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2 }];
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30028'] = null;
   const page = await fresh(t, saved);
   const finished = await state(page);
@@ -1090,4 +1090,42 @@ test('pink alternatives inherit the first threshold, default additions to two, e
   await page.click('[data-action="reset-pink-goal"]');
   await assertFieldsMatchState(page, 'after resetting only the pink goal');
   assert.deepEqual((await state(page)).run, reset);
+});
+
+test('preferred white priority edits persist and role changes retain required stars', async (t) => {
+  const page = await editor(t);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await target(page, 'groundwork');
+  const field = page.locator('[data-target-priority="201601"]');
+  assert.equal(await field.inputValue(), '0');
+  await assertFieldsMatchState(page, 'after adding a preferred white spark');
+  assert.doesNotMatch(await page.locator('[data-target-editor]').innerText(), /2★\+/);
+  await field.fill('2');
+  await field.press('Tab');
+  await assertFieldsMatchState(page, 'after setting preferred priority two');
+  assert.match(await page.locator('[data-action="select-target"]').innerText(), /Preferred · priority 2/);
+  await page.click('[data-target-role="required"]');
+  await page.selectOption('[data-target-stars="201601"]', '3');
+  await assertFieldsMatchState(page, 'after setting required stars');
+  await page.click('[data-target-role="preferred"]');
+  await assertFieldsMatchState(page, 'after returning to preferred');
+  assert.equal(await field.inputValue(), '2');
+  await field.fill('-1');
+  await field.press('Tab');
+  assert.equal(await field.inputValue(), '0');
+  await field.fill('1.5');
+  await field.press('Tab');
+  assert.equal(await field.inputValue(), '0');
+  await assertFieldsMatchState(page, 'after invalid priority edits');
+  await field.fill(String(Number.MAX_SAFE_INTEGER));
+  await field.press('Tab');
+  await assertFieldsMatchState(page, 'after a large priority');
+  await page.reload();
+  await page.click('[data-action="select-target"][data-id="201601"]');
+  await assertFieldsMatchState(page, 'after reloading preferred priority');
+  assert.equal(await field.inputValue(), String(Number.MAX_SAFE_INTEGER));
+  await page.click('[data-target-role="required"]');
+  assert.equal(await page.inputValue('[data-target-stars="201601"]'), '3');
+  await assertFieldsMatchState(page, 'after restoring retained required stars');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
 });
