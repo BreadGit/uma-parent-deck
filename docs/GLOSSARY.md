@@ -9,6 +9,9 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   and pink. The pink goal accepts any one listed aptitude at its own minimum stars. It defaults to Any
   aptitude at 1★ or better. Any accepts every eligible aptitude and cannot coexist with specifics.
   Deck search compares complete-goal chances.
+- **Parent goal template**: a generic starting point that replaces the blue goal, pink alternatives, and
+  white target list after confirmation. Loaded fields are ordinary editable input. Loading preserves
+  unrelated inputs and valid white lineage, including targets absent from the loaded template.
 - **Required white spark**: a target family that must appear at its chosen minimum stars. Every
   required family must succeed on the same parent. Gold and normal forms of Corner Recovery are
   one family, not two requirements.

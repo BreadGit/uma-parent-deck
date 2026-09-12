@@ -10,6 +10,7 @@ import type { RunPlan } from '../../model/run.ts';
 import { store, update } from '../context.ts';
 import { capitalize, goalProbability as probability } from '../format.ts';
 import { panel } from '../panel.ts';
+import { renderGoalTemplates } from './goal-templates.ts';
 import { renderTargets } from './targets.ts';
 import { openPinkSparks } from './legacy.ts';
 
@@ -17,7 +18,7 @@ const change = (fn: (goal: ParentGoal) => void) => update((s) => { fn(s.run.goal
 const stars = (current: number) => [1, 2, 3].map((n) => html`<option value=${n} ?selected=${current === n}>${n}★ or better</option>`);
 export function renderGoalEditor(c: RunPlan) {
   const g = store.run.goal;
-  return panel({ title: 'Parent goal' }, html`${renderTargets(c)}
+  return panel({ title: 'Parent goal' }, html`${renderGoalTemplates()}${renderTargets(c)}
     <fieldset class="goal-group"><legend>Required blue spark</legend>
       <div class="goal-stats">${STATS.map((stat) => html`<label><input type="checkbox" data-goal-blue=${stat} .checked=${live(g.blueStats.includes(stat))} @change=${(e: Event) => change((g) => { g.blueStats = (e.target as HTMLInputElement).checked ? [...g.blueStats, stat] : g.blueStats.filter((s) => s !== stat); })} /> ${capitalize(stat)}</label>`)}
       <button class="small" data-action="goal-any-blue" @click=${() => change((g) => { g.blueStats = [...STATS]; })}>Any stat</button></div>

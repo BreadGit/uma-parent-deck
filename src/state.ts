@@ -14,7 +14,7 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; recommendation?: SavedRecommendation }
 
-export const STATE_VERSION = 19;
+export const STATE_VERSION = 20;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -88,11 +88,11 @@ function migrateRun(raw: Json, data: Data): RunInput {
   run.targets = sanitizeTargets(raw.targets, data, raw.goal);
   const lineage = run.targetLineage;
   run.targetLineage = {};
-  for (const target of run.targets) {
-    // Prefer an exact white key over an old gold/circle alias of the same family.
-    const alias = Object.keys(lineage).find((key) => goalFamily(Number(key), data) === target.id);
-    const value = lineage[String(target.id)] ?? (alias ? lineage[alias] : undefined);
-    if (value) run.targetLineage[String(target.id)] = value;
+  for (const key of Object.keys(lineage)) {
+    const id = goalFamily(Number(key), data);
+    if (id === null) continue;
+    // Inactive targets retain their lineage. Prefer exact white keys over old gold/circle aliases.
+    run.targetLineage[String(id)] ??= lineage[String(id)] ?? lineage[key]!;
   }
   run.pinkLineage = sanitizePinkLineage(raw.pinkLineage);
   return run;

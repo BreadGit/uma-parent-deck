@@ -17,6 +17,7 @@ export let stateRevision = 0;
 export const view = {
   query: '',
   targetEditorId: null as number | null,
+  goalTemplateId: '',
   traineeQuery: '',
   cardQuery: '',
   showAdvanced: false,

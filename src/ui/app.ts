@@ -43,7 +43,7 @@ function page() {
     <main>
       <div>
         ${guard([c, stateRevision, view.traineeQuery], () => renderTrainee(c))}
-        ${guard([c, stateRevision, view.query, view.targetEditorId], () => renderGoalEditor(c))}
+        ${guard([c, stateRevision, view.query, view.targetEditorId, view.goalTemplateId], () => renderGoalEditor(c))}
         ${guard([c, stateRevision, view.showSparks, view.showPinkSparks], () => renderLegacy(c))}
         ${guard([c, stateRevision, view.cardQuery], () => renderRun(c))}
         ${guard([c, stateRevision, view.showAdvanced], () => renderSettings())}

@@ -395,3 +395,6 @@ td.target-chances { min-width: 260px; }
 
 .legacy-apts select option.dim { color: var(--muted); }
 .target-editor select:disabled { opacity: .45; cursor: not-allowed; }
+
+[data-goal-templates] > .goal-field { margin: 10px 0; }
+.template-targets { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0; margin: 0 0 12px; list-style: none; }
