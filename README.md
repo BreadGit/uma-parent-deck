@@ -141,6 +141,19 @@ Keep search-quality and publication assertions in the real-worker cases.
 Browser checks accept `URL` for another server, including `npm run preview`. Set `SCREENSHOT_PATH` to choose
 where the smoke screenshot goes, or to an empty string to skip writing it.
 
+### Share code prototype
+
+Open **Share run · prototype** above the Trainee panel and generate a reusable code or URL.
+The code captures panels 1–4 and prioritized skill ordering and exclusions. Paste either form
+into the loader, or open a URL with `?run=<code>` to load it automatically. Loading replaces those
+choices and keeps the receiving device's inventory, advanced settings, theme and agenda picks.
+The URL parameter is removed after loading so refreshing does not reapply the original choices.
+
+Codes contain the choices themselves and need no server-side storage. The prototype uses positional
+JSON with defaults omitted, raw DEFLATE when smaller, and unpadded base64url. Stable game IDs are
+included directly. Codes carry the prototype format and state versions; a changed state version
+requires generating a new code. Inventory differences can produce different recommendations.
+
 ## Data
 
 `npm run fetch` runs `scripts/fetch-gametora.mjs` and `scripts/fetch-event-names.mjs` (`--offline` on the first re-normalizes without any request). The first reads GameTora's static JSON feed

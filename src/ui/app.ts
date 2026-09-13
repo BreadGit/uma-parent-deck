@@ -22,6 +22,7 @@ import { renderPrediction } from './panels/prediction.ts';
 import { renderCoverage } from './panels/coverage.ts';
 import { renderSchedule } from './panels/schedule.ts';
 import { renderRanking } from './panels/ranking.ts';
+import { renderSharePrototype } from './share-prototype.ts';
 
 const THEMES: { id: Theme; label: string }[] = [{ id: 'system', label: 'Auto' }, { id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
@@ -51,6 +52,7 @@ function page() {
     </header>
     <main>
       <div class="inputs">
+        ${renderSharePrototype()}
         ${section('trainee', () => renderTrainee(c))}
         ${section('goal', () => renderGoalEditor(c))}
         ${section('legacy', () => renderLegacy(c))}

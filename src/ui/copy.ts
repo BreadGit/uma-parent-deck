@@ -6,6 +6,22 @@ import { BLUE_STAR_BANDS } from '../model/stats.ts';
 const OWNED_SLOTS = DECK_SIZE - BORROWED_SLOTS;
 
 export const COPY = {
+  share: {
+    title: 'Share run · prototype',
+    description: 'Try saving panels 1–4 and your prioritized skill order and exclusions in a compact code. Loading replaces those choices. Inventory, advanced settings and agenda picks stay on this device. Results use the recipient’s inventory. Prototype codes may change in future versions.',
+    generate: 'Generate code',
+    code: 'Reusable code',
+    link: 'Shareable URL',
+    copyCode: 'Copy code',
+    copyLink: 'Copy URL',
+    input: 'Paste a code or URL to load',
+    load: 'Load choices',
+    generated: (length: number) => `${length} characters. This code captures your choices when generated. Generate again after editing.`,
+    loaded: 'Loaded panels 1–4 and prioritized skills. Your inventory was kept.',
+    generateFailed: 'Could not generate a code. Try an up-to-date browser.',
+    loadFailed: 'This code is invalid or belongs to a different prototype version. Your saved choices were kept.',
+    copyManually: "After closing this message, use your browser's Copy command on the selected text.",
+  },
   app: {
     tagline: 'Independent-training deck builder for white-spark farming',
     resetAll: 'Reset all',
