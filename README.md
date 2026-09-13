@@ -11,14 +11,17 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   Until a trainee is picked the results are dimmed behind a note that says where to start. While a better
   deck is being searched the deck panel says so; the estimates shown already match the deck on screen.
   Reset all in the header clears every choice, including the training focus and win threshold, and keeps
-  the inventory and advanced settings. Below 1200 px the page is one column.
+  the inventory and advanced settings. Below 1200 px the page is one column. On phones, all Card ranking
+  columns scroll sideways so the card names cannot cover the inventory controls or spark chances.
 - Every chance is formatted the same way: one decimal above 1%, more below, so a card's own spark chance
   in Card ranking and the deck's spark chance in Target coverage read alike. Race win chances come in 5%
   steps and stay whole numbers. Pills are neutral; colour is reserved for a real warning such as a
   streak-reduced win chance.
 - Long explanations sit behind "How …" disclosures at the end of a panel (Legacy, G1 agenda, Card
   ranking) rather than in tooltips. Confirmations use the page's own dialog. Search boxes take arrow
-  keys, Enter and Escape, and close on a click elsewhere. Advanced settings show each field's default,
+  keys, Enter and Escape. Each search keeps its own selection, shows suggestions when focused, and scrolls
+  the highlighted row into view. A click elsewhere closes searches. Help icons pin their explanation on
+  tap without activating the surrounding field or disclosure. Advanced settings show each field's default,
   mark changed values, and explain the accepted range when a value is rejected.
 
 - Parent goal groups the blue, pink, and white goals. Target white sparks uses compact chips with one shared editor. Select a chip to edit its goal

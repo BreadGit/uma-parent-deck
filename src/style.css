@@ -413,6 +413,9 @@ details[data-agenda] { margin-top: 8px; }
   .deck { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
   .agenda-grid { gap: 3px; padding: 4px; }
   .scroll { max-height: 60vh; }
+  /* Let the card columns leave the viewport so controls and chances have room on phones. */
+  .ranking-table th:first-child, .ranking-table th:nth-child(2) { left: auto; }
+  .ranking-table td:first-child, .ranking-table td:nth-child(2) { position: static; }
   /* the coverage table keeps skill, spark chance and sources; the per-form hint columns are detail */
   .col-detail { display: none; }
   table.coverage { min-width: 0; }

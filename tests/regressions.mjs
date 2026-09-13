@@ -14,8 +14,8 @@ const browser = await chromium.launch();
 const url = process.env.URL ?? 'http://localhost:5173/';
 after(() => browser.close());
 
-async function fresh(t, saved, { held = false, settle = !held } = {}) {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+async function fresh(t, saved, { held = false, settle = !held, touch = false } = {}) {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, hasTouch: touch, isMobile: touch });
   t.after(() => context.close());
   if (saved) await context.addInitScript(({ key, saved }) => {
     if (!localStorage.getItem('regression-seeded')) {
@@ -58,6 +58,93 @@ const predictions = (page) => page.locator('h2', { hasText: 'Predicted run' });
 /** The app's own <dialog> replaces window.confirm and alert. */
 const confirmDialog = async (page) => { await page.waitForSelector('dialog[data-dialog][open]'); await page.click('[data-dialog-confirm]'); };
 const openAgenda = (page) => page.click('details[data-agenda] > summary');
+
+test('phone ranking reveals controls and spark chances when scrolled sideways', async (t) => {
+  const saved = defaultState(data);
+  saved.run.targets = [{ id: 200352, role: 'preferred', stars: 2, priority: 0 }];
+  const page = await editor(t, saved);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const row = page.locator('.ranking-table tbody tr').first();
+  assert.ok(await row.locator('[data-target-spark]').count(), 'the row has a spark chance to read');
+  const lb = row.locator('[data-lb]');
+  const id = await lb.getAttribute('data-lb');
+  for (const field of [lb, row.locator('[data-target-chances]')]) {
+    await field.scrollIntoViewIfNeeded();
+    assert.equal(await field.evaluate((el) => {
+      const scroll = el.closest('.scroll');
+      scroll.scrollLeft += el.getBoundingClientRect().left - scroll.getBoundingClientRect().left - 8;
+      const r = el.getBoundingClientRect();
+      return [r.left + 2, (r.left + r.right) / 2, r.right - 2].every((x) => el.contains(document.elementFromPoint(x, (r.top + r.bottom) / 2)));
+    }), true, 'the full control or chance cell is visible and uncovered');
+  }
+  await lb.selectOption('2');
+  assert.equal((await state(page)).inventory[id], 2);
+  await assertFieldsMatchState(page, 'after editing inventory through the phone ranking');
+});
+
+test('search boxes keep keyboard selections separate when focus switches', async (t) => {
+  const page = await editor(t);
+  await page.fill('#target-search', 'groundwork');
+  const targetId = Number(await page.locator('#target-search-list li').first().getAttribute('data-id'));
+  await page.fill('#card-search', 'a');
+  for (let i = 0; i < 10; i++) await page.press('#card-search', 'ArrowDown');
+  assert.equal(await page.locator('#target-search').getAttribute('aria-expanded'), 'false');
+  await page.click('#target-search');
+  assert.equal(await page.locator('#card-search').getAttribute('aria-expanded'), 'false');
+  await page.press('#target-search', 'Enter');
+  assert.ok((await state(page)).run.targets.some((entry) => entry.id === targetId));
+  await assertFieldsMatchState(page, 'after selecting a target following a card search');
+  await page.focus('#card-search');
+  await page.fill('#card-search', 'piece of mind');
+  const cardId = Number(await page.locator('#card-search-list li').first().getAttribute('data-id'));
+  await page.press('#card-search', 'Enter');
+  assert.ok((await state(page)).run.pinnedIds.includes(cardId));
+  await assertFieldsMatchState(page, 'after narrowing a highlighted card search');
+});
+
+test('search keyboard navigation reveals active rows without moving the page', async (t) => {
+  const page = await editor(t);
+  await page.fill('#card-search', 'a');
+  const before = await page.evaluate(() => scrollY);
+  const count = await page.locator('#card-search-list li').count();
+  const check = async (index) => {
+    assert.equal(await page.locator('#card-search').getAttribute('aria-activedescendant'), `card-search-list-${index}`);
+    assert.equal(await page.locator('#card-search-list').evaluate((list) => {
+      const row = list.querySelector('[aria-selected="true"]');
+      const r = row.getBoundingClientRect(), bounds = list.getBoundingClientRect();
+      return r.top >= bounds.top + list.clientTop - 1 && r.bottom <= bounds.top + list.clientTop + list.clientHeight + 1;
+    }), true, 'the active suggestion is inside the visible list');
+    assert.equal(await page.evaluate(() => scrollY), before, 'only the suggestion list scrolls');
+  };
+  for (let i = 0; i < count; i++) { await page.press('#card-search', 'ArrowDown'); await check(i); }
+  await page.press('#card-search', 'ArrowDown'); await check(0);
+  await page.press('#card-search', 'ArrowUp'); await check(count - 1);
+  await page.press('#card-search', 'Escape');
+  assert.equal(await page.inputValue('#card-search'), '');
+  await page.fill('#card-search', 'a');
+  await page.press('#card-search', 'ArrowUp'); await check(count - 1);
+  await assertFieldsMatchState(page, 'after keyboard navigation and wrapping in suggestions');
+});
+
+test('touch help icons stay pinned without activating labels or disclosures', async (t) => {
+  const page = await fresh(t, undefined, { held: true, touch: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const focus = page.locator('label.row').filter({ has: page.locator('[data-setting="focus"]') }).locator('.tip');
+  const advanced = page.locator('[data-details="advanced"]');
+  for (const icon of [focus, advanced.locator('summary .tip')]) {
+    await icon.tap();
+    assert.equal(await page.locator('#tooltip').isVisible(), true);
+    assert.equal(await icon.evaluate((el) => el.classList.contains('pinned')), true);
+    assert.equal(await page.locator('[data-setting="focus"]').evaluate((el) => el === document.activeElement), false);
+    assert.equal(await advanced.evaluate((el) => el.open), false);
+    await icon.tap();
+    assert.equal(await page.locator('#tooltip').isVisible(), false);
+  }
+  await page.locator('[data-action="reset-all"]').tap();
+  assert.equal(await page.locator('dialog[open]').count(), 1, 'ordinary buttons retain their action');
+  await page.locator('[data-dialog-cancel]').tap();
+  await assertFieldsMatchState(page, 'after touch help and canceling reset');
+});
 
 test('ranking expands all target chances and keeps the last target reachable on phones', async (t) => {
   const saved = defaultState(data);

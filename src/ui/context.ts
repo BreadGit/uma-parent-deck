@@ -22,8 +22,9 @@ const viewState = {
   goalTemplateId: '',
   traineeQuery: '',
   cardQuery: '',
-  /** Keyboard highlight in whichever suggestion list is open; -1 is none. */
-  suggestIndex: -1,
+  activeSearch: null as 'query' | 'traineeQuery' | 'cardQuery' | null,
+  /** Each search keeps its own keyboard highlight; -1 is none. */
+  suggestIndexes: { query: -1, traineeQuery: -1, cardQuery: -1 },
   showAdvanced: false,
   showSparks: false,
   showPinkSparks: false,

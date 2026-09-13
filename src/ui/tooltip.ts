@@ -2,7 +2,7 @@
 import { html } from 'lit-html';
 
 /** Info icon that opens the tooltip on hover or focus; a click pins it until the next click elsewhere. Any element
- * with a data-tip attribute shows the same box; only non-interactive ones pin on click. */
+ * with a data-tip attribute shows the same box; dedicated icons and non-interactive elements pin on click. */
 export const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
 
 let pinned: HTMLElement | null = null;
@@ -36,10 +36,12 @@ export function installTooltips(root: HTMLElement) {
   root.addEventListener('focusout', (ev) => { if (tipOf(ev)) hide(); });
   document.addEventListener('click', (ev) => {
     const el = tipOf(ev);
-    if (el && !interactive(el)) {
+    if (el && (el.classList.contains('tip') || !interactive(el))) {
+      ev.preventDefault();
+      ev.stopPropagation();
       if (pinned === el) { hide(true); return; }
       hide(true); pinned = el; el.classList.add('pinned'); show(el);
-      ev.stopPropagation(); return;
+      return;
     }
     if (pinned) hide(true);
   }, true);
