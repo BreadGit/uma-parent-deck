@@ -99,7 +99,6 @@ dialog.dialog p { margin: 0 0 14px; }
 .w-90 { width: 90px; }
 .w-140 { width: 140px; }
 .hidden { display: none; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .wrap { white-space: normal; }
 .gap-top { margin-top: 8px; }
 .kv-center { align-items: center; }

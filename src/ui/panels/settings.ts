@@ -21,12 +21,13 @@ function field(f: SettingField) {
   const value = shown(store.settings[f.key]), fallback = shown(DEFAULT_SETTINGS[f.key]);
   const modified = value !== fallback;
   const error = view.settingErrors[f.key];
+  const draft = error?.value ?? value;
   const input = f.kind === 'list'
-    ? html`<input type="text" .value=${live(value)} data-setting-list="${f.key}" class="w-140" aria-invalid=${error ? 'true' : nothing} @change=${(e: Event) => setSetting(f.key, inputValue(e))} />`
-    : html`<input type="number" step="${f.step ?? 0.01}" .value=${live(value)} data-setting="${f.key}" class="w-90" placeholder="${placeholder(f.key)}" aria-invalid=${error ? 'true' : nothing} @change=${(e: Event) => setSetting(f.key, inputValue(e))} />`;
+    ? html`<input type="text" .value=${live(draft)} data-setting-list="${f.key}" class="w-140" aria-invalid=${error ? 'true' : nothing} @change=${(e: Event) => setSetting(f.key, inputValue(e))} />`
+    : html`<input type="number" step="${f.step ?? 0.01}" .value=${live(draft)} data-setting="${f.key}" class="w-90" placeholder="${placeholder(f.key)}" aria-invalid=${error ? 'true' : nothing} @change=${(e: Event) => setSetting(f.key, inputValue(e))} />`;
   return html`<div class="setting ${modified ? 'modified' : ''}" data-setting-field=${f.key}>
     <label class="row"><span class="row-k">${f.label}${tip(help(f.key))}<span class="setting-default">${COPY.settings.defaultLabel} ${fallback || placeholder(f.key) || 'blank'}</span></span>${input}</label>
-    ${error ? html`<p class="field-error small" role="alert" data-setting-error=${f.key}>${error}</p>` : nothing}
+    ${error ? html`<p class="field-error small" role="alert" data-setting-error=${f.key}>${error.message}</p>` : nothing}
   </div>`;
 }
 

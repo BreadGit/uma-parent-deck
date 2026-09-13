@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test, after } from 'node:test';
 import { chromium } from 'playwright';
+import { ModuleKind, ScriptTarget, transpileModule } from 'typescript';
 import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
 import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
@@ -58,6 +59,79 @@ const predictions = (page) => page.locator('h2', { hasText: 'Predicted run' });
 /** The app's own <dialog> replaces window.confirm and alert. */
 const confirmDialog = async (page) => { await page.waitForSelector('dialog[data-dialog][open]'); await page.click('[data-dialog-confirm]'); };
 const openAgenda = (page) => page.click('details[data-agenda] > summary');
+
+test('rejected advanced settings retain the draft and accept the original value', async (t) => {
+  const page = await editor(t, defaultState(data));
+  await page.click('details[data-details="advanced"] > summary');
+  for (const [key, selector, rejected] of [
+    ['hintBase', '[data-setting="hintBase"]', '-1'],
+    ['chainRatesSSR', '[data-setting-list="chainRatesSSR"]', '1, 2'],
+  ]) {
+    const original = await page.inputValue(selector);
+    const saved = (await state(page)).settings[key];
+    await page.fill(selector, rejected);
+    await page.locator(selector).press('Tab');
+    assert.equal(await page.inputValue(selector), rejected);
+    assert.equal(await page.locator(selector).getAttribute('aria-invalid'), 'true');
+    assert.equal(await page.locator(`[data-setting-error="${key}"]`).count(), 1);
+    assert.deepEqual((await state(page)).settings[key], saved);
+    await assertFieldsMatchState(page, 'after rejecting an advanced setting');
+    await page.fill(selector, original);
+    await page.locator(selector).press('Tab');
+    assert.equal(await page.inputValue(selector), original);
+    assert.equal(await page.locator(selector).getAttribute('aria-invalid'), null);
+    assert.equal(await page.locator(`[data-setting-error="${key}"]`).count(), 0);
+    assert.deepEqual((await state(page)).settings[key], saved);
+    await assertFieldsMatchState(page, 'after restoring the original advanced setting');
+  }
+});
+
+test('outside clicks dismiss suggestions without clearing search text', async (t) => {
+  const page = await editor(t);
+  const queries = { 'trainee-search': 'special', 'target-search': 'groundwork', 'card-search': 'a' };
+  for (const [id, query] of Object.entries(queries)) await page.fill(`#${id}`, query);
+  await page.locator('h1').click();
+  for (const [id, query] of Object.entries(queries)) {
+    assert.equal(await page.inputValue(`#${id}`), query);
+    assert.equal(await page.locator(`#${id}`).getAttribute('aria-expanded'), 'false');
+  }
+  await assertFieldsMatchState(page, 'after dismissing suggestions');
+  await page.click('#target-search');
+  assert.equal(await page.locator('#target-search').getAttribute('aria-expanded'), 'true');
+  await page.press('#target-search', 'Enter');
+  assert.equal((await state(page)).run.targets.length, 1);
+  await assertFieldsMatchState(page, 'after picking from a preserved search');
+});
+
+test('overlapping dialogs settle each request independently', async (t) => {
+  const page = await browser.newPage();
+  t.after(() => page.close());
+  const source = await readFile(new URL('../src/ui/dialog.ts', import.meta.url), 'utf8');
+  const { outputText } = transpileModule(source, { compilerOptions: { target: ScriptTarget.ESNext, module: ModuleKind.ESNext } });
+  await page.addScriptTag({ type: 'module', content: `${outputText}\nwindow.confirmDialog = confirmDialog;` });
+  await page.evaluate(() => {
+    window.answers = [];
+    window.confirmDialog('First').then((ok) => window.answers.push(['first', ok]));
+    window.confirmDialog('Second').then((ok) => window.answers.push(['second', ok]));
+  });
+  await page.waitForFunction(() => window.answers.length === 1, undefined, { timeout: 2000 });
+  assert.deepEqual(await page.evaluate(() => window.answers), [['first', false]]);
+  assert.equal(await page.locator('dialog[open] [data-dialog-message]').textContent(), 'Second');
+  await page.click('dialog[open] [data-dialog-confirm]');
+  await page.waitForFunction(() => window.answers.length === 2, undefined, { timeout: 2000 });
+  assert.deepEqual(await page.evaluate(() => window.answers), [['first', false], ['second', true]]);
+  await page.evaluate(() => {
+    window.answers = [];
+    window.confirmDialog('Third').then((ok) => window.answers.push(['third', ok]));
+    document.querySelector('dialog[open] [data-dialog-confirm]').click();
+    window.confirmDialog('Fourth').then((ok) => window.answers.push(['fourth', ok]));
+  });
+  await page.waitForFunction(() => window.answers.length === 1, undefined, { timeout: 2000 });
+  assert.deepEqual(await page.evaluate(() => window.answers), [['third', true]]);
+  await page.press('dialog[open]', 'Escape');
+  await page.waitForFunction(() => window.answers.length === 2, undefined, { timeout: 2000 });
+  assert.deepEqual(await page.evaluate(() => window.answers), [['third', true], ['fourth', false]]);
+});
 
 test('phone ranking reveals controls and spark chances when scrolled sideways', async (t) => {
   const saved = defaultState(data);

@@ -97,8 +97,7 @@ export function searchBox<T>(box: SearchBox<T>) {
 export function installSuggestDismiss(root: HTMLElement) {
   root.ownerDocument.addEventListener('pointerdown', (e) => {
     if ((e.target as Element).closest('.suggest')) return;
-    if (!view.query && !view.traineeQuery && !view.cardQuery) return;
-    view.query = view.traineeQuery = view.cardQuery = '';
+    if (view.activeSearch === null) return;
     view.activeSearch = null;
     view.suggestIndexes = { query: -1, traineeQuery: -1, cardQuery: -1 };
     refresh();

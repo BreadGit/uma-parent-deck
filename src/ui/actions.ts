@@ -14,13 +14,18 @@ export function settingRange(key: keyof Settings): string {
   }
 }
 
-/** Apply a form value to a setting. A rejected value keeps the current one and shows the accepted range. */
+/** Apply a form value to a setting. Keep rejected drafts in the view, with the accepted range. */
 export function setSetting(key: keyof Settings, raw: string | boolean): boolean {
   const v = parseSetting(key, raw);
-  if (v === undefined) view.settingErrors = { ...view.settingErrors, [key]: settingRange(key) };
-  else { const { [key]: _, ...rest } = view.settingErrors; view.settingErrors = rest; }
-  update((s) => { if (v !== undefined) (s.settings as unknown as Record<string, unknown>)[key] = v; });
-  return v !== undefined;
+  if (v === undefined) {
+    view.settingErrors = { ...view.settingErrors, [key]: { value: String(raw), message: settingRange(key) } };
+    refresh();
+    return false;
+  }
+  const { [key]: _, ...rest } = view.settingErrors;
+  view.settingErrors = rest;
+  update((s) => { (s.settings as unknown as Record<string, unknown>)[key] = v; });
+  return true;
 }
 
 export function pinCard(id: number) {
