@@ -9,12 +9,13 @@ recommendations. It preserves choices rather than a particular calculated result
 ## Ownership and loading
 
 `src/share.ts` selects the share scope and encodes and validates codes without game data or browser
-state. `src/state.ts` applies a validated snapshot to the existing save. `src/ui/share.ts` owns copy,
-paste and URL synchronization through the existing context update hook. The panel in
-`src/ui/panels/share.ts` uses the same tracked rendering and state-bound fields as other panels.
+state. `src/state.ts` applies a validated snapshot to the existing save. `src/ui/share.ts` owns URL
+loading and synchronization through the existing context update hook. Sharing uses the browser
+address bar. `src/ui/app.ts` shows a notice only when saved choices are unavailable in the game data.
 
 An incoming `run` URL parameter loads before the first render. Invalid or unsupported codes do not
-change saved choices. Manual loading also checks that no user edit occurred during decoding.
+change saved choices. Browser history navigation also loads incoming codes and checks that no
+user edit occurred during decoding.
 The address bar updates with `history.replaceState`, so edits do not add browser-history entries.
 Only shared input changes trigger encoding. Compression is debounced by 300 ms and older asynchronous
 results cannot replace newer snapshots. The app removes an outdated parameter immediately on an edit;
@@ -76,6 +77,6 @@ The explicit shared-input selector makes a new RunInput field a compile-time dec
 
 `tests/share.test.ts` includes historical codes with literal expected inputs, round trips for all
 curated templates, partial inputs, unknown and reclassified data, malformed payloads and size limits.
-Browser regressions cover URL and paste loading, inventory preservation, immediate reloads, Reset all,
+Browser regressions cover URL loading, inventory preservation, immediate reloads, Reset all,
 concurrent compression and mobile layouts. Run these checks after format changes; run the historical
 fixtures and state tests with data refreshes as well. Expected calculated results may change with the data.

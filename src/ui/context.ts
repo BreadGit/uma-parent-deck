@@ -17,12 +17,6 @@ export let stateRevision = 0;
 
 /** State that is not persisted: search boxes, open panels, the highlighted suggestion, drag state. */
 const viewState = {
-  shareOpen: false,
-  shareCode: '',
-  shareInput: '',
-  shareStatus: '',
-  sharePending: false,
-  shareLoading: false,
   query: '',
   targetEditorId: null as number | null,
   goalTemplateId: '',

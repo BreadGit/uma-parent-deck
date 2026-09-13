@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { deflateRawSync } from 'node:zlib';
 import { loadData } from '../src/data.ts';
 import { applySharedChoices, defaultState, migrate } from '../src/state.ts';
-import { decodeShare, encodeShare, sharedChoices, shareKey, shareCodeFromInput, shareUrl, ShareCodeError, type SharedChoices } from '../src/share.ts';
+import { decodeShare, encodeShare, sharedChoices, shareKey, shareUrl, ShareCodeError, type SharedChoices } from '../src/share.ts';
 import { GOAL_TEMPLATES } from '../src/model/goal-templates.ts';
 import { planRun, unavailableRunChoices } from '../src/model/run.ts';
 
@@ -159,10 +159,8 @@ test('decoder bounds both the incoming code and decompressed size', async () => 
   }
 });
 
-test('code and URL input preserve unrelated URL parameters and fragments', () => {
+test('share URLs preserve unrelated URL parameters and fragments', () => {
   const url = shareUrl('https://example.com/planner/?theme=dark#goal', '2jW10');
   assert.equal(url, 'https://example.com/planner/?theme=dark&run=2jW10#goal');
-  assert.equal(shareCodeFromInput(`  ${url}\n`), '2jW10');
-  assert.equal(shareCodeFromInput(' 2jW10 '), '2jW10');
   assert.equal(shareUrl(url, null), 'https://example.com/planner/?theme=dark#goal');
 });

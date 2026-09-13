@@ -1418,10 +1418,11 @@ test('template Load and pink controls share rows at phone and desktop widths', a
 });
 
 // Share fixtures exercise the same inputs and saved-state boundary as the UI, without importing browser modules.
-const waitForShare = (page) => page.waitForFunction(() => {
-  const code = document.querySelector('[data-share="code"]');
-  return code?.value && !document.querySelector('[data-action="copy-share-code"]').disabled;
-});
+const waitForShare = (page) => page.waitForFunction(() => new URL(location.href).searchParams.has('run'));
+const navigateShare = (page, href) => page.evaluate((next) => {
+  history.pushState(null, '', next);
+  dispatchEvent(new PopStateEvent('popstate'));
+}, href);
 function shareFixture() {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
@@ -1471,37 +1472,36 @@ test('share URLs restore their scope, follow edits, and survive an immediate rel
   await page.click('[data-action="reset-all"]');
   await page.click('[data-dialog-confirm]');
   await page.waitForFunction(() => document.querySelector('#trainee-search'));
-  await waitForShare(page);
+  await page.waitForTimeout(500);
   assert.equal(new URL(page.url()).searchParams.has('run'), false);
   assert.deepEqual((await state(page)).inventory, receiver.inventory);
   assert.equal((await state(page)).settings.affinity, 220);
   await assertFieldsMatchState(page, 'after resetting a shared run');
 });
 
-test('share paste rejects bad input atomically and expanded controls fit both themes', async (t) => {
+test('share URL navigation rejects bad input atomically without sharing controls', async (t) => {
   const page = await editor(t, shareFixture());
-  await page.locator('[data-share-controls] summary').click();
   await waitForShare(page);
+  assert.equal(await page.locator('[data-share-controls], [data-share], [data-section="share"]').count(), 0);
+  assert.equal(await page.getByText('Share run', { exact: true }).count(), 0);
   const before = await state(page);
   for (const code of ['2dinvalid', '3jW10']) {
-    await page.fill('[data-share="input"]', code);
-    await page.click('[data-action="load-share"]');
+    await navigateShare(page, shareUrl(url, code));
     await page.waitForSelector('[data-dialog]');
     assert.deepEqual(await state(page), before);
     await page.click('[data-dialog-confirm]');
   }
   const source = shareFixture(); source.settings.focus = 'balanced'; source.run.traineeStars = 5;
-  await page.fill('[data-share="input"]', shareUrl(url, await encodeShare(sharedChoices(source))));
-  await page.click('[data-action="load-share"]');
+  await navigateShare(page, shareUrl(url, await encodeShare(sharedChoices(source))));
   await page.waitForFunction(() => document.querySelector('[data-select="trainee-stars"]').value === '5');
   await waitForShare(page);
-  await assertFieldsMatchState(page, 'after pasting a share URL');
+  await assertFieldsMatchState(page, 'after navigating to a share URL');
   assert.deepEqual(sharedChoices(await state(page)), sharedChoices(source));
   for (const theme of ['light', 'dark']) {
     await page.click(`[data-theme-pick="${theme}"]`);
     for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
       await page.setViewportSize({ width, height: 1000 });
-      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `share controls at ${width}px in ${theme}`);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `URL-only sharing at ${width}px in ${theme}`);
     }
   }
 });
@@ -1522,7 +1522,7 @@ test('unavailable shared IDs stay visible and survive edits, reloads, and re-sha
   await page.reload(); await page.waitForSelector('#target-search'); await waitForShare(page);
   saved.settings.focus = 'balanced';
   assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
-  assert.deepEqual(await decodeShare(await page.inputValue('[data-share="code"]')), sharedChoices(saved));
+  assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(saved));
   await assertFieldsMatchState(page, 'after reloading unavailable choices');
 });
 
@@ -1555,7 +1555,7 @@ test('slow share compression cannot overwrite a newer edit', async (t) => {
   await assertFieldsMatchState(page, 'after overlapping share encodes');
 });
 
-test('invalid startup shares keep the saved run, and copy supports clipboard and manual selection', async (t) => {
+test('invalid startup shares keep the saved run and a valid URL recovers', async (t) => {
   const page = await editor(t, shareFixture());
   const before = await state(page);
   await page.goto(shareUrl(url, '3jW10'));
@@ -1564,24 +1564,12 @@ test('invalid startup shares keep the saved run, and copy supports clipboard and
   assert.deepEqual(await state(page), before);
   assert.equal(new URL(page.url()).searchParams.get('run'), '3jW10');
   await page.click('[data-dialog-confirm]');
-  await page.fill('[data-share="input"]', '2jW10');
-  await page.click('[data-action="load-share"]');
-  await waitForShare(page);
+  await page.goto(shareUrl(url, '2jW10'));
+  await page.waitForSelector('#trainee-search');
+  await page.waitForTimeout(500);
+  assert.deepEqual(sharedChoices(await state(page)), await decodeShare('2jW10'));
+  assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), await decodeShare('2jW10'));
   await assertFieldsMatchState(page, 'after recovering from an invalid startup URL');
-  await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(url).origin });
-  for (const field of ['code', 'link']) {
-    await page.click(`[data-action="copy-share-${field}"]`);
-    assert.equal(await page.evaluate(() => navigator.clipboard.readText()), await page.inputValue(`[data-share="${field}"]`));
-  }
-  // HTTP LAN origins do not expose the clipboard API. Exercise the same fallback without depending on a LAN address.
-  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined }));
-  await page.click('[data-action="copy-share-code"]');
-  await page.waitForSelector('[data-dialog]');
-  await page.click('[data-dialog-confirm]');
-  await page.waitForFunction(() => {
-    const field = document.querySelector('[data-share="code"]');
-    return document.activeElement === field && field.selectionEnd - field.selectionStart === field.value.length;
-  });
 });
 
 test('startup persists historical identity migration and keeps imported star counts visible', async (t) => {
@@ -1607,15 +1595,15 @@ test('a share import remains copyable when the browser cannot save it', async (t
   const page = await editor(t, shareFixture());
   await waitForShare(page);
   const before = await state(page);
-  await page.locator('[data-share-controls] summary').click();
   await page.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException('Full', 'QuotaExceededError'); }; });
-  await page.fill('[data-share="input"]', '2jW10');
-  await page.click('[data-action="load-share"]');
+  const incoming = defaultState(data);
+  incoming.settings.focus = 'balanced';
+  await navigateShare(page, shareUrl(url, await encodeShare(sharedChoices(incoming))));
   await page.waitForSelector('[data-dialog]');
   assert.match(await page.locator('[data-dialog-message]').innerText(), /could not save/);
   await page.click('[data-dialog-confirm]');
   await waitForShare(page);
-  assert.equal((await decodeShare(await page.inputValue('[data-share="code"]'))).run.traineeCardId, null);
+  assert.equal((await decodeShare(new URL(page.url()).searchParams.get('run'))).run.traineeCardId, null);
   assert.deepEqual(await state(page), before, 'the existing persisted save was not damaged');
   assert.equal(await page.locator('#trainee-search').count(), 1, 'the decoded choices remain usable in memory');
 });

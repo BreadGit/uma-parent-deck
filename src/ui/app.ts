@@ -23,7 +23,7 @@ import { renderCoverage } from './panels/coverage.ts';
 import { renderSchedule } from './panels/schedule.ts';
 import { renderRanking } from './panels/ranking.ts';
 import { clearSharedUrl } from './share.ts';
-import { renderShare } from './panels/share.ts';
+import { unavailableRunChoices } from '../model/run.ts';
 
 const THEMES: { id: Theme; label: string }[] = [{ id: 'system', label: 'Auto' }, { id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
@@ -37,6 +37,17 @@ async function resetAll() {
   saveState(resetRun(store, data));
   clearSharedUrl();
   location.reload();
+}
+
+function unavailableChoices() {
+  const missing = unavailableRunChoices(store.run, data);
+  if (missing.trainee === null && !missing.cards.length && !missing.skills.length) return nothing;
+  return html`<div class="banner small" data-unavailable-choices role="status">
+    <p>${COPY.share.unavailable}</p>
+    ${missing.trainee !== null ? html`<p>${COPY.share.missingTrainee(missing.trainee)}</p>` : nothing}
+    ${missing.cards.length ? html`<p>${COPY.share.missingCards(missing.cards)}</p>` : nothing}
+    ${missing.skills.length ? html`<p>${COPY.share.missingSkills(missing.skills)}</p>` : nothing}
+  </div>`;
 }
 
 function page() {
@@ -54,7 +65,7 @@ function page() {
     </header>
     <main>
       <div class="inputs">
-        ${section('share', renderShare)}
+        ${unavailableChoices()}
         ${section('trainee', () => renderTrainee(c))}
         ${section('goal', () => renderGoalEditor(c))}
         ${section('legacy', () => renderLegacy(c))}

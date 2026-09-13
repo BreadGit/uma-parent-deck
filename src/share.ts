@@ -176,12 +176,6 @@ export async function decodeShare(code: string): Promise<SharedChoices> {
   } catch (error) { throw error instanceof ShareCodeError ? error : new ShareCodeError(); }
 }
 
-export function shareCodeFromInput(value: string): string {
-  const input = value.trim();
-  if (!/^https?:\/\//i.test(input)) return input;
-  try { return new URL(input).searchParams.get('run') ?? ''; } catch { throw new ShareCodeError(); }
-}
-
 export function shareUrl(href: string, code: string | null): string {
   const url = new URL(href);
   if (code === null) url.searchParams.delete('run'); else url.searchParams.set('run', code);
