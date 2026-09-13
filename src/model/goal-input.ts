@@ -50,23 +50,29 @@ export function sanitizePinkGoals(raw: unknown): PinkGoal[] {
   return entries.size ? [...entries.values()] : [{ aptitude: 'any', stars: 1 }];
 }
 
+/** Older saves used family aliases. Current saves retain stable IDs even if their family changes later. */
+export function savedTargetId(id: unknown, data: Data, preserveIds = false): number | null {
+  if (typeof id !== 'number' || !Number.isSafeInteger(id) || id <= 0) return null;
+  return preserveIds ? id : goalFamily(id, data) ?? id;
+}
+
 /** Keep target order and migrate the former goal lists into one authoritative list. */
-export function sanitizeTargets(raw: unknown, data: Data, oldGoal?: unknown): WhiteTarget[] {
+export function sanitizeTargets(raw: unknown, data: Data, oldGoal?: unknown, preserveIds = false): WhiteTarget[] {
   const targets = new Map<number, WhiteTarget>();
   for (const value of Array.isArray(raw) ? raw : []) {
     const entry = typeof value === 'number' ? { id: value } : object(value);
-    const id = goalFamily(entry.id, data);
+    const id = savedTargetId(entry.id, data, preserveIds);
     if (id !== null && !targets.has(id)) targets.set(id, { id, role: entry.role === 'required' ? 'required' : 'preferred', stars: stars(entry.stars), priority: sanitizePriority(entry.priority) });
   }
   const goal = object(oldGoal), required = new Set<number>();
   for (const value of Array.isArray(goal.required) ? goal.required : []) {
-    const entry = object(value), id = goalFamily(entry.id, data);
+    const entry = object(value), id = savedTargetId(entry.id, data, preserveIds);
     if (id === null || required.has(id)) continue;
     required.add(id); targets.set(id, { id, role: 'required', stars: stars(entry.stars), priority: sanitizePriority(entry.priority) });
   }
   for (const value of Array.isArray(goal.preferred) ? goal.preferred : []) {
     const entry = typeof value === 'number' ? { id: value } : object(value);
-    const id = goalFamily(entry.id, data);
+    const id = savedTargetId(entry.id, data, preserveIds);
     if (id !== null && !targets.has(id)) targets.set(id, { id, role: 'preferred', stars: 2, priority: sanitizePriority(entry.priority) });
   }
   return [...targets.values()];

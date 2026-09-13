@@ -156,3 +156,10 @@ test('preferred priorities accept nonnegative safe integers and normalize invali
     assert.deepEqual(migrate({ current: saved }, data), saved);
   }
 });
+
+test('current saves keep trainee star choices when current data has a higher rarity', () => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.traineeStars = 1;
+  assert.deepEqual(migrate({ current: saved }, data), saved);
+});

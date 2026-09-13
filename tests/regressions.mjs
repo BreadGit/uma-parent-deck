@@ -9,6 +9,7 @@ import { defaultState, STATE_KEY } from '../src/state.ts';
 import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
 import { holdSearch } from './browser-search.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
+import { encodeShare, decodeShare, sharedChoices, shareUrl } from '../src/share.ts';
 
 const data = loadData();
 const browser = await chromium.launch();
@@ -1414,4 +1415,207 @@ test('template Load and pink controls share rows at phone and desktop widths', a
     assert.equal(await page.locator('[data-action="remove-pink-goal"]').first().innerText(), '×');
     await assertFieldsMatchState(page, `after compact pink layout at ${width}px`);
   }
+});
+
+// Share fixtures exercise the same inputs and saved-state boundary as the UI, without importing browser modules.
+const waitForShare = (page) => page.waitForFunction(() => {
+  const code = document.querySelector('[data-share="code"]');
+  return code?.value && !document.querySelector('[data-action="copy-share-code"]').disabled;
+});
+function shareFixture() {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.traineeStars = 4;
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 3, priority: 0 }];
+  saved.run.targetLineage = { 201601: { k1: 2, k2: 1, p1: 5, p2: 3 } };
+  saved.run.parentSparks = [[{ stat: 'speed', stars: 3 }, null, null], [null, null, null]];
+  saved.run.wishlistOrder = [201601, 200472];
+  saved.run.wishlistExcluded = [200012];
+  saved.settings.focus = 'sprint'; saved.settings.winThreshold = 0.65;
+  return saved;
+}
+
+test('share URLs restore their scope, follow edits, and survive an immediate reload', async (t) => {
+  const receiver = defaultState(data);
+  receiver.inventory = { 30052: 2, 30028: null };
+  receiver.settings.affinity = 220; receiver.ui.theme = 'dark';
+  receiver.run.raceOverrides = { example: false };
+  const page = await editor(t, receiver);
+  const source = shareFixture();
+  const link = new URL(shareUrl(url, await encodeShare(sharedChoices(source))));
+  link.searchParams.set('keep', 'yes'); link.hash = 'shared';
+  await page.goto(link.href);
+  await page.waitForSelector('#target-search');
+  await waitForShare(page);
+  const loaded = await state(page);
+  assert.deepEqual(sharedChoices(loaded), sharedChoices(source));
+  assert.deepEqual(loaded.inventory, receiver.inventory);
+  assert.deepEqual(loaded.run.raceOverrides, receiver.run.raceOverrides);
+  assert.equal(loaded.settings.affinity, 220); assert.equal(loaded.ui.theme, 'dark');
+  await assertFieldsMatchState(page, 'after opening a share URL');
+  const historyLength = await page.evaluate(() => history.length);
+  await page.selectOption('[data-setting="focus"]', 'balanced');
+  assert.equal(new URL(page.url()).searchParams.has('run'), false, 'remove stale snapshots during the debounce');
+  await page.reload();
+  await page.waitForSelector('#target-search');
+  assert.equal((await state(page)).settings.focus, 'balanced', 'reload keeps the edit made before compression');
+  await waitForShare(page);
+  assert.equal((await decodeShare(new URL(page.url()).searchParams.get('run'))).settings.focus, 'balanced');
+  assert.equal(new URL(page.url()).searchParams.get('keep'), 'yes');
+  assert.equal(new URL(page.url()).hash, '#shared');
+  assert.equal(await page.evaluate(() => history.length), historyLength);
+  await assertFieldsMatchState(page, 'after reloading a just-edited share');
+  const currentUrl = page.url();
+  await page.click('[data-theme-pick="light"]');
+  assert.equal(page.url(), currentUrl, 'theme edits do not rewrite the share code');
+  await page.click('[data-action="reset-all"]');
+  await page.click('[data-dialog-confirm]');
+  await page.waitForFunction(() => document.querySelector('#trainee-search'));
+  await waitForShare(page);
+  assert.equal(new URL(page.url()).searchParams.has('run'), false);
+  assert.deepEqual((await state(page)).inventory, receiver.inventory);
+  assert.equal((await state(page)).settings.affinity, 220);
+  await assertFieldsMatchState(page, 'after resetting a shared run');
+});
+
+test('share paste rejects bad input atomically and expanded controls fit both themes', async (t) => {
+  const page = await editor(t, shareFixture());
+  await page.locator('[data-share-controls] summary').click();
+  await waitForShare(page);
+  const before = await state(page);
+  for (const code of ['2dinvalid', '3jW10']) {
+    await page.fill('[data-share="input"]', code);
+    await page.click('[data-action="load-share"]');
+    await page.waitForSelector('[data-dialog]');
+    assert.deepEqual(await state(page), before);
+    await page.click('[data-dialog-confirm]');
+  }
+  const source = shareFixture(); source.settings.focus = 'balanced'; source.run.traineeStars = 5;
+  await page.fill('[data-share="input"]', shareUrl(url, await encodeShare(sharedChoices(source))));
+  await page.click('[data-action="load-share"]');
+  await page.waitForFunction(() => document.querySelector('[data-select="trainee-stars"]').value === '5');
+  await waitForShare(page);
+  await assertFieldsMatchState(page, 'after pasting a share URL');
+  assert.deepEqual(sharedChoices(await state(page)), sharedChoices(source));
+  for (const theme of ['light', 'dark']) {
+    await page.click(`[data-theme-pick="${theme}"]`);
+    for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
+      await page.setViewportSize({ width, height: 1000 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `share controls at ${width}px in ${theme}`);
+    }
+  }
+});
+
+test('unavailable shared IDs stay visible and survive edits, reloads, and re-sharing', async (t) => {
+  const saved = shareFixture();
+  saved.run.targets.push({ id: 99999991, role: 'required', stars: 3, priority: 0 });
+  saved.run.targetLineage['99999991'] = { k1: 3, k2: 3, p1: 9, p2: 9 };
+  saved.run.pinnedIds.push(99999992);
+  saved.run.wishlistOrder.push(99999993);
+  const page = await editor(t, saved);
+  await waitForShare(page);
+  assert.match(await page.locator('[data-unavailable-choices]').innerText(), /99999991/);
+  assert.match(await page.locator('[data-unavailable-choices]').innerText(), /99999992/);
+  assert.match(await page.locator('[data-unavailable-choices]').innerText(), /99999993/);
+  await page.selectOption('[data-setting="focus"]', 'balanced');
+  await waitForShare(page);
+  await page.reload(); await page.waitForSelector('#target-search'); await waitForShare(page);
+  saved.settings.focus = 'balanced';
+  assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
+  assert.deepEqual(await decodeShare(await page.inputValue('[data-share="code"]')), sharedChoices(saved));
+  await assertFieldsMatchState(page, 'after reloading unavailable choices');
+});
+
+test('slow share compression cannot overwrite a newer edit', async (t) => {
+  const page = await editor(t, shareFixture());
+  await waitForShare(page);
+  await page.evaluate(() => {
+    const Native = CompressionStream;
+    window.shareCompressions = 0;
+    window.CompressionStream = class {
+      constructor(format) {
+        const native = new Native(format);
+        const delay = ++window.shareCompressions === 1 ? 900 : 0;
+        this.writable = native.writable;
+        this.readable = native.readable.pipeThrough(new TransformStream({ async transform(chunk, controller) {
+          if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+          controller.enqueue(chunk);
+        } }));
+      }
+    };
+  });
+  await page.selectOption('[data-setting="focus"]', 'balanced');
+  await page.waitForFunction(() => window.shareCompressions === 1);
+  await page.selectOption('[data-setting="focus"]', 'stamina');
+  await waitForShare(page);
+  const newestUrl = page.url();
+  assert.equal((await decodeShare(new URL(newestUrl).searchParams.get('run'))).settings.focus, 'stamina');
+  await page.waitForTimeout(1100);
+  assert.equal(page.url(), newestUrl);
+  await assertFieldsMatchState(page, 'after overlapping share encodes');
+});
+
+test('invalid startup shares keep the saved run, and copy supports clipboard and manual selection', async (t) => {
+  const page = await editor(t, shareFixture());
+  const before = await state(page);
+  await page.goto(shareUrl(url, '3jW10'));
+  await page.waitForSelector('#target-search');
+  await page.waitForSelector('[data-dialog]');
+  assert.deepEqual(await state(page), before);
+  assert.equal(new URL(page.url()).searchParams.get('run'), '3jW10');
+  await page.click('[data-dialog-confirm]');
+  await page.fill('[data-share="input"]', '2jW10');
+  await page.click('[data-action="load-share"]');
+  await waitForShare(page);
+  await assertFieldsMatchState(page, 'after recovering from an invalid startup URL');
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(url).origin });
+  for (const field of ['code', 'link']) {
+    await page.click(`[data-action="copy-share-${field}"]`);
+    assert.equal(await page.evaluate(() => navigator.clipboard.readText()), await page.inputValue(`[data-share="${field}"]`));
+  }
+  // HTTP LAN origins do not expose the clipboard API. Exercise the same fallback without depending on a LAN address.
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined }));
+  await page.click('[data-action="copy-share-code"]');
+  await page.waitForSelector('[data-dialog]');
+  await page.click('[data-dialog-confirm]');
+  await page.waitForFunction(() => {
+    const field = document.querySelector('[data-share="code"]');
+    return document.activeElement === field && field.selectionEnd - field.selectionStart === field.value.length;
+  });
+});
+
+test('startup persists historical identity migration and keeps imported star counts visible', async (t) => {
+  const saved = shareFixture();
+  saved.version = 20;
+  saved.run.traineeStars = 3;
+  const page = await editor(t, saved);
+  assert.equal((await state(page)).version, defaultState(data).version, 'migration is saved before any user edit');
+  const future = await editor(t, { ...shareFixture(), version: 99 });
+  assert.equal((await state(future)).version, 99, 'opening an older app must not automatically overwrite a newer save');
+  const incoming = shareFixture(); incoming.run.traineeStars = 1;
+  await page.goto(shareUrl(url, await encodeShare(sharedChoices(incoming))));
+  await page.waitForSelector('[data-trainee-rarity-note]');
+  await waitForShare(page);
+  assert.equal(await page.inputValue('[data-select="trainee-stars"]'), '1');
+  await assertFieldsMatchState(page, 'after importing an older trainee rarity');
+  await page.reload(); await page.waitForSelector('[data-trainee-rarity-note]');
+  await waitForShare(page);
+  assert.equal((await state(page)).run.traineeStars, 1);
+});
+
+test('a share import remains copyable when the browser cannot save it', async (t) => {
+  const page = await editor(t, shareFixture());
+  await waitForShare(page);
+  const before = await state(page);
+  await page.locator('[data-share-controls] summary').click();
+  await page.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException('Full', 'QuotaExceededError'); }; });
+  await page.fill('[data-share="input"]', '2jW10');
+  await page.click('[data-action="load-share"]');
+  await page.waitForSelector('[data-dialog]');
+  assert.match(await page.locator('[data-dialog-message]').innerText(), /could not save/);
+  await page.click('[data-dialog-confirm]');
+  await waitForShare(page);
+  assert.equal((await decodeShare(await page.inputValue('[data-share="code"]'))).run.traineeCardId, null);
+  assert.deepEqual(await state(page), before, 'the existing persisted save was not damaged');
+  assert.equal(await page.locator('#trainee-search').count(), 1, 'the decoded choices remain usable in memory');
 });

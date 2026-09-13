@@ -26,13 +26,13 @@ test('migration preserves both white identities and all eight gold-only targets 
   for (const id of ids) assert.equal(goalFamily(id, data), id);
 });
 
-test('migration normalizes lineage aliases and retains valid inactive targets', () => {
+test('legacy migration normalizes lineage aliases and retains inactive and unavailable IDs', () => {
   const target = resolveTarget(200352, data)!;
   const raw = { targets: [target.gold!.id], targetLineage: { [target.gold!.id]: lineage, 999999: lineage, 201601: lineage } };
   const saved = migrate({ state: raw }, data);
-  assert.deepEqual(saved.run.targetLineage, { [target.id]: lineage, 201601: lineage });
+  assert.deepEqual(saved.run.targetLineage, { [target.id]: lineage, 201601: lineage, 999999: lineage });
   const exact = { k1: 0, k2: 1, p1: 0, p2: 3 };
-  assert.deepEqual(migrate({ state: { ...raw, targetLineage: { ...raw.targetLineage, [target.id]: exact } } }, data).run.targetLineage, { [target.id]: exact, 201601: lineage });
+  assert.deepEqual(migrate({ state: { ...raw, targetLineage: { ...raw.targetLineage, [target.id]: exact } } }, data).run.targetLineage, { [target.id]: exact, 201601: lineage, 999999: lineage });
 });
 
 test('required roles and stars migrate into the sole target list without changing its order', () => {

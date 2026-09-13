@@ -21,6 +21,8 @@ const viewState = {
   shareCode: '',
   shareInput: '',
   shareStatus: '',
+  sharePending: false,
+  shareLoading: false,
   query: '',
   targetEditorId: null as number | null,
   goalTemplateId: '',
@@ -70,7 +72,10 @@ export function trackedPanel(name: string, deps: unknown[], render: () => Templa
 export function endPanelTracking() { renderingPanel = null; }
 
 let renderer: () => void = () => {};
+let updated: () => void = () => {};
 export function onRender(fn: () => void) { renderer = fn; }
+/** Observe successful user edits, excluding recommendation-cache writes and view-only changes. */
+export function onUpdate(fn: () => void) { updated = fn; }
 /** Re-render after a view-only change. */
 export function refresh() { renderer(); }
 /** Apply a change to the persisted state, save it and re-render. */
@@ -81,6 +86,7 @@ export function update(fn: (s: AppState) => void) {
   if (nextKey !== inputKey) delete store.recommendation;
   inputKey = nextKey;
   saveState(store);
+  updated();
   renderer();
 }
 

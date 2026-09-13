@@ -4,7 +4,8 @@ import { parseRecommendation, type SavedRecommendation } from './recommendation.
 import { STATS, APTITUDE_KEYS, APT_GRADES, isPlainObject, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
-import { DEFAULT_GOAL, emptyPinkLineage, goalFamily, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
+import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
+import type { SharedChoices } from './share.ts';
 import type { Lineage } from './model/sparks.ts';
 import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
@@ -14,7 +15,7 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; recommendation?: SavedRecommendation }
 
-export const STATE_VERSION = 20;
+export const STATE_VERSION = 21;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -44,13 +45,13 @@ const statValues = (raw: unknown): number[] => STATS.map((_, i) => {
 });
 
 /** Older shapes of the run state and what they turn into. */
-function migrateRun(raw: Json, data: Data): RunInput {
+function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   const run: RunInput = { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) };
   for (const k of ['wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = numList(raw[k]);
   if (typeof raw.traineeCardId === 'number') run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
-  // the star count belongs to the trainee: at least her rarity, at most five
-  run.traineeStars = clampStars(run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) ?? null : null, run.traineeStars);
+  // Legacy saves clamp to the trainee's rarity. Current saves keep the entered count; planRun applies today's rarity.
+  run.traineeStars = clampStars(!preserveIds && run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) ?? null : null, run.traineeStars);
   if (typeof raw.borrowFromAll === 'boolean') run.borrowFromAll = raw.borrowFromAll;
   // aptitude overrides: S cannot show on the pre-run screen (only an inspiration event reaches it) and wins like A, so it becomes A
   if (isPlainObject(raw.aptOverrides)) for (const k of APTITUDE_KEYS) {
@@ -85,11 +86,11 @@ function migrateRun(raw: Json, data: Data): RunInput {
   }
   if (gains) run.parentSparks = gains.map(sideFromGains);
   run.goal = sanitizeGoal(raw.goal);
-  run.targets = sanitizeTargets(raw.targets, data, raw.goal);
+  run.targets = sanitizeTargets(raw.targets, data, raw.goal, preserveIds);
   const lineage = run.targetLineage;
   run.targetLineage = {};
   for (const key of Object.keys(lineage)) {
-    const id = goalFamily(Number(key), data);
+    const id = savedTargetId(Number(key), data, preserveIds);
     if (id === null) continue;
     // Inactive targets retain their lineage. Prefer exact white keys over old gold/circle aliases.
     run.targetLineage[String(id)] ??= lineage[String(id)] ?? lineage[key]!;
@@ -140,7 +141,7 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
     return {
       ...(recommendation ? { recommendation } : {}),
       version: STATE_VERSION,
-      run: isPlainObject(c.run) ? migrateRun(c.run, data) : base.run,
+      run: isPlainObject(c.run) ? migrateRun(c.run, data, typeof c.version === 'number' && c.version >= 21) : base.run,
       settings: isPlainObject(c.settings) ? sanitizeSettings(c.settings as Partial<Record<keyof Settings, unknown>>) : base.settings,
       inventory: sanitizeInventory(c.inventory),
       ui: { sortKey: isPlainObject(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isPlainObject(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,
@@ -164,12 +165,26 @@ const readJson = (key: string): unknown => { try { const raw = localStorage.getI
 
 /** Load from localStorage, migrating older keys on the way. `fallbackInventory` is the repo's inventory.json. */
 export function loadState(data: Data, fallbackInventory: Inventory): AppState {
-  const state = migrate({ current: readJson(STATE_KEY), state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: localStorage.getItem(LEGACY_KEYS.theme) }, data);
-  if (readJson(STATE_KEY) === undefined && readJson(LEGACY_KEYS.inventory) === undefined) state.inventory = sanitizeInventory(fallbackInventory);
+  const current = readJson(STATE_KEY);
+  const state = migrate({ current, state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: localStorage.getItem(LEGACY_KEYS.theme) }, data);
+  if (current === undefined && readJson(LEGACY_KEYS.inventory) === undefined) state.inventory = sanitizeInventory(fallbackInventory);
+  // Retire historical family aliases once, before another data update can reinterpret the old save.
+  // If storage is read-only or full, the migrated in-memory state still remains usable.
+  if (isPlainObject(current) && typeof current.version === 'number' && current.version >= 4 && current.version < STATE_VERSION) {
+    try { saveState(state); } catch { /* Keep the loaded state. */ }
+  }
   return state;
 }
 export function saveState(state: AppState) {
   localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+/** Replace only the shared inputs. Imported IDs stay intact even when today's data cannot resolve them. */
+export function applySharedChoices(state: AppState, choices: SharedChoices) {
+  const incoming = structuredClone(choices);
+  state.run = { ...state.run, ...incoming.run };
+  state.settings = { ...state.settings, ...incoming.settings };
+  delete state.recommendation;
 }
 /** Start over: a fresh run and the run-level settings (training focus, win threshold) back at their defaults. */
 export function resetRun(state: AppState, data: Data): AppState {

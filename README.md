@@ -141,18 +141,21 @@ Keep search-quality and publication assertions in the real-worker cases.
 Browser checks accept `URL` for another server, including `npm run preview`. Set `SCREENSHOT_PATH` to choose
 where the smoke screenshot goes, or to an empty string to skip writing it.
 
-### Share code prototype
+### Sharing a run
 
-Open **Share run · prototype** above the Trainee panel and generate a reusable code or URL.
-The code captures panels 1–4 and prioritized skill ordering and exclusions. Paste either form
-into the loader, or open a URL with `?run=<code>` to load it automatically. Loading replaces those
-choices and keeps the receiving device's inventory, advanced settings, theme and agenda picks.
-The URL parameter is removed after loading so refreshing does not reapply the original choices.
+The address bar follows panels 1–4 and prioritized skill ordering and exclusions after a short
+pause in editing. Copy the URL to share or bookmark those choices. **Share run** also lets you
+copy just the code, or paste a code or URL to load. Opening a link with `?run=<code>` loads it
+before rendering the app.
 
-Codes contain the choices themselves and need no server-side storage. The prototype uses positional
-JSON with defaults omitted, raw DEFLATE when smaller, and unpadded base64url. Stable game IDs are
-included directly. Codes carry the prototype format and state versions; a changed state version
-requires generating a new code. Inventory differences can produce different recommendations.
+Loading keeps this device's inventory, advanced settings, theme and agenda picks. The code contains
+the choices themselves and needs no server-side storage. Different inventories, settings and game
+data can produce different recommendations from the same code. Unavailable IDs remain saved and
+appear in a notice; calculations use only the available choices. Reset all removes the URL parameter.
+
+Share formats have fixed defaults and stable game IDs, independent of weekly data updates and
+saved-state versions. The original prototype codes remain readable. See [Sharing](docs/sharing.md)
+for the format contract and compatibility checks.
 
 ## Data
 

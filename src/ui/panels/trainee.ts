@@ -33,7 +33,7 @@ const skills = (ids: number[]) => ids.length ? ids.map(skillName).join(', ') : '
 function chosen(c: RunPlan) {
   const t = c.trainee!;
   const rarity = data.charByCardId.get(t.cardId)?.rarity ?? 1;
-  const starOptions = numbered(Array.from({ length: STARS_MAX }, (_, i) => i + 1).filter((k) => k >= rarity), (k) => `${k}★`);
+  const starOptions = numbered(Array.from({ length: STARS_MAX }, (_, i) => i + 1).filter((k) => k >= rarity || k === store.run.traineeStars), (k) => `${k}★`);
   return html`
     <div class="trainee-card">
       <img class="thumb thumb-lg" src="${charImg(t)}" alt="" />
@@ -41,6 +41,7 @@ function chosen(c: RunPlan) {
       <label class="trainee-stars"><span class="trainee-k">Stars${tip(COPY.trainee.starsTip)}</span>
         <select data-select="trainee-stars" .value=${live(String(store.run.traineeStars))} @change=${(e: Event) => update((s) => { s.run.traineeStars = Number(selectValue(e)); })}>${options(starOptions, String(store.run.traineeStars))}</select></label>
     </div>
+    ${store.run.traineeStars < rarity ? html`<p class="small warn" data-trainee-rarity-note>${COPY.trainee.savedStars(rarity)}</p>` : nothing}
     <div class="facts small">
       <span class="fact-k">Base stats</span>
       <span class="stat-strip">${STATS.map((st, i) => html`<span>${statIcon(st)}${t.baseStats[i]}</span>`)}${hasExactStarTable(data.charByCardId.get(t.cardId)!, store.run.traineeStars) ? nothing : html`<span class="warn">interpolated${tip(COPY.trainee.interpolated(store.run.traineeStars))}</span>`}</span>

@@ -1,6 +1,6 @@
 import { STATS, type Card, type Character, type Data, type Inventory, type Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { goalWithTargets, type ParentGoal, type PinkSpark, type WhiteTarget } from './goal-input.ts';
+import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
 import { evaluateParentGoal, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
 import { buildDeck, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
@@ -212,7 +212,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const schedule = buildSchedule(data.races, apt, settings.winThreshold, new Map(Object.entries(input.raceOverrides)), racePopularityMap(data), goalRaces(traineeCard));
   const sum = scheduleSummary(schedule);
   const turns = totalTurns(data.model, settings);
-  const targets = input.targets.map(({ id }) => resolveTarget(id, data)).filter((t): t is Target => !!t);
+  const activeTargets = input.targets.filter((t) => goalFamily(t.id, data) === t.id);
+  const targets = activeTargets.map(({ id }) => resolveTarget(id, data)).filter((t): t is Target => !!t);
   const lineage = new Map<number, Lineage>();
   for (const t of targets) { const l = input.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
   const baseFans = estimateFans(schedule, [], settings);
@@ -225,7 +226,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   // Any Global card can be borrowed from a friend, assumed at the borrowed limit break.
   const borrowPool = data.cards.map((card) => ({ card, lb: BORROWED_LB }));
   const build = { pinnedIds, borrowPool, borrowFromAll: input.borrowFromAll, size: DECK_SIZE };
-  const goal = goalWithTargets(input.goal, input.targets);
+  const goal = goalWithTargets(input.goal, activeTargets);
   const required = new Set(goal.required.map((r) => r.id));
   const isRequired = (w: WishlistEntry) => required.has(resolveTarget(w.skillId, data)?.id ?? w.skillId);
   const order = (cands: WishlistEntry[]) => applyUserOrder(cands, input.wishlistOrder, input.wishlistExcluded, data)
@@ -315,5 +316,18 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   return {
     search, priorityIssues, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, pred, parentGains, inherited, rawFinalMean, finalMean, statCaps, rank, spCost,
     wl: ordered.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: ordered.slice(PRIORITIZED_SKILLS_MAX), wlExcluded: excluded,
+  };
+}
+
+/** Saved choices can outlive the data that describes them. Report them without removing their IDs. */
+export function unavailableRunChoices(input: RunInput, data: Data) {
+  return {
+    trainee: input.traineeCardId !== null && !data.charByCardId.has(input.traineeCardId) ? input.traineeCardId : null,
+    cards: input.pinnedIds.filter((id) => !data.cardById.has(id)),
+    skills: [...new Set([
+      ...input.targets.filter((t) => goalFamily(t.id, data) !== t.id).map((t) => t.id),
+      ...Object.keys(input.targetLineage).map(Number).filter((id) => goalFamily(id, data) !== id),
+      ...[...input.wishlistOrder, ...input.wishlistExcluded].filter((id) => !data.skillById.has(id)),
+    ])],
   };
 }

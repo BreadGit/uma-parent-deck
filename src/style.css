@@ -35,9 +35,8 @@ header .meta { color: var(--muted); font-size: var(--fs-sm); }
 .header-actions { margin-left: auto; display: flex; gap: 12px; align-items: center; }
 main { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 16px; padding: 16px 20px; align-items: start; }
 .inputs, .results { min-width: 0; }
-.share-prototype { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 14px; }
-.share-prototype label { display: block; margin-top: 12px; }
-.share-prototype textarea { display: block; width: 100%; resize: vertical; margin: 4px 0 8px; background: var(--input); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px; overflow-wrap: anywhere; }
+.share-field { display: block; margin-top: 12px; }
+.share-field textarea { display: block; width: 100%; resize: vertical; margin: 4px 0 8px; background: var(--input); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px; overflow-wrap: anywhere; }
 section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 14px; box-shadow: 0 1px 2px var(--shadow); }
 /* results read differently from inputs: an accent rule along the top and a slightly larger title */
 section.panel-result { border-top: 3px solid var(--accent); }

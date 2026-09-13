@@ -1,5 +1,4 @@
 import { mount } from './ui/app.ts';
-import { loadSharedUrl } from './ui/share-prototype.ts';
+import { initializeSharing } from './ui/share.ts';
 
-mount(document.getElementById('app')!);
-void loadSharedUrl();
+void initializeSharing().then(() => mount(document.getElementById('app')!));
