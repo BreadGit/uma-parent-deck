@@ -5,11 +5,12 @@ import type { Settings } from './settings.ts';
 import type { AptKey, Grade, Stat } from './types.ts';
 
 export interface SharedChoices {
-  run: Omit<RunInput, 'raceOverrides'>;
+  // Older formats leave schedule overrides on the receiving device unchanged.
+  run: Omit<RunInput, 'raceOverrides'> & Partial<Pick<RunInput, 'raceOverrides'>>;
   settings: Pick<Settings, 'focus' | 'winThreshold'>;
 }
 
-// These tables and defaults are part of formats 1 and 2. Never reorder or derive them from live data.
+// These tables and defaults are part of formats 1, 2 and 3. Never reorder or derive them from live data.
 const STATS: readonly Stat[] = ['speed', 'stamina', 'power', 'guts', 'wit'];
 const APTITUDES: readonly AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 const GRADES: readonly Grade[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
@@ -20,7 +21,7 @@ const DEFAULTS: SharedChoices = {
     goal: { blueStats: ['speed', 'stamina', 'power', 'guts', 'wit'], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] },
     targets: [], targetLineage: {}, parentSparks: [[null, null, null], [null, null, null]],
     pinkLineage: [null, null, null, null, null, null], aptOverrides: {}, pinnedIds: [], borrowFromAll: false,
-    wishlistOrder: [], wishlistExcluded: [],
+    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {},
   },
   settings: { focus: 'stamina', winThreshold: 0.8 },
 };
@@ -53,12 +54,12 @@ export function sharedChoices(state: AppState): SharedChoices {
     run: { traineeCardId: r.traineeCardId, traineeStars: r.traineeStars, goal: r.goal, targets: r.targets,
       targetLineage: r.targetLineage, parentSparks: r.parentSparks, pinkLineage: r.pinkLineage,
       aptOverrides: r.aptOverrides, pinnedIds: r.pinnedIds, borrowFromAll: r.borrowFromAll,
-      wishlistOrder: r.wishlistOrder, wishlistExcluded: r.wishlistExcluded },
+      wishlistOrder: r.wishlistOrder, wishlistExcluded: r.wishlistExcluded, raceOverrides: r.raceOverrides },
     settings: { focus: state.settings.focus, winThreshold: state.settings.winThreshold },
   });
 }
 
-// Format 2 slots are documented in docs/sharing.md. Numeric IDs are always the game IDs, never data indexes.
+// Format 3 slots are documented in docs/sharing.md. Numeric IDs are always the game IDs, never data indexes.
 function pack({ run: r, settings: s }: SharedChoices): unknown[] {
   return [r.traineeCardId, r.traineeStars,
     [r.goal.blueStats.reduce((mask, stat) => mask | 1 << STATS.indexOf(stat), 0), r.goal.blueStars,
@@ -68,13 +69,18 @@ function pack({ run: r, settings: s }: SharedChoices): unknown[] {
     r.parentSparks.map((side) => side.map((p) => p === null ? 0 : STATS.indexOf(p.stat) * 3 + p.stars)),
     r.pinkLineage.map((p) => p === null ? 0 : [APTITUDES.indexOf(p.aptitude), p.stars, p.inferred ? 1 : 0]),
     APTITUDES.flatMap((apt, i) => r.aptOverrides[apt] === undefined ? [] : [[i, GRADES.indexOf(r.aptOverrides[apt]!)]]),
-    r.pinnedIds, r.borrowFromAll ? 1 : 0, r.wishlistOrder, r.wishlistExcluded, FOCUSES.indexOf(s.focus), s.winThreshold];
+    r.pinnedIds, r.borrowFromAll ? 1 : 0, r.wishlistOrder, r.wishlistExcluded, FOCUSES.indexOf(s.focus), s.winThreshold,
+    sortedEntries(r.raceOverrides ?? {}).map(([key, included]) => {
+      const calendarId = id(Number(key));
+      if (String(calendarId) !== key || typeof included !== 'boolean') invalid();
+      return included ? calendarId : -calendarId;
+    })];
 }
 const PACKED_DEFAULTS = pack(DEFAULTS);
 
-function unpack(raw: unknown): SharedChoices {
+function unpack(raw: unknown, version = 3): SharedChoices {
   const entries = list(raw);
-  if (entries.length > PACKED_DEFAULTS.length) invalid();
+  if (entries.length > (version === 2 ? 14 : PACKED_DEFAULTS.length)) invalid();
   const a = PACKED_DEFAULTS.map((fallback, i) => entries[i] === undefined || entries[i] === null ? structuredClone(fallback) : entries[i]);
   const goal = tuple(a[2], 3), mask = integer(goal[0], 0, 31);
   const pink = unique(list(goal[2]).map((v) => {
@@ -103,6 +109,10 @@ function unpack(raw: unknown): SharedChoices {
   const overrides = unique(list(a[7]).map((v) => {
     const p = tuple(v, 2); return { aptitude: choice(p[0], APTITUDES), grade: choice(p[1], GRADES) };
   }), (p) => p.aptitude);
+  const races = unique(list(a[14]).map((value) => {
+    const signed = integer(value, -Number.MAX_SAFE_INTEGER);
+    return [String(id(Math.abs(signed))), signed > 0] as const;
+  }), ([key]) => key);
   const threshold = a[13];
   if (typeof threshold !== 'number' || !Number.isFinite(threshold) || threshold < 0 || threshold > 1) invalid();
   return {
@@ -111,6 +121,7 @@ function unpack(raw: unknown): SharedChoices {
       goal: { blueStats: STATS.filter((_, i) => mask & 1 << i), blueStars: stars(goal[1]), pink }, targets,
       targetLineage: Object.fromEntries(lineage.map((l) => [l.id, l.value])), parentSparks, pinkLineage,
       aptOverrides: Object.fromEntries(overrides.map((p) => [p.aptitude, p.grade])), pinnedIds: ids(a[8]),
+      ...(version === 2 ? {} : { raceOverrides: Object.fromEntries(races) }),
       borrowFromAll: !!integer(a[9], 0, 1), wishlistOrder: ids(a[10]), wishlistExcluded: ids(a[11]),
     },
     settings: { focus: choice(a[12], FOCUSES), winThreshold: threshold as number },
@@ -127,8 +138,9 @@ function decodePrototype(raw: unknown): SharedChoices {
     'pinkLineage', 'aptOverrides', 'pinnedIds', 'borrowFromAll', 'wishlistOrder', 'wishlistExcluded'] as const;
   if (a.length > 15) invalid();
   const run = { ...structuredClone(DEFAULTS.run), ...Object.fromEntries(fields.map((key, i) => [key, a[i + 1] ?? structuredClone(DEFAULTS.run[key])])) };
+  delete run.raceOverrides;
   const original = { run, settings: { focus: a[13] ?? DEFAULTS.settings.focus, winThreshold: a[14] ?? DEFAULTS.settings.winThreshold } } as SharedChoices;
-  const decoded = unpack(pack(original));
+  const decoded = unpack(pack(original).slice(0, 14), 2);
   if (canonical(decoded) !== canonical(original)) invalid();
   return decoded;
 }
@@ -138,13 +150,13 @@ const base64 = (bytes: Uint8Array) => btoa(Array.from(bytes, (b) => String.fromC
 export async function encodeShare(choices: SharedChoices): Promise<string> {
   const packed = pack(choices);
   // Verify the public encoder never emits choices the decoder would silently alter or reject.
-  if (canonical(unpack(packed)) !== canonical(choices)) invalid();
+  if (canonical(unpack(packed)) !== canonical({ ...choices, run: { ...choices.run, raceOverrides: choices.run.raceOverrides ?? {} } })) invalid();
   const entries = packed.map((value, i) => canonical(value) === canonical(PACKED_DEFAULTS[i]) ? null : value);
   while (entries.at(-1) === null) entries.pop();
   const bytes = new TextEncoder().encode(JSON.stringify(entries));
   if (bytes.length > MAX_JSON_BYTES) throw new ShareCodeError('size');
   const compressed = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
-  const code = compressed.length < bytes.length ? `2d${base64(compressed)}` : `2j${base64(bytes)}`;
+  const code = compressed.length < bytes.length ? `3d${base64(compressed)}` : `3j${base64(bytes)}`;
   if (code.length > MAX_CODE_LENGTH) throw new ShareCodeError('size');
   return code;
 }
@@ -154,7 +166,7 @@ export async function decodeShare(code: string): Promise<SharedChoices> {
   try {
     if (code.length > MAX_CODE_LENGTH) throw new ShareCodeError('size');
     if (!/^[0-9][dj][A-Za-z0-9_-]+$/.test(code)) invalid();
-    if (code[0] !== '1' && code[0] !== '2') throw new ShareCodeError('version');
+    if (!['1', '2', '3'].includes(code[0]!)) throw new ShareCodeError('version');
     const bytes = Uint8Array.from(atob(code.slice(2).replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0));
     if (base64(bytes) !== code.slice(2)) invalid();
     const source = new Blob([bytes]).stream();
@@ -172,7 +184,7 @@ export async function decodeShare(code: string): Promise<SharedChoices> {
       }
     } finally { reader.releaseLock(); }
     const raw: unknown = JSON.parse(await new Blob(chunks).text());
-    return code[0] === '1' ? decodePrototype(raw) : unpack(raw);
+    return code[0] === '1' ? decodePrototype(raw) : unpack(raw, Number(code[0]));
   } catch (error) { throw error instanceof ShareCodeError ? error : new ShareCodeError(); }
 }
 

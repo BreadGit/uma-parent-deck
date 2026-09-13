@@ -15,7 +15,7 @@ const empty: SharedChoices = {
     goal: { blueStats: ['speed', 'stamina', 'power', 'guts', 'wit'], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] },
     targets: [], targetLineage: {}, parentSparks: [[null, null, null], [null, null, null]],
     pinkLineage: [null, null, null, null, null, null], aptOverrides: {}, pinnedIds: [], borrowFromAll: false,
-    wishlistOrder: [], wishlistExcluded: [],
+    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {},
   },
   settings: { focus: 'stamina', winThreshold: 0.8 },
 };
@@ -28,18 +28,24 @@ const populated: SharedChoices = {
     parentSparks: [[{ stat: 'speed', stars: 3 }, null, { stat: 'power', stars: 2 }], [null, null, null]],
     pinkLineage: [{ aptitude: 'mile', stars: 3, inferred: true }, null, null, null, null, null],
     aptOverrides: { mile: 'A' }, pinnedIds: [30160], borrowFromAll: true,
-    wishlistOrder: [201601, 200472], wishlistExcluded: [200012],
+    wishlistOrder: [201601, 200472], wishlistExcluded: [200012], raceOverrides: {},
   },
   settings: { focus: 'sprint', winThreshold: 0.65 },
 };
 const prototype = '1dfZDBasMwEET_Zc5DkeQkhb31G3oUOqRYBWHXUSWZUIT-vShu3PTSy8KyM4-ZtUZRK6WV5oEVb_PqX8u5ZIhFjt6PIOLl6hMc79eUIQMRwzJBbMU5llDW0UPwEWYPIm8i01yjrQgjxCh9UppIl7kLk_9cQ7rh8y8xhUsK5QuimmPF5oFUTBpiiMlANBE15EhEAxlao7W1Qwpkj3xnNi7rPHO_b1UeA9LeFPtwjv9VGoiwvPvUo0tJq2_8638gsW5mwQsa7dDbOHYT7c87jFKHZ-P6rpQ2jsgxhaWA6ul0dN8';
 const plain = (raw: unknown) => `2j${Buffer.from(JSON.stringify(raw)).toString('base64url')}`;
 
+const legacy = (choices: SharedChoices) => {
+  const copy = structuredClone(choices);
+  delete copy.run.raceOverrides;
+  return copy;
+};
+
 test('historical share fixtures retain their original choices independently of app defaults', async () => {
-  assert.deepEqual(await decodeShare('2jW10'), empty);
-  assert.deepEqual(await decodeShare('1jWzIwXQ'), empty);
-  assert.deepEqual(await decodeShare(prototype), populated);
-  assert.deepEqual(await decodeShare('2dTYzRDUJBEAIbmhjYvXvay4b-2zBnnsbwBQyMJcssZtPMLCoJMyVfMqLRf1CYTX-iRrzCCN1Q0zjoq5s6XZ99ML8naT0rx0uuUOhx7bwB'), populated);
+  assert.deepEqual(await decodeShare('2jW10'), legacy(empty));
+  assert.deepEqual(await decodeShare('1jWzIwXQ'), legacy(empty));
+  assert.deepEqual(await decodeShare(prototype), legacy(populated));
+  assert.deepEqual(await decodeShare('2dTYzRDUJBEAIbmhjYvXvay4b-2zBnnsbwBQyMJcssZtPMLCoJMyVfMqLRf1CYTX-iRrzCCN1Q0zjoq5s6XZ99ML8naT0rx0uuUOhx7bwB'), legacy(populated));
 });
 
 test('compact shares round-trip every curated template and shorten representative codes', async () => {
@@ -72,22 +78,22 @@ test('partial inputs, boundaries, explicit empty choices and inactive lineage su
   assert.deepEqual(await decodeShare(await encodeShare(input)), input);
 });
 
-test('share scope excludes inventory, advanced settings, agenda, theme, and cached results', async () => {
+test('share scope excludes inventory, advanced settings, theme, and cached results', async () => {
   const local = defaultState(data);
   local.inventory = { 30160: 1, 30001: null };
   local.settings.affinity = 222;
   local.ui.theme = 'dark';
-  local.run.raceOverrides = { 'example-race': false };
+  local.run.raceOverrides = { '999999': false };
   const before = structuredClone(local);
   const key = shareKey(sharedChoices(local));
-  local.inventory[30002] = 3; local.settings.affinity = 180; local.ui.theme = 'light'; local.run.raceOverrides = {};
+  local.inventory[30002] = 3; local.settings.affinity = 180; local.ui.theme = 'light';
   assert.equal(shareKey(sharedChoices(local)), key);
   applySharedChoices(before, await decodeShare(prototype));
-  assert.deepEqual(sharedChoices(before), populated);
+  assert.deepEqual(sharedChoices(before), { ...populated, run: { ...populated.run, raceOverrides: { '999999': false } } });
   assert.deepEqual(before.inventory, { 30160: 1, 30001: null });
   assert.equal(before.settings.affinity, 222);
   assert.equal(before.ui.theme, 'dark');
-  assert.deepEqual(before.run.raceOverrides, { 'example-race': false });
+  assert.deepEqual(before.run.raceOverrides, { '999999': false });
   assert.deepEqual(migrate({ current: before }, data), before);
 });
 
@@ -148,7 +154,7 @@ test('malformed codes fail before any choices can be applied', async () => {
   for (const code of ['', 'garbage', '2dinvalid', '2jW10=', '2jW11', prototype.slice(0, -3), ...badPayloads.map(plain)]) {
     await assert.rejects(decodeShare(code), ShareCodeError, code.slice(0, 80));
   }
-  await assert.rejects(decodeShare('3jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
+  await assert.rejects(decodeShare('4jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
   await assert.rejects(decodeShare(`1j${Buffer.from('[21]').toString('base64url')}`), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
 });
 
@@ -163,4 +169,38 @@ test('share URLs preserve unrelated URL parameters and fragments', () => {
   const url = shareUrl('https://example.com/planner/?theme=dark#goal', '2jW10');
   assert.equal(url, 'https://example.com/planner/?theme=dark&run=2jW10#goal');
   assert.equal(shareUrl(url, null), 'https://example.com/planner/?theme=dark#goal');
+});
+
+test('format 3 stores signed calendar IDs and replaces the whole override set', async () => {
+  const choices = structuredClone(populated);
+  choices.run.raceOverrides = { 624: true, 623: false, 999999: false };
+  const code = await encodeShare(choices);
+  assert.equal(code[0], '3');
+  assert.deepEqual(await decodeShare(code), choices);
+  const literal = '3j' + Buffer.from(JSON.stringify([...Array(14).fill(null), [-623, 624, -999999]])).toString('base64url');
+  assert.deepEqual((await decodeShare(literal)).run.raceOverrides, choices.run.raceOverrides);
+  const local = defaultState(data);
+  local.run.raceOverrides = { 777: true };
+  applySharedChoices(local, await decodeShare(code));
+  assert.deepEqual(local.run.raceOverrides, choices.run.raceOverrides);
+  assert.deepEqual(migrate({ current: local }, { ...data, races: [] }).run.raceOverrides, choices.run.raceOverrides);
+  applySharedChoices(local, await decodeShare('2jW10'));
+  assert.deepEqual(local.run.raceOverrides, choices.run.raceOverrides, 'older links preserve local overrides');
+  applySharedChoices(local, await decodeShare('3jW10'));
+  assert.deepEqual(local.run.raceOverrides, {}, 'new links with no overrides restore automatic scheduling');
+  const reverse = structuredClone(choices);
+  reverse.run.raceOverrides = { 999999: false, 623: false, 624: true };
+  assert.equal(await encodeShare(reverse), code);
+});
+
+test('schedule overrides reject ambiguous IDs and invalid flags', async () => {
+  for (const overrides of [[0], [1.5], [623, -623], ['623'], [Number.MAX_SAFE_INTEGER + 1], {}]) {
+    const code = '3j' + Buffer.from(JSON.stringify([...Array(14).fill(null), overrides])).toString('base64url');
+    await assert.rejects(decodeShare(code), ShareCodeError);
+  }
+  for (const overrides of [{ '0623': true }, { invalid: false }, { 623: 1 }]) {
+    const choices = structuredClone(populated);
+    choices.run.raceOverrides = overrides as unknown as Record<string, boolean>;
+    await assert.rejects(encodeShare(choices), ShareCodeError);
+  }
 });

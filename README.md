@@ -143,12 +143,14 @@ where the smoke screenshot goes, or to an empty string to skip writing it.
 
 ### Sharing a run
 
-The address bar follows panels 1–4 and prioritized skill ordering and exclusions after a short
-pause in editing. Copy the URL from the address bar to share or bookmark those choices.
+The address bar follows panels 1–4, prioritized skill ordering and exclusions, and manual G1 schedule
+picks and skips after a short pause in editing. Copy the URL from the address bar to share or
+bookmark those choices.
 Opening a link with `?run=<code>` loads it before rendering the app. To load a raw code,
 put it in the URL as the `run` parameter.
 
-Loading keeps this device's inventory, advanced settings, theme and agenda picks. The code contains
+Loading keeps this device's inventory, advanced settings and theme. New links replace the schedule
+overrides too; older format 1 and 2 links keep this device's agenda picks. The code contains
 the choices themselves and needs no server-side storage. Different inventories, settings and game
 data can produce different recommendations from the same code. Unavailable IDs remain saved and
 appear in a notice; calculations use only the available choices. Reset all removes the URL parameter.
