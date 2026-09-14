@@ -68,20 +68,27 @@ async function loadShare(code: string) {
   }
 }
 
+function cancelPendingSharing() {
+  generation++; importRequest++;
+  clearTimeout(timer);
+}
+
+async function loadSharedUrl() {
+  // Navigation supersedes both unfinished imports and URL writes for the previous location.
+  cancelPendingSharing();
+  const code = new URL(location.href).searchParams.get('run');
+  if (code !== null) await loadShare(code); else { queueSync(true); refresh(); }
+}
+
 /** Run before mounting so a URL import cannot race the first edits or publish a plan for the old inputs. */
 export async function initializeSharing() {
   onUpdate(queueSync);
-  const code = new URL(location.href).searchParams.get('run');
-  if (code !== null) await loadShare(code); else queueSync();
-  window.addEventListener('popstate', () => {
-    const code = new URL(location.href).searchParams.get('run');
-    if (code !== null) void loadShare(code); else { queueSync(true); refresh(); }
-  });
+  window.addEventListener('popstate', () => { void loadSharedUrl(); });
+  await loadSharedUrl();
 }
 
 /** Reset all reloads the page. Cancel asynchronous writes before removing the old import URL. */
 export function clearSharedUrl() {
-  generation++; importRequest++;
-  clearTimeout(timer);
+  cancelPendingSharing();
   history.replaceState(history.state, '', shareUrl(location.href, null));
 }

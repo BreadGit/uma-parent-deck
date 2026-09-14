@@ -48,6 +48,16 @@ test('historical share fixtures retain their original choices independently of a
   assert.deepEqual(await decodeShare('2dTYzRDUJBEAIbmhjYvXvay4b-2zBnnsbwBQyMJcssZtPMLCoJMyVfMqLRf1CYTX-iRrzCCN1Q0zjoq5s6XZ99ML8naT0rx0uuUOhx7bwB'), legacy(populated));
 });
 
+test('frozen format 3 fixtures retain defaults and signed schedule overrides', async () => {
+  assert.deepEqual(await decodeShare('3jW10'), empty);
+  const code = '3dTYzZDcMwDEMXeikoyXbbWQTuv0bgIClKfvHskELBoCdF9yBt052KpUAU-jeSYFKXVYiPaaG7VBRh9PBu7az23gS_J2m801tLkSbRa036WFmsHBzfC_YJ';
+  const expected: SharedChoices = {
+    ...populated,
+    run: { ...populated.run, raceOverrides: { 623: false, 624: true, 999999: false } },
+  };
+  assert.deepEqual(await decodeShare(code), expected);
+});
+
 test('compact shares round-trip every curated template and shorten representative codes', async () => {
   for (const template of GOAL_TEMPLATES) {
     const state = defaultState(data);

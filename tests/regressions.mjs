@@ -1436,6 +1436,139 @@ function shareFixture() {
   return saved;
 }
 
+// Hold one native stream until the test releases it. Later streams finish normally, including newer imports.
+async function holdNextShareStream(page, kind) {
+  await page.evaluate((kind) => {
+    const Native = window[kind];
+    const gate = { started: false, finished: false };
+    const pending = new Promise((resolve) => { gate.release = resolve; });
+    (window.__shareStreams ??= {})[kind] = gate;
+    window[kind] = class {
+      constructor(format) {
+        window[kind] = Native;
+        const native = new Native(format);
+        this.writable = native.writable;
+        this.readable = native.readable.pipeThrough(new TransformStream({
+          async transform(chunk, controller) {
+            gate.started = true;
+            await pending;
+            controller.enqueue(chunk);
+          },
+          flush() { gate.finished = true; },
+        }));
+      }
+    };
+  }, kind);
+  return {
+    started: () => page.waitForFunction((kind) => window.__shareStreams[kind].started, kind),
+    release: async () => {
+      await page.evaluate((kind) => window.__shareStreams[kind].release(), kind);
+      await page.waitForFunction((kind) => window.__shareStreams[kind].finished, kind);
+      // Let decoding and the 300 ms URL debounce finish before asserting that stale work did nothing.
+      await page.waitForTimeout(500);
+    },
+  };
+}
+
+test('share navigation back without a code cancels an unfinished import', async (t) => {
+  const saved = shareFixture(), incoming = shareFixture();
+  incoming.settings.focus = 'balanced';
+  const page = await editor(t, saved);
+  await waitForShare(page);
+  await page.evaluate((href) => history.replaceState(null, '', href), shareUrl(url, null));
+  const decoding = await holdNextShareStream(page, 'DecompressionStream');
+  await navigateShare(page, shareUrl(url, await encodeShare(sharedChoices(incoming))));
+  await decoding.started();
+  await page.evaluate(() => new Promise((resolve) => {
+    window.addEventListener('popstate', () => resolve(), { once: true });
+    history.back();
+  }));
+  await decoding.release();
+  assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
+  assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(saved));
+  assert.equal(await page.locator('[data-dialog]').count(), 0);
+  await assertFieldsMatchState(page, 'after abandoning a share import with Back');
+});
+
+for (const pending of ['timer', 'compression']) {
+  test(`share navigation cancels an earlier URL ${pending} before decoding`, async (t) => {
+    const saved = shareFixture(), incoming = shareFixture();
+    incoming.settings.focus = 'stamina';
+    incoming.run.traineeStars = 5;
+    const page = await editor(t, saved);
+    await waitForShare(page);
+    const decoding = await holdNextShareStream(page, 'DecompressionStream');
+    const encoding = pending === 'compression' ? await holdNextShareStream(page, 'CompressionStream') : null;
+    const link = shareUrl(url, await encodeShare(sharedChoices(incoming)));
+    if (encoding) {
+      await page.selectOption('[data-setting="focus"]', 'balanced');
+      await encoding.started();
+      await navigateShare(page, link);
+    } else {
+      // Edit and navigate in one browser task, before the URL debounce can run.
+      await page.evaluate((next) => {
+        const focus = document.querySelector('[data-setting="focus"]');
+        focus.value = 'balanced';
+        focus.dispatchEvent(new Event('change', { bubbles: true }));
+        history.pushState(null, '', next);
+        dispatchEvent(new PopStateEvent('popstate'));
+      }, link);
+    }
+    await decoding.started();
+    if (encoding) await encoding.release(); else await page.waitForTimeout(500);
+    assert.equal(page.url(), link, 'the destination URL stays intact while its import is pending');
+    saved.settings.focus = 'balanced';
+    assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
+    await assertFieldsMatchState(page, 'while decoding the destination share');
+    await page.reload();
+    await page.waitForSelector('#target-search');
+    await waitForShare(page);
+    assert.deepEqual(sharedChoices(await state(page)), sharedChoices(incoming));
+    assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(incoming));
+    await assertFieldsMatchState(page, 'after reloading during a share import');
+  });
+}
+
+test('share navigation keeps the latest import when an older decode finishes last', async (t) => {
+  const first = shareFixture(), latest = shareFixture();
+  first.settings.focus = 'stamina';
+  latest.settings.focus = 'balanced';
+  latest.run.traineeStars = 5;
+  const page = await editor(t, shareFixture());
+  await waitForShare(page);
+  const decoding = await holdNextShareStream(page, 'DecompressionStream');
+  await navigateShare(page, shareUrl(url, await encodeShare(sharedChoices(first))));
+  await decoding.started();
+  await navigateShare(page, shareUrl(url, await encodeShare(sharedChoices(latest))));
+  await page.waitForFunction(() => document.querySelector('[data-select="trainee-stars"]').value === '5');
+  await decoding.release();
+  assert.deepEqual(sharedChoices(await state(page)), sharedChoices(latest));
+  assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(latest));
+  assert.equal(await page.locator('[data-dialog]').count(), 0);
+  await assertFieldsMatchState(page, 'after overlapping share imports');
+});
+
+test('share navigation preserves user edits made during decoding', async (t) => {
+  const saved = shareFixture(), incoming = shareFixture();
+  incoming.settings.focus = 'stamina';
+  incoming.run.traineeStars = 5;
+  const page = await editor(t, saved);
+  await waitForShare(page);
+  const decoding = await holdNextShareStream(page, 'DecompressionStream');
+  await navigateShare(page, shareUrl(url, await encodeShare(sharedChoices(incoming))));
+  await decoding.started();
+  await page.selectOption('[data-setting="focus"]', 'balanced');
+  await assertFieldsMatchState(page, 'after editing during a share import');
+  await decoding.release();
+  await page.waitForSelector('[data-dialog]');
+  assert.match(await page.locator('[data-dialog-message]').innerText(), /choices changed while the code was loading/);
+  saved.settings.focus = 'balanced';
+  assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
+  assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(saved));
+  await page.click('[data-dialog-confirm]');
+  await assertFieldsMatchState(page, 'after skipping a share import to preserve an edit');
+});
+
 test('share URLs restore their scope, follow edits, and survive an immediate reload', async (t) => {
   const receiver = defaultState(data);
   receiver.inventory = { 30052: 2, 30028: null };

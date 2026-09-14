@@ -16,7 +16,8 @@ address bar. `src/ui/app.ts` shows a notice only when saved choices are unavaila
 
 An incoming `run` URL parameter loads before the first render. Invalid or unsupported codes do not
 change saved choices. Browser history navigation also loads incoming codes and checks that no
-user edit occurred during decoding.
+user edit occurred during decoding. Every history navigation invalidates unfinished imports and URL
+writes for the previous location, including navigation to a URL without a share code.
 The address bar updates with `history.replaceState`, so edits do not add browser-history entries.
 Only shared input changes trigger encoding. Compression is debounced by 300 ms and older asynchronous
 results cannot replace newer snapshots. The app removes an outdated parameter immediately on an edit;
