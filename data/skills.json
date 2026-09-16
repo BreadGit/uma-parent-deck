@@ -1555,10 +1555,12 @@
   "tags": [
    "nac"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   104901
+  ],
   "eventChars": [],
   "desc": "Increase velocity when well-positioned with 400m or less remaining after trying to pass another runner on the final corner or later. If unfavored, greatly increase velocity instead."
  },
@@ -2624,7 +2626,7 @@
    "dir",
    "nac"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -3346,6 +3348,30 @@
   "desc": "Leader/Chaser・If you get a good start, you will get a slight speed boost; if you get a late start, then halfway through the race, if you're in the second half of the pack, your speed will greatly increase"
  },
  {
+  "id": 101491,
+  "name": "Bloom Fiercely",
+  "altName": "Bloom Fiercely",
+  "nameJp": "烈々と咲く",
+  "rarity": 5,
+  "cost": null,
+  "iconId": 20013,
+  "versions": [],
+  "tags": [
+   "l_1",
+   "cor",
+   "ldr",
+   "btw",
+   "med",
+   "str"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Leader/Betweener・If you're trying to overtake someone during any Middle Leg corner, your speed will slightly increase; (Medium only) then, on the next straight, you will get a speed boost"
+ },
+ {
   "id": 110011,
   "name": "Dazzl'n ♪ Diver",
   "altName": "Wayakawa ♪ Marine Dive",
@@ -3796,10 +3822,12 @@
   "tags": [
    "nac"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102102
+  ],
   "eventChars": [],
   "desc": "Moderately increase velocity continuously when the skill user activates 2 skills mid-race. Increase this skill's effectiveness if the user activates another skill while it's active (up to 2 times)."
  },
@@ -4080,10 +4108,12 @@
    "f_s",
    "nac"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103402
+  ],
   "eventChars": [],
   "desc": "Increase velocity on the final straight after pressuring a runner toward the back on a corner late-race. Effect increases for each time the user passed a runner on a corner late-race."
  },
@@ -6340,6 +6370,7 @@
   "unreleasedEn": false,
   "hintCards": [
    30085,
+   30119,
    20034,
    10069
   ],
@@ -6349,6 +6380,7 @@
    30065,
    30076,
    30081,
+   30120,
    10002
   ],
   "innateChars": [
@@ -6567,6 +6599,7 @@
    30043,
    30067,
    30108,
+   30146,
    20048,
    10005,
    10067
@@ -6579,6 +6612,7 @@
    100602,
    102101,
    100103,
+   102102,
    104101
   ],
   "desc": "Moderately increase performance at Nakayama Racecourse."
@@ -6674,6 +6708,7 @@
    102302,
    102101,
    100702,
+   102102,
    100701
   ],
   "desc": "Moderately increase performance at Hanshin Racecourse."
@@ -6765,7 +6800,8 @@
    103001,
    103002,
    102101,
-   101902
+   101902,
+   102102
   ],
   "desc": "Moderately increase performance at Kyoto Racecourse."
  },
@@ -7631,7 +7667,8 @@
    102301,
    104601,
    101002,
-   108701
+   108701,
+   102102
   ],
   "eventChars": [
    101402,
@@ -7962,7 +7999,9 @@
    106701,
    105902,
    103601,
-   107801
+   107801,
+   102102,
+   103402
   ],
   "desc": "Moderately increase performance in fall."
  },
@@ -8229,6 +8268,7 @@
    30046,
    30056,
    30113,
+   30146,
    20001,
    20006,
    20020,
@@ -8839,6 +8879,7 @@
   ],
   "eventChars": [
    105202,
+   104901,
    105201
   ],
   "desc": "Moderately increase performance when 4th favorite or below."
@@ -8933,6 +8974,7 @@
    30028,
    30072,
    30111,
+   30146,
    20007,
    10005,
    10030,
@@ -9772,7 +9814,8 @@
   "innateChars": [
    100102,
    107201,
-   101902
+   101902,
+   102102
   ],
   "eventChars": [],
   "desc": "Increase velocity when passing another runner mid-race."
@@ -9799,6 +9842,7 @@
    30071,
    30074,
    30089,
+   30120,
    20015,
    20024,
    20032,
@@ -9827,6 +9871,7 @@
    103601,
    105301,
    101902,
+   102102,
    104501
   ],
   "eventChars": [
@@ -9834,7 +9879,8 @@
    107101,
    107201,
    102202,
-   103401
+   103401,
+   103402
   ],
   "desc": "Slightly increase velocity when passing another runner mid-race."
  },
@@ -10041,6 +10087,7 @@
    30103,
    30108,
    30111,
+   30146,
    20007,
    20028,
    20037,
@@ -10069,6 +10116,7 @@
   ],
   "eventChars": [
    103502,
+   104901,
    100801,
    100901,
    103501
@@ -10209,6 +10257,7 @@
    30094,
    30097,
    30103,
+   30120,
    20039,
    20043,
    20048,
@@ -10624,7 +10673,8 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [
-   30047
+   30047,
+   30119
   ],
   "innateChars": [
    100302,
@@ -10662,6 +10712,8 @@
    30093,
    30096,
    30102,
+   30119,
+   30146,
    20002,
    20034,
    10008,
@@ -10754,6 +10806,7 @@
    30095,
    30102,
    30117,
+   30120,
    20002,
    20031,
    20033,
@@ -10965,6 +11018,7 @@
    104002,
    100103,
    103502,
+   104901,
    100801,
    102401,
    102701,
@@ -11206,7 +11260,8 @@
   "hintCards": [],
   "eventCards": [],
   "innateChars": [
-   105001
+   105001,
+   103402
   ],
   "eventChars": [],
   "desc": "Increase acceleration on a straight in the last spurt. (End Closer)"
@@ -11247,7 +11302,8 @@
    105001,
    102101,
    103401,
-   104401
+   104401,
+   103402
   ],
   "eventChars": [
    102402,
@@ -11633,6 +11689,7 @@
    102202,
    105902,
    101902,
+   102102,
    106201
   ],
   "desc": "Slightly increase passing ability when positioned toward the back late-race. (Mile)"
@@ -11723,10 +11780,12 @@
   "hintCards": [],
   "eventCards": [
    30007,
-   30079
+   30079,
+   30120
   ],
   "innateChars": [
    101501,
+   102102,
    100901,
    102701
   ],
@@ -11759,6 +11818,8 @@
    30092,
    30101,
    30104,
+   30120,
+   30146,
    20002,
    20004,
    20010,
@@ -11787,6 +11848,7 @@
   "innateChars": [
    101501,
    105901,
+   102102,
    100901,
    101401,
    101801,
@@ -11803,6 +11865,7 @@
    104201,
    105802,
    108701,
+   102102,
    101101
   ],
   "desc": "Slightly increase positioning ability when positioned toward the front mid-race. (Medium)"
@@ -12006,7 +12069,8 @@
   "innateChars": [
    105602,
    100602,
-   100702
+   100702,
+   103402
   ],
   "eventChars": [],
   "desc": "Increase velocity when near the inner rail on the final corner. (Long)"
@@ -12047,7 +12111,8 @@
    105602,
    101702,
    100602,
-   100702
+   100702,
+   103402
   ],
   "eventChars": [
    107401,
@@ -12536,6 +12601,7 @@
    10043
   ],
   "eventCards": [
+   30119,
    20034,
    10069
   ],
@@ -12777,7 +12843,8 @@
    20032
   ],
   "innateChars": [
-   104601
+   104601,
+   103402
   ],
   "eventChars": [],
   "desc": "Moderately increase performance at Oi Racecourse."
@@ -13840,6 +13907,7 @@
    30084,
    30090,
    30101,
+   30120,
    20004,
    20005,
    20010,
@@ -13876,6 +13944,7 @@
    105902,
    102901,
    105802,
+   104901,
    102701,
    103201
   ],
@@ -13964,6 +14033,7 @@
    30097,
    30101,
    30104,
+   30120,
    20011,
    20012,
    20022,
@@ -13983,6 +14053,7 @@
    30032,
    30067,
    30079,
+   30120,
    20047,
    10058
   ],
@@ -14192,6 +14263,7 @@
    30064,
    30096,
    30111,
+   30119,
    20022,
    20034,
    20047,
@@ -15361,6 +15433,7 @@
    30102,
    30109,
    30113,
+   30146,
    20033,
    20035,
    20043,
@@ -15459,6 +15532,8 @@
    30101,
    30109,
    30111,
+   30119,
+   30146,
    20027,
    20034,
    10041,
@@ -15620,6 +15695,7 @@
    30034,
    30093,
    30100,
+   30146,
    10015
   ],
   "eventCards": [
@@ -15635,7 +15711,8 @@
   ],
   "eventChars": [
    102201,
-   102202
+   102202,
+   102102
   ],
   "desc": "Slightly improve running on a downhill. (Pace Chaser)"
  },
@@ -15691,6 +15768,7 @@
    30040,
    30044,
    30069,
+   30146,
    20043,
    10001,
    10005,
@@ -15703,7 +15781,8 @@
    30031,
    30040,
    30062,
-   30085
+   30085,
+   30120
   ],
   "innateChars": [
    100101,
@@ -15926,7 +16005,8 @@
    101901,
    103901,
    105901,
-   106102
+   106102,
+   104901
   ],
   "eventChars": [
    103502,
@@ -15950,7 +16030,7 @@
    "btw",
    "str"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -16612,6 +16692,7 @@
    20014
   ],
   "innateChars": [
+   103402,
    100701
   ],
   "eventChars": [],
@@ -16673,7 +16754,9 @@
    100702,
    100701
   ],
-  "eventChars": [],
+  "eventChars": [
+   103402
+  ],
   "desc": "Slightly reduce fatigue on a downhill. (End Closer)"
  },
  {
@@ -16964,6 +17047,7 @@
    30104,
    30109,
    30113,
+   30119,
    20003,
    20028,
    20034,
@@ -17205,7 +17289,8 @@
    10044
   ],
   "eventCards": [
-   30046
+   30046,
+   30146
   ],
   "innateChars": [
    100402,
@@ -17425,6 +17510,7 @@
    30089,
    30097,
    30113,
+   30120,
    20015,
    20032,
    20049,
@@ -17445,11 +17531,14 @@
    100102,
    102001,
    102101,
-   103401
+   103401,
+   102102
   ],
   "eventChars": [
    102101,
-   103401
+   103401,
+   102102,
+   103402
   ],
   "desc": "Slightly increase velocity after activating many skills mid-race."
  },
@@ -17856,7 +17945,8 @@
   ],
   "eventChars": [
    103401,
-   109801
+   109801,
+   103402
   ],
   "desc": "Moderately prepare to aim for the front late-race. (Dirt)"
  },
@@ -17922,6 +18012,7 @@
    101102,
    101701,
    101702,
+   104901,
    101101
   ],
   "desc": "Slightly recover endurance when positioned midpack or further back upon approaching mid-race. (Late Surger)"
@@ -17975,6 +18066,7 @@
    30086,
    30090,
    30108,
+   30146,
    10067,
    10077
   ],
@@ -17985,7 +18077,8 @@
   "innateChars": [
    104801,
    107101,
-   103502
+   103502,
+   104901
   ],
   "eventChars": [
    101001,
@@ -17997,6 +18090,7 @@
    101002,
    105902,
    105802,
+   103402,
    100801,
    106201
   ],
@@ -18071,6 +18165,7 @@
    30102,
    30109,
    30113,
+   30146,
    20033
   ],
   "eventCards": [
@@ -18082,7 +18177,8 @@
    102202,
    101002,
    104201,
-   105802
+   105802,
+   102102
   ],
   "eventChars": [
    100301,
@@ -18284,7 +18380,9 @@
    30080,
    30108
   ],
-  "innateChars": [],
+  "innateChars": [
+   104901
+  ],
   "eventChars": [],
   "desc": "Greatly increase velocity in the second half of the race, but also greatly increase fatigue sometimes."
  },
@@ -18316,7 +18414,8 @@
    10074
   ],
   "innateChars": [
-   100702
+   100702,
+   104901
   ],
   "eventChars": [],
   "desc": "Moderately increase velocity in the second half of the race, but also greatly increase fatigue sometimes."
@@ -18591,7 +18690,8 @@
   ],
   "eventChars": [
    103401,
-   103601
+   103601,
+   103402
   ],
   "desc": "When engaged in a challenge midpack mid-race, very slightly recover endurance and slightly increase velocity. (Medium)"
  },
@@ -18651,7 +18751,8 @@
    103401,
    103601,
    105002,
-   104201
+   104201,
+   103402
   ],
   "desc": "When positioned toward the back mid-race, slightly increase velocity. (Medium)"
  },
@@ -19828,7 +19929,9 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103402
+  ],
   "eventChars": [
    101901,
    101902
@@ -20386,7 +20489,9 @@
   ],
   "unreleasedEn": false,
   "hintCards": [],
-  "eventCards": [],
+  "eventCards": [
+   30146
+  ],
   "innateChars": [],
   "eventChars": [],
   "desc": "Moderately increase velocity and acceleration upon approaching late-race when leading or within 4 lengths of the lead. (Pace, Medium)"
@@ -20408,7 +20513,9 @@
    "l_1"
   ],
   "unreleasedEn": false,
-  "hintCards": [],
+  "hintCards": [
+   30146
+  ],
   "eventCards": [],
   "innateChars": [],
   "eventChars": [],
@@ -20431,7 +20538,9 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   104901
+  ],
   "eventChars": [],
   "desc": "Occasionally tap into untold inner strength, greatly increasing Speed, Power, and Guts. More likely to activate when skill user is unfavored."
  },
@@ -20449,10 +20558,12 @@
   "tags": [
    "nac"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   104901
+  ],
   "eventChars": [],
   "desc": "Very occasionally tap into untold inner strength, moderately increasing Speed, Power, and Guts. More likely to activate when skill user is unfavored."
  },
@@ -21278,7 +21389,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   104901
+  ],
   "eventChars": [],
   "desc": "Increase Speed and Power when both attributes exceed a certain amount. (Mile/Medium)"
  },
@@ -21546,7 +21659,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   101401
+  ],
   "eventChars": [],
   "desc": "Leader/Betweener・If you're on the final corner in the Final Leg, you're not in the back of the pack, and there's at least 600 m remaining in the race, your acceleration will greatly increase"
  },
@@ -27811,7 +27926,9 @@
   "innateChars": [
    100101,
    100201,
-   100301
+   100301,
+   104901,
+   101401
   ],
   "eventChars": [],
   "desc": "At a random point during your Zenkai Spurt, your Zenkai acceleration will slightly increase and you will get a slight speed boost"
@@ -29092,6 +29209,52 @@
   "desc": "Short・If you're not in the front at a random point during the Middle Leg, you will use a little extra stamina to increase your speed"
  },
  {
+  "id": 204691,
+  "name": "At Daggers Drawn",
+  "altName": "At Daggers Drawn",
+  "nameJp": "剣抜弩張",
+  "rarity": 2,
+  "cost": 180,
+  "iconId": 20012,
+  "versions": [
+   204692
+  ],
+  "tags": [
+   "l_1",
+   "mil",
+   "med"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Mile/Medium・If you're in the first half of the pack during the Middle Leg and you're being blocked from the side, you will get a speed boost"
+ },
+ {
+  "id": 204692,
+  "name": "Face-Off",
+  "altName": "Face-Off",
+  "nameJp": "立ち合い",
+  "rarity": 1,
+  "cost": 180,
+  "iconId": 20011,
+  "versions": [
+   204691
+  ],
+  "tags": [
+   "l_1",
+   "mil",
+   "med"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Mile/Medium・If you're in the first half of the pack during the Middle Leg and you're being blocked from the side, you will get a slight speed boost"
+ },
+ {
   "id": 204701,
   "name": "Proof of Talent",
   "altName": "Proof of Talent",
@@ -29134,6 +29297,50 @@
   "innateChars": [],
   "eventChars": [],
   "desc": "At a random point during the Middle Leg, you will get a marginal speed boost"
+ },
+ {
+  "id": 204711,
+  "name": "A Rousing Shout",
+  "altName": "A Rousing Shout",
+  "nameJp": "励声一番",
+  "rarity": 2,
+  "cost": 190,
+  "iconId": 20012,
+  "versions": [
+   204712
+  ],
+  "tags": [
+   "btw",
+   "l_1"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・At a random point during the Middle Leg, you will get a speed boost"
+ },
+ {
+  "id": 204712,
+  "name": "Raise Your Spirits",
+  "altName": "Raise Your Spirits",
+  "nameJp": "気勢を上げて",
+  "rarity": 1,
+  "cost": 190,
+  "iconId": 20011,
+  "versions": [
+   204711
+  ],
+  "tags": [
+   "btw",
+   "l_1"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・At a random point during the Middle Leg, you will get a slight speed boost"
  },
  {
   "id": 210011,
@@ -31720,7 +31927,7 @@
    "sho",
    "tur"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -31740,7 +31947,7 @@
    "med",
    "dir"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -33799,6 +34006,32 @@
   "desc": "Recover endurance and slightly increase velocity when positioned toward the front upon approaching mid-race. (Pace Chaser)"
  },
  {
+  "id": 101401311,
+  "name": "The Mighty Bird Flies On",
+  "altName": "The Mighty Bird Flies On",
+  "nameJp": "怪鳥は飛んでいく",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 20046,
+  "versions": [],
+  "tags": [
+   "ldr",
+   "l_2",
+   "l_3",
+   "f_c",
+   "cor",
+   "btw"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [
+   101401
+  ],
+  "eventChars": [],
+  "desc": "Leader/Betweener・If you're not in the back of the pack on the Final Corner, it's the Final Leg and there's at least 600 m remaining in the race, your acceleration will greatly increase; in 2400 m races, you will also get a speed boost"
+ },
+ {
   "id": 101402111,
   "name": "Heroic Flurry",
   "altName": "Unparalleled Bravery",
@@ -34672,7 +34905,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102102
+  ],
   "eventChars": [],
   "desc": "Greatly increase velocity when positioned toward the front mid-race. (Medium)"
  },
@@ -34692,7 +34927,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102102
+  ],
   "eventChars": [],
   "desc": "Greatly increase velocity after passing another runner mid-race."
  },
@@ -34712,7 +34949,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102102
+  ],
   "eventChars": [],
   "desc": "If you overtake someone during the Middle Leg, your speed will increase"
  },
@@ -36266,7 +36505,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103402
+  ],
   "eventChars": [],
   "desc": "Greatly increase velocity when near the inner rail on the final corner. (Long)"
  },
@@ -36286,7 +36527,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103402
+  ],
   "eventChars": [],
   "desc": "Increase acceleration and slightly widen field of view on a straight during the last spurt. (End Closer)"
  },
@@ -36309,7 +36552,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103402
+  ],
   "eventChars": [],
   "desc": "Chaser・Long・During any Last Spurt straight, your acceleration will increase; then, on the Final Corner, you will get a slight speed boost"
  },
@@ -38073,7 +38318,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   104901
+  ],
   "eventChars": [],
   "desc": "Massively increase velocity in the second half of the race, but also massively increase fatigue sometimes."
  },
@@ -38092,9 +38339,32 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   104901
+  ],
   "eventChars": [],
   "desc": "Occasionally tap into untold inner strength, massively increasing Speed, Power, and Guts. More likely to activate when skill user is unfavored."
+ },
+ {
+  "id": 104901311,
+  "name": "All-in!!",
+  "altName": "All-in!!",
+  "nameJp": "All-in!!",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 10016,
+  "versions": [],
+  "tags": [
+   "med"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [
+   104901
+  ],
+  "eventChars": [],
+  "desc": "Medium・Your Speed and Power stats are increased by 60; in 2200 m Hanshin races or any Longchamp race, any popularity requirements of your skills are automatically met"
  },
  {
   "id": 104902111,
@@ -44962,5 +45232,49 @@
   "innateChars": [],
   "eventChars": [],
   "desc": "Leader/Chaser・In races from 2000 to 2500 m, at a random point during the first quarter of the Final Leg, your acceleration will greatly increase; (Medium only) if you overtook someone during the second half of the race, you will also get a slight speed boost"
+ },
+ {
+  "id": 114901111,
+  "name": "Secret Art: Downhill Charge",
+  "altName": "Secret Art: Downhill Charge",
+  "nameJp": "妙技・坂落とし",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 20016,
+  "versions": [],
+  "tags": [
+   "mil",
+   "slo",
+   "med",
+   "ldr",
+   "btw"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Leader/Betweener・At a random point on a random downhill, you will get a great speed boost; in Mile or Medium races, your acceleration will also slightly increase"
+ },
+ {
+  "id": 114901211,
+  "name": "Come Close and I'll Cut You",
+  "altName": "Come Close and I'll Cut You",
+  "nameJp": "寄らば斬る！",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 20016,
+  "versions": [],
+  "tags": [
+   "l_1",
+   "mil",
+   "med"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Mile/Medium・If you're being blocked from the side during the Middle Leg, you will get a speed boost; then, with 400 m remaining, if your base Power and Guts are both at least 1000, your speed will increase"
  }
 ]

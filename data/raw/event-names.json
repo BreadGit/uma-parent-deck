@@ -2970,6 +2970,32 @@
   "special": [],
   "dates": []
  },
+ "30119": {
+  "chain": [
+   "Let's Use Our Imaginations",
+   "Let's Read a Story",
+   "Let's Learn Through Immersion"
+  ],
+  "random": [
+   "The Glass Girl Wants to Study",
+   "The Glass Girl Wants to Play"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "30120": {
+  "chain": [
+   "First, Know Thyself",
+   "Second, Know Thy Duty",
+   "Third, Show Thy Spirit"
+  ],
+  "random": [
+   "Firm and Plain, Yet Close to Virtue",
+   "The Will to Protect!"
+  ],
+  "special": [],
+  "dates": []
+ },
  "30121": {
   "chain": [
    "Please Rerun Task",
@@ -2992,6 +3018,19 @@
   "random": [
    "The Euphoria of Destruction!",
    "An Electrifying Present!"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "30146": {
+  "chain": [
+   "Fostering Gratitude",
+   "Creating Smiles",
+   "Sharing Happiness"
+  ],
+  "random": [
+   "How Should I Respond?",
+   "Conquering the Crowds"
   ],
   "special": [],
   "dates": []

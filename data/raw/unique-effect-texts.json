@@ -37,6 +37,9 @@
  "30116": "Gain Initial Stat Up (10), where Stat is the type of the card, for every card in your support deck (Friend and Group types give (2) to every stat)",
  "30117": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
  "30118": "Gain Guts Bonus (2) when the bond gauge is at least 80",
+ "30119": "Gain Power Bonus (2) when the bond gauge is at least 80",
+ "30120": "Gain Guts Bonus (3) when the bond gauge is full",
  "30121": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
- "30145": "Gain Power Bonus (2) when the bond gauge is at least 80"
+ "30145": "Gain Power Bonus (2) when the bond gauge is at least 80",
+ "30146": "All support cards gain Initial Friendship Gauge (5)"
 }
