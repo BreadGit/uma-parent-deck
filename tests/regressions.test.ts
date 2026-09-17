@@ -42,7 +42,7 @@ test('new states and resets do not share mutable run or settings defaults', () =
   assert.equal(reset.settings.focus, DEFAULT_SETTINGS.focus);
   assert.equal(reset.settings.winThreshold, DEFAULT_SETTINGS.winThreshold);
   assert.equal(reset.settings.affinity, 175);
-  assert.equal(reset.inventory, a.inventory);
+  assert.deepEqual(reset.inventory, a.inventory, 'Reset all keeps the inventory');
 });
 
 test('migrated states and sanitized settings own their mutable values', () => {

@@ -198,8 +198,7 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.ok((withTrainee.deckResult.sparks.get(corner.id) ?? 0) > (withoutLineage.deckResult.sparks.get(corner.id) ?? 0), 'lineage raises the spark chance for the same deck');
   const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data, { budget: 8 });
   assert.ok(!unowned.deckResult.deck.some((d) => d.card.id === 30052 && !d.borrowed), 'an unowned pin is skipped');
-  assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking');
-  assert.ok(unowned.ranking.some((r) => r.card.id === 30052), 'the model retains unowned cards for the UI visibility filter');
+  assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking: the model retains unowned cards for the UI visibility filter');
 });
 
 test('retained decks update estimates and limit breaks, but cannot bypass ownership, pins or trainee exclusion', () => {
