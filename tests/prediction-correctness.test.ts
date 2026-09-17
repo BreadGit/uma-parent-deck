@@ -70,6 +70,21 @@ test('greedy purchases reprice upgrades, preserve ties and skip unaffordable cho
   assert.deepEqual(buySkills([upgraded, tied], '31', 60, [], apt, 0), { state: '11', score: 180, spent: 60 });
 });
 
+test('purchase outcomes reset spent points and upgrades while retaining priority order', () => {
+  const upgraded = { ...focus, white: { ...focus.white!, tags: [], cost: 20, rating: 100 },
+    gold: { ...focus.gold!, tags: [], cost: 80, rating: 260 } };
+  const other = { ...focus, id: 2, gold: null, white: { ...focus.white!, tags: [], cost: 40, rating: 80 } };
+  const result = budgetForms([upgraded, other], { count: 2, components: [
+    { indices: [0, 1], distribution: { states: new Map([['31', .25], ['30', .25], ['01', .25], ['00', .25]]), approximate: false } },
+  ] }, 100, [other.id, upgraded.id], apt, 0);
+  // With both skills available, their required bases leave only 40 SP for an 80 SP upgrade.
+  // Without the other skill, the same budget buys the gold form for 100 SP.
+  assert.deepEqual([...result.forms.components[0]!.distribution.states], [['11', .25], ['30', .25], ['01', .25], ['00', .25]]);
+  assert.equal(result.score, 130);
+  assert.equal(result.variance, 9700);
+  assert.equal(result.spent, 50);
+});
+
 test('large purchase samples balance every independent source, including late dimensions', () => {
   const targets = Array.from({ length: 60 }, (_, i) => ({ ...focus, id: i + 1 }));
   const forms = { count: targets.length, components: targets.map((_, i) => ({ indices: [i],

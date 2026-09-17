@@ -43,29 +43,41 @@ function purchasePolicy(targets: Target[], budget: number, priority: number[], a
   const ordered = [...new Set(priority)].map((id) => targets.findIndex((t) => t.id === id)).filter((i) => i >= 0);
   const bases = ordered.map((i) => options.find((o) => o.i === i && o.form === 1));
   const upgrades = ordered.map((i) => options.filter((o) => o.i === i && o.form > 1).reverse());
+  // Each outcome runs synchronously. Reuse scratch arrays without retaining its state.
+  const availableForms = Array<number>(targets.length).fill(0);
+  const bought = availableForms.slice(), points = availableForms.slice();
+  const allowed: typeof options = [];
+  const initialBudget = Math.max(0, Math.floor(budget));
+  let remaining = initialBudget;
+  const canBuy = (o: typeof options[number]) => o.form <= availableForms[o.i]! && o.form > bought[o.i]! && o.costs[bought[o.i]!]! <= remaining;
+  const buy = (o: typeof options[number]) => {
+    remaining -= o.costs[bought[o.i]!]!; points[o.i] = o.points; bought[o.i] = o.form;
+  };
   return (available: string) => {
-    const availableForms = Array.from(available, Number);
-    const bought = targets.map(() => 0), points = targets.map(() => 0);
-    let remaining = Math.max(0, Math.floor(budget));
-    const allowed = options.filter((o) => o.form <= availableForms[o.i]!);
-    const canBuy = (o: typeof options[number]) => o.form <= availableForms[o.i]! && o.form > bought[o.i]! && o.costs[bought[o.i]!]! <= remaining;
-    const buy = (o: typeof options[number]) => {
-      remaining -= o.costs[bought[o.i]!]!; points[o.i] = o.points; bought[o.i] = o.form;
-    };
+    for (let i = 0; i < targets.length; i++) availableForms[i] = available.charCodeAt(i) - 48;
+    bought.fill(0); points.fill(0); allowed.length = 0;
+    remaining = initialBudget;
     for (const o of bases) if (o && canBuy(o)) buy(o);
     for (const family of upgrades) for (const o of family) if (canBuy(o)) { buy(o); break; }
+    for (const o of options) if (canBuy(o)) allowed.push(o);
     // Greedy fill is a stated purchase policy, not a globally optimal score.
     while (true) {
       let best: typeof options[number] | undefined, bestRatio = 0;
+      let retained = 0;
       for (const o of allowed) {
-        if (!canBuy(o)) continue;
-        const ratio = o.ratios[bought[o.i]!]!;
+        const form = bought[o.i]!;
+        // Buying a prerequisite lowers its upgrade cost and the budget by the same amount.
+        // An unaffordable option cannot become affordable after another purchase.
+        if (o.form <= form || !(o.costs[form]! <= remaining)) continue;
+        allowed[retained++] = o;
+        const ratio = o.ratios[form]!;
         if (ratio > bestRatio) { best = o; bestRatio = ratio; }
       }
+      allowed.length = retained;
       if (!best) break;
       buy(best);
     }
-    return { state: bought.join(''), score: points.reduce((sum, p) => sum + p, 0), spent: Math.max(0, Math.floor(budget)) - remaining };
+    return { state: bought.join(''), score: points.reduce((sum, p) => sum + p, 0), spent: initialBudget - remaining };
   };
 }
 
