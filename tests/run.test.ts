@@ -176,7 +176,8 @@ test('planRun: the prioritized order decides a shared event, and only the first 
 });
 
 test('planRun: an empty input still builds a full deck with scenario options; the trainee, her lineage and the inventory shape the result', () => {
-  const plan = planRun(empty, settings, {}, data);
+  // A small budget: the shape of the plan, not the best deck, is under test.
+  const plan = planRun(empty, settings, {}, data, { budget: 8 });
   assert.equal(plan.trainee, null);
   assert.equal(plan.deckResult.deck.length, 6);
   assert.equal(plan.deckResult.deck.filter((d) => d.borrowed).length, 1);
@@ -185,7 +186,7 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.ok(plan.rank.pSS >= 0 && plan.rank.pSS <= 1);
   const corner = resolveTarget(200352, data)!;
   const input: RunInput = { ...empty, traineeCardId: sw.cardId, traineeStars: 3, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: { [corner.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } }, pinnedIds: [30052] };
-  const withTrainee = planRun(input, settings, {}, data);
+  const withTrainee = planRun(input, settings, {}, data, { budget: 8 });
   assert.equal(withTrainee.trainee?.name, 'Special Week');
   assert.ok(withTrainee.deckResult.deck.some((d) => d.card.id === 30052), 'pinned Light Hello is in the deck');
   assert.ok(!withTrainee.deckResult.deck.some((d) => d.card.charId === sw.charId), "the trainee's own cards are excluded");
@@ -195,7 +196,7 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   const withoutLineage = planRun({ ...input, targetLineage: {} }, settings, {}, data, { selection });
   assert.deepEqual(withoutLineage.deckResult.deck.map((d) => d.card.id), selection.map((d) => d.id));
   assert.ok((withTrainee.deckResult.sparks.get(corner.id) ?? 0) > (withoutLineage.deckResult.sparks.get(corner.id) ?? 0), 'lineage raises the spark chance for the same deck');
-  const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data);
+  const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data, { budget: 8 });
   assert.ok(!unowned.deckResult.deck.some((d) => d.card.id === 30052 && !d.borrowed), 'an unowned pin is skipped');
   assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking');
   assert.ok(unowned.ranking.some((r) => r.card.id === 30052), 'the model retains unowned cards for the UI visibility filter');

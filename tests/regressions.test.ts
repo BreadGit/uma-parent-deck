@@ -174,7 +174,8 @@ test('event choice scoring accounts for a purchasable circle upgrade', () => {
 });
 
 test('borrow gain uses the final five owned cards as its baseline', () => {
-  const p = planRun({ ...input(), targets: [200352, 201601, 200472].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })) }, settings(), {}, data);
+  // A small budget: the gain identity holds for whichever deck the search settles on.
+  const p = planRun({ ...input(), targets: [200352, 201601, 200472].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })) }, settings(), {}, data, { budget: 8 });
   const owned = traineeCoverage(p.targets, p.ctx);
   for (const entry of p.deckResult.deck.filter((c) => !c.borrowed)) {
     owned.chars.add(entry.card.charId);
@@ -199,7 +200,7 @@ test('plans with fewer than five usable owned characters are explicitly incomple
   for (let n = 0; n <= 5; n++) {
     const inventory: Inventory = Object.fromEntries(data.cards.map((c) => [c.id, null]));
     candidates.slice(0, n).forEach((id) => { inventory[id] = 4; });
-    const p = planRun(input(), settings(), inventory, data);
+    const p = planRun(input(), settings(), inventory, data, { budget: 8 });
     assert.equal(p.issues.length > 0, n < 5, `${n} owned cards`);
     if (n === 5) assert.equal(p.deckResult.deck.length, 6);
   }

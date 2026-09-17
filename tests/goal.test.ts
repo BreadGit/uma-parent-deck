@@ -294,11 +294,12 @@ test('goal editing drives selection while supplied-deck prediction stays consist
   const input = structuredClone(DEFAULT_RUN);
   input.traineeCardId = data.characters.find((c) => c.name === 'Special Week')!.cardId;
   input.targets = [a.id, b.id].map((id) => ({ id, role: 'preferred', stars: 2, priority: 0 }));
-  const before = planRun(input, settings, {}, data);
+  // A small budget: the assertions compare the two searches, not their best decks.
+  const before = planRun(input, settings, {}, data, { budget: 8 });
   input.goal = { ...structuredClone(BASE_GOAL), pink: [{ aptitude: 'turf', stars: 2 }] };
   input.targets.forEach((t) => { t.role = 'required'; });
   input.pinkLineage = lineage();
-  const after = planRun(input, settings, {}, data);
+  const after = planRun(input, settings, {}, data, { budget: 8 });
   assert.ok(before.search && after.search);
   assert.equal(after.search.score.total, 4);
   assert.equal(before.search.score.total, 2);
