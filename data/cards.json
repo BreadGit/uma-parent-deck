@@ -75312,7 +75312,8 @@
   "unique": {
    "effects": [],
    "level": 30,
-   "fromLb": 0
+   "fromLb": 0,
+   "text": "Sasami Anshinzawa random events are more likely to occur"
   },
   "hintSkills": [],
   "eventSkills": [
@@ -84073,6 +84074,35 @@
    "fromLb": 0,
    "text": "Increases skill point gain when training together"
   },
+  "hintOthersSource": [
+   [
+    {
+     "hint_type": 2,
+     "hint_value": 2
+    },
+    {
+     "hint_type": 3,
+     "hint_value": 6
+    }
+   ],
+   {
+    "level": 30,
+    "stats": [
+     {
+      "hint_type": 2,
+      "hint_value": 4
+     },
+     {
+      "hint_type": 3,
+      "hint_value": 12
+     },
+     {
+      "hint_type": 30,
+      "hint_value": 2
+     }
+    ]
+   }
+  ],
   "hintSkills": [],
   "eventSkills": [
    201401,

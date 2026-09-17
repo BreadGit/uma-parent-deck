@@ -10,6 +10,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
 
 const BASE = 'https://gametora.com';
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -76,31 +77,7 @@ async function fetchStatic() {
 // ---------- normalization ----------
 
 const RARITY = { 1: 'R', 2: 'SR', 3: 'SSR' };
-// effects rows: [type, lv1, lv5, lv10, lv15, lv20, lv25, lv30, lv35, lv40, lv45, lv50]
-const LEVELS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
-// Level reached at each limit break by rarity.
-const LB_LEVEL = { R: [20, 25, 30, 35, 40], SR: [25, 30, 35, 40, 45], SSR: [30, 35, 40, 45, 50] };
 const TYPE = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
-
-/** The first limit break (0..4) whose level reaches `level`; 5 when none does. */
-function unlockLb(rarity, level) {
-  const i = LB_LEVEL[rarity].findIndex((lvl) => lvl >= level);
-  return i < 0 ? 5 : i;
-}
-
-function interpolateEffects(row) {
-  const values = row.slice(1);
-  return LEVELS.map((level, i) => {
-    if (values[i] !== -1) return values[i];
-    let left = i - 1, right = i + 1;
-    while (left >= 0 && values[left] === -1) left--;
-    // Missing values before the unlock stay at zero.
-    if (left < 0) return 0;
-    while (right < values.length && values[right] === -1) right++;
-    if (right === values.length) return values[left];
-    return Math.floor(values[left] + (values[right] - values[left]) * (level - LEVELS[left]) / (LEVELS[right] - LEVELS[left]));
-  });
-}
 
 // Reward ids in the training_events files are offset by 36 from their index in
 // dict/evrew. Verified against Special Week R (10001), Fuji Kiseki SR (20001)
@@ -150,6 +127,7 @@ function decodePageEvent(ev, kind, index) {
 }
 
 function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
+  validateSupportCards(raw['support-cards']);
   const evrew = raw['dict/evrew'];
   const randomNamesByChar = new Map();
   for (const c of raw['support-cards']) {
@@ -165,17 +143,7 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
   for (const c of raw['support-cards']) {
     if (!c.release_en) continue;
     const rarity = RARITY[c.rarity];
-    const effects = {};
-    for (const row of c.effects) effects[row[0]] = interpolateEffects(row);
-    const effectsByLb = LB_LEVEL[rarity].map((lvl) => {
-      const idx = LEVELS.indexOf(lvl);
-      const e = {};
-      for (const [type, vals] of Object.entries(effects)) if (vals[idx] > 0) e[type] = vals[idx];
-      // basic unique effects (types below 100) add to the passive of the same type; compound types (100 and up) stay
-      // in the `unique` record below for the app and the fit script to evaluate from the payload
-      if (c.unique && lvl >= c.unique.level) for (const u of c.unique.effects) if (u.type < 100) e[`u${u.type}`] = u.value;
-      return e;
-    });
+    const mechanics = normalizeSupportMechanics(c, uniqueTexts[c.support_id]);
     const hintOthers = [];
     for (const h of c.hints?.hint_others ?? []) {
       if (h && typeof h === 'object' && 'hint_type' in h) hintOthers.push({ type: h.hint_type, value: h.hint_value });
@@ -206,11 +174,7 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
       type: TYPE[c.type] ?? c.type,
       releaseEn: c.release_en,
       obtained: c.obtained ?? null,
-      effects,
-      effectsByLb,
-      // fromLb: the first limit break whose level unlocks the effect (5 = never). Compound effects (types 100 and up)
-      // carry GameTora's rendered description, fetched from the card page.
-      unique: c.unique ? { ...c.unique, fromLb: unlockLb(rarity, c.unique.level), ...(uniqueTexts[c.support_id] ? { text: uniqueTexts[c.support_id] } : {}) } : null,
+      ...mechanics,
       hintSkills: ids(c.hints?.hint_skills),
       eventSkills: ids(c.event_skills),
       hintOthers,
@@ -432,10 +396,6 @@ function normalizeRanks(raw) {
   });
 }
 
-function normalizeEffects(raw) {
-  return raw.support_effects.map((e) => ({ id: e.id, name: e.name_en, symbol: e.symbol ?? 'none', calc: e.calc ?? 'add' }));
-}
-
 // Scenario events whose options are tied to a character: pick a linked option while training that character or
 // carrying one of her cards and the gold skill is hinted; otherwise the normal version. Codes: sl = linked
 // character id, nl/nsl = the not-linked branch.
@@ -494,7 +454,7 @@ async function normalize() {
   const sw = characters.find((c) => c.charId === 1001);
   if (!sw?.events.some((e) => e.kind === 'secret' && e.conditions.some((c) => c.type === 'win'))) throw new Error('character event decoding self-check failed (Special Week should have a secret event with a win condition)');
   const ranks = normalizeRanks(raw);
-  const effects = normalizeEffects(raw);
+  const effects = normalizeSupportEffects(raw.support_effects);
   const scenarios = normalizeScenarios(raw);
   const scenarioEvents = normalizeScenarioEvents(raw);
   await writeJson(path.join(OUT, 'scenario-events.json'), scenarioEvents);
