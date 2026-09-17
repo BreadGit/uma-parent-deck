@@ -427,6 +427,26 @@ test('warm stat distributions respect changed means, spread, caps and blue requi
   close(estimate(), 0);
 });
 
+test('shared stat distributions retain separate sample dimensions and sample counts', () => {
+  const stats = { rawMean: Array(5).fill(1000), sd: Array(5).fill(120), skillPoints: 3000, skillSd: 250 };
+  // Recorded with the uncached sampler. Identical distributions still use five different Halton dimensions.
+  const expected = [
+    { count: 32, pSS: .09053644696617877, blueSS: .07722426755514515 },
+    { count: 64, pSS: .15565609273757156, blueSS: .10959656453644886 },
+  ];
+  for (const { count, pSS, blueSS } of [...expected, ...expected].reverse()) {
+    const result = goalRankBands(stats, DEFAULT_GOAL, 17500, settings, count);
+    close(result.pSS, pSS);
+    close(result.blueRank[2]!, blueSS);
+    close(result.blue, .5608824045267831);
+  }
+  // Cached stat draws must not retain a previous deck's purchased skill rating or SS threshold.
+  const low = goalRankBands(stats, DEFAULT_GOAL, 17500, settings, 32);
+  const high = goalRankBands({ ...stats, skillPoints: 13000 }, DEFAULT_GOAL, 17500, settings, 32);
+  close(high.pSS, 1);
+  close(goalRankBands({ ...stats, skillPoints: 13000 }, DEFAULT_GOAL, 27500, settings, 32).pSS, low.pSS);
+});
+
 test('pink alternatives add exclusive outcomes and share uncertainty scenarios', () => {
   const goals = [{ aptitude: 'turf' as const, stars: 2 }, { aptitude: 'mile' as const, stars: 3 }];
   const grades = { ...apt(), mile: 'A' as const, medium: 'A' as const };

@@ -96,6 +96,22 @@ function sampleStat(distribution: StatDistribution, quantile: number): number {
   return distribution.outcomes[low]!.value;
 }
 
+const sampledRatings = new WeakMap<readonly StatMass[], Map<string, { mass: number; ratings: number[] }>>();
+/** Neighboring decks often share stat distributions. Reuse their deterministic draws across skill budgets. */
+function ratingSamples(outcomes: readonly StatMass[], dimension: number, count: number, band = -1) {
+  let cached = sampledRatings.get(outcomes);
+  if (!cached) { cached = new Map(); sampledRatings.set(outcomes, cached); }
+  const key = `${dimension}:${count}:${band}`;
+  const hit = cached.get(key);
+  if (hit) return hit;
+  const distribution = statDistribution(band < 0 ? outcomes : outcomes.filter(({ value }) =>
+    value >= BLUE_GENERATION_BANDS[band]!.min && value < (BLUE_GENERATION_BANDS[band + 1]?.min ?? Infinity)));
+  const draws = count === 0 ? [[.5, .5, .5, .5, .5]] : statSamples(count);
+  const result = { mass: distribution.mass, ratings: distribution.mass === 0 ? [] : draws.map((draw) => statScore(sampleStat(distribution, draw[dimension]!))) };
+  cached.set(key, result);
+  return result;
+}
+
 /** Integrate blue bands analytically; sample rank conditional on each selected stat and blue band. */
 export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS, basis = goalRankBands(input, goal, ssThreshold, settings)): StatGoalMoments {
   const bands = whiteGenerationBands(settings);
@@ -111,16 +127,16 @@ export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: n
   const bands = whiteGenerationBands(settings);
   const result: GoalRankBands = { blue: 0, rank: bands.map(() => 0), blueRank: bands.map(() => 0), pSS: 0, approximateRank: 0 };
   const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i], input.rawUnits));
-  const distributions = masses.map(statDistribution);
-  const draws = input.sd.every((sd) => sd === 0) ? [[.5, .5, .5, .5, .5]] : statSamples(sampleCount);
-  const statRatings = draws.map((draw) => distributions.map((distribution, i) => statScore(sampleStat(distribution, draw[i]!))));
-  const scores = statRatings.map((ratings) => ratings.reduce((sum, rating) => sum + rating, input.skillPoints));
+  const count = input.sd.every((sd) => sd === 0) ? 0 : sampleCount;
+  const statRatings = masses.map((outcomes, i) => ratingSamples(outcomes, i, count).ratings);
+  const draws = statRatings[0]!.length;
+  const scores = Array.from({ length: draws }, (_, n) => statRatings.reduce((sum, ratings) => sum + ratings[n]!, input.skillPoints));
   for (const score of scores) {
     const below = (limit: number) => input.skillSd > 0 ? phi((limit - score) / input.skillSd) : Number(score < limit);
-    result.pSS += (1 - below(ssThreshold)) / draws.length;
+    result.pSS += (1 - below(ssThreshold)) / draws;
     bands.forEach((band, i) => {
       const upper = bands[i + 1]?.min;
-      const weight = ((upper === undefined ? 1 : below(upper)) - (i === 0 ? 0 : below(band.min))) / draws.length;
+      const weight = ((upper === undefined ? 1 : below(upper)) - (i === 0 ? 0 : below(band.min))) / draws;
       result.rank[i]! += weight;
       if (band.approximate) result.approximateRank += weight;
     });
@@ -128,17 +144,17 @@ export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: n
   STATS.forEach((stat, i) => {
     if (!goal.blueStats.includes(stat)) return;
     BLUE_GENERATION_BANDS.forEach((band, b) => {
-      const distribution = statDistribution(masses[i]!.filter(({ value }) => value >= band.min && value < (BLUE_GENERATION_BANDS[b + 1]?.min ?? Infinity)));
-      const blue = distribution.mass * starChance(band.rates, goal.blueStars) / STATS.length;
+      const samples = ratingSamples(masses[i]!, i, count, b);
+      const blue = samples.mass * starChance(band.rates, goal.blueStars) / STATS.length;
       result.blue += blue;
       if (blue === 0) return;
-      for (let n = 0; n < draws.length; n++) {
-        const score = scores[n]! - statRatings[n]![i]! + statScore(sampleStat(distribution, draws[n]![i]!));
+      for (let n = 0; n < draws; n++) {
+        const score = scores[n]! - statRatings[i]![n]! + samples.ratings[n]!;
         let abovePrevious = 1;
         for (let j = 0; j < bands.length; j++) {
           const next = bands[j + 1]?.min;
           const above = next === undefined ? 0 : input.skillSd > 0 ? phi((score - next) / input.skillSd) : Number(score >= next);
-          result.blueRank[j]! += blue * (abovePrevious - above) / draws.length;
+          result.blueRank[j]! += blue * (abovePrevious - above) / draws;
           abovePrevious = above;
         }
       }

@@ -57,6 +57,19 @@ test('a shared SP budget preserves rare outcomes and excludes unaffordable joint
   assert.equal(bought.forms.components[0]!.distribution.approximate, false);
 });
 
+test('greedy purchases reprice upgrades, preserve ties and skip unaffordable choices', () => {
+  const upgraded = { ...focus, white: { ...focus.white!, tags: [], cost: 20, rating: 100 },
+    gold: { ...focus.gold!, tags: [], cost: 80, rating: 260 } };
+  const other = { ...focus, id: 2, gold: null, white: { ...focus.white!, tags: [], cost: 60, rating: 130 } };
+  // The base's ratio is 5. Buying it drops its gold upgrade from 2.6 to 2, below the other skill's 130/60.
+  assert.deepEqual(buySkills([upgraded, other], '31', 100, [], apt, 0), { state: '11', score: 230, spent: 80 });
+  const tied = { ...other, white: { ...other.white, cost: 40, rating: 80 } };
+  assert.deepEqual(buySkills([upgraded, tied], '31', 100, [], apt, 0), { state: '30', score: 260, spent: 100 });
+  assert.deepEqual(buySkills([tied, upgraded], '13', 100, [], apt, 0), { state: '11', score: 180, spent: 60 });
+  // A higher-ratio upgrade no longer fits after the base purchase, but the other base does.
+  assert.deepEqual(buySkills([upgraded, tied], '31', 60, [], apt, 0), { state: '11', score: 180, spent: 60 });
+});
+
 test('large purchase samples balance every independent source, including late dimensions', () => {
   const targets = Array.from({ length: 60 }, (_, i) => ({ ...focus, id: i + 1 }));
   const forms = { count: targets.length, components: targets.map((_, i) => ({ indices: [i],

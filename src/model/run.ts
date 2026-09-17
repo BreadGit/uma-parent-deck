@@ -3,7 +3,7 @@ import type { Settings } from '../settings.ts';
 import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
 import { evaluateParentGoal, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
-import { buildDeck, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
+import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, goalDeckKey, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
@@ -265,19 +265,17 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048) => {
     const fans = estimateFans(schedule, entries, settings);
     const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
-    const preliminary = describeDeck(entries, targets, candidateCtx);
-    const candidates = wishlistCandidates(preliminary.deck, targets, candidateCtx), ordered = order(candidates);
+    const candidates = wishlistCandidates(entries, targets, candidateCtx), ordered = order(candidates);
     const priority = derivePriority(ordered, targets.filter((t) => !input.wishlistExcluded.some((id) => t.familyIds.has(id))), data, input.wishlistExcluded);
     const ctx: Ctx = { ...candidateCtx, priority, excluded: input.wishlistExcluded };
-    const deckResult = describeDeck(entries, targets, ctx);
     const prediction = predictRunDeck(entries, input, ctx, apt, sum.expectedLosses, sampleCount);
     const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.rank.skillPts, skillSd: Math.sqrt(settings.skillScoreSd ** 2 + prediction.purchases.variance) };
     const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
     const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
-    const sources = goalSources(goal, deckResult.coverage, ctx, forms);
+    const sources = goalSources(goal, forms, ctx);
     prediction.rank.pSS = basis.pSS;
     const score = scoreGoal(goal, sources, basis, pink, settings);
-    return { score, statPower: deckResult.deck.reduce((n, d) => n + d.statPower, 0), value: { ctx, fans, deckResult, prediction, goalStats, basis, sources, candidates, ordered } };
+    return { score, statPower: deckStatPower(entries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, ordered } };
   };
   let chosen = evaluateCandidate(initial.deck);
   let search: GoalSearchSummary | null = options.summary ?? null;
@@ -314,7 +312,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     });
     if (found) { chosen = found.best; search = summarize(found); }
   }
-  const { ctx, fans, deckResult, prediction, goalStats, basis, sources, candidates, ordered } = chosen.value;
+  const { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, ordered } = chosen.value;
+  const deckResult = describeDeck(entries, targets, ctx);
   sum.expectedFans = fans.total;
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);
   const goalEstimate = evaluateParentGoal(goal, input.pinkLineage, apt, deckResult, ctx, goalStats, issues, basis, sources.forms);

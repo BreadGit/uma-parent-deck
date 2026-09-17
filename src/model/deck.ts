@@ -159,6 +159,10 @@ export function purchaseCoverage(entries: { card: Card; lb: number }[], targets:
   const sources = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
   return evaluate(stateOf(sources, targets, ctx), targets, ctx).map;
 }
+/** Focus-weighted deck contribution without per-card coverage details. */
+export function deckStatPower(entries: { card: Card; lb: number }[], ctx: Ctx): number {
+  return entries.reduce((sum, e, i) => sum + statsOf(e.card, e.lb, ctx, entries.filter((_, j) => i !== j)).statPower, 0);
+}
 export function describeDeck(entries: { card: Card; lb: number; borrowed?: boolean }[], targets: Target[], ctx: Ctx): DeckResult {
   const sourceEntries = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
   const deck = sourceEntries.map((e, i) => ({ ...scoreCard(e.card, e.lb, targets, stateOf(sourceEntries.filter((_, j) => i !== j), targets, ctx), ctx), borrowed: e.borrowed }));
@@ -174,7 +178,7 @@ function stateOf(entries: Entry[], targets: Target[], ctx: Ctx): Existing {
 }
 /** Total expected sparks over the targets for a set of cards, plus their focus-weighted stat power. */
 function deckValue(entries: Entry[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
-  const stats = entries.reduce((a, e, i) => a + statsOf(e.card, e.lb, ctx, entries.filter((_, j) => j !== i)).statPower, 0);
+  const stats = deckStatPower(entries, ctx);
   return { sparks: total(evaluate(stateOf(entries, targets, ctx), targets, ctx).sparks), stats };
 }
 /** Refresh contributions after the deck changes, including effects on cards that stayed in it. */
@@ -385,11 +389,13 @@ export interface WishlistEntry { key: number; skillId: number; name: string; for
  * Candidates for the prioritized-skills list, best first: targets gated behind an event choice, then other
  * choice-gated skills the deck's events offer, then targets given without a choice (fillers).
  */
-export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ctx): WishlistEntry[] {
+export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: Target[], ctx: Ctx): WishlistEntry[] {
   const entries: WishlistEntry[] = [];
   const seen = new Set<number>();
   const targetFamilies = new Set(targets.flatMap((t) => [...t.familyIds]));
-  const ev = evaluate(stateOf(deck, targets, ctx), targets, ctx);
+  const sourceEntries = deck.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
+  const state = stateOf(sourceEntries, targets, ctx);
+  const ev = evaluate(state, targets, ctx);
   for (const t of targets) {
     // every option the run could pick, including ones currently losing a conflict, so the order can be changed
     const all = (ev.full.get(t.id) ?? []).filter((s) => s.kind !== 'lineage' && s.kind !== 'innate' && s.kind !== 'awakening');
@@ -415,7 +421,6 @@ export function wishlistCandidates(deck: CardScore[], targets: Target[], ctx: Ct
     }
   }
   // The scenario's own options happen every run whoever is in the deck: list the ones that are not targets too.
-  const state = stateOf(deck, targets, ctx);
   for (const o of scenarioOptions(ctx.data, ctx.settings, state.chars)) {
     if (seen.has(o.skillId) || targetFamilies.has(o.skillId)) continue;
     const sk = ctx.data.skillById.get(o.skillId);

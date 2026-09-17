@@ -27,11 +27,17 @@ function purchasePolicy(targets: Target[], budget: number, priority: number[], a
   // Costs and ratings do not change between source outcomes. Precompute them once per deck.
   const options = targets.flatMap((t, i) => {
     const forms = [t.white, t.circle, t.gold];
-    return forms.flatMap((skill, j) => {
+    const family = forms.flatMap((skill, j) => {
       if (!skill || skill.unreleasedEn) return [];
       const total = forms.slice(0, j + 1).filter((s): s is Skill => !!s && !s.unreleasedEn)
         .reduce((sum, s) => sum + purchaseCost(s, fullCost.has(s.id) ? 0 : hintLevel), 0);
       return [{ i, form: j + 1, total, points: skillScore(skill, apt) }];
+    });
+    // Every sampled outcome uses the same marginal cost and rating for a given upgrade.
+    return family.map((o) => {
+      const costs = [0, 1, 2, 3].map((form) => o.total - (family.find((f) => f.form === form)?.total ?? 0));
+      const ratios = costs.map((cost, form) => (o.points - (family.find((f) => f.form === form)?.points ?? 0)) / Math.max(1, cost));
+      return { ...o, costs, ratios };
     });
   });
   const ordered = [...new Set(priority)].map((id) => targets.findIndex((t) => t.id === id)).filter((i) => i >= 0);
@@ -39,12 +45,12 @@ function purchasePolicy(targets: Target[], budget: number, priority: number[], a
   const upgrades = ordered.map((i) => options.filter((o) => o.i === i && o.form > 1).reverse());
   return (available: string) => {
     const availableForms = Array.from(available, Number);
-    const bought = targets.map(() => 0), paid = targets.map(() => 0), points = targets.map(() => 0);
+    const bought = targets.map(() => 0), points = targets.map(() => 0);
     let remaining = Math.max(0, Math.floor(budget));
     const allowed = options.filter((o) => o.form <= availableForms[o.i]!);
-    const canBuy = (o: typeof options[number]) => o.form <= availableForms[o.i]! && o.form > bought[o.i]! && o.total - paid[o.i]! <= remaining;
+    const canBuy = (o: typeof options[number]) => o.form <= availableForms[o.i]! && o.form > bought[o.i]! && o.costs[bought[o.i]!]! <= remaining;
     const buy = (o: typeof options[number]) => {
-      remaining -= o.total - paid[o.i]!; paid[o.i] = o.total; points[o.i] = o.points; bought[o.i] = o.form;
+      remaining -= o.costs[bought[o.i]!]!; points[o.i] = o.points; bought[o.i] = o.form;
     };
     for (const o of bases) if (o && canBuy(o)) buy(o);
     for (const family of upgrades) for (const o of family) if (canBuy(o)) { buy(o); break; }
@@ -53,7 +59,7 @@ function purchasePolicy(targets: Target[], budget: number, priority: number[], a
       let best: typeof options[number] | undefined, bestRatio = 0;
       for (const o of allowed) {
         if (!canBuy(o)) continue;
-        const ratio = (o.points - points[o.i]!) / Math.max(1, o.total - paid[o.i]!);
+        const ratio = o.ratios[bought[o.i]!]!;
         if (ratio > bestRatio) { best = o; bestRatio = ratio; }
       }
       if (!best) break;
@@ -63,10 +69,14 @@ function purchasePolicy(targets: Target[], budget: number, priority: number[], a
   };
 }
 
+const quantileCache = new Map<string, number[]>();
 /** Stratify every component, then shuffle independently so late dimensions stay balanced too. */
 function quantiles(count: number, ids: number[]): number[] {
   let seed = 2166136261;
   for (const id of [...ids].sort((a, b) => a - b)) seed = Math.imul(seed ^ id, 16777619);
+  const key = `${count}:${seed}`;
+  const cached = quantileCache.get(key);
+  if (cached) return cached;
   const random = () => {
     seed = (seed + 0x6D2B79F5) | 0;
     let value = Math.imul(seed ^ seed >>> 15, 1 | seed);
@@ -78,6 +88,8 @@ function quantiles(count: number, ids: number[]): number[] {
     const j = Math.floor(random() * (i + 1));
     [out[i], out[j]] = [out[j]!, out[i]!];
   }
+  quantileCache.set(key, out);
+  if (quantileCache.size > 256) quantileCache.delete(quantileCache.keys().next().value!);
   return out;
 }
 
