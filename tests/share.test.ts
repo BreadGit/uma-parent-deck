@@ -68,7 +68,7 @@ test('compact shares round-trip every curated template and shorten representativ
     assert.ok(code.length < JSON.stringify(choices).length, `${template.id}: compact code is smaller than the named fields`);
   }
   const code = await encodeShare(populated);
-  assert.ok(code.length < prototype.length);
+  assert.ok(code.length < prototype.length, `compact code ${code.length} chars vs prototype ${prototype.length}`);
   assert.deepEqual(await decodeShare(code), populated);
 });
 

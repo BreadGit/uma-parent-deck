@@ -35,9 +35,9 @@ test('preferred extras count on successful parents and preserve shared source ou
   const g = { ...goal, required: [{ id: 10, stars: 1 }], preferred: [{ id: 11, priority: 0 }] };
   const a = scoreGoal(g, { copies: [0, 0], forms: distribution(2, [['11', .01], ['10', .09], ['01', .29], ['00', .61]]) }, basis, pink, settings);
   const b = scoreGoal(g, { copies: [0, 0], forms: distribution(2, [['11', .06], ['10', .04], ['01', .04], ['00', .86]]) }, basis, pink, settings);
-  assert.ok(Math.abs(a.comparison - .1) < 1e-12);
-  assert.ok(Math.abs(a.preferred - .1) < 1e-12);
-  assert.ok(Math.abs(b.preferred - .6) < 1e-12);
+  assert.ok(Math.abs(a.comparison - .1) < 1e-12, `${a.comparison} != .1`);
+  assert.ok(Math.abs(a.preferred - .1) < 1e-12, `${a.preferred} != .1`);
+  assert.ok(Math.abs(b.preferred - .6) < 1e-12, `${b.preferred} != .6`);
   assert.equal(chooseGoal([{ key: 'a', score: a, statPower: 0 }, { key: 'b', score: b, statPower: 0 }], .001).key, 'b');
 });
 
@@ -45,8 +45,8 @@ test('preferred appearances retain required blue and rank coupling without an ex
   const g = { ...goal, required: [{ id: 10, stars: 2 }], preferred: [{ id: 11, priority: 0 }] };
   const shared = { ...basis, blue: .6, rank: [0, .5, .5, 0], blueRank: [0, .2, .4, 0] };
   const result = scoreGoal(g, { copies: [0, 0], forms: distribution(2, [['11', 1]]) }, shared, pink, settings);
-  assert.ok(Math.abs(result.comparison - (.2 * .5 + .4 * .8)) < 1e-12);
-  assert.ok(Math.abs(result.preferred - 1) < 1e-12);
+  assert.ok(Math.abs(result.comparison - (.2 * .5 + .4 * .8)) < 1e-12, `${result.comparison} != .2 * .5 + .4 * .8`);
+  assert.ok(Math.abs(result.preferred - 1) < 1e-12, `${result.preferred} != 1`);
 });
 
 test('a zero required spark preserves the other required goals; uncertain pink is not discarded', () => {
@@ -88,7 +88,7 @@ test('a bounded conflict search still retains achievable requirements', () => {
   const result = scoreGoal(g, { copies: Array(count).fill(0), forms }, basis, pink, settings);
   assert.equal(result.subsetApproximate, true);
   assert.equal(result.count, 3, 'blue, pink and one of the mutually exclusive white sparks');
-  assert.ok(Math.abs(result.comparison - 1 / count) < 1e-12);
+  assert.ok(Math.abs(result.comparison - 1 / count) < 1e-12, `${result.comparison} != 1 / ${count}`);
 });
 
 test('fallback subset scoring does not spend the relative tie window before deck comparison', () => {
@@ -114,9 +114,9 @@ test('small search matches independent exhaustive enumeration and respects borro
   const maximum = Math.max(...all.map(value));
   assert.equal(found.best.score.comparison, maximum / 100);
   assert.equal(found.evaluated, all.length);
-  assert.ok(found.exhaustive);
+  assert.ok(found.exhaustive, 'a four-by-three space is enumerated exhaustively');
   assert.equal(found.best.entries.filter((e) => e.borrowed).length, 1);
-  assert.ok(found.best.entries.some((e) => !e.borrowed && e.card.id === 1));
+  assert.ok(found.best.entries.some((e) => !e.borrowed && e.card.id === 1), 'the pinned card 1 fills an owned slot');
 });
 
 test('a stat card with no target hints wins by crossing the required blue threshold', () => {
@@ -129,8 +129,8 @@ test('a stat card with no target hints wins by crossing the required blue thresh
       const rank = goalRankBands({ rawMean: [total, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], skillPoints: 0, skillSd: 0 }, g, 17500, settings);
       return { score: scoreGoal(g, { copies: [], forms: { count: 0, components: [] } }, rank, pink, settings), statPower: total, value: null };
     } })!;
-  assert.ok(found.best.entries.some((e) => e.card.id === 3));
-  assert.ok(Math.abs(found.best.score.comparison - .01) < 1e-12);
+  assert.ok(found.best.entries.some((e) => e.card.id === 3), 'the stronger stat card 3 crosses the blue threshold');
+  assert.ok(Math.abs(found.best.score.comparison - .01) < 1e-12, `${found.best.score.comparison} != .01`);
 });
 
 test('balanced required coverage beats a larger sum of individual spark chances', () => {
@@ -142,7 +142,7 @@ test('balanced required coverage beats a larger sum of individual spark chances'
       const forms: FormDistribution = { count: 2, components: rates.map((p, i) => ({ indices: [i], distribution: { states: new Map([['1', p], ['0', 1 - p]]), approximate: false } })) };
       return { score: scoreGoal(g, { forms, copies: [0, 0] }, basis, pink, settings), statPower: 0, value: null };
     } })!;
-  assert.ok(found.best.entries.some((e) => e.card.id === 2));
+  assert.ok(found.best.entries.some((e) => e.card.id === 2), 'card 2 balances both required sparks');
   assert.equal(found.best.score.comparison, .36);
 });
 
@@ -155,7 +155,7 @@ test('a requirement missing from the first deck is recovered before any partial-
       const forms = complete ? distribution(2, [['11', .001], ['00', .999]]) : distribution(2, [['10', 1]]);
       return { score: scoreGoal(g, { forms, copies: [0, 0] }, basis, pink, settings), statPower: 0, value: null };
     } })!;
-  assert.ok(found.best.entries.some((e) => e.card.id === 3));
+  assert.ok(found.best.entries.some((e) => e.card.id === 3), 'card 3 completes the second requirement');
   assert.equal(found.best.score.count, 4);
   assert.equal(found.best.score.comparison, .001);
 });
@@ -183,9 +183,9 @@ test('required targets outrank custom preferred ordering and excluded choices re
   assert.deepEqual(saved.run.wishlistOrder, preferredFirst);
   saved.run.wishlistExcluded = [201601];
   const excluded = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 8 });
-  assert.ok(excluded.priorityIssues.some((s) => s.includes('Groundwork')));
-  assert.ok(!excluded.wl.some((w) => w.skillId === 201601));
-  assert.ok(!excluded.deckResult.coverage.get(201601)!.some((s) => s.isChoice && s.skillId === 201601));
+  assert.ok(excluded.priorityIssues.some((s) => s.includes('Groundwork')), 'the excluded required skill is reported');
+  assert.ok(!excluded.wl.some((w) => w.skillId === 201601), 'the excluded skill leaves the prioritized list');
+  assert.ok(!excluded.deckResult.coverage.get(201601)!.some((s) => s.isChoice && s.skillId === 201601), 'no choice source for the excluded skill survives');
 });
 
 test('complete search and displayed goal agree; fallback preserves the original requirements', () => {
@@ -193,7 +193,7 @@ test('complete search and displayed goal agree; fallback preserves the original 
   saved.run.traineeCardId = 100101;
   saved.run.targets = [{ id: 200352, role: 'required', stars: 2, priority: 0 }, { id: 201601, role: 'preferred', stars: 2, priority: 0 }];
   const full = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 16 });
-  assert.ok(Math.abs(full.goalEstimate.probability! - full.search!.score.probability) < 1e-12);
+  assert.ok(Math.abs(full.goalEstimate.probability! - full.search!.score.probability) < 1e-12, `displayed ${full.goalEstimate.probability} != searched ${full.search!.score.probability}`);
   const selection = full.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   const restored = planRun(saved.run, saved.settings, saved.inventory, data, { selection, summary: full.search! });
   assert.equal(goalDeckKey(restored.deckResult.deck), goalDeckKey(full.deckResult.deck));
@@ -203,7 +203,7 @@ test('complete search and displayed goal agree; fallback preserves the original 
   const fallback = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 16 });
   assert.equal(fallback.goalEstimate.probability, 0);
   assert.equal(fallback.search!.score.count, 3);
-  assert.ok(fallback.search!.score.probability > 0);
+  assert.ok(fallback.search!.score.probability > 0, 'the partial goal keeps a positive chance');
   assert.deepEqual(saved.run, before);
 });
 
@@ -215,7 +215,7 @@ test('an excluded required skill keeps its warning when the deck has no source f
   saved.run.wishlistExcluded = [id];
   const result = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
   assert.deepEqual(result.wlExcluded, [], 'this deck does not offer the excluded skill');
-  assert.ok(result.priorityIssues.some((s) => s.includes('Runaway is required but excluded')));
+  assert.ok(result.priorityIssues.some((s) => s.includes('Runaway is required but excluded')), 'the excluded requirement stays reported without a deck source');
 });
 
 test('screening scores never replace fully evaluated scores or discard a stronger incumbent', () => {
@@ -230,7 +230,7 @@ test('screening scores never replace fully evaluated scores or discard a stronge
     onProgress: (result) => progress.push(result.best.score.probability),
   })!;
   assert.deepEqual(progress, [.8]);
-  assert.ok(found.screened > 1);
+  assert.ok(found.screened > 1, 'screening ran over the wider pool');
   assert.equal(found.best.score.probability, .8);
   for (const c of found.candidates) assert.equal(c.score.probability, actual(c.entries));
 });
@@ -243,7 +243,7 @@ test('many owned cards with five fixed pins still use exhaustive search when onl
     screen: () => { throw new Error('Small legal spaces do not need screening'); },
   })!;
   assert.equal(found.evaluated, 2);
-  assert.ok(found.exhaustive);
+  assert.ok(found.exhaustive, 'two legal decks are enumerated rather than screened');
   assert.equal(found.screened, 0);
   assert.equal(found.best.score.probability, .32);
 });
@@ -256,9 +256,9 @@ test('screening can exchange competing pins without weakening the pin constraint
     evaluate: (entries) => ({ score: score(rate(entries)), statPower: 0, value: null }),
     screen: (entries) => ({ score: score(rate(entries)), statPower: 0 }),
   })!;
-  assert.ok(found.screened > 1);
+  assert.ok(found.screened > 1, 'screening ran with every card pinned');
   assert.equal(found.best.score.probability, .9);
-  assert.ok(found.candidates.every((c) => found.legal(c.entries)));
+  assert.ok(found.candidates.every((c) => found.legal(c.entries)), 'every candidate honours the pin constraint');
 });
 
 test('cheap rank sampling leaves analytic blue odds and subsequent full evaluations intact', () => {
@@ -293,9 +293,9 @@ test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin w
     progress.push(summary.score.probability);
   } });
   assert.ok(result.goalEstimate.probability! >= reference, `search reached ${result.goalEstimate.probability} against the reported deck's ${reference}`);
-  assert.ok(progress.length && result.goalEstimate.probability! >= progress[0]!);
-  assert.ok(result.search!.screened > 0);
-  assert.ok(!result.deckResult.deck.some((e) => e.card.id === 30017 && !e.borrowed));
+  assert.ok(progress.length && result.goalEstimate.probability! >= progress[0]!, `progress ${progress} must not exceed the final ${result.goalEstimate.probability}`);
+  assert.ok(result.search!.screened > 0, 'the search screened the wider pool');
+  assert.ok(!result.deckResult.deck.some((e) => e.card.id === 30017 && !e.borrowed), 'Maruzensky is not owned, so she cannot fill an owned slot');
   assert.deepEqual(saved, before);
 });
 
@@ -310,8 +310,8 @@ test('previous recommendations are rescored at current limit breaks and rejected
   saved.inventory['30107'] = null;
   saved.run.pinnedIds.push(30028);
   const invalid = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
-  assert.ok(!invalid.deckResult.deck.some((e) => e.card.id === 30107 && !e.borrowed));
-  assert.ok(invalid.deckResult.deck.some((e) => e.card.id === 30028));
+  assert.ok(!invalid.deckResult.deck.some((e) => e.card.id === 30107 && !e.borrowed), 'a card marked not owned leaves the reused deck');
+  assert.ok(invalid.deckResult.deck.some((e) => e.card.id === 30028), 'a new pin joins the reused deck');
 });
 
 test('preferred priorities weight any-star appearances without changing required success', () => {
@@ -321,12 +321,12 @@ test('preferred priorities weight any-star appearances without changing required
   // Required cannot roll 2 stars here; its fallback leaves blue and pink, with .4 + .3/2 preferred score.
   const fallback = scoreGoal(g, sources, basis, pink, lowRank);
   assert.equal(fallback.count, 2);
-  assert.ok(Math.abs(fallback.preferred - .55) < 1e-12);
+  assert.ok(Math.abs(fallback.preferred - .55) < 1e-12, `${fallback.preferred} != .55`);
   const original = scoreGoal(g, sources, basis, pink, settings);
   const changed = scoreGoal({ ...g, preferred: [{ id: 11, priority: 2 }, { id: 12, priority: 2 }] }, sources, basis, pink, settings);
   assert.equal(changed.probability, original.probability);
   assert.equal(changed.comparison, original.comparison);
-  assert.ok(Math.abs(changed.preferred - .175) < 1e-12);
+  assert.ok(Math.abs(changed.preferred - .175) < 1e-12, `${changed.preferred} != .175`);
   const huge = scoreGoal({ ...g, preferred: g.preferred.map((p) => ({ ...p, priority: Number.MAX_SAFE_INTEGER })) }, sources, basis, pink, settings);
   assert.equal(huge.preferred, 0);
   assert.equal(huge.probability, original.probability);

@@ -28,7 +28,7 @@ test('support import preserves unfamiliar unique types, new payload parameters a
   assert.deepEqual(result.unique?.effects, [effect]);
   assert.equal(result.unique?.text, 'All support cards gain a future bonus.');
   assert.equal(result.unique?.fromLb, 2);
-  assert.ok(result.effectsByLb.every((row) => !('u998' in row)));
+  assert.ok(result.effectsByLb.every((row) => !('u998' in row)), 'an unfamiliar unique type is not folded into the passives');
   const knownType = { ...card, unique: { level: 40, effects: [{ type: 101, value: 80, value_1: 8, value_2: 10, value_7: 12 }] } };
   assert.equal(normalizeSupportMechanics(knownType).unique?.effects[0]!.value_7, 12);
 });

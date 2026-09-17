@@ -31,7 +31,7 @@ test('star tables: every listed table is used as is; only a missing one interpol
   const gold = must(data.charByCardId.get(100701), `data.charByCardId.get(100701)`);
   assert.equal(gold.rarity, 2);
   assert.deepEqual(statsAtStars(gold, 3), [87, 101, 105, 81, 76]);
-  assert.ok(hasExactStarTable(gold, 3));
+  assert.ok(hasExactStarTable(gold, 3), 'Gold Ship lists an exact 3★ table');
   assert.deepEqual(statsAtStars({ ...gold, threeStarStats: null }, 3), [90, 105, 109, 84, 77], 'the old interpolation was off by up to four points');
   assert.ok(!hasExactStarTable({ ...gold, threeStarStats: null }, 3));
 });
@@ -40,7 +40,7 @@ test('rank estimate: the unique skill at its level and a share of the innate ski
   const apt = sw.aptitudes;
   const low = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 3, apt, data, settings);
   const high = rankEstimate([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, 5, 5, apt, data, settings);
-  assert.ok(high.score > low.score && high.pSS > low.pSS);
+  assert.ok(high.score > low.score && high.pSS > low.pSS, 'higher stats and stars raise the score and P(SS)');
   const noTrainee = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, null, 3, 0, null, data, settings);
   assert.equal(low.uniquePts, 510, 'a 3★ trainee at unique Lv3');
   assert.ok(low.score - noTrainee.score >= 510, 'the trainee adds at least her unique skill');
@@ -61,7 +61,7 @@ test('the star count is clamped to the trainee: a count below her rarity cannot 
   assert.equal(p1.rank.uniqueLevel, p3.rank.uniqueLevel);
   assert.equal(p1.rank.score, p3.rank.score, 'a stale 1★ scores like 3★');
   assert.ok(p3.rank.uniqueLevel <= 4 && p3.rank.uniquePts <= 680, 'a 3★ trainee cannot exceed unique Lv4');
-  assert.ok(p5.rank.uniquePts > p3.rank.uniquePts && p5.rank.uniqueLevel <= 6);
+  assert.ok(p5.rank.uniquePts > p3.rank.uniquePts && p5.rank.uniqueLevel <= 6, 'a 5★ trainee scores more unique points, up to Lv6');
 });
 
 test('the dirt fan thresholds follow the character, so an aptitude override on the legacy screen cannot switch them', () => {
@@ -83,7 +83,7 @@ test('a total-turn override at or below the reference race count is rejected and
     const bad = { ...settings, totalTurnsOverride: T };
     assert.ok(Number.isFinite(raceScale(28, data.model, bad)) && Number.isFinite(raceScale(20, data.model, bad)), `T=${T} falls back to the fitted value`);
     const plan = planRun(empty, bad, {}, data);
-    assert.ok(plan.finalMean.every(Number.isFinite) && Number.isFinite(plan.rank.score));
+    assert.ok(plan.finalMean.every(Number.isFinite) && Number.isFinite(plan.rank.score), `T=${T} keeps the plan finite`);
   }
   assert.ok(Math.abs(raceScale(23, data.model, { ...settings, totalTurnsOverride: 78 }) - 55 / 50) < 1e-9);
 });
@@ -100,7 +100,7 @@ test('the scenario completion reward is a source for I Wanna Win with You and On
   assert.ok(Math.abs(must(srcs.find((s) => s.gold), `srcs.find((s) => s.gold)`).pObtain - 0.8) < 1e-9 && Math.abs(must(srcs.find((s) => !s.gold), `srcs.find((s) => !s.gold)`).pObtain - 0.2) < 1e-9);
   const o = combineSources(srcs);
   assert.ok(Math.abs(o.pAny - 1) < 1e-9 && Math.abs(o.pGold - 0.8) < 1e-9, 'the two branches are exclusive, so one of them always happens');
-  assert.ok((plan.deckResult.sparks.get(target.id) ?? 0) > 0.3);
+  assert.ok((plan.deckResult.sparks.get(target.id) ?? 0) > 0.3, `spark chance ${plan.deckResult.sparks.get(target.id)}`);
   assert.ok([...plan.wl, ...plan.wlRest].some((w) => w.skillId === spec.gold || w.skillId === spec.white), 'listed as a target given without a choice');
 });
 
@@ -109,7 +109,7 @@ test("predicted stats are clamped to the scenario caps plus the blue sparks' sta
   const heavy: RunInput = { ...empty, traineeCardId: sw.cardId, parentSparks: [Array(3).fill({ stat: 'stamina', stars: 3 }), Array(3).fill({ stat: 'stamina', stars: 3 })] };
   const plan = planRun(heavy, settings, {}, data, { search: false });
   assert.deepEqual(plan.issues, []);
-  assert.ok(plan.statCaps);
+  assert.ok(plan.statCaps, 'the plan reports stat caps');
   assert.deepEqual(plan.statCaps!.uncap, [0, 96, 0, 0, 0], 'six 3★ stamina sparks raise only the stamina cap by 16 each');
   plan.finalMean.forEach((v, i) => { assert.ok(v <= caps[i]! + plan.statCaps!.uncap[i]! + 1e-9, `stat ${i} ${v} within cap`); assert.ok(v <= plan.rawFinalMean[i]! + 1e-9); });
   assert.equal(plan.statCaps!.capped.some(Boolean), plan.rawFinalMean.some((v, i) => v > caps[i]! + plan.statCaps!.uncap[i]!));
@@ -137,7 +137,7 @@ test("prioritized skills: the user's order applies to a whole skill family, ever
   const ordered = applyUserOrder(cands, [concentration, byName('Groundwork').id], [], data);
   assert.deepEqual(ordered.map((w) => w.skillId), [focus.white!.id, byName('Groundwork').id, byName('Lane Legerdemain').id]);
   const excluded = applyUserOrder(cands, [], [byName('Groundwork').id], data);
-  assert.ok(!excluded.some((w) => w.skillId === byName('Groundwork').id));
+  assert.ok(!excluded.some((w) => w.skillId === byName('Groundwork').id), 'an excluded skill leaves the list');
   assert.deepEqual(excluded.map((w) => w.weight), [4, 3], 'no order: by weight');
   const allIveGot = resolveTarget(byName("All I've Got").id, data)!;
   const pr = derivePriority([entry(allIveGot.gold!.id, 5), entry(focus.gold!.id, 4)], [focus], data);
@@ -173,7 +173,7 @@ test('planRun: the prioritized order decides a shared event, and only the first 
   const free = planRun({ ...fixed, wishlistOrder: [...others.slice(0, 10), lane.id, focus.id] }, settings, {}, data);
   assert.ok(!free.wl.some((w) => w.key === lane.id) && free.wlRest.some((w) => w.key === lane.id), 'Lane Legerdemain is now eleventh');
   assert.equal(laneTakes(free), undefined, 'in eleventh place it is not prioritized and cannot steer the choice');
-  assert.ok(free.deckResult.coverage.get(focus.id)!.some((s) => s.kind === 'scenario'));
+  assert.ok(free.deckResult.coverage.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Focus keeps the scenario event when Lane Legerdemain is eleventh');
 });
 
 test('planRun: an empty input still builds a full deck with scenario options; the trainee, her lineage and the inventory shape the result', () => {
@@ -182,16 +182,16 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.equal(plan.trainee, null);
   assert.equal(plan.deckResult.deck.length, 6);
   assert.equal(plan.deckResult.deck.filter((d) => d.borrowed).length, 1);
-  assert.ok(plan.wl.length > 0 && plan.wl.length <= 10);
+  assert.ok(plan.wl.length > 0 && plan.wl.length <= 10, `wishlist has ${plan.wl.length} entries`);
   assert.equal(plan.ranking.length, data.cards.length);
-  assert.ok(plan.rank.pSS >= 0 && plan.rank.pSS <= 1);
+  assert.ok(plan.rank.pSS >= 0 && plan.rank.pSS <= 1, 'P(SS) is a probability');
   const corner = resolveTarget(200352, data)!;
   const input: RunInput = { ...empty, traineeCardId: sw.cardId, traineeStars: 3, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: { [corner.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } }, pinnedIds: [30052] };
   const withTrainee = planRun(input, settings, {}, data, { budget: 8 });
   assert.equal(withTrainee.trainee?.name, 'Special Week');
   assert.ok(withTrainee.deckResult.deck.some((d) => d.card.id === 30052), 'pinned Light Hello is in the deck');
   assert.ok(!withTrainee.deckResult.deck.some((d) => d.card.charId === sw.charId), "the trainee's own cards are excluded");
-  assert.ok((withTrainee.existing.sources.get(corner.id) ?? []).some((s) => s.kind === 'lineage'));
+  assert.ok((withTrainee.existing.sources.get(corner.id) ?? []).some((s) => s.kind === 'lineage'), 'the lineage source is present for the target');
   // Hold the deck fixed: reoptimizing can trade this preferred spark for a stronger combined goal.
   const selection = withTrainee.deckResult.deck.map((d) => ({ id: d.card.id, lb: d.lb, borrowed: d.borrowed }));
   const withoutLineage = planRun({ ...input, targetLineage: {} }, settings, {}, data, { selection });
@@ -216,16 +216,16 @@ test('retained decks update estimates and limit breaks, but cannot bypass owners
   const lower = planRun(input, settings, { [owned.id]: 0 }, data, { previous, search: false });
   assert.equal(lower.deckResult.deck.find((e) => e.card.id === owned.id && !e.borrowed)?.lb, 0);
   const unowned = planRun(input, settings, { [owned.id]: null }, data, { previous, search: false });
-  assert.ok(!unowned.deckResult.deck.some((e) => e.card.id === owned.id && !e.borrowed));
+  assert.ok(!unowned.deckResult.deck.some((e) => e.card.id === owned.id && !e.borrowed), 'a card marked not owned leaves the owned slots');
   const pin = must(data.cards.find((c) => c.charId !== sw.charId && !previous.some((e) => e.id === c.id)), `data.cards.find((c) => c.charId !== sw.charId && !previous.some((e) => e.id === c.id))`);
   const pinned = planRun({ ...input, pinnedIds: [pin.id] }, settings, {}, data, { previous, search: false });
-  assert.ok(pinned.deckResult.deck.some((e) => e.card.id === pin.id));
+  assert.ok(pinned.deckResult.deck.some((e) => e.card.id === pin.id), 'a new pin joins the retained deck');
   const nextTrainee = must(data.characters.find((c) => previous.some((e) => must(data.cardById.get(e.id), `data.cardById.get(${e.id})`).charId === c.charId)), `data.characters.find((c) => previous.some((e) => data.cardById.get(e.id).charId === c.c...`);
   const changed = planRun({ ...input, traineeCardId: nextTrainee.cardId }, settings, {}, data, { previous, search: false });
-  assert.ok(changed.deckResult.deck.every((e) => e.card.charId !== nextTrainee.charId));
+  assert.ok(changed.deckResult.deck.every((e) => e.card.charId !== nextTrainee.charId), "the new trainee's own character leaves the deck");
   const incomplete = planRun(input, settings, Object.fromEntries(data.cards.map((c) => [c.id, null])), data, { previous, search: false });
-  assert.ok(incomplete.issues.some((s) => s.includes('Incomplete deck')));
-  assert.ok(incomplete.deckResult.deck.every((e) => e.borrowed));
+  assert.ok(incomplete.issues.some((s) => s.includes('Incomplete deck')), 'an empty inventory reports an incomplete deck');
+  assert.ok(incomplete.deckResult.deck.every((e) => e.borrowed), 'only the borrowed card remains');
 });
 
 test('partial input still builds for new white targets when a full goal search cannot run', () => {

@@ -52,7 +52,7 @@ test('attempt counts handle boundaries and use the selected confidence', () => {
   assert.deepEqual([.5, .75, .95].map((q) => attemptsFor(.005, q)), [139, 277, 598]);
   assert.equal(attemptsFor(0, .95), Infinity);
   assert.equal(attemptsFor(1, .95), 1);
-  assert.ok(Number.isFinite(attemptsFor(1e-15, .95)));
+  assert.ok(Number.isFinite(attemptsFor(1e-15, .95)), 'a tiny chance still gives a finite attempt count');
 });
 
 test('pink eligibility includes B-to-A and dilution from competing aptitudes', () => {
@@ -99,7 +99,7 @@ test('pink goals default to Any at one star and migrate unchosen goals without l
   for (const pink of [undefined, null, '', 'invalid', 'any']) {
     const saved = migrate({ current: { version: 12, run: { goal: { enabled: true, pink, pinkStars: 3 } } } }, data);
     assert.deepEqual(saved.run.goal.pink, [{ aptitude: 'any', stars: 3 }]);
-    assert.ok(!('enabled' in saved.run.goal));
+    assert.ok(!('enabled' in saved.run.goal), 'the retired toggle is dropped');
     assert.deepEqual(migrate({ current: saved }, data), saved);
   }
   assert.deepEqual(migrateGoal({ pink: 'end' }, data).pink, [{ aptitude: 'end', stars: 2 }]);
@@ -126,7 +126,7 @@ test('empty pink slots count as zero sparks and partial lineage gives an estimat
   close(result.probability!, .64);
   assert.deepEqual(result.issues, []);
   assert.deepEqual(result.pink.warnings, []);
-  assert.ok(result.notes.some((note) => note.includes('Empty pink slots count as zero sparks')));
+  assert.ok(result.notes.some((note) => note.includes('Empty pink slots count as zero sparks')), 'the note explains empty pink slots');
   assert.equal(evaluateTraineeGoal(goal, partial, grades, ctx, stats, ['Incomplete deck']).probability, null);
 });
 
@@ -240,7 +240,7 @@ test('rare blue thresholds retain finite attempts and their shared white-rank ou
   const blueOnly = estimate();
   close(blueOnly.blue / expectedBlue, 1);
   close(blueOnly.probability! / (expectedBlue * .8), 1);
-  assert.ok(Number.isFinite(attemptsFor(blueOnly.probability!, .95)));
+  assert.ok(Number.isFinite(attemptsFor(blueOnly.probability!, .95)), 'a rare blue spark still gives finite attempts');
   const required = [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }];
   const withWhites = estimate(required);
   // Every outcome that generates this blue spark also reaches SS, even though the mean rank is below SS.
@@ -268,18 +268,18 @@ test('goal evaluation runs by default and ignores the retired toggle in saved go
   const goals = [undefined, { ...BASE_GOAL, enabled: false, pink: 'turf', pinkStars: 3 }, { ...BASE_GOAL, enabled: true }];
   for (const goal of goals) {
     const saved = migrate({ current: { version: 14, run: { traineeCardId: 100101, goal } } }, data);
-    assert.ok(!('enabled' in saved.run.goal));
+    assert.ok(!('enabled' in saved.run.goal), 'the retired toggle is dropped');
     assert.deepEqual(saved.run.goal.pink, sanitizeGoal(goal).pink);
     const result = planRun(saved.run, saved.settings, saved.inventory, data, { search: false }).goalEstimate;
-    assert.ok(result);
-    assert.ok(result.probability !== null && result.probability > 0);
+    assert.ok(result, 'the goal is evaluated without a toggle');
+    assert.ok(result.probability !== null && result.probability > 0, `a positive chance, got ${result.probability}`);
     assert.deepEqual(migrate({ current: saved }, data), saved);
   }
 });
 
 test('goal migration keeps old targets as preferred and normalizes family identities', () => {
   const saved = migrate({ current: { version: 6, run: { targets: [b.gold!.id, b.id, a.id] } } }, data);
-  assert.ok(!('enabled' in saved.run.goal));
+  assert.ok(!('enabled' in saved.run.goal), 'the retired toggle is dropped');
   assert.deepEqual(goalWithTargets(saved.run.goal, saved.run.targets).preferred, [{ id: b.id, priority: 0 }, { id: a.id, priority: 0 }]);
   assert.deepEqual(goalWithTargets(saved.run.goal, saved.run.targets).required.map((r) => r.id), []);
   const goal = migrateGoal({ enabled: true, required: [{ id: b.gold!.id, stars: 3 }, { id: b.id, stars: 99 }], preferred: [b.id, a.id, -1], blueStats: ['power', 'nope', 'power'], pink: 'end' }, data);
@@ -301,11 +301,11 @@ test('goal editing drives selection while supplied-deck prediction stays consist
   input.targets.forEach((t) => { t.role = 'required'; });
   input.pinkLineage = lineage();
   const after = planRun(input, settings, {}, data, { budget: 8 });
-  assert.ok(before.search && after.search);
+  assert.ok(before.search && after.search, 'both plans searched');
   assert.equal(after.search.score.total, 4);
   assert.equal(before.search.score.total, 2);
-  assert.ok(after.search.score.comparison > 0);
-  assert.ok(after.goalEstimate);
+  assert.ok(after.search.score.comparison > 0, 'the required goal has a comparison score');
+  assert.ok(after.goalEstimate, 'the estimate is present');
   assert.deepEqual(predictRunDeck(after.deckResult.deck, input, after.ctx, after.apt, after.sum.expectedLosses).finalMean, after.finalMean);
 });
 
@@ -441,10 +441,10 @@ test('pink alternatives add exclusive outcomes and share uncertainty scenarios',
   const uncertain = pinkGoalsEstimate({ ...apt(), mile: 'C' }, goals, [{ aptitude: 'mile', stars: 3 }], 150);
   close(uncertain.probability, .45);
   close(uncertain.upperProbability, .8);
-  assert.ok(uncertain.warnings.length);
+  assert.ok(uncertain.warnings.length, 'uncertain mile eligibility warns');
   for (const g of goals) {
     const single = pinkEstimate(grades, g.aptitude, g.stars, [], 150);
-    assert.ok(estimate.probability >= single.probability);
+    assert.ok(estimate.probability >= single.probability, `${g.aptitude} alone ${single.probability} cannot exceed the combined ${estimate.probability}`);
     assert.deepEqual(pinkGoalsEstimate(grades, [g], [], 150), single);
   }
 });

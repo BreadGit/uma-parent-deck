@@ -20,7 +20,7 @@ test('template catalog preserves supplied names, order, spark requirements, and 
   assert.equal(new Set(GOAL_TEMPLATES.map((t) => t.id)).size, GOAL_TEMPLATES.length);
   for (const [i, template] of GOAL_TEMPLATES.entries()) {
     assert.equal(template.name, entries[i * 2]);
-    assert.ok(template.id);
+    assert.ok(template.id, `${template.name} has an id`);
     const body = entries[i * 2 + 1]!;
     const field = (name: string) => must(body.split('\n').find((line) => line.trim().startsWith(`- ${name}: `)), `body.split('\\n').find((line) => line.trim().startsWith(\`- \${name}: \`))`).trim().slice(name.length + 4);
     const blue = field('blue sparks').match(/^(.*) ([123])\*$/)!;
@@ -36,7 +36,7 @@ test('template catalog preserves supplied names, order, spark requirements, and 
       assert.deepEqual(template.targets.filter((t) => t.role === role).map((t) => {
         const resolved = resolveTarget(t.id, data)!;
         assert.equal(resolved.id, t.id);
-        assert.ok(hasWhiteSpark(resolved));
+        assert.ok(hasWhiteSpark(resolved), `${resolved.name} has a white spark form`);
         return { name: normalize(resolved.name), value: role === 'required' ? t.stars : t.priority };
       }), expected, template.name);
     }
@@ -99,8 +99,8 @@ test('godly defaults give every required white spark inherited hints and accept 
       // Each side spreads seven stars as 3, 2, 2. Each copy rolls at both inspiration events.
       const p3 = Math.min(1, DEFAULT_SETTINGS.whiteSparkInheritRates[2]! * (1 + DEFAULT_SETTINGS.affinity / 100));
       const p2 = Math.min(1, DEFAULT_SETTINGS.whiteSparkInheritRates[1]! * (1 + DEFAULT_SETTINGS.affinity / 100));
-      assert.ok(Math.abs(inherited[0]!.pObtain - (1 - (1 - p3) ** 4 * (1 - p2) ** 8)) < 1e-12);
+      assert.ok(Math.abs(inherited[0]!.pObtain - (1 - (1 - p3) ** 4 * (1 - p2) ** 8)) < 1e-12, `${target.name} inherited hint chance ${inherited[0]!.pObtain}`);
     }
   }
-  assert.ok(GOAL_TEMPLATES.filter((t) => !t.name.endsWith('(godly)')).every((t) => !t.targetLineage));
+  assert.ok(GOAL_TEMPLATES.filter((t) => !t.name.endsWith('(godly)')).every((t) => !t.targetLineage), 'only godly templates carry lineage');
 });

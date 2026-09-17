@@ -109,7 +109,7 @@ test('manual sparks can be reassigned while affected aptitudes never fall below 
   const packed = withPinkAptitude(base, { ...base, end: 'E' }, tiny, 'end', 'C')!;
   assert.equal(packed.aptitudes.end, 'C');
   assert.equal(packed.lineage.length, 6);
-  assert.ok(filled(packed.lineage).length <= 6);
+  assert.ok(filled(packed.lineage).length <= 6, 'six slots at most');
 });
 
 test('editing a grade preserves unrelated grade-only planning overrides', () => {

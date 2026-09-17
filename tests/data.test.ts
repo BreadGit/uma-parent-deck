@@ -39,7 +39,7 @@ test('support effects interpolate with floor rounding between anchors, without u
 });
 
 test('cards carry the fields the stat and spark models read', () => {
-  assert.ok(data.cards.length > 100);
+  assert.ok(data.cards.length > 100, `only ${data.cards.length} cards`);
   for (const c of data.cards) {
     assert.ok(['R', 'SR', 'SSR'].includes(c.rarity), `${c.name} rarity`);
     assert.ok([...STATS, 'pal', 'group'].includes(c.type), `${c.name} type ${c.type}`);
@@ -84,7 +84,7 @@ test('cards carry the fields the stat and spark models read', () => {
   // decoding canary: Kitasan Black's third chain event hands out Professor of Curvature in both options
   const kitasan = pinned(PINNED.kitasanBlack);
   assert.equal(kitasan.chainEvents.length, 3);
-  assert.ok(kitasan.chainEvents[2]!.choices.every((ch) => ch.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331)));
+  assert.ok(kitasan.chainEvents[2]!.choices.every((ch) => ch.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331)), "Kitasan Black's chain 3 gives Professor of Curvature in every option");
 });
 
 test('the fit script and the app add the same compound unique passives: the fixture the fit wrote is reproduced by uniqueExtras()', () => {
@@ -140,7 +140,7 @@ test('trainee events are decoded with resolvable skills and race references', ()
       for (const cond of ev.conditions ?? []) {
         const refs = 'races' in cond ? cond.races : 'race' in cond ? [cond.race] : [];
         for (const r of refs) { assert.ok(raceIds.has(r.raceId), `${ch.name} condition race ${r.raceId} is a calendar G1`); if (r.year != null) assert.ok(r.year >= 1 && r.year <= 3); }
-        if (cond.type === 'win_n_of') assert.ok(cond.n >= 1 && cond.n <= cond.races.length);
+        if (cond.type === 'win_n_of') assert.ok(cond.n >= 1 && cond.n <= cond.races.length, `${ch.name} win_n_of needs 1..${cond.races.length}, got ${cond.n}`);
       }
     }
   }
@@ -152,7 +152,7 @@ test('races sit on the three-year calendar and ranks include SS', () => {
     assert.ok(r.year >= 1 && r.year <= 3 && r.month >= 1 && r.month <= 12 && (r.half === 1 || r.half === 2), `${r.name} calendar`);
     assert.ok(['turf', 'dirt'].includes(r.surface) && ['sprint', 'mile', 'medium', 'long'].includes(r.category), `${r.name} surface/category`);
   }
-  assert.ok(data.ranks.some((r) => r.name === 'SS'));
+  assert.ok(data.ranks.some((r) => r.name === 'SS'), 'the SS rank is listed');
 });
 
 test('scenario events reference known skills and characters', () => {
@@ -167,11 +167,11 @@ test('stat model has every field the predictor reads', () => {
   const m = data.model;
   assert.deepEqual(m.stats, STATS);
   for (const k of ['fr', 'mo', 'te', 'sb'] as const) assert.ok(isNum(m.slopes[k]), `slope ${k}`);
-  assert.ok(isNum(m.floor) && isNum(m.growthEffect) && isNum(m.races.totalTurns) && isNum(m.races.reference));
+  assert.ok(isNum(m.floor) && isNum(m.growthEffect) && isNum(m.races.totalTurns) && isNum(m.races.reference), 'model scalars are finite');
   assert.equal(m.sigma.length, 5);
   for (const f of ['balanced', 'stamina', 'sprint'] as const) assert.equal(m.focus[f].length, 5, `focus ${f}`);
   assert.equal(m.eventBase['28']?.length, 5);
-  assert.ok(isNum(m.eventSp['28']));
+  assert.ok(isNum(m.eventSp['28']), 'event SP at 28 races is finite');
   for (const o of m.observed) {
     assert.ok(data.cardById.has(o.cardId), `observed row for unknown card ${o.cardId}`);
     assert.equal(o.stats.length, 5);
@@ -184,8 +184,8 @@ test('model coefficients, reference conditions and observed provenance are usabl
     assert.equal(values.length, STATS.length, name);
     assert.ok(values.every((v) => isNum(v) && (positive ? v > 0 : v >= 0)), name);
   };
-  assert.ok(m.races.totalTurns > m.races.reference && m.races.reference > 0);
-  assert.ok(m.uniqueRampShare >= 0 && m.uniqueRampShare <= 1);
+  assert.ok(m.races.totalTurns > m.races.reference && m.races.reference > 0, 'total turns exceed the reference race count');
+  assert.ok(m.uniqueRampShare >= 0 && m.uniqueRampShare <= 1, 'uniqueRampShare is a share');
   for (const values of [m.slopes, m.roleConstants, m.effectSlopes ?? {}, m.sp.effectSlopes ?? {}]) {
     for (const value of Object.values(values)) assert.ok(isNum(value), 'finite fitted coefficient');
   }
@@ -196,7 +196,7 @@ test('model coefficients, reference conditions and observed provenance are usabl
   for (const focus of ['balanced', 'stamina', 'sprint'] as const) vector(m.focus[focus], focus, true);
   for (const races of ['23', '28']) {
     vector(m.eventBase[races]!, `event stats at ${races} races`);
-    assert.ok(isNum(m.eventSp[races]) && m.eventSp[races]! >= 0);
+    assert.ok(isNum(m.eventSp[races]) && m.eventSp[races]! >= 0, `event SP at ${races} races`);
   }
   const seen = new Set<string>();
   for (const observation of m.observed) {

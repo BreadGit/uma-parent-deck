@@ -67,8 +67,8 @@ test("Special Week's secret event needs runnings the default agenda skips; force
   const withRuns = planRun({ ...base, raceOverrides: Object.fromEntries(forced.forced) }, settings, {}, data, { selection, search: false });
   const secretOf = (p: typeof plainRun) => (p.existing.sources.get(stamina.id) ?? []).find((s) => s.kind === 'secret');
   assert.equal(secretOf(plainRun), undefined);
-  assert.ok(secretOf(withRuns) && secretOf(withRuns)!.pObtain > 0);
-  assert.ok((withRuns.deckResult.sparks.get(stamina.id) ?? 0) > (plainRun.deckResult.sparks.get(stamina.id) ?? 0));
+  assert.ok(secretOf(withRuns) && secretOf(withRuns)!.pObtain > 0, 'the forced runnings make the secret event fire in planRun');
+  assert.ok((withRuns.deckResult.sparks.get(stamina.id) ?? 0) > (plainRun.deckResult.sparks.get(stamina.id) ?? 0), 'the secret event raises the spark chance');
 });
 
 test("the trainee's choice and outing events: choice-gated at their own rates, one option per event by prioritized order, a non-target option can block a target", () => {
@@ -77,7 +77,7 @@ test("the trainee's choice and outing events: choice-gated at their own rates, o
   assert.ok(choice && choice.isChoice && choice.pObtain === settings.charStoryEventRate, 'Pace Strategy is one option of a choice event');
   const haste = resolveTarget(byName('Homestretch Haste').id, data)!;
   const outing = must(traineeSources(sw, haste, data, { ...settings, charOutingRate: 0.3 }, new Map()).find((s) => s.kind === 'outing'), `traineeSources(sw, haste, data, { ...settings, charOutingRate: 0.3 }, new Map()).find((...`);
-  assert.ok(outing && outing.isChoice && Math.abs(outing.pObtain - 0.3) < 1e-9);
+  assert.ok(outing && outing.isChoice && Math.abs(outing.pObtain - 0.3) < 1e-9, `Homestretch Haste comes from an outing at the outing rate, got ${outing?.pObtain}`);
   const all = traineeEventSources(sw, new Map(), settings, data);
   assert.ok(all.every((s) => s.event.key.startsWith('trainee:')) && !all.some((s) => s.kind === 'secret'), 'with no agenda no secret event can fire');
   const adept = resolveTarget(byName('Corner Adept ○').id, data)!;

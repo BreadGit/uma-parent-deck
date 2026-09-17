@@ -17,5 +17,5 @@ test('the fitted model matches its saved measurement and card inputs', () => {
   assert.equal(modelJson.observed.length, modelJson.sourceAudit.loopacord.eligibleRows);
   const references = modelJson.observed.map((row) => row.sourceRef);
   assert.equal(new Set(references).size, references.length);
-  assert.ok(modelJson.observed.every((row) => row.source === 'loopacord' && row.raceReference === 28 && row.runs >= 10));
+  assert.ok(modelJson.observed.every((row) => row.source === 'loopacord' && row.raceReference === 28 && row.runs >= 10), 'every observed row is a loopacord result at the 28-race reference with at least 10 runs');
 });

@@ -94,7 +94,7 @@ test('a normal hint permits buying its circle upgrade without inventing a circle
   const hints = combineSources(p.deckResult.coverage.get(200012)!);
   assert.equal(hints.pCircle, 0);
   assert.equal(hints.pGold, 0);
-  assert.ok(Math.abs(p.deckResult.sparks.get(200012)! - hints.pAny * 0.25) < 1e-9);
+  assert.ok(Math.abs(p.deckResult.sparks.get(200012)! - hints.pAny * 0.25) < 1e-9, `spark ${p.deckResult.sparks.get(200012)} != hint ${hints.pAny} * 0.25`);
   assert.equal(p.spCost.total, 200);
   assert.equal(p.spCost.items[0]!.skill!.name, 'Right-Handed ◎');
   assert.ok(!p.wl.some((w) => w.skillId === 200011), 'the event priority still asks for the available hint');
@@ -133,7 +133,7 @@ test('inherited hints use only real upgrades for spark predictions and purchase 
     assert.equal(hints.pGold, 0);
     assert.equal(hints.pCircle, 0, 'inheritance gives the base hint');
     const pHint = 1 - (1 - 0.09 * 2.5) ** 2; // one 3★ spark, affinity 150, two inspiration events
-    assert.ok(Math.abs(hints.pWhite - pHint) < 1e-9);
+    assert.ok(Math.abs(hints.pWhite - pHint) < 1e-9, `${hints.pWhite} != ${pHint}`);
     assert.ok(Math.abs(result.sparks.get(target.id)! - pHint * row.rate * 1.1) < 1e-9, target.name);
     const cost = targetSpCost([target], result.map);
     assert.deepEqual(cost.items[0]!.purchases.map((s) => s.id), row.purchases, target.name);

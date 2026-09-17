@@ -44,8 +44,8 @@ test('evaluation metadata covers each held-out card once and agrees with retaine
       assert.equal(input.status === 'retained', Math.abs(slopes[String(input.effectId)] ?? 0) > 1e-8, `${target} effect ${input.effectId}`);
     }
     if (evaluation.retained) {
-      assert.ok(evaluation.expandedRmse <= evaluation.baselineRmse * 0.98);
-      assert.ok(evaluation.folds.filter((fold) => fold.expandedRmse < fold.baselineRmse).length >= 3);
+      assert.ok(evaluation.expandedRmse <= evaluation.baselineRmse * 0.98, `${target}: expanded RMSE ${evaluation.expandedRmse} must beat baseline ${evaluation.baselineRmse} by 2%`);
+      assert.ok(evaluation.folds.filter((fold) => fold.expandedRmse < fold.baselineRmse).length >= 3, `${target}: at least three folds improve`);
     }
   }
 });

@@ -61,7 +61,7 @@ test('the reported Fuji calendar and deck reproduce independent deterministic fa
     assert.equal(run.calendarPlaces.length, calendar.length);
     assert.deepEqual(run.finalePlaces, [1, 1, 1]);
     assert.equal(run.stats.length, 5);
-    assert.ok(run.fans > 0 && run.rating > 0);
+    assert.ok(run.fans > 0 && run.rating > 0, `observed run ${index} recorded fans and a rating`);
   }
   // Observed fans and stats are measurements, not expected outputs of deterministic tests.
 });
@@ -96,9 +96,9 @@ test('changing a selected LB updates fan checkpoints used by unique effects and 
   assert.equal(low.fans.bonus, 65);
   close(plan.fans.calendar / low.fans.calendar, 1.68 / 1.65);
   assert.equal(plan.fans.concerts, low.fans.concerts);
-  assert.ok(plan.ctx.fansBefore!(50) > low.ctx.fansBefore!(50));
+  assert.ok(plan.ctx.fansBefore!(50) > low.ctx.fansBefore!(50), 'more fans by slot 50 with the higher limit break');
   const topRoad = must(data.cardById.get(30086), `data.cardById.get(30086)`);
-  assert.ok(topRoad.unique?.effects.some((u) => u.type === 104));
+  assert.ok(topRoad.unique?.effects.some((u) => u.type === 104), 'Narita Top Road carries the fan-ramp unique effect (type 104)');
   const manualRamp = plan.fans.bySlot.slice(0, 72).reduce((n, fans) => n + Math.min(20, Math.floor(fans / 10000)), 0) / 72;
   close(uniqueExtras(topRoad, 4, data.model, { fansBefore: plan.ctx.fansBefore })[EFFECT.trainingEff]!, manualRamp);
 });

@@ -56,7 +56,7 @@ test('real card estimates respect conflicting event choices and put Required tar
   const focusFirst = compute([focus.id, groundwork.id]);
   assert.equal(groundFirst.targets[0]!.target.id, groundwork.id);
   assert.ok(groundFirst.required > focusFirst.required, 'the shared Smart Falcon event must respect the chosen skill');
-  assert.ok(groundFirst.targets.every((t) => t.sources.every((s) => s.kind !== 'scenario')));
+  assert.ok(groundFirst.targets.every((t) => t.sources.every((s) => s.kind !== 'scenario')), 'scenario rewards are excluded from every target');
 });
 
 test('ranking compares Required totals, then Preferred totals, then stat gain, including empty goals', () => {

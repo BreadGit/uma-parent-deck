@@ -64,8 +64,8 @@ test('Global historical rewards exclude future hints and preserve the applicable
   assert.throws(() => eventOnGlobal({ did_not_exist: 'pre_unknown_update' }), /Unknown event history period/);
   for (const id of [10008, 10061, 20029, 30053, 30095]) {
     const card = must(normalized.cards.find((card) => card.id === id), `normalized.cards.find((card) => card.id === id)`);
-    assert.ok(!card.eventSkills.includes(202992));
-    assert.ok(!JSON.stringify(card.randomEvents).includes('202992'));
+    assert.ok(!card.eventSkills.includes(202992), `card ${id} lists the future hint`);
+    assert.ok(!JSON.stringify(card.randomEvents).includes('202992'), `card ${id} random events reward the future hint`);
   }
 });
 
