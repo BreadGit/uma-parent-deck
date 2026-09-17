@@ -128,8 +128,12 @@ export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: n
   const result: GoalRankBands = { blue: 0, rank: bands.map(() => 0), blueRank: bands.map(() => 0), pSS: 0, approximateRank: 0 };
   const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i], input.rawUnits));
   const count = input.sd.every((sd) => sd === 0) ? 0 : sampleCount;
-  const statRatings = masses.map((outcomes, i) => ratingSamples(outcomes, i, count).ratings);
-  const draws = statRatings[0]!.length;
+  const draws = count === 0 ? 1 : count;
+  const statRatings = masses.map((outcomes, i) => {
+    const { ratings } = ratingSamples(outcomes, i, count);
+    if (ratings.length !== draws) throw new Error(`${STATS[i]} has no stat outcomes (mean ${input.rawMean[i]}, sd ${input.sd[i]})`);
+    return ratings;
+  });
   const scores = Array.from({ length: draws }, (_, n) => statRatings.reduce((sum, ratings) => sum + ratings[n]!, input.skillPoints));
   for (const score of scores) {
     const below = (limit: number) => input.skillSd > 0 ? phi((limit - score) / input.skillSd) : Number(score < limit);
@@ -144,8 +148,11 @@ export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: n
   STATS.forEach((stat, i) => {
     if (!goal.blueStats.includes(stat)) return;
     BLUE_GENERATION_BANDS.forEach((band, b) => {
+      // A band the star requirement rules out adds nothing, so its draws are never needed.
+      const chance = starChance(band.rates, goal.blueStars) / STATS.length;
+      if (chance === 0) return;
       const samples = ratingSamples(masses[i]!, i, count, b);
-      const blue = samples.mass * starChance(band.rates, goal.blueStars) / STATS.length;
+      const blue = samples.mass * chance;
       result.blue += blue;
       if (blue === 0) return;
       for (let n = 0; n < draws; n++) {

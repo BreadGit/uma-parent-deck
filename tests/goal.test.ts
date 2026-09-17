@@ -447,6 +447,12 @@ test('shared stat distributions retain separate sample dimensions and sample cou
   close(goalRankBands({ ...stats, skillPoints: 13000 }, DEFAULT_GOAL, 27500, settings, 32).pSS, low.pSS);
 });
 
+test('a stat with no outcomes fails loudly instead of yielding an empty rank basis', () => {
+  const stats = { rawMean: Array(5).fill(800), sd: [50, 50, 50, NaN, 50], skillPoints: 3000, skillSd: 250 };
+  assert.throws(() => goalRankBands(stats, DEFAULT_GOAL, 17500, settings, 32), /guts has no stat outcomes/);
+  assert.throws(() => goalRankBands({ ...stats, sd: [NaN, 50, 50, 50, 50] }, DEFAULT_GOAL, 17500, settings, 32), /speed has no stat outcomes/);
+});
+
 test('pink alternatives add exclusive outcomes and share uncertainty scenarios', () => {
   const goals = [{ aptitude: 'turf' as const, stars: 2 }, { aptitude: 'mile' as const, stars: 3 }];
   const grades = { ...apt(), mile: 'A' as const, medium: 'A' as const };
