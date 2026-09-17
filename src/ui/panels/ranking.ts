@@ -10,29 +10,18 @@ import { cardEffectCoverage } from '../../model/support-effects.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { pinCard, unpinCard } from '../actions.ts';
 import { COPY } from '../copy.ts';
-import { basisExplanation, basisLabel, coverageLabel, effectList, missingEffect } from '../effect-coverage.ts';
+import { basisLabel, basisTip, coverageFlag } from '../effect-coverage.ts';
 import { isChecked, lbSelect } from '../fields.ts';
 import { cardThumb, cardUrl, num, probability, skillName, typeIcon } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
+// The Basis label keeps the row one line tall: the per-card facts live in its tooltip (hover, focus, or tap to pin),
+// and the rules shared by every card are in the column header tip and the panel notes.
 function basis(c: RunPlan, x: CardScore) {
-  const expanded = view.expandedBasisCards.includes(x.card.id);
-  const effects = expanded ? cardEffectCoverage(x.card, x.lb, data.model, { fansBefore: c.ctx.fansBefore }) : [];
-  const toggle = (event: Event) => {
-    const details = event.currentTarget;
-    if (!(details instanceof HTMLDetailsElement) || details.open === view.expandedBasisCards.includes(x.card.id)) return;
-    view.expandedBasisCards = details.open ? [...view.expandedBasisCards, x.card.id] : view.expandedBasisCards.filter((id) => id !== x.card.id);
-    refresh();
-  };
-  return html`<details class="basis-details" data-basis=${x.card.id} ?open=${expanded} @toggle=${toggle}>
-    <summary>${basisLabel(x.card, x.lb, x.source)}</summary>
-    ${expanded ? basisExplanation(x.card, x.lb, x.source, c.sum.count, effects) : nothing}
-    ${effects.length ? html`<details class="formula-coverage" data-formula-details>
-      <summary>${COPY.modelCoverage.coverageTitle} <span class="tag ${effects.some(missingEffect) ? 'warn' : ''}" data-formula-coverage>${coverageLabel(effects)}</span></summary>
-      ${effectList(effects, { source: x.source })}
-    </details>` : nothing}
-  </details>`;
+  const effects = cardEffectCoverage(x.card, x.lb, data.model, { fansBefore: c.ctx.fansBefore });
+  const flag = coverageFlag(effects);
+  return html`<span class="basis-label" tabindex="0" data-basis=${x.card.id} data-tip=${basisTip(x.card, x.lb, x.source, effects)}>${basisLabel(x.card, x.lb, x.source)}${flag ? html` <span class="tag warn" data-formula-coverage>${flag}</span>` : nothing}</span>`;
 }
 
 const SORT_KEYS: Record<string, (x: CardScore) => number> = {
@@ -91,7 +80,7 @@ export function renderRanking(c: RunPlan) {
   const totalTip = `What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. Target spark sorting uses Total when Required and Preferred chances both tie.`;
   const actions = html`<label class="row"><span class="row-k">${COPY.ranking.showUnowned}</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.ui.showUnowned)} @change=${(e: Event) => update((s) => { s.ui.showUnowned = isChecked(e); })} /></label>`;
   return panel({ title: COPY.ranking.title, kind: 'result', subtitle: `${rows.length} cards · ${COPY.ranking.sortHint}`, tip: COPY.ranking.tip, actions, cls: 'panel-live' }, html`
-    <div class="scroll"><table class="ranking-table"><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Target spark chances${tip(COPY.ranking.targetTip)}`, '')}${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(totalTip)}`)}${th('sp', 'SP')}<th>Basis${tip(COPY.ranking.basisTip)}</th></tr></thead><tbody>
+    <div class="scroll"><table class="ranking-table"><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Target spark chances${tip(COPY.ranking.targetTip)}`, '')}${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(totalTip)}`)}${th('sp', 'SP')}<th>Basis${tip(COPY.ranking.basisTip(data.model.races.reference, c.sum.count))}</th></tr></thead><tbody>
       ${repeat(rows, (x) => x.card.id, (x) => row(c, x, chances.get(x.card.id)!.targets, focusMul))}
     </tbody></table></div>
     ${about(COPY.ranking.aboutTitle, COPY.ranking.about)}`);

@@ -16,13 +16,33 @@ export function basisLabel(card: Card, lb: number, source: Contribution['source'
   return source === 'observed' ? copy.observed(lb) : copy.adjusted(observed?.lb ?? lb);
 }
 
-export function basisExplanation(card: Card, lb: number, source: Contribution['source'], races: number, effects: EffectCoverage[]) {
+/** The status shown next to an effect. A recorded contribution already includes an omitted effect, so it is "not
+ * separately modelled" there rather than "not in formula". */
+function statusLabel(effect: EffectCoverage, source: Contribution['source']) {
+  return source !== 'model' && effect.status === 'omitted' && affectsContribution(effect) ? copy.observedOmitted : copy[effect.status];
+}
+
+/** The per-card facts behind a Basis label, as tooltip text: the source of the estimate, then one line per status
+ * listing the effects the formula leaves out, the unmeasured team effect, and deck-dependent effects a recorded
+ * contribution keeps fixed. Effects covered by the formula are not listed; the panel notes explain the shared rules. */
+export function basisTip(card: Card, lb: number, source: Contribution['source'], effects: EffectCoverage[]) {
   const observed = source === 'model' ? undefined : referenceObservation(card, lb, data.model);
-  return html`
-    ${observed ? html`<p>${copy.observedDetail(observed.lb, observed.runs, observed.source)}</p>
-      ${source === 'observed+model' ? html`<p>${copy.adjustedDetail(observed.lb, lb)}</p>` : nothing}` : html`<p>${copy.modelDetail}</p>`}
-    <p>${copy.raceDetail(data.model.races.reference, races)}</p>
-    ${observedCaveat(source, effects)}`;
+  const lines = observed
+    ? [copy.observedDetail(observed.lb, observed.runs, observed.source), ...(source === 'observed+model' ? [copy.adjustedDetail(observed.lb, lb)] : [])]
+    : [copy.modelDetail];
+  const groups = new Map<string, string[]>();
+  const add = (label: string, effect: EffectCoverage) => {
+    const detail = effect.description && effect.description === card.unique?.text ? effect.description : undefined;
+    const entry = copy.effectEntry(effect.name, effect.outcomes.map((outcome) => copy.outcomes[outcome]), detail);
+    const entries = groups.get(label) ?? [];
+    if (!entries.includes(entry)) groups.set(label, [...entries, entry]);
+  };
+  for (const effect of effects) {
+    if (missingEffect(effect)) add(statusLabel(effect, source), effect);
+    else if (effect.reason === 'teamBond') add(copy.teamEffect, effect);
+    else if (source !== 'model' && observedDeckEffect(effect)) add(copy.recordedDeck, effect);
+  }
+  return [...lines, ...[...groups].map(([label, entries]) => copy.coverageLine(label, entries))].join('\n');
 }
 
 export function observedCaveat(source: Contribution['source'], effects: EffectCoverage[]) {
@@ -32,11 +52,12 @@ export function observedCaveat(source: Contribution['source'], effects: EffectCo
     ${effects.some(observedDeckEffect) ? html`<p>${copy.observedDeck}</p>` : nothing}`;
 }
 
-export function coverageLabel(effects: EffectCoverage[]) {
-  const missing = effects.filter(missingEffect);
-  if (missing.length && missing.length < effects.length) return copy.partial;
-  if (missing.length) return missing.some((effect) => effect.status === 'unrecognized') ? copy.unrecognized : copy.omitted;
-  return effects.some((effect) => effect.status === 'approximated') ? copy.approximated : copy.calculated;
+/** A warning worth a tag in the ranking row: an effect the model has not evaluated at all, or a card whose every
+ * effect is outside the formula. Nearly every card has some effect the formula leaves out, so that alone is not flagged. */
+export function coverageFlag(effects: EffectCoverage[]) {
+  if (effects.some((effect) => effect.status === 'unrecognized')) return copy.unrecognized;
+  if (effects.length && effects.every(missingEffect)) return copy.omitted;
+  return undefined;
 }
 
 function effectReason(effect: EffectCoverage): string {
@@ -46,7 +67,7 @@ function effectReason(effect: EffectCoverage): string {
 
 export function effectList(effects: EffectCoverage[], { compact = false, source = 'model' }: { compact?: boolean; source?: Contribution['source'] } = {}) {
   return html`<ul class="effect-coverage">${effects.map((effect) => html`<li data-effect-coverage=${effect.key} data-effect-status=${effect.status}>
-    <span>${effect.name}</span><span class="tag ${missingEffect(effect) ? 'warn' : ''}">${source !== 'model' && effect.status === 'omitted' && affectsContribution(effect) ? copy.observedOmitted : copy[effect.status]}</span>
+    <span>${effect.name}</span><span class="tag ${missingEffect(effect) ? 'warn' : ''}">${statusLabel(effect, source)}</span>
     ${(!compact || effect.key.startsWith('unique:') || effect.status === 'unrecognized') && effect.description && effect.description !== effect.name ? html`<p>${effect.description}</p>` : nothing}
     <p class="muted">${!compact || effect.reason === 'teamBond' ? effectReason(effect) : nothing} ${copy.affects(effect.outcomes.map((outcome) => copy.outcomes[outcome]))}</p>
   </li>`)}</ul>`;

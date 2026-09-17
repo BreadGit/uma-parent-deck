@@ -61,39 +61,39 @@ const predictions = (page) => page.locator('h2', { hasText: 'Predicted run' });
 const confirmDialog = async (page) => { await page.waitForSelector('dialog[data-dialog][open]'); await page.click('[data-dialog-confirm]'); };
 const openAgenda = (page) => page.click('details[data-agenda] > summary');
 
-test('Basis details distinguish observations, adjusted observations and model estimates', async (t) => {
+test('Basis labels distinguish observations, adjusted observations and model estimates without growing the row', async (t) => {
   const page = await editor(t, defaultState(data));
   const observed = page.locator('[data-basis="30028"]');
-  assert.equal(await observed.locator(':scope > summary').innerText(), 'Observed · LB4');
-  await observed.locator(':scope > summary').press('Enter');
-  assert.notEqual(await observed.getAttribute('open'), null);
-  assert.match(await observed.innerText(), /community results at LB4 from at least 10 logged runs/);
-  assert.match(await observed.innerText(), /scales card stats and SP to your .*race schedule/);
-  await assertFieldsMatchState(page, 'after opening observed Basis with the keyboard');
+  const rowHeight = () => observed.locator('xpath=ancestor::tr').boundingBox().then((box) => box.height);
+  assert.equal(await observed.innerText(), 'Observed · LB4');
+  await observed.focus();
+  const tooltip = page.locator('#tooltip.show');
+  assert.match(await tooltip.innerText(), /community results at LB4 from at least 10 logged runs/);
+  assert.match(await tooltip.innerText(), /Not separately modelled: .*Race Bonus \(stats, SP\)/);
+  assert.ok(await rowHeight() < 60, 'the Basis tip does not change the row height');
+  assert.match(await page.locator('.ranking-table th', { hasText: 'Basis' }).locator('.tip').getAttribute('data-tip'), /scales card stats and SP to your .*race schedule/);
+  await assertFieldsMatchState(page, 'after focusing an observed Basis label');
 
   await page.locator('.ranking-table [data-lb="30028"]').selectOption('2');
-  assert.equal(await observed.locator(':scope > summary').innerText(), 'Adjusted · from LB3');
-  assert.match(await observed.innerText(), /Estimates LB2.*between LB3 and LB2/);
+  assert.equal(await observed.innerText(), 'Adjusted · from LB3');
+  assert.match(await observed.getAttribute('data-tip'), /Estimates LB2.*between LB3 and LB2/);
   await assertFieldsMatchState(page, 'after changing the Basis observation limit break');
 
   const model = page.locator('[data-basis="30146"]');
-  assert.equal(await model.locator(':scope > summary').innerText(), 'Model estimate');
-  await model.locator(':scope > summary').click();
-  assert.match(await model.innerText(), /No qualifying recorded results/);
-  await model.locator('[data-formula-details] > summary').click();
-  assert.match(await model.innerText(), /All support cards gain Initial Friendship Gauge/);
-  assert.equal(await model.locator('[data-effect-coverage="unique:0"]').getAttribute('data-effect-status'), 'approximated');
-  assert.match(await model.innerText(), /team effect has not been measured directly/);
-  assert.equal(await model.locator('[data-formula-coverage]').innerText(), 'Partially modelled');
-  await assertFieldsMatchState(page, 'after opening model Basis');
+  assert.equal(await model.innerText(), 'Model estimate');
+  const modelTip = await model.getAttribute('data-tip');
+  assert.match(modelTip, /No qualifying recorded results/);
+  assert.match(modelTip, /Not in formula: .*Race Bonus \(stats, SP\)/);
+  assert.match(modelTip, /Team effect estimated.*: Unique effect "All support cards gain Initial Friendship Gauge \(5\)" \(stats, SP\)/);
+  assert.equal(await model.locator('[data-formula-coverage]').count(), 0, 'a card the formula partly covers carries no warning tag');
 
   const textOnly = page.locator('[data-basis="30080"]');
-  await textOnly.locator(':scope > summary').click();
-  await textOnly.locator('[data-formula-details] > summary').click();
-  assert.equal(await textOnly.locator('[data-effect-coverage="unique:text"]').getAttribute('data-effect-status'), 'unrecognized');
-  assert.match(await textOnly.innerText(), /Sasami Anshinzawa random events are more likely to occur/);
-  assert.match(await textOnly.locator('[data-effect-coverage="unique:text"]').innerText(), /Not evaluated/);
-  await assertFieldsMatchState(page, 'after explaining an imported text-only unique');
+  assert.equal(await textOnly.locator('[data-formula-coverage]').innerText(), 'Not evaluated');
+  assert.match(await textOnly.getAttribute('data-tip'), /Not evaluated: Unique effect "Sasami Anshinzawa random events are more likely to occur"/);
+  await textOnly.click();
+  assert.match(await tooltip.innerText(), /Sasami Anshinzawa/);
+  assert.ok(await rowHeight() < 60, 'a pinned Basis tip does not change the row height');
+  await assertFieldsMatchState(page, 'after pinning the Basis tip of an imported text-only unique');
 });
 
 test('effect warnings respect unique unlocks and explain observed deck effects on mobile', async (t) => {
@@ -104,15 +104,14 @@ test('effect warnings respect unique unlocks and explain observed deck effects o
   const page = await fresh(t, saved, { held: true, touch: true });
   await page.setViewportSize({ width: 390, height: 900 });
   const basis = page.locator('[data-basis="30088"]');
-  await basis.locator(':scope > summary').tap();
-  assert.equal(await basis.locator('[data-effect-coverage^="unique:"]').count(), 0, 'locked unique has no coverage warning');
-  await assertFieldsMatchState(page, 'after opening Basis on mobile');
+  assert.doesNotMatch(await basis.getAttribute('data-tip'), /Unique effect/, 'locked unique is not listed');
+  await basis.tap();
+  assert.match(await page.locator('#tooltip.show').innerText(), /Not separately modelled/);
+  await assertFieldsMatchState(page, 'after pinning a Basis tip on mobile');
 
   await page.locator('.ranking-table [data-lb="30088"]').selectOption('4');
-  assert.equal(await basis.locator(':scope > summary').innerText(), 'Observed · LB4');
-  await basis.locator('[data-formula-details] > summary').tap();
-  assert.ok(await basis.locator('[data-effect-coverage^="unique:"]').count() > 0);
-  assert.match(await basis.innerText(), /recorded contribution stays fixed when deck-dependent effects change/);
+  assert.equal(await basis.innerText(), 'Observed · LB4');
+  assert.match(await basis.getAttribute('data-tip'), /Fixed at the recorded deck conditions: Unique effect "If there are at least 4 different types/);
   await assertFieldsMatchState(page, 'after unlocking an observed deck effect');
 
   const limitations = page.locator('[data-estimate-limitations]');
@@ -132,12 +131,14 @@ test('Light Hello uses repaired community measurements and separates formula omi
   saved.run.pinnedIds = [30052];
   const page = await editor(t, saved);
   const basis = page.locator('[data-basis="30052"]');
-  assert.equal(await basis.locator(':scope > summary').innerText(), 'Observed · LB4');
-  await basis.locator(':scope > summary').click();
-  assert.match(await basis.innerText(), /community results at LB4 from at least 50 logged runs/);
-  assert.match(await basis.innerText(), /Recorded stats and SP can already include these effects/);
-  await basis.locator('[data-formula-details] > summary').click();
-  assert.ok((await basis.locator('[data-effect-status="omitted"] .tag').allTextContents()).includes('Not separately modelled'));
+  assert.equal(await basis.innerText(), 'Observed · LB4');
+  const measured = await basis.getAttribute('data-tip');
+  assert.match(measured, /community results at LB4 from at least 50 logged runs/);
+  assert.match(measured, /Not separately modelled: .*Unique effect "Gain Energy Cost Reduction \(30\)/);
+  assert.doesNotMatch(measured, /Not in formula/, 'a recorded contribution already includes its omitted effects');
+  const scoring = page.locator('details.about', { hasText: 'How cards are scored' });
+  await scoring.locator('summary').click();
+  assert.match(await scoring.innerText(), /already include effects the formula cannot separate/);
   await assertFieldsMatchState(page, 'after reading Light Hello\'s measured contribution');
 
   await page.locator('[data-estimate-limitations] > summary').click();
@@ -148,8 +149,8 @@ test('Light Hello uses repaired community measurements and separates formula omi
   await assertFieldsMatchState(page, 'after reading Light Hello\'s formula limitations');
 
   await page.locator('.ranking-table [data-lb="30052"]').selectOption('0');
-  assert.equal(await basis.locator(':scope > summary').innerText(), 'Adjusted · from LB1');
-  assert.match(await basis.innerText(), /Not separately modelled/);
+  assert.equal(await basis.innerText(), 'Adjusted · from LB1');
+  assert.match(await basis.getAttribute('data-tip'), /Not separately modelled/);
   await assertFieldsMatchState(page, 'after adjusting Light Hello from a measured limit break');
 });
 

@@ -224,8 +224,10 @@ conditions, so they do not qualify as observed references or training examples.
   recipient while its unique is unlocked. It uses the fitted ordinary-bond relationship, not
   direct measurements of the team effect. Recorded contributions remain the reference values.
 
-The ranking's Basis column distinguishes observed, adjusted and model estimates. Opening it
-shows the reference conditions and an expandable list of active effects. The selected deck
+The ranking's Basis column distinguishes observed, adjusted and model estimates. Each label's
+tooltip gives the reference conditions and the effects the formula leaves out; rules shared by
+every card are in the column header tip and the panel notes, so a row never grows. A card
+with an effect the model has not evaluated carries a warning tag. The selected deck
 summarizes omitted effects, unmeasured team effects and recorded deck conditions. Calculations
 and coverage share effect definitions; warnings respect the selected LB. Unfamiliar effects
 use their imported description and show as not evaluated.
