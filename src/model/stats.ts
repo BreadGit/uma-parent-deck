@@ -63,8 +63,8 @@ export function cardContribution(card: Card, lb: number, model: StatModel, extra
   if (near) {
     const mNear = modelContribution(card, near.lb, model);
     return {
-      stats: near.stats.map((v, i) => Math.max(model.floor, v + (m.stats[i]! - mNear.stats[i]!))),
-      sp: near.sp + (m.sp - mNear.sp),
+      stats: near.stats.map((v, i) => Math.max(0, v + (m.stats[i]! - mNear.stats[i]!))),
+      sp: Math.max(0, near.sp + (m.sp - mNear.sp)),
       source: 'observed+model',
       runs: near.runs,
     };

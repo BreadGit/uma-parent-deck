@@ -67,8 +67,8 @@ test('Basis details distinguish observations, adjusted observations and model es
   assert.equal(await observed.locator(':scope > summary').innerText(), 'Observed · LB4');
   await observed.locator(':scope > summary').press('Enter');
   assert.notEqual(await observed.getAttribute('open'), null);
-  assert.match(await observed.innerText(), /community results at LB4 from 10 logged runs/);
-  assert.match(await observed.innerText(), /scaled to your .*race schedule/);
+  assert.match(await observed.innerText(), /community results at LB4 from at least 10 logged runs/);
+  assert.match(await observed.innerText(), /scales card stats and SP to your .*race schedule/);
   await assertFieldsMatchState(page, 'after opening observed Basis with the keyboard');
 
   await page.locator('.ranking-table [data-lb="30028"]').selectOption('2');
@@ -124,6 +124,33 @@ test('effect warnings respect unique unlocks and explain observed deck effects o
   assert.match(await limitations.locator('[data-card-limitations="30088"]').innerText(), /recorded contribution stays fixed/);
   await assertFieldsMatchState(page, 'after opening deck limitations on mobile');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), true, 'open explanations do not overflow the phone viewport');
+});
+
+test('Light Hello uses repaired community measurements and separates formula omissions from recorded results', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.pinnedIds = [30052];
+  const page = await editor(t, saved);
+  const basis = page.locator('[data-basis="30052"]');
+  assert.equal(await basis.locator(':scope > summary').innerText(), 'Observed · LB4');
+  await basis.locator(':scope > summary').click();
+  assert.match(await basis.innerText(), /community results at LB4 from at least 50 logged runs/);
+  assert.match(await basis.innerText(), /Recorded stats and SP can already include these effects/);
+  await basis.locator('[data-formula-details] > summary').click();
+  assert.ok((await basis.locator('[data-effect-status="omitted"] .tag').allTextContents()).includes('Not separately modelled'));
+  await assertFieldsMatchState(page, 'after reading Light Hello\'s measured contribution');
+
+  await page.locator('[data-estimate-limitations] > summary').click();
+  const deckNote = page.locator('[data-card-limitations="30052"]');
+  assert.match(await deckNote.innerText(), /Observed · LB4/);
+  assert.match(await deckNote.innerText(), /Not separately modelled/);
+  assert.match(await deckNote.innerText(), /Recorded stats and SP can already include these effects/);
+  await assertFieldsMatchState(page, 'after reading Light Hello\'s formula limitations');
+
+  await page.locator('.ranking-table [data-lb="30052"]').selectOption('0');
+  assert.equal(await basis.locator(':scope > summary').innerText(), 'Adjusted · from LB1');
+  assert.match(await basis.innerText(), /Not separately modelled/);
+  await assertFieldsMatchState(page, 'after adjusting Light Hello from a measured limit break');
 });
 
 test('rejected advanced settings retain the draft and accept the original value', async (t) => {

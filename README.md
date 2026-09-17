@@ -161,15 +161,16 @@ for the format contract and compatibility checks.
 
 ## Data
 
-`npm run fetch` runs `scripts/fetch-gametora.mjs` and `scripts/fetch-event-names.mjs` (`--offline` on the first re-normalizes without any request). The first reads GameTora's static JSON feed
-(manifest at `/data/manifests/umamusume.json`), normalizes it into `data/*.json`, and
-downloads card, character and skill thumbnails into `public/assets/`. It makes one request
-at a time about a second apart, with a plain browser user agent and no identifying headers,
-and only re-downloads files whose manifest hash changed. Run it when a new card lands.
+`npm run fetch` downloads GameTora's static JSON feed and page data, normalizes the complete
+snapshot, refits the stat model, and runs the data checks. Requests are about a second apart,
+with a plain browser user agent and no identifying headers. Static files use manifest hashes;
+page caches track source changes. Thumbnails go in `public/assets/`. See
+[data sources and validation](docs/data-quality.md) for update commands, offline rebuilding,
+source checks, and remaining limits.
 
 - `data/cards.json`: Global support cards with effects at every level and per limit break,
   hint skills, event skills, chain events and random events with rewards decoded. Event names
-  come from the per-card page JSON (the static feed scrambles them), fetched once per card. A
+  come from the per-card page JSON (the static feed scrambles them), refreshed when its source inputs change. A
   conditional unique effect (GameTora type 100 and up) keeps its payload and the text GameTora
   renders for it, fetched from the card page (`data/raw/unique-effect-texts.json`); the decoded
   meaning of each type is in `docs/umamusume/refs/gametora-unique-effects.md`.
@@ -182,13 +183,16 @@ and only re-downloads files whose manifest hash changed. Run it when a new card 
 - `data/races.json`: the G1 career calendar.
 - `data/ranks.json`: rank score thresholds.
 - `data/stat-model.json`: fitted independent-training stat model, produced by
-  `npm run fit` (`analysis/fit_stat_model.py`, needs numpy, scipy, openpyxl).
+  `npm run fit` (`analysis/fit_stat_model.py`, needs numpy and openpyxl).
 
 ## Stat model
 
 Independent training card stats are close to deterministic per card and limit break. The
-fit uses the Loopacord "Independent Training Research" sheet (`docs/umamusume/`), 169 card-LB rows at
-28 G1 races in Our Grand Concert with Light Hello SSR in the deck:
+fit uses the Loopacord "Independent Training Research" sheet (`docs/umamusume/`). Its two card
+tables contain 178 rows; 120 meet the source's updated and sufficiently tested criteria.
+The calibration reference is approximately 28 G1 races in Our Grand Concert. Full deck context
+is not recorded for every row. The saved Fujikiseki aggregates mix limit breaks and run
+conditions, so they do not qualify as observed references or training examples.
 
 - Outside its own facility a card adds a fitted floor plus its Initial Stat passive.
 - On its facility (and the facility's secondary stat: Speed->Power, Stamina->Guts,
@@ -197,13 +201,13 @@ fit uses the Loopacord "Independent Training Research" sheet (`docs/umamusume/`)
   stat bonus, and Initial Friendship Gauge.
 - `npm run fit` compares additional numeric attributes on held-out cards. Every observation
   and limit break of a card stays together; only training data selects inputs and fit settings.
-  Starting bond lowers held-out stat RMSE from 3.253 to 3.141. The broader SP fit applies to
+  Starting bond lowers held-out stat RMSE from 2.613 to 2.511. The broader SP fit applies to
   normal stat-type cards; sparse Pal/Group data keeps the previous SP formula. See
   [model evaluation](docs/stat-model-evaluation.md) for the method, coefficients and limits.
 - A conditional unique effect is evaluated at run time from its payload (`uniqueExtras()` in
   `src/model/support-effects.ts`), not baked into the data. Ramping conditions (bond, friendship count, total
   bond, facility level) count for a share of the run that the fit chooses on the same rows as the
-  slopes and writes to the model (`uniqueRampShare`, 0.70). Narita Top Road's per-fan effect follows
+  slopes and writes to the model (`uniqueRampShare`, 0.75). Narita Top Road's per-fan effect follows
   the agenda's expected fan curve. The two deck-dependent ones (Agnes Digital's card types, Symboli
   Rudolf's initial stats per card) are counted from the cards around them, in the deck builder as
   well as in the prediction. The fit writes what it added per card to
@@ -232,9 +236,10 @@ This catches structural changes that could otherwise drop an effect before the U
 
 Pal and Group cards (type "pal" and "group" in the data) get their outings (five dates, or member outings plus a finale) from the
 per-card page data, since the static feed does not carry them. In independent training the
-Pal date chain completes almost every run (97% default, matching Loopacord and observed
-runs), Group member outings default to 90% and the Group finale to 85% (unverified), and the
-unlock and New Year events never fire (0%).
+Pal date chain completes almost every run (97% assumed default; the recorded sample had
+102 completions in 102 runs), Group member outings default to 90% and the Group finale to 85% (unverified), and the
+unlock and New Year events use a 0% default. The source observed no early special events
+before Classic year; it does not separately establish a New Year rate.
 
 Our Grand Concert's Senior November event offers one option per linked character (Smart
 Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Picking a linked
@@ -267,7 +272,7 @@ is assumed maxed, so all awakening skills are available.
 The independent-training stat model (`data/stat-model.json`, `src/model/stats.ts`) is a fit on passives. The
 normalizer keeps the compound payload in `unique` (with `fromLb`, the first limit break that unlocks the effect) and
 folds nothing; `uniqueExtras()` in `src/model/support-effects.ts` adds the passives below at run time, and `unique_extras()` in
-`analysis/fit_stat_model.py` does the same sums for the fit. The fit writes its result per card and limit break to
+`analysis/card_effects.py` does the same sums for the fit. The fit writes its result per card and limit break to
 `data/unique-extras-fixture.json`, and `tests/data.test.ts` checks that the app reproduces it.
 
 | Type | Added as | Assumption |
@@ -283,7 +288,7 @@ folds nothing; `uniqueExtras()` in `src/model/support-effects.ts` adds the passi
 | 102, 107, 108, 110, 112, 113, 114 | nothing | not included in the formula |
 
 The share is `uniqueRampShare` in `data/stat-model.json`, fitted: `npm run fit` refits the card model at every share
-from 0 to 1 in steps of 0.05. The existing-input fit selects 0.70 for the current data, shared
+from 0 to 1 in steps of 0.05. The existing-input fit selects 0.75 for the current data, shared
 by the stat and SP formulas. Each validation split repeats that selection using training rows
 only. This is a fitted assumption, not a measurement of bond or facility progression. The deck builder evaluates the extras against the cards already in the run state, so a card that needs the deck
 is valued the same way in selection and in the prediction. Extras only reach formula-based contributions.
@@ -313,7 +318,7 @@ The [curated game reference index](docs/umamusume/refs/README.md) records source
   happens, the odds between the outcomes of one option, and the cap increases from inspiration events
   and green sparks are unknown; each is an explicit assumption or left out.
 - The stat model is an empirical fit: race scaling from one 23 versus 28 race comparison, focus
-  multipliers from two decks, fixed per-stat spreads, and event stats at the reference decks' Race
+  multipliers from one measured deck, fixed per-stat spreads, and event stats at the reference deck's Race
   Bonus (the deck's total is shown but not modelled). Some support effects are omitted or use
   unverified assumptions; ranking coverage shows each active effect's imported description and
   treatment. Unknown effects are not evaluated. An observed contribution can already contain

@@ -33,7 +33,7 @@ function limitations(c: RunPlan) {
     ${cards.map(({ cs, effects }) => html`<div class="estimate-limitations-card" data-card-limitations=${cs.card.id}>
       <b>${cardLink(cs.card)}</b> <span class="muted">${basisLabel(cs.card, cs.lb, cs.source)}</span>
       ${observedCaveat(cs.source, effects)}
-      ${effectList(effects, true)}
+      ${effectList(effects, { compact: true, source: cs.source })}
     </div>`)}
   </details>`;
 }

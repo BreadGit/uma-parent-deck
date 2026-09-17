@@ -40,6 +40,13 @@ class CardRegressionTests(unittest.TestCase):
         self.assertEqual(fitted.slopes[0], 0)
         np.testing.assert_allclose(fitted.predict(rows), [100, 100, 100, 80, 80, 80])
 
+    def test_sparse_groups_and_unseen_roles_fail_explicitly(self):
+        with self.assertRaisesRegex(ValueError, 'distinct cards'):
+            grouped_folds([dict(cardId=1, card={'type': 'speed'})], 5)
+        fitted = fit([dict(cardId=1, role='speed.primary', initial=0, y=10, values={'bond': 0})], ('bond',))
+        with self.assertRaisesRegex(ValueError, 'no training cards'):
+            fitted.predict([dict(cardId=2, role='wit.primary', initial=0, y=20, values={'bond': 0})])
+
     def test_error_metric_gives_each_card_one_weight(self):
         rows = [dict(cardId=1, role='primary', y=10)] * 5 + [dict(cardId=2, role='primary', y=10)]
         errors = card_errors(rows, [12] * 5 + [14])

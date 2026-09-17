@@ -30,7 +30,7 @@ function basis(c: RunPlan, x: CardScore) {
     ${expanded ? basisExplanation(x.card, x.lb, x.source, c.sum.count, effects) : nothing}
     ${effects.length ? html`<details class="formula-coverage" data-formula-details>
       <summary>${COPY.modelCoverage.coverageTitle} <span class="tag ${effects.some(missingEffect) ? 'warn' : ''}" data-formula-coverage>${coverageLabel(effects)}</span></summary>
-      ${effectList(effects)}
+      ${effectList(effects, { source: x.source })}
     </details>` : nothing}
   </details>`;
 }

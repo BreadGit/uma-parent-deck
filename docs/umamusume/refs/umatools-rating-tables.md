@@ -64,8 +64,12 @@ Anchor values computed from that code:
 ## Unique skill
 
 `uniqueBonus = multiplier × uniqueLevel`, with multiplier 120 for a 1★ or 2★ trainee and 170 for 3★ and above.
-The level starts at the trainee's star count and rises by one at each in-career level-up (see
-`docs/umamusume/refs/gametora-our-grand-concert.md`, "Unique Skill Level-ups"), capped at 6.
+Starting levels at 1★ through 5★ are 1, 2, 1, 2 and 3. The unique skill upgrades at 3★ and its
+level resets to 1. Each in-career level-up adds one, with at most three increases in Grand Live.
+The maximum is therefore Lv4 at 3★ and Lv6 at 5★.
+[Altema's unique-skill guide](https://altema.jp/umamusume/koyuskill) confirms the reset and
+star-specific maximum levels. The in-career checks are listed in
+[Grand Concert's unique-skill level-ups](gametora-our-grand-concert.md#unique-skill-level-ups).
 
 ## Skill rating and aptitude buckets
 

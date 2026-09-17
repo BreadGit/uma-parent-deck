@@ -5,11 +5,23 @@ import { cardEffectCoverage, teamInitialBond, uniqueExtras, uniqueNote } from '.
 import { cardContribution, modelContribution, referenceObservation } from '../src/model/stats.ts';
 import { describeDeck, makeCtx } from '../src/model/deck.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
+import { eventSources } from '../src/model/sparks.ts';
 import type { Card, StatModel } from '../src/types.ts';
 
 const data = loadData();
 const card = (id: number) => structuredClone(data.cardById.get(id)!);
 const plainModel: StatModel = { ...data.model, effectSlopes: {}, sp: { ...data.model.sp, effectSlopes: {} }, evaluation: undefined };
+
+test('unverified skill reward flags survive into coverage and source explanations', () => {
+  const support = card(30052);
+  support.randomEvents = [{ kind: 'random', index: 1, choices: [{ outcomes: [[{ t: 'sk', d: 200352, r: true }]] }] }];
+  const effect = cardEffectCoverage(support, 4, data.model).find((entry) => entry.key === 'events:rewardFlag');
+  assert.equal(effect?.status, 'unrecognized');
+  assert.deepEqual(effect?.outcomes, ['skills']);
+  const source = eventSources(support, DEFAULT_SETTINGS, data).find((entry) => entry.skillId === 200352)!;
+  assert.match(source.detail, /source reward flag not evaluated/);
+  assert.equal(source.pObtain, DEFAULT_SETTINGS.randomEventRate, 'no probability is invented for an unverified flag');
+});
 
 test('coverage respects unique unlocks and exposes mixed, unfamiliar, and nested unsupported effects', () => {
   const ardan = card(30119);

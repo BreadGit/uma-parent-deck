@@ -7,6 +7,18 @@ import modelJson from '../data/stat-model.json' with { type: 'json' };
 
 const data = loadData();
 
+test('limit-break adjustments preserve measurements below the fitted floor and cannot become negative', () => {
+  const card = structuredClone(data.cards.find((c) => c.type === 'pal')!);
+  card.unique = null;
+  card.effectsByLb = [{}, { 9: 30, 30: 2 }, {}, {}, {}];
+  const model: StatModel = { ...data.model, floor: 23, sp: { base: 30, wit: 0, friend: 0, skillPointBonus: 10 },
+    observed: [{ cardId: card.id, lb: 1, source: 'test', runs: 20, wellTested: true, stats: [21, 21, 21, 21, 21], sp: 15 }] };
+  const adjusted = cardContribution(card, 0, model);
+  assert.deepEqual(adjusted.stats, [0, 21, 21, 21, 21]);
+  assert.equal(adjusted.sp, 0);
+  assert.equal(adjusted.source, 'observed+model');
+});
+
 test('additional card inputs affect their fitted outcomes and preserve observed references', () => {
   const card = structuredClone(data.cards.find((c) => c.type === 'speed')!);
   card.effectsByLb = [{ 14: 20, 25: 10 }, {}, {}, {}, {}];

@@ -194,12 +194,14 @@ function scanEvent(ev: CardEvent | TraineeEvent, pFire: number, label: string, o
       const cur = perSkill.get(reward.skillId);
       perSkill.set(reward.skillId, { p: cur?.p ?? rollChance(roll, (r) => r.skillId === reward.skillId), rolled: reward.rolled || !!cur?.rolled });
     }
-    return { nOut, perSkill, roll };
+    const flagged = choice.outcomes.flat().filter((reward) => reward.r).flatMap((reward) =>
+      reward.t === 'sk' && typeof reward.d === 'number' ? [reward.d] : reward.t === 'sr' && Array.isArray(reward.d) ? reward.d.map((skill) => skill.d) : []);
+    return { nOut, perSkill, roll, flagged };
   });
-  perChoice.forEach(({ nOut, perSkill, roll }, ci) => {
+  perChoice.forEach(({ nOut, perSkill, roll, flagged }, ci) => {
     for (const [id, { p, rolled }] of perSkill) {
       const inAll = perChoice.every((c) => c.perSkill.has(id));
-      const how = [nOut > 1 ? `one of ${nOut} outcomes` : '', rolled ? 'gold rolled against the white form' : ''].filter(Boolean).join(', ');
+      const how = [nOut > 1 ? `one of ${nOut} outcomes` : '', rolled ? 'gold rolled against the white form' : '', flagged.includes(id) ? 'source reward flag not evaluated' : ''].filter(Boolean).join(', ');
       out.push({ kind: ev.kind, skillId: id, gold: false, circle: false, pObtain: pFire * p, isChoice: nChoices > 1 && !inAll,
         event: { key: `${keyPrefix}:${ev.kind}:${ev.index}`, label: `${owner}'s ${name.charAt(0).toLowerCase()}${name.slice(1)}`, option: `option ${ci + 1}`, optionIndex: ci },
         detail: `${name}${how ? ` (${how})` : ''}`, roll, ...extra });

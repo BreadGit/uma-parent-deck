@@ -10,7 +10,7 @@ export const EFFECT = {
 export interface UniqueContext { deck?: { card: Card; lb?: number }[]; fansBefore?: (slot: number) => number }
 export type EffectCoverageReason = 'direct' | 'fitted' | 'bondShare' | 'deckTypes' | 'deckInitialStats' | 'fans'
   | 'friendshipCount' | 'totalBond' | 'facilityLevel' | 'initialBond' | 'raceBonus' | 'notFitted'
-  | 'unsupported' | 'unknown' | 'unknownPayload' | 'hints' | 'hintLevels' | 'fanBonus' | 'teamBond' | 'notRetained' | 'insufficientData';
+  | 'unsupported' | 'unknown' | 'unknownPayload' | 'hints' | 'hintLevels' | 'fanBonus' | 'teamBond' | 'notRetained' | 'insufficientData' | 'rewardFlag';
 export interface EffectCoverage {
   key: string;
   name: string;
@@ -174,6 +174,10 @@ function baseTreatment(id: number, card: Card): Treatment {
 /** Coverage of active effects, independent of whether a card uses recorded or formula-based contributions. */
 export function cardEffectCoverage(card: Card, lb: number, model: StatModel, _ctx: UniqueContext = {}): EffectCoverage[] {
   const entries: EffectCoverage[] = [];
+  if ([...card.chainEvents, ...card.randomEvents, ...card.recreationEvents, ...card.specialEvents]
+    .some((event) => event.choices.some((choice) => choice.outcomes.some((outcome) => outcome.some((reward) => reward.r && ['sk', 'sr'].includes(reward.t)))))) {
+    entries.push({ key: 'events:rewardFlag', name: 'Event reward flag', description: '', status: 'unrecognized', reason: 'rewardFlag', outcomes: ['skills'], deckDependent: false });
+  }
   const ordinary = (id: number, key: string, description?: string): EffectCoverage => ({
     key, name: metadata.get(id)?.name ?? `Support effect ${id}`, description: description ?? metadata.get(id)?.description ?? '', ...ordinaryTreatment(id, card, model),
   });

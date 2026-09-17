@@ -23,8 +23,14 @@ ALPHAS = (0.0, 0.1, 1.0, 10.0, 100.0)
 
 def grouped_folds(observations, count=5, seed=2718):
     """Stratify card IDs by support type; every LB of a card stays in one fold."""
+    if count < 2 or len({o['cardId'] for o in observations}) < count:
+        raise ValueError(f'grouped evaluation needs at least {count} distinct cards')
     by_type = {}
+    card_types = {}
     for o in observations:
+        previous = card_types.setdefault(o['cardId'], o['card']['type'])
+        if previous != o['card']['type']:
+            raise ValueError(f'card {o["cardId"]} has inconsistent support types')
         by_type.setdefault(o['card']['type'], set()).add(o['cardId'])
     rng = np.random.default_rng(seed)
     folds = [set() for _ in range(count)]
@@ -72,6 +78,8 @@ class Fit:
         const = dict(zip(self.roles, self.constants))
         values = []
         for row in rows:
+            if row['role'] is not None and row['role'] not in const:
+                raise ValueError(f'held-out role {row["role"]} has no training cards')
             gain = const.get(row['role'], 0) + sum(row['values'][name] * coef for name, coef in zip(self.features, self.slopes))
             values.append(self.floor + row['initial'] + (max(0, gain) if row['role'] is not None else 0))
         return np.array(values)

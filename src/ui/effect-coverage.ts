@@ -44,9 +44,9 @@ function effectReason(effect: EffectCoverage): string {
   return typeof reason === 'function' ? reason(Math.round(data.model.uniqueRampShare * 100)) : reason;
 }
 
-export function effectList(effects: EffectCoverage[], compact = false) {
+export function effectList(effects: EffectCoverage[], { compact = false, source = 'model' }: { compact?: boolean; source?: Contribution['source'] } = {}) {
   return html`<ul class="effect-coverage">${effects.map((effect) => html`<li data-effect-coverage=${effect.key} data-effect-status=${effect.status}>
-    <span>${effect.name}</span><span class="tag ${missingEffect(effect) ? 'warn' : ''}">${copy[effect.status]}</span>
+    <span>${effect.name}</span><span class="tag ${missingEffect(effect) ? 'warn' : ''}">${source !== 'model' && effect.status === 'omitted' && affectsContribution(effect) ? copy.observedOmitted : copy[effect.status]}</span>
     ${(!compact || effect.key.startsWith('unique:') || effect.status === 'unrecognized') && effect.description && effect.description !== effect.name ? html`<p>${effect.description}</p>` : nothing}
     <p class="muted">${!compact || effect.reason === 'teamBond' ? effectReason(effect) : nothing} ${copy.affects(effect.outcomes.map((outcome) => copy.outcomes[outcome]))}</p>
   </li>`)}</ul>`;

@@ -165,3 +165,37 @@ test('stat model has every field the predictor reads', () => {
     assert.equal(o.stats.length, 5);
   }
 });
+
+test('model coefficients, reference conditions and observed provenance are usable and unambiguous', () => {
+  const m = data.model;
+  const vector = (values: number[], name: string, positive = false) => {
+    assert.equal(values.length, STATS.length, name);
+    assert.ok(values.every((v) => isNum(v) && (positive ? v > 0 : v >= 0)), name);
+  };
+  assert.ok(m.races.totalTurns > m.races.reference && m.races.reference > 0);
+  assert.ok(m.uniqueRampShare >= 0 && m.uniqueRampShare <= 1);
+  for (const values of [m.slopes, m.roleConstants, m.effectSlopes ?? {}, m.sp.effectSlopes ?? {}]) {
+    for (const value of Object.values(values)) assert.ok(isNum(value), 'finite fitted coefficient');
+  }
+  for (const values of [m.sp, m.sp.fallback].filter((v) => v != null)) {
+    for (const key of ['base', 'wit', 'friend', 'skillPointBonus'] as const) assert.ok(isNum(values[key]), `SP ${key}`);
+  }
+  vector(m.sigma, 'stat spread', true);
+  for (const focus of ['balanced', 'stamina', 'sprint'] as const) vector(m.focus[focus], focus, true);
+  for (const races of ['23', '28']) {
+    vector(m.eventBase[races]!, `event stats at ${races} races`);
+    assert.ok(isNum(m.eventSp[races]) && m.eventSp[races]! >= 0);
+  }
+  const seen = new Set<string>();
+  for (const observation of m.observed) {
+    const key = `${observation.cardId}:${observation.lb}`;
+    assert.ok(!seen.has(key), `multiple observed references for ${key}`);
+    seen.add(key);
+    assert.ok(Number.isInteger(observation.lb) && observation.lb >= 0 && observation.lb <= 4, key);
+    assert.ok(Number.isInteger(observation.runs) && observation.runs >= 10 && observation.wellTested, key);
+    assert.equal(observation.raceReference, m.races.reference, `${key} calibration race reference`);
+    assert.ok(observation.sourceRef?.length, `${key} has a source location`);
+    vector(observation.stats, `${key} stats`);
+    assert.ok(isNum(observation.sp) && observation.sp >= 0, `${key} SP`);
+  }
+});

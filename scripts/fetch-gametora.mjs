@@ -5,12 +5,14 @@
 // no identifying headers. Files already on disk are never re-downloaded unless
 // the manifest hash changed (data) or --force is passed (images).
 //
-// Usage: node scripts/fetch-gametora.mjs [--force] [--no-images] [--offline]
+// Usage: node scripts/fetch-gametora.mjs [--force] [--no-images] [--offline | --download-only | --normalize-only]
 // --offline skips every request and only re-normalizes what is already in data/raw.
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
+import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
+import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables } from './source-validation.ts';
 
 const BASE = 'https://gametora.com';
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -22,6 +24,8 @@ const ASSETS = path.join(ROOT, 'public', 'assets');
 const args = new Set(process.argv.slice(2));
 const FORCE = args.has('--force');
 const OFFLINE = args.has('--offline');
+const DOWNLOAD_ONLY = args.has('--download-only');
+const NORMALIZE_ONLY = args.has('--normalize-only');
 const IMAGES = !args.has('--no-images') && !OFFLINE;
 
 const STATIC_KEYS = [
@@ -39,12 +43,15 @@ async function throttle() {
   lastRequest = Date.now();
   requestCount++;
 }
-async function fetchTo(url, file) {
+async function fetchTo(url, file, jsonShape) {
   await throttle();
   const res = await fetch(url, { headers: { 'User-Agent': UA } });
   if (!res.ok) return res.status;
+  const buffer = Buffer.from(await res.arrayBuffer());
+  if (jsonShape) parseSourceDownload(buffer.toString('utf8'), jsonShape, url);
   await fs.mkdir(path.dirname(file), { recursive: true });
-  await fs.writeFile(file, Buffer.from(await res.arrayBuffer()));
+  await fs.writeFile(`${file}.tmp`, buffer);
+  await fs.rename(`${file}.tmp`, file);
   return 200;
 }
 const exists = (f) => fs.access(f).then(() => true, () => false);
@@ -56,22 +63,24 @@ async function fetchStatic() {
   await fs.mkdir(RAW, { recursive: true });
   const manifestFile = path.join(RAW, 'manifest.json');
   console.log('manifest');
-  const status = await fetchTo(`${BASE}/data/manifests/umamusume.json`, manifestFile);
+  const status = await fetchTo(`${BASE}/data/manifests/umamusume.json`, manifestFile, 'object');
   if (status !== 200) throw new Error(`manifest ${status}`);
   const manifest = await readJson(manifestFile);
+  for (const key of STATIC_KEYS) if (typeof manifest[key] !== 'string' || !manifest[key]) throw new Error(`manifest has no valid hash for required source ${key}`);
   const hashesFile = path.join(RAW, 'hashes.json');
   const hashes = (await exists(hashesFile)) ? await readJson(hashesFile) : {};
   for (const key of STATIC_KEYS) {
     const hash = manifest[key];
-    if (!hash) { console.warn('manifest has no', key); continue; }
+    if (typeof hash !== 'string' || !hash) throw new Error(`manifest has no valid hash for required source ${key}`);
     const file = rawName(key);
     if (!FORCE && hashes[key] === hash && (await exists(file))) continue;
     console.log('fetch', key, hash);
-    const st = await fetchTo(`${BASE}/data/umamusume/${key}.${hash}.json`, file);
+    const st = await fetchTo(`${BASE}/data/umamusume/${key}.${hash}.json`, file, 'array');
     if (st !== 200) throw new Error(`${key} ${st}`);
     hashes[key] = hash;
   }
   await writeJson(hashesFile, hashes);
+  await writeJson(path.join(RAW, 'fetch-meta.json'), { fetchedAt: new Date().toISOString() });
 }
 
 // ---------- normalization ----------
@@ -79,28 +88,14 @@ async function fetchStatic() {
 const RARITY = { 1: 'R', 2: 'SR', 3: 'SSR' };
 const TYPE = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
 
-// Reward ids in the training_events files are offset by 36 from their index in
-// dict/evrew. Verified against Special Week R (10001), Fuji Kiseki SR (20001)
-// and Kitasan Black SSR (30028) whose page data is known.
-const REWARD_ID_OFFSET = 36;
-function decodeReward(evrew, id) {
-  const r = evrew[id - REWARD_ID_OFFSET];
-  if (!r) return { t: 'unknown', id };
-  const [t, v, d] = r;
-  const out = { t };
-  if (v != null) out.v = v;
-  if (d != null) out.d = d;
-  return out;
-}
-
 // Event entry: [nameId, choices, strId, ...history]. choices: [[choiceId, [rewardIds]]] or "no".
 function decodeEvent(evrew, entry, kind, index) {
+  entry = staticEventOnGlobal(entry);
   const choicesRaw = Array.isArray(entry[1]) ? entry[1] : [];
   const choices = choicesRaw.map((c) => {
     const rewardIds = Array.isArray(c) && Array.isArray(c[1]) ? c[1] : [];
     const outcomes = [[]];
-    for (const rid of rewardIds) {
-      const rw = decodeReward(evrew, rid);
+    for (const rw of rewardIds.flatMap((rid) => decodeRewards(evrew, rid))) {
       if (rw.t === 'di') { outcomes.push([]); continue; }
       outcomes[outcomes.length - 1].push(rw);
     }
@@ -115,11 +110,7 @@ function decodePageEvent(ev, kind, index) {
     const outcomes = [[]];
     for (const r of ch.r ?? []) {
       if (r.t === 'di') { outcomes.push([]); continue; }
-      const out = { t: r.t };
-      if (r.v != null) out.v = r.v;
-      // skill ids can arrive as strings in page data (Super Creek's 201352); the model matches them as numbers
-      if (r.d != null) out.d = r.t === 'sk' ? Number(r.d) : r.t === 'sr' && Array.isArray(r.d) ? r.d.map((x) => ({ ...x, d: Number(x.d) })) : r.d;
-      outcomes[outcomes.length - 1].push(out);
+      outcomes[outcomes.length - 1].push(normalizeReward(r));
     }
     return { outcomes };
   });
@@ -159,9 +150,9 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
     const pg = palGroupEvents[c.support_id];
     if (pg) {
       const outings = pg.dates ?? pg.dates_random ?? [];
-      recreationEvents = outings.map((e, i) => decodePageEvent(e, 'recreation', i + 1));
-      specialEvents = (pg.special ?? []).map((e, i) => decodePageEvent(e, 'special', i + 1));
-      randomEvents = (pg.random ?? []).map((e, i) => decodePageEvent(e, 'random', i + 1));
+      recreationEvents = outings.map(eventOnGlobal).filter(Boolean).map((e, i) => decodePageEvent(e, 'recreation', i + 1));
+      specialEvents = (pg.special ?? []).map(eventOnGlobal).filter(Boolean).map((e, i) => decodePageEvent(e, 'special', i + 1));
+      randomEvents = (pg.random ?? []).map(eventOnGlobal).filter(Boolean).map((e, i) => decodePageEvent(e, 'random', i + 1));
     }
     cards.push({
       id: c.support_id,
@@ -176,7 +167,7 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
       obtained: c.obtained ?? null,
       ...mechanics,
       hintSkills: ids(c.hints?.hint_skills),
-      eventSkills: ids(c.event_skills),
+      eventSkills: ids(c.event_skills_en ?? c.event_skills),
       hintOthers,
       chainEvents,
       randomEvents,
@@ -217,18 +208,6 @@ const APT_KEYS = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', '
 const ids = (list) => (list ?? []).map(Number);
 
 // ---------- character events (from the per-character page JSON, data/raw/char-events.json) ----------
-
-// GameTora tags events whose data differs on older JP builds with a `history` of periods, and events that did
-// not exist yet with `did_not_exist`. Global runs the content JP had between its 1st and 2nd anniversary (Our
-// Grand Concert is JP's Grand Live from that window), so entries from these periods apply and earlier ones do not.
-const GLOBAL_PERIODS = new Set(['pre_2nd_anni', 'pre_3rd_anni']);
-const PERIOD_ORDER = ['pre_first_anni', 'pre_nar', 'pre_2nd_anni', 'pre_3rd_anni'];
-/** The event as it is on Global: the newest history entry from an applicable period, else the current data. */
-function eventOnGlobal(ev) {
-  if (ev.did_not_exist && GLOBAL_PERIODS.has(ev.did_not_exist)) return null;
-  const applicable = (ev.history ?? []).filter((h) => GLOBAL_PERIODS.has(h.period)).sort((a, b) => PERIOD_ORDER.indexOf(a.period) - PERIOD_ORDER.indexOf(b.period));
-  return applicable[0]?.data ?? ev;
-}
 
 // Sets of races behind GameTora's crown shorthands, by Global race name and career year.
 const CROWNS = {
@@ -410,11 +389,11 @@ function normalizeScenarioEvents(raw) {
         const choices = [];
         for (const ch of e[1]) {
           if (!Array.isArray(ch) || !Array.isArray(ch[1])) continue;
-          const rw = ch[1].map((id) => decodeReward(evrew, id));
+          const rw = ch[1].flatMap((id) => decodeRewards(evrew, id));
           const linked = rw.find((r) => r.t === 'sl');
           const skills = rw.filter((r) => r.t === 'sk').map((r) => r.d);
           if (linked && skills.length >= 2) choices.push({ linkedCharId: linked.d, goldSkill: skills[0], whiteSkill: skills[1] });
-          else if (!linked && skills.length === 1 && e[1].some((c) => Array.isArray(c) && Array.isArray(c[1]) && c[1].map((id) => decodeReward(evrew, id)).some((r) => r.t === 'sl'))) choices.push({ linkedCharId: null, skill: skills[0] });
+          else if (!linked && skills.length === 1 && e[1].some((c) => Array.isArray(c) && Array.isArray(c[1]) && c[1].flatMap((id) => decodeRewards(evrew, id)).some((r) => r.t === 'sl'))) choices.push({ linkedCharId: null, skill: skills[0] });
         }
         if (choices.some((c) => c.linkedCharId != null)) out.push({ scenarioId, eventId: e[0], strId: String(e[2]), choices });
       }
@@ -440,16 +419,21 @@ async function normalize() {
   const palGroupEvents = (await exists(pgFile)) ? await readJson(pgFile) : {};
   const utFile = path.join(RAW, 'unique-effect-texts.json');
   const uniqueTexts = (await exists(utFile)) ? await readJson(utFile) : {};
+  const ceFile = path.join(RAW, 'char-events.json');
+  const charEvents = (await exists(ceFile)) ? await readJson(ceFile) : {};
+  const ceCardFile = path.join(RAW, 'char-events-by-card.json');
+  const charEventsByCard = (await exists(ceCardFile)) ? await readJson(ceCardFile) : {};
+  const pages = { eventNames, palGroupEvents, charEvents, charEventsByCard };
+  const revisionFile = path.join(RAW, 'page-source-revisions.json');
+  validatePageRevisions(raw, pages, uniqueTexts, (await exists(revisionFile)) ? await readJson(revisionFile) : undefined);
+  validateGlobalPeriod(raw.scenarios, raw.skills);
+  validateSourceTables(raw, pages);
   const cards = normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts);
   const kita = cards.find((c) => c.id === 30028);
   const kitaLast = kita?.chainEvents[2]?.choices[0]?.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331);
   if (!kitaLast) throw new Error('event reward decoding self-check failed (Kitasan Black chain 3 should hint 200331)');
   const skills = normalizeSkills(raw);
   const races = normalizeRaces(raw);
-  const ceFile = path.join(RAW, 'char-events.json');
-  const charEvents = (await exists(ceFile)) ? await readJson(ceFile) : {};
-  const ceCardFile = path.join(RAW, 'char-events-by-card.json');
-  const charEventsByCard = (await exists(ceCardFile)) ? await readJson(ceCardFile) : {};
   const characters = normalizeCharacters(raw, charEvents, charEventsByCard, races);
   const sw = characters.find((c) => c.charId === 1001);
   if (!sw?.events.some((e) => e.kind === 'secret' && e.conditions.some((c) => c.type === 'win'))) throw new Error('character event decoding self-check failed (Special Week should have a secret event with a win condition)');
@@ -457,6 +441,7 @@ async function normalize() {
   const effects = normalizeSupportEffects(raw.support_effects);
   const scenarios = normalizeScenarios(raw);
   const scenarioEvents = normalizeScenarioEvents(raw);
+  reconcileSources(raw, pages, { cards, skills, characters, races, ranks, effects, scenarios, scenarioEvents });
   await writeJson(path.join(OUT, 'scenario-events.json'), scenarioEvents);
   await writeJson(path.join(OUT, 'cards.json'), cards);
   await writeJson(path.join(OUT, 'skills.json'), skills);
@@ -465,7 +450,10 @@ async function normalize() {
   await writeJson(path.join(OUT, 'ranks.json'), ranks);
   await writeJson(path.join(OUT, 'effects.json'), effects);
   await writeJson(path.join(OUT, 'scenarios.json'), scenarios);
-  await writeJson(path.join(OUT, 'meta.json'), { fetchedAt: new Date().toISOString(), source: 'https://gametora.com', cards: cards.length, skills: skills.length, characters: characters.length, races: races.length });
+  const fetchMeta = path.join(RAW, 'fetch-meta.json');
+  const previousMeta = path.join(OUT, 'meta.json');
+  const fetchedAt = (await exists(fetchMeta)) ? (await readJson(fetchMeta)).fetchedAt : (await exists(previousMeta)) ? (await readJson(previousMeta)).fetchedAt : null;
+  await writeJson(previousMeta, { fetchedAt, source: 'https://gametora.com', cards: cards.length, skills: skills.length, characters: characters.length, races: races.length });
   console.log(`cards ${cards.length}, skills ${skills.length}, characters ${characters.length}, G1 calendar entries ${races.length}`);
   return { cards, skills, characters };
 }
@@ -497,7 +485,14 @@ async function fetchImages({ cards, skills, characters }) {
   console.log(`images: downloaded ${done}, already present ${skipped}, missing ${missing}`);
 }
 
-if (!OFFLINE) await fetchStatic();
-const norm = await normalize();
-if (IMAGES) await fetchImages(norm);
-console.log(`requests made: ${requestCount}`);
+if (process.argv[1] && await fs.realpath(path.resolve(process.argv[1])) === new URL(import.meta.url).pathname) {
+  if ([OFFLINE, DOWNLOAD_ONLY, NORMALIZE_ONLY].filter(Boolean).length > 1) throw new Error('Choose only one of --offline, --download-only and --normalize-only.');
+  if (!OFFLINE && !NORMALIZE_ONLY) await fetchStatic();
+  if (!DOWNLOAD_ONLY) {
+    const norm = await normalize();
+    if (IMAGES) await fetchImages(norm);
+  }
+  console.log(`requests made: ${requestCount}`);
+}
+
+export { normalizeCards, normalizeSkills, normalizeCharacters, normalizeRaces, normalizeRanks, normalizeScenarios, normalizeScenarioEvents };

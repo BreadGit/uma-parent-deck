@@ -4,7 +4,7 @@ export type CardType = Stat | 'pal' | 'group';
 export type Rarity = 'R' | 'SR' | 'SSR';
 export type Focus = 'balanced' | 'stamina' | 'sprint';
 
-export interface Reward { t: string; v?: string; d?: number | { d: number; v: string }[] }
+export interface Reward { t: string; v?: string; d?: number | { d: number; v: string }[]; r?: boolean }
 export interface EventChoice { outcomes: Reward[][] }
 export interface CardEvent { kind: 'chain' | 'random' | 'recreation' | 'special'; index: number; name?: string; choices: EventChoice[] }
 
@@ -155,7 +155,7 @@ export interface StatModel {
   uniqueRampShare: number;   // share of the run a ramping compound unique effect is assumed at full strength (fitted)
   sigma: number[];
   focus: Record<Focus, number[]>;
-  observed: { cardId: number; lb: number; source: string; runs: number; wellTested: boolean; stats: number[]; sp: number }[];
+  observed: { cardId: number; lb: number; source: string; sourceRef?: string; raceReference?: number; runs: number; wellTested: boolean; stats: number[]; sp: number }[];
 }
 
 export interface Data {

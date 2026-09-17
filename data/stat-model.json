@@ -1,6 +1,54 @@
 {
- "version": 2,
- "description": "Independent training card stat model fitted on Loopacord card data (Grand Concert, 28 G1 races, Light Hello SSR in deck).",
+ "version": 3,
+ "description": "Independent training card model fitted on updated, well-tested Loopacord default-condition rows (Grand Concert, approximately 28 races, Light Hello SSR in deck).",
+ "sourceAudit": {
+  "loopacord": {
+   "measuredRows": 178,
+   "eligibleRows": 120,
+   "emptyTemplates": [
+    {
+     "sourceRef": "Grand Live Card Data!B179",
+     "cardId": 10056,
+     "reason": "empty formatted row"
+    },
+    {
+     "sourceRef": "Grand Live Card Data!B180",
+     "cardId": 10056,
+     "reason": "empty formatted row"
+    },
+    {
+     "sourceRef": "Grand Live Card Data!B181",
+     "cardId": 10056,
+     "reason": "empty formatted row"
+    }
+   ]
+  },
+  "fujikiseki": {
+   "aggregateRows": 136,
+   "eligibleRows": 0,
+   "emptyLbRows": 261,
+   "emptyDetailRows": 136,
+   "emptyUnknownLbRows": 1
+  },
+  "sources": {
+   "loopacord-independent-training-research.xlsx": "4d2f5aa778c028deabee77c76661a8be05b31298d808ea47e64168a06484e14b",
+   "fujikiseki-insights-2026-09-04.html": "f4f58167d8455160d447bd0f96e2603a60bf76f36c1c23cdaafa4654b3dc9b57"
+  },
+  "inputs": {
+   "data/cards.json": "3c8d8edf77b22ebd9da065c6fbae612c851a3e286ef8724126d14e0aec346358",
+   "data/characters.json": "a825091b08af7450814fe48482d6513b7f19f9de09800d4d7b144aa8d159da08",
+   "docs/umamusume/loopacord-independent-training-research.xlsx": "4d2f5aa778c028deabee77c76661a8be05b31298d808ea47e64168a06484e14b",
+   "docs/umamusume/fujikiseki-insights-2026-09-04.html": "f4f58167d8455160d447bd0f96e2603a60bf76f36c1c23cdaafa4654b3dc9b57",
+   "analysis/fit_stat_model.py": "78ed0c34733cbd00fcc731fadcb5bfb1a2aead0ef703fca8c3c10453ee558d9b",
+   "analysis/card_regression.py": "06dcafc8bbb767a77e056a67ed1e102431854603408fd13b6ea2228e784f7f0c",
+   "analysis/card_effects.py": "e821811de8e4dc506322c0be5e88efe0a720d160cdaab943e2eae32b6629738f",
+   "analysis/measurement_sources.py": "70e9ae5099c1f6964d7dd54f649e36476c8dacd36db11eac7ba3facb11721e32"
+  },
+  "workbookRuns": {
+   "28": 11,
+   "23": 11
+  }
+ },
  "stats": [
   "speed",
   "stamina",
@@ -26,33 +74,33 @@
    "speed"
   ]
  },
- "floor": 22.0,
+ "floor": 23.0,
  "roleConstants": {
-  "guts.primary": 13.89932286993698,
-  "guts.secondary": -14.593460153561647,
-  "power.primary": 15.027312569108247,
-  "power.secondary": -8.854009594341367,
-  "speed.primary": 14.492395906527356,
-  "speed.secondary": -12.9463940430619,
-  "stamina.primary": 14.222358005214438,
-  "stamina.secondary": -8.518029332253203,
-  "wit.primary": 16.323601148448056,
-  "wit.secondary": -23.25991304561053
+  "guts.primary": 12.178952891327327,
+  "guts.secondary": -16.25980474762391,
+  "power.primary": 13.048821078486576,
+  "power.secondary": -10.841109532768634,
+  "speed.primary": 13.011101421409293,
+  "speed.secondary": -14.808660029732142,
+  "stamina.primary": 11.952665905088878,
+  "stamina.secondary": -10.637946560806071,
+  "wit.primary": 14.362388441633328,
+  "wit.secondary": -25.372586817371836
  },
  "slopes": {
-  "fr": 0.8167655141536949,
-  "mo": 0.20995270648893596,
-  "te": 1.0091527276333874,
-  "sb": 11.095798246234384
+  "fr": 0.8456547015729503,
+  "mo": 0.2155286492209232,
+  "te": 1.0203986629257757,
+  "sb": 11.028944328589226
  },
  "effectSlopes": {
-  "14": 0.08685171247046629
+  "14": 0.09429058625951035
  },
  "fit": {
-  "n": 271,
-  "rmse": 2.835832503843915,
-  "r2": 0.9900358788289797,
-  "floorSd": 2.621234848763425
+  "n": 223,
+  "rmse": 2.341369024053062,
+  "r2": 0.9934574335611375,
+  "floorSd": 2.7251489036528755
  },
  "evaluation": {
   "stats": {
@@ -60,9 +108,9 @@
    "outerFolds": 5,
    "innerFolds": 4,
    "metric": "RMSE of primary/secondary stats, equal weight per card",
-   "cards": 106,
-   "baselineRmse": 3.253049839022811,
-   "expandedRmse": 3.141019936990393,
+   "cards": 91,
+   "baselineRmse": 2.6134651659180705,
+   "expandedRmse": 2.511354516030721,
    "retained": true,
    "selectedFeatures": [
     "fr",
@@ -72,18 +120,18 @@
     "bond"
    ],
    "alpha": 0.0,
-   "share": 0.7,
+   "share": 0.75,
    "inputs": [
     {
      "name": "bond",
      "effectId": 14,
-     "cardsWithEffect": 100,
+     "cardsWithEffect": 85,
      "status": "retained"
     },
     {
      "name": "specialty",
      "effectId": 19,
-     "cardsWithEffect": 88,
+     "cardsWithEffect": 76,
      "status": "tested-not-retained"
     },
     {
@@ -113,19 +161,19 @@
     {
      "name": "witRecovery",
      "effectId": 31,
-     "cardsWithEffect": 18,
+     "cardsWithEffect": 16,
      "status": "tested-not-retained"
     },
     {
      "name": "hintLevels",
      "effectId": 17,
-     "cardsWithEffect": 69,
+     "cardsWithEffect": 61,
      "status": "tested-not-retained"
     },
     {
      "name": "hintFrequency",
      "effectId": 18,
-     "cardsWithEffect": 76,
+     "cardsWithEffect": 66,
      "status": "tested-not-retained"
     },
     {
@@ -137,134 +185,57 @@
    ],
    "byType": {
     "guts": {
-     "cards": 16,
-     "baselineRmse": 2.6430275330854216,
-     "expandedRmse": 2.5344231335572425
+     "cards": 10,
+     "baselineRmse": 2.5219927583538118,
+     "expandedRmse": 2.167289708982205
     },
     "power": {
-     "cards": 25,
-     "baselineRmse": 2.4993647985794514,
-     "expandedRmse": 2.277838628424421
+     "cards": 23,
+     "baselineRmse": 2.3932019461433147,
+     "expandedRmse": 2.165694016333015
     },
     "speed": {
-     "cards": 26,
-     "baselineRmse": 4.49917239941837,
-     "expandedRmse": 4.36224822795922
+     "cards": 22,
+     "baselineRmse": 2.526585679622011,
+     "expandedRmse": 2.4136965661929657
     },
     "stamina": {
-     "cards": 20,
-     "baselineRmse": 1.9506673657507627,
-     "expandedRmse": 1.8376093853766307
+     "cards": 19,
+     "baselineRmse": 1.8000210905998566,
+     "expandedRmse": 1.670365057587239
     },
     "wit": {
-     "cards": 19,
-     "baselineRmse": 3.6373702167465893,
-     "expandedRmse": 3.634733877554927
+     "cards": 17,
+     "baselineRmse": 3.6316562933397547,
+     "expandedRmse": 3.740859710829654
     }
    },
    "folds": [
     {
      "cards": [
-      20001,
       20007,
-      20010,
-      20012,
-      20022,
-      20026,
-      20039,
+      20014,
+      20015,
+      20030,
+      20032,
       20041,
       20043,
-      20047,
-      30002,
-      30004,
-      30028,
-      30036,
-      30053,
-      30057,
-      30067,
-      30070,
-      30077,
-      30096,
-      30108,
-      30113,
-      30114
-     ],
-     "baselineRmse": 2.560957625730619,
-     "expandedRmse": 2.4189570230205986,
-     "features": [
-      "fr",
-      "mo",
-      "te",
-      "sb",
-      "bond"
-     ],
-     "alpha": 1.0,
-     "share": 0.7
-    },
-    {
-     "cards": [
-      20003,
-      20005,
-      20014,
-      20025,
-      20031,
-      20045,
-      20046,
       30007,
-      30008,
-      30020,
       30025,
+      30032,
       30038,
+      30039,
       30048,
-      30062,
-      30065,
+      30067,
       30075,
-      30083,
-      30093,
-      30097,
-      30098,
-      30105,
-      30107
-     ],
-     "baselineRmse": 2.8988071984409642,
-     "expandedRmse": 2.7720729525909005,
-     "features": [
-      "fr",
-      "mo",
-      "te",
-      "sb",
-      "bond"
-     ],
-     "alpha": 0.0,
-     "share": 0.6
-    },
-    {
-     "cards": [
-      20002,
-      20004,
-      20006,
-      20015,
-      20032,
-      20035,
-      20038,
-      20050,
-      30015,
-      30016,
-      30017,
-      30023,
-      30029,
-      30033,
-      30044,
-      30056,
+      30078,
       30080,
       30084,
-      30101,
-      30109,
-      30111,
-      30121
+      30108,
+      30111
      ],
-     "baselineRmse": 2.8134472715926826,
-     "expandedRmse": 2.650785089128967,
+     "baselineRmse": 2.3947367485807,
+     "expandedRmse": 2.323187148041135,
      "features": [
       "fr",
       "mo",
@@ -273,72 +244,33 @@
       "bond"
      ],
      "alpha": 0.0,
-     "share": 0.7
-    },
-    {
-     "cards": [
-      20011,
-      20018,
-      20024,
-      20029,
-      20037,
-      20044,
-      30009,
-      30019,
-      30021,
-      30031,
-      30032,
-      30034,
-      30039,
-      30066,
-      30074,
-      30078,
-      30079,
-      30086,
-      30087,
-      30088,
-      30092,
-      30104
-     ],
-     "baselineRmse": 4.725522814866791,
-     "expandedRmse": 4.6317141670818645,
-     "features": [
-      "fr",
-      "mo",
-      "te",
-      "sb",
-      "bond"
-     ],
-     "alpha": 0.1,
      "share": 0.75
     },
     {
      "cards": [
-      20008,
+      20005,
       20009,
-      20013,
-      20016,
       20017,
-      20019,
-      20021,
-      20023,
+      20026,
       20027,
-      20028,
-      20030,
       20040,
-      20042,
-      30010,
-      30014,
-      30022,
+      20044,
+      20047,
+      30008,
       30030,
-      30045,
-      30047,
+      30031,
+      30052,
       30054,
-      30071,
-      30072
+      30057,
+      30062,
+      30065,
+      30077,
+      30088,
+      30092,
+      30114
      ],
-     "baselineRmse": 2.794244357756393,
-     "expandedRmse": 2.7237361355840353,
+     "baselineRmse": 2.1509474077125637,
+     "expandedRmse": 2.026820417512269,
      "features": [
       "fr",
       "mo",
@@ -346,8 +278,119 @@
       "sb",
       "bond"
      ],
-     "alpha": 1.0,
-     "share": 0.7
+     "alpha": 0.0,
+     "share": 0.75
+    },
+    {
+     "cards": [
+      20002,
+      20003,
+      20004,
+      20006,
+      20012,
+      20018,
+      20023,
+      20024,
+      20028,
+      30004,
+      30014,
+      30019,
+      30020,
+      30021,
+      30023,
+      30044,
+      30093,
+      30096,
+      30113
+     ],
+     "baselineRmse": 2.7607740705833455,
+     "expandedRmse": 2.5095373107178025,
+     "features": [
+      "fr",
+      "mo",
+      "te",
+      "sb",
+      "bond"
+     ],
+     "alpha": 0.0,
+     "share": 0.75
+    },
+    {
+     "cards": [
+      20001,
+      20008,
+      20010,
+      20011,
+      20021,
+      20025,
+      20035,
+      20037,
+      20039,
+      20042,
+      20046,
+      30016,
+      30033,
+      30047,
+      30070,
+      30072,
+      30087,
+      30101,
+      30107
+     ],
+     "baselineRmse": 2.643077476480026,
+     "expandedRmse": 2.672552949868064,
+     "features": [
+      "fr",
+      "mo",
+      "te",
+      "sb",
+      "bond",
+      "specialty",
+      "eventRecovery",
+      "eventEffectiveness",
+      "failureProtection",
+      "energyCostReduction",
+      "witRecovery",
+      "hintLevels",
+      "hintFrequency",
+      "minigameEffectiveness"
+     ],
+     "alpha": 0.0,
+     "share": 0.75
+    },
+    {
+     "cards": [
+      20013,
+      20022,
+      20031,
+      20050,
+      30009,
+      30010,
+      30017,
+      30022,
+      30028,
+      30034,
+      30036,
+      30045,
+      30053,
+      30056,
+      30074,
+      30079,
+      30083,
+      30097,
+      30104
+     ],
+     "baselineRmse": 3.050303860388646,
+     "expandedRmse": 2.9514661359138294,
+     "features": [
+      "fr",
+      "mo",
+      "te",
+      "sb",
+      "bond"
+     ],
+     "alpha": 0.0,
+     "share": 0.75
     }
    ]
   },
@@ -356,9 +399,9 @@
    "outerFolds": 5,
    "innerFolds": 4,
    "metric": "SP RMSE, equal weight per card",
-   "cards": 111,
-   "baselineRmse": 23.671780906055577,
-   "expandedRmse": 18.74788180641668,
+   "cards": 97,
+   "baselineRmse": 24.34807611363363,
+   "expandedRmse": 17.777441917064074,
    "retained": true,
    "selectedFeatures": [
     "spb",
@@ -376,61 +419,61 @@
     "mo",
     "te"
    ],
-   "alpha": 10.0,
-   "share": 0.7,
+   "alpha": 0.0,
+   "share": 0.75,
    "inputs": [
     {
      "name": "bond",
      "effectId": 14,
-     "cardsWithEffect": 105,
+     "cardsWithEffect": 91,
      "status": "retained"
     },
     {
      "name": "specialty",
      "effectId": 19,
-     "cardsWithEffect": 88,
+     "cardsWithEffect": 76,
      "status": "retained"
     },
     {
      "name": "eventRecovery",
      "effectId": 25,
-     "cardsWithEffect": 5,
+     "cardsWithEffect": 6,
      "status": "retained"
     },
     {
      "name": "eventEffectiveness",
      "effectId": 26,
-     "cardsWithEffect": 5,
+     "cardsWithEffect": 6,
      "status": "retained"
     },
     {
      "name": "failureProtection",
      "effectId": 27,
-     "cardsWithEffect": 4,
+     "cardsWithEffect": 5,
      "status": "retained"
     },
     {
      "name": "energyCostReduction",
      "effectId": 28,
-     "cardsWithEffect": 4,
+     "cardsWithEffect": 5,
      "status": "retained"
     },
     {
      "name": "witRecovery",
      "effectId": 31,
-     "cardsWithEffect": 19,
+     "cardsWithEffect": 17,
      "status": "retained"
     },
     {
      "name": "hintLevels",
      "effectId": 17,
-     "cardsWithEffect": 69,
+     "cardsWithEffect": 61,
      "status": "retained"
     },
     {
      "name": "hintFrequency",
      "effectId": 18,
-     "cardsWithEffect": 76,
+     "cardsWithEffect": 66,
      "status": "retained"
     },
     {
@@ -442,88 +485,85 @@
     {
      "name": "fr",
      "effectId": 1,
-     "cardsWithEffect": 107,
+     "cardsWithEffect": 92,
      "status": "retained"
     },
     {
      "name": "mo",
      "effectId": 2,
-     "cardsWithEffect": 71,
+     "cardsWithEffect": 60,
      "status": "retained"
     },
     {
      "name": "te",
      "effectId": 8,
-     "cardsWithEffect": 81,
+     "cardsWithEffect": 69,
      "status": "retained"
     }
    ],
    "byType": {
     "group": {
      "cards": 1,
-     "baselineRmse": 68.48080558612916,
-     "expandedRmse": 40.99633370775846
+     "baselineRmse": 67.7389630639105,
+     "expandedRmse": 33.742595549928986
     },
     "guts": {
-     "cards": 16,
-     "baselineRmse": 17.19311709892158,
-     "expandedRmse": 12.893289394570994
+     "cards": 10,
+     "baselineRmse": 17.12618582363324,
+     "expandedRmse": 4.933107665530367
     },
     "pal": {
-     "cards": 4,
-     "baselineRmse": 58.44349346751632,
-     "expandedRmse": 74.89319018058261
+     "cards": 5,
+     "baselineRmse": 57.30135267175864,
+     "expandedRmse": 70.8854711262397
     },
     "power": {
-     "cards": 25,
-     "baselineRmse": 18.33767465225131,
-     "expandedRmse": 7.775691954459039
+     "cards": 23,
+     "baselineRmse": 18.938315963506458,
+     "expandedRmse": 3.2494075473906214
     },
     "speed": {
-     "cards": 26,
-     "baselineRmse": 24.03591999183572,
-     "expandedRmse": 13.341768974142482
+     "cards": 22,
+     "baselineRmse": 23.913459450876037,
+     "expandedRmse": 9.35548500949277
     },
     "stamina": {
-     "cards": 20,
-     "baselineRmse": 17.964180250485732,
-     "expandedRmse": 12.546918340027464
+     "cards": 19,
+     "baselineRmse": 15.193143324838125,
+     "expandedRmse": 6.279760975287373
     },
     "wit": {
-     "cards": 19,
-     "baselineRmse": 22.04721090331426,
-     "expandedRmse": 12.460591988195713
+     "cards": 17,
+     "baselineRmse": 22.162217331160388,
+     "expandedRmse": 8.513966884611039
     }
    },
    "folds": [
     {
      "cards": [
-      20001,
       20007,
-      20010,
-      20012,
-      20022,
-      20026,
-      20039,
+      20014,
+      20015,
+      20030,
+      20032,
       20041,
       20043,
-      20047,
-      30002,
-      30004,
-      30028,
-      30036,
-      30053,
-      30057,
+      30007,
+      30025,
+      30032,
+      30038,
+      30039,
+      30048,
       30067,
-      30070,
-      30077,
-      30096,
+      30075,
+      30078,
+      30080,
+      30084,
       30108,
-      30113,
-      30114
+      30111
      ],
-     "baselineRmse": 26.315908538629298,
-     "expandedRmse": 13.42059635927603,
+     "baselineRmse": 27.117203954151133,
+     "expandedRmse": 34.16835082872868,
      "features": [
       "spb",
       "bond",
@@ -541,35 +581,33 @@
       "te"
      ],
      "alpha": 10.0,
-     "share": 0.7
+     "share": 0.75
     },
     {
      "cards": [
-      20003,
       20005,
-      20014,
-      20025,
-      20031,
-      20045,
-      20046,
-      30007,
+      20009,
+      20017,
+      20026,
+      20027,
+      20040,
+      20044,
+      20047,
       30008,
-      30020,
-      30025,
-      30038,
-      30048,
+      30030,
+      30031,
+      30052,
+      30054,
+      30057,
       30062,
       30065,
-      30075,
-      30083,
-      30093,
-      30097,
-      30098,
-      30105,
-      30107
+      30077,
+      30088,
+      30092,
+      30114
      ],
-     "baselineRmse": 17.422879033472608,
-     "expandedRmse": 8.812354186647944,
+     "baselineRmse": 22.616003303738346,
+     "expandedRmse": 13.446119288958894,
      "features": [
       "spb",
       "bond",
@@ -587,115 +625,32 @@
       "te"
      ],
      "alpha": 1.0,
-     "share": 0.6
-    },
-    {
-     "cards": [
-      20002,
-      20004,
-      20006,
-      20015,
-      20032,
-      20035,
-      20038,
-      20050,
-      30015,
-      30016,
-      30017,
-      30023,
-      30029,
-      30033,
-      30044,
-      30056,
-      30080,
-      30084,
-      30101,
-      30109,
-      30111,
-      30121
-     ],
-     "baselineRmse": 22.540517118133785,
-     "expandedRmse": 24.557602146205465,
-     "features": [
-      "spb",
-      "bond",
-      "specialty",
-      "eventRecovery",
-      "eventEffectiveness",
-      "failureProtection",
-      "energyCostReduction",
-      "witRecovery",
-      "hintLevels",
-      "hintFrequency",
-      "minigameEffectiveness",
-      "fr",
-      "mo",
-      "te"
-     ],
-     "alpha": 0.0,
-     "share": 0.7
-    },
-    {
-     "cards": [
-      20011,
-      20018,
-      20024,
-      20029,
-      20037,
-      20044,
-      30009,
-      30019,
-      30021,
-      30031,
-      30032,
-      30034,
-      30039,
-      30066,
-      30074,
-      30078,
-      30079,
-      30086,
-      30087,
-      30088,
-      30092,
-      30104
-     ],
-     "baselineRmse": 30.640338832625137,
-     "expandedRmse": 29.217905808244364,
-     "features": [
-      "spb",
-      "bond"
-     ],
-     "alpha": 0.0,
      "share": 0.75
     },
     {
      "cards": [
-      20008,
-      20009,
-      20013,
-      20016,
-      20017,
-      20019,
-      20021,
+      20002,
+      20003,
+      20004,
+      20006,
+      20012,
+      20018,
       20023,
-      20027,
+      20024,
       20028,
-      20030,
-      20040,
-      20042,
-      30010,
+      30004,
       30014,
-      30022,
-      30030,
-      30045,
-      30047,
-      30054,
-      30071,
-      30072
+      30019,
+      30020,
+      30021,
+      30023,
+      30044,
+      30093,
+      30096,
+      30113
      ],
-     "baselineRmse": 18.782149055824924,
-     "expandedRmse": 7.1185041199066275,
+     "baselineRmse": 24.878771036600927,
+     "expandedRmse": 5.960130798068872,
      "features": [
       "spb",
       "bond",
@@ -712,8 +667,94 @@
       "mo",
       "te"
      ],
-     "alpha": 10.0,
-     "share": 0.7
+     "alpha": 1.0,
+     "share": 0.75
+    },
+    {
+     "cards": [
+      20001,
+      20008,
+      20010,
+      20011,
+      20021,
+      20025,
+      20035,
+      20037,
+      20039,
+      20042,
+      20046,
+      30016,
+      30033,
+      30047,
+      30070,
+      30072,
+      30087,
+      30101,
+      30107
+     ],
+     "baselineRmse": 18.706460176347996,
+     "expandedRmse": 6.095533652781326,
+     "features": [
+      "spb",
+      "bond",
+      "specialty",
+      "eventRecovery",
+      "eventEffectiveness",
+      "failureProtection",
+      "energyCostReduction",
+      "witRecovery",
+      "hintLevels",
+      "hintFrequency",
+      "minigameEffectiveness",
+      "fr",
+      "mo",
+      "te"
+     ],
+     "alpha": 1.0,
+     "share": 0.75
+    },
+    {
+     "cards": [
+      20013,
+      20022,
+      20031,
+      20050,
+      30009,
+      30010,
+      30017,
+      30022,
+      30028,
+      30034,
+      30036,
+      30045,
+      30053,
+      30056,
+      30074,
+      30079,
+      30083,
+      30097,
+      30104
+     ],
+     "baselineRmse": 27.29859682716684,
+     "expandedRmse": 11.024494830655138,
+     "features": [
+      "spb",
+      "bond",
+      "specialty",
+      "eventRecovery",
+      "eventEffectiveness",
+      "failureProtection",
+      "energyCostReduction",
+      "witRecovery",
+      "hintLevels",
+      "hintFrequency",
+      "minigameEffectiveness",
+      "fr",
+      "mo",
+      "te"
+     ],
+     "alpha": 1.0,
+     "share": 0.75
     }
    ]
   },
@@ -728,23 +769,23 @@
   "spRatio23": 1.1195484831179412
  },
  "sp": {
-  "base": 68.88719826320265,
-  "wit": 8.302761527537072,
-  "friend": 80.11046907321823,
-  "skillPointBonus": 61.757798867394015,
+  "base": 52.68643437573857,
+  "wit": 7.629974333968505,
+  "friend": 60.31996768739896,
+  "skillPointBonus": 67.74969621296958,
   "effectSlopes": {
-   "14": 0.8752600451451146,
-   "19": 0.06378603145993626,
-   "25": 1.8643073822046001,
-   "26": -0.7269944414683516,
-   "27": 1.050432313830028,
-   "28": 1.8057444548459771,
-   "31": 3.5058778683353844,
-   "17": -0.8546387527684984,
-   "18": 0.060633350493237786,
-   "1": 1.6121726161587298,
-   "2": 0.5009186693683643,
-   "8": 2.5110087951335496
+   "14": 0.9516148613058493,
+   "19": 0.03340442005207992,
+   "25": 2.499243675442004,
+   "26": -1.1618351112307435,
+   "27": 5.267864528920352,
+   "28": -3.3983949957804143,
+   "31": 3.242932045231337,
+   "17": 0.376791793338814,
+   "18": -0.019330286125790366,
+   "1": 1.969624239712932,
+   "2": 0.6089187634132789,
+   "8": 2.938491670335362
   },
   "fittedTypes": [
    "speed",
@@ -754,34 +795,34 @@
    "wit"
   ],
   "fallback": {
-   "base": 165.5868249023578,
-   "wit": 22.09642788358167,
-   "friend": 139.97650763222006,
-   "skillPointBonus": 59.043861751110775
+   "base": 166.29476656543036,
+   "wit": 25.225634019818614,
+   "friend": 158.8779262453168,
+   "skillPointBonus": 51.89557516238448
   }
  },
  "eventBase": {
   "28": [
-   642.0458683625909,
-   243.34768292290929,
-   398.324278736339,
-   337.0668641373002,
-   457.01090122772837
+   634.627071364728,
+   251.45454545454547,
+   392.8467507274491,
+   335.17987953934477,
+   453.3071391884951
   ],
   "23": [
-   657.5313248682319,
-   225.49913235041083,
-   418.3582817935833,
-   330.125,
-   464.7335856103794
+   659.9679410256402,
+   238.97225387195232,
+   430.3441837551896,
+   334.04047262146196,
+   462.16618927932325
   ]
  },
  "eventSp": {
   "28": 2576.7272727272725,
   "23": 2224.818181818182
  },
- "growthEffect": 0.29,
- "uniqueRampShare": 0.7,
+ "growthEffect": 0.31,
+ "uniqueRampShare": 0.75,
  "sigma": [
   32.89687900889805,
   33.745286056955564,
@@ -798,18 +839,18 @@
    1.0
   ],
   "stamina": [
-   0.9892,
-   1.0835,
-   1.0099,
-   0.9784,
-   0.9747
+   0.988,
+   1.0838,
+   1.0109,
+   0.9769,
+   0.9696
   ],
   "sprint": [
-   1.0076,
-   0.9225,
-   1.0275,
-   1.042,
-   1.0259
+   1.0083,
+   0.9222,
+   1.0278,
+   1.0501,
+   1.0337
   ]
  },
  "observed": [
@@ -826,7 +867,9 @@
     21.0,
     21.0
    ],
-   "sp": 300.0
+   "sp": 300.0,
+   "sourceRef": "Grand Live Card Data!B7",
+   "raceReference": 28
   },
   {
    "cardId": 30036,
@@ -841,7 +884,9 @@
     21.0,
     21.0
    ],
-   "sp": 300.0
+   "sp": 300.0,
+   "sourceRef": "Grand Live Card Data!B8",
+   "raceReference": 28
   },
   {
    "cardId": 30021,
@@ -856,7 +901,9 @@
     21.0,
     21.0
    ],
-   "sp": 400.0
+   "sp": 400.0,
+   "sourceRef": "Grand Live Card Data!B9",
+   "raceReference": 28
   },
   {
    "cardId": 30036,
@@ -871,7 +918,9 @@
     21.0,
     21.0
    ],
-   "sp": 290.0
+   "sp": 290.0,
+   "sourceRef": "Grand Live Card Data!B10",
+   "raceReference": 28
   },
   {
    "cardId": 20021,
@@ -886,7 +935,9 @@
     21.0,
     40.0
    ],
-   "sp": 330.0
+   "sp": 330.0,
+   "sourceRef": "Grand Live Card Data!B11",
+   "raceReference": 28
   },
   {
    "cardId": 30036,
@@ -901,7 +952,9 @@
     21.0,
     21.0
    ],
-   "sp": 250.0
+   "sp": 250.0,
+   "sourceRef": "Grand Live Card Data!B12",
+   "raceReference": 28
   },
   {
    "cardId": 30021,
@@ -916,7 +969,9 @@
     21.0,
     21.0
    ],
-   "sp": 350.0
+   "sp": 350.0,
+   "sourceRef": "Grand Live Card Data!B13",
+   "raceReference": 28
   },
   {
    "cardId": 30080,
@@ -931,7 +986,9 @@
     22.0,
     22.0
    ],
-   "sp": 330.0
+   "sp": 330.0,
+   "sourceRef": "Grand Live Card Data!B14",
+   "raceReference": 28
   },
   {
    "cardId": 30067,
@@ -946,7 +1003,9 @@
     38.0,
     38.0
    ],
-   "sp": 400.0
+   "sp": 400.0,
+   "sourceRef": "Grand Live Card Data!B15",
+   "raceReference": 28
   },
   {
    "cardId": 30067,
@@ -961,22 +1020,9 @@
     34.0,
     34.0
    ],
-   "sp": 330.0
-  },
-  {
-   "cardId": 30067,
-   "lb": 1,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    48.0,
-    34.0,
-    34.0,
-    34.0,
-    34.0
-   ],
-   "sp": 330.0
+   "sp": 330.0,
+   "sourceRef": "Grand Live Card Data!B16",
+   "raceReference": 28
   },
   {
    "cardId": 30019,
@@ -991,7 +1037,9 @@
     119.0,
     25.0
    ],
-   "sp": 240.0
+   "sp": 240.0,
+   "sourceRef": "Grand Live Card Data!B18",
+   "raceReference": 28
   },
   {
    "cardId": 20041,
@@ -1006,7 +1054,9 @@
     87.0,
     22.0
    ],
-   "sp": 150.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B19",
+   "raceReference": 28
   },
   {
    "cardId": 30070,
@@ -1021,7 +1071,9 @@
     113.0,
     22.0
    ],
-   "sp": 185.0
+   "sp": 185.0,
+   "sourceRef": "Grand Live Card Data!B20",
+   "raceReference": 28
   },
   {
    "cardId": 30048,
@@ -1036,7 +1088,9 @@
     81.0,
     22.0
    ],
-   "sp": 225.0
+   "sp": 225.0,
+   "sourceRef": "Grand Live Card Data!B21",
+   "raceReference": 28
   },
   {
    "cardId": 30083,
@@ -1051,7 +1105,9 @@
     116.0,
     22.0
    ],
-   "sp": 170.0
+   "sp": 170.0,
+   "sourceRef": "Grand Live Card Data!B22",
+   "raceReference": 28
   },
   {
    "cardId": 20004,
@@ -1066,22 +1122,9 @@
     89.0,
     25.0
    ],
-   "sp": 190.0
-  },
-  {
-   "cardId": 20029,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    49.0,
-    22.0,
-    45.0,
-    85.0,
-    22.0
-   ],
-   "sp": 260.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B23",
+   "raceReference": 28
   },
   {
    "cardId": 30030,
@@ -1096,82 +1139,9 @@
     142.0,
     23.0
    ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30011,
-   "lb": 3,
-   "source": "loopacord",
-   "runs": 2,
-   "wellTested": false,
-   "stats": [
-    60.0,
-    25.0,
-    46.0,
-    98.0,
-    25.0
-   ],
-   "sp": 200.0
-  },
-  {
-   "cardId": 30105,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    43.0,
-    22.0,
-    85.0,
-    84.0,
-    22.0
-   ],
-   "sp": 175.0
-  },
-  {
-   "cardId": 20038,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    76.0,
-    23.0,
-    43.0,
-    92.0,
-    23.0
-   ],
-   "sp": 165.0
-  },
-  {
-   "cardId": 20019,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    43.0,
-    23.0,
-    41.0,
-    87.0,
-    23.0
-   ],
-   "sp": 230.0
-  },
-  {
-   "cardId": 20048,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    53.0,
-    21.0,
-    50.0,
-    66.0,
-    21.0
-   ],
-   "sp": 150.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B25",
+   "raceReference": 28
   },
   {
    "cardId": 20017,
@@ -1186,22 +1156,9 @@
     115.0,
     23.0
    ],
-   "sp": 165.0
-  },
-  {
-   "cardId": 20045,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    38.0,
-    20.0,
-    55.0,
-    89.0,
-    20.0
-   ],
-   "sp": 200.0
+   "sp": 165.0,
+   "sourceRef": "Grand Live Card Data!B31",
+   "raceReference": 28
   },
   {
    "cardId": 20022,
@@ -1216,52 +1173,9 @@
     99.0,
     23.0
    ],
-   "sp": 225.0
-  },
-  {
-   "cardId": 30109,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    71.0,
-    22.0,
-    57.0,
-    96.0,
-    22.0
-   ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30112,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 4,
-   "wellTested": false,
-   "stats": [
-    64.0,
-    20.0,
-    49.0,
-    66.0,
-    20.0
-   ],
-   "sp": 200.0
-  },
-  {
-   "cardId": 10061,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 3,
-   "wellTested": false,
-   "stats": [
-    36.0,
-    21.0,
-    34.0,
-    54.0,
-    21.0
-   ],
-   "sp": 200.0
+   "sp": 225.0,
+   "sourceRef": "Grand Live Card Data!B33",
+   "raceReference": 28
   },
   {
    "cardId": 20011,
@@ -1276,7 +1190,9 @@
     95.0,
     23.0
    ],
-   "sp": 150.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B37",
+   "raceReference": 28
   },
   {
    "cardId": 30083,
@@ -1291,37 +1207,9 @@
     59.0,
     21.0
    ],
-   "sp": 130.0
-  },
-  {
-   "cardId": 30040,
-   "lb": 0,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    38.0,
-    22.0,
-    36.0,
-    59.0,
-    22.0
-   ],
-   "sp": 140.0
-  },
-  {
-   "cardId": 30098,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    23.0,
-    47.0,
-    89.0,
-    23.0,
-    23.0
-   ],
-   "sp": 300.0
+   "sp": 130.0,
+   "sourceRef": "Grand Live Card Data!B38",
+   "raceReference": 28
   },
   {
    "cardId": 30074,
@@ -1336,7 +1224,9 @@
     20.0,
     20.0
    ],
-   "sp": 140.0
+   "sp": 140.0,
+   "sourceRef": "Grand Live Card Data!B41",
+   "raceReference": 28
   },
   {
    "cardId": 30007,
@@ -1351,7 +1241,9 @@
     24.0,
     24.0
    ],
-   "sp": 190.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B42",
+   "raceReference": 28
   },
   {
    "cardId": 20027,
@@ -1366,22 +1258,9 @@
     23.0,
     23.0
    ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30071,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    22.0,
-    53.0,
-    89.0,
-    22.0,
-    22.0
-   ],
-   "sp": 240.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B43",
+   "raceReference": 28
   },
   {
    "cardId": 20005,
@@ -1396,7 +1275,9 @@
     24.0,
     24.0
    ],
-   "sp": 250.0
+   "sp": 250.0,
+   "sourceRef": "Grand Live Card Data!B45",
+   "raceReference": 28
   },
   {
    "cardId": 20003,
@@ -1411,22 +1292,9 @@
     22.0,
     22.0
    ],
-   "sp": 180.0
-  },
-  {
-   "cardId": 30042,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    22.0,
-    50.0,
-    129.0,
-    22.0,
-    22.0
-   ],
-   "sp": 250.0
+   "sp": 180.0,
+   "sourceRef": "Grand Live Card Data!B46",
+   "raceReference": 28
   },
   {
    "cardId": 30077,
@@ -1441,7 +1309,9 @@
     24.0,
     24.0
    ],
-   "sp": 185.0
+   "sp": 185.0,
+   "sourceRef": "Grand Live Card Data!B48",
+   "raceReference": 28
   },
   {
    "cardId": 30093,
@@ -1456,22 +1326,9 @@
     20.0,
     20.0
    ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30007,
-   "lb": 3,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    23.0,
-    53.0,
-    110.0,
-    23.0,
-    23.0
-   ],
-   "sp": 180.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B49",
+   "raceReference": 28
   },
   {
    "cardId": 30032,
@@ -1486,22 +1343,9 @@
     24.0,
     24.0
    ],
-   "sp": 165.0
-  },
-  {
-   "cardId": 30017,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 20,
-   "wellTested": true,
-   "stats": [
-    22.0,
-    54.0,
-    94.0,
-    22.0,
-    22.0
-   ],
-   "sp": 150.0
+   "sp": 165.0,
+   "sourceRef": "Grand Live Card Data!B51",
+   "raceReference": 28
   },
   {
    "cardId": 20024,
@@ -1516,7 +1360,9 @@
     23.0,
     23.0
    ],
-   "sp": 150.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B53",
+   "raceReference": 28
   },
   {
    "cardId": 20042,
@@ -1531,7 +1377,9 @@
     21.0,
     21.0
    ],
-   "sp": 150.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B54",
+   "raceReference": 28
   },
   {
    "cardId": 20010,
@@ -1546,7 +1394,9 @@
     24.0,
     24.0
    ],
-   "sp": 160.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B55",
+   "raceReference": 28
   },
   {
    "cardId": 20009,
@@ -1561,7 +1411,9 @@
     22.0,
     22.0
    ],
-   "sp": 180.0
+   "sp": 180.0,
+   "sourceRef": "Grand Live Card Data!B56",
+   "raceReference": 28
   },
   {
    "cardId": 30114,
@@ -1576,7 +1428,9 @@
     50.0,
     21.0
    ],
-   "sp": 230.0
+   "sp": 230.0,
+   "sourceRef": "Grand Live Card Data!B57",
+   "raceReference": 28
   },
   {
    "cardId": 20006,
@@ -1591,7 +1445,9 @@
     25.0,
     25.0
    ],
-   "sp": 190.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B58",
+   "raceReference": 28
   },
   {
    "cardId": 30034,
@@ -1606,22 +1462,9 @@
     23.0,
     23.0
    ],
-   "sp": 170.0
-  },
-  {
-   "cardId": 30077,
-   "lb": 3,
-   "source": "loopacord",
-   "runs": 3,
-   "wellTested": false,
-   "stats": [
-    23.0,
-    55.0,
-    92.0,
-    23.0,
-    23.0
-   ],
-   "sp": 180.0
+   "sp": 170.0,
+   "sourceRef": "Grand Live Card Data!B59",
+   "raceReference": 28
   },
   {
    "cardId": 20043,
@@ -1636,7 +1479,9 @@
     23.0,
     23.0
    ],
-   "sp": 135.0
+   "sp": 135.0,
+   "sourceRef": "Grand Live Card Data!B61",
+   "raceReference": 28
   },
   {
    "cardId": 20037,
@@ -1651,7 +1496,9 @@
     22.0,
     22.0
    ],
-   "sp": 210.0
+   "sp": 210.0,
+   "sourceRef": "Grand Live Card Data!B62",
+   "raceReference": 28
   },
   {
    "cardId": 30096,
@@ -1666,7 +1513,9 @@
     20.0,
     20.0
    ],
-   "sp": 145.0
+   "sp": 145.0,
+   "sourceRef": "Grand Live Card Data!B63",
+   "raceReference": 28
   },
   {
    "cardId": 30056,
@@ -1681,37 +1530,9 @@
     22.0,
     22.0
    ],
-   "sp": 190.0
-  },
-  {
-   "cardId": 30056,
-   "lb": 2,
-   "source": "loopacord",
-   "runs": 2,
-   "wellTested": false,
-   "stats": [
-    22.0,
-    56.0,
-    126.0,
-    22.0,
-    22.0
-   ],
-   "sp": 190.0
-  },
-  {
-   "cardId": 30017,
-   "lb": 3,
-   "source": "loopacord",
-   "runs": 4,
-   "wellTested": false,
-   "stats": [
-    23.0,
-    53.0,
-    92.0,
-    23.0,
-    23.0
-   ],
-   "sp": 150.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B64",
+   "raceReference": 28
   },
   {
    "cardId": 30114,
@@ -1726,22 +1547,9 @@
     21.0,
     21.0
    ],
-   "sp": 215.0
-  },
-  {
-   "cardId": 30005,
-   "lb": 0,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    22.0,
-    50.0,
-    74.0,
-    22.0,
-    22.0
-   ],
-   "sp": 160.0
+   "sp": 215.0,
+   "sourceRef": "Grand Live Card Data!B67",
+   "raceReference": 28
   },
   {
    "cardId": 30047,
@@ -1756,7 +1564,9 @@
     22.0,
     22.0
    ],
-   "sp": 145.0
+   "sp": 145.0,
+   "sourceRef": "Grand Live Card Data!B69",
+   "raceReference": 28
   },
   {
    "cardId": 30033,
@@ -1771,7 +1581,9 @@
     23.0,
     23.0
    ],
-   "sp": 190.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B70",
+   "raceReference": 28
   },
   {
    "cardId": 20032,
@@ -1786,22 +1598,9 @@
     21.0,
     21.0
    ],
-   "sp": 160.0
-  },
-  {
-   "cardId": 30077,
-   "lb": 1,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    24.0,
-    53.0,
-    89.0,
-    24.0,
-    24.0
-   ],
-   "sp": 175.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B71",
+   "raceReference": 28
   },
   {
    "cardId": 30056,
@@ -1816,7 +1615,9 @@
     22.0,
     22.0
    ],
-   "sp": 155.0
+   "sp": 155.0,
+   "sourceRef": "Grand Live Card Data!B73",
+   "raceReference": 28
   },
   {
    "cardId": 30017,
@@ -1831,22 +1632,9 @@
     22.0,
     22.0
    ],
-   "sp": 140.0
-  },
-  {
-   "cardId": 30017,
-   "lb": 1,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    22.0,
-    50.0,
-    87.0,
-    22.0,
-    22.0
-   ],
-   "sp": 130.0
+   "sp": 140.0,
+   "sourceRef": "Grand Live Card Data!B74",
+   "raceReference": 28
   },
   {
    "cardId": 30056,
@@ -1861,22 +1649,9 @@
     21.0,
     21.0
    ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30024,
-   "lb": 0,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    22.0,
-    38.0,
-    85.0,
-    22.0,
-    22.0
-   ],
-   "sp": 130.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B76",
+   "raceReference": 28
   },
   {
    "cardId": 30078,
@@ -1891,7 +1666,9 @@
     54.0,
     54.0
    ],
-   "sp": 190.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B78",
+   "raceReference": 28
   },
   {
    "cardId": 30045,
@@ -1906,7 +1683,9 @@
     22.0,
     22.0
    ],
-   "sp": 230.0
+   "sp": 230.0,
+   "sourceRef": "Grand Live Card Data!B79",
+   "raceReference": 28
   },
   {
    "cardId": 30020,
@@ -1921,22 +1700,9 @@
     24.0,
     24.0
    ],
-   "sp": 190.0
-  },
-  {
-   "cardId": 30015,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    117.0,
-    23.0,
-    51.0,
-    23.0,
-    23.0
-   ],
-   "sp": 200.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B80",
+   "raceReference": 28
   },
   {
    "cardId": 30039,
@@ -1951,22 +1717,9 @@
     22.0,
     22.0
    ],
-   "sp": 160.0
-  },
-  {
-   "cardId": 30095,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 5,
-   "wellTested": false,
-   "stats": [
-    93.0,
-    23.0,
-    79.0,
-    23.0,
-    23.0
-   ],
-   "sp": 250.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B82",
+   "raceReference": 28
   },
   {
    "cardId": 20031,
@@ -1981,22 +1734,9 @@
     23.0,
     23.0
    ],
-   "sp": 170.0
-  },
-  {
-   "cardId": 30002,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    110.0,
-    22.0,
-    49.0,
-    22.0,
-    22.0
-   ],
-   "sp": 250.0
+   "sp": 170.0,
+   "sourceRef": "Grand Live Card Data!B84",
+   "raceReference": 28
   },
   {
    "cardId": 30025,
@@ -2011,7 +1751,9 @@
     23.0,
     23.0
    ],
-   "sp": 180.0
+   "sp": 180.0,
+   "sourceRef": "Grand Live Card Data!B86",
+   "raceReference": 28
   },
   {
    "cardId": 30107,
@@ -2026,7 +1768,9 @@
     26.0,
     26.0
    ],
-   "sp": 205.0
+   "sp": 205.0,
+   "sourceRef": "Grand Live Card Data!B87",
+   "raceReference": 28
   },
   {
    "cardId": 20023,
@@ -2041,22 +1785,9 @@
     24.0,
     24.0
    ],
-   "sp": 260.0
-  },
-  {
-   "cardId": 30014,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    93.0,
-    22.0,
-    51.0,
-    22.0,
-    22.0
-   ],
-   "sp": 160.0
+   "sp": 260.0,
+   "sourceRef": "Grand Live Card Data!B88",
+   "raceReference": 28
   },
   {
    "cardId": 30107,
@@ -2071,22 +1802,9 @@
     25.0,
     25.0
    ],
-   "sp": 195.0
-  },
-  {
-   "cardId": 30002,
-   "lb": 3,
-   "source": "loopacord",
-   "runs": 4,
-   "wellTested": false,
-   "stats": [
-    93.0,
-    22.0,
-    49.0,
-    22.0,
-    22.0
-   ],
-   "sp": 240.0
+   "sp": 195.0,
+   "sourceRef": "Grand Live Card Data!B90",
+   "raceReference": 28
   },
   {
    "cardId": 30101,
@@ -2101,7 +1819,9 @@
     21.0,
     21.0
    ],
-   "sp": 300.0
+   "sp": 300.0,
+   "sourceRef": "Grand Live Card Data!B92",
+   "raceReference": 28
   },
   {
    "cardId": 30028,
@@ -2116,7 +1836,9 @@
     25.0,
     25.0
    ],
-   "sp": 200.0
+   "sp": 200.0,
+   "sourceRef": "Grand Live Card Data!B93",
+   "raceReference": 28
   },
   {
    "cardId": 30028,
@@ -2131,7 +1853,9 @@
     25.0,
     25.0
    ],
-   "sp": 200.0
+   "sp": 200.0,
+   "sourceRef": "Grand Live Card Data!B94",
+   "raceReference": 28
   },
   {
    "cardId": 20014,
@@ -2146,7 +1870,9 @@
     25.0,
     25.0
    ],
-   "sp": 180.0
+   "sp": 180.0,
+   "sourceRef": "Grand Live Card Data!B95",
+   "raceReference": 28
   },
   {
    "cardId": 30084,
@@ -2161,7 +1887,9 @@
     22.0,
     22.0
    ],
-   "sp": 145.0
+   "sp": 145.0,
+   "sourceRef": "Grand Live Card Data!B96",
+   "raceReference": 28
   },
   {
    "cardId": 20044,
@@ -2176,7 +1904,9 @@
     22.0,
     22.0
    ],
-   "sp": 170.0
+   "sp": 170.0,
+   "sourceRef": "Grand Live Card Data!B97",
+   "raceReference": 28
   },
   {
    "cardId": 30020,
@@ -2191,7 +1921,9 @@
     23.0,
     23.0
    ],
-   "sp": 140.0
+   "sp": 140.0,
+   "sourceRef": "Grand Live Card Data!B98",
+   "raceReference": 28
   },
   {
    "cardId": 30072,
@@ -2206,7 +1938,9 @@
     23.0,
     23.0
    ],
-   "sp": 165.0
+   "sp": 165.0,
+   "sourceRef": "Grand Live Card Data!B99",
+   "raceReference": 28
   },
   {
    "cardId": 20013,
@@ -2221,7 +1955,9 @@
     24.0,
     24.0
    ],
-   "sp": 180.0
+   "sp": 180.0,
+   "sourceRef": "Grand Live Card Data!B100",
+   "raceReference": 28
   },
   {
    "cardId": 30039,
@@ -2236,7 +1972,9 @@
     21.0,
     21.0
    ],
-   "sp": 120.0
+   "sp": 120.0,
+   "sourceRef": "Grand Live Card Data!B101",
+   "raceReference": 28
   },
   {
    "cardId": 30107,
@@ -2251,37 +1989,9 @@
     24.0,
     24.0
    ],
-   "sp": 180.0
-  },
-  {
-   "cardId": 30086,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    68.0,
-    20.0,
-    48.0,
-    20.0,
-    20.0
-   ],
-   "sp": 130.0
-  },
-  {
-   "cardId": 30095,
-   "lb": 1,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    72.0,
-    22.0,
-    45.0,
-    22.0,
-    22.0
-   ],
-   "sp": 250.0
+   "sp": 180.0,
+   "sourceRef": "Grand Live Card Data!B102",
+   "raceReference": 28
   },
   {
    "cardId": 20039,
@@ -2296,22 +2006,9 @@
     23.0,
     23.0
    ],
-   "sp": 160.0
-  },
-  {
-   "cardId": 30101,
-   "lb": 3,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    112.0,
-    20.0,
-    43.0,
-    20.0,
-    20.0
-   ],
-   "sp": 220.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B105",
+   "raceReference": 28
   },
   {
    "cardId": 30057,
@@ -2326,7 +2023,9 @@
     23.0,
     23.0
    ],
-   "sp": 240.0
+   "sp": 240.0,
+   "sourceRef": "Grand Live Card Data!B107",
+   "raceReference": 28
   },
   {
    "cardId": 30044,
@@ -2341,7 +2040,9 @@
     21.0,
     21.0
    ],
-   "sp": 130.0
+   "sp": 130.0,
+   "sourceRef": "Grand Live Card Data!B108",
+   "raceReference": 28
   },
   {
    "cardId": 30107,
@@ -2356,37 +2057,9 @@
     24.0,
     24.0
    ],
-   "sp": 170.0
-  },
-  {
-   "cardId": 30044,
-   "lb": 3,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    103.0,
-    21.0,
-    40.0,
-    21.0,
-    21.0
-   ],
-   "sp": 130.0
-  },
-  {
-   "cardId": 30121,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    102.0,
-    22.0,
-    38.0,
-    22.0,
-    22.0
-   ],
-   "sp": 210.0
+   "sp": 170.0,
+   "sourceRef": "Grand Live Card Data!B109",
+   "raceReference": 28
   },
   {
    "cardId": 30053,
@@ -2401,22 +2074,9 @@
     20.0,
     20.0
    ],
-   "sp": 170.0
-  },
-  {
-   "cardId": 30045,
-   "lb": 0,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    93.0,
-    20.0,
-    40.0,
-    22.0,
-    22.0
-   ],
-   "sp": 120.0
+   "sp": 170.0,
+   "sourceRef": "Grand Live Card Data!B112",
+   "raceReference": 28
   },
   {
    "cardId": 30092,
@@ -2431,67 +2091,9 @@
     22.0,
     22.0
    ],
-   "sp": 130.0
-  },
-  {
-   "cardId": 30072,
-   "lb": 1,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    79.0,
-    23.0,
-    55.0,
-    23.0,
-    23.0
-   ],
-   "sp": 160.0
-  },
-  {
-   "cardId": 30076,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 2,
-   "wellTested": false,
-   "stats": [
-    77.0,
-    22.0,
-    42.0,
-    22.0,
-    22.0
-   ],
-   "sp": 132.0
-  },
-  {
-   "cardId": 10002,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 4,
-   "wellTested": false,
-   "stats": [
-    53.0,
-    20.0,
-    35.0,
-    20.0,
-    20.0
-   ],
-   "sp": 200.0
-  },
-  {
-   "cardId": 20020,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    95.0,
-    23.0,
-    52.0,
-    23.0,
-    23.0
-   ],
-   "sp": 164.0
+   "sp": 130.0,
+   "sourceRef": "Grand Live Card Data!B114",
+   "raceReference": 28
   },
   {
    "cardId": 30014,
@@ -2506,37 +2108,9 @@
     23.0,
     23.0
    ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30101,
-   "lb": 2,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    109.0,
-    20.0,
-    43.0,
-    20.0,
-    20.0
-   ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 10050,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 4,
-   "wellTested": false,
-   "stats": [
-    47.0,
-    20.0,
-    32.0,
-    20.0,
-    20.0
-   ],
-   "sp": 190.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B119",
+   "raceReference": 28
   },
   {
    "cardId": 30065,
@@ -2551,52 +2125,9 @@
     23.0,
     23.0
    ],
-   "sp": 160.0
-  },
-  {
-   "cardId": 30101,
-   "lb": 1,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    103.0,
-    20.0,
-    43.0,
-    20.0,
-    20.0
-   ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30072,
-   "lb": 0,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    65.0,
-    23.0,
-    54.0,
-    23.0,
-    23.0
-   ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30101,
-   "lb": 0,
-   "source": "loopacord",
-   "runs": 2,
-   "wellTested": false,
-   "stats": [
-    89.0,
-    20.0,
-    42.0,
-    20.0,
-    20.0
-   ],
-   "sp": 150.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B122",
+   "raceReference": 28
   },
   {
    "cardId": 30016,
@@ -2611,22 +2142,9 @@
     58.0,
     23.0
    ],
-   "sp": 200.0
-  },
-  {
-   "cardId": 30029,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    24.0,
-    99.0,
-    24.0,
-    64.0,
-    24.0
-   ],
-   "sp": 200.0
+   "sp": 200.0,
+   "sourceRef": "Grand Live Card Data!B126",
+   "raceReference": 28
   },
   {
    "cardId": 30016,
@@ -2641,7 +2159,9 @@
     56.0,
     23.0
    ],
-   "sp": 180.0
+   "sp": 180.0,
+   "sourceRef": "Grand Live Card Data!B128",
+   "raceReference": 28
   },
   {
    "cardId": 30075,
@@ -2656,7 +2176,9 @@
     51.0,
     20.0
    ],
-   "sp": 165.0
+   "sp": 165.0,
+   "sourceRef": "Grand Live Card Data!B129",
+   "raceReference": 28
   },
   {
    "cardId": 30009,
@@ -2671,7 +2193,9 @@
     53.0,
     25.0
    ],
-   "sp": 185.0
+   "sp": 185.0,
+   "sourceRef": "Grand Live Card Data!B130",
+   "raceReference": 28
   },
   {
    "cardId": 20047,
@@ -2686,7 +2210,9 @@
     62.0,
     22.0
    ],
-   "sp": 200.0
+   "sp": 200.0,
+   "sourceRef": "Grand Live Card Data!B131",
+   "raceReference": 28
   },
   {
    "cardId": 20007,
@@ -2701,7 +2227,9 @@
     57.0,
     23.0
    ],
-   "sp": 230.0
+   "sp": 230.0,
+   "sourceRef": "Grand Live Card Data!B132",
+   "raceReference": 28
   },
   {
    "cardId": 20008,
@@ -2716,7 +2244,9 @@
     46.0,
     23.0
    ],
-   "sp": 160.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B133",
+   "raceReference": 28
   },
   {
    "cardId": 30016,
@@ -2731,7 +2261,9 @@
     54.0,
     23.0
    ],
-   "sp": 160.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B134",
+   "raceReference": 28
   },
   {
    "cardId": 30062,
@@ -2746,7 +2278,9 @@
     48.0,
     23.0
    ],
-   "sp": 160.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B135",
+   "raceReference": 28
   },
   {
    "cardId": 30104,
@@ -2761,7 +2295,9 @@
     78.0,
     22.0
    ],
-   "sp": 150.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B136",
+   "raceReference": 28
   },
   {
    "cardId": 30113,
@@ -2776,22 +2312,9 @@
     42.0,
     22.0
    ],
-   "sp": 200.0
-  },
-  {
-   "cardId": 30016,
-   "lb": 1,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    22.0,
-    108.0,
-    22.0,
-    50.0,
-    22.0
-   ],
-   "sp": 150.0
+   "sp": 200.0,
+   "sourceRef": "Grand Live Card Data!B137",
+   "raceReference": 28
   },
   {
    "cardId": 20035,
@@ -2806,7 +2329,9 @@
     49.0,
     23.0
    ],
-   "sp": 165.0
+   "sp": 165.0,
+   "sourceRef": "Grand Live Card Data!B139",
+   "raceReference": 28
   },
   {
    "cardId": 30008,
@@ -2821,7 +2346,9 @@
     55.0,
     23.0
    ],
-   "sp": 175.0
+   "sp": 175.0,
+   "sourceRef": "Grand Live Card Data!B140",
+   "raceReference": 28
   },
   {
    "cardId": 30022,
@@ -2836,22 +2363,9 @@
     58.0,
     22.0
    ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30008,
-   "lb": 3,
-   "source": "loopacord",
-   "runs": 2,
-   "wellTested": false,
-   "stats": [
-    23.0,
-    88.0,
-    23.0,
-    52.0,
-    23.0
-   ],
-   "sp": 175.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B141",
+   "raceReference": 28
   },
   {
    "cardId": 30008,
@@ -2866,7 +2380,9 @@
     50.0,
     23.0
    ],
-   "sp": 175.0
+   "sp": 175.0,
+   "sourceRef": "Grand Live Card Data!B143",
+   "raceReference": 28
   },
   {
    "cardId": 20040,
@@ -2881,7 +2397,9 @@
     61.0,
     22.0
    ],
-   "sp": 160.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B144",
+   "raceReference": 28
   },
   {
    "cardId": 30079,
@@ -2896,7 +2414,9 @@
     81.0,
     22.0
    ],
-   "sp": 150.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B145",
+   "raceReference": 28
   },
   {
    "cardId": 30038,
@@ -2911,7 +2431,9 @@
     46.0,
     23.0
    ],
-   "sp": 175.0
+   "sp": 175.0,
+   "sourceRef": "Grand Live Card Data!B146",
+   "raceReference": 28
   },
   {
    "cardId": 30087,
@@ -2926,7 +2448,9 @@
     49.0,
     20.0
    ],
-   "sp": 130.0
+   "sp": 130.0,
+   "sourceRef": "Grand Live Card Data!B147",
+   "raceReference": 28
   },
   {
    "cardId": 30023,
@@ -2941,22 +2465,9 @@
     61.0,
     22.0
    ],
-   "sp": 150.0
-  },
-  {
-   "cardId": 30009,
-   "lb": 0,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    23.0,
-    81.0,
-    23.0,
-    44.0,
-    23.0
-   ],
-   "sp": 160.0
+   "sp": 150.0,
+   "sourceRef": "Grand Live Card Data!B148",
+   "raceReference": 28
   },
   {
    "cardId": 30004,
@@ -2971,7 +2482,9 @@
     49.0,
     24.0
    ],
-   "sp": 175.0
+   "sp": 175.0,
+   "sourceRef": "Grand Live Card Data!B150",
+   "raceReference": 28
   },
   {
    "cardId": 20028,
@@ -2986,7 +2499,9 @@
     53.0,
     23.0
    ],
-   "sp": 165.0
+   "sp": 165.0,
+   "sourceRef": "Grand Live Card Data!B151",
+   "raceReference": 28
   },
   {
    "cardId": 30010,
@@ -3001,7 +2516,9 @@
     25.0,
     142.0
    ],
-   "sp": 230.0
+   "sp": 230.0,
+   "sourceRef": "Grand Live Card Data!B152",
+   "raceReference": 28
   },
   {
    "cardId": 30108,
@@ -3016,7 +2533,9 @@
     26.0,
     99.0
    ],
-   "sp": 270.0
+   "sp": 270.0,
+   "sourceRef": "Grand Live Card Data!B153",
+   "raceReference": 28
   },
   {
    "cardId": 30054,
@@ -3031,7 +2550,9 @@
     23.0,
     98.0
    ],
-   "sp": 190.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B154",
+   "raceReference": 28
   },
   {
    "cardId": 20012,
@@ -3046,7 +2567,9 @@
     23.0,
     100.0
    ],
-   "sp": 235.0
+   "sp": 235.0,
+   "sourceRef": "Grand Live Card Data!B155",
+   "raceReference": 28
   },
   {
    "cardId": 20046,
@@ -3061,7 +2584,9 @@
     22.0,
     98.0
    ],
-   "sp": 170.0
+   "sp": 170.0,
+   "sourceRef": "Grand Live Card Data!B156",
+   "raceReference": 28
   },
   {
    "cardId": 20015,
@@ -3076,22 +2601,9 @@
     23.0,
     118.0
    ],
-   "sp": 170.0
-  },
-  {
-   "cardId": 30091,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    47.0,
-    23.0,
-    23.0,
-    23.0,
-    91.0
-   ],
-   "sp": 190.0
+   "sp": 170.0,
+   "sourceRef": "Grand Live Card Data!B157",
+   "raceReference": 28
   },
   {
    "cardId": 20018,
@@ -3106,7 +2618,9 @@
     25.0,
     132.0
    ],
-   "sp": 205.0
+   "sp": 205.0,
+   "sourceRef": "Grand Live Card Data!B159",
+   "raceReference": 28
   },
   {
    "cardId": 30097,
@@ -3121,7 +2635,9 @@
     23.0,
     97.0
    ],
-   "sp": 245.0
+   "sp": 245.0,
+   "sourceRef": "Grand Live Card Data!B160",
+   "raceReference": 28
   },
   {
    "cardId": 20050,
@@ -3136,7 +2652,9 @@
     24.0,
     81.0
    ],
-   "sp": 280.0
+   "sp": 280.0,
+   "sourceRef": "Grand Live Card Data!B161",
+   "raceReference": 28
   },
   {
    "cardId": 20026,
@@ -3151,7 +2669,9 @@
     25.0,
     111.0
    ],
-   "sp": 200.0
+   "sp": 200.0,
+   "sourceRef": "Grand Live Card Data!B162",
+   "raceReference": 28
   },
   {
    "cardId": 20025,
@@ -3166,7 +2686,9 @@
     22.0,
     106.0
    ],
-   "sp": 225.0
+   "sp": 225.0,
+   "sourceRef": "Grand Live Card Data!B163",
+   "raceReference": 28
   },
   {
    "cardId": 30031,
@@ -3181,7 +2703,9 @@
     24.0,
     116.0
    ],
-   "sp": 190.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B164",
+   "raceReference": 28
   },
   {
    "cardId": 30111,
@@ -3196,7 +2720,9 @@
     23.0,
     103.0
    ],
-   "sp": 190.0
+   "sp": 190.0,
+   "sourceRef": "Grand Live Card Data!B165",
+   "raceReference": 28
   },
   {
    "cardId": 20001,
@@ -3211,22 +2737,9 @@
     22.0,
     95.0
    ],
-   "sp": 240.0
-  },
-  {
-   "cardId": 30066,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 10,
-   "wellTested": true,
-   "stats": [
-    62.0,
-    22.0,
-    22.0,
-    22.0,
-    98.0
-   ],
-   "sp": 175.0
+   "sp": 240.0,
+   "sourceRef": "Grand Live Card Data!B166",
+   "raceReference": 28
   },
   {
    "cardId": 30097,
@@ -3241,7 +2754,9 @@
     21.0,
     85.0
    ],
-   "sp": 220.0
+   "sp": 220.0,
+   "sourceRef": "Grand Live Card Data!B168",
+   "raceReference": 28
   },
   {
    "cardId": 20002,
@@ -3256,22 +2771,9 @@
     23.0,
     93.0
    ],
-   "sp": 200.0
-  },
-  {
-   "cardId": 30097,
-   "lb": 1,
-   "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    42.0,
-    21.0,
-    21.0,
-    21.0,
-    83.0
-   ],
-   "sp": 210.0
+   "sp": 200.0,
+   "sourceRef": "Grand Live Card Data!B169",
+   "raceReference": 28
   },
   {
    "cardId": 30088,
@@ -3286,37 +2788,9 @@
     20.0,
     97.0
    ],
-   "sp": 210.0
-  },
-  {
-   "cardId": 30108,
-   "lb": 2,
-   "source": "loopacord",
-   "runs": 9,
-   "wellTested": false,
-   "stats": [
-    36.0,
-    25.0,
-    25.0,
-    25.0,
-    86.0
-   ],
-   "sp": 260.0
-  },
-  {
-   "cardId": 30100,
-   "lb": 4,
-   "source": "loopacord",
-   "runs": 2,
-   "wellTested": false,
-   "stats": [
-    44.0,
-    22.0,
-    22.0,
-    22.0,
-    81.0
-   ],
-   "sp": 180.0
+   "sp": 210.0,
+   "sourceRef": "Grand Live Card Data!B171",
+   "raceReference": 28
   },
   {
    "cardId": 30108,
@@ -3331,7 +2805,9 @@
     25.0,
     85.0
    ],
-   "sp": 250.0
+   "sp": 250.0,
+   "sourceRef": "Grand Live Card Data!B174",
+   "raceReference": 28
   },
   {
    "cardId": 20030,
@@ -3346,82 +2822,77 @@
     22.0,
     91.0
    ],
-   "sp": 160.0
+   "sp": 160.0,
+   "sourceRef": "Grand Live Card Data!B175",
+   "raceReference": 28
   },
   {
-   "cardId": 20016,
+   "cardId": 30052,
    "lb": 4,
    "source": "loopacord",
-   "runs": 10,
+   "runs": 50,
    "wellTested": true,
    "stats": [
-    36.0,
-    22.0,
-    22.0,
-    22.0,
-    95.0
+    50.0,
+    21.0,
+    21.0,
+    50.0,
+    21.0
    ],
-   "sp": 210.0
+   "sp": 390.0,
+   "sourceRef": "Grand Live Card Data!R7",
+   "raceReference": 28
   },
   {
-   "cardId": 30031,
-   "lb": 0,
+   "cardId": 30052,
+   "lb": 3,
    "source": "loopacord",
    "runs": 20,
    "wellTested": true,
    "stats": [
-    31.0,
-    22.0,
-    22.0,
-    22.0,
-    62.0
+    36.0,
+    21.0,
+    21.0,
+    48.0,
+    21.0
    ],
-   "sp": 160.0
+   "sp": 390.0,
+   "sourceRef": "Grand Live Card Data!R8",
+   "raceReference": 28
   },
   {
-   "cardId": 30013,
-   "lb": 0,
+   "cardId": 30052,
+   "lb": 2,
    "source": "loopacord",
-   "runs": 1,
-   "wellTested": false,
-   "stats": [
-    32.0,
-    23.0,
-    23.0,
-    23.0,
-    65.0
-   ],
-   "sp": 170.0
-  },
-  {
-   "cardId": 30024,
-   "lb": 4,
-   "source": "fujikiseki",
-   "runs": 56,
+   "runs": 20,
    "wellTested": true,
    "stats": [
-    23.0,
-    50.0,
-    113.0,
-    23.0,
-    23.0
+    21.0,
+    21.0,
+    21.0,
+    47.0,
+    21.0
    ],
-   "sp": 171.0
+   "sp": 360.0,
+   "sourceRef": "Grand Live Card Data!R9",
+   "raceReference": 28
   },
   {
-   "cardId": 30095,
-   "lb": 4,
-   "source": "fujikiseki",
-   "runs": 55,
+   "cardId": 30052,
+   "lb": 1,
+   "source": "loopacord",
+   "runs": 20,
    "wellTested": true,
    "stats": [
-    90.0,
-    22.0,
-    76.0,
-    22.0,
-    22.0
+    21.0,
+    21.0,
+    21.0,
+    46.0,
+    21.0
    ],
-   "sp": 249.0
+   "sp": 340.0,
+   "sourceRef": "Grand Live Card Data!R10",
+   "raceReference": 28
   }
  ]
 }

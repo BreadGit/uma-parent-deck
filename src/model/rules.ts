@@ -97,7 +97,7 @@ export const UNIQUE_LEVEL_CHECKS: { slot: number; fans: number; dirtFans: number
   // Christmas precedes Arima Kinen. Playthrough with screenshots: https://kubinaga1230.hatenablog.com/entry/2023/01/09/174600
   { slot: 71, fans: 120000, dirtFans: 80000, bond: false },  // Senior late December, before that turn's race
 ];
-/** Base rating of a skill by rarity, before the aptitude bucket: white, ◎ and gold (GameWith). */
+/** Representative skill-rating estimates by rarity, before the aptitude bucket. Actual per-skill scores vary. */
 export const SKILL_SCORE = { white: 217, circle: 262, gold: 508 };
 
 // Generation defaults and evidence: docs/umamusume/refs/hakuraku-spark-generation.md.

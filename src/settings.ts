@@ -18,7 +18,7 @@ export interface Settings {
   palChainRate: number;          // Pal card date chain completes (every date, incl. the finale skill)
   groupOutingRate: number;       // Group card member outing happens
   groupFinaleRate: number;       // Group card finale (gold skill) happens
-  specialEventRate: number;      // Pal/Group unlock and New Year events (never seen in independent training)
+  specialEventRate: number;      // assumed rate for Pal/Group unlock and New Year events
   scenarioPickRate: number;      // the scenario's linked-skill event fires and the prioritized option is taken
   scenarioSongsRate: number;     // the run learns enough songs for the scenario's gold completion skill
   concertGreatSuccessRate: number; // promotional and ordinary final concerts reach great success
@@ -198,13 +198,13 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   hintBase: 'Chance per turn that a card standing on a facility shows a hint, before Hint Frequency. Default 0.07 from a 1,024-turn manual-play sample (GameWith measured 6 to 9%). Nobody has measured hint pickup in independent training, so the whole hint model is an estimate.',
   hintScale: 'Multiplier on the whole hint model for independent training, where hint pickup is unmeasured. Default 0.75 so a 0% Hint Frequency card lands near 0.9 hints per run, in line with the 8 hints per deck fujikiseki measured in manual runs. Prioritized skills are assumed not to change which hints the run takes: that is documented for Auto-Train, not for independent training.',
   hintTurnsShare: 'Fraction of training turns a given card is on the facility being trained. Default 0.4 as a rough blend of the ~18% appearance rate with the AI favouring facilities where cards are. Unmeasured in independent training.',
-  chainRatesSSR: 'Chance that an SSR card reaches chain event 1, 2 and 3 in an independent-training run. Each stage needs the one before it, so a skill offered by two stages is counted once. Defaults 0.69 / 0.36 / 0.12 from Loopacord counts.',
-  chainRatesSR: 'Chance that an SR card reaches chain event 1 and 2. Defaults 0.74 / 0.35 from Loopacord counts.',
+  chainRatesSSR: 'Chance that an SSR card reaches chain event 1, 2 and 3 in an independent-training run. Each stage needs the one before it, so a skill offered by two stages is counted once. Defaults 0.69 / 0.36 / 0.12 summarize 102 Loopacord runs with one 23-race deck. Applying those rates to other decks and schedules is an assumption.',
+  chainRatesSR: 'Chance that an SR card reaches chain event 1 and 2. Defaults 0.74 / 0.35 summarize 102 Loopacord runs with one 23-race deck. The second-stage rate averages two cards without a separate success roll. Applying those rates to other decks and schedules is an assumption.',
   randomEventRate: 'Chance a given random event fires during a run. Nobody has measured this, so 0.5 is a placeholder. Cards with more than two random events are scaled so two fire on average.',
-  palChainRate: 'Chance a Pal card runs its whole date chain, which hands over the finale skill. Default 0.97: Loopacord saw 100% and See Ya Later! shows up in nearly every logged run.',
+  palChainRate: 'Chance a Pal card runs its whole date chain, which hands over the finale skill. Default 0.97 is an assumption; Loopacord recorded 102 completions in 102 runs with one 23-race deck.',
   groupOutingRate: 'Chance a Group card member outing happens. Default 0.9, assumed from the Pal chain behaviour; not measured.',
   groupFinaleRate: 'Chance the Group finale (the gold skill) happens. Default 0.85 is a guess; the finale needs every member outing first and nobody has counted it in independent training.',
-  specialEventRate: 'Chance of the Pal/Group unlock and New Year events. Default 0 because Loopacord never saw the New Year event in independent training.',
+  specialEventRate: 'Assumed chance of Pal/Group unlock and New Year events. Loopacord recorded the Pal dating-before-Classic event in 0 of 102 runs. Extending that observation to every event in this group is an assumption behind the default 0.',
   scenarioPickRate: 'Our Grand Concert has a Senior November live event with one option per linked character (Smart Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Bringing that character or one of her cards upgrades her option to the gold skill. Loopacord logged the scenario pick at 100% in independent training, so the default is 1.',
   scenarioSongsRate: 'Chance the run learns 18 or more of the 22 lesson songs by late December of the Senior year, which turns the scenario completion reward into I Wanna Win with You instead of On the Way to Our Dream. Not measured; 0.9 is an assumption based on the 16-song November event firing in every logged run.',
   charStoryEventRate: "Chance a given one of the trainee's own no-choice or choice events plays during an independent-training run. GameTora's page groups fixed career events and random character events together and the tool cannot tell them apart, so this one rate covers both. Default 1 assumes every one plays. Unmeasured.",
@@ -226,7 +226,7 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   skillScorePerSp: 'Rank-score points bought per skill point at the end of the run. Default 1.4: a white skill is 217 points for about 150 SP after hint discounts. An estimate, not a game rule.',
   skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. Default 400, roughly two skills either way.',
   innateSkillBuyShare: "Share of the trainee's innate skill rating counted in the rank score, on the idea that the run buys some but not all of them. Default 0.5 is an assumption, not a measurement, and part of this SP is already inside the skills-bought term, so it double counts a little. Fitting it needs logged rank scores.",
-  totalTurnsOverride: `Total career turns used to scale card stats by races run, as (T - races) / (T - ${RACES_REFERENCE}). Blank uses the fitted 71.7 from decks run at 28 and 23 races. Values of ${RACES_REFERENCE} or less are rejected because they would divide by zero or flip the sign.`,
+  totalTurnsOverride: `Total career turns used to scale card stats and SP by races run, as (T - races) / (T - ${RACES_REFERENCE}). Blank uses the value fitted from the 28-race and 23-race measurements. Values of ${RACES_REFERENCE} or less are rejected because they would divide by zero or flip the sign.`,
 };
 
 /** How the advanced settings panel lays a setting out: a number field, or a comma-separated list. */

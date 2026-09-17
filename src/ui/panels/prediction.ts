@@ -37,7 +37,9 @@ function statBreakdown(c: RunPlan) {
       ${row('Run-to-run spread (±1 sd)', p.sd)}
     </tbody></table></div>
     <p class="small muted">Rank score: stats ${num(c.rank.statPts)} (${STATS.map((st, i) => `${st} ${num(statScore(c.finalMean[i]!))}`).join(', ')}), unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, skills bought and innate ${num(c.rank.skillPts - c.rank.uniquePts)}. The stat curve is the game's table; the skill terms are estimates.</p>
-    <p class="small muted">Card and career rows include the ${store.settings.focus} focus multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and a race scaling of ×${scale.toFixed(2)} for ${c.sum.count} races against the 28 the data was measured at. The spread is the standard deviation of total stats between logged runs of one trainee and deck; the card model itself has an RMSE of ${data.model.fit.rmse.toFixed(1)} per stat over ${data.model.fit.n} observations. Everything here is an empirical fit of logged runs, not the game's formula: the race scaling comes from one 23-race versus 28-race comparison, the focus multipliers from two decks, and the career row (which includes race rewards) was measured at the reference decks' Race Bonus. This deck has ${raceBonus}% Race Bonus, which is not modelled, so cards that differ in Race Bonus may be misranked.${capped ? ' A stat is clamped to the scenario cap plus the blue sparks\' start-of-run uncaps; uncaps from inspiration events and green sparks are unknown and left out.' : ''}</p>`;
+    <p class="small muted">${COPY.prediction.scaling(store.settings.focus, focusMul.map((m) => m.toFixed(2)).join(' / '), scale.toFixed(2), c.sum.count, data.model.races.reference)}</p>
+    <p class="small muted">${COPY.prediction.evidence(data.model.fit.rmse.toFixed(1), data.model.fit.n)}</p>
+    <p class="small muted">${COPY.prediction.raceBonus(raceBonus)}${capped ? ` ${COPY.prediction.capped}` : ''}</p>`;
 }
 
 export function renderPrediction(c: RunPlan) {
