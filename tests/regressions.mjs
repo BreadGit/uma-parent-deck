@@ -10,6 +10,7 @@ import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
 import { holdSearch } from './browser-search.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
 import { encodeShare, decodeShare, sharedChoices, shareUrl } from '../src/share.ts';
+import { planRun } from '../src/model/run.ts';
 
 const data = loadData();
 const browser = await chromium.launch();
@@ -357,12 +358,22 @@ test('ranking expands all target chances and keeps the last target reachable on 
   assert.deepEqual((await state(page)).run, saved.run, 'expansion preserves run inputs');
 });
 
-test('the deck stays mounted during search and edits update its estimates immediately', async (t) => {
+// A Fuji Kiseki player reported this six-card deck, Maruzensky borrowed, for a required Groundwork spark. Evaluating it
+// as a fixed selection gives the displayed chance the search must reach without being told to pin Maruzensky.
+const FUJI_DECK = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
+const fujiState = () => {
   const saved = defaultState(data);
-  saved.run.goal.pink = [{ aptitude: 'any', stars: 2 }];
   saved.run.traineeCardId = 100501;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;
+  return saved;
+};
+const fujiReferencePercent = (saved) => planRun(saved.run, saved.settings, saved.inventory, data, { selection: FUJI_DECK, search: false }).goalEstimate.probability * 100;
+
+test('the deck stays mounted during search and edits update its estimates immediately', async (t) => {
+  const saved = fujiState();
+  saved.run.goal.pink = [{ aptitude: 'any', stars: 2 }];
+  const reference = fujiReferencePercent(saved);
   const page = await fresh(t, saved, { settle: false });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const chance = async () => parseFloat((await page.locator('[data-goal-probability]').innerText()).split('\n')[0]);
@@ -385,7 +396,7 @@ test('the deck stays mounted during search and edits update its estimates immedi
   await waitForPlan(page);
   assert.equal(await head.evaluate((el) => getComputedStyle(el, '::before').content), 'none');
   const finished = await chance();
-  assert.ok(finished >= initial && finished >= 4.9, 'find the known better Fuji deck without a Maruzensky pin');
+  assert.ok(finished >= initial && finished >= reference - 0.05, `find the known better Fuji deck without a Maruzensky pin: ${finished}% shown against ${reference}%`);
   await page.evaluate(() => { window.retainedDeck = document.querySelector('.deck'); window.retainedList = document.querySelector('.wishlist'); });
   await page.selectOption('[data-goal-stars="pink"]', '3');
   await page.waitForSelector('[data-plan-pending]', { state: 'attached' });
@@ -399,10 +410,8 @@ test('the deck stays mounted during search and edits update its estimates immedi
 });
 
 test('a failed refinement preserves the checked deck and can be retried', async (t) => {
-  const saved = defaultState(data);
-  saved.run.traineeCardId = 100501;
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
-  saved.inventory['30017'] = null;
+  const saved = fujiState();
+  const reference = fujiReferencePercent(saved);
   const page = await fresh(t, saved);
   await page.addInitScript(() => {
     const NativeWorker = window.Worker;
@@ -431,7 +440,7 @@ test('a failed refinement preserves the checked deck and can be retried', async 
   await page.click('[data-action="retry-search"]');
   await waitForPlan(page);
   assert.equal(await page.locator('[data-action="retry-search"]').count(), 0);
-  assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) >= 4.9);
+  assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) >= reference - 0.05, 'the retried search reaches the reported deck');
   await assertFieldsMatchState(page, 'after retrying a failed refinement');
 });
 

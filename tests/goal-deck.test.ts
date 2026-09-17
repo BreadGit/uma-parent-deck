@@ -268,20 +268,30 @@ test('cheap rank sampling leaves analytic blue odds and subsequent full evaluati
   assert.deepEqual(goalRankBands(stats, goal, 17500, settings), full);
 });
 
-test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin without requiring the pin', () => {
+// A Fuji Kiseki player reported this six-card deck, Maruzensky borrowed, for a required Groundwork spark.
+// Evaluating it as a fixed selection gives the chance the search must reach without being told to pin Maruzensky.
+const FUJI_DECK = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
+const fujiState = () => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100501;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;
+  return saved;
+};
+const fujiReference = (saved = fujiState()) => planRun(saved.run, saved.settings, saved.inventory, data, { selection: FUJI_DECK, search: false }).goalEstimate.probability!;
+
+test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin without requiring the pin', () => {
+  const saved = fujiState();
   const before = structuredClone(saved);
+  const reference = fujiReference(saved);
+  assert.ok(reference > 0, 'the reported deck is a legal selection with a positive chance');
   const progress: number[] = [];
   const result = planRun(saved.run, saved.settings, saved.inventory, data, { onProgress: (selection, summary) => {
     const check = planRun(saved.run, saved.settings, saved.inventory, data, { selection });
     assert.equal(check.goalEstimate.probability, summary.score.probability);
     progress.push(summary.score.probability);
   } });
-  // Independently established with the user's six-card pinned deck, evaluated without the pin.
-  assert.ok(result.goalEstimate.probability! >= .04884270928688582);
+  assert.ok(result.goalEstimate.probability! >= reference, `search reached ${result.goalEstimate.probability} against the reported deck's ${reference}`);
   assert.ok(progress.length && result.goalEstimate.probability! >= progress[0]!);
   assert.ok(result.search!.screened > 0);
   assert.ok(!result.deckResult.deck.some((e) => e.card.id === 30017 && !e.borrowed));
@@ -289,13 +299,10 @@ test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin w
 });
 
 test('previous recommendations are rescored at current limit breaks and rejected when they break current ownership or pins', () => {
-  const saved = defaultState(data);
-  saved.run.traineeCardId = 100501;
-  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
-  saved.inventory['30017'] = null;
-  const previous = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
+  const saved = fujiState();
+  const previous = FUJI_DECK;
   const reused = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
-  assert.ok(reused.goalEstimate.probability! >= .04884270928688582);
+  assert.ok(reused.goalEstimate.probability! >= fujiReference(saved), 'a seeded search never falls below its seed');
   saved.inventory['30107'] = 0;
   const changed = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
   for (const e of changed.deckResult.deck) if (e.card.id === 30107 && !e.borrowed) assert.equal(e.lb, 0);
