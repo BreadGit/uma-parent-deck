@@ -3,11 +3,16 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
 import { holdSearch, releaseSearch } from './browser-search.mjs';
+import { STATE_KEY } from '../src/state.ts';
 const url = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
 await holdSearch(page);
 const errors = [];
+// Edits save and render synchronously, so each wait below names the state the next assertion reads rather than a delay.
+const savedState = (predicate) => page.waitForFunction(({ key, body }) => new Function('st', `return ${body}`)(JSON.parse(localStorage.getItem(key))), { key: STATE_KEY, body: predicate });
+const fieldValue = (selector, value) => page.waitForFunction(({ selector, value }) => document.querySelector(selector)?.value === value, { selector, value });
+const settled = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.goto(url);
@@ -74,11 +79,11 @@ assert.equal(await page.inputValue('select[data-apt="turf"]'), baseTurf, 'select
 // the star count belongs to the trainee: 1★ set on a 1★ uma is clamped up to a 3★ uma's rarity when she is picked
 await pickTrainee('haru urara');
 await page.selectOption('select[data-select="trainee-stars"]', '1');
-await page.waitForTimeout(200);
+await savedState('st.run.traineeStars === 1');
 await assertFieldsMatchState(page, 'after setting 1★ on Haru Urara');
 await pickTrainee('special dreamer');
-await page.waitForTimeout(200);
-const starsAfterSwitch = await page.evaluate(() => ({ shown: document.querySelector('select[data-select="trainee-stars"]').value, saved: JSON.parse(localStorage.getItem('uma-parent-deck.v4')).run.traineeStars }));
+await savedState('st.run.traineeCardId === 100101');
+const starsAfterSwitch = await page.evaluate((key) => ({ shown: document.querySelector('select[data-select="trainee-stars"]').value, saved: JSON.parse(localStorage.getItem(key)).run.traineeStars }), STATE_KEY);
 assert.deepEqual(starsAfterSwitch, { shown: '3', saved: 3 }, 'a 3★ trainee cannot keep a 1★ count');
 await assertFieldsMatchState(page, 'after switching trainee');
 const searchWidths = await page.$$eval('input[type=search]', (els) => els.map((el) => ({ id: el.id, input: el.getBoundingClientRect().width, panel: el.closest('section.panel').getBoundingClientRect().width })));
@@ -94,12 +99,12 @@ for (const q of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) {
   await page.waitForSelector('li[data-action="add-target"]');
   await page.click('li[data-action="add-target"]');
 }
-await page.waitForTimeout(300);
+await savedState('st.run.targets.length === 3');
 // Pin a card by search and check its ranking control and deck slot.
 await page.fill('#card-search', 'kitasan');
 await page.waitForSelector('li[data-action="pin-card"]');
 await page.click('li[data-action="pin-card"]');
-await page.waitForTimeout(200);
+await savedState('st.run.pinnedIds.includes(30028)');
 assert.equal(await page.locator('[data-action="toggle-card-pin"][data-id="30028"]').getAttribute('aria-pressed'), 'true');
 assert.ok((await page.$$eval('.deck .slot .name', (n) => n.map((x) => x.textContent))).some((n) => n.includes('Kitasan Black')), 'pinned card should be in the deck');
 await page.click('.chip button[data-action="unpin-card"]:not([data-id="30052"])');
@@ -130,7 +135,7 @@ assert.ok(!bodyText.includes('Default limit break for unmarked cards'), 'invento
 assert.ok(!bodyText.includes('Each parent carries up to'), 'parent blue sparks still show the removed explanatory blurb');
 // picking a start gain fills the dropdown in its parent's colour and raises the start value
 await page.selectOption('select[data-gain="1-2"]', '54');
-await page.waitForTimeout(200);
+await fieldValue('select[data-gain="1-2"]', '54');
 const powerCell = await page.$eval('.legacy-stat:nth-child(3)', (el) => ({ start: Number(el.querySelector('.legacy-v').textContent), base: Number(el.querySelector('.legacy-sub').textContent.replace(/\D/g, '')), p1: Number(el.querySelector('select[data-gain="0-2"]').value), p2Class: el.querySelector('select[data-gain="1-2"]').className }));
 assert.equal(powerCell.start, powerCell.base + powerCell.p1 + 54, 'the start value is base plus both parents');
 assert.ok(/\bp2\b/.test(powerCell.p2Class) && /\bset\b/.test(powerCell.p2Class), 'a picked gain is shown filled in parent 2 colour');
@@ -142,20 +147,20 @@ await page.click('button[data-action="toggle-sparks"]');
 await page.waitForSelector('[data-sparks-form]');
 assert.equal(await page.$$eval('select[data-spark-stat]', (s) => s.length), 6, 'two sides of three umas');
 await page.selectOption('select[data-spark-stat="0-0"]', 'guts');
-await page.waitForTimeout(200);
+await fieldValue('select[data-spark-stat="0-0"]', 'guts');
 await page.selectOption('select[data-spark-stars="0-0"]', '2');
-await page.waitForTimeout(200);
+await fieldValue('select[data-gain="0-3"]', '12');
 const afterSpark = await page.evaluate(() => ({ speed: document.querySelector('select[data-gain="0-0"]').value, guts: document.querySelector('select[data-gain="0-3"]').value, guts2: document.querySelector('select[data-gain="1-3"]').value }));
 assert.deepEqual(afterSpark, { speed: '0', guts: '12', guts2: '0' }, 'the parent has a 2★ Guts spark on her side only');
 await assertFieldsMatchState(page, 'after editing a spark by stars');
 await page.selectOption('select[data-gain="0-3"]', '0');
-await page.waitForTimeout(200);
+await fieldValue('select[data-gain="0-3"]', '0');
 assert.equal(await page.$eval('select[data-spark-stat="0-0"]', (s) => s.value), '', 'setting the stat to +0 empties the uma\'s slot in the form');
 await assertFieldsMatchState(page, 'after emptying a slot from the dropdown');
 // +63 then +12 on one stat leaves two umas unentered: both of their selects show "—", not a stale star count
 await page.selectOption('select[data-gain="0-3"]', '63');
 await page.selectOption('select[data-gain="0-3"]', '12');
-await page.waitForTimeout(200);
+await fieldValue('select[data-gain="0-3"]', '12');
 assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['guts', '2', '', '', '', ''], 'one 2★ Guts uma and two empty rows');
 await assertFieldsMatchState(page, 'after shrinking a start gain');
 // Editing an aggregate gain preserves an existing 1★ parent and changes only the 3★ grandparent.
@@ -174,7 +179,7 @@ assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.
 assert.equal(await page.$$eval('.legacy-sparks', (els) => els.length), 1);
 assert.ok(await page.evaluate(() => document.querySelector('.legacy-sparks').compareDocumentPosition(document.querySelector('.legacy-legend')) & Node.DOCUMENT_POSITION_FOLLOWING), 'the spark form sits above the start gain row');
 await page.click('button[data-action="toggle-sparks"]');
-await page.waitForTimeout(100);
+await page.waitForSelector('[data-sparks-form]', { state: 'detached' });
 assert.equal(await page.$('[data-sparks-form]'), null, 'the toggle closes the form again');
 const summary = await page.evaluate(() => ({
   chips: [...document.querySelectorAll('.chip')].map((c) => c.textContent.trim()),
@@ -202,15 +207,15 @@ if (process.env.SCREENSHOT_PATH !== '') await page.screenshot({ path: process.en
   const firstSelected = await page.$('select[data-slot]:has(option[selected][value]:not([value=""]))');
   const before = await page.$$eval('.agenda-cell.sel', (n) => n.length);
   await firstSelected.selectOption('');
-  await page.waitForTimeout(200);
+  await page.waitForFunction((before) => document.querySelectorAll('.agenda-cell.sel').length !== before, before);
   const after = await page.$$eval('.agenda-cell.sel', (n) => n.length);
   assert.ok(after < before, `skipping a slot should remove a race (${before} -> ${after})`);
 }
 await page.selectOption('select[data-lb="30028"]', '2');
-await page.waitForTimeout(300);
+await savedState('st.inventory["30028"] === 2');
 await assertFieldsMatchState(page, 'after changing an LB in the ranking');
 await page.selectOption('select[data-lb="30052"]', 'none');
-await page.waitForTimeout(200);
+await savedState('st.inventory["30052"] === null');
 // the default Light Hello pin, once marked not owned, becomes a borrow request and takes the friend's slot
 const afterUnown = await page.evaluate(() => ({ borrow: document.querySelector('.deck .slot:has(.tag.borrow) .name')?.textContent.trim(), chip: document.querySelector('.chip:has(button[data-id="30052"]) .tag.borrow')?.textContent }));
 assert.ok(afterUnown.borrow?.includes('Light Hello'), `the unowned pin should be the borrow, got ${afterUnown.borrow}`);
@@ -219,7 +224,7 @@ console.log('deck after marking Light Hello SSR not owned: borrow =', afterUnown
 // the panel's Reset clears every gain and aptitude override at once
 await page.selectOption('select[data-apt="end"]', 'A');
 await page.click('button[data-action="reset-legacy"]');
-await page.waitForTimeout(200);
+await savedState('Object.keys(st.run.aptOverrides).length === 0');
 await assertFieldsMatchState(page, 'after the legacy reset');
 const afterReset = await page.evaluate(() => ({ gains: [...document.querySelectorAll('select[data-gain]')].map((s) => s.value).join(','), turf: document.querySelector('select[data-apt="turf"]').value, options: document.querySelectorAll('select[data-gain="0-0"] option').length }));
 assert.equal(afterReset.gains, '0,0,0,0,0,0,0,0,0,0', 'reset clears every gain for entry');
@@ -395,7 +400,7 @@ for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.setViewportSize({ width, height: 1000 });
-    await page.waitForTimeout(100);
+    await settled();
     assert.match(await page.locator('[data-sort="score"]').innerText(), /^Target spark chances.*▾$/);
     assert.equal(await page.getByText('Added spark chance', { exact: true }).count(), 0);
     assert.equal(await page.getByText('Spark chance alone', { exact: true }).count(), 0);
