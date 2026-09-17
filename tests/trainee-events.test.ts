@@ -98,14 +98,17 @@ test("the trainee's choice and outing events: choice-gated at their own rates, o
 test("an alternate outfit's own events are decoded from its page, and a skill no decoded event gives uses the undecoded rate, not 100%", () => {
   const summer = data.characters.find((c) => c.cardId === 100102)!; // Special Week [Hopp'n♪Happy Heart]
   const fighter = resolveTarget(byName('Fighter').id, data)!;
+  const pace = resolveTarget(byName('Pace Strategy').id, data)!; // one option of a decoded choice event of hers
   const own = traineeSources(summer, fighter, data, settings, new Map()).filter((s) => s.kind === 'story' || s.kind === 'choice');
   assert.ok(own.length && own.every((s) => !s.detail.includes('not decoded')), 'Fighter comes from her outfit event "To My Dear Mama"');
   assert.ok(!traineeSources(sw, fighter, data, settings, new Map()).length, 'the base outfit does not have that event');
-  const offered = (c: typeof sw) => new Set(c.events.flatMap((e) => e.choices.flatMap((ch) => ch.outcomes.flat().flatMap((r) => (r.t === 'sk' && typeof r.d === 'number' ? [r.d] : r.t === 'sr' && Array.isArray(r.d) ? r.d.map((x) => x.d) : [])))));
-  const stray = data.characters.map((c) => ({ c, id: c.eventSkills.find((id) => !offered(c).has(id)) })).find((x) => x.id != null);
-  if (stray) {
-    const target = resolveTarget(stray.id!, data)!;
-    const src = traineeSources(stray.c, target, data, { ...settings, charUndecodedEventRate: 0.35 }, new Map()).find((s) => s.detail.includes('not decoded'))!;
-    assert.ok(src && Math.abs(src.pObtain - 0.35) < 1e-9, `${stray.c.name}: ${target.name} is listed without a decoded event`);
-  }
+  // A skill listed for the character without a decoded event offering it: build one rather than hope the data has one.
+  const offered = new Set(sw.events.flatMap((e) => e.choices.flatMap((ch) => ch.outcomes.flat().flatMap((r) => (r.t === 'sk' && typeof r.d === 'number' ? [r.d] : r.t === 'sr' && Array.isArray(r.d) ? r.d.map((x) => x.d) : [])))));
+  assert.ok(!offered.has(fighter.white!.id) && !sw.eventSkills.includes(fighter.white!.id), 'Fighter is neither offered by nor listed for the base outfit');
+  const listed = { ...sw, eventSkills: [...sw.eventSkills, fighter.white!.id] };
+  const undecoded = { ...settings, charUndecodedEventRate: 0.35 };
+  const src = traineeSources(listed, fighter, data, undecoded, new Map()).filter((s) => s.detail.includes('not decoded'));
+  assert.equal(src.length, 1, 'one flat source for the undecoded listing');
+  assert.ok(Math.abs(src[0]!.pObtain - 0.35) < 1e-9, `the undecoded rate applies, got ${src[0]!.pObtain}`);
+  assert.ok(!traineeSources(listed, pace, data, undecoded, new Map()).some((s) => s.detail.includes('not decoded')), 'a listed skill a decoded event offers gets no flat source');
 });
