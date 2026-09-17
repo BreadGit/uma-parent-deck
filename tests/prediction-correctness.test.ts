@@ -7,7 +7,7 @@ import { buySkills, budgetForms, purchaseCost } from '../src/model/skill-purchas
 import { resolveTarget } from '../src/model/sparks.ts';
 import { inheritedFromSparks } from '../src/model/inherit.ts';
 import { decodeShare } from '../src/share.ts';
-import { planRun } from '../src/model/run.ts';
+import { planRun, predictRunDeck } from '../src/model/run.ts';
 
 const data = loadData();
 const apt = data.characters[0]!.aptitudes;
@@ -128,6 +128,11 @@ test('reported Fuji build counts 22 races and shares one probability basis', asy
   const suggested = planRun(input, settings, inventory, limited);
   const biko = planRun(input, settings, inventory, limited, { selection: [...owned, { id: 30020, lb: 4, borrowed: true }], search: false });
   assert.equal(suggested.deckResult.deck.find((e) => e.borrowed)!.card.id, 30067);
+  const prediction = predictRunDeck(suggested.deckResult.deck, input, suggested.ctx, suggested.apt, suggested.sum.expectedLosses);
+  for (const key of ['pred', 'parentGains', 'inherited', 'rawFinalMean', 'rawFinalSd', 'finalMean', 'finalSd', 'statChances', 'purchases', 'statCaps'] as const) {
+    assert.deepEqual(suggested[key], prediction[key], `the chosen deck retains its full ${key} summary`);
+  }
+  assert.deepEqual(suggested.rank, { ...prediction.rank, pSS: suggested.goalEstimate.pSS });
   assert.ok(suggested.rank.pSS > biko.rank.pSS);
   assert.ok(suggested.goalEstimate.blue < biko.goalEstimate.blue);
   assert.ok(suggested.goalEstimate.probability! > biko.goalEstimate.probability!);

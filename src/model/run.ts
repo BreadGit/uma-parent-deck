@@ -11,7 +11,7 @@ import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type L
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
-import { rankEstimate, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
+import { rankEstimate, thresholdFor, uniqueSkillLevel, uniqueSkillScore, type RankEstimate } from './rank.ts';
 import { displayedStat, statMasses, statMoments } from './stat-outcomes.ts';
 import { estimatePurchases, type Purchases } from './skill-purchases.ts';
 import { projectForms } from './goal-skills.ts';
@@ -200,8 +200,7 @@ function preparePrediction(input: RunInput, ctx: Ctx) {
   return { parentGains, inherited, priority: [...goal.required, ...goal.preferred].map((t) => t.id) };
 }
 
-/** Predict a supplied deck without selecting cards. */
-export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, sampleCount = 512, prepared = preparePrediction(input, ctx)): DeckPrediction {
+function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, sampleCount: number, prepared: ReturnType<typeof preparePrediction>) {
   const { data, settings, trainee } = ctx;
   const fansBefore = ctx.fansBefore ?? (() => 0);
   const stars = clampStars(trainee, input.traineeStars);
@@ -211,15 +210,29 @@ export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInp
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => displayedStat(v) > caps[i]! + inherited[i]!.uncap) } : null;
   const rawFinalSd = pred.sd.map((sd, i) => Math.sqrt(sd ** 2 + inherited[i]!.variance));
+  const purchases = estimatePurchases(deck, ctx, pred.sp, priority, apt, Math.min(sampleCount, 512));
+  // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
+  const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
+  const skillPoints = purchases.score + (trainee ? uniqueSkillScore(stars, uniqueLevel) : 0);
+  return { pred, parentGains, inherited, rawFinalMean, rawFinalSd, purchases, statCaps, uniqueLevel, skillPoints };
+}
+
+/** Display summaries are only needed after selecting a deck. */
+function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input: RunInput, ctx: Ctx): DeckPrediction {
+  const { uniqueLevel, skillPoints: _skillPoints, ...base } = prediction;
+  const { rawFinalMean, rawFinalSd, statCaps, purchases } = base;
+  const { data, settings, trainee } = ctx;
   const masses = rawFinalMean.map((mean, i) => statMasses(mean, rawFinalSd[i]!, statCaps?.cap[i], true));
   const moments = masses.map(statMoments);
   const finalMean = moments.map((m) => m.mean), finalSd = moments.map((m) => m.sd);
   const statChances = moments.map((m) => ({ mid: Math.min(1, m.above(600)), high: Math.min(1, m.above(1100)) }));
-  const purchases = estimatePurchases(deck, ctx, pred.sp, priority, apt, Math.min(sampleCount, 512));
-  // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
-  const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
-  const rank = rankEstimate(finalMean, finalSd, purchases.score, trainee, stars, uniqueLevel, data, settings, purchases.variance, masses);
-  return { pred, parentGains, inherited, rawFinalMean, rawFinalSd, finalMean, finalSd, statChances, purchases, statCaps, rank };
+  const rank = rankEstimate(finalMean, finalSd, purchases.score, trainee, clampStars(trainee, input.traineeStars), uniqueLevel, data, settings, purchases.variance, masses);
+  return { ...base, finalMean, finalSd, statChances, rank };
+}
+
+/** Predict a supplied deck without selecting cards. */
+export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, sampleCount = 512, prepared = preparePrediction(input, ctx)): DeckPrediction {
+  return finishPrediction(predictCandidate(deck, input, ctx, apt, expectedLosses, sampleCount, prepared), input, ctx);
 }
 
 /** Plan the whole run: schedule, deck, prediction, rank estimate and prioritized skills. Pure; the app memoizes it. */
@@ -275,12 +288,11 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const candidates = wishlistCandidates(entries, targets, candidateCtx), ordered = order(candidates);
     const priority = derivePriority(ordered, targets.filter((t) => !input.wishlistExcluded.some((id) => t.familyIds.has(id))), data, input.wishlistExcluded);
     const ctx: Ctx = { ...candidateCtx, priority, excluded: input.wishlistExcluded };
-    const prediction = predictRunDeck(entries, input, ctx, apt, sum.expectedLosses, sampleCount, preparedPrediction);
-    const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.rank.skillPts, skillSd: Math.sqrt(settings.skillScoreSd ** 2 + prediction.purchases.variance) };
+    const prediction = predictCandidate(entries, input, ctx, apt, sum.expectedLosses, sampleCount, preparedPrediction);
+    const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.skillPoints, skillSd: Math.sqrt(settings.skillScoreSd ** 2 + prediction.purchases.variance) };
     const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
     const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
     const sources = goalSources(goal, forms, ctx);
-    prediction.rank.pSS = basis.pSS;
     const score = scoreGoal(goal, sources, basis, pink, settings);
     return { score, statPower: deckStatPower(entries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, ordered } };
   };
@@ -320,7 +332,9 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     });
     if (found) { chosen = found.best; search = summarize(found); }
   }
-  const { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, ordered } = chosen.value;
+  const { entries, ctx, fans, goalStats, basis, sources, candidates, ordered } = chosen.value;
+  const prediction = finishPrediction(chosen.value.prediction, input, ctx);
+  prediction.rank.pSS = basis.pSS;
   const deckResult = describeDeck(entries, targets, ctx);
   sum.expectedFans = fans.total;
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);
