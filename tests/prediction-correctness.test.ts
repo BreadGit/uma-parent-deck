@@ -1,0 +1,97 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { loadData } from '../src/data.ts';
+import { DEFAULT_SETTINGS } from '../src/settings.ts';
+import { statMasses, statMoments, displayedStat } from '../src/model/stat-outcomes.ts';
+import { buySkills, budgetForms, purchaseCost } from '../src/model/skill-purchases.ts';
+import { resolveTarget } from '../src/model/sparks.ts';
+import { inheritedFromSparks } from '../src/model/inherit.ts';
+import { decodeShare } from '../src/share.ts';
+import { planRun } from '../src/model/run.ts';
+
+const data = loadData();
+const apt = data.characters[0]!.aptitudes;
+const focus = resolveTarget(200432, data)!;
+
+test('raw totals convert once including base and inheritance, then cap', () => {
+  // Independently recorded workbook rows, rather than expected values from the model.
+  assert.equal(displayedStat(692 + 417 + 120 + 112), 1270);
+  assert.equal(displayedStat(690 + 446 + 4 + 83), 1211);
+  assert.equal(displayedStat(1201), 1200);
+  assert.equal(displayedStat(1202), 1201);
+  assert.deepEqual(statMasses(1400, 0, 1250, true), [{ value: 1250, probability: 1 }]);
+  assert.equal(statMoments(statMasses(1400, 40, 1099, true)).above(1100), 0);
+  const normal = statMoments(statMasses(1099.5, 25, 1600, true));
+  assert.ok(Math.abs(normal.above(1100) - .5) < 1e-6, 'integer threshold includes the half-point continuity boundary');
+  const capped = statMasses(1400, 40, 1250, true);
+  assert.ok(Math.abs(capped.reduce((sum, x) => sum + x.probability, 0) - 1) < 1e-10);
+  assert.ok(statMoments(capped).sd < 20, 'conversion and caps reduce displayed spread');
+});
+
+test('inspiration variance includes both roll variance and failed procs', () => {
+  const one = inheritedFromSparks([1], { ...DEFAULT_SETTINGS, affinity: 0 });
+  // Two independent events, proc p=.7, uniform integer roll 1..10, mean5.5 variance8.25.
+  assert.ok(Math.abs(one.variance - 24.255) < 1e-10);
+  assert.equal(inheritedFromSparks([], DEFAULT_SETTINGS).variance, 0);
+});
+
+test('individual skill values, hint floors, gold prerequisites and replacement rating', () => {
+  assert.equal(focus.white!.name, 'Focus');
+  assert.equal(focus.white!.rating, 129);
+  assert.equal(focus.gold!.rating, 394);
+  assert.equal(purchaseCost({ ...focus.white!, cost: 139 }, 1), 125);
+  assert.equal(purchaseCost({ ...focus.white!, cost: 90 }, 3), 63, 'integer percentages avoid rounding 90 times .7 down to 62');
+  assert.deepEqual(buySkills([focus], '3', 252, [focus.id], apt, 1), { state: '3', score: 394, spent: 252 });
+  assert.deepEqual(buySkills([focus], '3', 251, [focus.id], apt, 1), { state: '1', score: 129, spent: 126 });
+  assert.deepEqual(buySkills([focus], '0', 10000, [focus.id], apt, 1), { state: '0', score: 0, spent: 0 });
+  assert.equal(buySkills([focus], '3', 126, [focus.id], apt, 1, new Set([focus.white!.id])).spent, 0, 'unhinted innate skills keep full cost');
+});
+
+test('a shared SP budget preserves rare outcomes and excludes unaffordable joint purchases', () => {
+  const other = resolveTarget(200352, data)!;
+  const bought = budgetForms([focus, other], { count: 2, components: [
+    { indices: [0, 1], distribution: { states: new Map([['11', 1 - 1e-9], ['01', 1e-9]]), approximate: false } },
+  ] }, 170, [focus.id, other.id], apt, 0);
+  assert.deepEqual([...bought.forms.components[0]!.distribution.states], [['10', 1 - 1e-9], ['01', 1e-9]]);
+  assert.ok(bought.spent <= 170);
+  assert.equal(bought.forms.components[0]!.distribution.approximate, false);
+});
+
+test('large purchase samples balance every independent source, including late dimensions', () => {
+  const targets = Array.from({ length: 60 }, (_, i) => ({ ...focus, id: i + 1 }));
+  const forms = { count: targets.length, components: targets.map((_, i) => ({ indices: [i],
+    distribution: { states: new Map([['0', .5], ['1', .5]]), approximate: false } })) };
+  const result = budgetForms(targets, forms, 100000, [], apt, 0, 32);
+  assert.equal(result.score, 60 * .5 * 129);
+  const states = result.forms.components[0]!.distribution.states;
+  for (let i = 0; i < targets.length; i++) assert.equal([...states].reduce((p, [s, mass]) => p + (s[i] === '1' ? mass : 0), 0), .5);
+  assert.equal(result.forms.components[0]!.distribution.approximate, true);
+});
+
+test('reported Fuji build counts 22 races and shares one probability basis', async () => {
+  const shared = await decodeShare('3dXZHJbUMxDEQbIoKZ0fZdi6AOjNzSf0BKtj99GjzuyyTQQPv9ez5tqphsThjXWjanwA4aTIZlUx6sDwK1yfhGqt8RYEal4E7eUDXlUl-Va8J2SnFX5iOhkL0jY8vYM5aMpy_v9yhWrFn_XETH4DHNmtGzqz2MNWy-qJv60Xr02opYa9Jq-Bz6y-_5xZus14_2DGfycwt_RQlj8XGcQlrR3sN_LEhXmAcjcyBIw0W6PIQlCLUF-RvO-b1VVCV2iLx4DIWfsf4B');
+  const selection = [[30052, 2], [20031, 4], [20005, 4], [30107, 4], [30017, 0], [30078, 4]].map(([id, lb], i) => ({ id: id!, lb: lb!, borrowed: i === 5 }));
+  const p = planRun({ ...shared.run, raceOverrides: shared.run.raceOverrides ?? {} }, { ...DEFAULT_SETTINGS, ...shared.settings }, {}, data, { selection, search: false });
+  assert.equal(p.sum.count, 19);
+  assert.equal(p.ctx.races, 22);
+  assert.equal(p.goalEstimate.pSS, p.rank.pSS);
+  assert.ok(p.statChances[2]!.high > .45 && p.statChances[2]!.high < .6, 'the reported 1091 and 1083 outcomes are plausible');
+  assert.ok(Math.abs(p.finalMean[2]! - 1101) < 1);
+  assert.ok(p.purchases.spent <= p.pred.sp);
+  assert.equal(p.rank.skillPts, p.purchases.score + p.rank.uniquePts);
+  assert.ok(p.rawFinalSd.some((sd, i) => sd > p.pred.sd[i]!), 'inheritance uncertainty reaches the final distribution');
+  // Keep the five owned cards and compare two real borrowed alternatives. The corrected
+  // purchase/rank model prefers Throne's Assemblage despite Biko's higher blue chance.
+  const owned = selection.slice(0, 5), candidateIds = [...owned.map((e) => e.id), 30020, 30067];
+  const limited = { ...data, cards: data.cards.filter((c) => candidateIds.includes(c.id)) };
+  const inventory = Object.fromEntries([...owned.map((e) => [String(e.id), e.lb]), ['30020', null], ['30067', null]]);
+  const input = { ...shared.run, raceOverrides: shared.run.raceOverrides ?? {}, pinnedIds: owned.map((e) => e.id), borrowFromAll: true };
+  const settings = { ...DEFAULT_SETTINGS, ...shared.settings };
+  const suggested = planRun(input, settings, inventory, limited);
+  const biko = planRun(input, settings, inventory, limited, { selection: [...owned, { id: 30020, lb: 4, borrowed: true }], search: false });
+  assert.equal(suggested.deckResult.deck.find((e) => e.borrowed)!.card.id, 30067);
+  assert.ok(suggested.rank.pSS > biko.rank.pSS);
+  assert.ok(suggested.goalEstimate.blue < biko.goalEstimate.blue);
+  assert.ok(suggested.goalEstimate.probability! > biko.goalEstimate.probability!);
+  assert.ok(Math.abs(suggested.search!.score.probability - suggested.goalEstimate.probability!) < 1e-12);
+});

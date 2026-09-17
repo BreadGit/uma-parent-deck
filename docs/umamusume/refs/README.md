@@ -13,6 +13,7 @@ For goal-parent probabilities, start with:
   measurements that differ from the saved uma.guide independent-training table.
 - [Fan rewards](fan-rewards.md). Race placing rewards, support effects by level, and vendored
   primary concert measurements. Identifies gaps in the independent-training evidence.
+- [Skill evaluation](skill-evaluation.md). Individual rating values, hint discounts and prerequisite costs.
 - [Crazyfellow's guide](crazyfellow-parenting-gene-guide.txt). Broad mechanics and original-source
   links. Check whether each section applies to Global or a later JP feature.
 

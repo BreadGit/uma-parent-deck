@@ -301,7 +301,10 @@ def parse_race_runs(wb, card_runs, characters):
         out[key + 'SourceRef'] = f'Race Schedule!J{row_index}'
         if current == 1:
             out['card'], out['cardSp'] = second[:5], second[5]
+        elif current == 2:
+            out['inheritance'] = second[:5]
         elif current == 3:
+            out['base'] = second[:5]
             require(cells[26] == run and cells[29] in TRAINEE_OUTFITS, f'Race Schedule row {row_index}: unmatched trainee metadata')
             out.update(uma=cells[29], traineeCardId=TRAINEE_OUTFITS[cells[29]], wins=int(numeric(cells[27], 'race wins')))
     lookup = {c['cardId']: c for c in characters}
@@ -316,6 +319,10 @@ def parse_race_runs(wb, card_runs, characters):
             require(sums == data['card'] + [data['cardSp']], f'{races}/{run}: individual cards do not sum to deck contributions')
             expected = [math.floor(v if v <= 1200 else 1200 + (v - 1200) / 2) for v in (a + b for a, b in zip(data['event'], data['card']))]
             require(expected == data['total'] and data['eventSp'] + data['cardSp'] == data['totalSp'], f'{races}/{run}: event/card/net-total mismatch')
+            data['rawTotal'] = [a + b for a, b in zip(data['event'], data['card'])]
+            raw_final = [a + b + c for a, b, c in zip(data['rawTotal'], data['inheritance'], data['base'])]
+            displayed = [math.floor(v if v <= 1200 else 1200 + (v - 1200) / 2) for v in raw_final]
+            require(all(abs(a - b) <= 1 for a, b in zip(displayed, data['final'])), f'{races}/{run}: raw/display final-stat mismatch')
     return by_races
 
 

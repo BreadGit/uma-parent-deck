@@ -1,6 +1,8 @@
 """Source-level regression cases with values independently read from saved cells/HTML."""
 import json
 import unittest
+import collections
+import math
 import openpyxl
 from card_effects import unique_extras
 from measurement_sources import (ROOT, WORKBOOK, HTML, extract_sources, extract_loopacord,
@@ -107,6 +109,32 @@ class MeasurementSourceTests(unittest.TestCase):
                 parse_race_runs(self.values, parse_race_card_blocks(self.values), self.characters)
         finally:
             ws['AD35'] = before
+
+    def test_raw_stat_units_final_conversion_and_sample_variance(self):
+        runs = parse_race_runs(self.values, parse_race_card_blocks(self.values), self.characters)
+        first = runs[28][1]
+        self.assertEqual(first['base'][0], 112)
+        self.assertEqual(first['inheritance'][0], 120)
+        self.assertEqual(first['final'][0], 1270)
+        groups = collections.defaultdict(list)
+        for race_count, rows in runs.items():
+            for row in rows.values():
+                groups[race_count, row['uma']].append(row['rawTotal'])
+                raw = [a + b + c for a, b, c in zip(row['rawTotal'], row['base'], row['inheritance'])]
+                displayed = [math.floor(v if v <= 1200 else 1200 + (v - 1200) / 2) for v in raw]
+                self.assertTrue(all(abs(a - b) <= 1 for a, b in zip(displayed, row['final'])))
+        repeated = [rows for rows in groups.values() if len(rows) > 1]
+        self.assertEqual(sum(len(rows) - 1 for rows in repeated), 15)
+        expected = []
+        for stat in range(5):
+            sse = 0
+            for rows in repeated:
+                mean = sum(row[stat] for row in rows) / len(rows)
+                sse += sum((row[stat] - mean) ** 2 for row in rows)
+            expected.append(math.sqrt(sse / 15))
+        model = json.loads((ROOT / 'data/stat-model.json').read_text())
+        for a, b in zip(expected, model['sigma']):
+            self.assertAlmostEqual(a, b)
 
     def test_unknown_compound_payload_is_not_applied_by_the_fit(self):
         card = {'unique': {'fromLb': 1, 'effects': [{'type': 101, 'value': 80, 'value_1': 8, 'value_2': 10}]}}

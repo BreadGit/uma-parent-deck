@@ -363,7 +363,7 @@ test('rating: the UmaTools stat table exactly (values computed from its code), s
   const apt = (g: Aptitudes['sprint']) => traineeAptitudes(null, { sprint: g });
   assert.deepEqual((['A', 'C', 'E', 'G'] as const).map((g) => skillScore(sprint, apt(g))), [1.1, 0.9, 0.8, 0.7].map((m) => Math.round(217 * m)));
   assert.equal(skillScore(byName('Groundwork'), apt('G')), 217, 'an unconditioned skill ignores aptitudes');
-  assert.equal(skillScore(byName('Concentration'), null), 508);
+  assert.equal(skillScore(byName('Concentration'), null), 394);
   assert.deepEqual([uniqueSkillScore(3, 3), uniqueSkillScore(5, 6), uniqueSkillScore(2, 4), uniqueSkillScore(1, 1)], [510, 1020, 480, 120]);
   // The upgraded unique starts again at Lv1 at 3★; each career adds at most three levels.
   const turf = traineeAptitudes(null, {});

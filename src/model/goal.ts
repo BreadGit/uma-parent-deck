@@ -7,7 +7,8 @@ import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES, INSPIRATION_EVENTS } from
 import { hasWhiteSpark, lineageCount, resolveTarget, type Target } from './sparks.ts';
 import { jointSkillForms, projectForms, whiteGenerationMoments, type FormDistribution } from './goal-skills.ts';
 import { phi } from './stats.ts';
-import { MAX_STAT_VALUE, statScore, thresholdFor } from './rank.ts';
+import { statMasses, type StatMass, type StatDistribution } from './stat-outcomes.ts';
+import { statScore, thresholdFor } from './rank.ts';
 
 export const starChance = (rates: readonly number[], stars: number, exact = false) => exact ? rates[stars - 1] ?? 0 : rates.slice(stars - 1).reduce((a, p) => a + p, 0);
 export function blueChance(stats: number[], accepted: string[], stars: number): number {
@@ -67,7 +68,7 @@ export function pinkGoalsEstimate(apt: Record<AptKey, Grade>, goals: PinkGoal[],
   return { probability, upperProbability, warnings: probability === upperProbability ? [] : warnings, eligibility, alternatives };
 }
 
-export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number }
+export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number; rawUnits?: boolean }
 export interface StatGoalMoments { blue: number; whiteStars: number[]; blueAllWhiteStars: number; pSS: number; approximateRank: number }
 export interface GoalRankBands { blue: number; rank: number[]; blueRank: number[]; pSS: number; approximateRank: number }
 function halton(index: number, base: number): number {
@@ -81,45 +82,6 @@ function statSamples(count: number): number[][] {
   return samples.get(count)!;
 }
 
-interface StatMass { readonly value: number; readonly probability: number }
-interface StatDistribution { outcomes: { value: number; cumulative: number }[]; mass: number }
-/** Rounded normal outcomes, with the tails folded into zero and the cap. */
-const massCache = new Map<string, readonly StatMass[]>();
-let cachedOutcomes = 0;
-const MAX_CACHED_DISTRIBUTIONS = 512;
-const MAX_CACHED_OUTCOMES = 250_000;
-
-function statMasses(mean: number, sd: number, cap = Infinity): readonly StatMass[] {
-  const key = `${mean}:${sd}:${cap}`;
-  const hit = massCache.get(key);
-  if (hit) {
-    massCache.delete(key);
-    massCache.set(key, hit);
-    return hit;
-  }
-  const value = computeStatMasses(mean, sd, cap);
-  massCache.set(key, value);
-  cachedOutcomes += value.length;
-  while (massCache.size > MAX_CACHED_DISTRIBUTIONS || cachedOutcomes > MAX_CACHED_OUTCOMES) {
-    const oldest = massCache.keys().next().value!;
-    cachedOutcomes -= massCache.get(oldest)!.length;
-    massCache.delete(oldest);
-  }
-  return value;
-}
-
-function computeStatMasses(mean: number, sd: number, cap: number): readonly StatMass[] {
-  // Higher values have the same rating and blue band, so they can share one outcome.
-  const maximum = Math.max(0, Math.min(Math.round(cap), MAX_STAT_VALUE));
-  if (sd === 0 || maximum === 0) return [{ value: Math.max(0, Math.min(maximum, Math.round(mean))), probability: 1 }];
-  return Array.from({ length: maximum + 1 }, (_, value) => {
-    const lower = value === 0 ? -Infinity : (value - .5 - mean) / sd;
-    const upper = value === maximum ? Infinity : (value + .5 - mean) / sd;
-    // Use the survival function in the upper tail to avoid subtracting two CDFs rounded to one.
-    const probability = lower > 0 ? phi(-lower) - phi(-upper) : phi(upper) - phi(lower);
-    return { value, probability };
-  }).filter((outcome) => outcome.probability > 0);
-}
 function statDistribution(outcomes: readonly StatMass[]): StatDistribution {
   let mass = 0;
   return { outcomes: outcomes.map(({ value, probability }) => ({ value, cumulative: mass += probability })), mass };
@@ -148,7 +110,7 @@ export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshol
 export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS, sampleCount = 2048): GoalRankBands {
   const bands = whiteGenerationBands(settings);
   const result: GoalRankBands = { blue: 0, rank: bands.map(() => 0), blueRank: bands.map(() => 0), pSS: 0, approximateRank: 0 };
-  const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i]));
+  const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i], input.rawUnits));
   const distributions = masses.map(statDistribution);
   const draws = input.sd.every((sd) => sd === 0) ? [[.5, .5, .5, .5, .5]] : statSamples(sampleCount);
   const statRatings = draws.map((draw) => distributions.map((distribution, i) => statScore(sampleStat(distribution, draw[i]!))));
@@ -211,7 +173,7 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
   const skills = whiteGenerationMoments(joint, required.map(copies), ctx.settings);
   const moments = statGoalMoments(stats, goal, thresholdFor('SS', ctx.data.ranks), ctx.settings, basis);
   const pink = pinkGoalsEstimate(apt, goal.pink, pinkLineage, ctx.settings.affinity, ctx.settings.pinkInspirationRates);
-  const notes = ['Known pink lineage determines starting aptitude grades. Grades outside the starting-inheritance range remain planning overrides. Inspiration estimates additional mid-run increases.', 'Available target skills and their best available upgrades are assumed purchased. Skill acquisition is modeled independently of the stat and rank outcomes.'];
+  const notes = ['Known pink lineage determines starting aptitude grades. Grades outside the starting-inheritance range remain planning overrides. Inspiration estimates additional mid-run increases.', 'Target purchases share the predicted SP budget. Required base skills come first, then preferred bases and upgrades. Hint discounts and remaining purchases follow the assumptions in Predicted run. Skill purchases are still approximated independently of stat and rank outcomes.'];
   for (const target of [...required, ...preferred]) if (!hasWhiteSpark(target)) notes.push(`${target.name} has no released white form and cannot generate a white spark. Its saved target and lineage are retained for review.`);
   if (pinkLineage.length < 6 || pinkLineage.some((spark) => spark === null)) notes.push('Empty pink slots count as zero sparks for this estimate. Only entered or estimated sparks contribute additional aptitude increases.');
   if (goal.pink[0]?.aptitude === 'any') notes.push('Any pink aptitude counts toward the goal. With an A/S aptitude already eligible, only the minimum stars affect its chance.');

@@ -8,6 +8,7 @@ import { applyUserOrder, derivePriority, planRun, targetSpCost, type RunInput } 
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankEstimate, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
+import { displayedStat } from '../src/model/stat-outcomes.ts';
 import { SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
 import { raceScale } from '../src/model/stats.ts';
 import type { WishlistEntry } from '../src/model/deck.ts';
@@ -36,16 +37,15 @@ test('star tables: every listed table is used as is; only a missing one interpol
   assert.ok(!hasExactStarTable({ ...gold, threeStarStats: null }, 3));
 });
 
-test('rank estimate: the unique skill at its level and a share of the innate skills count, P(SS) rises with score', () => {
-  const apt = sw.aptitudes;
-  const low = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 3, apt, data, settings);
-  const high = rankEstimate([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, 5, 5, apt, data, settings);
+test('rank estimate: the unique skill at its level adds to the budgeted purchase score, P(SS) rises with score', () => {
+  const low = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 3, data, settings);
+  const high = rankEstimate([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, 5, 5, data, settings);
   assert.ok(high.score > low.score && high.pSS > low.pSS, 'higher stats and stars raise the score and P(SS)');
-  const noTrainee = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, null, 3, 0, null, data, settings);
+  const noTrainee = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, null, 3, 0, data, settings);
   assert.equal(low.uniquePts, 510, 'a 3★ trainee at unique Lv3');
-  assert.ok(low.score - noTrainee.score >= 510, 'the trainee adds at least her unique skill');
-  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6, apt, data, settings).uniquePts, 1020);
-  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 2, 2, apt, data, settings).uniquePts, 240, 'a 2★ trainee scores 120 per level');
+  assert.equal(low.score - noTrainee.score, 510, 'innate purchases are already in the budget and add no free rating');
+  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6, data, settings).uniquePts, 1020);
+  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 2, 2, data, settings).uniquePts, 240, 'a 2★ trainee scores 120 per level');
   assert.equal(low.ssMin, must(data.ranks.find((r) => r.name === 'SS'), `data.ranks.find((r) => r.name === 'SS')`).min);
 });
 
@@ -112,9 +112,10 @@ test("predicted stats are clamped to the scenario caps plus the blue sparks' sta
   assert.ok(plan.statCaps, 'the plan reports stat caps');
   assert.deepEqual(plan.statCaps!.uncap, [0, 96, 0, 0, 0], 'six 3★ stamina sparks raise only the stamina cap by 16 each');
   plan.finalMean.forEach((v, i) => { assert.ok(v <= caps[i]! + plan.statCaps!.uncap[i]! + 1e-9, `stat ${i} ${v} within cap`); assert.ok(v <= plan.rawFinalMean[i]! + 1e-9); });
-  assert.equal(plan.statCaps!.capped.some(Boolean), plan.rawFinalMean.some((v, i) => v > caps[i]! + plan.statCaps!.uncap[i]!));
+  assert.equal(plan.statCaps!.capped.some(Boolean), plan.rawFinalMean.some((v, i) => displayedStat(v) > caps[i]! + plan.statCaps!.uncap[i]!));
   const light = planRun({ ...empty, traineeCardId: sw.cardId }, settings, {}, data, { search: false });
-  assert.deepEqual(light.finalMean, light.rawFinalMean, 'nothing to clamp without inheritance');
+  assert.ok(light.finalMean[0]! < light.rawFinalMean[0]!, 'above-1200 outcomes are reduced even without inheritance');
+  assert.ok(Math.abs(light.finalMean[1]! - light.rawFinalMean[1]!) < .01, 'far below the threshold the conversion leaves the mean unchanged');
 });
 
 test('worst-case target SP cost: each family once with prerequisite costs, missing costs mark it incomplete', () => {

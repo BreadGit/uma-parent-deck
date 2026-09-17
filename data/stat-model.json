@@ -39,10 +39,10 @@
    "data/characters.json": "a825091b08af7450814fe48482d6513b7f19f9de09800d4d7b144aa8d159da08",
    "docs/umamusume/loopacord-independent-training-research.xlsx": "4d2f5aa778c028deabee77c76661a8be05b31298d808ea47e64168a06484e14b",
    "docs/umamusume/fujikiseki-insights-2026-09-04.html": "f4f58167d8455160d447bd0f96e2603a60bf76f36c1c23cdaafa4654b3dc9b57",
-   "analysis/fit_stat_model.py": "78ed0c34733cbd00fcc731fadcb5bfb1a2aead0ef703fca8c3c10453ee558d9b",
+   "analysis/fit_stat_model.py": "8c2487452858234db82cd9da44980e33ed920d2971f938350463059fc21cb3d3",
    "analysis/card_regression.py": "06dcafc8bbb767a77e056a67ed1e102431854603408fd13b6ea2228e784f7f0c",
    "analysis/card_effects.py": "e821811de8e4dc506322c0be5e88efe0a720d160cdaab943e2eae32b6629738f",
-   "analysis/measurement_sources.py": "70e9ae5099c1f6964d7dd54f649e36476c8dacd36db11eac7ba3facb11721e32"
+   "analysis/measurement_sources.py": "7f61d6d385daa98df78915a47e310a294ce37651116315fc3cedf5dce1d53eb9"
   },
   "workbookRuns": {
    "28": 11,
@@ -824,12 +824,18 @@
  "growthEffect": 0.31,
  "uniqueRampShare": 0.75,
  "sigma": [
-  32.89687900889805,
-  33.745286056955564,
-  15.647350228105644,
-  27.90914966315948,
-  19.249333704639294
+  39.99302518555034,
+  39.92796092329363,
+  18.51419446871499,
+  33.02255121714385,
+  22.776118793630914
  ],
+ "sigmaFit": {
+  "runs": 21,
+  "groups": 6,
+  "degreesOfFreedom": 15,
+  "units": "raw gains"
+ },
  "focus": {
   "balanced": [
    1.0,

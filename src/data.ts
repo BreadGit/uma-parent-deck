@@ -1,6 +1,7 @@
 import type { Card, Character, Data, Race, Rank, ScenarioEvent, Skill, StatModel } from './types.ts';
 import cardsJson from '../data/cards.json' with { type: 'json' };
 import skillsJson from '../data/skills.json' with { type: 'json' };
+import ratingsJson from '../data/skill-ratings.json' with { type: 'json' };
 import charactersJson from '../data/characters.json' with { type: 'json' };
 import racesJson from '../data/races.json' with { type: 'json' };
 import ranksJson from '../data/ranks.json' with { type: 'json' };
@@ -10,7 +11,8 @@ import modelJson from '../data/stat-model.json' with { type: 'json' };
 /** The bundled game data with lookup maps. Shared by the app, the tests and the inspect script. */
 export function loadData(): Data {
   const cards = cardsJson as unknown as Card[];
-  const skills = skillsJson as unknown as Skill[];
+  const ratings: Record<string, { base: number }> = ratingsJson.ratings;
+  const skills = (skillsJson as unknown as Skill[]).map((s) => ({ ...s, rating: ratings[s.id]?.base }));
   const characters = charactersJson as unknown as Character[];
   const races = racesJson as unknown as Race[];
   const ranks = ranksJson as unknown as Rank[];

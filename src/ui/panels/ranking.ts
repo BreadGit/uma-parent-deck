@@ -77,10 +77,10 @@ export function renderRanking(c: RunPlan) {
   const rows = c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)).sort((a, b) =>
     fn ? fn(b) - fn(a) : compareTargetChances(chances.get(a.card.id)!, chances.get(b.card.id)!));
   const th = (k: string, label: string | TemplateResult, cls = 'num') => html`<th class="${cls} sortable" data-sort="${k}" aria-sort=${sortKey === k ? 'descending' : 'none'} @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${sortKey === k ? ' ▾' : ''}</th>`;
-  const totalTip = `What the card adds to the final stats at ${c.sum.count} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. Target spark sorting uses Total when Required and Preferred chances both tie.`;
+  const totalTip = `What the card adds to the final stats at ${c.ctx.races} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. Target spark sorting uses Total when Required and Preferred chances both tie.`;
   const actions = html`<label class="row"><span class="row-k">${COPY.ranking.showUnowned}</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.ui.showUnowned)} @change=${(e: Event) => update((s) => { s.ui.showUnowned = isChecked(e); })} /></label>`;
   return panel({ title: COPY.ranking.title, kind: 'result', subtitle: `${rows.length} cards · ${COPY.ranking.sortHint}`, tip: COPY.ranking.tip, actions, cls: 'panel-live' }, html`
-    <div class="scroll"><table class="ranking-table"><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Target spark chances${tip(COPY.ranking.targetTip)}`, '')}${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(totalTip)}`)}${th('sp', 'SP')}<th>Basis${tip(COPY.ranking.basisTip(data.model.races.reference, c.sum.count))}</th></tr></thead><tbody>
+    <div class="scroll"><table class="ranking-table"><thead><tr><th></th><th>Card</th><th>LB</th>${th('score', html`Target spark chances${tip(COPY.ranking.targetTip)}`, '')}${STATS.map((s) => th(s, s))}${th('stats', html`Total${tip(totalTip)}`)}${th('sp', 'SP')}<th>Basis${tip(COPY.ranking.basisTip(data.model.races.reference, c.ctx.races))}</th></tr></thead><tbody>
       ${repeat(rows, (x) => x.card.id, (x) => row(c, x, chances.get(x.card.id)!.targets, focusMul))}
     </tbody></table></div>
     ${about(COPY.ranking.aboutTitle, COPY.ranking.about)}`);

@@ -57,6 +57,7 @@ export interface Card {
 }
 
 export interface Skill {
+  rating?: number; // individually sourced base evaluation points; absent when unverified
   id: number;
   name: string;
   altName: string | null;

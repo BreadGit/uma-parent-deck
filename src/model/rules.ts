@@ -116,3 +116,6 @@ export const WHITE_GENERATION_BANDS = [
 ] as const;
 /** Rating multiplier by the trainee's aptitude for a skill's condition (UmaTools buckets: S/A, B/C, D/E/F, G). */
 export const APTITUDE_BUCKET_MULTIPLIER = { good: 1.1, average: 0.9, bad: 0.8, terrible: 0.7 };
+
+/** Highest displayed stat represented by the evaluation table. */
+export const MAX_STAT_VALUE = 2500;

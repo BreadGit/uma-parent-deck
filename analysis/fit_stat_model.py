@@ -128,7 +128,7 @@ def sse_at(k):
         sse += ((E - E.mean(axis=0)) ** 2).sum()
     return sse
 print('  event-stat variance at k=0: %.0f, at best k: %.0f, at k=1: %.0f (n=%d runs; a flat curve means the data cannot tell)' % (sse_at(0), sse_at(best[0]), sse_at(1.0), len(evs)))
-event_base = {}; event_sp = {}; sigma_res = []
+event_base = {}; event_sp = {}; sigma_res = []; sigma_groups = 0
 for R in (28, 23):
     rows_R = [(e, g) for r, e, g, _ in evs if r == R]
     if rows_R:
@@ -140,11 +140,13 @@ for R in (28, 23):
     # within-trainee residuals of total gains for sigma
     by_uma = collections.defaultdict(list)
     for d in per_run[R].values():
-        if 'total' in d and 'uma' in d: by_uma[d['uma']].append(d['total'])
+        if 'rawTotal' in d and 'uma' in d: by_uma[d['uma']].append(d['rawTotal'])
     for u, ts in by_uma.items():
         if len(ts) >= 2:
             a = np.array(ts); sigma_res.extend((a - a.mean(axis=0)).tolist())
-sigma = np.sqrt(np.mean(np.array(sigma_res) ** 2, axis=0)).tolist() if sigma_res else [40, 60, 50, 50, 50]
+            sigma_groups += 1
+# Each fitted group mean consumes one degree of freedom. Residuals stay in raw gain units.
+sigma = np.sqrt(np.sum(np.array(sigma_res) ** 2, axis=0) / (len(sigma_res) - sigma_groups)).tolist() if sigma_res else [40, 60, 50, 50, 50]
 print('  run-to-run sd per stat (pooled within trainee, n=%d):' % len(sigma_res), np.round(sigma, 1).tolist())
 # Header-identified total/event/card tables describe the same runs. Use only totals.
 focus = parse_focus(wb)
@@ -171,6 +173,7 @@ model = dict(
     growthEffect=GROWTH_EFFECT,
     uniqueRampShare=UNIQUE_RAMP_SHARE,
     sigma=sigma,
+    sigmaFit=dict(runs=len(sigma_res), groups=sigma_groups, degreesOfFreedom=len(sigma_res) - sigma_groups, units='raw gains'),
     focus=focus,
     observed=[dict(cardId=o['cardId'], lb=o['lb'], source=o['source'], runs=o['runs'], wellTested=o['wellTested'], stats=o['stats'], sp=o['sp'], sourceRef=o['sourceRef'], raceReference=o['raceReference']) for o in observed],
 )

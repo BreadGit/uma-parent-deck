@@ -152,6 +152,39 @@ six per-card tables. Every run must have matching IDs, complete values, matching
 six card contributions, and a total equal to event plus card gains after the workbook's
 above-1200 adjustment. Missing blocks and unmatched run IDs stop fitting.
 
+The 23 and 28 counts include the three finale races. The app adds the scenario finales to
+the selected calendar count before calling the fitted stat, SP and hint models. Calendar
+placement, fan timing and career goals still use the calendar alone.
+
+Card and event measurements are raw gains. The final-stat calculation adds those gains,
+base stats and inheritance before converting a raw total above 1200 to
+`floor(1200 + (raw - 1200) / 2)`. Scenario caps apply to the displayed result. This reproduces
+18 of the workbook's 22 final stat lines exactly. The remaining four differ by at most one
+point per stat. The parser checks that tolerance. Applying this conversion to the gain
+subtotal before adding base stats and inheritance would use the wrong threshold.
+
+Run spread uses raw card plus event gains, grouped by schedule and trainee. There are 21
+runs in six repeated groups. The variance denominator is 15, after estimating six means,
+rather than 21. Blue inspiration adds independent proc variance and an estimated integer
+roll variance. The default gain means use uniform rolls over the published ranges. A
+user-edited mean scales the roll variance toward zero at either endpoint. That adjustment
+is an assumption; the actual roll distribution has not been measured.
+
+The prediction and goal evaluator use the same discrete stat distribution. They round raw
+normal outcomes, convert above 1200, then fold tails into zero and the scenario cap. Displayed
+means and spreads describe those transformed outcomes. Threshold probabilities integrate
+them directly. Rank uses the exact stat-rating table for each outcome, with fixed sampling
+for its joint distribution. The displayed SS probability comes from that same goal evaluator.
+Estimated probabilities above 99.9% display as `>99.9%`, including floating-point tail values
+that have rounded to one.
+
+These spreads do not include an independently measured prediction bias or errors from
+transferring the reference deck to different conditions. Stat correlations are still omitted.
+Adding arbitrary error bars or scaling success rates to a handful of outcomes would not
+establish calibration. The reference deck's race rewards also remain inside its event
+baseline. Manual-training reward formulas in umasim do not establish how to split those
+Independent Training measurements without counting rewards twice.
+
 Growth uses explicit outfit IDs. Oguri maps to 100601, Biwa to 102301, XBiwa to 102302,
 Ines Fujin to 103101, and NYOpera to 101502. This keeps ordinary and Christmas Biwa's growth
 separate and includes all three NYOpera runs. Unknown labels stop fitting. All 22 runs enter
@@ -162,3 +195,49 @@ summary determines the overall focus multiplier. For example, Stamina focus uses
 for Speed and 543/501 for Stamina; Sprint focus uses 545/519 for Guts. Averaging the ratios
 of totals and their component subtotals would count the same measurements more than once.
 These remain small-sample calibration estimates, not exact game formulas.
+
+## Skill purchases and rating
+
+`data/skill-ratings.json` contains individually sourced evaluation values for released skills.
+The import matches Japanese names and rarity against direct GameWith rows from UmaTools'
+full export. It does not use UmaTools' cost-based fallback values. The JSON records the source,
+extraction date and extractor revision. After generating a full export with that revision,
+run `node scripts/import-skill-ratings.mjs /path/to/gamewith_skills_enriched.json` to rebuild it.
+Unmatched purchased skills retain the older rarity estimate and the prediction discloses them.
+
+Purchases use the modeled trainee, deck, scenario and lineage sources, with the same shared
+event outcomes and prioritized choices as coverage. Required base skills come first, then
+preferred base skills, then their best affordable upgrades. Remaining SP buys available
+upgrades or skills greedily by incremental rating per SP. This is an explicit purchase policy,
+not an optimal knapsack solution or a prediction of every player's purchases. Gold and circle
+upgrades pay prerequisite costs; only the highest purchased form contributes rating.
+Innate and awakening skills consume this same budget. There is no extra innate rating allowance.
+
+The hint-level setting defaults to level 1, an unmeasured assumption. Innate and awakening
+skills use full cost because their availability does not establish a hint discount. Fast Learner
+and actual per-skill hint levels are not inferred. Unspent SP gives no rating. The unique skill
+adds its level-based rating separately. The remaining skill-score spread setting describes
+unmeasured purchase-policy error, in addition to modeled source variation.
+
+Small joint source distributions are enumerated exactly. Large ones use deterministic samples,
+and the UI notes that rare joint outcomes can be missed. The purchase budget couples families
+that would otherwise be independent. Parent-goal estimates now use purchased forms, so they
+cannot assume all hinted upgrades are affordable. Rank still uses a normal approximation to
+the purchase rating and treats purchases independently of final stats and spark quality.
+Skill-point variation, unknown sources and correlations between hint pickup and training
+remain calibration limits. The old points-per-SP and innate-share settings no longer apply;
+state migration preserves other choices and clears cached recommendations.
+
+The deck suggester evaluates these corrections for each candidate, during both screening
+and final comparison. Its objective is the chance of completing the selected parent goal.
+It integrates blue outcomes jointly with rating-dependent white-star quality, then combines
+that with purchased white forms and the selected pink requirement. SS raises the conditional
+chance of a white spark having at least two stars from 50% to 80%, and three stars from 5%
+to 10%. It does not raise the base chance that a bought skill generates a white spark.
+Consequently, a goal accepting any white-star level gives no extra weight to SS.
+
+Pink eligibility depends on the fixed trainee, aptitudes and lineage. That common positive
+factor affects the displayed complete-goal probability but cancels when comparing candidate
+decks for the same inputs. Preferred extras break near ties after required-goal success.
+The card-ranking table remains a separate view of each card's own sources at assumed SS;
+its standalone percentages are not the deck search objective.

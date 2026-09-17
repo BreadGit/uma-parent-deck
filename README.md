@@ -215,7 +215,7 @@ conditions, so they do not qualify as observed references or training examples.
   `data/unique-extras-fixture.json` and the data test checks the app reproduces it. See
   `docs/umamusume/refs/gametora-unique-effects.md`.
 - Every card stat scales by (T - races) / (T - 28) with T ≈ 72 turns, from the same decks
-  run at 28 and 23 races.
+  run at 28 and 23 total races, including the three finales.
 - Event stats (which include race rewards) are deck independent: about 640/243/398/337/457
   at 28 races, with a small growth-rate effect (k ≈ 0.3 of the growth %).
 - Qualifying observations at the selected LB take precedence. At another LB, the observation
@@ -304,8 +304,9 @@ The [curated game reference index](docs/umamusume/refs/README.md) records source
 
 - Complete-goal estimates preserve shared skill outcomes and final-rank dependence. Blue bands use
   analytic probabilities; rank integration and large linked skill groups use fixed samples. Rare
-  joint outcomes can be missed. Skill acquisition is independent of sampled stats and rank, and
-  assumed skill purchases have no SP budget constraint.
+  joint outcomes can be missed. Skill purchases share the predicted SP budget, with required
+  skills first and an explicit hint-discount assumption. Purchases are approximated independently
+  of sampled stats and rank. See [prediction methods](docs/stat-model-evaluation.md#skill-purchases-and-rating).
 - Deck and fallback-subset searches are bounded. Failure to find a complete goal does not establish
   impossibility. Attempt counts assume independent final spark rolls with unchanged odds, including rerolls.
 - White-star rates below rank B and at UE or above use approximate community tables outside the
@@ -335,8 +336,9 @@ The [curated game reference index](docs/umamusume/refs/README.md) records source
 
 Fan estimates include calendar wins and estimated loss placings, the selected deck's Fan Bonus,
 URA finale rewards, and timed concert rewards. Each candidate deck gets its own fan curve for
-stat and unique-skill checks. Finales contribute only to the completed-run fan total; they do not
-change the calendar race count used by the fitted stat model. The agenda shows the reward breakdown.
+stat and unique-skill checks. Finales arrive after the unique-skill fan checks. The fitted stat model
+uses the calendar count plus the three finales, matching the recorded runs. The agenda shows the
+fan reward breakdown.
 
 Concert rewards use [manual JP measurements](docs/umamusume/refs/fan-rewards.md). The advanced
 Scenario settings assume great promotional concerts by default and reuse the 18-song probability

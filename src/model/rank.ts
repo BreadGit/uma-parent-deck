@@ -2,13 +2,14 @@ import type { AptKey, Character, Data, Grade, Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { phi } from './stats.ts';
 import type { Aptitudes } from './races.ts';
-import { APTITUDE_BUCKET_MULTIPLIER, SKILL_SCORE, UNIQUE_LEVEL_CHECKS, UNIQUE_SKILL_LEVEL_MAX, UNIQUE_SKILL_SCORE_PER_LEVEL, UNIQUE_SKILL_START_LEVEL_BY_STARS } from './rules.ts';
+import { APTITUDE_BUCKET_MULTIPLIER, MAX_STAT_VALUE, SKILL_SCORE, UNIQUE_LEVEL_CHECKS, UNIQUE_SKILL_LEVEL_MAX, UNIQUE_SKILL_SCORE_PER_LEVEL, UNIQUE_SKILL_START_LEVEL_BY_STARS } from './rules.ts';
+import { statMasses, type StatMass } from './stat-outcomes.ts';
+export { MAX_STAT_VALUE } from './rules.ts';
 
 /**
  * Rating points per stat value, the game's table as reproduced by UmaTools (umakonga formula): per-point rates in
  * 50-point blocks up to 1200, 10-point blocks to 2000 and 25-point blocks to 2500, accumulated then divided by ten.
  */
-export const MAX_STAT_VALUE = 2500;
 const STAT_SCORES: number[] = (() => {
   const R1 = [5, 8, 10, 13, 16, 18, 21, 24, 26, 28, 29, 30, 31, 33, 34, 35, 39, 41, 42, 43, 52, 55, 66, 68, 68];
   const R2 = [79, 80, 81, 83, 84, 85, 86, 88, 89, 90, 92, 93, 94, 96, 97, 98, 100, 101, 102, 103, 105, 106, 107, 109, 110, 111, 113, 114, 115, 117, 118, 119, 121, 122, 123, 124, 126, 127, 128,
@@ -65,9 +66,9 @@ export function aptitudeMultiplier(skill: Skill, apt: Aptitudes | null): number 
   return f;
 }
 
-/** Rating points for a bought skill: base by rarity and form, scaled by the aptitude bucket. Unique skills score by level elsewhere. */
+/** Individual evaluation points, with an explicit rarity fallback for unverified skills. Unique skills score by level elsewhere. */
 export function skillScore(skill: Skill, apt: Aptitudes | null = null): number {
-  const base = skill.rarity === 2 ? SKILL_SCORE.gold : skill.rarity === 1 ? (skill.name.includes('◎') ? SKILL_SCORE.circle : SKILL_SCORE.white) : 200;
+  const base = skill.rating ?? (skill.rarity === 2 ? SKILL_SCORE.gold : skill.rarity === 1 ? (skill.name.includes('◎') ? SKILL_SCORE.circle : SKILL_SCORE.white) : 200);
   return Math.round(base * aptitudeMultiplier(skill, apt));
 }
 
@@ -98,20 +99,15 @@ export function thresholdFor(name: string, ranks: Data['ranks']): number {
 
 export interface RankEstimate { score: number; sd: number; pSS: number; ssMin: number; uniqueLevel: number; uniquePts: number; statPts: number; skillPts: number }
 
-/**
- * Rank score of a predicted run: stat rating over the final stats, plus skills bought with the estimated SP,
- * the trainee's unique skill at its predicted level, and a share of her innate skills (settings.innateSkillBuyShare).
- * The spread comes from the per-stat run-to-run spread pushed through the rating curve, plus the skill uncertainty
- * setting. The whole thing is an estimate: the stat curve is exact, the skill terms are not.
- */
-export function rankEstimate(finalMean: number[], sd: number[], sp: number, trainee: Character | null, stars: number, uniqueLevel: number, apt: Aptitudes | null, data: Data, settings: Settings): RankEstimate {
-  const statPts = finalMean.reduce((a, v) => a + statScore(v), 0);
-  const innate = trainee ? trainee.innateSkills.reduce((a, id) => { const sk = data.skillById.get(id); return a + (sk ? skillScore(sk, apt) * settings.innateSkillBuyShare : 0); }, 0) : 0;
+/** Rank moments from displayed stats and an already budgeted purchase rating. */
+export function rankEstimate(finalMean: number[], sd: number[], purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number, data: Data, settings: Settings, purchaseVariance = 0, masses: readonly (readonly StatMass[])[] = finalMean.map((mean, i) => statMasses(mean, sd[i] ?? 0))): RankEstimate {
+  const ratingMeans = masses.map((xs) => xs.reduce((sum, x) => sum + statScore(x.value) * x.probability, 0));
+  const statPts = ratingMeans.reduce((sum, v) => sum + v, 0);
+  const statVariance = masses.reduce((sum, xs, i) => sum + xs.reduce((v, x) => v + (statScore(x.value) - ratingMeans[i]!) ** 2 * x.probability, 0), 0);
   const uniquePts = trainee ? uniqueSkillScore(stars, uniqueLevel) : 0;
-  const skillPts = sp * settings.skillScorePerSp + uniquePts + innate;
+  const skillPts = purchasedScore + uniquePts;
   const score = statPts + skillPts;
-  const dScore = finalMean.map((v, i) => (statScore(v + 10) - statScore(v - 10)) / 20 * (sd[i] ?? 0));
-  const sdScore = Math.sqrt(dScore.reduce((a, d) => a + d * d, 0) + Math.pow(settings.skillScoreSd, 2));
+  const sdScore = Math.sqrt(statVariance + purchaseVariance + settings.skillScoreSd ** 2);
   const ssMin = thresholdFor('SS', data.ranks);
   const pSS = 1 - phi((ssMin - score) / Math.max(1, sdScore));
   return { score, sd: sdScore, pSS, ssMin, uniqueLevel, uniquePts, statPts, skillPts };

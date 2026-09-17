@@ -103,21 +103,28 @@ export interface Inheritance {
   inspiration: number;   // expected gain over the two inspiration events (proc odds times the assumed mean roll)
   inspirationMax: number; // the most the two events could give if every spark procs at the top of its range
   total: number;
+  variance: number;      // independent inspiration procs and bounded gain rolls
   uncap: number;         // stat cap raised at career start by these sparks
 }
 
 /** Stat gained from a set of blue sparks in one stat: fixed at career start, a random roll each time one procs at an inspiration event. */
 export function inheritedFromSparks(sparks: number[], settings: Settings): Inheritance {
   const mult = affinityMultiplier(settings);
-  let start = 0, insp = 0, max = 0, uncap = 0;
+  let start = 0, insp = 0, max = 0, uncap = 0, variance = 0;
   for (const s of sparks) {
     start += BLUE_SPARK_START_GAIN_BY_STARS[s] ?? 0;
     uncap += BLUE_SPARK_START_UNCAP_BY_STARS[s] ?? 0;
     const pProc = Math.min(1, (BLUE_SPARK_INSPIRATION_PROC_BY_STARS[s] ?? 0) * mult);
     insp += INSPIRATION_EVENTS * pProc * (settings.blueInspirationGainMean[s - 1] ?? 0);
+    const mean = settings.blueInspirationGainMean[s - 1] ?? 0;
+    const [low, high] = BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[s] ?? [0, 0];
+    // A uniform integer roll is an estimate. Scale its variance down near a user-set endpoint.
+    const rollVariance = high > low ? ((high - low + 1) ** 2 - 1) / 12
+      * Math.max(0, 4 * (mean - low) * (high - mean) / (high - low) ** 2) : 0;
+    variance += INSPIRATION_EVENTS * (pProc * rollVariance + pProc * (1 - pProc) * mean ** 2);
     max += INSPIRATION_EVENTS * (BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[s]?.[1] ?? 0);
   }
-  return { start, inspiration: insp, inspirationMax: max, total: start + insp, uncap };
+  return { start, inspiration: insp, inspirationMax: max, total: start + insp, uncap, variance };
 }
 /** Inheritance from one parent side's start gain for a stat, as the legacy screen shows it. */
 export const inheritedFromGain = (gain: number, settings: Settings) => inheritedFromSparks(sparksFromGain(gain), settings);
@@ -126,5 +133,5 @@ export const inheritedFromGain = (gain: number, settings: Settings) => inherited
 export function inheritedFromParents(parentGains: number[][], statIndex: number, settings: Settings): Inheritance {
   const parts = parentGains.map((p) => inheritedFromGain(p[statIndex] ?? 0, settings));
   const sum = (k: keyof Inheritance) => parts.reduce((a, x) => a + x[k], 0);
-  return { start: sum('start'), inspiration: sum('inspiration'), inspirationMax: sum('inspirationMax'), total: sum('total'), uncap: sum('uncap') };
+  return { start: sum('start'), inspiration: sum('inspiration'), inspirationMax: sum('inspirationMax'), total: sum('total'), uncap: sum('uncap'), variance: sum('variance') };
 }

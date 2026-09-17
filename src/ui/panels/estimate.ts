@@ -9,7 +9,7 @@ import type { RunPlan } from '../../model/run.ts';
 import { store } from '../context.ts';
 import { openPinkSparks } from '../actions.ts';
 import { COPY } from '../copy.ts';
-import { capitalize, int, probability } from '../format.ts';
+import { capitalize, estimatedProbability, int, probability } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
@@ -27,8 +27,8 @@ function goalLimits(c: RunPlan): string[] {
   for (const w of r.required) {
     if (!hasWhiteSpark(w.target)) limits.push(`${w.target.name} is impossible as a white spark because it has no released white form.`);
     else if (c.search?.unavailableWhiteIds.includes(w.target.id)) limits.push(`${w.target.name} is impossible under the current inputs: no modeled skill source exists in the allowed card pool, trainee, or lineage. Check excluded skill choices and source-rate settings.`);
-    else if (w.available === 0) limits.push(`${w.target.name} has no estimated acquisition chance with this deck and its current event choices. Check its skill sources and the prioritized skill list.`);
-    else if (w.probability === 0) limits.push(`${w.target.name} can be acquired, but has no estimated chance at the required stars with this deck. Check spark-generation settings and predicted rank.`);
+    else if (w.available === 0) limits.push(`${w.target.name} has no estimated purchase chance with this deck and its current event choices. Check its skill sources, the prioritized skill list and the SP budget.`);
+    else if (w.probability === 0) limits.push(`${w.target.name} can be purchased, but has no estimated chance at the required stars with this deck. Check spark-generation settings and predicted rank.`);
   }
   if (limits.length) return limits;
   if (r.upperProbability === 0) return ['The model found no outcome with every required spark together, even though each has an individual chance. Shared event choices can prevent joint success; large sampled groups can also miss rare outcomes.'];
@@ -36,7 +36,7 @@ function goalLimits(c: RunPlan): string[] {
   const candidates = [
     { name: `Blue at ${g.blueStars}★ or better`, p: r.blue, detail: g.blueStars === 3 ? ` A 3★ blue spark needs at least ${BLUE_GENERATION_BANDS[1].min} in the selected stat, with better odds at ${BLUE_GENERATION_BANDS[2].min}.` : ' Both the chosen stat and its stars must match your goal.' },
     { name: g.pink.length === 1 ? `${pinkName} at ${g.pink[0]!.stars}★ or better` : pinkName, p: r.pink.probability, detail: g.pink[0]?.aptitude === 'any' ? ' Any accepts every eligible aptitude; the star requirement still applies.' : ' The aptitude must finish at A/S, then be selected from the eligible aptitudes and roll enough stars.' },
-    ...r.required.map((w) => ({ name: w.target.name, p: w.probability, detail: ` Its skill has a ${probability(w.available)} acquisition chance; it must then generate a spark with enough stars.` })),
+    ...r.required.map((w) => ({ name: w.target.name, p: w.probability, detail: ` Its skill has a ${probability(w.available)} chance of being purchased within the SP budget; it must then generate a spark with enough stars.` })),
   ];
   const lowest = candidates.reduce((a, b) => a.p <= b.p ? a : b);
   return lowest.p < 1 ? [`Lowest individual chance is ${lowest.name} at ${probability(lowest.p)}.${lowest.detail} Shared events and rank also affect complete success, so this alone does not identify the best deck change.`] : [];
@@ -60,7 +60,7 @@ function breakdown(c: RunPlan) {
     ${result.required.map((w) => html`<tr><td>${w.target.name}</td><td class="num">${probability(w.available)}</td><td class="num">${probability(w.probability)}</td></tr>`)}
   </tbody></table></div>
   ${g.pink.length > 1 && result.pink.probability !== result.pink.upperProbability ? html`<p class="small muted">Alternative contribution ranges can use different eligibility scenarios. Their endpoints need not add to the combined pink range.</p>` : nothing}
-  <p class="small muted">${result.required.length ? `All ${result.required.length} required white skill${result.required.length === 1 ? '' : 's'} available ${probability(result.allAvailable)} · ` : 'No required white sparks · '}SS or better ${probability(result.pSS)}. Each spark chance is shown individually; shared events and rank affect the combined result.</p>`;
+  <p class="small muted">${result.required.length ? `All ${result.required.length} required white skill${result.required.length === 1 ? '' : 's'} purchased ${probability(result.allAvailable)} · ` : 'No required white sparks · '}SS or better ${estimatedProbability(result.pSS)}. White skill availability includes purchases within the SP budget. Each spark chance is shown individually; shared events and rank affect the combined result.</p>`;
 }
 
 function attempts(p: number, upper: number | null) {

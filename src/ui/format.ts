@@ -7,13 +7,14 @@ import { tip } from './tooltip.ts';
 /** Race win chances come in 5% steps, so they show whole percentages. */
 export const pct = (x: number, d = 0) => `${(x * 100).toFixed(d)}%`;
 /** Every other chance: one decimal above 1%, more below, and a floor for the vanishingly small. */
-export const probability = (p: number) => p === 0 ? '0%' : p < 0.00001 ? '<0.001%' : `${(p * 100).toFixed(p < 0.001 ? 3 : p < 0.01 ? 2 : 1)}%`;
+export const probability = (p: number) => p === 0 ? '0%' : p > .999 && p < 1 - 1e-12 ? '>99.9%' : p < 0.00001 ? '<0.001%' : `${(p * 100).toFixed(p < 0.001 ? 3 : p < 0.01 ? 2 : 1)}%`;
+export const estimatedProbability = (p: number) => p >= .999 ? '>99.9%' : probability(p);
 export const num = (x: number, d = 0) => x.toFixed(d);
 /** A whole number with thousands separators, the same in every panel. */
 export const int = (x: number) => Math.round(x).toLocaleString('en-US');
 export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** A chance in a rounded panel, e.g. [19.6%]. Neutral by default: colour is reserved for a real warning. */
-export const pill = (x: number, cls = '') => html`<span class="pill ${cls}">${probability(x)}</span>`;
+export const pill = (x: number, cls = '', estimated = false) => html`<span class="pill ${cls}">${estimated ? estimatedProbability(x) : probability(x)}</span>`;
 
 export const skillName = (id: number) => data.skillById.get(id)?.name ?? `#${id}`;
 export const skillIcon = (s: Skill | undefined) => (s?.iconId ? `/assets/skills/${s.iconId}.png` : '');

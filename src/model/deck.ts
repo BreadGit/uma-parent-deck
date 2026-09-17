@@ -10,7 +10,7 @@ import { hasWhiteSpark, cardSourcesForTarget, combineSources, purchasedOwnership
 export interface Ctx {
   data: Data;
   settings: Settings;
-  races: number;
+  races: number;                 // total completed races, including scenario finales
   totalTurns: number;
   trainee: Character | null;
   raceWins: RaceWins;            // win chance per agenda race, for the trainee's secret events
@@ -154,6 +154,11 @@ export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Map<
 
 /** The cards of a deck entry that matter to a run state: its sources and character. */
 type Entry = Pick<CardScore, 'card' | 'lb' | 'mine' | 'statPower' | 'borrowed'>;
+/** Resolve purchase sources once, without computing a card ranking for every available skill. */
+export function purchaseCoverage(entries: { card: Card; lb: number }[], targets: Target[], ctx: Ctx): Map<number, SkillSource[]> {
+  const sources = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
+  return evaluate(stateOf(sources, targets, ctx), targets, ctx).map;
+}
 export function describeDeck(entries: { card: Card; lb: number; borrowed?: boolean }[], targets: Target[], ctx: Ctx): DeckResult {
   const sourceEntries = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
   const deck = sourceEntries.map((e, i) => ({ ...scoreCard(e.card, e.lb, targets, stateOf(sourceEntries.filter((_, j) => i !== j), targets, ctx), ctx), borrowed: e.borrowed }));

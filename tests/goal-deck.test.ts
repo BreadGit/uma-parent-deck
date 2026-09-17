@@ -133,6 +133,34 @@ test('a stat card with no target hints wins by crossing the required blue thresh
   assert.ok(Math.abs(found.best.score.comparison - .01) < 1e-12, `${found.best.score.comparison} != .01`);
 });
 
+test('deck search trades SS white-star quality against blue odds and keeps the common pink factor', () => {
+  const owned = [card(1), card(2), card(3)];
+  const find = (ssSpeed: number, stars: number, pinkChance: number) => {
+    const g = { ...goal, blueStats: ['speed' as const], blueStars: 3, required: [{ id: 10, stars }] };
+    return searchGoalDeck({ owned, borrows: [], ownedOrders: [owned], borrowOrders: [], pinnedIds: [1], borrowFromAll: false,
+      traineeId: null, size: 2, tolerance: 0, evaluate: (entries) => {
+        const ss = entries.some((e) => e.card.id === 3);
+        const rank = goalRankBands({ rawMean: [ss ? ssSpeed : 1200, 0, 0, 0, 0], sd: [ss ? 1 : 0, 0, 0, 0, 0],
+          skillPoints: ss ? 18000 : 8000, skillSd: 0 }, g, 17500, DEFAULT_SETTINGS);
+        return { score: scoreGoal(g, { copies: [0], forms: distribution(1, [['1', 1]]) }, rank,
+          { ...pink, probability: pinkChance, upperProbability: pinkChance }, DEFAULT_SETTINGS), statPower: ss ? ssSpeed : 1200, value: rank };
+      } })!;
+  };
+  // One white skill generates at .2. At B..S+, 2+ stars has probability .5; at SS+, .8.
+  // Speed-only 3-star blue odds are .02 at 1200, or .015 when half the outcomes reach 1100.
+  const trade = find(1099.5, 2, .1);
+  assert.ok(trade.best.entries.some((e) => e.card.id === 3), 'SS offsets a modest loss of blue chance');
+  assert.ok(Math.abs(trade.best.score.probability - .2 * .8 * .015 * .1) < 1e-8);
+  const blueWins = find(800, 2, .1);
+  assert.ok(blueWins.best.entries.some((e) => e.card.id === 2), 'SS cannot offset halving the blue chance');
+  assert.ok(Math.abs(blueWins.best.score.probability - .2 * .5 * .02 * .1) < 1e-8);
+  const anyWhite = find(1099.5, 1, .1);
+  assert.ok(anyWhite.best.entries.some((e) => e.card.id === 2), 'SS does not improve any-star white generation');
+  const otherPink = find(1099.5, 2, .3);
+  assert.equal(goalDeckKey(otherPink.best.entries), goalDeckKey(trade.best.entries), 'a common pink factor does not change deck order');
+  assert.ok(Math.abs(otherPink.best.score.probability / trade.best.score.probability - 3) < 1e-10);
+});
+
 test('balanced required coverage beats a larger sum of individual spark chances', () => {
   const owned = [card(1), card(2), card(3)];
   const g = { ...goal, required: [{ id: 10, stars: 1 }, { id: 11, stars: 1 }] };
