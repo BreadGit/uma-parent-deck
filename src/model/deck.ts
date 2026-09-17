@@ -42,7 +42,7 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
   const { families, traineeBlockers } = memoOf(ctx, targets);
   const out: Blocker[] = [];
   for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
-  for (const card of e.cards) for (const s of ctx.sources?.cardEvents(card) ?? eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
+  for (const card of e.cards) for (const s of eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
   out.push(...traineeBlockers);
   return out;
 }
@@ -94,13 +94,16 @@ function memoOf(ctx: Ctx, targets: Target[]): CtxMemo {
   if (!m || m.targets !== targets) {
     const families = new Set(targets.flatMap((t) => [...t.familyIds]));
     const traineeBlockers: Blocker[] = [];
-    if (ctx.trainee) for (const s of ctx.sources?.traineeEvents ?? traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) traineeBlockers.push({ skillId: s.skillId, event: s.event });
+    if (ctx.trainee) for (const s of traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) traineeBlockers.push({ skillId: s.skillId, event: s.event });
     m = { targets, mines: new Map(), families, traineeBlockers };
     ctxMemos.set(ctx, m);
   }
   return m;
 }
-/** The card's own sources per target (fixed for a card and limit break within one context). */
+/**
+ * The card's own sources per target (fixed for a card and limit break within one context). Prepared arrays are
+ * stored by reference and reach the plan through each deck entry's `mine`, so readers spread them rather than mutate.
+ */
 function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<number, SkillSource[]> {
   const memo = memoOf(ctx, targets);
   const key = `${card.id}:${lb}`;
@@ -431,7 +434,7 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 1.2 : 1), reason: o.detail });
   }
   // Other choice-gated skills from the deck's and the trainee's events (not targets): listing them steers the AI to that option.
-  const offered = [...deck.map((d) => ({ owner: d.card.name, sources: ctx.sources?.cardEvents(d.card) ?? eventSources(d.card, ctx.settings, ctx.data) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: ctx.sources?.traineeEvents ?? traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data) }] : [])];
+  const offered = [...deck.map((d) => ({ owner: d.card.name, sources: eventSources(d.card, ctx.settings, ctx.data) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data) }] : [])];
   for (const { owner, sources } of offered) {
     for (const src of sources) {
       if (!src.isChoice || seen.has(src.skillId) || targetFamilies.has(src.skillId)) continue;

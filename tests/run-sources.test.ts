@@ -29,6 +29,19 @@ test('prepared sources preserve deck effects, limit breaks, priorities and exclu
   }
 });
 
+test('readers leave the shared per-card source arrays untouched', () => {
+  const base = context(), sources = prepareRunSources(base);
+  const targets = [200352, 200432, 201601].map((id) => must(sources.target(id), `target ${id}`));
+  const deck = [entry(30028, 4), entry(30010, 4)];
+  const prepared = { ...base, sources, priority: [200432, 200352], excluded: [], fansBefore: () => 200_000 };
+  describeDeck(deck, targets, prepared);
+  purchaseCoverage(deck, targets, prepared);
+  wishlistCandidates(deck, targets, prepared);
+  for (const { card, lb } of deck) for (const t of targets) {
+    assert.deepEqual(sources.card(card, lb, t), cardSourcesForTarget(card, lb, t, base.races, base.totalTurns, data, base.settings), 'a reader does not change the shared array');
+  }
+});
+
 test('each preparation reads current settings, agenda and lineage without retaining previous results', () => {
   const ctx = context(), { card } = entry(30028, 4);
   const first = prepareRunSources(ctx), target = must(first.target(200352), 'Corner Recovery');
