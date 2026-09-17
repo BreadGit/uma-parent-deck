@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/settings.ts';
 import { defaultState, migrate, resetRun, DEFAULT_RUN } from '../src/state.ts';
@@ -17,8 +18,8 @@ const settings = () => structuredClone(DEFAULT_SETTINGS);
 const file = (value: unknown) => new File([JSON.stringify(value)], 'inventory.json', { type: 'application/json' });
 
 test('card event sources follow changes to the same settings object, including nested arrays', () => {
-  const s = settings(), creek = data.cardById.get(30016)!;
-  const chance = () => eventSources(creek, s, data).find((src) => src.skillId === 200351)!.pObtain;
+  const s = settings(), creek = must(data.cardById.get(30016), `data.cardById.get(30016)`);
+  const chance = () => must(eventSources(creek, s, data).find((src) => src.skillId === 200351), `eventSources(creek, s, data).find((src) => src.skillId === 200351)`).pObtain;
   assert.equal(chance(), 0.12);
   s.chainRatesSSR[2] = 1;
   assert.equal(chance(), 1);
@@ -64,7 +65,7 @@ test('every trainee agenda has at most one selected race per slot', () => {
 });
 
 test('duplicate objective input cannot count race rewards twice', () => {
-  const brian = data.charByCardId.get(101601)!;
+  const brian = must(data.charByCardId.get(101601), `data.charByCardId.get(101601)`);
   const goals = goalRaces(brian);
   const baseline = buildSchedule(data.races, brian.aptitudes, 0.8, new Map(), new Map(), goals);
   const duplicated = buildSchedule(data.races, brian.aptitudes, 0.8, new Map(), new Map(), [...goals, goals[0]!]);

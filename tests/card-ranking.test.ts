@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardTargetChances, compareTargetChances } from '../src/model/card-ranking.ts';
@@ -10,7 +11,7 @@ const data = loadData();
 const ctx = makeCtx({ data, settings: { ...DEFAULT_SETTINGS, whiteSparkRate: 0.2, goldSparkRate: 0.4 }, races: 20, totalTurns: 60, trainee: null });
 const groundwork = resolveTarget(201601, data)!;
 const source: SkillSource = { kind: 'hint', skillId: groundwork.id, gold: false, circle: false, pObtain: 0.5, isChoice: false, detail: 'Half of runs' };
-const card = scoreCard(data.cardById.get(30017)!, 4, [groundwork], traineeCoverage([groundwork], ctx), ctx);
+const card = scoreCard(must(data.cardById.get(30017), `data.cardById.get(30017)`), 4, [groundwork], traineeCoverage([groundwork], ctx), ctx);
 const fixture = (sources: SkillSource[]): CardScore => ({ ...card, coverage: [{ target: groundwork, sources, own: { pGold: 0, pWhite: 0.5, pCircle: 0, pAny: 0.5 }, spark: 0.1, marginal: 0.1 }] });
 const close = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < 1e-12, `${actual} != ${expected}`);
 

@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { readFileSync } from 'node:fs';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from '../scripts/event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables, type NormalizedTables, type PageSources, type SourceTables } from '../scripts/source-validation.ts';
@@ -22,9 +23,9 @@ test('source reconciliation detects lost records, incorrect fields and dropped r
   const cases: [string, (data: NormalizedTables) => void][] = [
     ['cards ID completeness', (data) => { data.cards.pop(); }],
     ['passive', (data) => { data.cards[0]!.effectsByLb[4][1] = 999; }],
-    ['Global event skills', (data) => { data.cards.find((card) => card.id === 30053)!.eventSkills.push(202992); }],
-    ['rewards', (data) => { data.cards.find((card) => card.id === 30071)!.chainEvents.forEach((event: { choices: { outcomes: { r?: boolean }[][] }[] }) => event.choices.forEach((choice) => choice.outcomes.flat().forEach((reward) => delete reward.r))); }],
-    ['name/cost', (data) => { data.skills.find((skill) => skill.cost != null)!.cost = 999; }],
+    ['Global event skills', (data) => { must(data.cards.find((card) => card.id === 30053), `data.cards.find((card) => card.id === 30053)`).eventSkills.push(202992); }],
+    ['rewards', (data) => { must(data.cards.find((card) => card.id === 30071), `data.cards.find((card) => card.id === 30071)`).chainEvents.forEach((event: { choices: { outcomes: { r?: boolean }[][] }[] }) => event.choices.forEach((choice) => choice.outcomes.flat().forEach((reward) => delete reward.r))); }],
+    ['name/cost', (data) => { must(data.skills.find((skill) => skill.cost != null), `data.skills.find((skill) => skill.cost != null)`).cost = 999; }],
     ['aptitudes', (data) => { data.characters[0]!.aptitudes.turf = 'G'; }],
     ['objectives', (data) => { data.characters[0]!.goals.pop(); }],
     ['fan reward', (data) => { data.races[0]!.fansGain += 1; }],
@@ -62,7 +63,7 @@ test('Global historical rewards exclude future hints and preserve the applicable
   assert.equal(eventOnGlobal({ did_not_exist: 'pre_2nd_anni' }), null);
   assert.throws(() => eventOnGlobal({ did_not_exist: 'pre_unknown_update' }), /Unknown event history period/);
   for (const id of [10008, 10061, 20029, 30053, 30095]) {
-    const card = normalized.cards.find((card) => card.id === id)!;
+    const card = must(normalized.cards.find((card) => card.id === id), `normalized.cards.find((card) => card.id === id)`);
     assert.ok(!card.eventSkills.includes(202992));
     assert.ok(!JSON.stringify(card.randomEvents).includes('202992'));
   }

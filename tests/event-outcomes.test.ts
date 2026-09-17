@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { evaluate, makeCtx } from '../src/model/deck.ts';
@@ -27,7 +28,7 @@ function check(targets: Target[], sources: Map<number, SkillSource[]>, excluded:
 }
 
 test("excluding Twin Turbo's gold reward retains only the 1.2% white spark chance", () => {
-  const card = data.cardById.get(30026)!, target = resolveTarget(200532, data)!;
+  const card = must(data.cardById.get(30026), `data.cardById.get(30026)`), target = resolveTarget(200532, data)!;
   const sources = cardSourcesForTarget(card, 4, target, 20, 72, data, settings);
   const joint = check([target], new Map([[target.id, sources]]), [200531]);
   // Chain 3 fires in 12% of runs; half its outcomes give white; white generates at 20%.

@@ -1,6 +1,7 @@
 import { DEFAULT_GOAL, emptyPinkLineage } from '../src/model/goal-input.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
 import { applyUserOrder, derivePriority, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
@@ -13,13 +14,13 @@ import type { WishlistEntry } from '../src/model/deck.ts';
 
 const data = loadData();
 const settings = { ...DEFAULT_SETTINGS };
-const byName = (n: string) => data.skills.find((s) => s.name === n && !s.unreleasedEn)!;
-const sw = data.characters.find((c) => c.name === 'Special Week')!;
+const byName = (n: string) => must(data.skills.find((s) => s.name === n && !s.unreleasedEn), `released skill ${n}`);
+const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);
 const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [[null, null, null], [null, null, null]] };
 const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight });
 
 test('star tables: every listed table is used as is; only a missing one interpolates, and counts outside the range clamp', () => {
-  const ch = data.characters.find((c) => c.fourStarStats && c.fiveStarStats && c.rarity === 3)!;
+  const ch = must(data.characters.find((c) => c.fourStarStats && c.fiveStarStats && c.rarity === 3), `data.characters.find((c) => c.fourStarStats && c.fiveStarStats && c.rarity === 3)`);
   assert.deepEqual(statsAtStars(ch, 3), ch.baseStats);
   assert.deepEqual(statsAtStars(ch, 4), ch.fourStarStats);
   assert.deepEqual(statsAtStars(ch, 5), ch.fiveStarStats);
@@ -27,7 +28,7 @@ test('star tables: every listed table is used as is; only a missing one interpol
   const only = { ...ch, twoStarStats: null, threeStarStats: null, fourStarStats: null, fiveStarStats: null };
   assert.deepEqual(statsAtStars(only, 5), ch.baseStats, 'one known table is used for every star count');
   // Gold Ship [Red Strife] is a 2★ card: GameTora lists her 3★ table, which is not the 2★/4★ midpoint
-  const gold = data.charByCardId.get(100701)!;
+  const gold = must(data.charByCardId.get(100701), `data.charByCardId.get(100701)`);
   assert.equal(gold.rarity, 2);
   assert.deepEqual(statsAtStars(gold, 3), [87, 101, 105, 81, 76]);
   assert.ok(hasExactStarTable(gold, 3));
@@ -45,7 +46,7 @@ test('rank estimate: the unique skill at its level and a share of the innate ski
   assert.ok(low.score - noTrainee.score >= 510, 'the trainee adds at least her unique skill');
   assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6, apt, data, settings).uniquePts, 1020);
   assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 2, 2, apt, data, settings).uniquePts, 240, 'a 2★ trainee scores 120 per level');
-  assert.equal(low.ssMin, data.ranks.find((r) => r.name === 'SS')!.min);
+  assert.equal(low.ssMin, must(data.ranks.find((r) => r.name === 'SS'), `data.ranks.find((r) => r.name === 'SS')`).min);
 });
 
 test('the star count is clamped to the trainee: a count below her rarity cannot lower her unique skill', () => {
@@ -53,7 +54,7 @@ test('the star count is clamped to the trainee: a count below her rarity cannot 
   assert.equal(clampStars(sw, 9), 5);
   assert.equal(clampStars(sw, NaN), 3);
   assert.equal(clampStars(null, 1), 1);
-  const urara = data.characters.find((c) => c.name === 'Haru Urara')!;
+  const urara = must(data.characters.find((c) => c.name === 'Haru Urara'), `data.characters.find((c) => c.name === 'Haru Urara')`);
   assert.equal(clampStars(urara, 1), 1, 'a 1★ uma can be 1★');
   const at = (traineeStars: number) => planRun({ ...empty, traineeCardId: sw.cardId, traineeStars }, settings, {}, data, { search: false });
   const p1 = at(1), p3 = at(3), p5 = at(5);
@@ -89,14 +90,14 @@ test('a total-turn override at or below the reference race count is rejected and
 
 test('the scenario completion reward is a source for I Wanna Win with You and On the Way to Our Dream, one outcome roll', () => {
   const spec = SCENARIO_COMPLETION_SKILLS[3]!;
-  assert.equal(data.skillById.get(spec.gold)!.name, 'I Wanna Win with You');
-  assert.equal(data.skillById.get(spec.white)!.name, 'On the Way to Our Dream');
+  assert.equal(must(data.skillById.get(spec.gold), `data.skillById.get(${spec.gold})`).name, 'I Wanna Win with You');
+  assert.equal(must(data.skillById.get(spec.white), `data.skillById.get(${spec.white})`).name, 'On the Way to Our Dream');
   const target = resolveTarget(spec.white, data)!;
   assert.equal(target.gold?.id, spec.gold);
   const plan = planRun({ ...empty, targets: [target.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })) }, { ...settings, scenarioSongsRate: 0.8 }, {}, data);
   const srcs = plan.deckResult.coverage.get(target.id)!.filter((s) => s.kind === 'scenario');
   assert.equal(srcs.length, 2);
-  assert.ok(Math.abs(srcs.find((s) => s.gold)!.pObtain - 0.8) < 1e-9 && Math.abs(srcs.find((s) => !s.gold)!.pObtain - 0.2) < 1e-9);
+  assert.ok(Math.abs(must(srcs.find((s) => s.gold), `srcs.find((s) => s.gold)`).pObtain - 0.8) < 1e-9 && Math.abs(must(srcs.find((s) => !s.gold), `srcs.find((s) => !s.gold)`).pObtain - 0.2) < 1e-9);
   const o = combineSources(srcs);
   assert.ok(Math.abs(o.pAny - 1) < 1e-9 && Math.abs(o.pGold - 0.8) < 1e-9, 'the two branches are exclusive, so one of them always happens');
   assert.ok((plan.deckResult.sparks.get(target.id) ?? 0) > 0.3);
@@ -148,7 +149,7 @@ test("prioritized skills: the user's order applies to a whole skill family, ever
 test('planRun: the prioritized order decides a shared event, and only the first ten entries steer choices', () => {
   const groundwork = resolveTarget(201601, data)!;
   const focus = resolveTarget(byName('Focus').id, data)!;
-  const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')!;
+  const falcon = must(data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power'), `data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type ==...`);
   const base: RunInput = { ...empty, targets: [groundwork.id, focus.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), pinnedIds: [falcon.id] };
   const a = planRun({ ...base, wishlistOrder: [groundwork.id, focus.id] }, settings, {}, data);
   const b = planRun({ ...base, wishlistOrder: [focus.id, groundwork.id] }, settings, {}, data);
@@ -211,15 +212,15 @@ test('retained decks update estimates and limit breaks, but cannot bypass owners
   assert.deepEqual(retained.deckResult.deck.map((e) => e.card.id), previous.map((e) => e.id));
   assert.deepEqual(retained.goalEstimate, explicit.goalEstimate, 'retention evaluates the latest goal');
   assert.notDeepEqual(retained.goalEstimate, initial.goalEstimate);
-  const owned = previous.find((e) => !e.borrowed)!;
+  const owned = must(previous.find((e) => !e.borrowed), `previous.find((e) => !e.borrowed)`);
   const lower = planRun(input, settings, { [owned.id]: 0 }, data, { previous, search: false });
   assert.equal(lower.deckResult.deck.find((e) => e.card.id === owned.id && !e.borrowed)?.lb, 0);
   const unowned = planRun(input, settings, { [owned.id]: null }, data, { previous, search: false });
   assert.ok(!unowned.deckResult.deck.some((e) => e.card.id === owned.id && !e.borrowed));
-  const pin = data.cards.find((c) => c.charId !== sw.charId && !previous.some((e) => e.id === c.id))!;
+  const pin = must(data.cards.find((c) => c.charId !== sw.charId && !previous.some((e) => e.id === c.id)), `data.cards.find((c) => c.charId !== sw.charId && !previous.some((e) => e.id === c.id))`);
   const pinned = planRun({ ...input, pinnedIds: [pin.id] }, settings, {}, data, { previous, search: false });
   assert.ok(pinned.deckResult.deck.some((e) => e.card.id === pin.id));
-  const nextTrainee = data.characters.find((c) => previous.some((e) => data.cardById.get(e.id)!.charId === c.charId))!;
+  const nextTrainee = must(data.characters.find((c) => previous.some((e) => must(data.cardById.get(e.id), `data.cardById.get(${e.id})`).charId === c.charId)), `data.characters.find((c) => previous.some((e) => data.cardById.get(e.id).charId === c.c...`);
   const changed = planRun({ ...input, traineeCardId: nextTrainee.cardId }, settings, {}, data, { previous, search: false });
   assert.ok(changed.deckResult.deck.every((e) => e.card.charId !== nextTrainee.charId));
   const incomplete = planRun(input, settings, Object.fromEntries(data.cards.map((c) => [c.id, null])), data, { previous, search: false });

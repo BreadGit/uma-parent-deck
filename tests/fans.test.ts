@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { DEFAULT_GOAL, emptyPinkLineage } from '../src/model/goal-input.ts';
@@ -16,7 +17,7 @@ const data = loadData();
 const settings = { ...DEFAULT_SETTINGS, scenarioId: OUR_GRAND_CONCERT };
 const shared = observations.shared;
 const selection = shared.deck.map((d) => ({ id: d.id, lb: d.lb, borrowed: d.id === 30107 }));
-const deck = selection.map((d) => ({ card: data.cardById.get(d.id)!, lb: d.lb }));
+const deck = selection.map((d) => ({ card: must(data.cardById.get(d.id), `data.cardById.get(${d.id})`), lb: d.lb }));
 const inventory = Object.fromEntries(selection.map((d) => [d.id, d.lb]));
 const input: RunInput = {
   goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {},
@@ -33,7 +34,7 @@ const close = (got: number, want: number) => assert.ok(Math.abs(got - want) < 1e
 test('loss-place table preserves third-place payouts and the boundaries around paying places', () => {
   assert.deepEqual([0.95, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0].map(lossPlace), [2, 2, 3, 3, 4, 4, 5, 6, 18]);
   assert.deepEqual([1, 2, 3, 4, 5, 6, 18].map((place) => raceFansForPlace(12000, place)), [12000, 4800, 3000, 1800, 1200, 0, 0]);
-  const kikuka = plan.schedule.find((s) => s.selected && s.slot === 43)!;
+  const kikuka = must(plan.schedule.find((s) => s.selected && s.slot === 43), `plan.schedule.find((s) => s.selected && s.slot === 43)`);
   close(kikuka.pWin, 0.7);
   close(expectedRaceFans(kikuka), 9300); // 70% of 12,000 + 30% of 3,000
   close(expectedRaceFans({ ...kikuka, pWin: 1 }), 12000);
@@ -96,7 +97,7 @@ test('changing a selected LB updates fan checkpoints used by unique effects and 
   close(plan.fans.calendar / low.fans.calendar, 1.68 / 1.65);
   assert.equal(plan.fans.concerts, low.fans.concerts);
   assert.ok(plan.ctx.fansBefore!(50) > low.ctx.fansBefore!(50));
-  const topRoad = data.cardById.get(30086)!;
+  const topRoad = must(data.cardById.get(30086), `data.cardById.get(30086)`);
   assert.ok(topRoad.unique?.effects.some((u) => u.type === 104));
   const manualRamp = plan.fans.bySlot.slice(0, 72).reduce((n, fans) => n + Math.min(20, Math.floor(fans / 10000)), 0) / 72;
   close(uniqueExtras(topRoad, 4, data.model, { fansBefore: plan.ctx.fansBefore })[EFFECT.trainingEff]!, manualRamp);
@@ -104,7 +105,7 @@ test('changing a selected LB updates fan checkpoints used by unique effects and 
 
 test('deck bonus includes basic unique effects and applies once to loss payouts', () => {
   const card = { ...deck[0]!.card, effectsByLb: [{ '16': 10, u16: 5 }] };
-  const race = { ...plan.schedule.find((s) => s.selected && s.slot === 43)!, pWin: 0.7 } satisfies ScheduledRace;
+  const race = { ...must(plan.schedule.find((s) => s.selected && s.slot === 43), `plan.schedule.find((s) => s.selected && s.slot === 43)`), pWin: 0.7 } satisfies ScheduledRace;
   const fans = estimateFans([race], [{ card, lb: 0 }], settings);
   assert.equal(fans.bonus, 15);
   close(fans.calendar, 10695); // (8,400 + 900) * 1.15

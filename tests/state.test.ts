@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { defaultPins, defaultState, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
 import { defaultParentSparks, gainsOfParentSparks } from '../src/model/inherit.ts';
@@ -61,7 +62,7 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.deepEqual(s2.run.targetLineage, { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } });
   assert.deepEqual(s2.run.raceOverrides, { a: true });
   assert.equal(s2.run.traineeStars, 3);
-  const sw = data.characters.find((c) => c.name === 'Special Week')!;
+  const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);
   assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 1 } }, data).run.traineeStars, 3, 'a star count below the trainee\'s rarity is raised to it');
   assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 7 } }, data).run.traineeStars, 5);
 });

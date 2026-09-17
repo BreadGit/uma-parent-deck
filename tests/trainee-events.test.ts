@@ -1,6 +1,7 @@
 import { DEFAULT_GOAL, emptyPinkLineage } from '../src/model/goal-input.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { conditionChance, resolveTarget, traineeEventSources, traineeSources } from '../src/model/sparks.ts';
@@ -10,14 +11,14 @@ import { planRun, type RunInput } from '../src/model/run.ts';
 
 const data = loadData();
 const settings = { ...DEFAULT_SETTINGS };
-const byName = (n: string) => data.skills.find((s) => s.name === n && !s.unreleasedEn)!;
-const sw = data.characters.find((c) => c.name === 'Special Week')!;
+const byName = (n: string) => must(data.skills.find((s) => s.name === n && !s.unreleasedEn), `released skill ${n}`);
+const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);
 const wins = (entries: [string, number][]): RaceWins => new Map(entries);
 
 /** Special Week's agenda with the two runnings her secret event needs forced in (the Classic-year Japan Cup and the Senior-year Takarazuka Kinen). */
 function specialWeekAgenda(force: boolean, exclude: string[] = []) {
   const base = buildSchedule(data.races, traineeAptitudes(sw, {}), 0.8, new Map(), new Map(), goalRaces(sw));
-  const id = (name: string, year: number) => base.find((s) => s.race.name === name && s.race.year === year)!.race.calendarId;
+  const id = (name: string, year: number) => must(base.find((s) => s.race.name === name && s.race.year === year), `base.find((s) => s.race.name === name && s.race.year === year)`).race.calendarId;
   const forced = new Map<string, boolean>(force ? [[id('Japan Cup', 2), true], [id('Takarazuka Kinen', 3), true]] : []);
   for (const e of exclude) forced.set(e, false);
   return { sched: buildSchedule(data.races, traineeAptitudes(sw, {}), 0.8, forced, new Map(), goalRaces(sw)), id, forced };
@@ -35,10 +36,10 @@ test('secret events: conditions are scored from the agenda (wins multiply, any-o
   assert.equal(conditionChance({ type: 'do_not_participate', race: { raceId: 1005 } }, w, settings), 0);
   assert.equal(conditionChance({ type: 'date' }, w, settings), 1);
   assert.equal(conditionChance({ type: 'unknown', raw: ['beat_rival', 1] }, w, { ...settings, charConditionFallbackRate: 0.25 }), 0.25);
-  const seiun = data.characters.find((c) => c.name === 'Seiun Sky')!;
+  const seiun = must(data.characters.find((c) => c.name === 'Seiun Sky'), `data.characters.find((c) => c.name === 'Seiun Sky')`);
   const sched = buildSchedule(data.races, traineeAptitudes(seiun, {}), 0.8, new Map(), new Map(), goalRaces(seiun));
   const rw = raceWinChances(sched);
-  const derby = sched.find((s) => s.race.name.includes('Tokyo Yushun') && s.selected)!;
+  const derby = must(sched.find((s) => s.race.name.includes('Tokyo Yushun') && s.selected), `sched.find((s) => s.race.name.includes('Tokyo Yushun') && s.selected)`);
   assert.equal(rw.get(`${derby.race.raceId}|2`), Math.min(1, derby.pWin));
   assert.equal(rw.get(String(derby.race.raceId)), Math.min(1, derby.pWin));
   const arima = sched.filter((s) => s.race.name === 'Arima Kinen' && s.selected);
@@ -54,8 +55,8 @@ test("Special Week's secret event needs runnings the default agenda skips; force
   assert.equal(traineeSources(sw, stamina, data, settings, raceWinChances(plain.sched)).filter((s) => s.kind === 'secret').length, 0, 'the Classic-year Japan Cup is not in the default agenda, so the event cannot fire');
   const forced = specialWeekAgenda(true);
   const w = raceWinChances(forced.sched);
-  const src = traineeSources(sw, stamina, data, settings, w).find((s) => s.kind === 'secret')!;
-  const ev = sw.events.find((e) => e.kind === 'secret' && e.choices.some((c) => c.outcomes.flat().some((r) => r.t === 'sk' && r.d === stamina.white?.id)))!;
+  const src = must(traineeSources(sw, stamina, data, settings, w).find((s) => s.kind === 'secret'), `traineeSources(sw, stamina, data, settings, w).find((s) => s.kind === 'secret')`);
+  const ev = must(sw.events.find((e) => e.kind === 'secret' && e.choices.some((c) => c.outcomes.flat().some((r) => r.t === 'sk' && r.d === stamina.white?.id))), `sw.events.find((e) => e.kind === 'secret' && e.choices.some((c) => c.outcomes.flat().so...`);
   const expected = ev.conditions!.reduce((a, c) => a * conditionChance(c, w, settings), 1);
   assert.ok(src && Math.abs(src.pObtain - expected) < 1e-9 && expected > 0, `secret ${src?.pObtain} vs ${expected}`);
   const dropped = specialWeekAgenda(true, [forced.id('Japan Cup', 2)]);
@@ -72,10 +73,10 @@ test("Special Week's secret event needs runnings the default agenda skips; force
 
 test("the trainee's choice and outing events: choice-gated at their own rates, one option per event by prioritized order, a non-target option can block a target", () => {
   const pace = resolveTarget(byName('Pace Strategy').id, data)!;
-  const choice = traineeSources(sw, pace, data, settings, new Map()).find((s) => s.kind === 'choice')!;
+  const choice = must(traineeSources(sw, pace, data, settings, new Map()).find((s) => s.kind === 'choice'), `traineeSources(sw, pace, data, settings, new Map()).find((s) => s.kind === 'choice')`);
   assert.ok(choice && choice.isChoice && choice.pObtain === settings.charStoryEventRate, 'Pace Strategy is one option of a choice event');
   const haste = resolveTarget(byName('Homestretch Haste').id, data)!;
-  const outing = traineeSources(sw, haste, data, { ...settings, charOutingRate: 0.3 }, new Map()).find((s) => s.kind === 'outing')!;
+  const outing = must(traineeSources(sw, haste, data, { ...settings, charOutingRate: 0.3 }, new Map()).find((s) => s.kind === 'outing'), `traineeSources(sw, haste, data, { ...settings, charOutingRate: 0.3 }, new Map()).find((...`);
   assert.ok(outing && outing.isChoice && Math.abs(outing.pObtain - 0.3) < 1e-9);
   const all = traineeEventSources(sw, new Map(), settings, data);
   assert.ok(all.every((s) => s.event.key.startsWith('trainee:')) && !all.some((s) => s.kind === 'secret'), 'with no agenda no secret event can fire');
@@ -83,10 +84,10 @@ test("the trainee's choice and outing events: choice-gated at their own rates, o
   const targets = [haste, adept];
   const mk = (priority: number[]) => makeCtx({ data, settings, races: 20, totalTurns: data.model.races.totalTurns, trainee: sw, priority });
   const a = evaluate(traineeCoverage(targets, mk([...haste.familyIds])), targets, mk([...haste.familyIds]));
-  const cf = a.conflicts.find((c) => c.eventKey.startsWith('trainee:outing'))!;
+  const cf = must(a.conflicts.find((c) => c.eventKey.startsWith('trainee:outing')), `a.conflicts.find((c) => c.eventKey.startsWith('trainee:outing'))`);
   assert.ok(cf && cf.taken.target === haste.id && !a.map.get(adept.id)!.some((s) => s.kind === 'outing'), 'Corner Adept loses the outing');
   const b = evaluate(traineeCoverage(targets, mk([...adept.familyIds])), targets, mk([...adept.familyIds]));
-  assert.equal(b.conflicts.find((c) => c.eventKey.startsWith('trainee:outing'))!.taken.target, adept.id);
+  assert.equal(must(b.conflicts.find((c) => c.eventKey.startsWith('trainee:outing')), `b.conflicts.find((c) => c.eventKey.startsWith('trainee:outing'))`).taken.target, adept.id);
   const names = wishlistCandidates([], targets, mk([])).map((w) => w.name);
   assert.ok(names.includes('Homestretch Haste') && names.includes('Corner Adept ○'), `both options listed: ${names.join(', ')}`);
   assert.ok(wishlistCandidates([], [], mk([])).map((w) => w.name).includes('Pace Strategy'), 'trainee choice options are candidates');
@@ -96,7 +97,7 @@ test("the trainee's choice and outing events: choice-gated at their own rates, o
 });
 
 test("an alternate outfit's own events are decoded from its page, and a skill no decoded event gives uses the undecoded rate, not 100%", () => {
-  const summer = data.characters.find((c) => c.cardId === 100102)!; // Special Week [Hopp'n♪Happy Heart]
+  const summer = must(data.characters.find((c) => c.cardId === 100102), `data.characters.find((c) => c.cardId === 100102)`); // Special Week [Hopp'n♪Happy Heart]
   const fighter = resolveTarget(byName('Fighter').id, data)!;
   const pace = resolveTarget(byName('Pace Strategy').id, data)!; // one option of a decoded choice event of hers
   const own = traineeSources(summer, fighter, data, settings, new Map()).filter((s) => s.kind === 'story' || s.kind === 'choice');

@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from '../scripts/support-import.ts';
 import cards from '../data/cards.json' with { type: 'json' };
 
@@ -36,14 +37,14 @@ test('support import preserves source-only descriptions, including text-only uni
   const card = { ...sourceCard(), unique: { level: 30, effects: [] }, unique_desc: 'Special events are more likely to occur.' };
   assert.equal(normalizeSupportMechanics(card).unique?.text, card.unique_desc);
   assert.equal(normalizeSupportMechanics({ ...sourceCard(), unique: { level: 30, effects: [], description: 'Source description' } }).unique?.text, 'Source description');
-  assert.equal(cards.find((card) => card.id === 30080)!.unique?.text, 'Sasami Anshinzawa random events are more likely to occur');
+  assert.equal(must(cards.find((card) => card.id === 30080), `cards.find((card) => card.id === 30080)`).unique?.text, 'Sasami Anshinzawa random events are more likely to occur');
 });
 
 test('support import retains level-dependent hint reward payloads', () => {
   const rewards = [[{ hint_type: 2, hint_value: 2 }], { level: 30, stats: [{ hint_type: 2, hint_value: 4 }] }];
   const result = normalizeSupportMechanics({ ...sourceCard(), hints: { hint_others: rewards } });
   assert.deepEqual(result.hintOthersSource, rewards);
-  assert.ok(cards.find((card) => card.id === 30098)!.hintOthersSource?.length);
+  assert.ok(must(cards.find((card) => card.id === 30098), `cards.find((card) => card.id === 30098)`).hintOthersSource?.length);
   assert.throws(() => normalizeSupportMechanics({ ...sourceCard(), hints: { hint_others: [{ level: 30, stats: 'changed format' }] } }), /must contain an unlock level and a stats array/);
 });
 

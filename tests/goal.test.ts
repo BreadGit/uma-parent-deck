@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, whiteGenerationBands } from '../src/settings.ts';
 import { DEFAULT_RUN, migrate, defaultState, STATE_VERSION } from '../src/state.ts';
@@ -27,7 +28,7 @@ function evaluateTraineeGoal(goal: ResolvedGoal, lineage: Parameters<typeof eval
   const result = evaluate(traineeCoverage(targets, ctx), targets, ctx);
   return evaluateGoal(goal, lineage, apt, { coverage: result.map, conflicts: result.conflicts }, ctx, stats, issues);
 }
-const target = (name: string) => resolveTarget(data.skills.find((s) => s.name === name)!.id, data)!;
+const target = (name: string) => resolveTarget(must(data.skills.find((s) => s.name === name), `skill ${name}`).id, data)!;
 const a = target('Groundwork'), b = target('Corner Recovery ○');
 const close = (actual: number, expected: number, tolerance = 1e-10) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} != ${expected}`);
 const apt = (): Record<AptKey, Grade> => Object.fromEntries(APTITUDE_KEYS.map((k) => [k, k === 'turf' ? 'A' : 'G'])) as Record<AptKey, Grade>;
@@ -292,7 +293,7 @@ test('goal migration keeps old targets as preferred and normalizes family identi
 
 test('goal editing drives selection while supplied-deck prediction stays consistent', () => {
   const input = structuredClone(DEFAULT_RUN);
-  input.traineeCardId = data.characters.find((c) => c.name === 'Special Week')!.cardId;
+  input.traineeCardId = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`).cardId;
   input.targets = [a.id, b.id].map((id) => ({ id, role: 'preferred', stars: 2, priority: 0 }));
   // A small budget: the assertions compare the two searches, not their best decks.
   const before = planRun(input, settings, {}, data, { budget: 8 });

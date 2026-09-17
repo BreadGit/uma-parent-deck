@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, isValidSetting, sanitizeSettings } from '../src/settings.ts';
 import { defaultState, migrate, STATE_VERSION } from '../src/state.ts';
@@ -12,7 +13,7 @@ import { planRun } from '../src/model/run.ts';
 
 const data = loadData();
 const goldNames = ['Runaway', 'Best in Japan', 'Risk-Maker', 'Unchanging', 'Blatant Fear', 'Dream Run', 'Cheers of a Fellow Dreamer', 'For the Team'];
-const goldIds = goldNames.map((name) => data.skills.find((s) => s.name === name)!.id);
+const goldIds = goldNames.map((name) => must(data.skills.find((s) => s.name === name), `skill ${name}`).id);
 const lineage = { k1: 1, k2: 2, p1: 2, p2: 5 };
 const close = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < 1e-10, `${actual} != ${expected}`);
 
@@ -44,7 +45,7 @@ test('required roles and stars migrate into the sole target list without changin
 });
 
 test('saved planning overrides preserve the agenda', () => {
-  const trainee = data.characters.find((c) => c.name === 'Oguri Cap')!;
+  const trainee = must(data.characters.find((c) => c.name === 'Oguri Cap'), `data.characters.find((c) => c.name === 'Oguri Cap')`);
   const saved = migrate({ current: { version: 6, run: { traineeCardId: trainee.cardId, aptOverrides: { dirt: 'G' } } } }, data);
   assert.equal(saved.run.aptOverrides.dirt, 'G');
   const plan = planRun(saved.run, saved.settings, {}, data, { search: false });

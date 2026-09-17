@@ -2,6 +2,7 @@
 // and every skill or character id one file points at must resolve. Run after `npm run fetch` or `npm run fit`.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { STATS, type AptKey } from '../src/types.ts';
 import { uniqueExtras } from '../src/model/stats.ts';
@@ -14,15 +15,15 @@ const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 const skillExists = (id: number) => data.skillById.has(id);
 
 test('support effects interpolate with floor rounding between anchors, without unlocking early', () => {
-  const hello = data.cardById.get(30052)!;
+  const hello = must(data.cardById.get(30052), `data.cardById.get(30052)`);
   assert.deepEqual(hello.effectsByLb.map((e) => e[16]), [5, 6, 8, 10, 10]);
   assert.deepEqual(hello.effectsByLb.map((e) => e[15]), [1, 2, 3, 5, 5]);
   assert.deepEqual(hello.effectsByLb.map((e) => e[8] ?? 0), [0, 5, 10, 10, 10], 'training effectiveness unlocks at level 35');
   assert.deepEqual(hello.effectsByLb.map((e) => e[12]), [25, 26, 27, 28, 30], 'floor each interpolation');
   assert.deepEqual(hello.effectsByLb.map((e) => e[9] ?? 0), [0, 0, 0, 15, 30], 'initial speed unlocks at level 45');
-  const special = data.cardById.get(10001)!;
+  const special = must(data.cardById.get(10001), `data.cardById.get(10001)`);
   assert.deepEqual(special.effectsByLb.map((e) => e[1]), [10, 11, 13, 15, 15], 'R level caps and trailing plateau');
-  const digital = data.cardById.get(20005)!;
+  const digital = must(data.cardById.get(20005), `data.cardById.get(20005)`);
   assert.deepEqual(digital.effectsByLb.map((e) => e[16]), [10, 11, 12, 13, 15], 'SR level caps');
 });
 
@@ -56,21 +57,21 @@ test('cards carry the fields the stat and spark models read', () => {
       assert.equal(uKeys.length > 0, lb >= c.unique!.fromLb && basic.size > 0, `${c.name} basic unique at LB${lb}`);
     });
   }
-  const taiki = data.cardById.get(30053)!;
+  const taiki = must(data.cardById.get(30053), `data.cardById.get(30053)`);
   assert.ok(taiki.unique?.effects.some((u) => u.type === 101 && u.value_1 != null), 'Taiki Shuttle keeps the compound payload');
   assert.equal(taiki.unique?.fromLb, 0, 'an SSR at LB0 is level 30, the unlock level');
-  assert.equal(data.cardById.get(30081)!.unique?.fromLb, 2, 'Team Sirius unlocks at level 40');
+  assert.equal(must(data.cardById.get(30081), `data.cardById.get(30081)`).unique?.fromLb, 2, 'Team Sirius unlocks at level 40');
   assert.ok(taiki.unique?.text?.includes('bond gauge is at least 80'), "and GameTora's rendered text for it");
   for (const c of data.cards) if (c.unique?.effects.some((u) => u.type >= 100)) {
     assert.ok(c.unique.text, `${c.name} compound unique effect has its text`);
     assert.ok(!/^Unlocked at level/.test(c.unique.text), `${c.name}: the unlock line was kept instead of the effect`);
   }
-  assert.ok(data.cardById.get(30081)!.unique?.text?.startsWith('Gain Training Effectiveness (10)'), 'a level-40 unlock (Team Sirius) still gets the effect line');
-  assert.ok(!Object.keys(data.cardById.get(30085)!.effectsByLb[4]!).some((k) => k.startsWith('u')), 'a compound-only unique folds nothing');
-  const urara = data.charByCardId.get(105201)!;
+  assert.ok(must(data.cardById.get(30081), `data.cardById.get(30081)`).unique?.text?.startsWith('Gain Training Effectiveness (10)'), 'a level-40 unlock (Team Sirius) still gets the effect line');
+  assert.ok(!Object.keys(must(data.cardById.get(30085), `data.cardById.get(30085)`).effectsByLb[4]!).some((k) => k.startsWith('u')), 'a compound-only unique folds nothing');
+  const urara = must(data.charByCardId.get(105201), `data.charByCardId.get(105201)`);
   assert.equal(urara.goals.find((g) => g.races[0]?.name === 'Arima Kinen')?.required, 0, "Haru Urara's Arima Kinen is participation only");
   // decoding canary: Kitasan Black's third chain event hands out Professor of Curvature in both options
-  const kitasan = data.cardById.get(30028)!;
+  const kitasan = must(data.cardById.get(30028), `data.cardById.get(30028)`);
   assert.equal(kitasan.chainEvents.length, 3);
   assert.ok(kitasan.chainEvents[2]!.choices.every((ch) => ch.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331)));
 });
@@ -80,7 +81,7 @@ test('the fit script and the app add the same compound unique passives: the fixt
   assert.ok(fixture.rows.length >= 5 * 30, `${fixture.rows.length} rows`);
   const seen = new Set<number>();
   for (const row of fixture.rows) {
-    const card = data.cardById.get(row.cardId)!;
+    const card = must(data.cardById.get(row.cardId), `data.cardById.get(${row.cardId})`);
     assert.ok(card, `fixture card ${row.cardId}`);
     seen.add(card.id);
     const mine = uniqueExtras(card, row.lb, data.model);
