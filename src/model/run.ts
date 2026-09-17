@@ -5,7 +5,7 @@ import { startingAptitudes } from './pink-inherit.ts';
 import { evaluateParentGoal, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
 import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
-import { SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
+import { EXPLORATION_SAMPLES, SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, goalDeckKey, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
@@ -313,6 +313,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const found = searchGoalDeck({ owned: deckPool, borrows: borrowPool, ownedOrders: orders(baseRanking), borrowOrders: orders(borrowRanking),
       seeds: [initial.deck, ...(previous ? [previous] : [])], pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId,
       tolerance: settings.goalTieTolerance, budget: options.budget, evaluate: evaluateCandidate,
+      explore: (entries) => { const { score, statPower } = evaluateCandidate(entries, EXPLORATION_SAMPLES); return { score, statPower }; },
       screen: (entries) => { const { score, statPower } = evaluateCandidate(entries, SEARCH_RANK_SAMPLES); return { score, statPower }; },
       screenBudget: options.budget === undefined ? SCREENED_DECKS : options.budget * 8,
       onProgress: options.onProgress ? (progress) => options.onProgress!(progress.best.entries.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), summarize(progress)) : undefined,

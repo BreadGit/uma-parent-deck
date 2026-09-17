@@ -254,6 +254,7 @@ test('screening scores never replace fully evaluated scores or discard a stronge
     pinnedIds: [1], borrowFromAll: false, traineeId: null, size: 2, tolerance: 0, budget: 1, screenBudget: 128,
     seeds: [[owned[0]!, owned[1]!]],
     evaluate: (entries) => ({ score: score(actual(entries)), statPower: 0, value: null }),
+    explore: (entries) => ({ score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }),
     screen: (entries) => ({ score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }),
     onProgress: (result) => progress.push(result.best.score.probability),
   })!;
@@ -263,11 +264,36 @@ test('screening scores never replace fully evaluated scores or discard a stronge
   for (const c of found.candidates) assert.equal(c.score.probability, actual(c.entries));
 });
 
+test('local exploration fully evaluates only finalists and retains a stronger seed', () => {
+  const owned = Array.from({ length: 30 }, (_, i) => card(i + 1));
+  const ownedOrders = Array.from({ length: 6 }, (_, i) => [...owned.slice(i * 5), ...owned.slice(0, i * 5)]);
+  const actual = (entries: GoalDeckEntry[]) => entries.some((e) => e.card.id === 2) ? .8 : .1;
+  const evaluated: string[] = [];
+  const found = searchGoalDeck({ owned, borrows: [], ownedOrders, borrowOrders: [],
+    pinnedIds: [1], borrowFromAll: false, traineeId: null, size: 2, tolerance: 0, budget: 24,
+    seeds: [[owned[0]!, owned[1]!]],
+    evaluate: (entries) => {
+      evaluated.push(goalDeckKey(entries));
+      return { score: score(actual(entries)), statPower: 0, value: 'full' };
+    },
+    explore: (entries) => ({ score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }),
+  })!;
+  assert.ok(found.screened > found.evaluated, 'unpromising explored decks do not need a full evaluation');
+  assert.equal(new Set(evaluated).size, found.evaluated, 'each finalist is fully evaluated once');
+  assert.equal(found.best.score.probability, .8, 'the cheap estimate cannot evict the stronger seed');
+  for (const c of found.candidates) {
+    assert.equal(c.score.probability, actual(c.entries));
+    assert.equal(c.value, 'full');
+    assert.ok(found.legal(c.entries));
+  }
+});
+
 test('many owned cards with five fixed pins still use exhaustive search when only two decks are legal', () => {
   const owned = Array.from({ length: 30 }, (_, i) => card(i + 1)), borrows = [card(31), card(32)];
   const found = searchGoalDeck({ owned, borrows, ownedOrders: [owned], borrowOrders: [borrows],
     pinnedIds: [1, 2, 3, 4, 5], borrowFromAll: false, traineeId: null, tolerance: 0,
     evaluate: (entries) => ({ score: score(must(entries.find((e) => e.borrowed), `entries.find((e) => e.borrowed)`).card.id / 100), statPower: 0, value: null }),
+    explore: () => { throw new Error('Small legal spaces must fully evaluate every deck'); },
     screen: () => { throw new Error('Small legal spaces do not need screening'); },
   })!;
   assert.equal(found.evaluated, 2);

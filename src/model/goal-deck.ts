@@ -18,6 +18,8 @@ export interface GoalSearchOptions<T> {
   tolerance: number;
   evaluate: (entries: GoalDeckEntry[]) => { score: GoalScore; statPower: number; value: T };
   screen?: (entries: GoalDeckEntry[]) => { score: GoalScore; statPower: number };
+  /** Lower-cost local exploration. Only fully evaluated finalists enter the result. */
+  explore?: (entries: GoalDeckEntry[]) => { score: GoalScore; statPower: number };
   onProgress?: (result: GoalSearchResult<T>) => void;
   screenBudget?: number;
   budget?: number;
@@ -73,6 +75,21 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
     evaluated.set(key, value);
     return value;
   };
+  type ExploredDeck = Pick<GoalCandidate<T>, 'entries' | 'key' | 'score' | 'statPower'>;
+  const explored = new Map<string, ExploredDeck>();
+  const screenedKeys = new Set<string>();
+  const explore = (entries: GoalDeckEntry[]) => {
+    if (!options.explore) return evaluate(entries);
+    if (!legal(entries)) return;
+    const key = goalDeckKey(entries);
+    if (explored.has(key)) return explored.get(key)!;
+    if (explored.size >= budget) return;
+    const value = { entries, key, ...options.explore(entries) };
+    explored.set(key, value);
+    screenedKeys.add(key);
+    return value;
+  };
+  const visited: ReadonlyMap<string, ExploredDeck> = options.explore ? explored : evaluated;
   let exhaustive = false;
   const exhaustiveLimit = options.budget ?? 384;
   {
@@ -99,22 +116,22 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
     if (nodes <= 10000 && all.length <= exhaustiveLimit) { all.forEach((entries) => evaluate(entries, exhaustiveLimit)); exhaustive = true; }
   }
   if (!exhaustive) {
-    for (const seed of options.seeds ?? []) evaluate(seed);
+    for (const seed of options.seeds ?? []) { evaluate(seed); explore(seed); }
     for (const order of options.ownedOrders) {
       let added = 0;
       for (const b of options.borrowOrders.flat().concat(borrows).filter((e, i, a) => a.findIndex((x) => x.card.id === e.card.id) === i)) {
         const seed = fill(order, b);
-        if (legal(seed)) { evaluate(seed); if (++added === 2) break; }
+        if (legal(seed)) { explore(seed); if (++added === 2) break; }
       }
-      if (!borrows.length) evaluate(fill(order));
+      if (!borrows.length) explore(fill(order));
     }
-    if (!evaluated.size) evaluate(legalSeeds.find(legal)!);
+    if (!visited.size) explore(legalSeeds.find(legal)!);
     const shortlist = (orders: GoalDeckEntry[][], pool: GoalDeckEntry[]) => pool.length <= 16 ? pool : [...new Map([...Array.from({ length: 5 }, (_, i) => orders.flatMap((o) => o[i] ? [o[i]!] : [])).flat(), ...pool.filter((e) => pins.has(e.card.id))].map((e) => [e.card.id, e])).values()];
     const replacements = { owned: shortlist(options.ownedOrders, owned), borrow: shortlist(options.borrowOrders, borrows) };
     const expanded = new Set<string>();
-    for (let pass = 0; pass < 3 && evaluated.size < budget; pass++) {
-      const remaining = [...evaluated.values()].filter((c) => !expanded.has(c.key));
-      const beam: GoalCandidate<T>[] = [];
+    for (let pass = 0; pass < 3 && visited.size < budget; pass++) {
+      const remaining = [...visited.values()].filter((c) => !expanded.has(c.key));
+      const beam: ExploredDeck[] = [];
       for (let i = 0; i < 2 && remaining.length; i++) {
         const best = chooseGoal(remaining, options.tolerance); beam.push(best); remaining.splice(remaining.indexOf(best), 1);
       }
@@ -124,9 +141,9 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
       const width = Math.max(replacements.owned.length, replacements.borrow.length);
       const roundLimit = Math.floor(budget * (pass + 1) / 3);
       neighbors: for (let n = 0; n < width; n++) for (let slot = 0; slot < size; slot++) for (const current of beam) {
-        if (evaluated.size >= roundLimit) break neighbors;
+        if (visited.size >= roundLimit) break neighbors;
         const old = current.entries[slot]!, replacement = (old.borrowed ? replacements.borrow : replacements.owned)[n];
-        if (replacement) evaluate(current.entries.map((e, i) => i === slot ? { ...replacement, borrowed: old.borrowed } : e));
+        if (replacement) explore(current.entries.map((e, i) => i === slot ? { ...replacement, borrowed: old.borrowed } : e));
       }
       // Swapping which card is borrowed can upgrade an owned LB without changing the six characters.
       for (const current of beam) {
@@ -134,22 +151,27 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
         if (!b) continue;
         for (const e of current.entries.filter((e) => !e.borrowed)) {
           const up = borrowById.get(e.card.id), own = ownById.get(b.card.id);
-          if (up && own) evaluate(current.entries.map((x) => x === e ? { ...up, borrowed: true } : x === b ? { ...own, borrowed: false } : x));
+          if (up && own) explore(current.entries.map((x) => x === e ? { ...up, borrowed: true } : x === b ? { ...own, borrowed: false } : x));
         }
       }
     }
+    const remaining = [...explored.values()];
+    for (let i = 0; i < SEARCH_FINALISTS && remaining.length; i++) {
+      const best = chooseGoal(remaining, options.tolerance);
+      evaluate(best.entries);
+      remaining.splice(remaining.indexOf(best), 1);
+    }
   }
-  let screened = 0;
   const result = (): GoalSearchResult<T> => {
     const candidates = [...evaluated.values()];
-    return { best: chooseGoal(candidates, options.tolerance), candidates, exhaustive, evaluated: candidates.length, screened };
+    return { best: chooseGoal(candidates, options.tolerance), candidates, exhaustive, evaluated: candidates.length, screened: screenedKeys.size };
   };
   if (!exhaustive && options.screen) {
     const initial = result();
     options.onProgress?.(initial);
-    const exploration = screenGoalDecks({ ...options, owned, borrows, legal, fill, key: goalDeckKey, screen: options.screen,
+    const exploration = screenGoalDecks({ ...options, owned, borrows, legal, fill, key: goalDeckKey,
+      screen: (entries) => { screenedKeys.add(goalDeckKey(entries)); return options.screen!(entries); },
       seeds: [...(options.seeds ?? []), initial.best.entries], budget: options.screenBudget ?? SCREENED_DECKS });
-    screened = exploration.screened;
     for (const entries of exploration.finalists) evaluate(entries, budget + SEARCH_FINALISTS);
   }
   return { ...result(), legal };
