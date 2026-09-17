@@ -273,8 +273,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const prediction = predictRunDeck(entries, input, ctx, apt, sum.expectedLosses, sampleCount);
     const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.rank.skillPts, skillSd: Math.sqrt(settings.skillScoreSd ** 2 + prediction.purchases.variance) };
     const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
-    const sources = goalSources(goal, deckResult.coverage, ctx);
-    sources.forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
+    const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
+    const sources = goalSources(goal, deckResult.coverage, ctx, forms);
     prediction.rank.pSS = basis.pSS;
     const score = scoreGoal(goal, sources, basis, pink, settings);
     return { score, statPower: deckResult.deck.reduce((n, d) => n + d.statPower, 0), value: { ctx, fans, deckResult, prediction, goalStats, basis, sources, candidates, ordered } };

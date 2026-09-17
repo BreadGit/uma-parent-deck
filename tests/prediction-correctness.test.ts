@@ -68,6 +68,31 @@ test('large purchase samples balance every independent source, including late di
   assert.equal(result.forms.components[0]!.distribution.approximate, true);
 });
 
+test('sampled purchases preserve linked forms at interleaved indices and fixed outcomes', () => {
+  const targets = Array.from({ length: 9 }, (_, i) => ({ ...focus, id: i + 1 }));
+  const forms = { count: targets.length, components: [
+    { indices: [0, 4], distribution: { states: new Map([['30', .5], ['03', .5]]), approximate: false } },
+    { indices: [8, 2], distribution: { states: new Map([['31', 1]]), approximate: false } },
+    { indices: [1, 6], distribution: { states: new Map([['10', .5], ['01', .5]]), approximate: false } },
+    { indices: [3, 7], distribution: { states: new Map([['13', .5], ['31', .5]]), approximate: false } },
+    { indices: [5], distribution: { states: new Map([['0', 1]]), approximate: false } },
+  ] };
+  const before = structuredClone(forms);
+  // Eight combinations exceed the four-sample limit, so this exercises sampled assembly.
+  const result = budgetForms(targets, forms, 100000, [], apt, 0, 4);
+  for (const state of result.forms.components[0]!.distribution.states.keys()) {
+    assert.ok(['30', '03'].includes(state[0]! + state[4]!), 'exclusive gold rewards stay exclusive');
+    assert.equal(state[8]! + state[2]! + state[5]!, '310', 'fixed outcomes survive every sample');
+    assert.ok(['10', '01'].includes(state[1]! + state[6]!));
+    assert.ok(['13', '31'].includes(state[3]! + state[7]!));
+  }
+  assert.equal(result.score, 3 * 394 + 3 * 129);
+  assert.equal(result.spent, 3 * 280 + 3 * 140);
+  assert.equal(result.variance, 0);
+  assert.deepEqual(forms, before, 'sampling does not mutate shared source outcomes');
+  assert.deepEqual(budgetForms(targets, forms, 100000, [], apt, 0, 4), result, 'sampling remains deterministic');
+});
+
 test('reported Fuji build counts 22 races and shares one probability basis', async () => {
   const shared = await decodeShare('3dXZHJbUMxDEQbIoKZ0fZdi6AOjNzSf0BKtj99GjzuyyTQQPv9ez5tqphsThjXWjanwA4aTIZlUx6sDwK1yfhGqt8RYEal4E7eUDXlUl-Va8J2SnFX5iOhkL0jY8vYM5aMpy_v9yhWrFn_XETH4DHNmtGzqz2MNWy-qJv60Xr02opYa9Jq-Bz6y-_5xZus14_2DGfycwt_RQlj8XGcQlrR3sN_LEhXmAcjcyBIw0W6PIQlCLUF-RvO-b1VVCV2iLx4DIWfsf4B');
   const selection = [[30052, 2], [20031, 4], [20005, 4], [30107, 4], [30017, 0], [30078, 4]].map(([id, lb], i) => ({ id: id!, lb: lb!, borrowed: i === 5 }));

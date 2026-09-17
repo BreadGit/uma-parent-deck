@@ -38,10 +38,11 @@ function purchasePolicy(targets: Target[], budget: number, priority: number[], a
   const bases = ordered.map((i) => options.find((o) => o.i === i && o.form === 1));
   const upgrades = ordered.map((i) => options.filter((o) => o.i === i && o.form > 1).reverse());
   return (available: string) => {
+    const availableForms = Array.from(available, Number);
     const bought = targets.map(() => 0), paid = targets.map(() => 0), points = targets.map(() => 0);
     let remaining = Math.max(0, Math.floor(budget));
-    const allowed = options.filter((o) => o.form <= Number(available[o.i]));
-    const canBuy = (o: typeof options[number]) => o.form <= Number(available[o.i]) && o.form > bought[o.i]! && o.total - paid[o.i]! <= remaining;
+    const allowed = options.filter((o) => o.form <= availableForms[o.i]!);
+    const canBuy = (o: typeof options[number]) => o.form <= availableForms[o.i]! && o.form > bought[o.i]! && o.total - paid[o.i]! <= remaining;
     const buy = (o: typeof options[number]) => {
       remaining -= o.total - paid[o.i]!; paid[o.i] = o.total; points[o.i] = o.points; bought[o.i] = o.form;
     };
@@ -95,15 +96,24 @@ export function budgetForms(targets: Target[], available: FormDistribution, budg
   } else {
     approximate = true;
     outcomes = new Map();
-    const components = available.components.map((c) => ({ ...c, states: [...c.distribution.states], quantiles: quantiles(samples, c.indices.map((i) => targets[i]!.id)) }));
+    const fixed = Array<string>(targets.length).fill('0');
+    const components = available.components.flatMap((c) => {
+      const states = [...c.distribution.states];
+      if (states.length === 1) {
+        c.indices.forEach((i, j) => { fixed[i] = states[0]![0][j]!; });
+        return [];
+      }
+      return [{ indices: c.indices, states, quantiles: quantiles(samples, c.indices.map((i) => targets[i]!.id)) }];
+    });
     for (let n = 1; n <= samples; n++) {
-      let state = '0'.repeat(targets.length);
+      const sampled = fixed.slice();
       for (const c of components) {
         const q = c.quantiles[n - 1]!;
         let cumulative = 0, selected = c.states[c.states.length - 1]![0];
         for (const [part, mass] of c.states) { cumulative += mass; if (q < cumulative) { selected = part; break; } }
-        state = merge(state, selected, c.indices);
+        c.indices.forEach((i, j) => { sampled[i] = selected[j]!; });
       }
+      const state = sampled.join('');
       outcomes.set(state, (outcomes.get(state) ?? 0) + 1 / samples);
     }
   }
