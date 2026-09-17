@@ -14,17 +14,28 @@ const APT_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 
 const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 const skillExists = (id: number) => data.skillById.has(id);
 
+// The vendored cards these tests pin, and the values read off GameTora for them. After a data refresh changes one of
+// these cards, update this table rather than the tests below.
+const PINNED = {
+  lightHello: 30052, specialWeekR: 10001, digitalSr: 20005, taikiShuttle: 30053, teamSirius: 30081, compoundOnly: 30085,
+  kitasanBlack: 30028, haruUraraCard: 105201,
+};
+const INTERPOLATION: { card: number; effect: number; byLb: number[]; note: string }[] = [
+  { card: PINNED.lightHello, effect: 16, byLb: [5, 6, 8, 10, 10], note: 'interpolated between the listed anchors' },
+  { card: PINNED.lightHello, effect: 15, byLb: [1, 2, 3, 5, 5], note: 'interpolated between the listed anchors' },
+  { card: PINNED.lightHello, effect: 8, byLb: [0, 5, 10, 10, 10], note: 'training effectiveness unlocks at level 35' },
+  { card: PINNED.lightHello, effect: 12, byLb: [25, 26, 27, 28, 30], note: 'floor each interpolation' },
+  { card: PINNED.lightHello, effect: 9, byLb: [0, 0, 0, 15, 30], note: 'initial speed unlocks at level 45' },
+  { card: PINNED.specialWeekR, effect: 1, byLb: [10, 11, 13, 15, 15], note: 'R level caps and trailing plateau' },
+  { card: PINNED.digitalSr, effect: 16, byLb: [10, 11, 12, 13, 15], note: 'SR level caps' },
+];
+const pinned = (id: number) => must(data.cardById.get(id), `pinned card ${id}`);
+
 test('support effects interpolate with floor rounding between anchors, without unlocking early', () => {
-  const hello = must(data.cardById.get(30052), `data.cardById.get(30052)`);
-  assert.deepEqual(hello.effectsByLb.map((e) => e[16]), [5, 6, 8, 10, 10]);
-  assert.deepEqual(hello.effectsByLb.map((e) => e[15]), [1, 2, 3, 5, 5]);
-  assert.deepEqual(hello.effectsByLb.map((e) => e[8] ?? 0), [0, 5, 10, 10, 10], 'training effectiveness unlocks at level 35');
-  assert.deepEqual(hello.effectsByLb.map((e) => e[12]), [25, 26, 27, 28, 30], 'floor each interpolation');
-  assert.deepEqual(hello.effectsByLb.map((e) => e[9] ?? 0), [0, 0, 0, 15, 30], 'initial speed unlocks at level 45');
-  const special = must(data.cardById.get(10001), `data.cardById.get(10001)`);
-  assert.deepEqual(special.effectsByLb.map((e) => e[1]), [10, 11, 13, 15, 15], 'R level caps and trailing plateau');
-  const digital = must(data.cardById.get(20005), `data.cardById.get(20005)`);
-  assert.deepEqual(digital.effectsByLb.map((e) => e[16]), [10, 11, 12, 13, 15], 'SR level caps');
+  for (const row of INTERPOLATION) {
+    const card = pinned(row.card);
+    assert.deepEqual(card.effectsByLb.map((e) => e[row.effect] ?? 0), row.byLb, `${card.name} effect ${row.effect}: ${row.note}`);
+  }
 });
 
 test('cards carry the fields the stat and spark models read', () => {
@@ -57,21 +68,21 @@ test('cards carry the fields the stat and spark models read', () => {
       assert.equal(uKeys.length > 0, lb >= c.unique!.fromLb && basic.size > 0, `${c.name} basic unique at LB${lb}`);
     });
   }
-  const taiki = must(data.cardById.get(30053), `data.cardById.get(30053)`);
+  const taiki = pinned(PINNED.taikiShuttle);
   assert.ok(taiki.unique?.effects.some((u) => u.type === 101 && u.value_1 != null), 'Taiki Shuttle keeps the compound payload');
   assert.equal(taiki.unique?.fromLb, 0, 'an SSR at LB0 is level 30, the unlock level');
-  assert.equal(must(data.cardById.get(30081), `data.cardById.get(30081)`).unique?.fromLb, 2, 'Team Sirius unlocks at level 40');
+  assert.equal(pinned(PINNED.teamSirius).unique?.fromLb, 2, 'Team Sirius unlocks at level 40');
   assert.ok(taiki.unique?.text?.includes('bond gauge is at least 80'), "and GameTora's rendered text for it");
   for (const c of data.cards) if (c.unique?.effects.some((u) => u.type >= 100)) {
     assert.ok(c.unique.text, `${c.name} compound unique effect has its text`);
     assert.ok(!/^Unlocked at level/.test(c.unique.text), `${c.name}: the unlock line was kept instead of the effect`);
   }
-  assert.ok(must(data.cardById.get(30081), `data.cardById.get(30081)`).unique?.text?.startsWith('Gain Training Effectiveness (10)'), 'a level-40 unlock (Team Sirius) still gets the effect line');
-  assert.ok(!Object.keys(must(data.cardById.get(30085), `data.cardById.get(30085)`).effectsByLb[4]!).some((k) => k.startsWith('u')), 'a compound-only unique folds nothing');
-  const urara = must(data.charByCardId.get(105201), `data.charByCardId.get(105201)`);
+  assert.ok(pinned(PINNED.teamSirius).unique?.text?.startsWith('Gain Training Effectiveness (10)'), 'a level-40 unlock (Team Sirius) still gets the effect line');
+  assert.ok(!Object.keys(pinned(PINNED.compoundOnly).effectsByLb[4]!).some((k) => k.startsWith('u')), 'a compound-only unique folds nothing');
+  const urara = must(data.charByCardId.get(PINNED.haruUraraCard), `the character of pinned card ${PINNED.haruUraraCard}`);
   assert.equal(urara.goals.find((g) => g.races[0]?.name === 'Arima Kinen')?.required, 0, "Haru Urara's Arima Kinen is participation only");
   // decoding canary: Kitasan Black's third chain event hands out Professor of Curvature in both options
-  const kitasan = must(data.cardById.get(30028), `data.cardById.get(30028)`);
+  const kitasan = pinned(PINNED.kitasanBlack);
   assert.equal(kitasan.chainEvents.length, 3);
   assert.ok(kitasan.chainEvents[2]!.choices.every((ch) => ch.outcomes.flat().some((r) => r.t === 'sk' && r.d === 200331)));
 });
