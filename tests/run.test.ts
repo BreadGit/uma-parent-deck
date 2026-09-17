@@ -6,7 +6,7 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
 import { applyUserOrder, derivePriority, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
-import { rankEstimate, uniqueSkillLevel } from '../src/model/rank.ts';
+import { rankEstimate, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
 import { displayedStat } from '../src/model/stat-outcomes.ts';
 import { SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
@@ -45,6 +45,9 @@ test('rank estimate: the unique skill at its level adds to the budgeted purchase
   assert.equal(low.uniquePts, 510, 'a 3★ trainee at unique Lv3');
   assert.equal(low.score - noTrainee.score, 510, 'innate purchases are already in the budget and add no free rating');
   assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6, data, settings).uniquePts, 1020);
+  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6, data, settings).skillPts, skillPointsOf(300, sw, 5, 6), 'the search scores skill points the way the rank reports them');
+  assert.equal(skillPointsOf(300, sw, 5, 6), 1320);
+  assert.equal(skillPointsOf(300, null, 5, 6), 300);
   assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 2, 2, data, settings).uniquePts, 240, 'a 2★ trainee scores 120 per level');
   assert.equal(low.ssMin, must(data.ranks.find((r) => r.name === 'SS'), `data.ranks.find((r) => r.name === 'SS')`).min);
 });

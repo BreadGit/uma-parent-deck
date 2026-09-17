@@ -99,13 +99,18 @@ export function thresholdFor(name: string, ranks: Data['ranks']): number {
 
 export interface RankEstimate { score: number; sd: number; pSS: number; ssMin: number; uniqueLevel: number; uniquePts: number; statPts: number; skillPts: number }
 
+/** Skill points in the rank score: budgeted purchases plus the trainee's unique skill at its level. */
+export function skillPointsOf(purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number): number {
+  return purchasedScore + (trainee ? uniqueSkillScore(stars, uniqueLevel) : 0);
+}
+
 /** Rank moments from displayed stats and an already budgeted purchase rating. */
 export function rankEstimate(finalMean: number[], sd: number[], purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number, data: Data, settings: Settings, purchaseVariance = 0, masses: readonly (readonly StatMass[])[] = finalMean.map((mean, i) => statMasses(mean, sd[i] ?? 0))): RankEstimate {
   const ratingMeans = masses.map((xs) => xs.reduce((sum, x) => sum + statScore(x.value) * x.probability, 0));
   const statPts = ratingMeans.reduce((sum, v) => sum + v, 0);
   const statVariance = masses.reduce((sum, xs, i) => sum + xs.reduce((v, x) => v + (statScore(x.value) - ratingMeans[i]!) ** 2 * x.probability, 0), 0);
   const uniquePts = trainee ? uniqueSkillScore(stars, uniqueLevel) : 0;
-  const skillPts = purchasedScore + uniquePts;
+  const skillPts = skillPointsOf(purchasedScore, trainee, stars, uniqueLevel);
   const score = statPts + skillPts;
   const sdScore = Math.sqrt(statVariance + purchaseVariance + settings.skillScoreSd ** 2);
   const ssMin = thresholdFor('SS', data.ranks);

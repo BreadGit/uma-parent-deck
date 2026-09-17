@@ -11,7 +11,7 @@ import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type L
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
-import { rankEstimate, thresholdFor, uniqueSkillLevel, uniqueSkillScore, type RankEstimate } from './rank.ts';
+import { rankEstimate, skillPointsOf, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { displayedStat, statMasses, statMoments } from './stat-outcomes.ts';
 import { estimatePurchases, type Purchases } from './skill-purchases.ts';
 import { projectForms } from './goal-skills.ts';
@@ -213,7 +213,7 @@ function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, c
   const purchases = estimatePurchases(deck, ctx, pred.sp, priority, apt, Math.min(sampleCount, 512));
   // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
   const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
-  const skillPoints = purchases.score + (trainee ? uniqueSkillScore(stars, uniqueLevel) : 0);
+  const skillPoints = skillPointsOf(purchases.score, trainee, stars, uniqueLevel);
   return { pred, parentGains, inherited, rawFinalMean, rawFinalSd, purchases, statCaps, uniqueLevel, skillPoints };
 }
 

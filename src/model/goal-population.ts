@@ -96,5 +96,5 @@ export function screenGoalDecks(options: PopulationOptions) {
     finalists.push(best.entries);
     remaining.splice(remaining.indexOf(best), 1);
   }
-  return { finalists, screened: screened.size };
+  return { finalists };
 }

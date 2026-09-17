@@ -249,17 +249,18 @@ test('an excluded required skill keeps its warning when the deck has no source f
 test('screening scores never replace fully evaluated scores or discard a stronger incumbent', () => {
   const owned = Array.from({ length: 30 }, (_, i) => card(i + 1));
   const actual = (entries: GoalDeckEntry[]) => entries.some((e) => e.card.id === 2) ? .8 : .1;
-  const progress: number[] = [];
+  const progress: number[] = [], cheap = new Set<string>();
   const found = searchGoalDeck({ owned, borrows: [], ownedOrders: [owned], borrowOrders: [],
     pinnedIds: [1], borrowFromAll: false, traineeId: null, size: 2, tolerance: 0, budget: 1, screenBudget: 128,
     seeds: [[owned[0]!, owned[1]!]],
     evaluate: (entries) => ({ score: score(actual(entries)), statPower: 0, value: null }),
-    explore: (entries) => ({ score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }),
-    screen: (entries) => ({ score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }),
+    explore: (entries) => { cheap.add(goalDeckKey(entries)); return { score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }; },
+    screen: (entries) => { cheap.add(goalDeckKey(entries)); return { score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }; },
     onProgress: (result) => progress.push(result.best.score.probability),
   })!;
   assert.deepEqual(progress, [.8]);
   assert.ok(found.screened > 1, 'screening ran over the wider pool');
+  assert.equal(found.screened, cheap.size, 'screened counts each cheaply estimated deck once across both tiers');
   assert.equal(found.best.score.probability, .8);
   for (const c of found.candidates) assert.equal(c.score.probability, actual(c.entries));
 });
@@ -268,7 +269,7 @@ test('local exploration fully evaluates only finalists and retains a stronger se
   const owned = Array.from({ length: 30 }, (_, i) => card(i + 1));
   const ownedOrders = Array.from({ length: 6 }, (_, i) => [...owned.slice(i * 5), ...owned.slice(0, i * 5)]);
   const actual = (entries: GoalDeckEntry[]) => entries.some((e) => e.card.id === 2) ? .8 : .1;
-  const evaluated: string[] = [];
+  const evaluated: string[] = [], explored = new Set<string>();
   const found = searchGoalDeck({ owned, borrows: [], ownedOrders, borrowOrders: [],
     pinnedIds: [1], borrowFromAll: false, traineeId: null, size: 2, tolerance: 0, budget: 24,
     seeds: [[owned[0]!, owned[1]!]],
@@ -276,9 +277,10 @@ test('local exploration fully evaluates only finalists and retains a stronger se
       evaluated.push(goalDeckKey(entries));
       return { score: score(actual(entries)), statPower: 0, value: 'full' };
     },
-    explore: (entries) => ({ score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }),
+    explore: (entries) => { explored.add(goalDeckKey(entries)); return { score: score(actual(entries) === .8 ? .01 : .99), statPower: 0 }; },
   })!;
   assert.ok(found.screened > found.evaluated, 'unpromising explored decks do not need a full evaluation');
+  assert.equal(found.screened, explored.size, 'without population screening, screened is the exploration count');
   assert.equal(new Set(evaluated).size, found.evaluated, 'each finalist is fully evaluated once');
   assert.equal(found.best.score.probability, .8, 'the cheap estimate cannot evict the stronger seed');
   for (const c of found.candidates) {

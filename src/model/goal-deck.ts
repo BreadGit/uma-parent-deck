@@ -5,6 +5,10 @@ import { screenGoalDecks, SCREENED_DECKS, SEARCH_FINALISTS } from './goal-popula
 
 export interface GoalDeckEntry { card: Card; lb: number; borrowed?: boolean }
 export interface GoalCandidate<T> { entries: GoalDeckEntry[]; key: string; score: GoalScore; statPower: number; value: T }
+/**
+ * `evaluated` counts decks scored at full fidelity. `screened` counts distinct decks given a cheaper estimate by local
+ * exploration or population screening; a finalist evaluated afterwards is in both counts.
+ */
 export interface GoalSearchResult<T> { best: GoalCandidate<T>; candidates: GoalCandidate<T>[]; exhaustive: boolean; evaluated: number; screened: number }
 export interface GoalSearchOptions<T> {
   owned: GoalDeckEntry[];
