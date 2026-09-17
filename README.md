@@ -125,6 +125,7 @@ for terminology. Game constants live in
 npm install
 npm run dev        # http://localhost:5173, also reachable on the LAN at http://<this machine's IP>:5173
 npm test           # model tests (node --test); the analysis checks need python3 with numpy and openpyxl, and skip without them
+npm run test:quick # the same without the Python analysis checks, for the inner loop
 npm run smoke      # headless Chromium walk-through against the dev server, writes docs/screenshot.png
 npm run test:e2e   # smoke, browser regressions, and scroll-anchor checks
 npm run build

@@ -7,6 +7,7 @@ browser checks. For changes to calculations, state, data loading, or shared appl
 
 The analysis tests inside `npm test` run Python unittest modules and need `python3` with numpy and openpyxl.
 Without them those tests skip with a notice in the summary rather than failing; treat a skip as untested, not passing.
+`npm run test:quick` skips them on purpose for the inner loop; run `npm test` before reporting work complete.
 
 The smoke test drives headless Chromium through the main flows and checks for horizontal overflow at
 390, 768, 1280, 1440, 1680 and 1920 px in both themes. Reserve the browser regression suite for large

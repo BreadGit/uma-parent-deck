@@ -19,6 +19,7 @@ function pythonUnavailable(): string | null {
 
 /** Runs one `analysis/test_*.py` module and fails the node test with its output when it fails. */
 export function runAnalysisTests(t: TestContext, pattern: string) {
+  if (process.env.SKIP_ANALYSIS) return t.skip('SKIP_ANALYSIS is set (npm run test:quick)');
   const reason = pythonUnavailable();
   if (reason) return t.skip(reason);
   const result = spawnSync('python3', ['-m', 'unittest', 'discover', '-s', 'analysis', '-p', pattern], { encoding: 'utf8' });
