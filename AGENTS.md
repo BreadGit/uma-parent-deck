@@ -5,6 +5,9 @@ and diff. For isolated UI copy or styling edits, inspect the affected UI and run
 browser checks. For changes to calculations, state, data loading, or shared application code, run
 `npx tsc --noEmit`, `npm test`, and `npm run smoke`. Verify the requested behavior as well as test results.
 
+The analysis tests inside `npm test` run Python unittest modules and need `python3` with numpy and openpyxl.
+Without them those tests skip with a notice in the summary rather than failing; treat a skip as untested, not passing.
+
 The smoke test drives headless Chromium through the main flows and checks for horizontal overflow at
 390, 768, 1280, 1440, 1680 and 1920 px in both themes. Reserve the browser regression suite for large
 changes or code review of a branch about to merge. Large changes include work spanning several user

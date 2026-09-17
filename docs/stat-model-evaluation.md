@@ -3,7 +3,8 @@
 `npm run fit` fits the card formulas and compares additional support attributes against the
 previous formulas. It writes the retained coefficients and evaluation results to
 `data/stat-model.json`. It requires Python with NumPy and openpyxl. The evaluation tests run
-with `python3 -m unittest discover -s analysis -p test_card_regression.py` and as part of `npm test`.
+with `python3 -m unittest discover -s analysis -p test_card_regression.py` and as part of `npm test`,
+where they skip with a notice when Python or those packages are missing.
 
 The formulas estimate contributions at the reference 28 races. Existing race-count and focus
 scaling applies afterward. This change does not simulate turns or change the race-count scaling.

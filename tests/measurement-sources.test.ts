@@ -1,13 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import modelJson from '../data/stat-model.json' with { type: 'json' };
+import { runAnalysisTests } from './python.ts';
 
-test('measurement extraction matches complete source tables and preserves eligibility boundaries', () => {
-  const result = spawnSync('python3', ['-m', 'unittest', 'discover', '-s', 'analysis', '-p', 'test_measurement_sources.py'], { encoding: 'utf8' });
-  assert.equal(result.status, 0, result.error?.message ?? `${result.stdout}\n${result.stderr}`);
+test('measurement extraction matches complete source tables and preserves eligibility boundaries', (t) => {
+  runAnalysisTests(t, 'test_measurement_sources.py');
 });
 
 test('the fitted model matches its saved measurement and card inputs', () => {
