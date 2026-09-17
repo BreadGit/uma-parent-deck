@@ -249,7 +249,7 @@ export const COPY = {
     showUnowned: 'Show not owned',
     sortHint: 'click a header to sort',
     targetTip: 'Sorted by the sum of Required target chances, then priority-weighted Preferred target chances, then Total stat gain. Each percentage is this card\'s own chance at rank SS. See "How cards are scored" below.',
-    basisTip: (reference: number, selected: number) => `Where each card's stat and SP estimates come from: community results at the shown limit break, an observation adjusted from a nearby limit break, or the formula alone. Hover or focus a label for the source and the effects the formula leaves out. The model uses ${reference} races as its reference, then scales card stats and SP to your ${selected}-race schedule; the training focus adjusts stats only.`,
+    basisTip: (reference: number, selected: number) => `Where each card's stat and SP estimates come from: community results at the shown limit break, an observation adjusted from a nearby limit break, or the formula alone. Each label's info icon gives the source and the effects the formula leaves out. The model uses ${reference} races as its reference, then scales card stats and SP to your ${selected}-race schedule; the training focus adjusts stats only.`,
     traineeCard: "trainee's card",
     aboutTitle: 'How cards are scored',
     about: [

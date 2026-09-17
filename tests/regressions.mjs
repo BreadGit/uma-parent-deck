@@ -64,9 +64,10 @@ const openAgenda = (page) => page.click('details[data-agenda] > summary');
 test('Basis labels distinguish observations, adjusted observations and model estimates without growing the row', async (t) => {
   const page = await editor(t, defaultState(data));
   const observed = page.locator('[data-basis="30028"]');
+  const basisTip = (id) => page.locator(`[data-basis="${id}"] .tip`).getAttribute('data-tip');
   const rowHeight = () => observed.locator('xpath=ancestor::tr').boundingBox().then((box) => box.height);
-  assert.equal(await observed.innerText(), 'Observed · LB4');
-  await observed.focus();
+  assert.equal(await observed.locator('[data-basis-label]').innerText(), 'Observed · LB4');
+  await observed.locator('.tip').focus();
   const tooltip = page.locator('#tooltip.show');
   assert.match(await tooltip.innerText(), /community results at LB4 from at least 10 logged runs/);
   assert.match(await tooltip.innerText(), /Not separately modelled: .*Race Bonus \(stats, SP\)/);
@@ -75,13 +76,13 @@ test('Basis labels distinguish observations, adjusted observations and model est
   await assertFieldsMatchState(page, 'after focusing an observed Basis label');
 
   await page.locator('.ranking-table [data-lb="30028"]').selectOption('2');
-  assert.equal(await observed.innerText(), 'Adjusted · from LB3');
-  assert.match(await observed.getAttribute('data-tip'), /Estimates LB2.*between LB3 and LB2/);
+  assert.equal(await observed.locator('[data-basis-label]').innerText(), 'Adjusted · from LB3');
+  assert.match(await basisTip(30028), /Estimates LB2.*between LB3 and LB2/);
   await assertFieldsMatchState(page, 'after changing the Basis observation limit break');
 
   const model = page.locator('[data-basis="30146"]');
-  assert.equal(await model.innerText(), 'Model estimate');
-  const modelTip = await model.getAttribute('data-tip');
+  assert.equal(await model.locator('[data-basis-label]').innerText(), 'Model estimate');
+  const modelTip = await basisTip(30146);
   assert.match(modelTip, /No qualifying recorded results/);
   assert.match(modelTip, /Not in formula: .*Race Bonus \(stats, SP\)/);
   assert.match(modelTip, /Team effect estimated.*: Unique effect "All support cards gain Initial Friendship Gauge \(5\)" \(stats, SP\)/);
@@ -89,8 +90,8 @@ test('Basis labels distinguish observations, adjusted observations and model est
 
   const textOnly = page.locator('[data-basis="30080"]');
   assert.equal(await textOnly.locator('[data-formula-coverage]').innerText(), 'Not evaluated');
-  assert.match(await textOnly.getAttribute('data-tip'), /Not evaluated: Unique effect "Sasami Anshinzawa random events are more likely to occur"/);
-  await textOnly.click();
+  assert.match(await basisTip(30080), /Not evaluated: Unique effect "Sasami Anshinzawa random events are more likely to occur"/);
+  await textOnly.locator('.tip').click();
   assert.match(await tooltip.innerText(), /Sasami Anshinzawa/);
   assert.ok(await rowHeight() < 60, 'a pinned Basis tip does not change the row height');
   await assertFieldsMatchState(page, 'after pinning the Basis tip of an imported text-only unique');
@@ -104,14 +105,14 @@ test('effect warnings respect unique unlocks and explain observed deck effects o
   const page = await fresh(t, saved, { held: true, touch: true });
   await page.setViewportSize({ width: 390, height: 900 });
   const basis = page.locator('[data-basis="30088"]');
-  assert.doesNotMatch(await basis.getAttribute('data-tip'), /Unique effect/, 'locked unique is not listed');
-  await basis.tap();
+  assert.doesNotMatch(await basis.locator('.tip').getAttribute('data-tip'), /Unique effect/, 'locked unique is not listed');
+  await basis.locator('.tip').tap();
   assert.match(await page.locator('#tooltip.show').innerText(), /Not separately modelled/);
   await assertFieldsMatchState(page, 'after pinning a Basis tip on mobile');
 
   await page.locator('.ranking-table [data-lb="30088"]').selectOption('4');
-  assert.equal(await basis.innerText(), 'Observed · LB4');
-  assert.match(await basis.getAttribute('data-tip'), /Fixed at the recorded deck conditions: Unique effect "If there are at least 4 different types/);
+  assert.equal(await basis.locator('[data-basis-label]').innerText(), 'Observed · LB4');
+  assert.match(await basis.locator('.tip').getAttribute('data-tip'), /Fixed at the recorded deck conditions: Unique effect "If there are at least 4 different types/);
   await assertFieldsMatchState(page, 'after unlocking an observed deck effect');
 
   const limitations = page.locator('[data-estimate-limitations]');
@@ -131,8 +132,8 @@ test('Light Hello uses repaired community measurements and separates formula omi
   saved.run.pinnedIds = [30052];
   const page = await editor(t, saved);
   const basis = page.locator('[data-basis="30052"]');
-  assert.equal(await basis.innerText(), 'Observed · LB4');
-  const measured = await basis.getAttribute('data-tip');
+  assert.equal(await basis.locator('[data-basis-label]').innerText(), 'Observed · LB4');
+  const measured = await basis.locator('.tip').getAttribute('data-tip');
   assert.match(measured, /community results at LB4 from at least 50 logged runs/);
   assert.match(measured, /Not separately modelled: .*Unique effect "Gain Energy Cost Reduction \(30\)/);
   assert.doesNotMatch(measured, /Not in formula/, 'a recorded contribution already includes its omitted effects');
@@ -149,8 +150,8 @@ test('Light Hello uses repaired community measurements and separates formula omi
   await assertFieldsMatchState(page, 'after reading Light Hello\'s formula limitations');
 
   await page.locator('.ranking-table [data-lb="30052"]').selectOption('0');
-  assert.equal(await basis.innerText(), 'Adjusted · from LB1');
-  assert.match(await basis.getAttribute('data-tip'), /Not separately modelled/);
+  assert.equal(await basis.locator('[data-basis-label]').innerText(), 'Adjusted · from LB1');
+  assert.match(await basis.locator('.tip').getAttribute('data-tip'), /Not separately modelled/);
   await assertFieldsMatchState(page, 'after adjusting Light Hello from a measured limit break');
 });
 

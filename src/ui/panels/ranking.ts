@@ -16,12 +16,12 @@ import { cardThumb, cardUrl, num, probability, skillName, typeIcon } from '../fo
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
-// The Basis label keeps the row one line tall: the per-card facts live in its tooltip (hover, focus, or tap to pin),
-// and the rules shared by every card are in the column header tip and the panel notes.
+// The Basis label keeps the row one line tall: the per-card facts live in the info icon's tooltip, like every other
+// tip on the page, and the rules shared by every card are in the column header tip and the panel notes.
 function basis(c: RunPlan, x: CardScore) {
   const effects = cardEffectCoverage(x.card, x.lb, data.model, { fansBefore: c.ctx.fansBefore });
   const flag = coverageFlag(effects);
-  return html`<span class="basis-label" tabindex="0" data-basis=${x.card.id} data-tip=${basisTip(x.card, x.lb, x.source, effects)}>${basisLabel(x.card, x.lb, x.source)}${flag ? html` <span class="tag warn" data-formula-coverage>${flag}</span>` : nothing}</span>`;
+  return html`<span class="basis-label" data-basis=${x.card.id}><span data-basis-label>${basisLabel(x.card, x.lb, x.source)}</span>${flag ? html` <span class="tag warn" data-formula-coverage>${flag}</span>` : nothing}${tip(basisTip(x.card, x.lb, x.source, effects))}</span>`;
 }
 
 const SORT_KEYS: Record<string, (x: CardScore) => number> = {
