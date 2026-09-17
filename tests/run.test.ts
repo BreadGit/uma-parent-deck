@@ -190,7 +190,11 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.ok(withTrainee.deckResult.deck.some((d) => d.card.id === 30052), 'pinned Light Hello is in the deck');
   assert.ok(!withTrainee.deckResult.deck.some((d) => d.card.charId === sw.charId), "the trainee's own cards are excluded");
   assert.ok((withTrainee.existing.sources.get(corner.id) ?? []).some((s) => s.kind === 'lineage'));
-  assert.ok((withTrainee.deckResult.sparks.get(corner.id) ?? 0) > (planRun({ ...input, targetLineage: {} }, settings, {}, data).deckResult.sparks.get(corner.id) ?? 0), 'lineage raises the spark chance');
+  // Hold the deck fixed: reoptimizing can trade this preferred spark for a stronger combined goal.
+  const selection = withTrainee.deckResult.deck.map((d) => ({ id: d.card.id, lb: d.lb, borrowed: d.borrowed }));
+  const withoutLineage = planRun({ ...input, targetLineage: {} }, settings, {}, data, { selection });
+  assert.deepEqual(withoutLineage.deckResult.deck.map((d) => d.card.id), selection.map((d) => d.id));
+  assert.ok((withTrainee.deckResult.sparks.get(corner.id) ?? 0) > (withoutLineage.deckResult.sparks.get(corner.id) ?? 0), 'lineage raises the spark chance for the same deck');
   const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data);
   assert.ok(!unowned.deckResult.deck.some((d) => d.card.id === 30052 && !d.borrowed), 'an unowned pin is skipped');
   assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking');

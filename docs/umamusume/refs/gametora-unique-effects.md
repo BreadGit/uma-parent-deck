@@ -7,7 +7,7 @@ passives with the same ids as `support_effects.json` (1 Friendship Bonus, 2 Mood
 18 Hint Frequency, 19 Specialty Priority, 30 Skill Point Bonus, and so on). Types 100 and up are conditional
 effects whose meaning the feed does not define; GameTora renders them on the card page from the payload.
 
-Schemas decoded 2026-09-06 from one card per type (the feed's Global cards use types 101 to 114 and 9991):
+Schemas decoded 2026-09-06 from one card per type; type 115 added from the Global feed and rendered card description on 2026-09-16:
 
 | Type | Payload | Meaning (from the rendered text) | Example card |
 |---:|---|---|---|
@@ -25,6 +25,7 @@ Schemas decoded 2026-09-06 from one card per type (the feed's Global cards use t
 | 112 | value = chance % | value% chance that the current training cannot fail | Nakayama Festa 30108: 20 |
 | 113 | value = effect id (28 Energy Cost Reduction); value_1 = amount | Energy Cost Reduction value_1 during friendship (rainbow) training | Light Hello 30052: 28, 30 |
 | 114 | value = effect id (8); value_1 = at 0 energy; value_2 = at 100+ energy | Training Effectiveness scales with current energy from value_1% to value_2% | Mejiro Palmer 30115: 8, 5, 20 |
+| 115 | value = effect id (14 Initial Bond); value_1 = amount | All support cards gain Initial Friendship Gauge (+value_1) | Oguri Cap 30146: 14, 5 |
 | 9991 | none | "Increases skill point gain when training together" (GameTora's own placeholder id) | Haru Urara 30098 |
 
 Payload fields marked `?` did not match the rendered text one to one; check the text before using them.

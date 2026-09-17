@@ -2,29 +2,37 @@
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
-import { STATS, type Card } from '../../types.ts';
+import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
 import { cardTargetChances, compareTargetChances, type TargetSparkChance } from '../../model/card-ranking.ts';
-import { MODELLED_UNIQUE_TYPES, modelContribution, uniqueNote } from '../../model/stats.ts';
+import { cardEffectCoverage } from '../../model/support-effects.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { pinCard, unpinCard } from '../actions.ts';
 import { COPY } from '../copy.ts';
+import { basisExplanation, basisLabel, coverageLabel, effectList, missingEffect } from '../effect-coverage.ts';
 import { isChecked, lbSelect } from '../fields.ts';
 import { cardThumb, cardUrl, num, probability, skillName, typeIcon } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
-/** Observed-vs-model note for the Basis column. */
-function basisTip(x: CardScore): string {
-  const obs = data.model.observed.filter((o) => o.cardId === x.card.id && o.wellTested);
-  const exact = obs.find((o) => o.lb === x.lb) ?? obs.reduce<typeof obs[number] | null>((a, b) => (!a || Math.abs(b.lb - x.lb) < Math.abs(a.lb - x.lb) ? b : a), null);
-  if (!exact) return 'Observed in the Loopacord logs.';
-  const m = modelContribution(x.card, exact.lb, data.model);
-  const signed = (d: number) => `${d >= 0 ? '+' : ''}${d.toFixed(0)}`;
-  const deltas = STATS.map((st, i) => `${st} ${exact.stats[i]} vs ${m.stats[i]!.toFixed(0)} (${signed(exact.stats[i]! - m.stats[i]!)})`).join('\n');
-  const head = exact.lb === x.lb ? `Observed at LB${exact.lb} over ${exact.runs} logged runs (${exact.source}).` : `Observed at LB${exact.lb} over ${exact.runs} logged runs (${exact.source}); shifted to LB${x.lb} by the model's difference between the two limit breaks.`;
-  return `${head}\n\nObserved vs model at LB${exact.lb} (28 races):\n${deltas}\nSP ${exact.sp} vs ${m.sp.toFixed(0)} (${signed(exact.sp - m.sp)})`;
+function basis(c: RunPlan, x: CardScore) {
+  const expanded = view.expandedBasisCards.includes(x.card.id);
+  const effects = expanded ? cardEffectCoverage(x.card, x.lb, data.model, { fansBefore: c.ctx.fansBefore }) : [];
+  const toggle = (event: Event) => {
+    const details = event.currentTarget;
+    if (!(details instanceof HTMLDetailsElement) || details.open === view.expandedBasisCards.includes(x.card.id)) return;
+    view.expandedBasisCards = details.open ? [...view.expandedBasisCards, x.card.id] : view.expandedBasisCards.filter((id) => id !== x.card.id);
+    refresh();
+  };
+  return html`<details class="basis-details" data-basis=${x.card.id} ?open=${expanded} @toggle=${toggle}>
+    <summary>${basisLabel(x.card, x.lb, x.source)}</summary>
+    ${expanded ? basisExplanation(x.card, x.lb, x.source, c.sum.count, effects) : nothing}
+    ${effects.length ? html`<details class="formula-coverage" data-formula-details>
+      <summary>${COPY.modelCoverage.coverageTitle} <span class="tag ${effects.some(missingEffect) ? 'warn' : ''}" data-formula-coverage>${coverageLabel(effects)}</span></summary>
+      ${effectList(effects)}
+    </details>` : nothing}
+  </details>`;
 }
 
 const SORT_KEYS: Record<string, (x: CardScore) => number> = {
@@ -52,13 +60,6 @@ function targetChancesCell(cardId: number, targets: TargetSparkChance[]) {
   </td>`;
 }
 
-/** A compound unique effect: whether the model evaluates it, with GameTora's text and the assumption behind the evaluation. */
-function uniqueTag(c: RunPlan, card: Card) {
-  if (!card.unique?.effects.some((u) => u.type >= 100)) return nothing;
-  const modelled = card.unique.effects.some((u) => MODELLED_UNIQUE_TYPES.has(u.type));
-  return html` <span class="tag ${modelled ? '' : 'warn'}">${modelled ? 'unique approximated' : 'unique not modelled'}</span>${tip(`Unique effect: ${card.unique.text ?? 'conditional effect'}. Model: ${uniqueNote(card, data.model, { fansBefore: c.ctx.fansBefore }) || 'left out'}. An observed row includes the real effect at the observed limit break.`)}`;
-}
-
 const PIN_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22.3126 10.1753L20.8984 11.5895L20.1913 10.8824L15.9486 15.125L15.2415 18.6606L13.8273 20.0748L9.58466 15.8321L4.63492 20.7819L3.2207 19.3677L8.17045 14.4179L3.92781 10.1753L5.34202 8.76107L8.87756 8.05396L13.1202 3.81132L12.4131 3.10422L13.8273 1.69L22.3126 10.1753Z"></path></svg>`;
 
 function row(c: RunPlan, x: CardScore, chances: TargetSparkChance[], focusMul: number[]) {
@@ -74,7 +75,7 @@ function row(c: RunPlan, x: CardScore, chances: TargetSparkChance[], focusMul: n
     ${targetChancesCell(x.card.id, chances)}
     ${x.stats.map((v, i) => html`<td class="num" data-card-stat="${STATS[i]}">${num(v * (focusMul[i] ?? 1))}</td>`)}
     <td class="num" data-card-stat-total><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
-    <td class="small muted">${x.source === 'model' ? 'model' : html`observed${tip(basisTip(x))}`}${uniqueTag(c, x.card)}</td>
+    <td class="basis small">${basis(c, x)}</td>
   </tr>`;
 }
 

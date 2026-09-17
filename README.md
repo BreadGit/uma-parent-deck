@@ -190,15 +190,18 @@ Independent training card stats are close to deterministic per card and limit br
 fit uses the Loopacord "Independent Training Research" sheet (`docs/umamusume/`), 169 card-LB rows at
 28 G1 races in Our Grand Concert with Light Hello SSR in the deck:
 
-- Outside its own facility a card adds a floor of about 23 to every stat plus its
-  Initial Stat passive, one for one.
+- Outside its own facility a card adds a fitted floor plus its Initial Stat passive.
 - On its facility (and the facility's secondary stat: Speed->Power, Stamina->Guts,
-  Power->Stamina, Guts->Speed+Power, Wit->Speed) it adds a constant plus about 0.6 per
-  point of Friendship Bonus, 0.7 per point of Training Effectiveness, 0.1 per point of
-  Mood Effect and 11 per point of Stat Bonus. Specialty Priority does not show up.
-  RMSE 3.2 stat points, R² 0.97.
+  Power->Stamina, Guts->Speed+Power, Wit->Speed) it adds a role constant and fitted
+  contributions from Friendship Bonus, Mood Effect, Training Effectiveness, the matching
+  stat bonus, and Initial Friendship Gauge.
+- `npm run fit` compares additional numeric attributes on held-out cards. Every observation
+  and limit break of a card stays together; only training data selects inputs and fit settings.
+  Starting bond lowers held-out stat RMSE from 3.253 to 3.141. The broader SP fit applies to
+  normal stat-type cards; sparse Pal/Group data keeps the previous SP formula. See
+  [model evaluation](docs/stat-model-evaluation.md) for the method, coefficients and limits.
 - A conditional unique effect is evaluated at run time from its payload (`uniqueExtras()` in
-  `src/model/stats.ts`), not baked into the data. Ramping conditions (bond, friendship count, total
+  `src/model/support-effects.ts`), not baked into the data. Ramping conditions (bond, friendship count, total
   bond, facility level) count for a share of the run that the fit chooses on the same rows as the
   slopes and writes to the model (`uniqueRampShare`, 0.70). Narita Top Road's per-fan effect follows
   the agenda's expected fan curve. The two deck-dependent ones (Agnes Digital's card types, Symboli
@@ -210,8 +213,22 @@ fit uses the Loopacord "Independent Training Research" sheet (`docs/umamusume/`)
   run at 28 and 23 races.
 - Event stats (which include race rewards) are deck independent: about 640/243/398/337/457
   at 28 races, with a small growth-rate effect (k ≈ 0.3 of the growth %).
-- Where a card has 10+ observed runs at your LB the observed numbers are used directly;
-  at another LB the observation is shifted by the model's delta.
+- Qualifying observations at the selected LB take precedence. At another LB, the observation
+  is shifted by the model's delta. Recorded contributions keep their original deck conditions;
+  the app does not reconstruct missing deck context or add guessed bonuses on top.
+- Oguri's team-wide starting-bond effect changes the starting-bond input of each formula-based
+  recipient while its unique is unlocked. It uses the fitted ordinary-bond relationship, not
+  direct measurements of the team effect. Recorded contributions remain the reference values.
+
+The ranking's Basis column distinguishes observed, adjusted and model estimates. Opening it
+shows the reference conditions and an expandable list of active effects. The selected deck
+summarizes omitted effects, unmeasured team effects and recorded deck conditions. Calculations
+and coverage share effect definitions; warnings respect the selected LB. Unfamiliar effects
+use their imported description and show as not evaluated.
+
+The importer preserves unknown effect IDs and text-only uniques. It validates support-effect
+structures before writing normalized data, including unexpected mechanic-bearing fields.
+This catches structural changes that could otherwise drop an effect before the UI sees it.
 
 Pal and Group cards (type "pal" and "group" in the data) get their outings (five dates, or member outings plus a finale) from the
 per-card page data, since the static feed does not carry them. In independent training the
@@ -249,7 +266,7 @@ is assumed maxed, so all awakening skills are available.
 
 The independent-training stat model (`data/stat-model.json`, `src/model/stats.ts`) is a fit on passives. The
 normalizer keeps the compound payload in `unique` (with `fromLb`, the first limit break that unlocks the effect) and
-folds nothing; `uniqueExtras()` in `src/model/stats.ts` adds the passives below at run time, and `unique_extras()` in
+folds nothing; `uniqueExtras()` in `src/model/support-effects.ts` adds the passives below at run time, and `unique_extras()` in
 `analysis/fit_stat_model.py` does the same sums for the fit. The fit writes its result per card and limit break to
 `data/unique-extras-fixture.json`, and `tests/data.test.ts` checks that the app reproduces it.
 
@@ -262,14 +279,16 @@ folds nothing; `uniqueExtras()` in `src/model/stats.ts` adds the passives below 
 | 111 | Training Effectiveness +value_1 × 5 × share | facility level 5 for a share of the run |
 | 103 | Training Effectiveness +value_1 with `value` card types in the deck | exact, given the deck |
 | 105 | initial stat per card of that type, value_1 per Pal or Group card | exact, given the deck |
-| 102, 107, 108, 110, 112, 113, 114 | nothing | turn-by-turn state (facility, energy, crowding) |
+| 115 | Initial Friendship Gauge +value_1 on each formula-based recipient | ordinary starting-bond relationship; team effect not directly measured |
+| 102, 107, 108, 110, 112, 113, 114 | nothing | not included in the formula |
 
 The share is `uniqueRampShare` in `data/stat-model.json`, fitted: `npm run fit` refits the card model at every share
-from 0 to 1 in steps of 0.05 and keeps the one with the lowest card RMSE (0.70; RMSE 4.64 at 0, 3.93 at 0.25, 3.35 at
-0.5, 3.19 at 0.75, 3.52 at 1.0). It is fitted on the same 271 rows the slopes are, not measured from bond or facility
-logs. The deck builder evaluates the extras against the cards already in the run state, so a card that needs the deck
-is valued the same way in selection and in the prediction. Extras only reach model-based contributions: an observed
-row already contains the effect at the deck it was logged with, and an LB shift cancels it.
+from 0 to 1 in steps of 0.05. The existing-input fit selects 0.70 for the current data, shared
+by the stat and SP formulas. Each validation split repeats that selection using training rows
+only. This is a fitted assumption, not a measurement of bond or facility progression. The deck builder evaluates the extras against the cards already in the run state, so a card that needs the deck
+is valued the same way in selection and in the prediction. Extras only reach formula-based contributions.
+Recorded contributions retain their original deck conditions. LB adjustments use ordinary card inputs
+without adding guessed deck bonuses to the recorded reference.
 
 ## Known gaps
 
@@ -295,9 +314,10 @@ The [curated game reference index](docs/umamusume/refs/README.md) records source
   and green sparks are unknown; each is an explicit assumption or left out.
 - The stat model is an empirical fit: race scaling from one 23 versus 28 race comparison, focus
   multipliers from two decks, fixed per-stat spreads, and event stats at the reference decks' Race
-  Bonus (the deck's total is shown but not modelled). Seven of the fourteen conditional unique-effect types depend on
-  turn-by-turn state and are left out; the ranking flags every conditional effect with GameTora's
-  description and what the model does with it.
+  Bonus (the deck's total is shown but not modelled). Some support effects are omitted or use
+  unverified assumptions; ranking coverage shows each active effect's imported description and
+  treatment. Unknown effects are not evaluated. An observed contribution can already contain
+  an effect that the formula omits, but cannot reliably adapt it to changed deck conditions.
 - The agenda uses start-of-run aptitudes for the whole run. The goal evaluator models B-to-A pink
   inspiration increases for final spark eligibility, without changing race odds or skill rating.
   Which option wins when several prioritized skills sit in one event is an assumption

@@ -8,7 +8,7 @@ Inputs
   data/characters.json                  growth rates of the trainees in the Loopacord runs
 
 Model (per card, per stat s, at R races and a training focus):
-  card[s] = (floor + initial[s] + role[s] * (k_type_role + a*friendship + b*mood + c*trainingEff + d*statBonus[s])) * raceScale(R)
+  card[s] = (floor + initial[s] + role[s] * max(0, k_type_role + fitted support-effect contributions)) * raceScale(R)
   where role is 'primary' (s == card type), 'secondary' (facility's second stat) or none,
   raceScale(R) = (T - R) / (T - 28), T fitted from the 28 vs 23 race decks.
 Event stats (deck independent) = eventBase[s] * (1 + growth[s]/100) * raceScaleEvent(R), scaled per training focus.
@@ -16,6 +16,7 @@ Event stats (deck independent) = eventBase[s] * (1 + growth[s]/100) * raceScaleE
 import json, csv, re, collections, sys
 import numpy as np
 import openpyxl
+from card_regression import evaluate, records, fit, EFFECTS, STAT_BASE, SP_BASE
 
 ROOT = __import__('pathlib').Path(__file__).resolve().parent.parent
 cards = json.load(open(ROOT / 'data/cards.json'))
@@ -114,66 +115,43 @@ for f in fuji:
 print(f'observations: {len(observed)} (fujikiseki added {fuji_added}); unmatched loopacord rows: {len(unmatched)}')
 for u in unmatched: print('  unmatched', u)
 
-# ---------- floor and role regression, as a function of the unique ramp share ----------
-COLS = ['fr', 'mo', 'te', 'sb']
-def fit_cards(share):
-    floors = []
-    for o in observed:
-        if o['source'] != 'loopacord' or not o['wellTested']: continue
-        p = passives(o['card'], o['lb'], share)
-        for i, s in enumerate(STATS):
-            if o['card']['type'] == s or s in SECONDARY.get(o['card']['type'], []): continue
-            floors.append(o['stats'][i] - p[9 + i])
-    floor = float(np.median(floors))
-    recs = []
-    for o in observed:
-        if o['source'] != 'loopacord' or not o['wellTested']: continue
-        t = o['card']['type']
-        if t not in STATS: continue
-        p = passives(o['card'], o['lb'], share)
-        for i, s in enumerate(STATS):
-            role = 'primary' if t == s else ('secondary' if s in SECONDARY[t] else None)
-            if not role: continue
-            recs.append(dict(type=t, role=role, y=o['stats'][i] - floor - p[9 + i], fr=p[1], mo=p[2], te=p[8], sb=p[3 + i], spec=p[19]))
-    keys = sorted({(r['type'], r['role']) for r in recs})
-    X = np.array([[1.0 if (r['type'], r['role']) == k else 0.0 for k in keys] + [r[c] for c in COLS] for r in recs])
-    y = np.array([r['y'] for r in recs])
-    coef, *_ = np.linalg.lstsq(X, y, rcond=None)
-    pred = X @ coef
-    rmse = float(np.sqrt(np.mean((pred - y) ** 2)))
-    r2 = 1 - np.sum((pred - y) ** 2) / np.sum((y - y.mean()) ** 2)
-    return dict(share=share, floors=floors, floor=floor, recs=recs, keys=keys, X=X, y=y, coef=coef, pred=pred, rmse=rmse, r2=r2)
-
-# the share is fitted on the same rows as the slopes: the grid value with the lowest card RMSE wins
-SHARES = [round(s, 2) for s in np.arange(0, 1.0001, 0.05)]
-fits = {s: fit_cards(s) for s in SHARES}
-UNIQUE_RAMP_SHARE = min(SHARES, key=lambda s: (fits[s]['rmse'], -s))
-print('unique ramp share: card rmse ' + ', '.join(f'{s:.2f} -> {fits[s]["rmse"]:.2f}' for s in (0, 0.25, 0.5, 0.75, 1.0)) + f'; best {UNIQUE_RAMP_SHARE} (rmse {fits[UNIQUE_RAMP_SHARE]["rmse"]:.2f}, a flat curve means the data cannot tell)')
-best_fit = fits[UNIQUE_RAMP_SHARE]
-floors, FLOOR, recs, keys, X, y, coef, pred, rmse, r2 = (best_fit[k] for k in ('floors', 'floor', 'recs', 'keys', 'X', 'y', 'coef', 'pred', 'rmse', 'r2'))
-print(f'floor: median {FLOOR}, mean {np.mean(floors):.2f}, sd {np.std(floors):.2f}, n {len(floors)}')
-print(f'role regression: n={len(y)} rmse={rmse:.2f} r2={r2:.3f}')
-consts = {f'{t}.{role}': float(v) for (t, role), v in zip(keys, coef[:len(keys)])}
-slopes = {c: float(v) for c, v in zip(COLS, coef[len(keys):])}
-print('  constants', {k: round(v, 1) for k, v in consts.items()})
-print('  slopes', {k: round(v, 3) for k, v in slopes.items()})
-# per-type rmse
-for k in keys:
-    idx = [i for i, r in enumerate(recs) if (r['type'], r['role']) == k]
-    print(f'  {k[0]:8}{k[1]:10} n={len(idx):3} rmse={np.sqrt(np.mean((pred[idx]-y[idx])**2)):.2f}')
-
-# ---------- SP model ----------
-sp_recs = []
-for o in observed:
-    if o['source'] != 'loopacord' or not o['wellTested']: continue
-    p = passives(o['card'], o['lb'], UNIQUE_RAMP_SHARE)
-    t = o['card']['type']
-    sp_recs.append(dict(sp=o['sp'], wit=t == 'wit', friend=t in ('pal', 'group'), spb=p[30], hf=p[18], hl=p[17], fr=p[1], te=p[8]))
-Xs = np.array([[1, r['wit'], r['friend'], r['spb']] for r in sp_recs], float)
-ys = np.array([r['sp'] for r in sp_recs])
-cs_, *_ = np.linalg.lstsq(Xs, ys, rcond=None)
-print(f'SP: const={cs_[0]:.1f} wit={cs_[1]:.1f} friend/group={cs_[2]:.1f} skillPointBonus={cs_[3]:.1f} rmse={np.sqrt(np.mean((Xs@cs_-ys)**2)):.1f}')
-SP = dict(base=float(cs_[0]), wit=float(cs_[1]), friend=float(cs_[2]), skillPointBonus=float(cs_[3]))
+# ---------- grouped evaluation and retained regression inputs ----------
+stat_fit, stat_evaluation = evaluate(observed, passives, 'stats')
+sp_fit, sp_evaluation = evaluate(observed, passives, 'sp')
+assert stat_fit.share == sp_fit.share, 'the app uses one ramp share for both outcomes'
+UNIQUE_RAMP_SHARE = stat_fit.share
+FLOOR = stat_fit.floor
+consts = {key: float(value) for key, value in zip(stat_fit.roles, stat_fit.constants)}
+slopes = {key: float(value) for key, value in zip(stat_fit.features, stat_fit.slopes) if key in STAT_BASE}
+effect_slopes = {str(EFFECTS[key]): float(value) for key, value in zip(stat_fit.features, stat_fit.slopes)
+                 if key not in STAT_BASE and abs(value) > 1e-8}
+qualifying = [o for o in observed if o['source'] == 'loopacord' and o['wellTested']]
+stat_rows = records(qualifying, passives, UNIQUE_RAMP_SHARE, 'stats')
+floors = [r['y'] - r['initial'] for r in stat_rows if r['role'] is None]
+active = [r for r in stat_rows if r['role'] is not None]
+pred = stat_fit.predict(active)
+y = np.array([r['y'] for r in active])
+rmse = float(np.sqrt(np.mean((pred - y) ** 2)))
+r2 = float(1 - np.sum((pred - y) ** 2) / np.sum((y - y.mean()) ** 2))
+sp_constants = dict(zip(sp_fit.roles, sp_fit.constants))
+sp_slopes = dict(zip(sp_fit.features, sp_fit.slopes))
+SP = dict(base=float(sp_constants['other']), wit=float(sp_constants['wit'] - sp_constants['other']),
+          friend=float(sp_constants['friend'] - sp_constants['other']), skillPointBonus=float(sp_slopes['spb']),
+          effectSlopes={str(EFFECTS[key]): float(value) for key, value in sp_slopes.items()
+                        if key not in SP_BASE and abs(value) > 1e-8})
+# Sparse pal/group data does not support deploying the broader SP formula there.
+# Keep the previous formula as a conservative restriction after model evaluation.
+sp_baseline = fit(records(qualifying, passives, UNIQUE_RAMP_SHARE, 'sp'), SP_BASE, UNIQUE_RAMP_SHARE)
+sp_baseline_constants = dict(zip(sp_baseline.roles, sp_baseline.constants))
+SP['fittedTypes'] = STATS
+SP['fallback'] = dict(base=float(sp_baseline_constants['other']),
+                      wit=float(sp_baseline_constants['wit'] - sp_baseline_constants['other']),
+                      friend=float(sp_baseline_constants['friend'] - sp_baseline_constants['other']),
+                      skillPointBonus=float(sp_baseline.slopes[0]))
+for target, result in [('stats', stat_evaluation), ('SP', sp_evaluation)]:
+    print(f"{target}: held-out RMSE {result['baselineRmse']:.3f} -> {result['expandedRmse']:.3f}; "
+          f"retained {result['selectedFeatures']}, ridge {result['alpha']}")
+print(f'floor {FLOOR}; in-sample stat RMSE {rmse:.3f}; shared unique ramp {UNIQUE_RAMP_SHARE}')
 
 # ---------- race scaling, event baseline, focus, sigma (from the research workbook) ----------
 wb = openpyxl.load_workbook(ROOT / 'docs/umamusume/loopacord-independent-training-research.xlsx', read_only=True, data_only=True)
@@ -302,14 +280,18 @@ for m in ('Balanced', 'Stamina', 'Sprint'):
 print('  focus multipliers', focus)
 
 model = dict(
-    version=1,
+    version=2,
     description='Independent training card stat model fitted on Loopacord card data (Grand Concert, 28 G1 races, Light Hello SSR in deck).',
     stats=STATS,
     secondary=SECONDARY,
     floor=FLOOR,
     roleConstants=consts,
     slopes=slopes,
+    effectSlopes=effect_slopes,
     fit=dict(n=len(y), rmse=rmse, r2=float(r2), floorSd=float(np.std(floors))),
+    evaluation=dict(stats=stat_evaluation, sp=sp_evaluation,
+                    raceBonus=dict(status='insufficient-data',
+                                   reason='The event baseline uses one sample deck at 23 and 28 races. It cannot isolate deck Race Bonus from the deck baseline.')),
     races=dict(reference=RACES_REF, totalTurns=float(T), spRatio23=sp_ratio),
     sp=SP,
     eventBase={str(k): v for k, v in event_base.items()},

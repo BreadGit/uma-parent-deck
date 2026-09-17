@@ -49,6 +49,7 @@ export interface Card {
   hintSkills: number[];
   eventSkills: number[];
   hintOthers: { type: number; value: number }[];
+  hintOthersSource?: unknown[];
   chainEvents: CardEvent[];
   randomEvents: CardEvent[];
   recreationEvents: CardEvent[]; // Pal dates or Group member outings, last one is the finale
@@ -136,9 +137,18 @@ export interface StatModel {
   floor: number;
   roleConstants: Record<string, number>;
   slopes: { fr: number; mo: number; te: number; sb: number };
+  effectSlopes?: Record<number, number>;
+  evaluation?: Partial<Record<'stats' | 'sp', {
+    inputs: { effectId: number; status: 'retained' | 'tested-not-retained' | 'insufficient-data' }[];
+  }>>;
   fit: { n: number; rmse: number; r2: number; floorSd: number };
   races: { reference: number; totalTurns: number; spRatio23: number };
-  sp: { base: number; wit: number; friend: number; skillPointBonus: number };
+  sp: {
+    base: number; wit: number; friend: number; skillPointBonus: number;
+    effectSlopes?: Record<number, number>;
+    fittedTypes?: CardType[];
+    fallback?: { base: number; wit: number; friend: number; skillPointBonus: number };
+  };
   eventBase: Record<string, number[]>;
   eventSp: Record<string, number>;
   growthEffect: number;

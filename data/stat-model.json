@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "description": "Independent training card stat model fitted on Loopacord card data (Grand Concert, 28 G1 races, Light Hello SSR in deck).",
  "stats": [
   "speed",
@@ -28,28 +28,699 @@
  },
  "floor": 22.0,
  "roleConstants": {
-  "guts.primary": 16.29489373931987,
-  "guts.secondary": -12.166296812891169,
-  "power.primary": 17.292811411151014,
-  "power.secondary": -6.549400892970805,
-  "speed.primary": 16.53779742891911,
-  "speed.secondary": -10.862984347521188,
-  "stamina.primary": 16.42665599106415,
-  "stamina.secondary": -6.254815085567708,
-  "wit.primary": 18.384506507032164,
-  "wit.secondary": -21.12990191766463
+  "guts.primary": 13.89932286993698,
+  "guts.secondary": -14.593460153561647,
+  "power.primary": 15.027312569108247,
+  "power.secondary": -8.854009594341367,
+  "speed.primary": 14.492395906527356,
+  "speed.secondary": -12.9463940430619,
+  "stamina.primary": 14.222358005214438,
+  "stamina.secondary": -8.518029332253203,
+  "wit.primary": 16.323601148448056,
+  "wit.secondary": -23.25991304561053
  },
  "slopes": {
-  "fr": 0.798166650804097,
-  "mo": 0.2171299524206507,
-  "te": 1.0163809184196002,
-  "sb": 11.178424709601783
+  "fr": 0.8167655141536949,
+  "mo": 0.20995270648893596,
+  "te": 1.0091527276333874,
+  "sb": 11.095798246234384
+ },
+ "effectSlopes": {
+  "14": 0.08685171247046629
  },
  "fit": {
   "n": 271,
-  "rmse": 2.9532803823284146,
-  "r2": 0.9769231141891245,
+  "rmse": 2.835832503843915,
+  "r2": 0.9900358788289797,
   "floorSd": 2.621234848763425
+ },
+ "evaluation": {
+  "stats": {
+   "method": "nested-grouped-by-card",
+   "outerFolds": 5,
+   "innerFolds": 4,
+   "metric": "RMSE of primary/secondary stats, equal weight per card",
+   "cards": 106,
+   "baselineRmse": 3.253049839022811,
+   "expandedRmse": 3.141019936990393,
+   "retained": true,
+   "selectedFeatures": [
+    "fr",
+    "mo",
+    "te",
+    "sb",
+    "bond"
+   ],
+   "alpha": 0.0,
+   "share": 0.7,
+   "inputs": [
+    {
+     "name": "bond",
+     "effectId": 14,
+     "cardsWithEffect": 100,
+     "status": "retained"
+    },
+    {
+     "name": "specialty",
+     "effectId": 19,
+     "cardsWithEffect": 88,
+     "status": "tested-not-retained"
+    },
+    {
+     "name": "eventRecovery",
+     "effectId": 25,
+     "cardsWithEffect": 0,
+     "status": "insufficient-data"
+    },
+    {
+     "name": "eventEffectiveness",
+     "effectId": 26,
+     "cardsWithEffect": 0,
+     "status": "insufficient-data"
+    },
+    {
+     "name": "failureProtection",
+     "effectId": 27,
+     "cardsWithEffect": 1,
+     "status": "insufficient-data"
+    },
+    {
+     "name": "energyCostReduction",
+     "effectId": 28,
+     "cardsWithEffect": 1,
+     "status": "insufficient-data"
+    },
+    {
+     "name": "witRecovery",
+     "effectId": 31,
+     "cardsWithEffect": 18,
+     "status": "tested-not-retained"
+    },
+    {
+     "name": "hintLevels",
+     "effectId": 17,
+     "cardsWithEffect": 69,
+     "status": "tested-not-retained"
+    },
+    {
+     "name": "hintFrequency",
+     "effectId": 18,
+     "cardsWithEffect": 76,
+     "status": "tested-not-retained"
+    },
+    {
+     "name": "minigameEffectiveness",
+     "effectId": 29,
+     "cardsWithEffect": 0,
+     "status": "insufficient-data"
+    }
+   ],
+   "byType": {
+    "guts": {
+     "cards": 16,
+     "baselineRmse": 2.6430275330854216,
+     "expandedRmse": 2.5344231335572425
+    },
+    "power": {
+     "cards": 25,
+     "baselineRmse": 2.4993647985794514,
+     "expandedRmse": 2.277838628424421
+    },
+    "speed": {
+     "cards": 26,
+     "baselineRmse": 4.49917239941837,
+     "expandedRmse": 4.36224822795922
+    },
+    "stamina": {
+     "cards": 20,
+     "baselineRmse": 1.9506673657507627,
+     "expandedRmse": 1.8376093853766307
+    },
+    "wit": {
+     "cards": 19,
+     "baselineRmse": 3.6373702167465893,
+     "expandedRmse": 3.634733877554927
+    }
+   },
+   "folds": [
+    {
+     "cards": [
+      20001,
+      20007,
+      20010,
+      20012,
+      20022,
+      20026,
+      20039,
+      20041,
+      20043,
+      20047,
+      30002,
+      30004,
+      30028,
+      30036,
+      30053,
+      30057,
+      30067,
+      30070,
+      30077,
+      30096,
+      30108,
+      30113,
+      30114
+     ],
+     "baselineRmse": 2.560957625730619,
+     "expandedRmse": 2.4189570230205986,
+     "features": [
+      "fr",
+      "mo",
+      "te",
+      "sb",
+      "bond"
+     ],
+     "alpha": 1.0,
+     "share": 0.7
+    },
+    {
+     "cards": [
+      20003,
+      20005,
+      20014,
+      20025,
+      20031,
+      20045,
+      20046,
+      30007,
+      30008,
+      30020,
+      30025,
+      30038,
+      30048,
+      30062,
+      30065,
+      30075,
+      30083,
+      30093,
+      30097,
+      30098,
+      30105,
+      30107
+     ],
+     "baselineRmse": 2.8988071984409642,
+     "expandedRmse": 2.7720729525909005,
+     "features": [
+      "fr",
+      "mo",
+      "te",
+      "sb",
+      "bond"
+     ],
+     "alpha": 0.0,
+     "share": 0.6
+    },
+    {
+     "cards": [
+      20002,
+      20004,
+      20006,
+      20015,
+      20032,
+      20035,
+      20038,
+      20050,
+      30015,
+      30016,
+      30017,
+      30023,
+      30029,
+      30033,
+      30044,
+      30056,
+      30080,
+      30084,
+      30101,
+      30109,
+      30111,
+      30121
+     ],
+     "baselineRmse": 2.8134472715926826,
+     "expandedRmse": 2.650785089128967,
+     "features": [
+      "fr",
+      "mo",
+      "te",
+      "sb",
+      "bond"
+     ],
+     "alpha": 0.0,
+     "share": 0.7
+    },
+    {
+     "cards": [
+      20011,
+      20018,
+      20024,
+      20029,
+      20037,
+      20044,
+      30009,
+      30019,
+      30021,
+      30031,
+      30032,
+      30034,
+      30039,
+      30066,
+      30074,
+      30078,
+      30079,
+      30086,
+      30087,
+      30088,
+      30092,
+      30104
+     ],
+     "baselineRmse": 4.725522814866791,
+     "expandedRmse": 4.6317141670818645,
+     "features": [
+      "fr",
+      "mo",
+      "te",
+      "sb",
+      "bond"
+     ],
+     "alpha": 0.1,
+     "share": 0.75
+    },
+    {
+     "cards": [
+      20008,
+      20009,
+      20013,
+      20016,
+      20017,
+      20019,
+      20021,
+      20023,
+      20027,
+      20028,
+      20030,
+      20040,
+      20042,
+      30010,
+      30014,
+      30022,
+      30030,
+      30045,
+      30047,
+      30054,
+      30071,
+      30072
+     ],
+     "baselineRmse": 2.794244357756393,
+     "expandedRmse": 2.7237361355840353,
+     "features": [
+      "fr",
+      "mo",
+      "te",
+      "sb",
+      "bond"
+     ],
+     "alpha": 1.0,
+     "share": 0.7
+    }
+   ]
+  },
+  "sp": {
+   "method": "nested-grouped-by-card",
+   "outerFolds": 5,
+   "innerFolds": 4,
+   "metric": "SP RMSE, equal weight per card",
+   "cards": 111,
+   "baselineRmse": 23.671780906055577,
+   "expandedRmse": 18.74788180641668,
+   "retained": true,
+   "selectedFeatures": [
+    "spb",
+    "bond",
+    "specialty",
+    "eventRecovery",
+    "eventEffectiveness",
+    "failureProtection",
+    "energyCostReduction",
+    "witRecovery",
+    "hintLevels",
+    "hintFrequency",
+    "minigameEffectiveness",
+    "fr",
+    "mo",
+    "te"
+   ],
+   "alpha": 10.0,
+   "share": 0.7,
+   "inputs": [
+    {
+     "name": "bond",
+     "effectId": 14,
+     "cardsWithEffect": 105,
+     "status": "retained"
+    },
+    {
+     "name": "specialty",
+     "effectId": 19,
+     "cardsWithEffect": 88,
+     "status": "retained"
+    },
+    {
+     "name": "eventRecovery",
+     "effectId": 25,
+     "cardsWithEffect": 5,
+     "status": "retained"
+    },
+    {
+     "name": "eventEffectiveness",
+     "effectId": 26,
+     "cardsWithEffect": 5,
+     "status": "retained"
+    },
+    {
+     "name": "failureProtection",
+     "effectId": 27,
+     "cardsWithEffect": 4,
+     "status": "retained"
+    },
+    {
+     "name": "energyCostReduction",
+     "effectId": 28,
+     "cardsWithEffect": 4,
+     "status": "retained"
+    },
+    {
+     "name": "witRecovery",
+     "effectId": 31,
+     "cardsWithEffect": 19,
+     "status": "retained"
+    },
+    {
+     "name": "hintLevels",
+     "effectId": 17,
+     "cardsWithEffect": 69,
+     "status": "retained"
+    },
+    {
+     "name": "hintFrequency",
+     "effectId": 18,
+     "cardsWithEffect": 76,
+     "status": "retained"
+    },
+    {
+     "name": "minigameEffectiveness",
+     "effectId": 29,
+     "cardsWithEffect": 0,
+     "status": "insufficient-data"
+    },
+    {
+     "name": "fr",
+     "effectId": 1,
+     "cardsWithEffect": 107,
+     "status": "retained"
+    },
+    {
+     "name": "mo",
+     "effectId": 2,
+     "cardsWithEffect": 71,
+     "status": "retained"
+    },
+    {
+     "name": "te",
+     "effectId": 8,
+     "cardsWithEffect": 81,
+     "status": "retained"
+    }
+   ],
+   "byType": {
+    "group": {
+     "cards": 1,
+     "baselineRmse": 68.48080558612916,
+     "expandedRmse": 40.99633370775846
+    },
+    "guts": {
+     "cards": 16,
+     "baselineRmse": 17.19311709892158,
+     "expandedRmse": 12.893289394570994
+    },
+    "pal": {
+     "cards": 4,
+     "baselineRmse": 58.44349346751632,
+     "expandedRmse": 74.89319018058261
+    },
+    "power": {
+     "cards": 25,
+     "baselineRmse": 18.33767465225131,
+     "expandedRmse": 7.775691954459039
+    },
+    "speed": {
+     "cards": 26,
+     "baselineRmse": 24.03591999183572,
+     "expandedRmse": 13.341768974142482
+    },
+    "stamina": {
+     "cards": 20,
+     "baselineRmse": 17.964180250485732,
+     "expandedRmse": 12.546918340027464
+    },
+    "wit": {
+     "cards": 19,
+     "baselineRmse": 22.04721090331426,
+     "expandedRmse": 12.460591988195713
+    }
+   },
+   "folds": [
+    {
+     "cards": [
+      20001,
+      20007,
+      20010,
+      20012,
+      20022,
+      20026,
+      20039,
+      20041,
+      20043,
+      20047,
+      30002,
+      30004,
+      30028,
+      30036,
+      30053,
+      30057,
+      30067,
+      30070,
+      30077,
+      30096,
+      30108,
+      30113,
+      30114
+     ],
+     "baselineRmse": 26.315908538629298,
+     "expandedRmse": 13.42059635927603,
+     "features": [
+      "spb",
+      "bond",
+      "specialty",
+      "eventRecovery",
+      "eventEffectiveness",
+      "failureProtection",
+      "energyCostReduction",
+      "witRecovery",
+      "hintLevels",
+      "hintFrequency",
+      "minigameEffectiveness",
+      "fr",
+      "mo",
+      "te"
+     ],
+     "alpha": 10.0,
+     "share": 0.7
+    },
+    {
+     "cards": [
+      20003,
+      20005,
+      20014,
+      20025,
+      20031,
+      20045,
+      20046,
+      30007,
+      30008,
+      30020,
+      30025,
+      30038,
+      30048,
+      30062,
+      30065,
+      30075,
+      30083,
+      30093,
+      30097,
+      30098,
+      30105,
+      30107
+     ],
+     "baselineRmse": 17.422879033472608,
+     "expandedRmse": 8.812354186647944,
+     "features": [
+      "spb",
+      "bond",
+      "specialty",
+      "eventRecovery",
+      "eventEffectiveness",
+      "failureProtection",
+      "energyCostReduction",
+      "witRecovery",
+      "hintLevels",
+      "hintFrequency",
+      "minigameEffectiveness",
+      "fr",
+      "mo",
+      "te"
+     ],
+     "alpha": 1.0,
+     "share": 0.6
+    },
+    {
+     "cards": [
+      20002,
+      20004,
+      20006,
+      20015,
+      20032,
+      20035,
+      20038,
+      20050,
+      30015,
+      30016,
+      30017,
+      30023,
+      30029,
+      30033,
+      30044,
+      30056,
+      30080,
+      30084,
+      30101,
+      30109,
+      30111,
+      30121
+     ],
+     "baselineRmse": 22.540517118133785,
+     "expandedRmse": 24.557602146205465,
+     "features": [
+      "spb",
+      "bond",
+      "specialty",
+      "eventRecovery",
+      "eventEffectiveness",
+      "failureProtection",
+      "energyCostReduction",
+      "witRecovery",
+      "hintLevels",
+      "hintFrequency",
+      "minigameEffectiveness",
+      "fr",
+      "mo",
+      "te"
+     ],
+     "alpha": 0.0,
+     "share": 0.7
+    },
+    {
+     "cards": [
+      20011,
+      20018,
+      20024,
+      20029,
+      20037,
+      20044,
+      30009,
+      30019,
+      30021,
+      30031,
+      30032,
+      30034,
+      30039,
+      30066,
+      30074,
+      30078,
+      30079,
+      30086,
+      30087,
+      30088,
+      30092,
+      30104
+     ],
+     "baselineRmse": 30.640338832625137,
+     "expandedRmse": 29.217905808244364,
+     "features": [
+      "spb",
+      "bond"
+     ],
+     "alpha": 0.0,
+     "share": 0.75
+    },
+    {
+     "cards": [
+      20008,
+      20009,
+      20013,
+      20016,
+      20017,
+      20019,
+      20021,
+      20023,
+      20027,
+      20028,
+      20030,
+      20040,
+      20042,
+      30010,
+      30014,
+      30022,
+      30030,
+      30045,
+      30047,
+      30054,
+      30071,
+      30072
+     ],
+     "baselineRmse": 18.782149055824924,
+     "expandedRmse": 7.1185041199066275,
+     "features": [
+      "spb",
+      "bond",
+      "specialty",
+      "eventRecovery",
+      "eventEffectiveness",
+      "failureProtection",
+      "energyCostReduction",
+      "witRecovery",
+      "hintLevels",
+      "hintFrequency",
+      "minigameEffectiveness",
+      "fr",
+      "mo",
+      "te"
+     ],
+     "alpha": 10.0,
+     "share": 0.7
+    }
+   ]
+  },
+  "raceBonus": {
+   "status": "insufficient-data",
+   "reason": "The event baseline uses one sample deck at 23 and 28 races. It cannot isolate deck Race Bonus from the deck baseline."
+  }
  },
  "races": {
   "reference": 28,
@@ -57,10 +728,37 @@
   "spRatio23": 1.1195484831179412
  },
  "sp": {
-  "base": 165.58682490235753,
-  "wit": 22.096427883581768,
-  "friend": 139.97650763222006,
-  "skillPointBonus": 59.04386175111072
+  "base": 68.88719826320265,
+  "wit": 8.302761527537072,
+  "friend": 80.11046907321823,
+  "skillPointBonus": 61.757798867394015,
+  "effectSlopes": {
+   "14": 0.8752600451451146,
+   "19": 0.06378603145993626,
+   "25": 1.8643073822046001,
+   "26": -0.7269944414683516,
+   "27": 1.050432313830028,
+   "28": 1.8057444548459771,
+   "31": 3.5058778683353844,
+   "17": -0.8546387527684984,
+   "18": 0.060633350493237786,
+   "1": 1.6121726161587298,
+   "2": 0.5009186693683643,
+   "8": 2.5110087951335496
+  },
+  "fittedTypes": [
+   "speed",
+   "stamina",
+   "power",
+   "guts",
+   "wit"
+  ],
+  "fallback": {
+   "base": 165.5868249023578,
+   "wit": 22.09642788358167,
+   "friend": 139.97650763222006,
+   "skillPointBonus": 59.043861751110775
+  }
  },
  "eventBase": {
   "28": [

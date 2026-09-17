@@ -61,6 +61,71 @@ const predictions = (page) => page.locator('h2', { hasText: 'Predicted run' });
 const confirmDialog = async (page) => { await page.waitForSelector('dialog[data-dialog][open]'); await page.click('[data-dialog-confirm]'); };
 const openAgenda = (page) => page.click('details[data-agenda] > summary');
 
+test('Basis details distinguish observations, adjusted observations and model estimates', async (t) => {
+  const page = await editor(t, defaultState(data));
+  const observed = page.locator('[data-basis="30028"]');
+  assert.equal(await observed.locator(':scope > summary').innerText(), 'Observed · LB4');
+  await observed.locator(':scope > summary').press('Enter');
+  assert.notEqual(await observed.getAttribute('open'), null);
+  assert.match(await observed.innerText(), /community results at LB4 from 10 logged runs/);
+  assert.match(await observed.innerText(), /scaled to your .*race schedule/);
+  await assertFieldsMatchState(page, 'after opening observed Basis with the keyboard');
+
+  await page.locator('.ranking-table [data-lb="30028"]').selectOption('2');
+  assert.equal(await observed.locator(':scope > summary').innerText(), 'Adjusted · from LB3');
+  assert.match(await observed.innerText(), /Estimates LB2.*between LB3 and LB2/);
+  await assertFieldsMatchState(page, 'after changing the Basis observation limit break');
+
+  const model = page.locator('[data-basis="30146"]');
+  assert.equal(await model.locator(':scope > summary').innerText(), 'Model estimate');
+  await model.locator(':scope > summary').click();
+  assert.match(await model.innerText(), /No qualifying recorded results/);
+  await model.locator('[data-formula-details] > summary').click();
+  assert.match(await model.innerText(), /All support cards gain Initial Friendship Gauge/);
+  assert.equal(await model.locator('[data-effect-coverage="unique:0"]').getAttribute('data-effect-status'), 'approximated');
+  assert.match(await model.innerText(), /team effect has not been measured directly/);
+  assert.equal(await model.locator('[data-formula-coverage]').innerText(), 'Partially modelled');
+  await assertFieldsMatchState(page, 'after opening model Basis');
+
+  const textOnly = page.locator('[data-basis="30080"]');
+  await textOnly.locator(':scope > summary').click();
+  await textOnly.locator('[data-formula-details] > summary').click();
+  assert.equal(await textOnly.locator('[data-effect-coverage="unique:text"]').getAttribute('data-effect-status'), 'unrecognized');
+  assert.match(await textOnly.innerText(), /Sasami Anshinzawa random events are more likely to occur/);
+  assert.match(await textOnly.locator('[data-effect-coverage="unique:text"]').innerText(), /Not evaluated/);
+  await assertFieldsMatchState(page, 'after explaining an imported text-only unique');
+});
+
+test('effect warnings respect unique unlocks and explain observed deck effects on mobile', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.pinnedIds = [30088, 30146];
+  saved.inventory[30088] = 0;
+  const page = await fresh(t, saved, { held: true, touch: true });
+  await page.setViewportSize({ width: 390, height: 900 });
+  const basis = page.locator('[data-basis="30088"]');
+  await basis.locator(':scope > summary').tap();
+  assert.equal(await basis.locator('[data-effect-coverage^="unique:"]').count(), 0, 'locked unique has no coverage warning');
+  await assertFieldsMatchState(page, 'after opening Basis on mobile');
+
+  await page.locator('.ranking-table [data-lb="30088"]').selectOption('4');
+  assert.equal(await basis.locator(':scope > summary').innerText(), 'Observed · LB4');
+  await basis.locator('[data-formula-details] > summary').tap();
+  assert.ok(await basis.locator('[data-effect-coverage^="unique:"]').count() > 0);
+  assert.match(await basis.innerText(), /recorded contribution stays fixed when deck-dependent effects change/);
+  await assertFieldsMatchState(page, 'after unlocking an observed deck effect');
+
+  const limitations = page.locator('[data-estimate-limitations]');
+  await limitations.locator('summary').tap();
+  const oguri = limitations.locator('[data-card-limitations="30146"]');
+  assert.match(await oguri.innerText(), /Oguri Cap/);
+  assert.match(await oguri.innerText(), /Initial Friendship Gauge/);
+  assert.match(await oguri.innerText(), /team effect has not been measured directly/);
+  assert.match(await limitations.locator('[data-card-limitations="30088"]').innerText(), /recorded contribution stays fixed/);
+  await assertFieldsMatchState(page, 'after opening deck limitations on mobile');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), true, 'open explanations do not overflow the phone viewport');
+});
+
 test('rejected advanced settings retain the draft and accept the original value', async (t) => {
   const page = await editor(t, defaultState(data));
   await page.click('details[data-details="advanced"] > summary');

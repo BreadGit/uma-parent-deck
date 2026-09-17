@@ -1,85 +1,10 @@
-import { STATS, type Card, type Character, type Focus, type StatModel, type UniqueEffect } from '../types.ts';
+import { STATS, type Card, type Character, type Focus, type StatModel } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { BLUE_GENERATION_BANDS, FACILITY_LEVEL_MAX, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP } from './rules.ts';
+import { BLUE_GENERATION_BANDS } from './rules.ts';
 
-export const EFFECT = {
-  friendship: 1, mood: 2, statBonus: 3, trainingEff: 8, initialStat: 9, initialGauge: 14,
-  raceBonus: 15, fanBonus: 16, hintLevels: 17, hintFreq: 18, specialty: 19, skillPointBonus: 30,
-} as const;
-
-/** Effect id -> value at the given limit break, unique effects folded in, plus any deck-dependent extras. */
-export function passives(card: Card, lb: number, extra: Record<number, number> = {}): Record<number, number> {
-  const e = card.effectsByLb[Math.max(0, Math.min(4, lb))] ?? {};
-  const out: Record<number, number> = {};
-  for (const [k, v] of Object.entries(e)) {
-    const id = Number(k.replace('u', ''));
-    out[id] = (out[id] ?? 0) + v;
-  }
-  for (const [k, v] of Object.entries(extra)) out[Number(k)] = (out[Number(k)] ?? 0) + v;
-  return out;
-}
-
-/** Compound unique-effect types (100 and up) the stat model evaluates; the rest depend on turn-by-turn state and are left out. */
-export const MODELLED_UNIQUE_TYPES: ReadonlySet<number> = new Set([101, 103, 104, 105, 106, 109, 111]);
-/** What a compound effect can be evaluated against: the deck it sits in, and the agenda's expected fans before each slot. */
-export interface UniqueContext { deck?: { card: Card }[]; fansBefore?: (slot: number) => number }
-/** True when the card's unique effect is unlocked at this limit break. */
-export const uniqueUnlocked = (card: Card, lb: number) => !!card.unique && lb >= card.unique.fromLb;
-
-/** Run-average share of a "+1 per `step` fans, up to `cap`" effect, from the agenda's expected fans before each slot. */
-function fanRampShare(fansBefore: (slot: number) => number, step: number, cap: number): number {
-  if (!(step > 0) || !(cap > 0)) return 0;
-  let sum = 0;
-  for (let s = 0; s < SLOT_COUNT; s++) sum += Math.min(cap, Math.floor(fansBefore(s) / step)) / cap;
-  return sum / SLOT_COUNT;
-}
-
-/**
- * Passives a card's compound unique effect adds (docs/umamusume/refs/gametora-unique-effects.md), evaluated at run time so the
- * fit script can do the same sums from the same payload. Ramping effects (bond, friendship count, total bond, facility
- * level) count for `model.uniqueRampShare` of the run, a fitted share; type 104 (per fans) follows the agenda's fan
- * curve when it is given and the same share otherwise; types 103 and 105 are exact given the deck.
- */
-export function uniqueExtras(card: Card, lb: number, model: StatModel, ctx: UniqueContext = {}): Record<number, number> {
-  const out: Record<number, number> = {};
-  if (!card.unique || !uniqueUnlocked(card, lb)) return out;
-  const share = model.uniqueRampShare;
-  const deck = ctx.deck ?? [];
-  const add = (id: number | undefined, v: number) => { if (id == null || !Number.isFinite(v) || v === 0) return; out[id] = (out[id] ?? 0) + v; };
-  for (const u of card.unique.effects) {
-    switch (u.type) {
-      case 101: add(u.value_1, (u.value_2 ?? 0) * share); add(u.value_3, (u.value_4 ?? 0) * share); break;
-      case 103: if (new Set(deck.map((d) => d.card.type)).size >= u.value) add(EFFECT.trainingEff, u.value_1 ?? 0); break;
-      case 104: add(EFFECT.trainingEff, (u.value_1 ?? 0) * (ctx.fansBefore ? fanRampShare(ctx.fansBefore, u.value, u.value_1 ?? 0) : share)); break;
-      case 105: STATS.forEach((st, i) => {
-        const same = deck.filter((d) => d.card.type === st).length, friends = deck.filter((d) => d.card.type === 'pal' || d.card.type === 'group').length;
-        add(EFFECT.initialStat + i, u.value * same + (u.value_1 ?? 0) * friends);
-      }); break;
-      case 106: add(EFFECT.friendship, u.value * (u.value_2 ?? 0) * share); break;
-      case 109: add(EFFECT.trainingEff, (u.value_1 ? UNIQUE_TOTAL_BOND_CAP / u.value_1 : 0) * share); break;
-      case 111: add(EFFECT.trainingEff, (u.value_1 ?? 0) * FACILITY_LEVEL_MAX * share); break;
-    }
-  }
-  return out;
-}
-
-/** What the model does with each of a card's compound unique effects, for the ranking tooltip. */
-export function uniqueNote(card: Card, model: StatModel, ctx: UniqueContext = {}): string {
-  const pctShare = `${Math.round(model.uniqueRampShare * 100)}% of the run`;
-  const note = (u: UniqueEffect): string => {
-    switch (u.type) {
-      case 101: return `bond ${u.value} assumed reached for ${pctShare}`;
-      case 103: return ctx.deck ? `the deck has ${new Set(ctx.deck.map((d) => d.card.type)).size} card types (needs ${u.value})` : 'counted from the deck once it is built';
-      case 104: return ctx.fansBefore ? `run average +${((u.value_1 ?? 0) * fanRampShare(ctx.fansBefore, u.value, u.value_1 ?? 0)).toFixed(1)} of ${u.value_1} from the agenda's fans` : `${pctShare} of the fan cap (the agenda's fans once it is built)`;
-      case 105: return 'initial stats per card in the deck once it is built';
-      case 106: return `the ${u.value} friendship trainings assumed done for ${pctShare}`;
-      case 109: return `${UNIQUE_TOTAL_BOND_CAP} total bond assumed reached for ${pctShare}`;
-      case 111: return `facility level ${FACILITY_LEVEL_MAX} assumed for ${pctShare}`;
-      default: return u.type >= 100 ? 'depends on turn-by-turn state, left out' : '';
-    }
-  };
-  return (card.unique?.effects ?? []).map(note).filter(Boolean).join('; ');
-}
+export { EFFECT, passives, uniqueExtras, uniqueNote, uniqueUnlocked } from './support-effects.ts';
+export type { UniqueContext } from './support-effects.ts';
+import { EFFECT, passives, uniqueExtras, spModelFor } from './support-effects.ts';
 
 /** Total career turns for the race scaling: the override only when it sits above the reference race count (the settings spec enforces this; a bad saved value falls back to the fit). */
 export function totalTurns(model: StatModel, settings: Settings): number {
@@ -96,38 +21,47 @@ export function raceScale(races: number, model: StatModel, settings: Settings): 
 /** Model-only card contribution at the reference race count, balanced focus. `extra` adds deck-dependent passives. */
 export function modelContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): { stats: number[]; sp: number } {
   const p = passives(card, lb, extra);
+  const fittedEffects = (slopes: Record<number, number> = {}) => Object.entries(slopes)
+    .reduce((sum, [effect, coefficient]) => sum + coefficient * (p[Number(effect)] ?? 0), 0);
+  const statEffects = fittedEffects(model.effectSlopes);
   const stats = STATS.map((s, i) => {
     let v = model.floor + (p[EFFECT.initialStat + i] ?? 0);
     const role = card.type === s ? 'primary' : (model.secondary[card.type] ?? []).includes(s) ? 'secondary' : null;
     if (role) {
       const k = model.roleConstants[`${card.type}.${role}`] ?? 0;
       const gain = k + model.slopes.fr * (p[EFFECT.friendship] ?? 0) + model.slopes.mo * (p[EFFECT.mood] ?? 0)
-        + model.slopes.te * (p[EFFECT.trainingEff] ?? 0) + model.slopes.sb * (p[EFFECT.statBonus + i] ?? 0);
+        + model.slopes.te * (p[EFFECT.trainingEff] ?? 0) + model.slopes.sb * (p[EFFECT.statBonus + i] ?? 0) + statEffects;
       v += Math.max(0, gain);
     }
     return v;
   });
-  const sp = model.sp.base + (card.type === 'wit' ? model.sp.wit : 0) + (card.type === 'pal' || card.type === 'group' ? model.sp.friend : 0)
-    + model.sp.skillPointBonus * (p[EFFECT.skillPointBonus] ?? 0);
-  return { stats, sp };
+  const spModel = spModelFor(card, model);
+  const sp = spModel.base + (card.type === 'wit' ? spModel.wit : 0) + (card.type === 'pal' || card.type === 'group' ? spModel.friend : 0)
+    + spModel.skillPointBonus * (p[EFFECT.skillPointBonus] ?? 0) + fittedEffects(spModel.effectSlopes);
+  return { stats, sp: Math.max(0, sp) };
 }
 
 export interface Contribution { stats: number[]; sp: number; source: 'observed' | 'observed+model' | 'model'; runs?: number }
 
+/** The recorded reference used by both the prediction and its source explanation. */
+export function referenceObservation(card: Card, lb: number, model: StatModel): StatModel['observed'][number] | undefined {
+  const observations = model.observed.filter((o) => o.cardId === card.id && o.wellTested);
+  return observations.find((o) => o.lb === lb) ?? observations.reduce<StatModel['observed'][number] | undefined>((nearest, o) =>
+    !nearest || Math.abs(o.lb - lb) < Math.abs(nearest.lb - lb) ? o : nearest, undefined);
+}
+
 /**
  * Best estimate of a card's contribution at the reference race count: observed where available, model otherwise.
  * `extra` (compound unique passives from uniqueExtras) only reaches the model: an observed row already contains the
- * effect at the deck it was logged with, and it cancels out of an LB shift.
+ * effect at the deck it was logged with. LB shifts use the ordinary inputs only, so changes
+ * to a guessed deck bonus cannot move a recorded reference through a formula clamp.
  */
 export function cardContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): Contribution {
-  const obs = model.observed.filter((o) => o.cardId === card.id && o.wellTested);
-  const exact = obs.find((o) => o.lb === lb);
-  if (exact) return { stats: exact.stats.slice(), sp: exact.sp, source: 'observed', runs: exact.runs };
-  const m = modelContribution(card, lb, model, extra);
-  if (obs.length) {
-    // shift the nearest observed LB by the model's delta between the two LBs
-    const near = obs.reduce((a, b) => (Math.abs(b.lb - lb) < Math.abs(a.lb - lb) ? b : a));
-    const mNear = modelContribution(card, near.lb, model, extra);
+  const near = referenceObservation(card, lb, model);
+  if (near?.lb === lb) return { stats: near.stats.slice(), sp: near.sp, source: 'observed', runs: near.runs };
+  const m = modelContribution(card, lb, model, near ? {} : extra);
+  if (near) {
+    const mNear = modelContribution(card, near.lb, model);
     return {
       stats: near.stats.map((v, i) => Math.max(model.floor, v + (m.stats[i]! - mNear.stats[i]!))),
       sp: near.sp + (m.sp - mNear.sp),

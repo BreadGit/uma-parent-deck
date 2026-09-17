@@ -171,6 +171,19 @@ table.coverage td.src-list { width: 55%; }
 .ranking-card-name { flex: 1; }
 .ranking-pin { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; width: 28px; height: 28px; padding: 4px; }
 .ranking-pin svg { width: 18px; height: 18px; }
+.ranking-table td.basis { white-space: normal; vertical-align: top; min-width: 160px; }
+.basis-details { width: 180px; }
+.basis-details[open] { width: 280px; }
+.basis-details > summary { min-height: 28px; padding: 4px 0; }
+.formula-coverage > summary { padding: 4px 0; }
+.basis-details p, .estimate-limitations p { margin: 6px 0; }
+.effect-coverage { margin: 8px 0; padding-left: 18px; }
+.effect-coverage li { margin: 8px 0; overflow-wrap: anywhere; }
+.effect-coverage .tag { margin-left: 4px; }
+.effect-coverage p { margin: 3px 0; }
+.estimate-limitations { margin: 12px 0; }
+.estimate-limitations > summary { min-height: 28px; }
+.estimate-limitations-card { margin: 12px 0; }
 /* in-flow tables scroll sideways inside their panel */
 .scroll-x { overflow-x: auto; }
 .thumb { width: 36px; height: 36px; border-radius: 4px; vertical-align: middle; }

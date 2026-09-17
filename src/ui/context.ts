@@ -30,6 +30,7 @@ const viewState = {
   showPinkSparks: false,
   showAgenda: false,
   expandedRankingCards: [] as number[],
+  expandedBasisCards: [] as number[],
   /** Advanced settings whose last typed value was rejected, with the accepted range. */
   settingErrors: {} as Record<string, { value: string; message: string }>,
   /** The prioritized-skill row being dragged and the row under the pointer. */

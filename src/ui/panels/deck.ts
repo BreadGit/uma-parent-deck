@@ -3,8 +3,10 @@ import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
-import { searchState, store } from '../context.ts';
+import { cardEffectCoverage } from '../../model/support-effects.ts';
+import { data, searchState, store } from '../context.ts';
 import { COPY } from '../copy.ts';
+import { basisLabel, effectList, missingEffect, observedCaveat, observedDeckEffect } from '../effect-coverage.ts';
 import { lbSelect } from '../fields.ts';
 import { cardLink, cardThumb, pill, probability, typeIcon } from '../format.ts';
 import { panel } from '../panel.ts';
@@ -20,6 +22,22 @@ function slot(c: RunPlan, cs: CardScore) {
   </div>`;
 }
 
+function limitations(c: RunPlan) {
+  const cards = c.deckResult.deck.map((cs) => ({ cs, effects: cardEffectCoverage(cs.card, cs.lb, data.model, { deck: c.deckResult.deck, fansBefore: c.ctx.fansBefore })
+    .filter((effect) => missingEffect(effect) || effect.reason === 'teamBond' || (cs.source !== 'model' && observedDeckEffect(effect))) }))
+    .filter(({ effects }) => effects.length > 0);
+  if (!cards.length) return nothing;
+  return html`<details class="estimate-limitations small" data-estimate-limitations>
+    <summary>${COPY.modelCoverage.limitations(cards.length)}</summary>
+    <p class="muted">${COPY.modelCoverage.limitationsDetail}</p>
+    ${cards.map(({ cs, effects }) => html`<div class="estimate-limitations-card" data-card-limitations=${cs.card.id}>
+      <b>${cardLink(cs.card)}</b> <span class="muted">${basisLabel(cs.card, cs.lb, cs.source)}</span>
+      ${observedCaveat(cs.source, effects)}
+      ${effectList(effects, true)}
+    </div>`)}
+  </details>`;
+}
+
 export function renderDeck(c: RunPlan) {
   const d = c.deckResult;
   const ordered = [...d.deck.filter((x) => !x.borrowed), ...d.deck.filter((x) => x.borrowed)];
@@ -29,6 +47,7 @@ export function renderDeck(c: RunPlan) {
   return panel({ title: COPY.deck.title, kind: 'result', tip: COPY.deck.tip }, html`
     ${searchState.pending ? html`<p class="status small muted" data-plan-pending role="status" aria-live="polite">${COPY.app.searching}</p>` : nothing}
     ${deck}
+    ${limitations(c)}
     ${c.issues.length ? html`<div role="alert" data-plan-issues>${c.issues.map((issue) => html`<p class="warn">${issue}</p>`)}</div>` : nothing}
     <details><summary>${COPY.deck.steps}</summary><ol class="small">${d.steps.map((s) => html`<li>${s}</li>`)}</ol></details>`);
 }

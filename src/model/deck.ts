@@ -1,6 +1,7 @@
 import type { Card, Character, Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale, uniqueExtras, type Contribution } from './stats.ts';
+import { teamInitialBond } from './support-effects.ts';
 import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import { hasWhiteSpark, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
@@ -23,14 +24,15 @@ export function makeCtx(base: Pick<Ctx, 'data' | 'settings' | 'races' | 'totalTu
   return { raceWins: new Map(), lineage: new Map(), priority: [], ...base };
 }
 /** Everything already in play for the run: non-scenario sources per target, and which characters are present. */
-export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: Card[] }
+export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: Card[]; limitBreaks?: Map<number, number> }
 const lineageN = (ctx: Ctx, t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
-const cloneExisting = (e: Existing): Existing => ({ sources: new Map([...e.sources].map(([k, v]) => [k, v.slice()])), chars: new Set(e.chars), cards: e.cards.slice() });
-function addTo(e: Existing, add: Map<number, SkillSource[]>, card: Card): Existing {
+const cloneExisting = (e: Existing): Existing => ({ sources: new Map([...e.sources].map(([k, v]) => [k, v.slice()])), chars: new Set(e.chars), cards: e.cards.slice(), limitBreaks: new Map(e.limitBreaks) });
+function addTo(e: Existing, add: Map<number, SkillSource[]>, card: Card, lb: number): Existing {
   const out = cloneExisting(e);
   for (const [t, ss] of add) out.sources.set(t, [...(out.sources.get(t) ?? []), ...ss]);
   out.chars.add(card.charId);
   out.cards.push(card);
+  out.limitBreaks!.set(card.id, lb);
   return out;
 }
 /** Non-target choice-gated options in the run (scenario options and card event options) that could outrank a target in the prioritized list. */
@@ -79,7 +81,7 @@ export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
     ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data, ctx.settings, ctx.raceWins) : []),
     ...lineageSources(t, ctx.lineage.get(t.id), ctx.settings),
   ]);
-  return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [] };
+  return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [], limitBreaks: new Map() };
 }
 
 /** Per-context memo of what does not change within one plan: each card's sources per target, and the trainee's blockers. */
@@ -111,8 +113,8 @@ function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<numbe
   return mine;
 }
 /** Stat contribution at the run's race count (compound unique effects evaluated against the other cards in the run and the agenda), and its value under the chosen training focus. */
-function statsOf(card: Card, lb: number, ctx: Ctx, others: Card[]): { contrib: Contribution; stats: number[]; statPower: number; sp: number } {
-  const extra = uniqueExtras(card, lb, ctx.data.model, { deck: [...others, card].map((c) => ({ card: c })), fansBefore: ctx.fansBefore });
+function statsOf(card: Card, lb: number, ctx: Ctx, others: { card: Card; lb: number }[]): { contrib: Contribution; stats: number[]; statPower: number; sp: number } {
+  const extra = uniqueExtras(card, lb, ctx.data.model, { deck: [...others, { card, lb }], fansBefore: ctx.fansBefore });
   const contrib = cardContribution(card, lb, ctx.data.model, extra);
   const scale = raceScale(ctx.races, ctx.data.model, ctx.settings);
   const stats = contrib.stats.map((v) => v * scale);
@@ -121,11 +123,11 @@ function statsOf(card: Card, lb: number, ctx: Ctx, others: Card[]): { contrib: C
 }
 
 export function scoreCard(card: Card, lb: number, targets: Target[], existing: Existing, ctx: Ctx): CardScore {
-  const { contrib, stats, statPower, sp } = statsOf(card, lb, ctx, existing.cards);
+  const { contrib, stats, statPower, sp } = statsOf(card, lb, ctx, existing.cards.map((c) => ({ card: c, lb: existing.limitBreaks?.get(c.id) ?? 0 })));
   const mine = minesOf(card, lb, targets, ctx);
   const alone = evaluate({ sources: mine, chars: new Set([card.charId]), cards: [card] }, targets, ctx);
   const before = evaluate(existing, targets, ctx);
-  const after = evaluate(addTo(existing, mine, card), targets, ctx);
+  const after = evaluate(addTo(existing, mine, card, lb), targets, ctx);
   const coverage: Coverage[] = [];
   let sparkValue = 0, marginalValue = 0;
   for (const t of targets) {
@@ -157,23 +159,23 @@ export function describeDeck(entries: { card: Card; lb: number; borrowed?: boole
   const deck = sourceEntries.map((e, i) => ({ ...scoreCard(e.card, e.lb, targets, stateOf(sourceEntries.filter((_, j) => i !== j), targets, ctx), ctx), borrowed: e.borrowed }));
   const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);
   const borrowed = deck.find((e) => e.borrowed);
-  return { deck, coverage, sparks, conflicts, steps: [], borrow: borrowed ? { card: borrowed.card, replaces: null, gain: borrowed.marginalValue, statGain: borrowed.statPower } : null, borrowAlternatives: [] };
+  return { deck, coverage, sparks, conflicts, steps: [], borrow: borrowed ? { card: borrowed.card, replaces: null, gain: borrowed.marginalValue, statGain: deckValue(deck, targets, ctx).stats - deckValue(deck.filter((e) => e !== borrowed), targets, ctx).stats } : null, borrowAlternatives: [] };
 }
 /** Run state for a set of cards on top of the trainee. */
 function stateOf(entries: Entry[], targets: Target[], ctx: Ctx): Existing {
   let e = traineeCoverage(targets, ctx);
-  for (const x of entries) e = addTo(e, x.mine, x.card);
+  for (const x of entries) e = addTo(e, x.mine, x.card, x.lb);
   return e;
 }
 /** Total expected sparks over the targets for a set of cards, plus their focus-weighted stat power. */
 function deckValue(entries: Entry[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
-  const stats = entries.reduce((a, e, i) => a + statsOf(e.card, e.lb, ctx, entries.filter((_, j) => j !== i).map((x) => x.card)).statPower, 0);
+  const stats = entries.reduce((a, e, i) => a + statsOf(e.card, e.lb, ctx, entries.filter((_, j) => j !== i)).statPower, 0);
   return { sparks: total(evaluate(stateOf(entries, targets, ctx), targets, ctx).sparks), stats };
 }
 /** Refresh contributions after the deck changes, including effects on cards that stayed in it. */
 function refreshStats(deck: CardScore[], ctx: Ctx): void {
   deck.forEach((d, i) => {
-    const { contrib, ...stats } = statsOf(d.card, d.lb, ctx, deck.filter((_, j) => j !== i).map((x) => x.card));
+    const { contrib, ...stats } = statsOf(d.card, d.lb, ctx, deck.filter((_, j) => j !== i));
     Object.assign(d, stats, { source: contrib.source, runs: contrib.runs });
   });
 }
@@ -220,7 +222,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   const borrowOpen = () => borrowPool.length > 0 && !deck.some((d) => d.borrowed);
   const add = (cs: CardScore, note: string) => {
     deck.push(cs); usedChars.add(cs.card.charId);
-    existing = addTo(existing, cs.mine, cs.card);
+    existing = addTo(existing, cs.mine, cs.card, cs.lb);
     steps.push(`${cs.card.name} (LB${cs.lb})${cs.borrowed ? ', borrowed' : ''}: ${note}`);
   };
   const free = (p: { card: Card }) => !usedChars.has(p.card.charId);
@@ -286,7 +288,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
       const used = new Set(without.map((x) => x.card.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
       const stateNow = stateOf(without, targets, ctx);
       const upScore = { ...scoreCard(up.card, up.lb, targets, stateNow, ctx), borrowed: true };
-      const after = addTo(stateNow, upScore.mine, up.card);
+      const after = addTo(stateNow, upScore.mine, up.card, up.lb);
       used.add(up.card.charId);
       const refill = pool.filter((p) => !used.has(p.card.charId)).map((p) => scoreCard(p.card, p.lb, targets, after, ctx)).sort(cmp)[0];
       const entries = [...without, upScore, ...(refill ? [refill] : [])];
@@ -307,10 +309,11 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   // per context, and its stat power too unless its unique effect depends on the deck around it.
   const pinnedSet = new Set(pinnedIds);
   const deckDependent = (card: Card) => !!card.unique?.effects.some((u) => u.type === 103 || u.type === 105);
+  const hasTeamEffect = [...pool, ...borrowPool].some((entry) => teamInitialBond([entry]) !== 0);
   const powerCache = new Map<string, number>();
-  const powerOf = (p: { card: Card; lb: number }, others: Card[]) => {
+  const powerOf = (p: { card: Card; lb: number }, others: { card: Card; lb: number }[]) => {
     if (deckDependent(p.card)) return statsOf(p.card, p.lb, ctx, others).statPower;
-    const key = `${p.card.id}:${p.lb}`;
+    const key = `${p.card.id}:${p.lb}:${teamInitialBond([...others, p])}`;
     let v = powerCache.get(key);
     if (v === undefined) { v = statsOf(p.card, p.lb, ctx, others).statPower; powerCache.set(key, v); }
     return v;
@@ -323,16 +326,16 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
       const others = deck.filter((_, j) => j !== index);
       const otherCards = others.map((o) => o.card);
       const othersState = stateOf(others, targets, ctx);
-      const dependent = others.filter((e) => deckDependent(e.card));
-      const fixedStats = others.filter((e) => !deckDependent(e.card)).reduce((a, e) => a + e.statPower, 0);
+      const dependent = others.filter((e) => hasTeamEffect || deckDependent(e.card));
+      const fixedStats = others.filter((e) => !hasTeamEffect && !deckDependent(e.card)).reduce((a, e) => a + e.statPower, 0);
       const used = new Set(otherCards.map((c) => c.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
       const cands = (d.borrowed ? borrowPool : pool).filter((p) => !used.has(p.card.charId) && !(p.card.id === d.card.id && p.lb === d.lb) && !others.some((o) => o.card.id === p.card.id));
       for (const p of cands) {
         const mine = minesOf(p.card, p.lb, targets, ctx);
-        const statPower = powerOf(p, otherCards);
+        const statPower = powerOf(p, others);
         // A replacement can activate or disable another card's unique, even when its own stats are unchanged.
-        const othersStats = fixedStats + dependent.reduce((a, e) => a + powerOf(e, [...otherCards.filter((c) => c.id !== e.card.id), p.card]), 0);
-        const value = { sparks: total(evaluate(addTo(othersState, mine, p.card), targets, ctx).sparks), stats: othersStats + statPower };
+        const othersStats = fixedStats + dependent.reduce((a, e) => a + powerOf(e, [...others.filter((c) => c.card.id !== e.card.id), p]), 0);
+        const value = { sparks: total(evaluate(addTo(othersState, mine, p.card, p.lb), targets, ctx).sparks), stats: othersStats + statPower };
         if (betterValue(value, best?.value ?? base)) best = { index, pick: p, value };
       }
     }
@@ -356,11 +359,15 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     const state = stateOf(owned, targets, ctx);
     if (borrow) {
       borrow.gain = total(evaluate(stateOf(deck, targets, ctx), targets, ctx).sparks) - total(evaluate(state, targets, ctx).sparks);
-      borrow.statGain = finalBorrow.statPower;
+      borrow.statGain = deckValue(deck, targets, ctx).stats - deckValue(owned, targets, ctx).stats;
     }
     const used = new Set(owned.map((x) => x.card.charId).concat(ctx.trainee ? [ctx.trainee.charId] : []));
-    const ranked = borrowPool.filter((p) => !used.has(p.card.charId) && p.card.id !== finalBorrow.card.id).map((p) => scoreCard(p.card, p.lb, targets, state, ctx)).sort(cmp);
-    for (const r of ranked.slice(0, 5)) alternatives.push({ card: r.card, replaces: null, gain: r.marginalValue, statGain: r.statPower });
+    const ownedStats = deckValue(owned, targets, ctx).stats;
+    const ranked = borrowPool.filter((p) => !used.has(p.card.charId) && p.card.id !== finalBorrow.card.id).map((p) => {
+      const score = scoreCard(p.card, p.lb, targets, state, ctx);
+      return { score, statGain: deckValue([...owned, score], targets, ctx).stats - ownedStats };
+    }).sort((a, b) => b.score.marginalValue - a.score.marginalValue || b.statGain - a.statGain || b.score.sp - a.score.sp);
+    for (const { score, statGain } of ranked.slice(0, 5)) alternatives.push({ card: score.card, replaces: null, gain: score.marginalValue, statGain });
   }
 
   const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);

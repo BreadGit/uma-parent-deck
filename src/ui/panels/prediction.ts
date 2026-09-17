@@ -7,6 +7,7 @@ import { BLUE_STAR_BANDS, cardContribution, EFFECT, pAbove, passives, raceScale,
 import { statScore } from '../../model/rank.ts';
 import { data, store } from '../context.ts';
 import { COPY } from '../copy.ts';
+import { basisLabel } from '../effect-coverage.ts';
 import { capitalize, cardLink, cardThumb, num, pill } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
@@ -18,7 +19,7 @@ function statBreakdown(c: RunPlan) {
   const row = (label: TemplateResult | string, vals: number[], cls = '') => html`<tr class="${cls}"><td>${label}</td>${vals.map((v) => html`<td class="num">${num(v)}</td>`)}<td class="num">${num(vals.reduce((a, b) => a + b, 0))}</td></tr>`;
   const cardRows = d.deck.map((cs) => {
     const cc = cardContribution(cs.card, cs.lb, data.model, uniqueExtras(cs.card, cs.lb, data.model, { deck: d.deck, fansBefore: c.ctx.fansBefore }));
-    return row(html`${cardThumb(cs.card, 'thumb thumb-sm')} ${cardLink(cs.card)} <span class="muted small">(${cc.source === 'model' ? 'model' : `observed${cc.source === 'observed+model' ? ', shifted to LB' + cs.lb : ''}`})</span>`, cc.stats.map((v, i) => v * scale * focusMul[i]!));
+    return row(html`${cardThumb(cs.card, 'thumb thumb-sm')} ${cardLink(cs.card)} <span class="muted small">(${basisLabel(cs.card, cs.lb, cc.source)})</span>`, cc.stats.map((v, i) => v * scale * focusMul[i]!));
   });
   const base = c.trainee?.baseStats ?? [0, 0, 0, 0, 0];
   const penalty = store.settings.lossPenalty * c.sum.expectedLosses;
