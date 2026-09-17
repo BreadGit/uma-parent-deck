@@ -18,6 +18,7 @@ import { projectForms } from './goal-skills.ts';
 import { gainsOfParentSparks, inheritedFromParents, type Inheritance, type ParentSparks } from './inherit.ts';
 import { clampStars, traineeAt } from './trainee.ts';
 import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX, SCENARIO_STAT_CAPS, SCENARIO_FINALE_FANS } from './rules.ts';
+import { prepareRunSources } from './run-sources.ts';
 
 /** Everything the user chose about the run. The app persists exactly this (plus UI-only fields). */
 export interface RunInput {
@@ -192,14 +193,20 @@ export function targetSpCost(targets: Target[], coverage: Map<number, SkillSourc
 
 export type DeckPrediction = Pick<RunPlan, 'pred' | 'parentGains' | 'inherited' | 'rawFinalMean' | 'rawFinalSd' | 'finalMean' | 'finalSd' | 'statChances' | 'purchases' | 'statCaps' | 'rank'>;
 
+function preparePrediction(input: RunInput, ctx: Ctx) {
+  const parentGains = input.parentSparks.map(gainsOfParentSparks);
+  const inherited = STATS.map((_, i) => inheritedFromParents(parentGains, i, ctx.settings));
+  const goal = goalWithTargets(input.goal, input.targets.filter((t) => goalFamily(t.id, ctx.data) === t.id));
+  return { parentGains, inherited, priority: [...goal.required, ...goal.preferred].map((t) => t.id) };
+}
+
 /** Predict a supplied deck without selecting cards. */
-export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, sampleCount = 512): DeckPrediction {
+export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, sampleCount = 512, prepared = preparePrediction(input, ctx)): DeckPrediction {
   const { data, settings, trainee } = ctx;
   const fansBefore = ctx.fansBefore ?? (() => 0);
   const stars = clampStars(trainee, input.traineeStars);
   const pred = predictDeck(deck, trainee, ctx.races, settings.focus, expectedLosses, data.model, settings, fansBefore);
-  const parentGains = input.parentSparks.map(gainsOfParentSparks);
-  const inherited = STATS.map((_, i) => inheritedFromParents(parentGains, i, settings));
+  const { parentGains, inherited, priority } = prepared;
   const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => displayedStat(v) > caps[i]! + inherited[i]!.uncap) } : null;
@@ -208,8 +215,6 @@ export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInp
   const moments = masses.map(statMoments);
   const finalMean = moments.map((m) => m.mean), finalSd = moments.map((m) => m.sd);
   const statChances = moments.map((m) => ({ mid: Math.min(1, m.above(600)), high: Math.min(1, m.above(1100)) }));
-  const goal = goalWithTargets(input.goal, input.targets.filter((t) => goalFamily(t.id, data) === t.id));
-  const priority = [...goal.required, ...goal.preferred].map((t) => t.id);
   const purchases = estimatePurchases(deck, ctx, pred.sp, priority, apt, Math.min(sampleCount, 512));
   // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
   const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
@@ -233,6 +238,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const baseFans = estimateFans(schedule, [], settings);
   const fansBefore = (slot: number) => fansBeforeSlot(baseFans, slot);
   const baseCtx: Ctx = { data, settings, races: sum.count + (SCENARIO_FINALE_FANS[settings.scenarioId]?.length ?? 0), totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage, priority: [], fansBefore };
+  baseCtx.sources = prepareRunSources(baseCtx);
+  const preparedPrediction = preparePrediction(input, baseCtx);
   const { pool, unowned } = cardPool(data, inventory, settings);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id));
   const pinnedIds = input.pinnedIds.filter((id) => data.cardById.has(id));
@@ -268,7 +275,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const candidates = wishlistCandidates(entries, targets, candidateCtx), ordered = order(candidates);
     const priority = derivePriority(ordered, targets.filter((t) => !input.wishlistExcluded.some((id) => t.familyIds.has(id))), data, input.wishlistExcluded);
     const ctx: Ctx = { ...candidateCtx, priority, excluded: input.wishlistExcluded };
-    const prediction = predictRunDeck(entries, input, ctx, apt, sum.expectedLosses, sampleCount);
+    const prediction = predictRunDeck(entries, input, ctx, apt, sum.expectedLosses, sampleCount, preparedPrediction);
     const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.rank.skillPts, skillSd: Math.sqrt(settings.skillScoreSd ** 2 + prediction.purchases.variance) };
     const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
     const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));

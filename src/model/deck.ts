@@ -4,6 +4,7 @@ import { cardContribution, raceScale, uniqueExtras, type Contribution } from './
 import { teamInitialBond } from './support-effects.ts';
 import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
 import type { RaceWins } from './races.ts';
+import type { PreparedRunSources } from './run-sources.ts';
 import { hasWhiteSpark, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
 
 /** Everything a run evaluation needs besides the cards: the data, the settings and the run's fixed choices. */
@@ -18,6 +19,7 @@ export interface Ctx {
   priority: number[];            // skill ids in prioritized-skill order (every form of a family); decides which option an event's choice goes to
   excluded?: number[];           // explicitly excluded choice skills; ordinary hints remain available
   fansBefore?: (slot: number) => number; // the agenda's expected fans before a slot, for fan-scaled unique effects
+  sources?: PreparedRunSources; // shared only by candidates of the same plan
 }
 /** A Ctx with no agenda, lineage or priority unless given; for tests and scripts. */
 export function makeCtx(base: Pick<Ctx, 'data' | 'settings' | 'races' | 'totalTurns' | 'trainee'> & Partial<Ctx>): Ctx {
@@ -40,7 +42,7 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
   const { families, traineeBlockers } = memoOf(ctx, targets);
   const out: Blocker[] = [];
   for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
-  for (const card of e.cards) for (const s of eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
+  for (const card of e.cards) for (const s of ctx.sources?.cardEvents(card) ?? eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
   out.push(...traineeBlockers);
   return out;
 }
@@ -51,7 +53,7 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
  */
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const full = new Map<number, SkillSource[]>();
-  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars), ...scenarioCompletionSources(t, ctx.data, ctx.settings)].filter((s) => !s.isChoice || !ctx.excluded?.includes(s.skillId)));
+  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars), ...(ctx.sources?.completion(t) ?? scenarioCompletionSources(t, ctx.data, ctx.settings))].filter((s) => !s.isChoice || !ctx.excluded?.includes(s.skillId)));
   const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx), ctx.settings, targets);
   const sparks = new Map(targets.map((t) => [t.id, hasWhiteSpark(t) ? sparkChance(purchasedOwnership(t, combineSources(map.get(t.id) ?? [])), ctx.settings, lineageN(ctx, t)) : 0]));
   return { full, map, sparks, conflicts };
@@ -77,7 +79,7 @@ export interface CardScore {
 
 export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
   const sources = new Map<number, SkillSource[]>();
-  for (const t of targets) sources.set(t.id, [
+  for (const t of targets) sources.set(t.id, ctx.sources?.trainee(t).slice() ?? [
     ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data, ctx.settings, ctx.raceWins) : []),
     ...lineageSources(t, ctx.lineage.get(t.id), ctx.settings),
   ]);
@@ -92,7 +94,7 @@ function memoOf(ctx: Ctx, targets: Target[]): CtxMemo {
   if (!m || m.targets !== targets) {
     const families = new Set(targets.flatMap((t) => [...t.familyIds]));
     const traineeBlockers: Blocker[] = [];
-    if (ctx.trainee) for (const s of traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) traineeBlockers.push({ skillId: s.skillId, event: s.event });
+    if (ctx.trainee) for (const s of ctx.sources?.traineeEvents ?? traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) traineeBlockers.push({ skillId: s.skillId, event: s.event });
     m = { targets, mines: new Map(), families, traineeBlockers };
     ctxMemos.set(ctx, m);
   }
@@ -106,7 +108,7 @@ function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<numbe
   if (mine) return mine;
   mine = new Map<number, SkillSource[]>();
   for (const t of targets) {
-    const sources = cardSourcesForTarget(card, lb, t, ctx.races, ctx.totalTurns, ctx.data, ctx.settings);
+    const sources = ctx.sources?.card(card, lb, t) ?? cardSourcesForTarget(card, lb, t, ctx.races, ctx.totalTurns, ctx.data, ctx.settings);
     if (sources.length) mine.set(t.id, sources);
   }
   memo.mines.set(key, mine);
@@ -429,7 +431,7 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 1.2 : 1), reason: o.detail });
   }
   // Other choice-gated skills from the deck's and the trainee's events (not targets): listing them steers the AI to that option.
-  const offered = [...deck.map((d) => ({ owner: d.card.name, sources: eventSources(d.card, ctx.settings, ctx.data) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data) }] : [])];
+  const offered = [...deck.map((d) => ({ owner: d.card.name, sources: ctx.sources?.cardEvents(d.card) ?? eventSources(d.card, ctx.settings, ctx.data) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: ctx.sources?.traineeEvents ?? traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data) }] : [])];
   for (const { owner, sources } of offered) {
     for (const src of sources) {
       if (!src.isChoice || seen.has(src.skillId) || targetFamilies.has(src.skillId)) continue;

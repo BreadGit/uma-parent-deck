@@ -148,7 +148,7 @@ export function estimatePurchases(deck: { card: Card; lb: number }[], ctx: Ctx, 
     ...(ctx.trainee ? [...ctx.trainee.innateSkills, ...ctx.trainee.awakeningSkills, ...ctx.trainee.eventSkills] : []),
     ...ctx.data.scenarioEvents.filter((e) => e.scenarioId === ctx.settings.scenarioId).flatMap((e) => e.choices.flatMap((c) => [c.skill, c.whiteSkill, c.goldSkill])),
     ...(completion ? [completion.white, completion.gold] : [])];
-  const targets = [...new Map(ids.flatMap((id) => { const t = id === undefined ? null : resolveTarget(id, ctx.data); return t ? [[t.id, t] as const] : []; })).values()];
+  const targets = [...new Map(ids.flatMap((id) => { const t = id === undefined ? null : ctx.sources ? ctx.sources.target(id) : resolveTarget(id, ctx.data); return t ? [[t.id, t] as const] : []; })).values()];
   const coverage = purchaseCoverage(deck, targets, ctx);
   return budgetForms(targets, jointSkillForms(targets, coverage, ctx.data), budget, priority, apt, ctx.settings.purchaseHintLevel, samples, new Set([...(ctx.trainee?.innateSkills ?? []), ...(ctx.trainee?.awakeningSkills ?? [])]));
 }
