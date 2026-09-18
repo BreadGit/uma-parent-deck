@@ -27,7 +27,7 @@ function conflicts(c: RunPlan) {
 }
 
 export function renderWarnings(c: RunPlan) {
-  return panel({ title: COPY.warnings.title, kind: 'result', tip: COPY.warnings.tip, cls: 'panel-warn' }, html`
+  return panel({ title: COPY.warnings.title, kind: 'result', tip: COPY.warnings.tip, cls: 'panel-warn panel-live' }, html`
     ${searchState.error ? html`<p class="warn" role="alert" data-search-failed>${COPY.app.searchFailed} <button class="small" data-action="retry-search" @click=${retrySearch}>${COPY.app.retrySearch}</button></p>` : nothing}
     ${c.issues.length ? html`<div role="alert" data-plan-issues>${c.issues.map((issue) => html`<p class="warn">${issue}</p>`)}</div>` : nothing}
     ${goalWarnings(c)}

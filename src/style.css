@@ -72,8 +72,9 @@ section.panel h3 { font-size: var(--fs-sm); margin: 14px 0 6px; color: var(--mut
 .sub-head h3 { margin: 0; }
 .status { margin: 0 0 8px; }
 .banner { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--accent); border-radius: var(--radius); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
-/* until a trainee is picked, every result except the ranking (where the inventory lives) is a placeholder */
-.results.waiting > section.panel:not(.panel-live) { opacity: .55; }
+/* until a trainee is picked, every result is a placeholder except the ranking (where the inventory lives) and the
+   warnings, which say what is missing; the split columns nest panels, so this matches descendants */
+.results.waiting section.panel:not(.panel-live) { opacity: .35; }
 label.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0; }
 .row-k, .fact-k, .kv-k { color: var(--muted); }
 select, input[type=text], input[type=number], input[type=search] { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--input); color: var(--text); max-width: 200px; }

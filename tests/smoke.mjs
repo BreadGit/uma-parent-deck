@@ -19,6 +19,15 @@ await page.goto(url);
 await page.waitForSelector('h1');
 await page.evaluate(() => localStorage.clear());
 await page.reload();
+// Before a trainee is picked every result panel is dimmed, including the ones nested in the split, except the ranking
+// (where the inventory lives) and the warnings, which say what is missing.
+await page.waitForSelector('[data-waiting]');
+const dimmed = await page.$$eval('.results section.panel', (panels) => panels.map((p) => [p.querySelector('h2').textContent, getComputedStyle(p).opacity]));
+for (const [title, opacity] of dimmed) {
+  const live = title.startsWith('Card ranking') || title.startsWith('Warnings');
+  assert.equal(opacity, live ? '1' : '0.35', `${title} should be ${live ? 'live' : 'dimmed'} before a trainee is picked`);
+}
+assert.ok(dimmed.some(([title]) => title.startsWith('Prioritized skills')) && dimmed.some(([title]) => title.startsWith('Warnings')), 'the nested panels and the warnings are rendered while waiting');
 
 // A range input must stay mounted while it is dragged. Replacing it on each input event
 // breaks pointer capture and prevents the thumb from reaching the pointer.
