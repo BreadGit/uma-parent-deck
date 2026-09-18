@@ -1,9 +1,13 @@
-// PROTOTYPE, throwaway. Three layouts of the result column that fit Suggested deck, Parent goal estimate, Prioritized
-// skills and Predicted run on one 1080p screen, switchable with ?variant=A|B|C and the floating bar at the bottom.
-// Variant A: dashboard grid, per-panel collapsed details.
-// Variant B: deck, estimate and run stacked on the left, the skill list on the right, and one "Show details" toggle
-// that swaps to the full stacked panels.
-// Variant C: one combined summary card; the four full panels sit under a single collapsed "Full details".
+// PROTOTYPE, throwaway. Two independent sets of layout variants, combined through two URL parameters and a floating bar:
+//   ?sidebar=1|2|3   how the input column collapses
+//     1 Collapsible column: a header button hides the column; the results take the full width.
+//     2 Overlay drawer: the results always take the full width; the inputs slide over them from the left.
+//     3 Icon rail: the column collapses to a rail of step buttons; a button opens the column at that panel.
+//   ?results=1|2|3   how the deck, goal estimate, prioritized skills and predicted run share one screen
+//     1 Split: deck, estimate and run stacked on the left, the skill list on the right (the earlier prototype B).
+//     2 Deck banner: the deck across the top, then estimate over run on the left and the skill list on the right.
+//     3 Report rows: the deck across the top, estimate beside run, then the skill list in two columns.
+// Every results variant keeps one "Show details" toggle that swaps to the full stacked panels.
 import './prototype-layout.css';
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
@@ -26,46 +30,102 @@ import { renderSchedule } from './panels/schedule.ts';
 import { renderRanking } from './panels/ranking.ts';
 import { tip } from './tooltip.ts';
 
-export const VARIANTS = ['A', 'B', 'C'] as const;
-export type Variant = typeof VARIANTS[number];
-const NAMES: Record<Variant, string> = { A: 'Dashboard grid', B: 'Split with details toggle', C: 'Summary card' };
+const KEYS = ['1', '2', '3'] as const;
+type Key = typeof KEYS[number];
+export interface Proto { sidebar: Key; results: Key }
+const SIDEBAR_NAMES: Record<Key, string> = { 1: 'Collapsible column', 2: 'Overlay drawer', 3: 'Icon rail' };
+const RESULTS_NAMES: Record<Key, string> = { 1: 'Split', 2: 'Deck banner', 3: 'Report rows' };
 type Section = (name: string, render: () => TemplateResult<1>, deps?: unknown[]) => unknown;
 
-export function layoutVariant(): Variant | null {
+/** Either parameter turns the prototype on; a missing one defaults to 1. */
+export function prototypeVariants(): Proto | null {
   if (!import.meta.env.DEV) return null;
-  const v = new URL(location.href).searchParams.get('variant');
-  return (VARIANTS as readonly string[]).includes(v ?? '') ? v as Variant : null;
+  const q = new URL(location.href).searchParams;
+  const s = q.get('sidebar'), r = q.get('results');
+  if (s === null && r === null) return null;
+  const key = (v: string | null): Key => (KEYS as readonly string[]).includes(v ?? '') ? v as Key : '1';
+  return { sidebar: key(s), results: key(r) };
 }
-function go(v: Variant) {
+function go(next: Partial<Proto>) {
+  const cur = prototypeVariants() ?? { sidebar: '1', results: '1' };
   const url = new URL(location.href);
-  url.searchParams.set('variant', v);
+  url.searchParams.set('sidebar', next.sidebar ?? cur.sidebar);
+  url.searchParams.set('results', next.results ?? cur.results);
   history.replaceState(history.state, '', url.href);
   refresh();
 }
+const cycle = (k: Key, delta: number): Key => KEYS[(KEYS.indexOf(k) + delta + KEYS.length) % KEYS.length]!;
+
+// Sidebar state is view-only and lives here: open or closed. A rail button opens the column at its panel.
+let sidebarOpen = true;
+function setSidebar(open: boolean, step: number | null = null) {
+  sidebarOpen = open;
+  refresh();
+  // steps 1 to 4 are numbered panels; 5 is the settings panel at the end of the column
+  if (step !== null) requestAnimationFrame(() => (step === 5 ? document.querySelector('.inputs section.panel:last-of-type') : document.querySelector(`h2[data-step="${step}"]`)?.closest('section'))?.scrollIntoView({ block: 'start' }));
+}
+
 export function installPrototypeKeys() {
   document.addEventListener('keydown', (e) => {
-    const v = layoutVariant();
-    if (!v || e.altKey || e.ctrlKey || e.metaKey) return;
+    const p = prototypeVariants();
+    if (!p || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === 'Escape' && p.sidebar === '2' && sidebarOpen) { setSidebar(false); return; }
     const t = e.target as HTMLElement;
     if (t.closest('input, textarea, select, [contenteditable]')) return;
-    const i = VARIANTS.indexOf(v);
-    if (e.key === 'ArrowRight') go(VARIANTS[(i + 1) % VARIANTS.length]!);
-    if (e.key === 'ArrowLeft') go(VARIANTS[(i + VARIANTS.length - 1) % VARIANTS.length]!);
+    if (e.key === 'ArrowRight') go({ results: cycle(p.results, 1) });
+    if (e.key === 'ArrowLeft') go({ results: cycle(p.results, -1) });
+    if (e.key === ']') go({ sidebar: cycle(p.sidebar, 1) });
+    if (e.key === '[') go({ sidebar: cycle(p.sidebar, -1) });
   });
 }
-export function prototypeSwitcher(v: Variant) {
-  const i = VARIANTS.indexOf(v);
-  return html`<div class="proto-bar" role="group" aria-label="Prototype variant">
-    <button @click=${() => go(VARIANTS[(i + VARIANTS.length - 1) % VARIANTS.length]!)} aria-label="Previous variant">◀</button>
-    <span><b>${v}</b> · ${NAMES[v]}</span>
-    <button @click=${() => go(VARIANTS[(i + 1) % VARIANTS.length]!)} aria-label="Next variant">▶</button>
+export function prototypeSwitcher(p: Proto) {
+  return html`<div class="proto-bar" role="group" aria-label="Prototype variants">
+    <span class="proto-dim"><button @click=${() => go({ sidebar: cycle(p.sidebar, -1) })} aria-label="Previous sidebar variant">◀</button>
+      <span>sidebar <b>${p.sidebar}</b> · ${SIDEBAR_NAMES[p.sidebar]}</span>
+      <button @click=${() => go({ sidebar: cycle(p.sidebar, 1) })} aria-label="Next sidebar variant">▶</button></span>
+    <span class="proto-dim"><button @click=${() => go({ results: cycle(p.results, -1) })} aria-label="Previous results variant">◀</button>
+      <span>results <b>${p.results}</b> · ${RESULTS_NAMES[p.results]}</span>
+      <button @click=${() => go({ results: cycle(p.results, 1) })} aria-label="Next results variant">▶</button></span>
     <a href="?">exit</a>
   </div>`;
 }
 
-// ---- compact building blocks shared by the variants ----
+// ---- sidebar variants ----
 
-/** The six slots with the limitations and the build steps behind one collapsed details. */
+/** The header button that opens or closes the inputs. The rail has its own controls when closed. */
+export function prototypeHeaderActions(p: Proto) {
+  // the rail and the open drawer carry their own controls
+  if ((p.sidebar === '3' && !sidebarOpen) || (p.sidebar === '2' && sidebarOpen)) return nothing;
+  const label = p.sidebar === '2' ? (sidebarOpen ? 'Close inputs' : 'Edit inputs') : (sidebarOpen ? 'Hide inputs' : 'Show inputs');
+  return html`<button class="small ${sidebarOpen ? '' : 'primary'}" data-action="proto-sidebar" aria-expanded=${sidebarOpen} @click=${() => setSidebar(!sidebarOpen)}>${label}</button>`;
+}
+export function prototypeMainClass(p: Proto) {
+  return `proto-main proto-sidebar-${p.sidebar} ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`;
+}
+const STEPS = [{ n: 1, label: 'Trainee' }, { n: 2, label: 'Parent goal' }, { n: 3, label: 'Legacy' }, { n: 4, label: 'Run' }];
+function rail(c: RunPlan) {
+  return html`<nav class="proto-rail" aria-label="Inputs">
+    <button class="proto-rail-open" data-action="proto-sidebar" aria-label="Show inputs" data-tip="Show inputs" @click=${() => setSidebar(true)}>»</button>
+    ${STEPS.map((s) => html`<button class="proto-rail-step" data-action="proto-rail" data-step=${s.n} aria-label=${s.label} data-tip=${s.label} @click=${() => setSidebar(true, s.n)}>${s.n}</button>`)}
+    <button class="proto-rail-step" data-action="proto-rail" data-step="5" aria-label="Inventory and settings" data-tip="Inventory and settings" @click=${() => setSidebar(true, 5)}>⚙</button>
+    ${c.trainee ? html`<img class="proto-rail-trainee" src="/assets/characters/${c.trainee.cardId}.png" alt=${c.trainee.name} data-tip=${c.trainee.name} />` : nothing}
+  </nav>`;
+}
+function sidebar(c: RunPlan, p: Proto, inputs: TemplateResult) {
+  if (p.sidebar === '2') return html`
+    ${sidebarOpen ? html`<div class="proto-backdrop" data-action="proto-backdrop" @click=${() => setSidebar(false)}></div>` : nothing}
+    <div class="inputs proto-drawer" ?inert=${!sidebarOpen} aria-hidden=${!sidebarOpen}>
+      <div class="proto-drawer-head"><b>Inputs</b><button class="small" data-action="proto-sidebar" @click=${() => setSidebar(false)}>Close</button></div>
+      ${inputs}
+    </div>`;
+  if (p.sidebar === '3' && !sidebarOpen) return rail(c);
+  if (!sidebarOpen) return nothing;
+  const collapse = p.sidebar === '3' ? html`<button class="small proto-collapse" data-action="proto-sidebar" aria-label="Collapse inputs" @click=${() => setSidebar(false)}>« Collapse</button>` : nothing;
+  return html`<div class="inputs">${collapse}${inputs}</div>`;
+}
+
+// ---- compact result panels, shared by the results variants ----
+
 function compactDeck(c: RunPlan, opts: { small?: boolean } = {}) {
   const d = c.deckResult;
   const ordered = [...d.deck.filter((x) => !x.borrowed), ...d.deck.filter((x) => x.borrowed)];
@@ -79,16 +139,15 @@ function compactDeck(c: RunPlan, opts: { small?: boolean } = {}) {
     </details>`);
 }
 
-function estimateHeadline(c: RunPlan, stacked: boolean) {
+function estimateHeadline(c: RunPlan) {
   const r = c.goalEstimate, p = r.probability, upper = r.upperProbability;
   return html`
     ${p === null ? html`<p class="muted" data-goal-probability>${COPY.estimate.incomplete}</p>` : html`<div class="goal-total" data-goal-probability>${range(p, upper ?? p)}<span class="small muted">${COPY.estimate.headline}</span></div>`}
     ${r.issues.length ? html`<ul class="small" data-goal-issues>${r.issues.map((issue) => html`<li>${issue}</li>`)}</ul>` : nothing}
     ${r.pink.warnings.length ? html`<ul class="small warn" data-goal-warnings>${r.pink.warnings.map((warning) => html`<li>${warning}</li>`)}<li><button class="small" data-action="goal-refine-pink" @click=${openPinkSparks}>${COPY.estimate.editPink}</button></li></ul>` : nothing}
     ${upper === 0 ? html`<p class="warn" data-goal-zero>The modeled outcomes give a zero estimate. Check blue spark thresholds, skill availability, and pink eligibility below.</p>` : nothing}
-    ${p !== null ? html`<div class="${stacked ? 'goal-attempts-stacked' : ''}">${attempts(p, upper)}</div>` : nothing}`;
+    ${p !== null ? attempts(p, upper) : nothing}`;
 }
-/** Everything the estimate panel shows beyond the chance and the attempts. */
 function estimateDetails(c: RunPlan) {
   const r = c.goalEstimate, limits = goalLimits(c), selected = c.search?.score;
   return html`<details class="proto-details"><summary>What limits it, per-spark breakdown and assumptions</summary>
@@ -103,9 +162,7 @@ function estimateDetails(c: RunPlan) {
     <ul class="small">${r.pink.eligibility.filter((e) => e.probability === null || (e.probability > 0 && e.probability < 1)).map((e) => html`<li>${APTITUDE_LABELS[e.aptitude]} eligible at the end: ${e.probability === null ? '0% to 100%' : probability(e.probability)}</li>`)}</ul>
   </details>`;
 }
-function compactEstimate(c: RunPlan, opts: { stacked?: boolean } = {}) {
-  return panel({ title: COPY.estimate.title, kind: 'result' }, html`<div data-goal-result>${estimateHeadline(c, !!opts.stacked)}${estimateDetails(c)}</div>`);
-}
+const compactEstimate = (c: RunPlan) => panel({ title: COPY.estimate.title, kind: 'result' }, html`<div data-goal-result>${estimateHeadline(c)}${estimateDetails(c)}</div>`);
 
 function skillList(c: RunPlan, cls = '') {
   return c.wl.length
@@ -120,7 +177,6 @@ function skillExtras(c: RunPlan) {
     ${c.wlExcluded.length ? html`<span>${COPY.priorities.removed}</span> ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
   </div>`;
 }
-/** Where each skill comes from and the choice conflicts. */
 function skillDetails(c: RunPlan) {
   return html`<details class="proto-details"><summary>Sources and choice conflicts</summary>
     ${c.wl.length ? html`<ol class="small proto-sources">${c.wl.map((w) => html`<li><b>${w.name}</b> <span class="muted">${w.reason}</span></li>`)}</ol>` : nothing}
@@ -137,104 +193,67 @@ function compactPriorities(c: RunPlan, opts: { columns?: boolean } = {}) {
     ${skillDetails(c)}`);
 }
 
-function outcomeBox(c: RunPlan) {
-  return html`<div class="stat outcome">
-    <div class="outcome-item"><div class="stat-k">SS or better${tip(COPY.prediction.ssTip)}</div><div class="stat-v">${pill(c.rank.pSS, '', true)}</div></div>
-    <div class="outcome-item"><div class="stat-k">Rank score</div><div class="stat-v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
-    <div class="outcome-item"><div class="stat-k">Estimated SP</div><div class="stat-v">${num(c.pred.sp)}</div></div>
-  </div>`;
-}
-function statBoxes(c: RunPlan) {
-  return STATS.map((s, i) => html`
-    <div class="stat"><div class="stat-k">${s}</div><div class="stat-v">${num(c.finalMean[i]!)} <span class="sd">±${num(c.finalSd[i]!)}</span></div>
-      <div class="stat-s"><span class="band">≥${BLUE_STAR_BANDS.mid} ${pill(c.statChances[i]!.mid, '', true)}</span> <span class="band">≥${BLUE_STAR_BANDS.high} ${pill(c.statChances[i]!.high, '', true)}</span></div></div>`);
-}
-function compactPrediction(c: RunPlan, opts: { rows?: boolean } = {}) {
+function compactPrediction(c: RunPlan) {
   const subtitle = `${c.sum.count} calendar + ${c.ctx.races - c.sum.count} finale races · ${capitalize(store.settings.focus)} focus${c.trainee ? ` · ${c.trainee.name}` : ''}`;
   return panel({ title: COPY.prediction.title, kind: 'result', subtitle, tip: COPY.prediction.tip }, html`
-    <div class="stats ${opts.rows ? 'stats-rows' : ''}">${outcomeBox(c)}${statBoxes(c)}</div>
+    <div class="stats">
+      <div class="stat outcome">
+        <div class="outcome-item"><div class="stat-k">SS or better${tip(COPY.prediction.ssTip)}</div><div class="stat-v">${pill(c.rank.pSS, '', true)}</div></div>
+        <div class="outcome-item"><div class="stat-k">Rank score</div><div class="stat-v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
+        <div class="outcome-item"><div class="stat-k">Estimated SP</div><div class="stat-v">${num(c.pred.sp)}</div></div>
+      </div>
+      ${STATS.map((s, i) => html`
+      <div class="stat"><div class="stat-k">${s}</div><div class="stat-v">${num(c.finalMean[i]!)} <span class="sd">±${num(c.finalSd[i]!)}</span></div>
+        <div class="stat-s"><span class="band">≥${BLUE_STAR_BANDS.mid} ${pill(c.statChances[i]!.mid, '', true)}</span> <span class="band">≥${BLUE_STAR_BANDS.high} ${pill(c.statChances[i]!.high, '', true)}</span></div></div>`)}
+    </div>
     <details class="proto-details"><summary>${COPY.prediction.breakdown}</summary>${statBreakdown(c)}</details>`);
 }
 
 const searchError = () => searchState.error
   ? panel({ title: 'Deck search', kind: 'result' }, html`<p role="alert">${COPY.app.searchFailed}</p><button data-action="retry-search" @click=${retrySearch}>${COPY.app.retrySearch}</button>`)
   : nothing;
-/** The result panels that are not part of the one-screen set, in their usual order. */
+/** The result panels outside the one-screen set, in their usual order. */
 const rest = (c: RunPlan, section: Section) => html`
   ${c.issues.length ? nothing : html`${section('schedule', () => renderSchedule(c))}${section('coverage', () => renderCoverage(c))}`}
   ${section('ranking', () => renderRanking(c))}`;
 
-// ---- Variant A: dashboard grid. Deck across the top, then estimate | skills | run side by side. ----
-function variantA(c: RunPlan, section: Section) {
-  const ok = !c.issues.length;
-  return html`
-    ${section('deck', () => compactDeck(c), [searchState.pending, 'A'])}
-    ${searchError()}
-    <div class="proto-grid-3">
-      ${section('estimate', () => compactEstimate(c, { stacked: true }), ['A'])}
-      ${ok ? section('priorities', () => compactPriorities(c), ['A']) : nothing}
-      ${ok ? section('prediction', () => compactPrediction(c, { rows: true }), ['A']) : nothing}
-    </div>
-    ${rest(c, section)}`;
-}
+// ---- results variants ----
 
-// ---- Variant B: the numbers stacked on the left, the skill list on the right, one toggle for the full panels. ----
 let showDetails = false;
-function variantB(c: RunPlan, section: Section) {
-  const ok = !c.issues.length;
+function results(c: RunPlan, section: Section, p: Proto) {
+  const ok = !c.issues.length, r = p.results;
   const toggle = html`<div class="proto-toolbar"><span class="small muted">${showDetails ? 'Full panels with every detail.' : 'Compact view for a one-screen screenshot.'}</span>
     <button class="small ${showDetails ? 'active' : ''}" data-action="proto-details" @click=${() => { showDetails = !showDetails; refresh(); }}>${showDetails ? 'Hide details' : 'Show details'}</button></div>`;
   if (showDetails) return html`${toggle}
-    ${section('deck', () => renderDeck(c), [searchState.pending, 'B-full'])}
+    ${section('deck', () => renderDeck(c), [searchState.pending, 'full'])}
     ${searchError()}
-    ${section('estimate', () => renderGoalResult(c), ['B-full'])}
-    ${ok ? html`${section('priorities', () => renderPriorities(c), ['B-full'])}${section('prediction', () => renderPrediction(c), ['B-full'])}` : nothing}
+    ${section('estimate', () => renderGoalResult(c), ['full'])}
+    ${ok ? html`${section('priorities', () => renderPriorities(c), ['full'])}${section('prediction', () => renderPrediction(c), ['full'])}` : nothing}
+    ${rest(c, section)}`;
+  const deck = (small: boolean) => html`${section('deck', () => compactDeck(c, { small }), [searchState.pending, r])}${searchError()}`;
+  const estimate = section('estimate', () => compactEstimate(c), [r]);
+  const skills = ok ? section('priorities', () => compactPriorities(c, { columns: r === '3' }), [r]) : nothing;
+  const prediction = ok ? section('prediction', () => compactPrediction(c), [r]) : nothing;
+  if (r === '1') return html`${toggle}
+    <div class="proto-split"><div class="proto-col">${deck(true)}${estimate}${prediction}</div><div class="proto-col">${skills}</div></div>
+    ${rest(c, section)}`;
+  if (r === '2') return html`${toggle}
+    ${deck(false)}
+    <div class="proto-split"><div class="proto-col">${estimate}${prediction}</div><div class="proto-col">${skills}</div></div>
     ${rest(c, section)}`;
   return html`${toggle}
-    <div class="proto-split">
-      <div class="proto-col">
-        ${section('deck', () => compactDeck(c, { small: true }), [searchState.pending, 'B'])}
-        ${searchError()}
-        ${section('estimate', () => compactEstimate(c), ['B'])}
-        ${ok ? section('prediction', () => compactPrediction(c), ['B']) : nothing}
-      </div>
-      <div class="proto-col">
-        ${ok ? section('priorities', () => compactPriorities(c), ['B']) : nothing}
-      </div>
-    </div>
+    ${deck(false)}
+    <div class="proto-pair">${estimate}${prediction}</div>
+    ${skills}
     ${rest(c, section)}`;
 }
 
-// ---- Variant C: one summary card built for the screenshot; the four full panels under a single details. ----
-function summaryCard(c: RunPlan) {
-  const d = c.deckResult, ok = !c.issues.length;
-  const ordered = [...d.deck.filter((x) => !x.borrowed), ...d.deck.filter((x) => x.borrowed)];
-  const subtitle = c.trainee ? `${c.trainee.name} · ${c.sum.count} calendar + ${c.ctx.races - c.sum.count} finale races · ${capitalize(store.settings.focus)} focus` : '';
-  return panel({ title: 'Run summary', kind: 'result', subtitle, cls: 'proto-summary' }, html`
-    ${searchState.pending ? html`<p class="status small muted" data-plan-pending role="status" aria-live="polite">${COPY.app.searching}</p>` : nothing}
-    ${d.deck.length ? html`<div class="deck deck-compact">${repeat(ordered, (cs) => `${cs.card.id}:${cs.borrowed ? 'b' : 'o'}`, (cs) => slot(c, cs))}</div>` : html`<div class="muted">${COPY.deck.noCards}</div>`}
-    ${c.issues.length ? html`<div role="alert" data-plan-issues>${c.issues.map((issue) => html`<p class="warn">${issue}</p>`)}</div>` : nothing}
-    <div class="proto-band">
-      <div class="proto-band-goal"><h3>${COPY.estimate.title}</h3><div data-goal-result>${estimateHeadline(c, false)}</div></div>
-      ${ok ? html`<div class="proto-band-run"><h3>${COPY.prediction.title}${tip(COPY.prediction.tip)}</h3><div class="stats">${outcomeBox(c)}${statBoxes(c)}</div></div>` : nothing}
-    </div>
-    ${ok ? html`<div class="proto-band-skills"><h3>${COPY.priorities.title} <span class="sub-note">enter in this order</span>${tip(COPY.priorities.tip)}</h3>
-      ${c.priorityIssues.map((note) => html`<p class="small warn" data-priority-conflict>${note}</p>`)}
-      ${skillList(c, 'wishlist-columns')}${skillExtras(c)}</div>` : nothing}`);
-}
-function variantC(c: RunPlan, section: Section) {
-  const ok = !c.issues.length;
-  return html`
-    ${section('summary', () => summaryCard(c), [searchState.pending, 'C'])}
-    ${searchError()}
-    <details class="proto-full" data-full-details><summary>Full details: deck, estimate, prioritized skills and predicted run</summary>
-      ${section('deck-full', () => renderDeck(c), [searchState.pending, 'C'])}
-      ${section('estimate-full', () => renderGoalResult(c), ['C'])}
-      ${ok ? html`${section('priorities-full', () => renderPriorities(c), ['C'])}${section('prediction-full', () => renderPrediction(c), ['C'])}` : nothing}
-    </details>
-    ${rest(c, section)}`;
-}
-
-export function renderPrototypeResults(c: RunPlan, section: Section, v: Variant) {
-  return v === 'A' ? variantA(c, section) : v === 'B' ? variantB(c, section) : variantC(c, section);
+/** The whole <main> content: the sidebar in its variant and the results in theirs. */
+export function renderPrototypeMain(c: RunPlan, section: Section, p: Proto, inputs: TemplateResult) {
+  const ready = !!c.trainee;
+  return html`${sidebar(c, p, inputs)}
+    <div class="results ${ready ? '' : 'waiting'}">
+      ${ready ? nothing : html`<p class="banner" data-waiting>${COPY.app.waiting}</p>`}
+      ${results(c, section, p)}
+    </div>`;
 }

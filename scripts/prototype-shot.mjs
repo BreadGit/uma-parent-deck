@@ -5,7 +5,8 @@ import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
 
 const url = process.env.URL ?? 'http://localhost:5176/';
-const variants = process.argv.slice(2).length ? process.argv.slice(2) : ['base'];
+// each argument is "<sidebar><results>" with an optional state: 11, 21:closed (sidebar hidden), 12:open (details shown)
+const variants = process.argv.slice(2).length ? process.argv.slice(2) : ['11'];
 const data = loadData();
 const saved = defaultState(data);
 saved.run.traineeCardId = 100101;
@@ -26,18 +27,19 @@ for (const variant of variants) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-  const [key, mode] = variant.split(':'); // "B:open" opens every detail section (and B's toggle) before the shot
-  await page.goto(key === 'base' ? url : `${url}?variant=${key}`);
+  const [key, mode] = variant.split(':');
+  await page.goto(key === 'base' ? url : `${url}?sidebar=${key[0]}&results=${key[1]}`);
   await page.waitForSelector('#target-search');
   await page.waitForFunction(() => !document.querySelector('[data-plan-pending]'), undefined, { timeout: 60000 });
+  if (mode === 'closed') await page.locator('[data-action="proto-sidebar"]').first().click();
   if (mode === 'open') {
-    const toggle = page.locator('[data-action="proto-details"]');
-    if (await toggle.count()) await toggle.click();
-    await page.evaluate(() => { for (const d of document.querySelectorAll('.results details.proto-details, .results details[data-full-details]')) d.open = true; });
+    await page.locator('[data-action="proto-details"]').click();
+    await page.evaluate(() => { for (const d of document.querySelectorAll('.results details')) if (!d.matches('[data-agenda]') && !d.closest('.ranking-table')) d.open = true; });
   }
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-  // scroll so the first visible result panel sits at the top of the viewport, as a user screenshotting would
-  await page.evaluate(() => {
+  // the header stays in view: a user screenshots without scrolling when the four panels fit under it
+  if (mode !== 'closed' && key !== 'base') await page.evaluate(() => window.scrollTo(0, 0));
+  else await page.evaluate(() => {
     const first = [...document.querySelectorAll('.results section.panel')].find((s) => s.getClientRects().length);
     window.scrollTo(0, first.getBoundingClientRect().top + window.scrollY - 8);
   });
@@ -45,7 +47,8 @@ for (const variant of variants) {
     const visible = [...document.querySelectorAll('.results section.panel')].filter((s) => s.getClientRects().length);
     const find = (t) => visible.find((s) => s.querySelector('h2')?.textContent.startsWith(t));
     const box = (t) => { const b = find(t)?.getBoundingClientRect(); return b ? { top: Math.round(b.top), bottom: Math.round(b.bottom), left: Math.round(b.left), width: Math.round(b.width) } : null; };
-    return { summary: box('Run summary'), deck: box('Suggested deck'), estimate: box('Parent goal estimate'), priorities: box('Prioritized skills'), prediction: box('Predicted run'), overflow: document.documentElement.scrollWidth > window.innerWidth };
+    const sidebar = document.querySelector('.inputs, .proto-rail')?.getBoundingClientRect();
+    return { deck: box('Suggested deck'), estimate: box('Parent goal estimate'), priorities: box('Prioritized skills'), prediction: box('Predicted run'), sidebarWidth: sidebar && sidebar.width ? Math.round(sidebar.width) : 0, overflow: document.documentElement.scrollWidth > window.innerWidth };
   });
   const path = `/tmp/proto/${key}${mode ? '-' + mode : ''}-${saved.ui.theme}.png`;
   await page.screenshot({ path });

@@ -24,7 +24,7 @@ import { renderSchedule } from './panels/schedule.ts';
 import { renderRanking } from './panels/ranking.ts';
 import { clearSharedUrl } from './share.ts';
 import { unavailableRunChoices } from '../model/run.ts';
-import { installPrototypeKeys, layoutVariant, prototypeSwitcher, renderPrototypeResults } from './prototype-layout.ts'; // PROTOTYPE, throwaway
+import { installPrototypeKeys, prototypeHeaderActions, prototypeMainClass, prototypeSwitcher, prototypeVariants, renderPrototypeMain } from './prototype-layout.ts'; // PROTOTYPE, throwaway
 
 const THEMES: { id: Theme; label: string }[] = [{ id: 'system', label: 'Auto' }, { id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
@@ -55,28 +55,29 @@ function page() {
   const c = plan();
   const ready = !!c.trainee;
   const section = (name: string, render: () => ReturnType<typeof panel>, deps: unknown[] = []) => trackedPanel(name, [c, stateRevision, ...deps], render);
-  const variant = layoutVariant(); // PROTOTYPE, throwaway
+  const proto = prototypeVariants(); // PROTOTYPE, throwaway
+  const inputs = html`
+        ${unavailableChoices()}
+        ${section('trainee', () => renderTrainee(c))}
+        ${section('goal', () => renderGoalEditor(c))}
+        ${section('legacy', () => renderLegacy(c))}
+        ${section('run', () => renderRun(c))}
+        ${section('settings', () => renderSettings())}`;
   return html`
     <header>
       <h1>Uma parent deck</h1>
       <span class="meta">${COPY.app.tagline}</span>
       <span class="header-actions">
         <span class="theme-toggle" role="group" aria-label="Theme">${THEMES.map((t) => html`<button class="${store.ui.theme === t.id ? 'active' : ''}" data-theme-pick="${t.id}" @click=${() => { update((s) => { s.ui.theme = t.id; }); applyTheme(); }}>${t.label}</button>`)}</span>
+        ${proto ? prototypeHeaderActions(proto) : nothing}
         <button class="danger" data-action="reset-all" data-tip=${COPY.app.resetAllTip} @click=${resetAll}>${COPY.app.resetAll}</button>
       </span>
     </header>
-    <main>
-      <div class="inputs">
-        ${unavailableChoices()}
-        ${section('trainee', () => renderTrainee(c))}
-        ${section('goal', () => renderGoalEditor(c))}
-        ${section('legacy', () => renderLegacy(c))}
-        ${section('run', () => renderRun(c))}
-        ${section('settings', () => renderSettings())}
-      </div>
+    <main class=${proto ? prototypeMainClass(proto) : nothing}>
+      ${proto ? renderPrototypeMain(c, section, proto, inputs) : html`
+      <div class="inputs">${inputs}</div>
       <div class="results ${ready ? '' : 'waiting'}">
         ${ready ? nothing : html`<p class="banner" data-waiting>${COPY.app.waiting}</p>`}
-        ${variant ? renderPrototypeResults(c, section, variant) : html`
         ${section('deck', () => renderDeck(c), [searchState.pending])}
         ${searchState.error ? panel({ title: 'Deck search', kind: 'result' }, html`<p role="alert">${COPY.app.searchFailed}</p><button data-action="retry-search" @click=${retrySearch}>${COPY.app.retrySearch}</button>`) : nothing}
         ${section('estimate', () => renderGoalResult(c))}
@@ -85,10 +86,10 @@ function page() {
           ${section('schedule', () => renderSchedule(c))}
           ${section('prediction', () => renderPrediction(c))}
           ${section('coverage', () => renderCoverage(c))}`}
-        ${section('ranking', () => renderRanking(c))}`}
-      </div>
+        ${section('ranking', () => renderRanking(c))}
+      </div>`}
     </main>
-    ${variant ? prototypeSwitcher(variant) : nothing}
+    ${proto ? prototypeSwitcher(proto) : nothing}
     <div id="tooltip" role="tooltip"></div>
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
 }
