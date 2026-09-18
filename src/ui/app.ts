@@ -24,6 +24,7 @@ import { renderSchedule } from './panels/schedule.ts';
 import { renderRanking } from './panels/ranking.ts';
 import { clearSharedUrl } from './share.ts';
 import { unavailableRunChoices } from '../model/run.ts';
+import { installPrototypeKeys, layoutVariant, prototypeSwitcher, renderPrototypeResults } from './prototype-layout.ts'; // PROTOTYPE, throwaway
 
 const THEMES: { id: Theme; label: string }[] = [{ id: 'system', label: 'Auto' }, { id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
@@ -54,6 +55,7 @@ function page() {
   const c = plan();
   const ready = !!c.trainee;
   const section = (name: string, render: () => ReturnType<typeof panel>, deps: unknown[] = []) => trackedPanel(name, [c, stateRevision, ...deps], render);
+  const variant = layoutVariant(); // PROTOTYPE, throwaway
   return html`
     <header>
       <h1>Uma parent deck</h1>
@@ -74,6 +76,7 @@ function page() {
       </div>
       <div class="results ${ready ? '' : 'waiting'}">
         ${ready ? nothing : html`<p class="banner" data-waiting>${COPY.app.waiting}</p>`}
+        ${variant ? renderPrototypeResults(c, section, variant) : html`
         ${section('deck', () => renderDeck(c), [searchState.pending])}
         ${searchState.error ? panel({ title: 'Deck search', kind: 'result' }, html`<p role="alert">${COPY.app.searchFailed}</p><button data-action="retry-search" @click=${retrySearch}>${COPY.app.retrySearch}</button>`) : nothing}
         ${section('estimate', () => renderGoalResult(c))}
@@ -82,9 +85,10 @@ function page() {
           ${section('schedule', () => renderSchedule(c))}
           ${section('prediction', () => renderPrediction(c))}
           ${section('coverage', () => renderCoverage(c))}`}
-        ${section('ranking', () => renderRanking(c))}
+        ${section('ranking', () => renderRanking(c))}`}
       </div>
     </main>
+    ${variant ? prototypeSwitcher(variant) : nothing}
     <div id="tooltip" role="tooltip"></div>
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
 }
@@ -96,6 +100,7 @@ export function mount(root: HTMLElement) {
   systemDark.addEventListener('change', applyTheme);
   installTooltips(root);
   installSuggestDismiss(root);
+  installPrototypeKeys(); // PROTOTYPE, throwaway
   applyTheme();
   draw();
 }

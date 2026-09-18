@@ -11,7 +11,7 @@ import { capitalize, cardLink, cardThumb, num, pill } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
-function statBreakdown(c: RunPlan) {
+export function statBreakdown(c: RunPlan) {
   const d = c.deckResult, p = c.pred;
   const scale = raceScale(c.ctx.races, data.model, store.settings);
   const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];

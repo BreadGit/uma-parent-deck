@@ -14,10 +14,10 @@ import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
 const pinkLabel = (aptitude: 'any' | keyof typeof APTITUDE_LABELS) => aptitude === 'any' ? 'Any' : APTITUDE_LABELS[aptitude];
-const range = (low: number, high: number) => low === high ? probability(low) : `${probability(low)} to ${probability(high)}`;
+export const range = (low: number, high: number) => low === high ? probability(low) : `${probability(low)} to ${probability(high)}`;
 
 /** Why the estimate is what it is: an impossibility if there is one, otherwise the weakest requirement. */
-function goalLimits(c: RunPlan): string[] {
+export function goalLimits(c: RunPlan): string[] {
   const r = c.goalEstimate, g = store.run.goal;
   if (r.probability === null) return [];
   const pinkName = g.pink.length > 1 ? 'Accepted pink alternatives' : g.pink[0]!.aptitude === 'any' ? 'Any pink aptitude' : `${APTITUDE_LABELS[g.pink[0]!.aptitude]} pink`;
@@ -42,7 +42,7 @@ function goalLimits(c: RunPlan): string[] {
   return lowest.p < 1 ? [`Lowest individual chance is ${lowest.name} at ${probability(lowest.p)}.${lowest.detail} Shared events and rank also affect complete success, so this alone does not identify the best deck change.`] : [];
 }
 
-function fallback(c: RunPlan) {
+export function fallback(c: RunPlan) {
   const result = c.goalEstimate, selected = c.search?.score;
   if (!selected || selected.count >= selected.total) return nothing;
   const kept = [...(selected.blue ? ['Blue'] : []), ...(selected.pink ? ['Pink'] : []), ...result.required.filter((w) => selected.whiteIds.includes(w.target.id)).map((w) => w.target.name)];
@@ -51,7 +51,7 @@ function fallback(c: RunPlan) {
     <p class="small muted">Your original requirements remain selected. ${selected.subsetApproximate ? 'The search also limits how many requirement subsets it checks. ' : ''}The complete-goal estimate and attempts still refer to every requirement.</p></div>`;
 }
 
-function breakdown(c: RunPlan) {
+export function breakdown(c: RunPlan) {
   const result = c.goalEstimate, g = store.run.goal;
   return html`<div class="scroll-x"><table class="goal-breakdown"><thead><tr><th>Required spark</th><th class="num">Available</th><th class="num">Spark chance</th></tr></thead><tbody>
     <tr><td>Blue (${g.blueStats.length === 5 ? 'any stat' : g.blueStats.map(capitalize).join(', ') || 'none selected'})</td><td class="num">Always</td><td class="num">${probability(result.blue)}</td></tr>
@@ -63,7 +63,7 @@ function breakdown(c: RunPlan) {
   <p class="small muted">${result.required.length ? `All ${result.required.length} required white skill${result.required.length === 1 ? '' : 's'} purchased ${probability(result.allAvailable)} · ` : 'No required white sparks · '}SS or better ${estimatedProbability(result.pSS)}. White skill availability includes purchases within the SP budget. Each spark chance is shown individually; shared events and rank affect the combined result.</p>`;
 }
 
-function attempts(p: number, upper: number | null) {
+export function attempts(p: number, upper: number | null) {
   const text = (confidence: number) => {
     const n = attemptsFor(p, confidence), best = attemptsFor(upper ?? p, confidence);
     return best === Infinity ? 'Not reachable' : n === best ? `${int(n)} attempts` : n === Infinity ? `${int(best)} or more; no finite upper bound` : `${int(best)} to ${int(n)} attempts`;

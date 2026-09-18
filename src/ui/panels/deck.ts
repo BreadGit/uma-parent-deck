@@ -12,7 +12,7 @@ import { cardLink, cardThumb, pill, probability, typeIcon } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
-function slot(c: RunPlan, cs: CardScore) {
+export function slot(c: RunPlan, cs: CardScore) {
   return html`<div class="slot">
     <div class="slot-top">${store.run.pinnedIds.includes(cs.card.id) ? html`<span class="tag pin">pinned</span>` : nothing}${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : nothing}</div>
     ${cardThumb(cs.card, 'slot-art')}
@@ -22,7 +22,7 @@ function slot(c: RunPlan, cs: CardScore) {
   </div>`;
 }
 
-function limitations(c: RunPlan) {
+export function limitations(c: RunPlan) {
   const cards = c.deckResult.deck.map((cs) => ({ cs, effects: cardEffectCoverage(cs.card, cs.lb, data.model, { deck: c.deckResult.deck, fansBefore: c.ctx.fansBefore })
     .filter((effect) => missingEffect(effect) || effect.reason === 'teamBond' || (cs.source !== 'model' && observedDeckEffect(effect))) }))
     .filter(({ effects }) => effects.length > 0);

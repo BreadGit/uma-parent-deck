@@ -1,0 +1,63 @@
+/* PROTOTYPE, throwaway. Layout for the ?variant= result column layouts; colours come from the theme variables. */
+
+/* the switcher is deliberately unlike the app so it reads as scaffolding, not as part of the design */
+.proto-bar { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 999px; background: var(--text); color: var(--bg); box-shadow: 0 6px 18px var(--shadow); font-size: var(--fs-sm); }
+.proto-bar button { padding: 2px 8px; border: 1px solid var(--muted); background: transparent; color: inherit; border-radius: 999px; }
+.proto-bar a { color: inherit; opacity: .7; }
+
+.proto-details { margin-top: 8px; }
+.proto-details > summary { font-size: var(--fs-sm); }
+.proto-sources { padding-left: 20px; margin: 6px 0; }
+.proto-sources li { margin: 2px 0; }
+
+/* smaller slots: 56px art and tighter padding */
+.deck.deck-compact { gap: 8px; }
+.deck.deck-compact .slot { padding: 6px; }
+.deck.deck-compact .slot img { width: 56px; height: 56px; }
+.deck.deck-compact .slot .slot-top { height: 16px; margin-bottom: 2px; }
+.deck.deck-compact .slot .name { min-height: 30px; font-size: var(--fs-xs); line-height: 1.25; }
+.deck.deck-compact .slot .lb, .deck.deck-compact .slot .cover { font-size: var(--fs-xs); }
+
+/* attempts as three stacked rows for a narrow panel */
+.goal-attempts-stacked .goal-attempts { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.goal-attempts-stacked .goal-attempts > div { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 5px 8px; }
+
+/* one compact row per stat, as on phones */
+.stats.stats-rows { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.stats.stats-rows .stat { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; }
+.stats.stats-rows .stat-k { flex: 0 0 56px; }
+.stats.stats-rows .stat-v { flex: 0 0 84px; font-size: var(--fs-lg); }
+.stats.stats-rows .stat-s { min-width: 0; }
+.stats.stats-rows .stat.outcome { padding: 6px 8px; margin-bottom: 4px; }
+
+/* the skill list in two columns of five, numbered down then across */
+.wishlist.wishlist-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(5, auto); column-gap: 16px; }
+.wishlist.wishlist-columns li { min-width: 0; }
+
+/* A: deck on top, three equal columns under it */
+.proto-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.proto-grid-3 > section.panel { margin-bottom: 0; }
+.proto-grid-3 { margin-bottom: 14px; }
+
+/* B: a wide column for the deck and the skills, a narrow one for the numbers */
+.proto-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin: 0 0 10px; }
+.proto-split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; align-items: start; }
+.proto-col { min-width: 0; }
+
+/* C: the summary card and the details that hold the full panels */
+.proto-band { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 14px; margin-top: 12px; }
+.proto-band h3, .proto-band-skills h3 { margin: 0 0 6px; }
+.proto-band-goal .goal-total { margin: 4px 0; }
+.proto-band-goal .goal-attempts { margin: 6px 0 0; }
+.proto-band-run .stats { margin: 0; }
+.proto-band-skills { margin-top: 12px; }
+.proto-full { margin: 0 0 14px; }
+.proto-full > summary { padding: 8px 0; }
+.proto-full > section.panel { margin-top: 10px; }
+
+@media (max-width: 1200px) {
+  .proto-grid-3, .proto-split, .proto-band { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .wishlist.wishlist-columns { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; grid-template-rows: none; }
+}
