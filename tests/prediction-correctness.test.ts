@@ -8,6 +8,8 @@ import { resolveTarget } from '../src/model/sparks.ts';
 import { inheritedFromSparks } from '../src/model/inherit.ts';
 import { decodeShare } from '../src/share.ts';
 import { planRun, predictRunDeck } from '../src/model/run.ts';
+import { phi } from '../src/model/stats.ts';
+import { MAX_STAT_VALUE } from '../src/model/rules.ts';
 
 const data = loadData();
 const apt = data.characters[0]!.aptitudes;
@@ -26,6 +28,22 @@ test('raw totals convert once including base and inheritance, then cap', () => {
   const capped = statMasses(1400, 40, 1250, true);
   assert.ok(Math.abs(capped.reduce((sum, x) => sum + x.probability, 0) - 1) < 1e-10);
   assert.ok(statMoments(capped).sd < 20, 'conversion and caps reduce displayed spread');
+});
+
+test('reusing normal boundaries preserves every rounded probability, including the tails', () => {
+  for (const rawUnits of [false, true]) for (const mean of [-1.5, 0, .5, 599.5, 1099.5, 1200.5, 1400, 2000]) {
+    for (const sd of [.1, 25, 120]) for (const cap of [600, 1099, 1250, Infinity]) {
+      const maximum = Math.min(cap, MAX_STAT_VALUE);
+      const boundary = (value: number) => ((rawUnits && value > 1200 ? 1200 + 2 * (value - 1200) : value) - .5 - mean) / sd;
+      // Direct integration for each bin, independent of the shared-boundary optimization.
+      const expected = Array.from({ length: maximum + 1 }, (_, value) => {
+        const lower = value === 0 ? -Infinity : boundary(value);
+        const upper = value === maximum ? Infinity : boundary(value + 1);
+        return { value, probability: lower > 0 ? phi(-lower) - phi(-upper) : phi(upper) - phi(lower) };
+      }).filter(({ probability }) => probability > 0);
+      assert.deepEqual(statMasses(mean, sd, cap, rawUnits), expected, `mean=${mean}, sd=${sd}, cap=${cap}, raw=${rawUnits}`);
+    }
+  }
 });
 
 test('inspiration variance includes both roll variance and failed procs', () => {

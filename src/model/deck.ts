@@ -52,11 +52,15 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
  * prioritized order), and give each target's spark chance.
  */
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
+  const { full, map, conflicts } = resolveCoverage(e, targets, ctx);
+  const sparks = new Map(targets.map((t) => [t.id, hasWhiteSpark(t) ? sparkChance(purchasedOwnership(t, combineSources(map.get(t.id) ?? [])), ctx.settings, lineageN(ctx, t)) : 0]));
+  return { full, map, sparks, conflicts };
+}
+function resolveCoverage(e: Existing, targets: Target[], ctx: Ctx) {
   const full = new Map<number, SkillSource[]>();
   for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars), ...(ctx.sources?.completion(t) ?? scenarioCompletionSources(t, ctx.data, ctx.settings))].filter((s) => !s.isChoice || !ctx.excluded?.includes(s.skillId)));
   const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx), ctx.settings, targets);
-  const sparks = new Map(targets.map((t) => [t.id, hasWhiteSpark(t) ? sparkChance(purchasedOwnership(t, combineSources(map.get(t.id) ?? [])), ctx.settings, lineageN(ctx, t)) : 0]));
-  return { full, map, sparks, conflicts };
+  return { full, map, conflicts };
 }
 const total = (m: Map<number, number>) => [...m.values()].reduce((a, b) => a + b, 0);
 
@@ -162,7 +166,7 @@ type Entry = Pick<CardScore, 'card' | 'lb' | 'mine' | 'statPower' | 'borrowed'>;
 /** Resolve purchase sources once, without computing a card ranking for every available skill. */
 export function purchaseCoverage(entries: { card: Card; lb: number }[], targets: Target[], ctx: Ctx): Map<number, SkillSource[]> {
   const sources = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
-  return evaluate(stateOf(sources, targets, ctx), targets, ctx).map;
+  return resolveCoverage(stateOf(sources, targets, ctx), targets, ctx).map;
 }
 /** Focus-weighted deck contribution without per-card coverage details. */
 export function deckStatPower(entries: { card: Card; lb: number }[], ctx: Ctx): number {

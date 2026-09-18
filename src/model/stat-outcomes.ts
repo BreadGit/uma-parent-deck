@@ -36,13 +36,19 @@ function computeStatMasses(mean: number, sd: number, cap: number, rawUnits: bool
   // Higher values have the same rating and blue band, so they can share one outcome.
   const maximum = Math.max(0, Math.min(Math.round(cap), MAX_STAT_VALUE));
   if (sd === 0 || maximum === 0) return [{ value: Math.max(0, Math.min(maximum, rawUnits ? displayedStat(mean) : Math.round(mean))), probability: 1 }];
-  return Array.from({ length: maximum + 1 }, (_, value) => {
-    const lower = value === 0 ? -Infinity : ((rawUnits ? rawStat(value) : value) - .5 - mean) / sd;
+  const outcomes: StatMass[] = [];
+  let lower = -Infinity, lowerTail = 0;
+  for (let value = 0; value <= maximum; value++) {
     const upper = value === maximum ? Infinity : ((rawUnits ? rawStat(value + 1) : value + 1) - .5 - mean) / sd;
+    // Adjacent outcomes share a boundary. Calculate its tail once and reuse it.
+    const upperTail = phi(upper > 0 ? -upper : upper);
     // Use the survival function in the upper tail to avoid subtracting two CDFs rounded to one.
-    const probability = lower > 0 ? phi(-lower) - phi(-upper) : phi(upper) - phi(lower);
-    return { value, probability };
-  }).filter((outcome) => outcome.probability > 0);
+    const probability = lower > 0 ? lowerTail - upperTail : (upper > 0 ? phi(upper) : upperTail) - lowerTail;
+    if (probability > 0) outcomes.push({ value, probability });
+    lower = upper;
+    lowerTail = upperTail;
+  }
+  return outcomes;
 }
 
 export function statMoments(outcomes: readonly StatMass[]) {
