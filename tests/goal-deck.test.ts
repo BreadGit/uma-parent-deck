@@ -265,6 +265,32 @@ test('screening scores never replace fully evaluated scores or discard a stronge
   for (const c of found.candidates) assert.equal(c.score.probability, actual(c.entries));
 });
 
+test('final refinement checks replacements beyond the shortlist and keeps deck constraints', () => {
+  const owned = Array.from({ length: 40 }, (_, i) => card(i + 1));
+  const borrows = [card(101), card(102), card(103, 1), card(104, 50)];
+  const evaluated = new Set<string>(), screened = new Set<string>();
+  const actual = (entries: GoalDeckEntry[]) => entries.some((e) => e.card.id === 40) ? .9
+    : entries.some((e) => e.card.id === 102) ? .8 : .5;
+  const found = searchGoalDeck({ owned, borrows, ownedOrders: [owned], borrowOrders: [borrows],
+    pinnedIds: [1], borrowFromAll: false, traineeId: 50, size: 3, tolerance: 0, budget: 1, screenBudget: 1,
+    seeds: [[owned[0]!, owned[1]!, { ...borrows[0]!, borrowed: true }]],
+    evaluate: (entries) => {
+      evaluated.add(goalDeckKey(entries));
+      return { score: score(actual(entries)), statPower: 0, value: 'full' };
+    },
+    screen: (entries) => {
+      screened.add(goalDeckKey(entries));
+      // A cheap overestimate must not replace the fully evaluated winner.
+      return { score: score(entries.some((e) => e.card.id === 39) ? 1 : actual(entries)), statPower: 0 };
+    },
+  })!;
+  assert.equal(found.best.score.probability, .9, 'the last owned card is checked despite the small exploration budget');
+  assert.ok(found.candidates.some((c) => c.entries.some((e) => e.borrowed && e.card.id === 102)), 'borrow replacements also reach full evaluation');
+  assert.ok(found.candidates.every((c) => found.legal(c.entries) && c.value === 'full'), 'pins, characters and ownership stay legal');
+  assert.equal(found.evaluated, evaluated.size);
+  assert.equal(found.screened, screened.size, 'cached screens count each deck once');
+});
+
 test('local exploration fully evaluates only finalists and retains a stronger seed', () => {
   const owned = Array.from({ length: 30 }, (_, i) => card(i + 1));
   const ownedOrders = Array.from({ length: 6 }, (_, i) => [...owned.slice(i * 5), ...owned.slice(0, i * 5)]);

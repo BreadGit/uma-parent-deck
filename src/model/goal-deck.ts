@@ -173,10 +173,47 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
   if (!exhaustive && options.screen) {
     const initial = result();
     options.onProgress?.(initial);
+    const screened = new Map<string, ExploredDeck>();
+    const screen = (entries: GoalDeckEntry[]) => {
+      const key = goalDeckKey(entries);
+      let candidate = screened.get(key);
+      if (!candidate) {
+        candidate = { entries, key, ...options.screen!(entries) };
+        screened.set(key, candidate);
+        screenedKeys.add(key);
+      }
+      return candidate;
+    };
     const exploration = screenGoalDecks({ ...options, owned, borrows, legal, fill, key: goalDeckKey,
-      screen: (entries) => { screenedKeys.add(goalDeckKey(entries)); return options.screen!(entries); },
+      screen,
       seeds: [...(options.seeds ?? []), initial.best.entries], budget: options.screenBudget ?? SCREENED_DECKS });
     for (const entries of exploration.finalists) evaluate(entries, budget + SEARCH_FINALISTS);
+    // A late population winner may never have had its best single-card replacement sampled.
+    // Screen its complete legal neighborhood, then check a bounded set at full fidelity.
+    const current = result().best;
+    const neighbors = new Map<string, ExploredDeck>();
+    const consider = (entries: GoalDeckEntry[]) => {
+      if (!legal(entries) || evaluated.has(goalDeckKey(entries))) return;
+      const candidate = screen(entries);
+      neighbors.set(candidate.key, candidate);
+    };
+    for (let slot = 0; slot < size; slot++) {
+      const old = current.entries[slot]!;
+      for (const replacement of old.borrowed ? borrows : owned) {
+        consider(current.entries.map((e, i) => i === slot ? { ...replacement, borrowed: old.borrowed } : e));
+      }
+    }
+    const borrowed = current.entries.find((e) => e.borrowed);
+    if (borrowed) for (const entry of current.entries.filter((e) => !e.borrowed)) {
+      const up = borrowById.get(entry.card.id), own = ownById.get(borrowed.card.id);
+      if (up && own) consider(current.entries.map((e) => e === entry ? { ...up, borrowed: true } : e === borrowed ? { ...own, borrowed: false } : e));
+    }
+    const remaining = [...neighbors.values()];
+    for (let i = 0; i < SEARCH_FINALISTS && remaining.length; i++) {
+      const best = chooseGoal(remaining, options.tolerance);
+      evaluate(best.entries, budget + 2 * SEARCH_FINALISTS);
+      remaining.splice(remaining.indexOf(best), 1);
+    }
   }
   return { ...result(), legal };
 }
