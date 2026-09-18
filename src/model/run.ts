@@ -6,7 +6,7 @@ import { evaluateParentGoal, goalRankBands, pinkGoalsEstimate, type GoalEstimate
 import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { EXPLORATION_SAMPLES, SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
-import { goalDeckConstraints, goalDeckKey, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
+import { goalDeckConstraints, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
@@ -83,7 +83,6 @@ export interface GoalSearchSummary {
   evaluated: number;
   screened: number;
   exhaustive: boolean;
-  alternatives: { cardId: number; score: GoalScore }[];
   unavailableWhiteIds: number[];
 }
 export type DeckSelection = { id: number; lb: number; borrowed?: boolean }[];
@@ -313,15 +312,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     }
     const allSources = evaluateSources(optimistic, targets, { ...baseCtx, excluded: input.wishlistExcluded }).full;
     const unavailableWhiteIds = goal.required.filter((r) => !(allSources.get(r.id) ?? []).some((s) => s.pObtain > 0)).map((r) => r.id);
-    const summarize = (found: GoalSearchResult<typeof chosen.value>): GoalSearchSummary => {
-      const owned = found.best.entries.filter((e) => !e.borrowed);
-      const alternatives = found.candidates.filter((c) => {
-        const candidateOwned = c.entries.filter((e) => !e.borrowed);
-        return c.key !== found.best.key && goalDeckKey(candidateOwned) === goalDeckKey(owned);
-      }).sort((a, b) => b.score.count - a.score.count || b.score.comparison - a.score.comparison || a.key.localeCompare(b.key));
-      return { score: found.best.score, evaluated: found.evaluated, screened: found.screened, exhaustive: found.exhaustive, unavailableWhiteIds,
-        alternatives: alternatives.slice(0, 5).map((c) => ({ cardId: c.entries.find((e) => e.borrowed)!.card.id, score: c.score })) };
-    };
+    const summarize = (found: GoalSearchResult<typeof chosen.value>): GoalSearchSummary =>
+      ({ score: found.best.score, evaluated: found.evaluated, screened: found.screened, exhaustive: found.exhaustive, unavailableWhiteIds });
     const found = searchGoalDeck({ owned: deckPool, borrows: borrowPool, ownedOrders: orders(baseRanking), borrowOrders: orders(borrowRanking),
       seeds: [initial.deck, ...(previous ? [previous] : [])], pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId,
       tolerance: settings.goalTieTolerance, budget: options.budget, evaluate: evaluateCandidate,

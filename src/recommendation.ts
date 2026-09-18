@@ -31,7 +31,6 @@ export function parseRecommendation(raw: unknown): SavedRecommendation | undefin
     && integer(e.lb) && e.lb <= 4 && (e.borrowed === undefined || typeof e.borrowed === 'boolean'))) return;
   const summary = raw.summary;
   if (!isPlainObject(summary) || !score(summary.score) || !integer(summary.evaluated) || !integer(summary.screened)
-    || typeof summary.exhaustive !== 'boolean' || !ids(summary.unavailableWhiteIds)
-    || !Array.isArray(summary.alternatives) || !summary.alternatives.every((a) => isPlainObject(a) && integer(a.cardId) && score(a.score))) return;
+    || typeof summary.exhaustive !== 'boolean' || !ids(summary.unavailableWhiteIds)) return;
   return { build: raw.build, key: raw.key, selection: raw.selection as DeckSelection, summary: summary as unknown as GoalSearchSummary };
 }

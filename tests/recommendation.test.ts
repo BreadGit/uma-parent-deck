@@ -15,7 +15,7 @@ const state = defaultState(data);
 state.run.traineeCardId = 100101;
 const plan = planRun(state.run, state.settings, state.inventory, data, { search: false });
 const selection = plan.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
-const summary: GoalSearchSummary = { evaluated: 1, screened: 0, exhaustive: false, alternatives: [], unavailableWhiteIds: [],
+const summary: GoalSearchSummary = { evaluated: 1, screened: 0, exhaustive: false, unavailableWhiteIds: [],
   score: { count: 2, total: 2, comparison: .5, probability: .4, upperProbability: .4, preferred: 0, whiteIds: [], blue: true, pink: true, approximate: false, subsetApproximate: false } };
 const keyOf = (s = state) => planningKey(s.run, s.settings, s.inventory);
 const recommendation = { build: 'build-a', key: keyOf(), selection, summary };
