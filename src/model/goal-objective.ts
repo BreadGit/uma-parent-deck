@@ -26,7 +26,11 @@ export function chooseGoal<T extends { score: GoalScore; key: string; statPower:
   const sameCount = candidates.filter((c) => c.score.count === count);
   const best = Math.max(...sameCount.map((c) => c.score.comparison));
   const tied = sameCount.filter((c) => c.score.comparison >= best * (1 - tolerance) && (best === 0 || c.score.comparison > 0));
-  return tied.slice().sort((a, b) => b.score.preferred - a.score.preferred || b.score.comparison - a.score.comparison || (count === 0 ? b.statPower - a.statPower : 0) || a.key.localeCompare(b.key))[0]!;
+  const bestPreferred = Math.max(...tied.map((c) => c.score.preferred));
+  // Ignore relative roundoff without treating rare positive scores as zero. Anchor to one maximum
+  // so a chain of pairwise near-equalities cannot change the winner with candidate order.
+  const preferred = tied.filter((c) => bestPreferred - c.score.preferred <= bestPreferred * 1e-12);
+  return preferred.sort((a, b) => b.score.comparison - a.score.comparison || (count === 0 ? b.statPower - a.statPower : 0) || a.key.localeCompare(b.key))[0]!;
 }
 
 export interface GoalSources { forms: FormDistribution; copies: number[] }

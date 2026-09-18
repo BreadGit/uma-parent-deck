@@ -45,7 +45,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  goalTieTolerance: 0.001,
+  goalTieTolerance: 0.02,
   winThreshold: 0.8,
   focus: 'stamina',
   defaultLb: { R: 4, SR: 4, SSR: 4 },
@@ -190,7 +190,7 @@ export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>
 /** User-facing note per advanced setting: what it does and where the default comes from. */
 export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   concertGreatSuccessRate: 'Assumed chance of great success for each promotional concert and an ordinary final concert. Default 1 assumes great success; independent-training rates are unmeasured. Fan rewards use mee1080/umasim manual JP observations, without a deck Fan Bonus on concerts. The 18-song setting approximates the chance of the special final concert (9,000 fans); the source also requires two new songs in the final period.',
-  goalTieTolerance: 'How much required-goal chance you will trade for more preferred sparks on successful parents. A fraction, not percentage points: 0.001 allows a 0.1% relative difference. If the best chance found is 10%, decks at 9.99% or above can win on preferred extras. Zero allows only exact ties. Larger values give preferred sparks more influence. This is a preference, not a measure of model accuracy.',
+  goalTieTolerance: 'How much required-goal chance you will trade for more preferred sparks on successful parents. A fraction, not percentage points: the default 0.02 allows a 2% relative difference. If the best chance found is 10%, decks at 9.8% or above can win on preferred extras. Zero allows only exact ties. Larger values give preferred sparks more influence. This is a preference, not a measure of model accuracy.',
   affinity: "Individual affinity score assumed for each of the six umas in the lineage (two parents, four grandparents). A blue or white spark procs at an inspiration event at its base chance times (1 + score/100), so 150 makes every blue spark proc. The game never shows individual scores, only their sum as ◎ (over 150), ○ (over 50) or △, and a ◎ made of six weak links procs far less than 150 each would; a compatibility calculator (GameTora, umaishow) gives the individual values. Default 150 is the optimistic assumption this tool has always used.",
   hintBase: 'Chance per turn that a card standing on a facility shows a hint, before Hint Frequency. Default 0.07 from a 1,024-turn manual-play sample (GameWith measured 6 to 9%). Nobody has measured hint pickup in independent training, so the whole hint model is an estimate.',
   hintScale: 'Multiplier on the whole hint model for independent training, where hint pickup is unmeasured. Default 0.75 so a 0% Hint Frequency card lands near 0.9 hints per run, in line with the 8 hints per deck fujikiseki measured in manual runs. Prioritized skills are assumed not to change which hints the run takes: that is documented for Auto-Train, not for independent training.',

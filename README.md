@@ -66,8 +66,10 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   parent-goal probability. Each row shows four targets initially. Select "+N more" to expand the rest
   in the row, with a source tooltip for each target, or "Show fewer" to collapse them.
 - The deck search compares complete required-goal probabilities, then preferred sparks on successful
-  parents within a configurable 0.1% relative window. It shows an initial checked recommendation,
-  then screens a broader set of decks in the background and fully evaluates promising alternatives.
+  parents within a configurable 2% relative window by default. Saved tolerance settings are preserved.
+  Preferred scores equal within floating-point roundoff favor the higher required-goal chance.
+  It shows an initial checked recommendation, then screens a broader set of decks in the background
+  and fully evaluates promising alternatives.
   A final pass screens every legal single-card replacement of the best deck found, plus exchanges
   of the borrowed slot with an owned card, and fully evaluates up to 16 further alternatives.
   Cards whose stats help the goal can win even without target hints. Pins constrain the five owned

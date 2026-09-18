@@ -31,6 +31,28 @@ test('relative ties stay anchored to the best chance, including rare goals and z
   assert.equal(chooseGoal([candidate('zero', 0, 99), candidate('tiny', 1e-30)], 1).key, 'tiny');
 });
 
+test('preferred-score roundoff cannot buy a lower required chance', () => {
+  const c = [candidate('stronger', .020568056124440234, .31641689373297),
+    candidate('roundoff', .020448554059959925, .31641689373297005)];
+  for (const order of [c, [...c].reverse()]) assert.equal(chooseGoal(order, .02).key, 'stronger');
+  assert.equal(chooseGoal([c[0]!, candidate('improved', c[1]!.score.comparison, .31641690)], .02).key, 'improved', 'a real preferred gain still decides');
+  assert.equal(chooseGoal([candidate('none', .02), candidate('rare', .0199, 1e-20)], .02).key, 'rare', 'small positive scores remain distinct from zero');
+});
+
+test('preferred roundoff ties stay anchored to the best preferred score regardless of order', () => {
+  const c = [candidate('best-preferred', .0197, 1), candidate('near', .0198, 1 - .75e-12), candidate('drift', .02, 1 - 1.5e-12)];
+  for (const first of c) for (const second of c.filter((c) => c !== first)) {
+    const third = c.find((c) => c !== first && c !== second)!;
+    assert.equal(chooseGoal([first, second, third], .02).key, 'near');
+  }
+});
+
+test('the default window trades at most two percent of required chance for preferred sparks', () => {
+  const c = [candidate('best', .02, .1), candidate('edge', .0196, .2), candidate('outside', .01959, .3)];
+  assert.equal(chooseGoal(c, DEFAULT_SETTINGS.goalTieTolerance).key, 'edge');
+  assert.equal(chooseGoal(c, 0).key, 'best');
+});
+
 test('preferred extras count on successful parents and preserve shared source outcomes', () => {
   const g = { ...goal, required: [{ id: 10, stars: 1 }], preferred: [{ id: 11, priority: 0 }] };
   const a = scoreGoal(g, { copies: [0, 0], forms: distribution(2, [['11', .01], ['10', .09], ['01', .29], ['00', .61]]) }, basis, pink, settings);
@@ -188,12 +210,15 @@ test('a requirement missing from the first deck is recovered before any partial-
   assert.equal(found.best.score.comparison, .001);
 });
 
-test('tight goal tolerance migrates, validates and can be overridden', () => {
-  assert.equal(migrate({ current: { version: 15, settings: {} } }, data).settings.goalTieTolerance, .001);
+test('two-percent goal tolerance defaults and migrates without replacing saved choices', () => {
+  assert.equal(defaultState(data).settings.goalTieTolerance, .02);
+  assert.equal(migrate({ current: { version: 15, settings: {} } }, data).settings.goalTieTolerance, .02);
   assert.equal(parseSetting('goalTieTolerance', '0'), 0);
   assert.equal(parseSetting('goalTieTolerance', '1'), 1);
   for (const invalid of ['-1', '1.1', 'NaN']) assert.equal(parseSetting('goalTieTolerance', invalid), undefined);
-  assert.equal(migrate({ current: { version: 15, settings: { goalTieTolerance: .02 } } }, data).settings.goalTieTolerance, .02);
+  for (const value of [0, .001, .02, .05]) {
+    assert.equal(migrate({ current: { version: 15, settings: { goalTieTolerance: value } } }, data).settings.goalTieTolerance, value);
+  }
 });
 
 test('required targets outrank custom preferred ordering and excluded choices remain excluded', () => {
