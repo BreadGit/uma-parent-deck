@@ -196,7 +196,6 @@ export const COPY = {
   priorities: {
     title: 'Prioritized skills',
     tip: `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices. Required targets come first, then preferred and other skills; drag a row or use the arrows to reorder within each group. Excluded choices are not counted as available sources.`,
-    export: 'Export list',
     reset: 'Reset',
     empty: 'Nothing to prioritize yet.',
     notListed: 'Not listed:',

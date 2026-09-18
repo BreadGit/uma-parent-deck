@@ -529,7 +529,7 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   await assertFieldsMatchState(page, 'after debounced search and skill reordering');
 });
 
-test('required skill priority is visible and the export follows the displayed order and exclusions', async (t) => {
+test('required skill priority is visible and exclusions leave the displayed order intact', async (t) => {
   const saved = defaultState(data);
   const focus = data.skills.find((s) => s.name === 'Focus');
   const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power');
@@ -541,20 +541,12 @@ test('required skill priority is visible and the export follows the displayed or
   assert.equal(await page.locator('.wishlist li').first().getAttribute('data-wl-key'), '201601');
   assert.match(await page.locator('.wishlist li').first().innerText(), /required/);
   assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder);
-  const exported = page.waitForEvent('download');
-  await page.click('[data-action="wl-export"]');
-  const download = await exported;
-  assert.equal(download.suggestedFilename(), 'prioritized-skills.txt');
-  const lines = (await readFile(await download.path(), 'utf8')).trim().split('\n');
-  assert.equal(lines[0], 'Groundwork');
-  assert.equal(lines.length, await page.locator('.wishlist li').count());
+  assert.equal(await page.locator('[data-action="wl-export"]').count(), 0, 'the list has no export button');
   await page.click('[data-action="wl-exclude"][data-id="201601"]');
   assert.match(await page.locator('[data-priority-conflict]').innerText(), /Groundwork is required but excluded/);
   assert.equal(await page.locator('.wishlist [data-wl-key="201601"]').count(), 0);
-  const secondExport = page.waitForEvent('download');
-  await page.click('[data-action="wl-export"]');
-  assert.ok(!(await readFile(await (await secondExport).path(), 'utf8')).split('\n').includes('Groundwork'));
-  await assertFieldsMatchState(page, 'after exporting the excluded required skill list');
+  assert.match(await page.locator('.wishlist li').first().innerText(), /Focus/, 'the preferred skill moves to the top once the required one is excluded');
+  await assertFieldsMatchState(page, 'after excluding the required skill');
 });
 
 test('the first reset clears targets, trainee, pins and inheritance while preserving settings and inventory', async (t) => {

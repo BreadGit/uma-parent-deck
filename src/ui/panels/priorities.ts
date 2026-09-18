@@ -2,7 +2,6 @@
 // event choice conflicts the order resolves.
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
-import { downloadText } from '../../download.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import type { Conflict } from '../../model/sparks.ts';
@@ -42,7 +41,6 @@ function nudgeSkill(key: number, delta: number) {
   moveSkill(key, cur[j]!);
 }
 const resetList = () => update((s) => { s.run.wishlistOrder = []; s.run.wishlistExcluded = []; });
-const exportList = () => downloadText('prioritized-skills.txt', plan().wl.map((w) => w.name).join('\n') + '\n');
 
 // Drag state lives in the view and the classes are rendered from it, so no handler touches lit's elements.
 const dragItem = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('li[data-wl-key]');
@@ -90,7 +88,7 @@ function conflicts(c: RunPlan) {
 
 export function renderPriorities(c: RunPlan) {
   const customized = store.run.wishlistOrder.length > 0 || store.run.wishlistExcluded.length > 0;
-  const actions = html`<button class="small" data-action="wl-export" ?disabled=${!c.wl.length} @click=${exportList}>${COPY.priorities.export}</button>${customized ? html`<button class="small" data-action="wl-reset" @click=${resetList}>${COPY.priorities.reset}</button>` : nothing}`;
+  const actions = customized ? html`<button class="small" data-action="wl-reset" @click=${resetList}>${COPY.priorities.reset}</button>` : nothing;
   return panel({ title: COPY.priorities.title, kind: 'result', subtitle: `up to ${PRIORITIZED_SKILLS_MAX}`, tip: COPY.priorities.tip, actions }, html`
     ${c.priorityIssues.map((note) => html`<p class="small warn" data-priority-conflict>${note}</p>`)}
     ${c.wl.length ? html`<ol class="wishlist" @dragstart=${drag.dragstart} @dragover=${drag.dragover} @drop=${drag.drop} @dragend=${drag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => row(c, w, i))}</ol>` : html`<div class="muted small">${COPY.priorities.empty}</div>`}
