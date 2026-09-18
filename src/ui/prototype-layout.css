@@ -24,14 +24,13 @@ main.sidebar-open .proto-drawer { transform: none; }
 .proto-backdrop { position: fixed; inset: 0; z-index: 64; background: var(--backdrop); }
 @media (prefers-reduced-motion: reduce) { .proto-drawer { transition: none; } }
 
-/* 3: a rail of step buttons stands in for the column */
-main.proto-sidebar-3.sidebar-closed { grid-template-columns: 48px minmax(0, 1fr); }
-.proto-rail { position: sticky; top: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: 0 1px 2px var(--shadow); }
-.proto-rail button { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-weight: 600; }
-.proto-rail .proto-rail-step { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.proto-rail .proto-rail-open { font-size: var(--fs-lg); line-height: 1; }
-.proto-rail-trainee { width: 32px; height: 32px; border-radius: 50%; margin-top: 4px; }
-.proto-collapse { margin-bottom: 8px; }
+/* 3: the column scrolls on its own, pinned to the viewport, and hides from a button at its top */
+main.proto-sidebar-3.sidebar-closed { grid-template-columns: minmax(0, 1fr); }
+main.proto-sidebar-3 .inputs.proto-own-scroll { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; overscroll-behavior: contain; padding: 0 6px 0 0; }
+.proto-inputs-head { position: sticky; top: 0; z-index: 3; padding: 0 0 8px; background: linear-gradient(var(--bg) 70%, transparent); }
+.proto-toolbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; margin-right: auto; }
+.proto-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; font-size: var(--fs-sm); }
+.proto-summary .thumb { margin-right: 2px; }
 
 /* ---- results variants ---- */
 /* smaller slots for the split's narrower deck */
@@ -46,17 +45,24 @@ main.proto-sidebar-3.sidebar-closed { grid-template-columns: 48px minmax(0, 1fr)
 .wishlist.wishlist-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(5, auto); column-gap: 16px; }
 .wishlist.wishlist-columns li { min-width: 0; }
 
-/* 1 and 2: a wide column and a narrow one */
+/* 1 and 2: a wide column and a narrow one; 2 keeps the skill list at least 680px wide */
 .proto-split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; align-items: start; }
+.proto-split.proto-split-wide-skills { grid-template-columns: minmax(0, 3fr) minmax(680px, 2fr); }
+/* one compact row per stat, as on phones, for the narrow column */
+.stats.stats-rows { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.stats.stats-rows .stat { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; }
+.stats.stats-rows .stat-k { flex: 0 0 56px; }
+.stats.stats-rows .stat-v { flex: 0 0 84px; font-size: var(--fs-lg); }
+.stats.stats-rows .stat-s { min-width: 0; }
+.stats.stats-rows .stat.outcome { padding: 6px 8px; margin-bottom: 4px; }
 .proto-col { min-width: 0; }
 /* 3: estimate beside run */
 .proto-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
 .proto-pair > section.panel { margin-bottom: 14px; }
 
 @media (max-width: 1200px) {
-  .proto-split, .proto-pair { grid-template-columns: minmax(0, 1fr); }
-  main.proto-sidebar-3.sidebar-closed { grid-template-columns: minmax(0, 1fr); }
-  .proto-rail { flex-direction: row; justify-content: center; }
+  .proto-split, .proto-split.proto-split-wide-skills, .proto-pair { grid-template-columns: minmax(0, 1fr); }
+  main.proto-sidebar-3 .inputs.proto-own-scroll { position: static; max-height: none; overflow: visible; }
 }
 @media (max-width: 700px) {
   .wishlist.wishlist-columns { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; grid-template-rows: none; }

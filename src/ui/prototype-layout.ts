@@ -2,10 +2,12 @@
 //   ?sidebar=1|2|3   how the input column collapses
 //     1 Collapsible column: a header button hides the column; the results take the full width.
 //     2 Overlay drawer: the results always take the full width; the inputs slide over them from the left.
-//     3 Icon rail: the column collapses to a rail of step buttons; a button opens the column at that panel.
+//     3 Hide button: the column scrolls on its own and hides from a button at its top; a button at the top left of the
+//       results brings it back, next to a one-line summary of the run so the numbers keep their context.
 //   ?results=1|2|3   how the deck, goal estimate, prioritized skills and predicted run share one screen
 //     1 Split: deck, estimate and run stacked on the left, the skill list on the right (the earlier prototype B).
-//     2 Deck banner: the deck across the top, then estimate over run on the left and the skill list on the right.
+//     2 Deck banner: the deck across the top, then estimate over run on the left and the skill list on the right,
+//       and the skill column keeps at least 680px.
 //     3 Report rows: the deck across the top, estimate beside run, then the skill list in two columns.
 // Every results variant keeps one "Show details" toggle that swaps to the full stacked panels.
 import './prototype-layout.css';
@@ -33,7 +35,7 @@ import { tip } from './tooltip.ts';
 const KEYS = ['1', '2', '3'] as const;
 type Key = typeof KEYS[number];
 export interface Proto { sidebar: Key; results: Key }
-const SIDEBAR_NAMES: Record<Key, string> = { 1: 'Collapsible column', 2: 'Overlay drawer', 3: 'Icon rail' };
+const SIDEBAR_NAMES: Record<Key, string> = { 1: 'Collapsible column', 2: 'Overlay drawer', 3: 'Hide button, own scroll' };
 const RESULTS_NAMES: Record<Key, string> = { 1: 'Split', 2: 'Deck banner', 3: 'Report rows' };
 type Section = (name: string, render: () => TemplateResult<1>, deps?: unknown[]) => unknown;
 
@@ -56,13 +58,11 @@ function go(next: Partial<Proto>) {
 }
 const cycle = (k: Key, delta: number): Key => KEYS[(KEYS.indexOf(k) + delta + KEYS.length) % KEYS.length]!;
 
-// Sidebar state is view-only and lives here: open or closed. A rail button opens the column at its panel.
+// Sidebar state is view-only and lives here: open or closed.
 let sidebarOpen = true;
-function setSidebar(open: boolean, step: number | null = null) {
+function setSidebar(open: boolean) {
   sidebarOpen = open;
   refresh();
-  // steps 1 to 4 are numbered panels; 5 is the settings panel at the end of the column
-  if (step !== null) requestAnimationFrame(() => (step === 5 ? document.querySelector('.inputs section.panel:last-of-type') : document.querySelector(`h2[data-step="${step}"]`)?.closest('section'))?.scrollIntoView({ block: 'start' }));
 }
 
 export function installPrototypeKeys() {
@@ -92,36 +92,48 @@ export function prototypeSwitcher(p: Proto) {
 
 // ---- sidebar variants ----
 
-/** The header button that opens or closes the inputs. The rail has its own controls when closed. */
+/** The header button that opens or closes the inputs. Variant 3 keeps its buttons on the left, and the open drawer has its own. */
 export function prototypeHeaderActions(p: Proto) {
-  // the rail and the open drawer carry their own controls
-  if ((p.sidebar === '3' && !sidebarOpen) || (p.sidebar === '2' && sidebarOpen)) return nothing;
+  if (p.sidebar === '3' || (p.sidebar === '2' && sidebarOpen)) return nothing;
   const label = p.sidebar === '2' ? (sidebarOpen ? 'Close inputs' : 'Edit inputs') : (sidebarOpen ? 'Hide inputs' : 'Show inputs');
   return html`<button class="small ${sidebarOpen ? '' : 'primary'}" data-action="proto-sidebar" aria-expanded=${sidebarOpen} @click=${() => setSidebar(!sidebarOpen)}>${label}</button>`;
 }
 export function prototypeMainClass(p: Proto) {
   return `proto-main proto-sidebar-${p.sidebar} ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`;
 }
-const STEPS = [{ n: 1, label: 'Trainee' }, { n: 2, label: 'Parent goal' }, { n: 3, label: 'Legacy' }, { n: 4, label: 'Run' }];
-function rail(c: RunPlan) {
-  return html`<nav class="proto-rail" aria-label="Inputs">
-    <button class="proto-rail-open" data-action="proto-sidebar" aria-label="Show inputs" data-tip="Show inputs" @click=${() => setSidebar(true)}>»</button>
-    ${STEPS.map((s) => html`<button class="proto-rail-step" data-action="proto-rail" data-step=${s.n} aria-label=${s.label} data-tip=${s.label} @click=${() => setSidebar(true, s.n)}>${s.n}</button>`)}
-    <button class="proto-rail-step" data-action="proto-rail" data-step="5" aria-label="Inventory and settings" data-tip="Inventory and settings" @click=${() => setSidebar(true, 5)}>⚙</button>
-    ${c.trainee ? html`<img class="proto-rail-trainee" src="/assets/characters/${c.trainee.cardId}.png" alt=${c.trainee.name} data-tip=${c.trainee.name} />` : nothing}
-  </nav>`;
+/** One line of what the run is, shown while the inputs are hidden so a screenshot still says what it estimates. */
+function runSummary(c: RunPlan) {
+  if (!c.trainee) return nothing;
+  const g = store.run.goal, r = c.goalEstimate;
+  const blue = `${g.blueStats.length === 5 ? 'any stat' : g.blueStats.map(capitalize).join(', ')} ${g.blueStars}★+`;
+  const pink = g.pink.map((p) => `${p.aptitude === 'any' ? 'Any' : APTITUDE_LABELS[p.aptitude]} ${p.stars}★+`).join(' or ');
+  const names = (list: { target: { name: string } }[]) => list.map((w) => w.target.name).join(', ');
+  return html`<div class="proto-summary" data-run-summary>
+    <img class="thumb thumb-sm" src="/assets/characters/${c.trainee.cardId}.png" alt="" /><b>${c.trainee.name}</b> <span class="muted">${store.run.traineeStars}★</span>
+    <span><span class="muted">Blue</span> ${blue}</span>
+    <span><span class="muted">Pink</span> ${pink}</span>
+    ${r.required.length ? html`<span><span class="muted">Required</span> ${names(r.required)}</span>` : nothing}
+    ${r.preferred.length ? html`<span><span class="muted">Preferred</span> ${names(r.preferred)}</span>` : nothing}
+  </div>`;
 }
-function sidebar(c: RunPlan, p: Proto, inputs: TemplateResult) {
+/** Variant 3's controls sit at the top left of the results while the column is hidden. */
+function resultsHead(c: RunPlan, p: Proto) {
+  if (p.sidebar !== '3' || sidebarOpen) return nothing;
+  return html`<button class="small" data-action="proto-sidebar" aria-expanded="false" @click=${() => setSidebar(true)}>» Show inputs</button>${runSummary(c)}`;
+}
+function sidebar(_c: RunPlan, p: Proto, inputs: TemplateResult) {
   if (p.sidebar === '2') return html`
     ${sidebarOpen ? html`<div class="proto-backdrop" data-action="proto-backdrop" @click=${() => setSidebar(false)}></div>` : nothing}
     <div class="inputs proto-drawer" ?inert=${!sidebarOpen} aria-hidden=${!sidebarOpen}>
       <div class="proto-drawer-head"><b>Inputs</b><button class="small" data-action="proto-sidebar" @click=${() => setSidebar(false)}>Close</button></div>
       ${inputs}
     </div>`;
-  if (p.sidebar === '3' && !sidebarOpen) return rail(c);
   if (!sidebarOpen) return nothing;
-  const collapse = p.sidebar === '3' ? html`<button class="small proto-collapse" data-action="proto-sidebar" aria-label="Collapse inputs" @click=${() => setSidebar(false)}>« Collapse</button>` : nothing;
-  return html`<div class="inputs">${collapse}${inputs}</div>`;
+  if (p.sidebar === '3') return html`<div class="inputs proto-own-scroll">
+    <div class="proto-inputs-head"><button class="small" data-action="proto-sidebar" aria-expanded="true" @click=${() => setSidebar(false)}>« Hide inputs</button></div>
+    ${inputs}
+  </div>`;
+  return html`<div class="inputs">${inputs}</div>`;
 }
 
 // ---- compact result panels, shared by the results variants ----
@@ -170,10 +182,15 @@ function skillList(c: RunPlan, cls = '') {
     : html`<div class="muted small">${COPY.priorities.empty}</div>`;
 }
 /** The candidates outside the top ten and the removed ones, each with a button that brings it into the list. */
+const CANDIDATES_SHOWN = 6;
+let allCandidates = false;
 function skillExtras(c: RunPlan) {
   if (!c.wlRest.length && !c.wlExcluded.length) return nothing;
+  const shown = allCandidates ? c.wlRest : c.wlRest.slice(0, CANDIDATES_SHOWN);
+  const hidden = c.wlRest.length - shown.length;
   return html`<div class="small muted wl-extra">
-    ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" @click=${() => addSkill(w.key)}>+</button></span>`)}` : nothing}
+    ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${shown.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" @click=${() => addSkill(w.key)}>+</button></span>`)}
+      ${hidden ? html`<button class="small" data-action="proto-more-candidates" @click=${() => { allCandidates = true; refresh(); }}>+${hidden} more</button>` : allCandidates && c.wlRest.length > CANDIDATES_SHOWN ? html`<button class="small" data-action="proto-fewer-candidates" @click=${() => { allCandidates = false; refresh(); }}>fewer</button>` : nothing}` : nothing}
     ${c.wlExcluded.length ? html`<span>${COPY.priorities.removed}</span> ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
   </div>`;
 }
@@ -193,10 +210,10 @@ function compactPriorities(c: RunPlan, opts: { columns?: boolean } = {}) {
     ${skillDetails(c)}`);
 }
 
-function compactPrediction(c: RunPlan) {
+function compactPrediction(c: RunPlan, opts: { rows?: boolean } = {}) {
   const subtitle = `${c.sum.count} calendar + ${c.ctx.races - c.sum.count} finale races · ${capitalize(store.settings.focus)} focus${c.trainee ? ` · ${c.trainee.name}` : ''}`;
   return panel({ title: COPY.prediction.title, kind: 'result', subtitle, tip: COPY.prediction.tip }, html`
-    <div class="stats">
+    <div class="stats ${opts.rows ? 'stats-rows' : ''}">
       <div class="stat outcome">
         <div class="outcome-item"><div class="stat-k">SS or better${tip(COPY.prediction.ssTip)}</div><div class="stat-v">${pill(c.rank.pSS, '', true)}</div></div>
         <div class="outcome-item"><div class="stat-k">Rank score</div><div class="stat-v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
@@ -222,7 +239,8 @@ const rest = (c: RunPlan, section: Section) => html`
 let showDetails = false;
 function results(c: RunPlan, section: Section, p: Proto) {
   const ok = !c.issues.length, r = p.results;
-  const toggle = html`<div class="proto-toolbar"><span class="small muted">${showDetails ? 'Full panels with every detail.' : 'Compact view for a one-screen screenshot.'}</span>
+  const toggle = html`<div class="proto-toolbar"><span class="proto-toolbar-left">${resultsHead(c, p)}</span>
+    <span class="small muted">${showDetails ? 'Full panels with every detail.' : 'Compact view for a one-screen screenshot.'}</span>
     <button class="small ${showDetails ? 'active' : ''}" data-action="proto-details" @click=${() => { showDetails = !showDetails; refresh(); }}>${showDetails ? 'Hide details' : 'Show details'}</button></div>`;
   if (showDetails) return html`${toggle}
     ${section('deck', () => renderDeck(c), [searchState.pending, 'full'])}
@@ -232,14 +250,15 @@ function results(c: RunPlan, section: Section, p: Proto) {
     ${rest(c, section)}`;
   const deck = (small: boolean) => html`${section('deck', () => compactDeck(c, { small }), [searchState.pending, r])}${searchError()}`;
   const estimate = section('estimate', () => compactEstimate(c), [r]);
-  const skills = ok ? section('priorities', () => compactPriorities(c, { columns: r === '3' }), [r]) : nothing;
+  // the expander is module state, not a view field, so the panel memo needs it as a dependency
+  const skills = ok ? section('priorities', () => compactPriorities(c, { columns: r === '3' }), [r, allCandidates]) : nothing;
   const prediction = ok ? section('prediction', () => compactPrediction(c), [r]) : nothing;
   if (r === '1') return html`${toggle}
     <div class="proto-split"><div class="proto-col">${deck(true)}${estimate}${prediction}</div><div class="proto-col">${skills}</div></div>
     ${rest(c, section)}`;
   if (r === '2') return html`${toggle}
     ${deck(false)}
-    <div class="proto-split"><div class="proto-col">${estimate}${prediction}</div><div class="proto-col">${skills}</div></div>
+    <div class="proto-split proto-split-wide-skills"><div class="proto-col">${estimate}${prediction}</div><div class="proto-col">${skills}</div></div>
     ${rest(c, section)}`;
   return html`${toggle}
     ${deck(false)}

@@ -38,7 +38,7 @@ for (const variant of variants) {
   }
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
   // the header stays in view: a user screenshots without scrolling when the four panels fit under it
-  if (mode !== 'closed' && key !== 'base') await page.evaluate(() => window.scrollTo(0, 0));
+  if (key !== 'base') await page.evaluate(() => window.scrollTo(0, 0));
   else await page.evaluate(() => {
     const first = [...document.querySelectorAll('.results section.panel')].find((s) => s.getClientRects().length);
     window.scrollTo(0, first.getBoundingClientRect().top + window.scrollY - 8);
