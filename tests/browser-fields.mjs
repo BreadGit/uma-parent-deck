@@ -7,7 +7,7 @@ const data = loadData();
 
 export async function waitForPlan(page) {
   assert.notEqual(await page.evaluate(() => window.__searchHeld), true, 'release held search before asserting optimizer completion');
-  await page.waitForSelector('#target-search');
+  await page.waitForSelector('.results');
   await page.waitForFunction(() => !document.querySelector('[data-plan-pending]'), undefined, { timeout: 45000 });
   assert.equal(await page.locator('[data-action="retry-search"]').count(), 0, 'search completed successfully');
 }
@@ -18,7 +18,7 @@ export async function waitForPlan(page) {
  * stale value unless its value is bound live; this catches that whatever the field.
  */
 export async function assertFieldsMatchState(page, where) {
-  await page.waitForSelector('#target-search');
+  await page.waitForSelector('.results');
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), STATE_KEY);
   const saved = migrate({ current }, data);
   const trainee = data.charByCardId.get(saved.run?.traineeCardId);

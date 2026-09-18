@@ -27,6 +27,28 @@ export const COPY = {
     searching: 'Searching for a better deck. The estimates below already reflect your inputs for the deck shown.',
     searchFailed: "Deck search could not finish. The displayed deck's estimates match your current inputs.",
     retrySearch: 'Retry search',
+    hideInputs: '« Hide inputs',
+    hideInputsTip: 'Give the results the full width. The summary line keeps the run in view.',
+    showInputs: '» Show inputs',
+  },
+  summary: {
+    blue: 'Blue',
+    pink: 'Pink',
+    required: 'Required',
+    preferred: 'Preferred',
+  },
+  warnings: {
+    title: 'Warnings',
+    tip: 'Anything that limits or changes the estimates below: missing inputs, an impossible goal, a deck the search could not complete, and events where two wanted skills compete for one option.',
+    conflicts: 'Choice conflicts',
+    conflictsTip: 'These events offer more than one wanted skill, and the run can pick only one option per event. The option whose skill sits higher in the prioritized list wins. That the list order settles a contested option is an assumption: the game confirms prioritized skills steer choices, not how ties between them resolve.',
+    conflictsNote: 'The run takes one option per event. The skill higher in the prioritized list wins; reorder the list to change which one.',
+  },
+  details: {
+    title: 'Prediction details',
+    tip: 'The reasoning behind the numbers above: what limits the goal estimate, where each stat comes from, how the deck covers each target, and how the search chose the deck.',
+    estimate: 'Goal estimate breakdown',
+    estimateTip: 'Each required spark on its own, then the assumptions the combined estimate rests on.',
   },
   trainee: {
     title: 'Trainee',
@@ -184,6 +206,7 @@ export const COPY = {
   },
   estimate: {
     title: 'Parent goal estimate',
+    tip: 'The chance that one run\'s final spark roll gives every required spark, and how many runs that takes at three confidence levels. Prediction details below explains what limits it.',
     incomplete: 'Complete the goal inputs for a combined estimate.',
     headline: 'Chance per final spark roll that the parent gets every required spark',
     attemptsTip: 'Attempts count final spark rolls, including rerolls. The estimate treats them as independent with the same odds.',
@@ -200,8 +223,9 @@ export const COPY = {
     empty: 'Nothing to prioritize yet.',
     notListed: 'Not listed:',
     removed: 'Removed:',
-    conflicts: 'Choice conflicts',
-    conflictsTip: 'These events offer more than one wanted skill, and the run can pick only one option per event. The option whose skill sits higher in the prioritized list wins. That the list order settles a contested option is an assumption: the game confirms prioritized skills steer choices, not how ties between them resolve.',
+    source: 'Source',
+    allCandidates: 'Show all candidates',
+    fewerCandidates: 'Show fewer',
     kinds: {
       target: { label: 'target', tip: 'Leads to a target and needs the run to pick this option at an event.' },
       other: { label: 'not a target', tip: 'Not a target, but listing it steers the run to this option and its skill.' },

@@ -47,9 +47,11 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
 - **Prioritized skills**: the tool's suggested 10-entry list for independent training. Entry tags:
   **target** (choice-gated, leads to a target), **not a target** (choice-gated, doesn't), **target, no
   choice** (given regardless, listed as filler). Only these ten steer event choices; the tool assumes their
-  order decides which option wins a conflict, which the game does not confirm.
+  order decides which option wins a conflict, which the game does not confirm. Each entry's info icon ends
+  with its source, the card or event that gives the skill. Candidates outside the ten sit below the list
+  with an add button; the row shows three lines and "Show all candidates" expands it.
 - **Choice conflict**: two or more targets (or a ranked non-target option) competing for one event's
-  single option. The higher entry in the prioritized list takes it.
+  single option. The higher entry in the prioritized list takes it. Listed in the Warnings panel.
 - **Spark chance**: estimated chance a target becomes a white spark at run end.
   **Target spark chances** in Card ranking use each card's own hint and event sources, current
   skill priorities, and lineage generation bonuses. They exclude trainee, scenario, inherited hints

@@ -43,7 +43,7 @@ test('nothing saved, or garbage in every slot, gives the defaults with Light Hel
   assert.equal(data.cardById.get(s.run.pinnedIds[0]!)?.charName, 'Light Hello');
   assert.deepEqual(s.settings, DEFAULT_SETTINGS);
   assert.deepEqual(s.inventory, {});
-  assert.deepEqual(s.ui, { sortKey: 'score', theme: 'system', showUnowned: true });
+  assert.deepEqual(s.ui, { sortKey: 'score', theme: 'system', showUnowned: true, inputsHidden: false });
   assert.deepEqual(migrate({ current: 'nope', state: 42, settings: [1], inventory: 'x', theme: 'neon' }, data), s);
 });
 
@@ -102,7 +102,7 @@ test('legacy settings blobs: version bumps apply and invalid values are dropped'
 
 test('the current shape round-trips and wins over legacy keys', () => {
   const cur = migrate({}, data);
-  cur.run.targets = [{ id: 201601, role: 'preferred', stars: 2, priority: 0 }]; cur.settings.winThreshold = 0.6; cur.inventory = { '30028': 2, '30052': null }; cur.ui = { sortKey: 'sp', theme: 'dark', showUnowned: false };
+  cur.run.targets = [{ id: 201601, role: 'preferred', stars: 2, priority: 0 }]; cur.settings.winThreshold = 0.6; cur.inventory = { '30028': 2, '30052': null }; cur.ui = { sortKey: 'sp', theme: 'dark', showUnowned: false, inputsHidden: true };
   const back = migrate({ current: JSON.parse(JSON.stringify(cur)), state: { targets: [999] }, settings: { winThreshold: 0.1 }, inventory: { '1': 1 }, theme: 'light' }, data);
   assert.deepEqual(back, cur);
 });
@@ -119,6 +119,15 @@ test('ranking visibility moves from saved settings to UI state without losing th
     assert.deepEqual(migrate({ current: restored }, data), restored);
     assert.equal(migrate({ current: { ...old, ui: { ...old.ui, showUnowned: !showUnowned } } }, data).ui.showUnowned, !showUnowned);
   }
+});
+
+test('the hidden input column is remembered, and a save without the flag or with a malformed one shows the column', () => {
+  const saved = defaultState(data);
+  assert.equal(migrate({ current: { ...saved, ui: { ...saved.ui, inputsHidden: true } } }, data).ui.inputsHidden, true);
+  const { inputsHidden: _omitted, ...withoutFlag } = saved.ui;
+  assert.equal(migrate({ current: { ...saved, version: 22, ui: withoutFlag } }, data).ui.inputsHidden, false);
+  assert.equal(migrate({ current: { ...saved, ui: { ...saved.ui, inputsHidden: 'yes' } } }, data).ui.inputsHidden, false);
+  assert.equal(migrate({ state: { sortKey: 'sp' }, theme: 'dark' }, data).ui.inputsHidden, false, 'legacy keys never hid the column');
 });
 
 test('validation: inventory entries are numeric ids with LB 0..4 or null; every setting is parsed against its spec and retired keys are dropped', () => {

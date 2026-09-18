@@ -6,15 +6,25 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 ## What it does
 
 - The page is two columns. The left column is the input flow, numbered in order: Trainee, Parent goal,
-  Legacy, Run, then Inventory & settings. The right column is every result, most useful first: Suggested
-  deck, Parent goal estimate, Prioritized skills, G1 agenda, Predicted run, Target coverage, Card ranking.
-  Until a trainee is picked the results are dimmed behind a note that says where to start. While a better
-  deck is being searched the deck panel says so; the estimates shown already match the deck on screen.
-  Reset all in the header clears every choice, including the training focus and win threshold, and keeps
-  the inventory and advanced settings. Below 1200 px the page is one column. On phones, all Card ranking
+  Legacy, Run, then Inventory & settings. It scrolls on its own, pinned to the viewport, and "Hide inputs"
+  at its top gives the results the full width; the choice is remembered. While it is hidden, a summary line
+  above the results names the trainee, the blue and pink goal and the target sparks, so a screenshot still
+  says what it estimates. The right column is every result, most useful first: Warnings when there are any,
+  Suggested deck, then Parent goal estimate and Predicted run beside Prioritized skills, G1 agenda,
+  Prediction details, Card ranking. On a 1080p screen the deck, estimate, skills and run fit together
+  without scrolling. Until a trainee is picked the results are dimmed behind a note that says where to
+  start. While a better deck is being searched the deck panel says so; the estimates shown already match
+  the deck on screen. Reset all in the header clears every choice, including the training focus and win
+  threshold, and keeps the inventory and advanced settings. Below 1500 px the estimate, run and skill list
+  stack unless the inputs are hidden; below 1200 px the page is one column. On phones, all Card ranking
   columns scroll sideways so the card names cannot cover the inventory controls or spark chances.
+- Warnings gathers everything that limits or changes the results: missing goal inputs, pink sparks worth
+  entering, a zero estimate, a search that could not complete every requirement, a required skill removed
+  from the prioritized list, and choice conflicts, where two wanted skills compete for one event option.
+  Prediction details holds the reasoning behind the numbers: what limits the goal estimate and its
+  per-spark breakdown, where the stats come from, Target coverage, and how the deck was built.
 - Every chance is formatted the same way: one decimal above 1%, more below, so a card's own spark chance
-  in Card ranking and the deck's spark chance in Target coverage read alike. Race win chances come in 5%
+  in Card ranking and the deck's spark chance in Target coverage (inside Prediction details) read alike. Race win chances come in 5%
   steps and stay whole numbers. Pills are neutral; colour is reserved for a real warning such as a
   streak-reduced win chance.
 - Long explanations sit behind "How …" disclosures at the end of a panel (Legacy, G1 agenda, Card

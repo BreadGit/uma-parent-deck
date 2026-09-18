@@ -12,7 +12,7 @@ import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParen
 import { clampStars } from './model/trainee.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
-export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean }
+export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean; /** The input column is hidden so the results take the full width. */ inputsHidden: boolean }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; recommendation?: SavedRecommendation }
 
 export const STATE_VERSION = 22;
@@ -25,7 +25,7 @@ export const DEFAULT_RUN: RunInput = {
   targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
   aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [defaultParentSparks(), defaultParentSparks()],
 };
-export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system', showUnowned: true };
+export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system', showUnowned: true, inputsHidden: false };
 
 /** Light Hello is mandatory in Our Grand Concert, so she starts pinned (SSR if present, else R). */
 export function defaultPins(data: Data): number[] {
@@ -146,7 +146,8 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
       inventory: sanitizeInventory(c.inventory),
       ui: { sortKey: isPlainObject(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isPlainObject(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,
         showUnowned: isPlainObject(c.ui) && typeof c.ui.showUnowned === 'boolean' ? c.ui.showUnowned
-          : isPlainObject(c.settings) && typeof c.settings.showUnowned === 'boolean' ? c.settings.showUnowned : DEFAULT_UI.showUnowned },
+          : isPlainObject(c.settings) && typeof c.settings.showUnowned === 'boolean' ? c.settings.showUnowned : DEFAULT_UI.showUnowned,
+        inputsHidden: isPlainObject(c.ui) && typeof c.ui.inputsHidden === 'boolean' ? c.ui.inputsHidden : DEFAULT_UI.inputsHidden },
     };
   }
   return {
@@ -156,7 +157,8 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
     inventory: sanitizeInventory(saved.inventory),
     ui: { sortKey: isPlainObject(saved.state) && typeof saved.state.sortKey === 'string' ? saved.state.sortKey : DEFAULT_UI.sortKey, theme: isTheme(saved.theme) ? saved.theme : DEFAULT_UI.theme,
       showUnowned: isPlainObject(saved.settings) && typeof saved.settings.version === 'number' && saved.settings.version >= 3
-        && typeof saved.settings.showUnowned === 'boolean' ? saved.settings.showUnowned : DEFAULT_UI.showUnowned },
+        && typeof saved.settings.showUnowned === 'boolean' ? saved.settings.showUnowned : DEFAULT_UI.showUnowned,
+      inputsHidden: DEFAULT_UI.inputsHidden },
   };
 }
 const isTheme = (v: unknown): v is Theme => v === 'system' || v === 'light' || v === 'dark';

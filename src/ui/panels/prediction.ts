@@ -1,5 +1,5 @@
-// The predicted run: rank, SP and final stats with their blue-spark band chances, and where every stat point
-// comes from.
+// The predicted run: rank, SP and final stats with their blue-spark band chances. Where every stat point comes from
+// is rendered by the prediction details panel through statBreakdown().
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
@@ -24,7 +24,7 @@ export function statBreakdown(c: RunPlan) {
   const penalty = store.settings.lossPenalty * c.sum.expectedLosses;
   const raceBonus = d.deck.reduce((a, cs) => a + (passives(cs.card, cs.lb)[EFFECT.raceBonus] ?? 0), 0);
   const capped = !!c.statCaps && c.statCaps.capped.some(Boolean);
-  return html`<div class="scroll-x"><table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
+  return html`<div class="scroll-x" data-stat-breakdown><table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
       ${cardRows}
       ${row(`Career events and ${c.ctx.races} total races`, p.eventStats.map((v, i) => v * focusMul[i]!))}
       ${row('Inheritance at the start', c.inherited.map((x) => x.start))}
@@ -56,6 +56,5 @@ export function renderPrediction(c: RunPlan) {
       ${STATS.map((s, i) => html`
       <div class="stat"><div class="stat-k">${s}</div><div class="stat-v">${num(c.finalMean[i]!)} <span class="sd">±${num(c.finalSd[i]!)}</span></div>
         <div class="stat-s"><span class="band">≥${BLUE_STAR_BANDS.mid} ${pill(c.statChances[i]!.mid, '', true)}</span> <span class="band">≥${BLUE_STAR_BANDS.high} ${pill(c.statChances[i]!.high, '', true)}</span></div></div>`)}
-    </div>
-    <details><summary>${COPY.prediction.breakdown}</summary>${statBreakdown(c)}</details>`);
+    </div>`);
 }

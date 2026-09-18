@@ -782,7 +782,7 @@ test('white target chips migrate old goals and support zero or many required spa
   assert.deepEqual((await state(page)).run.targets.filter((t) => t.role === 'required'), []);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
-  assert.match(await page.locator('[data-goal-result]').innerText(), /No required white sparks/);
+  assert.match(await page.locator('[data-goal-details]').innerText(), /No required white sparks/);
   await waitForPlan(page);
   const probability = await page.locator('[data-goal-probability]').innerText();
   await page.reload();
@@ -956,7 +956,7 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.deepEqual((await state(page)).run.pinkLineage, [{ aptitude: 'end', stars: 3 }, ...Array(5).fill(null)]);
   await assertFieldsMatchState(page, 'after entering one pink spark');
-  const pinkProbability = () => page.locator('[data-goal-result] tbody tr').filter({ hasText: /^Pink \(/ }).locator('td').last().innerText();
+  const pinkProbability = () => page.locator('[data-goal-details] tbody tr').filter({ hasText: /^Pink \(/ }).locator('td').last().innerText();
   const partialPinkProbability = await pinkProbability(), partialRun = (await state(page)).run;
   await page.reload();
   await page.waitForSelector('[data-goal-result]');

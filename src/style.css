@@ -34,10 +34,22 @@ header h1 { font-size: var(--fs-xl); margin: 0; letter-spacing: -.01em; }
 header .meta { color: var(--muted); font-size: var(--fs-sm); }
 .header-actions { margin-left: auto; display: flex; gap: 12px; align-items: center; }
 main { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 16px; padding: 16px 20px; align-items: start; }
+main.inputs-hidden { grid-template-columns: minmax(0, 1fr); }
 .inputs, .results { min-width: 0; }
+/* the input column keeps its own scroll position, pinned to the viewport, so the results can be read beside any step */
+.inputs { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; overscroll-behavior: contain; padding-right: 6px; }
+.inputs-head { position: sticky; top: 0; z-index: 3; padding-bottom: 8px; background: linear-gradient(var(--bg) 70%, transparent); }
+.results-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 10px; min-width: 0; }
+.results-head > button { flex: none; white-space: nowrap; }
+.run-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; font-size: var(--fs-sm); }
+.run-summary > span { display: inline-flex; align-items: center; gap: 4px; }
+/* the estimate and the run beside the skill list, two equal columns */
+.results-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.results-col { min-width: 0; }
 section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 14px; box-shadow: 0 1px 2px var(--shadow); }
 /* results read differently from inputs: an accent rule along the top and a slightly larger title */
 section.panel-result { border-top: 3px solid var(--accent); }
+section.panel-warn { border-top-color: var(--warn); }
 section.panel-result > .panel-head h2 { font-size: var(--fs-lg); }
 .panel-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; min-height: 26px; flex-wrap: wrap; }
 .panel-head h2 { font-size: var(--fs-md); margin: 0; display: inline-flex; align-items: center; gap: 8px; }
@@ -365,6 +377,9 @@ td.target-chances { min-width: 260px; }
 .wl-kind { display: inline-block; margin-right: 6px; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
 .wl-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+/* three rows of chips (21px chip, 2px margins, 4px row gap); the rest shows on request */
+.wl-extra.clamped { max-height: 83px; overflow: hidden; }
+.wl-candidates-toggle { margin-top: 6px; }
 
 /* advanced settings: each field shows its default and marks a changed value */
 .settings-grid { display: grid; grid-template-columns: 1fr; gap: 2px 16px; }
@@ -402,14 +417,19 @@ details[data-agenda] { margin-top: 8px; }
 .agenda-pick select { width: 100%; max-width: 100%; min-width: 0; font-size: var(--fs-xs); padding: 1px 2px; }
 .agenda-label { font-size: var(--fs-xs); color: var(--muted); text-align: center; margin-top: 2px; height: 14px; }
 
-/* below the wide breakpoint the result column is narrower: three deck slots per row, compact stat rows, one year per row */
+/* below the wide breakpoint the result column is narrower: three deck slots per row, compact stat rows, one year per row,
+   and the estimate, run and skill list stack unless the input column is hidden */
 @media (max-width: 1500px) {
   .deck { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .agenda { grid-template-columns: 1fr; }
+  main:not(.inputs-hidden) .results-split { grid-template-columns: minmax(0, 1fr); }
 }
 /* one column on narrow screens; minmax(0, 1fr) so a wide table scrolls inside its panel instead of widening the page */
 @media (max-width: 1200px) {
   main { grid-template-columns: minmax(0, 1fr); }
+  .inputs { position: static; max-height: none; overflow: visible; padding-right: 0; }
+  .inputs-head { position: static; background: none; }
+  .results-split { grid-template-columns: minmax(0, 1fr); }
 }
 /* phones and small tablets */
 @media (max-width: 700px) {
@@ -454,5 +474,7 @@ details[data-agenda] { margin-top: 8px; }
   .wishlist .grip { display: none; }
   .wishlist li { padding: 5px 4px; }
   .wishlist .wl-move, .wishlist .wl-x { font-size: var(--fs-sm); line-height: 22px; padding: 0 8px; }
+  /* taller chips on touch screens: 27px chip, 2px margins, 4px row gap */
+  .wl-extra.clamped { max-height: 101px; }
   input[type=range] { height: 28px; }
 }
