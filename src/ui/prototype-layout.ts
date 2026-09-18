@@ -1,7 +1,8 @@
 // PROTOTYPE, throwaway. Three layouts of the result column that fit Suggested deck, Parent goal estimate, Prioritized
 // skills and Predicted run on one 1080p screen, switchable with ?variant=A|B|C and the floating bar at the bottom.
 // Variant A: dashboard grid, per-panel collapsed details.
-// Variant B: two-column split with one "Show details" toggle that swaps to the full stacked panels.
+// Variant B: deck, estimate and run stacked on the left, the skill list on the right, and one "Show details" toggle
+// that swaps to the full stacked panels.
 // Variant C: one combined summary card; the four full panels sit under a single collapsed "Full details".
 import './prototype-layout.css';
 import { html, nothing, type TemplateResult } from 'lit-html';
@@ -111,14 +112,18 @@ function skillList(c: RunPlan, cls = '') {
     ? html`<ol class="wishlist ${cls}" @dragstart=${drag.dragstart} @dragover=${drag.dragover} @drop=${drag.drop} @dragend=${drag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => row(c, w, i, false))}</ol>`
     : html`<div class="muted small">${COPY.priorities.empty}</div>`;
 }
-/** Where each skill comes from, the chips to add or restore, and the choice conflicts. */
+/** The candidates outside the top ten and the removed ones, each with a button that brings it into the list. */
+function skillExtras(c: RunPlan) {
+  if (!c.wlRest.length && !c.wlExcluded.length) return nothing;
+  return html`<div class="small muted wl-extra">
+    ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" @click=${() => addSkill(w.key)}>+</button></span>`)}` : nothing}
+    ${c.wlExcluded.length ? html`<span>${COPY.priorities.removed}</span> ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
+  </div>`;
+}
+/** Where each skill comes from and the choice conflicts. */
 function skillDetails(c: RunPlan) {
-  return html`<details class="proto-details"><summary>Sources, other candidates and choice conflicts</summary>
+  return html`<details class="proto-details"><summary>Sources and choice conflicts</summary>
     ${c.wl.length ? html`<ol class="small proto-sources">${c.wl.map((w) => html`<li><b>${w.name}</b> <span class="muted">${w.reason}</span></li>`)}</ol>` : nothing}
-    ${c.wlRest.length || c.wlExcluded.length ? html`<div class="small muted wl-extra">
-      ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" @click=${() => addSkill(w.key)}>+</button></span>`)}` : nothing}
-      ${c.wlExcluded.length ? html`<span>${COPY.priorities.removed}</span> ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
-    </div>` : nothing}
     ${conflicts(c)}
   </details>`;
 }
@@ -128,6 +133,7 @@ function compactPriorities(c: RunPlan, opts: { columns?: boolean } = {}) {
   return panel({ title: COPY.priorities.title, kind: 'result', subtitle: `up to ${PRIORITIZED_SKILLS_MAX}`, tip: COPY.priorities.tip, actions }, html`
     ${c.priorityIssues.map((note) => html`<p class="small warn" data-priority-conflict>${note}</p>`)}
     ${skillList(c, opts.columns ? 'wishlist-columns' : '')}
+    ${skillExtras(c)}
     ${skillDetails(c)}`);
 }
 
@@ -172,7 +178,7 @@ function variantA(c: RunPlan, section: Section) {
     ${rest(c, section)}`;
 }
 
-// ---- Variant B: two columns, one toggle that swaps to the full stacked panels. ----
+// ---- Variant B: the numbers stacked on the left, the skill list on the right, one toggle for the full panels. ----
 let showDetails = false;
 function variantB(c: RunPlan, section: Section) {
   const ok = !c.issues.length;
@@ -189,11 +195,11 @@ function variantB(c: RunPlan, section: Section) {
       <div class="proto-col">
         ${section('deck', () => compactDeck(c, { small: true }), [searchState.pending, 'B'])}
         ${searchError()}
-        ${ok ? section('priorities', () => compactPriorities(c), ['B']) : nothing}
+        ${section('estimate', () => compactEstimate(c), ['B'])}
+        ${ok ? section('prediction', () => compactPrediction(c), ['B']) : nothing}
       </div>
       <div class="proto-col">
-        ${section('estimate', () => compactEstimate(c, { stacked: true }), ['B'])}
-        ${ok ? section('prediction', () => compactPrediction(c, { rows: true }), ['B']) : nothing}
+        ${ok ? section('priorities', () => compactPriorities(c), ['B']) : nothing}
       </div>
     </div>
     ${rest(c, section)}`;
@@ -214,7 +220,7 @@ function summaryCard(c: RunPlan) {
     </div>
     ${ok ? html`<div class="proto-band-skills"><h3>${COPY.priorities.title} <span class="sub-note">enter in this order</span>${tip(COPY.priorities.tip)}</h3>
       ${c.priorityIssues.map((note) => html`<p class="small warn" data-priority-conflict>${note}</p>`)}
-      ${skillList(c, 'wishlist-columns')}</div>` : nothing}`);
+      ${skillList(c, 'wishlist-columns')}${skillExtras(c)}</div>` : nothing}`);
 }
 function variantC(c: RunPlan, section: Section) {
   const ok = !c.issues.length;
