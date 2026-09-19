@@ -125,4 +125,7 @@ export function mount(root: HTMLElement) {
   installSuggestDismiss(root);
   applyTheme();
   draw();
+  // lit keeps the same <header> across renders; its height sizes the pinned input column below it
+  const header = root.querySelector('header')!;
+  new ResizeObserver(() => document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`)).observe(header);
 }

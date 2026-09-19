@@ -28,6 +28,9 @@ for (const [title, opacity] of dimmed) {
   assert.equal(opacity, live ? '1' : '0.35', `${title} should be ${live ? 'live' : 'dimmed'} before a trainee is picked`);
 }
 assert.ok(dimmed.some(([title]) => title.startsWith('Prioritized skills')) && dimmed.some(([title]) => title.startsWith('Warnings')), 'the nested panels and the warnings are rendered while waiting');
+// The pinned input column ends inside the viewport on a fresh page, so its own scrolling reaches the last panel.
+const column = await page.$eval('.inputs', (el) => ({ top: Math.round(el.getBoundingClientRect().top), bottom: Math.round(el.getBoundingClientRect().bottom), headerBottom: Math.round(document.querySelector('header').getBoundingClientRect().bottom) }));
+assert.ok(column.top >= column.headerBottom && column.bottom <= 1100, `input column ${JSON.stringify(column)} should sit under the header and end inside the 1100px viewport`);
 
 // A range input must stay mounted while it is dragged. Replacing it on each input event
 // breaks pointer capture and prevents the thumb from reaching the pointer.
