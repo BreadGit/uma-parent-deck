@@ -45,8 +45,11 @@ main.inputs-hidden { grid-template-columns: minmax(0, 1fr); }
 .results-head > button { flex: none; white-space: nowrap; }
 .run-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; font-size: var(--fs-sm); }
 .run-summary > span { display: inline-flex; align-items: center; gap: 4px; }
-/* the estimate and the run beside the skill list, two equal columns */
-.results-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+/* the estimate and the run beside the skill list in two equal columns once the result column itself is wide enough,
+   whether that comes from a wide window or from hiding the inputs; narrower, they stack */
+.results { container-type: inline-size; }
+.results-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+@container (min-width: 1000px) { .results-split { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .results-col { min-width: 0; }
 section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 14px; box-shadow: 0 1px 2px var(--shadow); }
 /* results read differently from inputs: an accent rule along the top and a slightly larger title */
@@ -348,7 +351,7 @@ td.target-chances { min-width: 260px; }
 .target-spark-value { white-space: nowrap; }
 .target-more { margin-top: 4px; font-size: var(--fs-sm); }
 
-/* predicted run: the outcome box on its own row, then five equal stat boxes; phones get one compact row per stat */
+/* predicted run: the outcome box on its own row, then five equal stat boxes; a narrow result column gets one compact row per stat */
 .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 8px 0; }
 .stat.outcome { grid-column: 1 / -1; }
 .stat { border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 8px; min-width: 0; overflow: hidden; }
@@ -363,6 +366,16 @@ td.target-chances { min-width: 260px; }
 .stat.outcome .stat-k { text-transform: uppercase; letter-spacing: .03em; font-size: var(--fs-xs); white-space: nowrap; }
 .stat.outcome .stat-v { white-space: nowrap; }
 .stat.outcome .stat-v .pill { font-size: var(--fs-lg); padding: 1px 8px; }
+/* in a narrow result column (a split column under 570px, or a phone) the five stat boxes become one compact row per stat;
+   this follows the box rules above so it wins the cascade */
+@container (max-width: 1140px) {
+  .stats { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .stat { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; }
+  .stat-k { flex: 0 0 56px; }
+  .stat-v { flex: 0 0 84px; font-size: var(--fs-lg); }
+  .stat-s { min-width: 0; }
+  .stat.outcome { padding: 6px 8px; margin-bottom: 4px; }
+}
 .conflicts-box { border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line)); background: color-mix(in srgb, var(--danger) 8%, var(--panel)); border-radius: var(--radius); padding: 6px 10px; margin: 12px 0 4px; }
 .conflicts-box .sub-head { margin-top: 2px; }
 .conflicts-box h3 { color: var(--danger); }
@@ -423,12 +436,10 @@ details[data-agenda] { margin-top: 8px; }
 .agenda-pick select { width: 100%; max-width: 100%; min-width: 0; font-size: var(--fs-xs); padding: 1px 2px; }
 .agenda-label { font-size: var(--fs-xs); color: var(--muted); text-align: center; margin-top: 2px; height: 14px; }
 
-/* below the wide breakpoint the result column is narrower: three deck slots per row, compact stat rows, one year per row,
-   and the estimate, run and skill list stack unless the input column is hidden */
+/* below the wide breakpoint the result column is narrower: three deck slots per row, compact stat rows, one year per row */
 @media (max-width: 1500px) {
   .deck { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .agenda { grid-template-columns: 1fr; }
-  main:not(.inputs-hidden) .results-split { grid-template-columns: minmax(0, 1fr); }
 }
 /* one column on narrow screens; minmax(0, 1fr) so a wide table scrolls inside its panel instead of widening the page */
 @media (max-width: 1200px) {
@@ -436,7 +447,6 @@ details[data-agenda] { margin-top: 8px; }
   header { position: static; }
   .inputs { position: static; max-height: none; overflow: visible; padding-right: 0; }
   .inputs-head { position: static; background: none; }
-  .results-split { grid-template-columns: minmax(0, 1fr); }
 }
 /* phones and small tablets */
 @media (max-width: 700px) {
@@ -460,13 +470,6 @@ details[data-agenda] { margin-top: 8px; }
   input[type=range] { width: 120px; }
   .goal-field select, .goal-pink-row select, .target-editor select { font-size: var(--fs-lg); }
   .goal-attempts { font-size: var(--fs-sm); }
-  /* one compact row per stat instead of five boxes */
-  .stats { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-  .stat { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; }
-  .stat-k { flex: 0 0 56px; }
-  .stat-v { flex: 0 0 84px; font-size: var(--fs-lg); }
-  .stat-s { min-width: 0; }
-  .stat.outcome { padding: 6px 8px; margin-bottom: 4px; }
 }
 /* touch: larger targets, no drag handle (the arrow buttons reorder), and 16px fields so iOS does not zoom on focus */
 @media (pointer: coarse) {

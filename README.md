@@ -15,8 +15,10 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   without scrolling. Until a trainee is picked the results are dimmed behind a note that says where to
   start. While a better deck is being searched the deck panel says so; the estimates shown already match
   the deck on screen. Reset all in the header clears every choice, including the training focus and win
-  threshold, and keeps the inventory and advanced settings. Below 1500 px the estimate, run and skill list
-  stack unless the inputs are hidden; below 1200 px the page is one column. On phones, all Card ranking
+  threshold, and keeps the inventory and advanced settings. The estimate, run and skill list sit in two
+  columns whenever the result column is at least 1000 px wide, from a wide window or from hiding the
+  inputs, and stack otherwise; a result column under 1140 px shows one row per stat instead of five boxes.
+  Below 1200 px the page is one column. On phones, all Card ranking
   columns scroll sideways so the card names cannot cover the inventory controls or spark chances.
 - Warnings gathers everything that limits or changes the results: missing goal inputs, pink sparks worth
   entering, a zero estimate, a search that could not complete every requirement, a required skill removed
