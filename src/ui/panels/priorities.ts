@@ -76,7 +76,7 @@ function row(c: RunPlan, w: WishlistEntry, i: number) {
 
 /**
  * The candidates outside the list and the removed ones, each with a button that brings it in. The row is clamped to
- * three lines; app.ts measures whether that hides any and the toggle appears only then.
+ * three lines; app.ts observes whether that hides any and the toggle appears only then (or while the row is expanded).
  */
 function candidates(c: RunPlan) {
   if (!c.wlRest.length && !c.wlExcluded.length) return nothing;
@@ -85,7 +85,7 @@ function candidates(c: RunPlan) {
       ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" @click=${() => addSkill(w.key)}>+</button></span>`)}` : nothing}
       ${c.wlExcluded.length ? html`<span>${COPY.priorities.removed}</span> ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
     </div>
-    ${expanded || view.candidatesOverflow ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; refresh(); }}>${expanded ? COPY.priorities.fewerCandidates : COPY.priorities.allCandidates}</button>` : nothing}`;
+    ${view.candidatesOverflow || expanded ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; refresh(); }}>${expanded ? COPY.priorities.fewerCandidates : COPY.priorities.allCandidates}</button>` : nothing}`;
 }
 
 export function renderPriorities(c: RunPlan) {

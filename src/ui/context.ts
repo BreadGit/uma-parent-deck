@@ -29,6 +29,7 @@ const viewState = {
   showSparks: false,
   showPinkSparks: false,
   showAgenda: false,
+  showDetails: false,
   expandedRankingCards: [] as number[],
   /** Advanced settings whose last typed value was rejected, with the accepted range. */
   settingErrors: {} as Record<string, { value: string; message: string }>,
@@ -36,7 +37,7 @@ const viewState = {
   drag: { key: null as number | null, over: null as number | null },
   /** The skill candidates below the prioritized list are clamped to three lines unless expanded. */
   showAllCandidates: false,
-  /** Measured after each render: whether the clamped candidates hide any. */
+  /** Observed after layout by app.ts: whether the clamped candidates hide any. */
   candidatesOverflow: false,
 };
 export type View = typeof viewState;

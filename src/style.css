@@ -38,8 +38,9 @@ header .meta { color: var(--muted); font-size: var(--fs-sm); }
 main { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: var(--gap); padding: var(--gap) 20px; align-items: start; }
 main.inputs-hidden { grid-template-columns: minmax(0, 1fr); }
 .inputs, .results { min-width: 0; }
-/* the input column keeps its own scroll position, pinned under the header, so the results can be read beside any step */
-.inputs { position: sticky; top: calc(var(--header-h, 0px) + var(--gap)); max-height: calc(100vh - var(--header-h, 0px) - var(--gap)); overflow-y: auto; overscroll-behavior: contain; padding-right: 6px; }
+/* the input column keeps its own scroll position, pinned under the header, so the results can be read beside any step;
+   it clips sideways rather than scrolling, so anything too wide shows up in the smoke test's overflow check */
+.inputs { position: sticky; top: calc(var(--header-h, 0px) + var(--gap)); max-height: calc(100vh - var(--header-h, 0px) - var(--gap)); overflow: hidden auto; overscroll-behavior: contain; padding-right: 6px; }
 .inputs-head { position: sticky; top: 0; z-index: 3; padding-bottom: 8px; background: linear-gradient(var(--bg) 70%, transparent); }
 .results-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 10px; min-width: 0; }
 .results-head > button { flex: none; white-space: nowrap; }

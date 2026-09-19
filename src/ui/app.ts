@@ -4,7 +4,7 @@
 import { html, nothing, render } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
 import { resetRun, saveState, type Theme } from '../state.ts';
-import { data, endPanelTracking, onRender, plan, searchState, stateRevision, store, trackedPanel, update, view } from './context.ts';
+import { data, endPanelTracking, onRender, plan, refresh, searchState, stateRevision, store, trackedPanel, update, view } from './context.ts';
 import { COPY } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
 import { installSuggestDismiss } from './fields.ts';
@@ -53,13 +53,18 @@ function unavailableChoices() {
   </div>`;
 }
 
-const setInputsHidden = (hidden: boolean) => update((s) => { s.ui.inputsHidden = hidden; });
+/** Hide or show the input column and move focus to the button that reverses it, so a keyboard user keeps their place. */
+function setInputsHidden(hidden: boolean) {
+  update((s) => { s.ui.inputsHidden = hidden; });
+  document.querySelector<HTMLElement>(`[data-action="${hidden ? 'show' : 'hide'}-inputs"]`)?.focus();
+}
 
 function page() {
   const c = plan();
   const ready = !!c.trainee;
   // the column can only be hidden once there is a run to show; until then the inputs are the page
   const inputsHidden = ready && store.ui.inputsHidden;
+  const complete = !c.issues.length;
   const section = (name: string, render: () => ReturnType<typeof panel>, deps: unknown[] = []) => trackedPanel(name, [c, stateRevision, ...deps], render);
   return html`
     <header>
@@ -71,8 +76,8 @@ function page() {
       </span>
     </header>
     <main class="${inputsHidden ? 'inputs-hidden' : ''}">
-      ${inputsHidden ? nothing : html`<div class="inputs" data-inputs>
-        ${ready ? html`<div class="inputs-head"><button class="small" data-action="hide-inputs" aria-expanded="true" data-tip=${COPY.app.hideInputsTip} @click=${() => setInputsHidden(true)}>${COPY.app.hideInputs}</button></div>` : nothing}
+      ${inputsHidden ? nothing : html`<div class="inputs" id="inputs" data-inputs>
+        ${ready ? html`<div class="inputs-head"><button class="small" data-action="hide-inputs" aria-expanded="true" aria-controls="inputs" data-tip=${COPY.app.hideInputsTip} @click=${() => setInputsHidden(true)}>${COPY.app.hideInputs}</button></div>` : nothing}
         ${unavailableChoices()}
         ${section('trainee', () => renderTrainee(c))}
         ${section('goal', () => renderGoalEditor(c))}
@@ -81,20 +86,18 @@ function page() {
         ${section('settings', () => renderSettings())}
       </div>`}
       <div class="results ${ready ? '' : 'waiting'}">
-        ${inputsHidden ? html`<div class="results-head"><button class="small" data-action="show-inputs" aria-expanded="false" @click=${() => setInputsHidden(false)}>${COPY.app.showInputs}</button>${runSummary(c)}</div>` : nothing}
+        ${inputsHidden ? html`<div class="results-head"><button class="small" data-action="show-inputs" aria-expanded="false" aria-controls="inputs" @click=${() => setInputsHidden(false)}>${COPY.app.showInputs}</button>${runSummary(c)}</div>${unavailableChoices()}` : nothing}
         ${ready ? nothing : html`<p class="banner" data-waiting>${COPY.app.waiting}</p>`}
         ${hasWarnings(c) ? section('warnings', () => renderWarnings(c), [searchState.error]) : nothing}
         ${section('deck', () => renderDeck(c), [searchState.pending])}
-        <div class="results-split">
+        ${complete ? html`<div class="results-split">
           <div class="results-col">
             ${section('estimate', () => renderGoalResult(c))}
-            ${c.issues.length ? nothing : section('prediction', () => renderPrediction(c))}
+            ${section('prediction', () => renderPrediction(c))}
           </div>
-          <div class="results-col">
-            ${c.issues.length ? nothing : section('priorities', () => renderPriorities(c), [view.candidatesOverflow])}
-          </div>
+          <div class="results-col">${section('priorities', () => renderPriorities(c))}</div>
         </div>
-        ${c.issues.length ? nothing : section('schedule', () => renderSchedule(c))}
+        ${section('schedule', () => renderSchedule(c))}` : section('estimate', () => renderGoalResult(c))}
         ${section('details', () => renderPredictionDetails(c))}
         ${section('ranking', () => renderRanking(c))}
       </div>
@@ -104,23 +107,35 @@ function page() {
 }
 
 /**
- * The skill candidates are clamped by CSS to three lines. Whether that clips anything is only known after layout, so
- * it is measured after each render and the panel is drawn once more when the answer changed.
+ * The skill candidates are clamped by CSS to three lines. Whether that clips anything is only known after layout, so a
+ * ResizeObserver reads it whenever the row's box changes (its first layout, a window resize, more or fewer chips) and
+ * the panel is drawn again only when the answer changed. The answer is left alone while the row is expanded, so the
+ * toggle that opened it stays in place, and focused, when it closes the row again.
  */
-function measureCandidates(root: HTMLElement, redraw: () => void) {
-  const el = root.querySelector<HTMLElement>('[data-candidates]');
-  const overflow = !!el && !view.showAllCandidates && el.scrollHeight > el.clientHeight + 1;
-  if (overflow === view.candidatesOverflow) return;
-  view.candidatesOverflow = overflow;
-  redraw();
+function watchCandidates(root: HTMLElement) {
+  let watched: Element | null = null;
+  const observer = new ResizeObserver(([entry]) => {
+    if (!entry || view.showAllCandidates) return;
+    const overflow = entry.target.scrollHeight > entry.target.clientHeight + 1;
+    if (overflow === view.candidatesOverflow) return;
+    view.candidatesOverflow = overflow;
+    refresh();
+  });
+  return () => {
+    const el = root.querySelector('[data-candidates]');
+    if (el === watched) return;
+    if (watched) observer.unobserve(watched);
+    watched = el;
+    if (el) observer.observe(el);
+  };
 }
 
 export function mount(root: HTMLElement) {
   const preserveScroll = installScrollAnchor(root);
-  const draw = () => { preserveScroll(() => render(page(), root)); endPanelTracking(); measureCandidates(root, draw); };
+  const watch = watchCandidates(root);
+  const draw = () => { preserveScroll(() => render(page(), root)); endPanelTracking(); watch(); };
   onRender(draw);
   systemDark.addEventListener('change', applyTheme);
-  window.addEventListener('resize', () => measureCandidates(root, draw));
   installTooltips(root);
   installSuggestDismiss(root);
   applyTheme();

@@ -37,16 +37,25 @@ export interface SearchBox<T> {
   pick: (item: T) => void;
 }
 
-/** Reveal the highlighted row by scrolling its list, without moving the page or its other scroll areas. */
+/** Scroll one container just enough to show a box, leaving the page and every other scroll area where they are. */
+function scrollToShow(container: HTMLElement, box: DOMRect) {
+  const top = container.getBoundingClientRect().top + container.clientTop;
+  const bottom = top + container.clientHeight;
+  if (box.top < top) container.scrollTop += box.top - top;
+  else if (box.bottom > bottom) container.scrollTop += box.bottom - bottom;
+}
+
+/**
+ * Reveal the highlighted row, or the whole list when none is highlighted, by scrolling the list and then the input
+ * column it opens inside: the column clips the list when it drops past the column's end.
+ */
 function revealSuggestion(listId: string) {
   const list = document.getElementById(listId);
-  const active = list?.querySelector<HTMLElement>('[aria-selected="true"]');
-  if (!list || !active) return;
-  const row = active.getBoundingClientRect();
-  const top = list.getBoundingClientRect().top + list.clientTop;
-  const bottom = top + list.clientHeight;
-  if (row.top < top) list.scrollTop += row.top - top;
-  else if (row.bottom > bottom) list.scrollTop += row.bottom - bottom;
+  if (!list) return;
+  const active = list.querySelector<HTMLElement>('[aria-selected="true"]');
+  if (active) scrollToShow(list, active.getBoundingClientRect());
+  const column = list.closest<HTMLElement>('[data-inputs]');
+  if (column) scrollToShow(column, (active ?? list).getBoundingClientRect());
 }
 
 /**
@@ -66,7 +75,7 @@ export function searchBox<T>(box: SearchBox<T>) {
     refresh();
     revealSuggestion(listId);
   };
-  const setQuery = (q: string) => { view[box.field] = q; view.activeSearch = box.field; setIndex(-1); refresh(); };
+  const setQuery = (q: string) => { view[box.field] = q; view.activeSearch = box.field; setIndex(-1); refresh(); revealSuggestion(listId); };
   const choose = (item: T) => { setIndex(-1); view.activeSearch = null; box.pick(item); };
   const onKey = (e: KeyboardEvent) => {
     if (!open) return;

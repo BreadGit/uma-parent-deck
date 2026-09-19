@@ -753,9 +753,66 @@ test('zero through four owned characters show an incomplete deck, and five resto
     await page.setInputFiles('#import-file', inventoryFile(inventory));
     await page.waitForFunction(({ key, n }) => Object.values(JSON.parse(localStorage.getItem(key)).inventory).filter((v) => v !== null).length === n, { key: STATE_KEY, n });
     assert.equal(await predictions(page).count(), n === 5 ? 1 : 0);
+    // an incomplete deck has no run to show beside the estimate, so the estimate takes the whole width
+    assert.equal(await page.locator('.results-split').count(), n === 5 ? 1 : 0, 'the two-column split appears only with a complete deck');
+    const detailsSub = page.locator('section.panel').filter({ has: page.locator('details[data-prediction-details]') }).locator('[data-panel-sub]');
+    assert.equal(await detailsSub.innerText(), n === 5 ? 'goal estimate · stat sources · target coverage · deck search' : 'goal estimate · deck search');
     if (n < 5) assert.match(await page.locator('[data-plan-issues]').innerText(), /Incomplete deck/);
     else assert.equal(await page.locator('.deck .slot').count(), 6);
+    if (n === 0 || n === 5) {
+      await openDetails(page);
+      await page.waitForSelector(n === 5 ? '[data-stat-breakdown]' : '[data-details-incomplete]');
+      assert.equal(await page.locator('[data-stat-breakdown]').count(), n === 5 ? 1 : 0, 'stat sources need a complete deck');
+      assert.equal(await page.locator('[data-details-incomplete]').count(), n === 5 ? 0 : 1, 'an incomplete deck says why the sections are missing');
+      await page.click('details[data-prediction-details] > summary');
+      await page.waitForSelector('[data-goal-details]', { state: 'detached' });
+    }
   }
+});
+
+test('the results keep the missing-choice notice and the pink spark shortcut while the inputs are hidden', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.pinnedIds.push(99999992);
+  saved.run.goal = { ...saved.run.goal, pink: [{ aptitude: 'dirt', stars: 1 }] };
+  saved.run.pinkLineage = [{ aptitude: 'dirt', stars: 3 }, null, null, null, null, null];
+  const page = await editor(t, saved);
+  await page.click('[data-action="hide-inputs"]');
+  await page.waitForSelector('[data-inputs]', { state: 'detached' });
+  assert.equal((await state(page)).ui.inputsHidden, true);
+  assert.match(await page.locator('[data-unavailable-choices]').innerText(), /99999992/, 'a missing shared card is reported beside the results');
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 1, 'a dirt spark on a G dirt trainee makes the pink estimate a range');
+  await page.click('[data-action="goal-refine-pink"]');
+  await page.waitForSelector('[data-pink-lineage="0"]');
+  assert.equal((await state(page)).ui.inputsHidden, false, 'the shortcut shows the input column');
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.pinkLineage), '0', 'and focuses the first pink spark field');
+  assert.equal(await page.locator('[data-unavailable-choices]').count(), 1, 'the notice moves into the input column');
+  await assertFieldsMatchState(page, 'after opening pink sparks from the warnings');
+});
+
+test('search suggestions open inside the pinned input column and keyboard rows stay in view', async (t) => {
+  const page = await editor(t, fujiState());
+  const column = page.locator('[data-inputs]');
+  assert.equal(await column.evaluate((el) => el.scrollHeight > el.clientHeight), true, 'the input column scrolls on its own at this height');
+  // park the card search at the column's bottom edge, where an opened list would drop out of view
+  await column.evaluate((el) => { const input = document.querySelector('#card-search'); el.scrollTop += input.getBoundingClientRect().bottom - (el.getBoundingClientRect().top + el.clientHeight); });
+  const before = await page.evaluate(() => scrollY);
+  const within = (selector) => page.evaluate((selector) => {
+    const column = document.querySelector('[data-inputs]'), el = document.querySelector(selector);
+    const r = el.getBoundingClientRect(), c = column.getBoundingClientRect();
+    return r.top >= c.top - 1 && r.bottom <= c.top + column.clientHeight + 1;
+  }, selector);
+  await page.fill('#card-search', 'kita');
+  assert.equal(await within('#card-search-list'), true, 'the opened list is scrolled into the column');
+  assert.equal(await within('#card-search'), true, 'without losing the search box');
+  const count = await page.locator('#card-search-list li').count();
+  for (let i = 0; i < count; i++) {
+    await page.press('#card-search', 'ArrowDown');
+    assert.equal(await within('#card-search-list [aria-selected="true"]'), true, `row ${i} is inside the column`);
+  }
+  assert.equal(await page.evaluate(() => scrollY), before, 'the page itself does not move');
+  await page.press('#card-search', 'Escape');
+  await assertFieldsMatchState(page, 'after navigating suggestions inside the pinned column');
 });
 
 test('white target chips migrate old goals and support zero or many required sparks', async (t) => {

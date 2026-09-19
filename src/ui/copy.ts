@@ -46,8 +46,9 @@ export const COPY = {
   },
   details: {
     title: 'Prediction details',
-    tip: 'For checking the tool\'s work. Every number above is broken into the parts it came from, and each section ends with how it is computed.',
-    sections: 'goal estimate · stat sources · target coverage · deck search',
+    tip: 'For checking the tool\'s work. Each number above is broken into the parts it came from, and each section ends with how it is computed. The stat sources and target coverage need a complete deck.',
+    sections: (complete: boolean) => (complete ? ['goal estimate', 'stat sources', 'target coverage', 'deck search'] : ['goal estimate', 'deck search']).join(' · '),
+    incomplete: 'Stat sources and target coverage appear once the deck is complete.',
     explore: 'Explore how each number above was reached',
     estimate: 'Goal estimate breakdown',
     estimateTip: 'Each required spark on its own. The combined chance above needs all of them in one run.',
