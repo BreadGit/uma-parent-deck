@@ -34,7 +34,8 @@ export interface RunInput {
   raceOverrides: Record<string, boolean>;  // calendar id -> forced in (true) or out (false)
   pinnedIds: number[];                     // pinned support cards: owned ones shortlist the owned slots, unowned ones ask for the friend's slot
   borrowFromAll: boolean;                  // with six or more owned pins, borrow the best card overall rather than the best leftover pin
-  ignoredIds: number[];                    // cards excluded from this run: never suggested for an owned slot or the friend's slot
+  ignoredIds: number[];                    // cards excluded from this run: never suggested for an owned slot, nor for the friend's slot unless borrowIgnored
+  borrowIgnored: boolean;                  // ignored cards may still be borrowed
   parentSparks: ParentSparks[];            // [parent 1, parent 2], the blue spark each of the side's three umas carries
 }
 
@@ -142,14 +143,15 @@ export function applyUserOrder(cands: WishlistEntry[], order: number[], excluded
   return cands.filter((w) => !excluded.includes(w.key)).slice().sort((a, b) => index(a) - index(b) || (b.weight - a.weight));
 }
 
-/** The cards search may choose: owned cards at their LB, any card at the borrowed LB, and the pins among them. Ignored cards are in neither pool. */
+/** The cards search may choose: owned cards at their LB, any card at the borrowed LB, and the pins among them. Ignored cards
+ * are out of the owned pool, and out of the borrow pool unless the run allows borrowing them. */
 function selectablePools(input: RunInput, settings: Settings, inventory: Inventory, data: Data) {
   const { pool, unowned } = cardPool(data, inventory, settings);
   const ignoredIds = input.ignoredIds.filter((id) => data.cardById.has(id));
   const ignored = new Set(ignoredIds);
   const deckPool = pool.filter((p) => !unowned.has(p.card.id) && !ignored.has(p.card.id));
   // Any Global card can be borrowed from a friend, assumed at the borrowed limit break.
-  const borrowPool = data.cards.filter((card) => !ignored.has(card.id)).map((card) => ({ card, lb: BORROWED_LB }));
+  const borrowPool = data.cards.filter((card) => input.borrowIgnored || !ignored.has(card.id)).map((card) => ({ card, lb: BORROWED_LB }));
   const pinnedIds = input.pinnedIds.filter((id) => data.cardById.has(id) && !ignored.has(id));
   return { pool, unowned, ignoredIds, deckPool, borrowPool, pinnedIds };
 }

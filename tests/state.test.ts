@@ -73,6 +73,8 @@ test('ignored cards migrate as a numeric list, drop anything also pinned, and de
   assert.deepEqual(s.run.pinnedIds, [30052, 30028]);
   assert.deepEqual(s.run.ignoredIds, [30001, 30160], 'the pin wins when a card is in both lists; malformed entries are dropped');
   assert.deepEqual(migrate({ current: { ...current, run: { ignoredIds: 'all' } } }, data).run.ignoredIds, []);
+  assert.equal(migrate({ current: { ...current, run: { borrowIgnored: true } } }, data).run.borrowIgnored, true);
+  assert.equal(migrate({ current: { ...current, run: { borrowIgnored: 'yes' } } }, data).run.borrowIgnored, false);
   assert.deepEqual(migrate({ current: { version: 21, run: { pinnedIds: [30052] } } }, data).run.ignoredIds, [], 'saves from before the field ignore nothing');
   assert.deepEqual(migrate({ state: { pinnedId: 30028, ignoredIds: [30001] } }, data).run.ignoredIds, [30001]);
   assert.deepEqual(migrate({ current: s }, data), s, 'the current shape round-trips');

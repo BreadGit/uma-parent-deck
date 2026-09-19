@@ -141,7 +141,10 @@ export const COPY = {
     borrowFromAll: 'Borrow the best card overall, not the best leftover pin',
     noLightHello: 'No Light Hello card is marked owned. Our Grand Concert needs one.',
     ignored: 'Ignored cards',
-    ignoredTip: 'Cards this run never suggests, for an owned slot or the friend\'s slot. Ignore a card with the button beside it in the suggested deck or the card ranking.',
+    ignoredTip: 'Cards this run never suggests for an owned slot, nor for the friend\'s slot unless allowed below. Ignore a card here or with the button beside it in the suggested deck or the card ranking.',
+    ignorePlaceholder: 'Search a support card to ignore…',
+    noIgnored: 'Nothing ignored.',
+    borrowIgnored: "Allow ignored cards in the friend's slot",
   },
   cards: {
     pin: (name: string) => `Pin ${name}`,

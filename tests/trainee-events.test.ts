@@ -61,7 +61,7 @@ test("Special Week's secret event needs runnings the default agenda skips; force
   assert.ok(src && Math.abs(src.pObtain - expected) < 1e-9 && expected > 0, `secret ${src?.pObtain} vs ${expected}`);
   const dropped = specialWeekAgenda(true, [forced.id('Japan Cup', 2)]);
   assert.equal(traineeSources(sw, stamina, data, settings, raceWinChances(dropped.sched)).filter((s) => s.kind === 'secret').length, 0, 'excluding one required running kills the event');
-  const base: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [stamina.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], parentSparks: [[null, null, null], [null, null, null]] };
+  const base: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [stamina.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: sw.cardId, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], borrowIgnored: false, parentSparks: [[null, null, null], [null, null, null]] };
   const plainRun = planRun(base, settings, {}, data, { search: false });
   const selection = plainRun.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   const withRuns = planRun({ ...base, raceOverrides: Object.fromEntries(forced.forced) }, settings, {}, data, { selection, search: false });

@@ -17,7 +17,7 @@ const data = loadData();
 const settings = { ...DEFAULT_SETTINGS };
 const byName = (n: string) => must(data.skills.find((s) => s.name === n && !s.unreleasedEn), `released skill ${n}`);
 const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);
-const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], parentSparks: [[null, null, null], [null, null, null]] };
+const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], borrowIgnored: false, parentSparks: [[null, null, null], [null, null, null]] };
 const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight });
 
 test('star tables: every listed table is used as is; only a missing one interpolates, and counts outside the range clamp', () => {
@@ -228,6 +228,13 @@ test('ignored cards are never suggested: not for an owned slot, not as the borro
   assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [owned.card.id] }, settings, {}, data), false, 'a saved recommendation with an ignored card is discarded');
   assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [borrowed.card.id] }, settings, {}, data), false, 'the borrow cannot be an ignored card either');
   assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [99999999] }, settings, {}, data), true, 'an ignored id missing from the data changes nothing');
+  // allowing ignored cards in the friend's slot keeps them out of the owned slots only
+  const lenient = { ...goalInput, ignoredIds, borrowIgnored: true };
+  assert.equal(isLegalRunSelection(previous, lenient, settings, {}, data), false, 'the owned ignored card still disqualifies the deck');
+  assert.equal(isLegalRunSelection(previous, { ...lenient, ignoredIds: [borrowed.card.id] }, settings, {}, data), true, 'the borrow may be an ignored card');
+  const borrowable = planRun({ ...input, ignoredIds, borrowIgnored: true }, settings, {}, data, { previous, search: false });
+  assert.ok(!borrowable.deckResult.deck.some((e) => e.card.id === owned.card.id), 'the ignored owned card leaves the deck');
+  assert.ok(borrowable.deckResult.deck.some((e) => e.card.id === borrowed.card.id && e.borrowed), 'the ignored borrow stays');
 });
 
 test('retained decks update estimates and limit breaks, but cannot bypass ownership, pins or trainee exclusion', () => {

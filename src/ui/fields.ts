@@ -109,7 +109,7 @@ export function installSuggestDismiss(root: HTMLElement) {
     if ((e.target as Element).closest('.suggest')) return;
     if (view.activeSearch === null) return;
     view.activeSearch = null;
-    view.suggestIndexes = { requiredQuery: -1, preferredQuery: -1, traineeQuery: -1, cardQuery: -1 };
+    view.suggestIndexes = { requiredQuery: -1, preferredQuery: -1, traineeQuery: -1, cardQuery: -1, ignoreQuery: -1 };
     refresh();
   });
 }

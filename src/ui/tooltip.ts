@@ -6,6 +6,9 @@ import { html } from 'lit-html';
 export const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
 
 let pinned: HTMLElement | null = null;
+/** After a click, hover tips wait for the pointer to move: a re-render can put another control under a still pointer,
+ * and the browser then reports a hover the user never made. */
+let awaitingMove = false;
 
 function show(el: HTMLElement) {
   const box = document.getElementById('tooltip');
@@ -26,11 +29,13 @@ function hide(force = false) {
   if (force) { pinned?.classList.remove('pinned'); pinned = null; }
 }
 const tipOf = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]');
-/** Buttons and links carry a tip for hover and focus only; a click on them must reach their own handler. */
+/** Buttons and links carry a tip for hover and focus only; a click on them must reach their own handler, and it
+ * closes the box, which otherwise stays open on the focused control (and its text goes stale once the label changes). */
 const interactive = (el: HTMLElement) => !!el.closest('button, a, select, input, summary, label');
 
 export function installTooltips(root: HTMLElement) {
-  root.addEventListener('mouseover', (ev) => { if (pinned) return; const el = tipOf(ev); if (el) show(el); });
+  root.addEventListener('mousemove', () => { awaitingMove = false; });
+  root.addEventListener('mouseover', (ev) => { if (pinned || awaitingMove) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('mouseout', (ev) => { if (tipOf(ev)) hide(); });
   root.addEventListener('focusin', (ev) => { if (pinned) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('focusout', (ev) => { if (tipOf(ev)) hide(); });
@@ -43,6 +48,7 @@ export function installTooltips(root: HTMLElement) {
       hide(true); pinned = el; el.classList.add('pinned'); show(el);
       return;
     }
-    if (pinned) hide(true);
+    hide(true);
+    awaitingMove = true;
   }, true);
 }

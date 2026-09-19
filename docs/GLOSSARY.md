@@ -75,8 +75,8 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   counts tie. A pin not in the inventory asks for the borrowed slot at LB4. Borrow from all controls
   whether leftover owned pins constrain that slot. Pins fill the deck's first slots in pin order; the other
   owned cards follow, best target chances first, and the friend's card is last.
-- **Ignored card**: a card excluded from this run. Search never suggests it for an owned slot or the
-  friend's slot. It stays in the ranking, dimmed, so it can be un-ignored there. A card is pinned or
+- **Ignored card**: a card excluded from this run. Search never suggests it for an owned slot, nor for the
+  friend's slot unless "Allow ignored cards in the friend's slot" is on. It stays in the ranking, dimmed, so it can be un-ignored there. A card is pinned or
   ignored, never both: each choice clears the other. **Inventory**: your cards' limit breaks; unmarked cards count as owned at the
   default LB.
 - **Observed / adjusted / model** (basis): a card's stat contribution uses a qualifying observation at

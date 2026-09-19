@@ -40,6 +40,7 @@ export function unpinCard(id: number) {
   update((s) => { s.run.pinnedIds = s.run.pinnedIds.filter((x) => x !== id); });
 }
 export function ignoreCard(id: number) {
+  view.ignoreQuery = '';
   update((s) => {
     s.run.pinnedIds = s.run.pinnedIds.filter((x) => x !== id);
     if (!s.run.ignoredIds.includes(id)) s.run.ignoredIds.push(id);

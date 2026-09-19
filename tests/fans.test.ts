@@ -23,7 +23,7 @@ const input: RunInput = {
   goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {},
   wishlistOrder: [], wishlistExcluded: [], traineeCardId: shared.traineeCardId, traineeStars: shared.stars,
   aptOverrides: observations.runs[0]!.reportedFinalAptitudes as Aptitudes, raceOverrides: {},
-  pinnedIds: selection.map((d) => d.id), borrowFromAll: false, ignoredIds: [],
+  pinnedIds: selection.map((d) => d.id), borrowFromAll: false, ignoredIds: [], borrowIgnored: false,
   parentSparks: shared.parentStartingGains.map((gains) => parentSparksFromGains(gains)!),
 };
 const chosen = new Map(shared.calendar.map((r) => [r.slot, r.name]));

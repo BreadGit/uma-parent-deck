@@ -5,7 +5,7 @@ import type { Card } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { effectiveLb } from '../../model/run.ts';
 import { data, store, update, view } from '../context.ts';
-import { pinCard, setSetting, unignoreCard, unpinCard } from '../actions.ts';
+import { ignoreCard, pinCard, setSetting, unignoreCard, unpinCard } from '../actions.ts';
 import { COPY } from '../copy.ts';
 import { inputValue, isChecked, options, searchBox, selectValue } from '../fields.ts';
 import { capitalize, cardImg, cardThumb, cardUrl, pct, typeIcon } from '../format.ts';
@@ -17,12 +17,14 @@ const OWNED_SLOTS = DECK_SIZE - BORROWED_SLOTS;
 const LIGHT_HELLO_IDS = data.cards.filter((c) => c.charName === 'Light Hello').map((c) => c.id);
 const FOCUS_CHOICES = (['balanced', 'stamina', 'sprint'] as const).map((f) => ({ value: f, label: capitalize(f) }));
 
-function matches(): Card[] {
-  const words = view.cardQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+/** Cards matching a search box's words, minus those already in the list it feeds. */
+function matches(query: string, listed: number[]): Card[] {
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (!words.length) return [];
-  return data.cards.filter((card) => !store.run.pinnedIds.includes(card.id) && words.every((w) => `${card.name} ${card.rarity} ${card.type}`.toLowerCase().includes(w)))
+  return data.cards.filter((card) => !listed.includes(card.id) && words.every((w) => `${card.name} ${card.rarity} ${card.type}`.toLowerCase().includes(w)))
     .sort((a, b) => b.rarity.length - a.rarity.length || a.charName.localeCompare(b.charName) || a.id - b.id).slice(0, 12);
 }
+const searchRow = (card: Card) => { const lb = lbOf(card); return html`<img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="suggest-r">${lb == null ? 'not owned · borrow' : `LB${lb}`}</span>`; };
 const lbOf = (card: Card) => effectiveLb(store.inventory, card, store.settings.defaultLb);
 
 /** A pinned or ignored card: art, name, its limit break (or that it would be borrowed) and the button that removes it from the list. */
@@ -45,6 +47,7 @@ function threshold() {
 export function renderRun(c: RunPlan) {
   const lhOptions = c.pool.filter((p) => LIGHT_HELLO_IDS.includes(p.card.id) && !c.unowned.has(p.card.id));
   const pins = store.run.pinnedIds.length ? store.run.pinnedIds.map((id) => cardRow(id, 'unpin-card')) : html`<span class="muted small">${COPY.run.noPins}</span>`;
+  const ignored = store.run.ignoredIds.length ? store.run.ignoredIds.map((id) => cardRow(id, 'unignore-card')) : html`<span class="muted small">${COPY.run.noIgnored}</span>`;
   return panel({ title: COPY.run.title, step: 4 }, html`
     <label class="row"><span class="row-k">${COPY.run.scenario}</span><span>Our Grand Concert</span></label>
     <label class="row"><span class="row-k">${COPY.run.focus}${tip(COPY.run.focusTip)}</span>
@@ -52,14 +55,18 @@ export function renderRun(c: RunPlan) {
     ${threshold()}
     ${sub(COPY.run.pins, { tip: COPY.run.pinsTip })}
     ${searchBox<Card>({
-      id: 'card-search', placeholder: COPY.run.pinPlaceholder, field: 'cardQuery', items: matches(), key: (card) => card.id, action: 'pin-card',
-      row: (card) => { const lb = lbOf(card); return html`<img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="suggest-r">${lb == null ? 'not owned · borrow' : `LB${lb}`}</span>`; },
-      pick: (card) => pinCard(card.id),
+      id: 'card-search', placeholder: COPY.run.pinPlaceholder, field: 'cardQuery', items: matches(view.cardQuery, store.run.pinnedIds), key: (card) => card.id, action: 'pin-card',
+      row: searchRow, pick: (card) => pinCard(card.id),
     })}
     <div class="chips pin-list">${pins}</div>
     ${c.ownedPinIds.length > OWNED_SLOTS ? html`<div class="small muted">${COPY.run.tooManyPins(c.ownedPinIds.length)}</div>
       <label class="row"><span class="row-k">${COPY.run.borrowFromAll}</span><input type="checkbox" data-run="borrowFromAll" .checked=${live(store.run.borrowFromAll)} @change=${(e: Event) => update((s) => { s.run.borrowFromAll = isChecked(e); })} /></label>` : nothing}
     ${!lhOptions.length ? html`<div class="small warn">${COPY.run.noLightHello}</div>` : nothing}
-    ${store.run.ignoredIds.length ? html`${sub(COPY.run.ignored, { tip: COPY.run.ignoredTip })}
-      <div class="chips pin-list" data-ignore-list>${store.run.ignoredIds.map((id) => cardRow(id, 'unignore-card'))}</div>` : nothing}`);
+    ${sub(COPY.run.ignored, { tip: COPY.run.ignoredTip })}
+    ${searchBox<Card>({
+      id: 'ignore-search', placeholder: COPY.run.ignorePlaceholder, field: 'ignoreQuery', items: matches(view.ignoreQuery, store.run.ignoredIds), key: (card) => card.id, action: 'ignore-card',
+      row: searchRow, pick: (card) => ignoreCard(card.id),
+    })}
+    <div class="chips pin-list" data-ignore-list>${ignored}</div>
+    <label class="row"><span class="row-k">${COPY.run.borrowIgnored}</span><input type="checkbox" data-run="borrowIgnored" .checked=${live(store.run.borrowIgnored)} @change=${(e: Event) => update((s) => { s.run.borrowIgnored = isChecked(e); })} /></label>`);
 }

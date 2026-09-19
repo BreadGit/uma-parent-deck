@@ -153,6 +153,7 @@ await assertFieldsMatchState(page, 'after unpinning from the deck slot');
 assert.equal(await page.locator('.ranking-table button[data-action="toggle-card-pin"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has a pin button');
 assert.equal(await page.locator('.ranking-table button[data-action="toggle-card-ignore"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has an ignore button');
 await rankingPin.click();
+assert.equal(await page.locator('#tooltip.show').count(), 0, 'clicking a button with a tip closes the tip');
 await assertFieldsMatchState(page, 'with immediate deck estimates');
 assert.equal(await rankingPin.getAttribute('aria-pressed'), 'true');
 assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 1);
@@ -177,7 +178,7 @@ await assertOrdering('after ignoring a deck card');
 // Pinning an ignored card stops ignoring it, and ignoring a pinned card unpins it.
 await page.locator(`.ranking-table button[data-action="toggle-card-pin"][data-id="${victim}"]`).click();
 await savedState(`st.run.pinnedIds.includes(${victim}) && !st.run.ignoredIds.includes(${victim})`);
-assert.equal(await page.locator('[data-ignore-list]').count(), 0, 'an empty ignored list is not shown');
+assert.equal(await page.locator('[data-ignore-list] [data-action="unignore-card"]').count(), 0, 'the ignored list is empty again');
 assert.deepEqual((await deckIds()).slice(0, 2), [30052, victim], 'the new pin takes the second slot');
 await assertFieldsMatchState(page, 'after pinning an ignored card');
 await page.locator(`.deck .slot button[data-action="toggle-card-ignore"][data-id="${victim}"]`).click();
@@ -188,6 +189,22 @@ await page.click(`[data-ignore-list] [data-action="unignore-card"][data-id="${vi
 await savedState('st.run.ignoredIds.length === 0');
 assert.equal(await rankingIgnore.getAttribute('aria-pressed'), 'false');
 await assertFieldsMatchState(page, 'after un-ignoring from the run panel');
+// The Run panel's own search ignores a card, and the flag lets ignored cards back into the friend's slot only.
+await page.fill('#ignore-search', 'kitasan');
+await page.waitForSelector('li[data-action="ignore-card"]');
+await page.click('li[data-action="ignore-card"]');
+await savedState('st.run.ignoredIds.includes(30028)');
+assert.equal(await page.inputValue('#ignore-search'), '', 'the ignore search clears after a pick');
+assert.ok(!(await deckIds()).includes(30028), 'a card ignored by search leaves the deck');
+await page.check('[data-run="borrowIgnored"]');
+await savedState('st.run.borrowIgnored === true');
+await assertFieldsMatchState(page, 'after allowing ignored borrows');
+await assertOrdering('after allowing ignored borrows');
+await page.uncheck('[data-run="borrowIgnored"]');
+await savedState('st.run.borrowIgnored === false');
+await page.click('[data-ignore-list] [data-action="unignore-card"][data-id="30028"]');
+await savedState('st.run.ignoredIds.length === 0');
+await assertFieldsMatchState(page, 'after un-ignoring the searched card');
 // Inventory edits one card at a time, as a user marks what they own, keep the pins in the first slots and on the top rows.
 await rankingPin.click();
 await savedState('st.run.pinnedIds.includes(30028)');

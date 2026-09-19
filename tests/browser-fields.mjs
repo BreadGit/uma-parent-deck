@@ -61,6 +61,9 @@ export async function assertFieldsMatchState(page, where) {
       const want = String(list.includes(Number(el.dataset.id)));
       if (el.getAttribute('aria-pressed') !== want) out.push(`${el.dataset.action} for ${el.dataset.id} shows ${el.getAttribute('aria-pressed')}, state ${want}`);
     }
+    for (const el of document.querySelectorAll('input[data-run]')) {
+      if (el.checked !== !!st.run[el.dataset.run]) out.push(`run flag ${el.dataset.run} shows ${el.checked}, state ${st.run[el.dataset.run]}`);
+    }
     for (const el of document.querySelectorAll('[data-setting="showUnowned"]')) {
       if (el.checked !== st.ui.showUnowned) out.push('unowned visibility differs from state');
     }

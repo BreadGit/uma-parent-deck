@@ -21,7 +21,7 @@ const DEFAULTS: SharedChoices = {
     goal: { blueStats: ['speed', 'stamina', 'power', 'guts', 'wit'], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] },
     targets: [], targetLineage: {}, parentSparks: [[null, null, null], [null, null, null]],
     pinkLineage: [null, null, null, null, null, null], aptOverrides: {}, pinnedIds: [], borrowFromAll: false,
-    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {}, ignoredIds: [],
+    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {}, ignoredIds: [], borrowIgnored: false,
   },
   settings: { focus: 'stamina', winThreshold: 0.8 },
 };
@@ -54,7 +54,7 @@ export function sharedChoices(state: AppState): SharedChoices {
     run: { traineeCardId: r.traineeCardId, traineeStars: r.traineeStars, goal: r.goal, targets: r.targets,
       targetLineage: r.targetLineage, parentSparks: r.parentSparks, pinkLineage: r.pinkLineage,
       aptOverrides: r.aptOverrides, pinnedIds: r.pinnedIds, borrowFromAll: r.borrowFromAll,
-      wishlistOrder: r.wishlistOrder, wishlistExcluded: r.wishlistExcluded, raceOverrides: r.raceOverrides, ignoredIds: r.ignoredIds },
+      wishlistOrder: r.wishlistOrder, wishlistExcluded: r.wishlistExcluded, raceOverrides: r.raceOverrides, ignoredIds: r.ignoredIds, borrowIgnored: r.borrowIgnored },
     settings: { focus: state.settings.focus, winThreshold: state.settings.winThreshold },
   });
 }
@@ -75,10 +75,10 @@ function pack({ run: r, settings: s }: SharedChoices): unknown[] {
       if (String(calendarId) !== key || typeof included !== 'boolean') invalid();
       return included ? calendarId : -calendarId;
     }),
-    r.ignoredIds];
+    r.ignoredIds, r.borrowIgnored ? 1 : 0];
 }
 /** How many top-level slots each positional format has. */
-const SLOTS: Record<number, number> = { 2: 14, 3: 15, 4: 16 };
+const SLOTS: Record<number, number> = { 2: 14, 3: 15, 4: 17 };
 const PACKED_DEFAULTS = pack(DEFAULTS);
 
 function unpack(raw: unknown, version = 4): SharedChoices {
@@ -127,7 +127,7 @@ function unpack(raw: unknown, version = 4): SharedChoices {
       targetLineage: Object.fromEntries(lineage.map((l) => [l.id, l.value])), parentSparks, pinkLineage,
       aptOverrides: Object.fromEntries(overrides.map((p) => [p.aptitude, p.grade])), pinnedIds,
       ...(version === 2 ? {} : { raceOverrides: Object.fromEntries(races) }),
-      borrowFromAll: !!integer(a[9], 0, 1), wishlistOrder: ids(a[10]), wishlistExcluded: ids(a[11]), ignoredIds,
+      borrowFromAll: !!integer(a[9], 0, 1), wishlistOrder: ids(a[10]), wishlistExcluded: ids(a[11]), ignoredIds, borrowIgnored: !!integer(a[16], 0, 1),
     },
     settings: { focus: choice(a[12], FOCUSES), winThreshold: threshold as number },
   };
