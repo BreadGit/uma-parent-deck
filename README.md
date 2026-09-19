@@ -26,10 +26,12 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 - Parent goal groups the blue, pink, and white goals. Target white sparks uses compact chips with one shared editor. Select a chip to edit its goal
   and lineage; select it again to close. Remove a target with the × on its chip. Any number of targets,
-  including zero, can be Required. Preferred targets are optional 2★+ extras. Required targets have
+  including zero, can be Required. Preferred targets are optional extras at any star level. Their
+  ranking weights halve with each priority step, starting at priority 0 with weight 1. Required targets have
   individual minimum stars. Separate headers distinguish target goals from existing lineage.
-- Parent goal always evaluates your choices. Set acceptable blue stats and a pink aptitude, defaulting to Any
-  at 2★ or better. The evaluator combines those with every required white spark and shows estimated attempts for 50%, 75%, and
+- Parent goal always evaluates your choices. Choose acceptable blue stats and pink aptitudes, with a
+  minimum star count for each pink alternative. Defaults accept any blue stat at 2★+ and any pink
+  aptitude at 1★+. The evaluator combines those with every required white spark and shows estimated attempts for 50%, 75%, and
   95% chance of success. With no required whites, success depends only on blue and pink. Changing
   a target's role or minimum stars changes the deck search. Required-goal chance comes first;
   preferred sparks on successful parents distinguish decks within a tight, adjustable relative
@@ -46,9 +48,12 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   the pink editor directly. Reset pink sparks restores base grades and clears pink lineage.
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
-  If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint. Predictions assume you buy
-  the gold form when available (40% spark chance), otherwise ◎ (25%), otherwise white (20%). The run buys
-  nothing. The predicted run shows the full worst-case SP cost, including every prerequisite purchase.
+  If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint.
+  Target coverage assumes you buy the best available form: gold (40% spark chance), otherwise ◎ (25%),
+  otherwise white (20%). It shows the full worst-case SP cost, including every prerequisite purchase.
+  Parent goal and Predicted run instead estimate purchases within the predicted SP budget. Required
+  base skills come first, then preferred bases and upgrades, then remaining skills by rating per SP.
+  Independent training itself buys nothing; these estimates model purchases after the run.
 - You pick the trainee. Her own support cards are excluded, her innate and awakening skills
   count as already covered, and her growth rates and aptitudes feed the stat and race models. Her own
   events count as sources too: story and choice events at a set rate, outings at another, and secret
@@ -61,7 +66,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   threshold you set in Run and per-race picks complete the agenda. The race grid mirrors the game's
   layout and is collapsed until you open it; the summary line and fan estimate stay visible.
 - Card ranking shows each card's own target spark chances at rank SS, using Required minimum stars
-  and 2★+ for Preferred targets. It sorts by the sum of Required chances, then Preferred chances,
+  and any star level for Preferred targets. It sorts by the sum of Required chances, then priority-weighted Preferred chances,
   then predicted stat contribution at your limit break. These individual chances are not the complete
   parent-goal probability. Each row shows four targets initially. Select "+N more" to expand the rest
   in the row, with a source tooltip for each target, or "Show fewer" to collapse them.
@@ -77,10 +82,11 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   search favors the largest achievable subset and explains the remaining goal separately.
   Search is exhaustive when the constrained deck pool is small; otherwise its bounded exploration
   and cheaper candidate screening can miss the best deck. Displayed probabilities use the full evaluator.
-- The predicted run shows expected stats (clamped to the scenario caps plus the blue sparks' start
+- The predicted run shows expected stats (converted above 1,200 and clamped to the scenario caps plus the blue sparks' start
   uncaps), chance of ≥600 and ≥1100 per stat (blue spark star bands), chance of SS rank and the
-  estimated SP against the worst-case cost of the targets, and a 10-skill priority list for independent
-  training. Required targets come first, followed by other skills with event choices. Only those ten entries
+  estimated SP and budgeted skill rating. Target coverage compares SP with the worst-case target cost.
+  Prioritized skills shows up to ten entries for independent training. Required targets come first,
+  followed by preferred targets and other skills with event choices. Only those ten entries
   steer event choices. Custom ordering applies within those groups, and the list can be exported.
 - Every card counts as owned at a default limit break (4 for every rarity, editable) until you
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
@@ -187,6 +193,8 @@ source checks, and remaining limits.
   content version Global runs.
 - `data/races.json`: the G1 career calendar.
 - `data/ranks.json`: rank score thresholds.
+- `data/skill-ratings.json`: individually sourced skill evaluation points, imported separately from
+  an UmaTools export. See [skill purchases and rating](docs/stat-model-evaluation.md#skill-purchases-and-rating).
 - `data/stat-model.json`: fitted independent-training stat model, produced by
   `npm run fit` (`analysis/fit_stat_model.py`, needs numpy and openpyxl).
 
@@ -269,10 +277,11 @@ Numbers with no measurement behind them (random event rate, Group outing rates, 
 scaling, the stat assumed for the gold roll, the song count for the scenario's completion skill,
 loss penalty) are defaults in the advanced settings panel.
 
-Skill rating applies the [UmaTools aptitude multipliers](docs/umamusume/refs/umatools-rating-tables.md)
-to base scores of 217 (white), 262 (◎), and 508 (gold), using GameTora's skill tags. It does not
-copy UmaTools' per-skill bucket scores or include negative skills. The trainee's potential level
-is assumed maxed, so all awakening skills are available.
+Skill rating uses individually sourced evaluation points from `data/skill-ratings.json` and applies
+the [UmaTools aptitude multipliers](docs/umamusume/refs/umatools-rating-tables.md) using GameTora's skill tags.
+Skills without a verified rating fall back to 217 (white), 262 (◎), or 508 (gold); the prediction
+discloses those purchases. Negative skills are excluded. The trainee's potential level is assumed
+maxed, so all awakening skills are available, but buying them consumes the same SP budget.
 
 ### Conditional unique effects
 
@@ -356,7 +365,8 @@ The [two Fuji observations](docs/umamusume/fuji-independent-training-runs.json) 
 observed random totals. They are not inputs to the stat-model fit and do not calibrate its uncertainty.
 - Career goals come per character, so an alternate outfit shows the base outfit's goals.
 - The two Group cards' random events and Team Sirius's sixth chain event are incomplete in the data.
-- Exclusivity is enforced per event only; two targets on different events are independent.
+- Unlinked source events are assumed independent. Shared chain stages, event choices, the purchase
+  budget and final rank can still couple targets' spark outcomes.
 
 ## Credits
 

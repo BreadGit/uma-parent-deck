@@ -44,8 +44,9 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   with race wins scored from the agenda and conditions the tool cannot score given the fallback rate.
 - **Choice-gated**: a source that only happens if the run picks that option at an event. Only one
   option per event can be taken.
-- **Prioritized skills**: the tool's suggested 10-entry list for independent training. Entry tags:
-  **target** (choice-gated, leads to a target), **not a target** (choice-gated, doesn't), **target, no
+- **Prioritized skills**: the tool's suggested list of up to ten entries for independent training. Entry tags:
+  **required** (leads to a Required target), **target** (choice-gated, leads to a Preferred target),
+  **not a target** (choice-gated, doesn't), **target, no
   choice** (given regardless, listed as filler). Only these ten steer event choices; the tool assumes their
   order decides which option wins a conflict, which the game does not confirm.
 - **Choice conflict**: two or more targets (or a ranked non-target option) competing for one event's
@@ -71,8 +72,9 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   counts tie. A pin not in the inventory asks for the borrowed slot at LB4. Borrow from all controls
   whether leftover owned pins constrain that slot. **Inventory**: your cards' limit breaks; unmarked cards count as owned at the
   default LB.
-- **Observed / model** (basis): whether a card's stat contribution comes from logged runs or our estimated fitted
-  formula.
+- **Observed / adjusted / model** (basis): a card's stat contribution uses a qualifying observation at
+  the selected limit break, an observation shifted by the model's limit-break difference, or the fitted
+  formula alone.
 - **Event stats**: the deck-independent part of a run's stat gain (training events, races, scenario),
   measured from logs; **card stats**: the per-card contributions from the in-game log.
 - **Race scale**: card stats grow as races shrink, by (T − races)/(T − 28) with T fitted (≈72).

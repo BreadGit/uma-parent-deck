@@ -83,7 +83,7 @@ card or stat keeps a stale value (the deck LB dropdowns did). Render a list whos
 `repeat()` keyed by identity, so a row that changes identity gets a new element. Build `<option>` lists with
 `options()` from `src/ui/fields.ts`: it keys options by value, so a placeholder that disappears does not shift the
 selected index onto a different entry. Read event values through `selectValue()`, `inputValue()` and `isChecked()`
-rather than casting `e.target`. Panels render inside `trackedPanel()` in `src/ui/app.ts`, which records the `view`
+rather than casting `e.target`. Panels in `src/ui/app.ts` use `trackedPanel()` from `src/ui/context.ts`, which records the `view`
 fields a panel reads and re-renders it only when one of them, the plan or the persisted state changes; no
 dependency list is kept by hand, but a view change made without `refresh()` leaves that panel's memo stale.
 User-facing sentences live in `src/ui/copy.ts`; confirmations and notices use `src/ui/dialog.ts`, not
@@ -100,7 +100,9 @@ outranks every variant and has bitten us twice). No inline styles in templates; 
 Data: `npm run fetch` is the only thing that talks to GameTora (one request a second, generic user
 agent, no identifying headers, manifest-hash cached; per-card and per-character page JSON cached in
 `data/raw`). `node scripts/fetch-gametora.mjs --offline` re-normalizes `data/*.json` from `data/raw`
-without a request. Refit the stat model with `npm run fit` after a data change. Skill names use the official Global name (`name`) with GameTora's translation as `altName`.
+without a request. `npm run fetch` also refits the stat model and runs `npm run check:data`.
+After an offline rebuild or another data change, run `npm run fit` and `npm run check:data`.
+Skill names use the official Global name (`name`) with GameTora's translation as `altName`.
 
 ## Commits
 

@@ -91,7 +91,7 @@ not additional Hakuraku findings.
 | 28,800+ | 0.175 | 0.70 | 0.125 |
 
 Source: [Crazyfellow snapshot](crazyfellow-parenting-gene-guide.txt), "Chance of Stars for white
-genes", and the numeric rank boundaries in [Umaguide's table](umaguide-sparks.md#white-sparks).
+genes", and the numeric rank boundaries in the White Sparks section of [Umaguide's table](umaguide-sparks.md).
 With the additional UE band, the 17,500 band ends at 28,799. Possible separate low-rank
 generation effects discussed in the guide remain unquantified here.
 
