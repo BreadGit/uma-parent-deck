@@ -19,6 +19,18 @@ await page.goto(url);
 await page.waitForSelector('h1');
 await page.evaluate(() => localStorage.clear());
 await page.reload();
+// Before a trainee is picked every result panel is dimmed, including the ones nested in the split, except the ranking
+// (where the inventory lives) and the warnings, which say what is missing.
+await page.waitForSelector('[data-waiting]');
+const dimmed = await page.$$eval('.results section.panel', (panels) => panels.map((p) => [p.querySelector('h2').textContent, getComputedStyle(p).opacity]));
+for (const [title, opacity] of dimmed) {
+  const live = title.startsWith('Card ranking') || title.startsWith('Warnings');
+  assert.equal(opacity, live ? '1' : '0.35', `${title} should be ${live ? 'live' : 'dimmed'} before a trainee is picked`);
+}
+assert.ok(dimmed.some(([title]) => title.startsWith('Prioritized skills')) && dimmed.some(([title]) => title.startsWith('Warnings')), 'the nested panels and the warnings are rendered while waiting');
+// The pinned input column ends inside the viewport on a fresh page, so its own scrolling reaches the last panel.
+const column = await page.$eval('.inputs', (el) => ({ top: Math.round(el.getBoundingClientRect().top), bottom: Math.round(el.getBoundingClientRect().bottom), headerBottom: Math.round(document.querySelector('header').getBoundingClientRect().bottom) }));
+assert.ok(column.top >= column.headerBottom && column.bottom <= 1100, `input column ${JSON.stringify(column)} should sit under the header and end inside the 1100px viewport`);
 
 // A range input must stay mounted while it is dragged. Replacing it on each input event
 // breaks pointer capture and prevents the thumb from reaching the pointer.
@@ -121,9 +133,43 @@ await rankingPin.press('Enter');
 assert.equal(await rankingPin.getAttribute('aria-pressed'), 'false');
 assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 0);
 await assertFieldsMatchState(page, 'after unpinning from the ranking');
-await page.click('details:has(> summary:text("Where the stats come from")) > summary');
-const breakdownRows = await page.$$eval('details:has(> summary:text("Where the stats come from")) tbody tr', (r) => r.length);
+// Prediction details builds its sections only once opened.
+assert.equal(await page.locator('[data-stat-breakdown]').count(), 0, 'the closed details panel renders no sections');
+await page.click('details[data-prediction-details] > summary');
+const breakdownRows = await page.locator('[data-stat-breakdown] tbody tr').count();
 assert.ok(breakdownRows >= 10, `breakdown should list cards, career, inheritance, base, final, spread; got ${breakdownRows}`);
+await page.click('details[data-prediction-details] > summary');
+await page.waitForSelector('[data-stat-breakdown]', { state: 'detached' });
+// The input column hides behind a persisted flag; the run summary keeps the trainee and goal in view while it is hidden,
+// and each toggle hands focus to the button that reverses it.
+await page.focus('[data-action="hide-inputs"]');
+await page.keyboard.press('Enter');
+await savedState('st.ui.inputsHidden === true');
+assert.equal(await page.locator('[data-inputs]').count(), 0, 'hiding removes the input column');
+assert.match(await page.locator('[data-run-summary]').innerText(), /Blue\s+.*★\+/, 'the summary names the blue goal');
+assert.equal(await page.locator('main').evaluate((el) => el.classList.contains('inputs-hidden')), true);
+assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'show-inputs', 'hiding moves focus to the show button');
+await assertFieldsMatchState(page, 'with the inputs hidden');
+await page.keyboard.press('Enter');
+await savedState('st.ui.inputsHidden === false');
+assert.equal(await page.locator('[data-inputs]').count(), 1, 'showing restores the input column');
+assert.equal(await page.locator('[data-run-summary]').count(), 0);
+assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'hide-inputs', 'showing moves focus back to the hide button');
+await assertFieldsMatchState(page, 'with the inputs shown again');
+// The candidates toggle appears only when the clamped row hides a chip, and stays in place (and focused) across a toggle.
+const candidatesClipped = () => page.evaluate(() => { const el = document.querySelector('[data-candidates]'); return !!el && el.scrollHeight > el.clientHeight + 1; });
+await settled();
+assert.equal(await page.locator('[data-action="wl-candidates"]').count(), Number(await candidatesClipped()), 'the candidates toggle matches whether the row is clipped');
+if (await candidatesClipped()) {
+  await page.focus('[data-action="wl-candidates"]');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('[data-action="wl-candidates"]').getAttribute('aria-expanded'), 'true');
+  assert.equal(await candidatesClipped(), false, 'expanding shows every candidate');
+  await page.keyboard.press('Enter');
+  await settled();
+  assert.equal(await page.locator('[data-action="wl-candidates"]').getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'wl-candidates', 'the toggle keeps focus when the row closes');
+}
 const bodyText = await page.textContent('body');
 assert.ok(!bodyText.includes('blue spark 1★'), 'predicted run still shows blue spark odds');
 assert.ok(!bodyText.includes('Card / event / inherited stats'), 'predicted run still shows stat-source totals');
@@ -405,23 +451,34 @@ for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
     assert.equal(await page.getByText('Added spark chance', { exact: true }).count(), 0);
     assert.equal(await page.getByText('Spark chance alone', { exact: true }).count(), 0);
     assert.ok(await page.locator('[data-target-chances]').evaluateAll((cells) => cells.every((cell) => cell.querySelectorAll('[data-target-spark]').length <= 4)));
-    const over = await page.evaluate(() => {
-      const w = document.documentElement.clientWidth; const bad = [];
-      if (document.documentElement.scrollWidth > w + 1) bad.push(`document ${document.documentElement.scrollWidth} > ${w}`);
-      for (const el of document.querySelectorAll('section.panel, .agenda-year, .deck .slot')) { const r = el.getBoundingClientRect(); if (r.right > w + 1) bad.push(`${el.className} right=${Math.round(r.right)}`); }
-      // content clipped inside a box never widens the document, so check every clipping element's own content too;
-      // deliberate truncation (ellipsis, line clamp) is exempt and a few px of a nowrap row are tolerated
-      for (const el of document.querySelectorAll('#app *')) {
-        const cs = getComputedStyle(el);
-        if (!(cs.overflowX === 'hidden' || cs.overflowX === 'clip') || cs.textOverflow === 'ellipsis' || cs.webkitLineClamp !== 'none') continue;
-        if (el.scrollWidth > el.clientWidth + 4) bad.push(`${el.tagName.toLowerCase()}.${el.className} clips ${el.scrollWidth - el.clientWidth}px (${el.textContent.trim().slice(0, 30)})`);
-      }
-      return bad;
-    });
+    const over = await overflowReport();
     assert.deepEqual(over, [], `overflow at ${width}px ${scheme}: ${over.join('; ')}`);
   }
 }
 console.log('layout ok at 390-1920px in light and dark');
+// The report must see inside the pinned input column, which clips sideways: a probe too wide for its panel is flagged.
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.evaluate(() => { const probe = document.createElement('div'); probe.id = 'overflow-probe'; probe.style.width = '3000px'; probe.style.height = '1px'; document.querySelector('[data-inputs] section.panel').append(probe); });
+const probed = await overflowReport();
+assert.ok(probed.some((entry) => entry.includes('inputs')), `the overflow report should flag the input column's probe; got ${JSON.stringify(probed)}`);
+await page.evaluate(() => document.querySelector('#overflow-probe').remove());
+assert.deepEqual(await overflowReport(), []);
 console.log('errors:', errors);
 await browser.close();
 process.exit(errors.length ? 1 : 0);
+
+function overflowReport() {
+  return page.evaluate(() => {
+    const w = document.documentElement.clientWidth; const bad = [];
+    if (document.documentElement.scrollWidth > w + 1) bad.push(`document ${document.documentElement.scrollWidth} > ${w}`);
+    for (const el of document.querySelectorAll('section.panel, .agenda-year, .deck .slot')) { const r = el.getBoundingClientRect(); if (r.right > w + 1) bad.push(`${el.className} right=${Math.round(r.right)}`); }
+    // content clipped inside a box never widens the document, so check every clipping element's own content too;
+    // deliberate truncation (ellipsis, line clamp) is exempt and a few px of a nowrap row are tolerated
+    for (const el of document.querySelectorAll('#app *')) {
+      const cs = getComputedStyle(el);
+      if (!(cs.overflowX === 'hidden' || cs.overflowX === 'clip') || cs.textOverflow === 'ellipsis' || cs.webkitLineClamp !== 'none') continue;
+      if (el.scrollWidth > el.clientWidth + 4) bad.push(`${el.tagName.toLowerCase()}.${el.className} clips ${el.scrollWidth - el.clientWidth}px (${el.textContent.trim().slice(0, 30)})`);
+    }
+    return bad;
+  });
+}

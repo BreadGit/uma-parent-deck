@@ -37,7 +37,7 @@ export function sub(title: string, opts: { note?: string | TemplateResult; tip?:
   return html`<div class="sub-head"><h3>${title}</h3>${opts.note ? html`<span class="sub-note">${opts.note}</span>` : nothing}${opts.tip ? tip(opts.tip) : nothing}${opts.actions ? html`<span class="panel-actions">${opts.actions}</span>` : nothing}</div>`;
 }
 
-/** A collapsed explanation at the end of a panel, for anything longer than a tooltip should hold. */
-export function about(title: string, paragraphs: readonly string[]) {
-  return html`<details class="about"><summary>${title}</summary>${paragraphs.map((p) => html`<p class="small">${p}</p>`)}</details>`;
+/** A collapsed explanation at the end of a panel or section, for anything longer than a tooltip should hold. */
+export function about(title: string, body: readonly string[] | TemplateResult) {
+  return html`<details class="about"><summary>${title}</summary>${Array.isArray(body) ? body.map((p) => html`<p class="small">${p}</p>`) : body}</details>`;
 }

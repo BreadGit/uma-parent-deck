@@ -1,5 +1,5 @@
-// The predicted run: rank, SP and final stats with their blue-spark band chances, and where every stat point
-// comes from.
+// The predicted run: rank, SP and final stats with their blue-spark band chances. Where every stat point comes from
+// is rendered by the prediction details panel through statBreakdown().
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
@@ -8,10 +8,10 @@ import { data, store } from '../context.ts';
 import { COPY } from '../copy.ts';
 import { basisLabel } from '../effect-coverage.ts';
 import { capitalize, cardLink, cardThumb, num, pill } from '../format.ts';
-import { panel } from '../panel.ts';
+import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
-function statBreakdown(c: RunPlan) {
+export function statBreakdown(c: RunPlan) {
   const d = c.deckResult, p = c.pred;
   const scale = raceScale(c.ctx.races, data.model, store.settings);
   const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
@@ -24,7 +24,7 @@ function statBreakdown(c: RunPlan) {
   const penalty = store.settings.lossPenalty * c.sum.expectedLosses;
   const raceBonus = d.deck.reduce((a, cs) => a + (passives(cs.card, cs.lb)[EFFECT.raceBonus] ?? 0), 0);
   const capped = !!c.statCaps && c.statCaps.capped.some(Boolean);
-  return html`<div class="scroll-x"><table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
+  return html`<div class="scroll-x" data-stat-breakdown><table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
       ${cardRows}
       ${row(`Career events and ${c.ctx.races} total races`, p.eventStats.map((v, i) => v * focusMul[i]!))}
       ${row('Inheritance at the start', c.inherited.map((x) => x.start))}
@@ -36,11 +36,14 @@ function statBreakdown(c: RunPlan) {
       ${row(html`<b>Final</b>`, c.finalMean, 'total')}
       ${row('Estimated spread (±1 sd)', c.finalSd)}
     </tbody></table></div>
-    <p class="small muted">Rank score: stats ${num(c.rank.statPts)}, unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, purchased skills ${num(c.rank.skillPts - c.rank.uniquePts)}. The skill estimate spends ${num(c.purchases.spent)} of ${num(p.sp)} SP. Required base skills come first, then preferred bases and upgrades; remaining SP buys skills by rating per SP.</p>
-    <p class="small muted">${COPY.prediction.scaling(store.settings.focus, focusMul.map((m) => m.toFixed(2)).join(' / '), scale.toFixed(2), c.ctx.races, data.model.races.reference)}</p>
-    <p class="small muted">${COPY.prediction.purchases(store.settings.purchaseHintLevel, c.purchases.unverified.length)}</p>
-    <p class="small muted">${COPY.prediction.evidence(data.model.fit.rmse.toFixed(1), data.model.fit.n)}</p>
-    <p class="small muted">${COPY.prediction.raceBonus(raceBonus)}${capped ? ` ${COPY.prediction.capped}` : ''}</p>`;
+    <p class="small muted">Rank score: stats ${num(c.rank.statPts)}, unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, purchased skills ${num(c.rank.skillPts - c.rank.uniquePts)}. The skill estimate spends ${num(c.purchases.spent)} of ${num(p.sp)} SP.</p>
+    ${about(COPY.details.aboutStats, [
+      'Required base skills are bought first, then preferred bases and upgrades; remaining SP buys skills by rating per SP.',
+      COPY.prediction.scaling(store.settings.focus, focusMul.map((m) => m.toFixed(2)).join(' / '), scale.toFixed(2), c.ctx.races, data.model.races.reference),
+      COPY.prediction.purchases(store.settings.purchaseHintLevel, c.purchases.unverified.length),
+      COPY.prediction.evidence(data.model.fit.rmse.toFixed(1), data.model.fit.n),
+      `${COPY.prediction.raceBonus(raceBonus)}${capped ? ` ${COPY.prediction.capped}` : ''}`,
+    ])}`;
 }
 
 export function renderPrediction(c: RunPlan) {
@@ -56,6 +59,5 @@ export function renderPrediction(c: RunPlan) {
       ${STATS.map((s, i) => html`
       <div class="stat"><div class="stat-k">${s}</div><div class="stat-v">${num(c.finalMean[i]!)} <span class="sd">±${num(c.finalSd[i]!)}</span></div>
         <div class="stat-s"><span class="band">≥${BLUE_STAR_BANDS.mid} ${pill(c.statChances[i]!.mid, '', true)}</span> <span class="band">≥${BLUE_STAR_BANDS.high} ${pill(c.statChances[i]!.high, '', true)}</span></div></div>`)}
-    </div>
-    <details><summary>${COPY.prediction.breakdown}</summary>${statBreakdown(c)}</details>`);
+    </div>`);
 }

@@ -61,6 +61,8 @@ const predictions = (page) => page.locator('h2', { hasText: 'Predicted run' });
 /** The app's own <dialog> replaces window.confirm and alert. */
 const confirmDialog = async (page) => { await page.waitForSelector('dialog[data-dialog][open]'); await page.click('[data-dialog-confirm]'); };
 const openAgenda = (page) => page.click('details[data-agenda] > summary');
+/** Prediction details opens on request; open it before reading or clicking anything inside. */
+const openDetails = async (page) => { await page.waitForSelector('.results'); const closed = page.locator('details[data-prediction-details]:not([open]) > summary'); if (await closed.count()) await closed.click(); };
 
 test('Basis labels distinguish observations, adjusted observations and model estimates without growing the row', async (t) => {
   const page = await editor(t, defaultState(data));
@@ -116,6 +118,7 @@ test('effect warnings respect unique unlocks and explain observed deck effects o
   assert.match(await basis.locator('.tip').getAttribute('data-tip'), /Fixed at the recorded deck conditions: Unique effect "If there are at least 4 different types/);
   await assertFieldsMatchState(page, 'after unlocking an observed deck effect');
 
+  await openDetails(page);
   const limitations = page.locator('[data-estimate-limitations]');
   await limitations.locator('summary').tap();
   const oguri = limitations.locator('[data-card-limitations="30146"]');
@@ -143,6 +146,7 @@ test('Light Hello uses repaired community measurements and separates formula omi
   assert.match(await scoring.innerText(), /already include effects the formula cannot separate/);
   await assertFieldsMatchState(page, 'after reading Light Hello\'s measured contribution');
 
+  await openDetails(page);
   await page.locator('[data-estimate-limitations] > summary').click();
   const deckNote = page.locator('[data-card-limitations="30052"]');
   assert.match(await deckNote.innerText(), /Observed · LB4/);
@@ -529,7 +533,7 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   await assertFieldsMatchState(page, 'after debounced search and skill reordering');
 });
 
-test('required skill priority is visible and the export follows the displayed order and exclusions', async (t) => {
+test('required skill priority is visible and exclusions leave the displayed order intact', async (t) => {
   const saved = defaultState(data);
   const focus = data.skills.find((s) => s.name === 'Focus');
   const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power');
@@ -541,20 +545,12 @@ test('required skill priority is visible and the export follows the displayed or
   assert.equal(await page.locator('.wishlist li').first().getAttribute('data-wl-key'), '201601');
   assert.match(await page.locator('.wishlist li').first().innerText(), /required/);
   assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder);
-  const exported = page.waitForEvent('download');
-  await page.click('[data-action="wl-export"]');
-  const download = await exported;
-  assert.equal(download.suggestedFilename(), 'prioritized-skills.txt');
-  const lines = (await readFile(await download.path(), 'utf8')).trim().split('\n');
-  assert.equal(lines[0], 'Groundwork');
-  assert.equal(lines.length, await page.locator('.wishlist li').count());
+  assert.equal(await page.locator('[data-action="wl-export"]').count(), 0, 'the list has no export button');
   await page.click('[data-action="wl-exclude"][data-id="201601"]');
   assert.match(await page.locator('[data-priority-conflict]').innerText(), /Groundwork is required but excluded/);
   assert.equal(await page.locator('.wishlist [data-wl-key="201601"]').count(), 0);
-  const secondExport = page.waitForEvent('download');
-  await page.click('[data-action="wl-export"]');
-  assert.ok(!(await readFile(await (await secondExport).path(), 'utf8')).split('\n').includes('Groundwork'));
-  await assertFieldsMatchState(page, 'after exporting the excluded required skill list');
+  assert.match(await page.locator('.wishlist li').first().innerText(), /Focus/, 'the preferred skill moves to the top once the required one is excluded');
+  await assertFieldsMatchState(page, 'after excluding the required skill');
 });
 
 test('the first reset clears targets, trainee, pins and inheritance while preserving settings and inventory', async (t) => {
@@ -603,6 +599,7 @@ test('SSR event-rate edits update gold coverage immediately and survive reload u
   await target(page, 'Corner Recovery');
   await pin(page, 'piece of mind');
   await page.click('[data-details="advanced"] > summary');
+  await openDetails(page);
   const gold = coverage(page, 'Corner Recovery').locator('td').nth(1);
   assert.notEqual(await gold.innerText(), '100.0%');
   await page.fill('[data-setting-list="chainRatesSSR"]', '1,1,1');
@@ -611,6 +608,7 @@ test('SSR event-rate edits update gold coverage immediately and survive reload u
   assert.equal(await coverage(page, 'Corner Recovery').locator('td').nth(3).innerText(), '40.0%');
   const before = await coverage(page, 'Corner Recovery').innerText();
   await page.reload();
+  await openDetails(page);
   assert.equal(await coverage(page, 'Corner Recovery').innerText(), before);
 });
 
@@ -628,6 +626,7 @@ test('skill advice includes prerequisite costs and buyable circle upgrades', asy
   const page = await editor(t);
   await trainee(page);
   await pin(page, 'piece of mind');
+  await openDetails(page);
   await target(page, 'Swinging Maestro');
   assert.match(await page.locator('div.small').filter({ hasText: /^Worst-case target SP cost:/ }).innerText(), /340 of/);
   await page.click('[data-action="remove-target"]');
@@ -661,6 +660,7 @@ test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious cir
   Object.assign(saved.settings, { hintBase: 0, chainRatesSSR: [0, 0, 0], chainRatesSR: [0, 0], randomEventRate: 0,
     palChainRate: 0, groupOutingRate: 0, groupFinaleRate: 0, specialEventRate: 0 });
   const page = await editor(t, saved);
+  await openDetails(page);
   // one 3★ copy: 9% per inspiration event at affinity 150 is 22.5%, so 39.9% over two events
   for (const [name, spark] of [['Corner Recovery', '8.8%'], ['Lucky Seven', '8.8%'], ['Right-Handed', '11.0%'], ['Mile Straightaways', '11.0%']]) {
     const row = coverage(page, name);
@@ -753,9 +753,66 @@ test('zero through four owned characters show an incomplete deck, and five resto
     await page.setInputFiles('#import-file', inventoryFile(inventory));
     await page.waitForFunction(({ key, n }) => Object.values(JSON.parse(localStorage.getItem(key)).inventory).filter((v) => v !== null).length === n, { key: STATE_KEY, n });
     assert.equal(await predictions(page).count(), n === 5 ? 1 : 0);
+    // an incomplete deck has no run to show beside the estimate, so the estimate takes the whole width
+    assert.equal(await page.locator('.results-split').count(), n === 5 ? 1 : 0, 'the two-column split appears only with a complete deck');
+    const detailsSub = page.locator('section.panel').filter({ has: page.locator('details[data-prediction-details]') }).locator('[data-panel-sub]');
+    assert.equal(await detailsSub.innerText(), n === 5 ? 'goal estimate · stat sources · target coverage · deck search' : 'goal estimate · deck search');
     if (n < 5) assert.match(await page.locator('[data-plan-issues]').innerText(), /Incomplete deck/);
     else assert.equal(await page.locator('.deck .slot').count(), 6);
+    if (n === 0 || n === 5) {
+      await openDetails(page);
+      await page.waitForSelector(n === 5 ? '[data-stat-breakdown]' : '[data-details-incomplete]');
+      assert.equal(await page.locator('[data-stat-breakdown]').count(), n === 5 ? 1 : 0, 'stat sources need a complete deck');
+      assert.equal(await page.locator('[data-details-incomplete]').count(), n === 5 ? 0 : 1, 'an incomplete deck says why the sections are missing');
+      await page.click('details[data-prediction-details] > summary');
+      await page.waitForSelector('[data-goal-details]', { state: 'detached' });
+    }
   }
+});
+
+test('the results keep the missing-choice notice and the pink spark shortcut while the inputs are hidden', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.pinnedIds.push(99999992);
+  saved.run.goal = { ...saved.run.goal, pink: [{ aptitude: 'dirt', stars: 1 }] };
+  saved.run.pinkLineage = [{ aptitude: 'dirt', stars: 3 }, null, null, null, null, null];
+  const page = await editor(t, saved);
+  await page.click('[data-action="hide-inputs"]');
+  await page.waitForSelector('[data-inputs]', { state: 'detached' });
+  assert.equal((await state(page)).ui.inputsHidden, true);
+  assert.match(await page.locator('[data-unavailable-choices]').innerText(), /99999992/, 'a missing shared card is reported beside the results');
+  assert.equal(await page.locator('[data-goal-warnings]').count(), 1, 'a dirt spark on a G dirt trainee makes the pink estimate a range');
+  await page.click('[data-action="goal-refine-pink"]');
+  await page.waitForSelector('[data-pink-lineage="0"]');
+  assert.equal((await state(page)).ui.inputsHidden, false, 'the shortcut shows the input column');
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.pinkLineage), '0', 'and focuses the first pink spark field');
+  assert.equal(await page.locator('[data-unavailable-choices]').count(), 1, 'the notice moves into the input column');
+  await assertFieldsMatchState(page, 'after opening pink sparks from the warnings');
+});
+
+test('search suggestions open inside the pinned input column and keyboard rows stay in view', async (t) => {
+  const page = await editor(t, fujiState());
+  const column = page.locator('[data-inputs]');
+  assert.equal(await column.evaluate((el) => el.scrollHeight > el.clientHeight), true, 'the input column scrolls on its own at this height');
+  // park the card search at the column's bottom edge, where an opened list would drop out of view
+  await column.evaluate((el) => { const input = document.querySelector('#card-search'); el.scrollTop += input.getBoundingClientRect().bottom - (el.getBoundingClientRect().top + el.clientHeight); });
+  const before = await page.evaluate(() => scrollY);
+  const within = (selector) => page.evaluate((selector) => {
+    const column = document.querySelector('[data-inputs]'), el = document.querySelector(selector);
+    const r = el.getBoundingClientRect(), c = column.getBoundingClientRect();
+    return r.top >= c.top - 1 && r.bottom <= c.top + column.clientHeight + 1;
+  }, selector);
+  await page.fill('#card-search', 'kita');
+  assert.equal(await within('#card-search-list'), true, 'the opened list is scrolled into the column');
+  assert.equal(await within('#card-search'), true, 'without losing the search box');
+  const count = await page.locator('#card-search-list li').count();
+  for (let i = 0; i < count; i++) {
+    await page.press('#card-search', 'ArrowDown');
+    assert.equal(await within('#card-search-list [aria-selected="true"]'), true, `row ${i} is inside the column`);
+  }
+  assert.equal(await page.evaluate(() => scrollY), before, 'the page itself does not move');
+  await page.press('#card-search', 'Escape');
+  await assertFieldsMatchState(page, 'after navigating suggestions inside the pinned column');
 });
 
 test('white target chips migrate old goals and support zero or many required sparks', async (t) => {
@@ -790,7 +847,8 @@ test('white target chips migrate old goals and support zero or many required spa
   assert.deepEqual((await state(page)).run.targets.filter((t) => t.role === 'required'), []);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
-  assert.match(await page.locator('[data-goal-result]').innerText(), /No required white sparks/);
+  await openDetails(page);
+  assert.match(await page.locator('[data-goal-details]').innerText(), /No required white sparks/);
   await waitForPlan(page);
   const probability = await page.locator('[data-goal-probability]').innerText();
   await page.reload();
@@ -878,6 +936,7 @@ test('Any pink defaults to one star, updates estimates, and persists across relo
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
   const page = await editor(t, saved);
+  await openDetails(page);
   const pinkRow = page.locator('.goal-breakdown tr').filter({ hasText: 'Pink (' });
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
   assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
@@ -896,6 +955,7 @@ test('Any pink defaults to one star, updates estimates, and persists across relo
   await page.reload();
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
   assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
+  await openDetails(page);
   assert.match(await pinkRow.innerText(), /100(?:\.0)?%/);
 });
 
@@ -964,7 +1024,7 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.deepEqual((await state(page)).run.pinkLineage, [{ aptitude: 'end', stars: 3 }, ...Array(5).fill(null)]);
   await assertFieldsMatchState(page, 'after entering one pink spark');
-  const pinkProbability = () => page.locator('[data-goal-result] tbody tr').filter({ hasText: /^Pink \(/ }).locator('td').last().innerText();
+  const pinkProbability = async () => { await openDetails(page); return page.locator('[data-goal-details] tbody tr').filter({ hasText: /^Pink \(/ }).locator('td').last().innerText(); };
   const partialPinkProbability = await pinkProbability(), partialRun = (await state(page)).run;
   await page.reload();
   await page.waitForSelector('[data-goal-result]');
@@ -1156,6 +1216,7 @@ test('goal explanations distinguish a difficult requirement, missing pink eligib
   saved.run.traineeCardId = 100101;
   saved.run.goal = { ...saved.run.goal, blueStars: 1, pink: [{ aptitude: 'any', stars: 3 }] };
   const page = await editor(t, saved);
+  await openDetails(page);
   const limits = page.locator('[data-goal-limits]');
   assert.match(await page.locator('[data-goal-probability]').innerText(), /Chance per final spark roll/);
   // Any 1-star blue is certain. Any 3-star pink is 10%, so pink is the limiting individual roll.
@@ -1194,6 +1255,7 @@ test('pink probability ranges remain visible and disabled and dimmed fields have
   const page = await editor(t, saved);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /% to .*%/);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  await openDetails(page);
   assert.match(await page.locator('[data-goal-limits]').innerText(), /Pink eligibility is uncertain/);
   assert.match(await page.locator('[data-goal-attempts="0.5"]').innerText(), / to .* attempts/);
   await page.click('[data-action="reset-pink-sparks"]');

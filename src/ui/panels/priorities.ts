@@ -1,17 +1,16 @@
-// The prioritized-skill list to enter in independent training: exclude, restore, add and reorder entries, plus the
-// event choice conflicts the order resolves.
+// The prioritized-skill list to enter in independent training: exclude, restore, add and reorder entries. Each
+// skill's tooltip ends with the event or card that gives it; the choice conflicts the order resolves are listed in
+// the warnings panel.
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
-import { downloadText } from '../../download.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
-import type { Conflict } from '../../model/sparks.ts';
 import { resolveTarget } from '../../model/sparks.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { data, plan, refresh, store, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
-import { skillName, skillWithTip } from '../format.ts';
-import { panel, sub } from '../panel.ts';
+import { skillWithTip } from '../format.ts';
+import { panel } from '../panel.ts';
 
 const requiredSkill = (key: number) => store.run.targets.some((t) => t.role === 'required' && t.id === resolveTarget(key, data)?.id);
 function excludeSkill(key: number) {
@@ -42,7 +41,6 @@ function nudgeSkill(key: number, delta: number) {
   moveSkill(key, cur[j]!);
 }
 const resetList = () => update((s) => { s.run.wishlistOrder = []; s.run.wishlistExcluded = []; });
-const exportList = () => downloadText('prioritized-skills.txt', plan().wl.map((w) => w.name).join('\n') + '\n');
 
 // Drag state lives in the view and the classes are rendered from it, so no handler touches lit's elements.
 const dragItem = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('li[data-wl-key]');
@@ -68,7 +66,7 @@ function row(c: RunPlan, w: WishlistEntry, i: number) {
   const canMove = (j: number) => j >= 0 && j < c.wl.length && requiredSkill(w.key) === requiredSkill(c.wl[j]!.key);
   return html`<li draggable="true" data-wl-key="${w.key}" class="${view.drag.key === w.key ? 'dragging' : ''} ${view.drag.over === w.key && view.drag.key !== w.key ? 'drop-target' : ''}">
     <span class="wl-num">${i + 1}.</span><span class="grip" aria-hidden="true">⋮⋮</span>
-    <span class="wl-body">${kindTag(w)}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name)} <span class="small muted">${w.reason}</span></span>
+    <span class="wl-body">${kindTag(w)}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `${COPY.priorities.source}: ${w.reason}`)}</span>
     <span class="wl-actions">
       <button class="small wl-move" data-action="wl-up" data-id="${w.key}" aria-label="Move ${w.name} up" data-tip="Move up" ?disabled=${!canMove(i - 1)} @click=${() => nudgeSkill(w.key, -1)}>▲</button>
       <button class="small wl-move" data-action="wl-down" data-id="${w.key}" aria-label="Move ${w.name} down" data-tip="Move down" ?disabled=${!canMove(i + 1)} @click=${() => nudgeSkill(w.key, 1)}>▼</button>
@@ -76,27 +74,24 @@ function row(c: RunPlan, w: WishlistEntry, i: number) {
     </span></li>`;
 }
 
-function conflicts(c: RunPlan) {
-  const d = c.deckResult;
-  if (!d.conflicts.length) return nothing;
-  const opts = (cf: Conflict) => [cf.taken, ...cf.dropped];
-  return html`<div class="conflicts-box">${sub(COPY.priorities.conflicts, { tip: COPY.priorities.conflictsTip })}
-    <div class="scroll-x"><table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken</th><th>Not taken</th></tr></thead><tbody>
-      ${d.conflicts.map((cf) => html`<tr><td class="wrap">${cf.label}</td>
-        <td class="wrap">${opts(cf).map((o) => html`<div>${skillWithTip(o.skillId)}${o.option ? html` <span class="muted">${o.option}</span>` : nothing}</div>`)}</td>
-        <td><b>${skillName(cf.taken.skillId)}</b>${cf.taken.target != null ? nothing : html` <span class="muted">(not a target)</span>`}</td><td>${cf.dropped.map((o) => skillName(o.skillId)).join(', ')}</td></tr>`)}
-    </tbody></table></div></div>`;
+/**
+ * The candidates outside the list and the removed ones, each with a button that brings it in. The row is clamped to
+ * three lines; app.ts observes whether that hides any and the toggle appears only then (or while the row is expanded).
+ */
+function candidates(c: RunPlan) {
+  if (!c.wlRest.length && !c.wlExcluded.length) return nothing;
+  const expanded = view.showAllCandidates;
+  return html`<div class="small muted wl-extra ${expanded ? '' : 'clamped'}" data-candidates>
+      ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" @click=${() => addSkill(w.key)}>+</button></span>`)}` : nothing}
+      ${c.wlExcluded.length ? html`<span>${COPY.priorities.removed}</span> ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
+    </div>
+    ${view.candidatesOverflow || expanded ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; refresh(); }}>${expanded ? COPY.priorities.fewerCandidates : COPY.priorities.allCandidates}</button>` : nothing}`;
 }
 
 export function renderPriorities(c: RunPlan) {
   const customized = store.run.wishlistOrder.length > 0 || store.run.wishlistExcluded.length > 0;
-  const actions = html`<button class="small" data-action="wl-export" ?disabled=${!c.wl.length} @click=${exportList}>${COPY.priorities.export}</button>${customized ? html`<button class="small" data-action="wl-reset" @click=${resetList}>${COPY.priorities.reset}</button>` : nothing}`;
+  const actions = customized ? html`<button class="small" data-action="wl-reset" @click=${resetList}>${COPY.priorities.reset}</button>` : nothing;
   return panel({ title: COPY.priorities.title, kind: 'result', subtitle: `up to ${PRIORITIZED_SKILLS_MAX}`, tip: COPY.priorities.tip, actions }, html`
-    ${c.priorityIssues.map((note) => html`<p class="small warn" data-priority-conflict>${note}</p>`)}
     ${c.wl.length ? html`<ol class="wishlist" @dragstart=${drag.dragstart} @dragover=${drag.dragover} @drop=${drag.drop} @dragend=${drag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => row(c, w, i))}</ol>` : html`<div class="muted small">${COPY.priorities.empty}</div>`}
-    ${c.wlRest.length || c.wlExcluded.length ? html`<div class="small muted wl-extra">
-      ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" @click=${() => addSkill(w.key)}>+</button></span>`)}` : nothing}
-      ${c.wlExcluded.length ? html`<span>${COPY.priorities.removed}</span> ${c.wlExcluded.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
-    </div>` : nothing}
-    ${conflicts(c)}`);
+    ${candidates(c)}`);
 }

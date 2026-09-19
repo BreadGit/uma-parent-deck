@@ -1,6 +1,6 @@
 // Actions more than one panel triggers: settings, pins, and opening the pink spark editor.
 import { parseSetting, SETTING_SPEC, type Settings } from '../settings.ts';
-import { refresh, update, view } from './context.ts';
+import { refresh, store, update, view } from './context.ts';
 
 /** The range a setting accepts, for the message shown when a typed value is rejected. */
 export function settingRange(key: keyof Settings): string {
@@ -36,9 +36,10 @@ export function unpinCard(id: number) {
   update((s) => { s.run.pinnedIds = s.run.pinnedIds.filter((x) => x !== id); });
 }
 
-/** Open the pink spark editor in Legacy and move focus to its first field. */
+/** Open the pink spark editor in Legacy, showing the input column if it is hidden, and move focus to its first field. */
 export function openPinkSparks() {
   view.showPinkSparks = true;
-  refresh();
+  if (store.ui.inputsHidden) update((s) => { s.ui.inputsHidden = false; });
+  else refresh();
   document.querySelector<HTMLElement>('[data-pink-lineage="0"]')?.focus();
 }

@@ -13,6 +13,7 @@
   --type-guts-bg: #ffe0ef; --type-guts-fg: #b02a6a; --type-wit-bg: #dff5e8; --type-wit-fg: #1f7a45; --type-pal-bg: #efe4ff; --type-pal-fg: #6b3fb4;
   --fs-xs: 11px; --fs-sm: 12px; --fs-md: 14px; --fs-lg: 16px; --fs-xl: 18px; --fs-hero: 28px;
   --radius: 6px; --radius-lg: 10px;
+  --gap: 16px;
 }
 :root[data-theme="dark"] {
   --bg: #14171c; --panel: #1d2128; --line: #3a4250; --line-strong: #5a6473; --text: #e6e9ee; --muted: #9aa4b2; --accent: #6b9cff;
@@ -29,15 +30,32 @@
 /* base */
 * { box-sizing: border-box; }
 body { margin: 0; font: var(--fs-md)/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); }
-header { padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+/* the header stays in view on wide screens; app.ts measures its height into --header-h so the input column can sit under it */
+header { position: sticky; top: 0; z-index: 8; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 header h1 { font-size: var(--fs-xl); margin: 0; letter-spacing: -.01em; }
 header .meta { color: var(--muted); font-size: var(--fs-sm); }
 .header-actions { margin-left: auto; display: flex; gap: 12px; align-items: center; }
-main { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 16px; padding: 16px 20px; align-items: start; }
+main { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: var(--gap); padding: var(--gap) 20px; align-items: start; }
+main.inputs-hidden { grid-template-columns: minmax(0, 1fr); }
 .inputs, .results { min-width: 0; }
+/* the input column keeps its own scroll position, pinned under the header, so the results can be read beside any step;
+   it clips sideways rather than scrolling, so anything too wide shows up in the smoke test's overflow check */
+.inputs { position: sticky; top: calc(var(--header-h, 0px) + var(--gap)); max-height: calc(100vh - var(--header-h, 0px) - var(--gap)); overflow: hidden auto; overscroll-behavior: contain; padding-right: 6px; }
+.inputs-head { position: sticky; top: 0; z-index: 3; padding-bottom: 8px; background: linear-gradient(var(--bg) 70%, transparent); }
+.results-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 10px; min-width: 0; }
+.results-head > button { flex: none; white-space: nowrap; }
+.run-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; font-size: var(--fs-sm); }
+.run-summary > span { display: inline-flex; align-items: center; gap: 4px; }
+/* the estimate and the run beside the skill list in two equal columns once the result column itself is wide enough,
+   whether that comes from a wide window or from hiding the inputs; narrower, they stack */
+.results { container-type: inline-size; }
+.results-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+@container (min-width: 1000px) { .results-split { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.results-col { min-width: 0; }
 section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 14px; box-shadow: 0 1px 2px var(--shadow); }
 /* results read differently from inputs: an accent rule along the top and a slightly larger title */
 section.panel-result { border-top: 3px solid var(--accent); }
+section.panel-warn { border-top-color: var(--warn); }
 section.panel-result > .panel-head h2 { font-size: var(--fs-lg); }
 .panel-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; min-height: 26px; flex-wrap: wrap; }
 .panel-head h2 { font-size: var(--fs-md); margin: 0; display: inline-flex; align-items: center; gap: 8px; }
@@ -60,8 +78,9 @@ section.panel h3 { font-size: var(--fs-sm); margin: 14px 0 6px; color: var(--mut
 .sub-head h3 { margin: 0; }
 .status { margin: 0 0 8px; }
 .banner { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--accent); border-radius: var(--radius); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
-/* until a trainee is picked, every result except the ranking (where the inventory lives) is a placeholder */
-.results.waiting > section.panel:not(.panel-live) { opacity: .55; }
+/* until a trainee is picked, every result is a placeholder except the ranking (where the inventory lives) and the
+   warnings, which say what is missing; the split columns nest panels, so this matches descendants */
+.results.waiting section.panel:not(.panel-live) { opacity: .35; }
 label.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0; }
 .row-k, .fact-k, .kv-k { color: var(--muted); }
 select, input[type=text], input[type=number], input[type=search] { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--input); color: var(--text); max-width: 200px; }
@@ -77,6 +96,9 @@ button.danger { background: var(--danger); border-color: var(--danger); color: v
 button.danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
 details > summary { cursor: pointer; color: var(--accent); }
 details.about { margin-top: 10px; }
+/* the prediction details open on request; the summary reads as the panel's one call to action */
+details.explore > summary { font-weight: 600; padding: 2px 0; }
+details.explore[open] > summary { margin-bottom: 4px; }
 details.about > summary { font-size: var(--fs-sm); }
 details.about p { margin: 6px 0; }
 a.card-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--muted); }
@@ -330,7 +352,7 @@ td.target-chances { min-width: 260px; }
 .target-spark-value { white-space: nowrap; }
 .target-more { margin-top: 4px; font-size: var(--fs-sm); }
 
-/* predicted run: the outcome box on its own row, then five equal stat boxes; phones get one compact row per stat */
+/* predicted run: the outcome box on its own row, then five equal stat boxes; a narrow result column gets one compact row per stat */
 .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 8px 0; }
 .stat.outcome { grid-column: 1 / -1; }
 .stat { border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 8px; min-width: 0; overflow: hidden; }
@@ -345,6 +367,16 @@ td.target-chances { min-width: 260px; }
 .stat.outcome .stat-k { text-transform: uppercase; letter-spacing: .03em; font-size: var(--fs-xs); white-space: nowrap; }
 .stat.outcome .stat-v { white-space: nowrap; }
 .stat.outcome .stat-v .pill { font-size: var(--fs-lg); padding: 1px 8px; }
+/* in a narrow result column (a split column under 570px, or a phone) the five stat boxes become one compact row per stat;
+   this follows the box rules above so it wins the cascade */
+@container (max-width: 1140px) {
+  .stats { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .stat { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; }
+  .stat-k { flex: 0 0 56px; }
+  .stat-v { flex: 0 0 84px; font-size: var(--fs-lg); }
+  .stat-s { min-width: 0; }
+  .stat.outcome { padding: 6px 8px; margin-bottom: 4px; }
+}
 .conflicts-box { border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line)); background: color-mix(in srgb, var(--danger) 8%, var(--panel)); border-radius: var(--radius); padding: 6px 10px; margin: 12px 0 4px; }
 .conflicts-box .sub-head { margin-top: 2px; }
 .conflicts-box h3 { color: var(--danger); }
@@ -365,6 +397,9 @@ td.target-chances { min-width: 260px; }
 .wl-kind { display: inline-block; margin-right: 6px; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
 .wl-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+/* three rows of chips (21px chip, 2px margins, 4px row gap); the rest shows on request */
+.wl-extra.clamped { max-height: 83px; overflow: hidden; }
+.wl-candidates-toggle { margin-top: 6px; }
 
 /* advanced settings: each field shows its default and marks a changed value */
 .settings-grid { display: grid; grid-template-columns: 1fr; gap: 2px 16px; }
@@ -410,6 +445,9 @@ details[data-agenda] { margin-top: 8px; }
 /* one column on narrow screens; minmax(0, 1fr) so a wide table scrolls inside its panel instead of widening the page */
 @media (max-width: 1200px) {
   main { grid-template-columns: minmax(0, 1fr); }
+  header { position: static; }
+  .inputs { position: static; max-height: none; overflow: visible; padding-right: 0; }
+  .inputs-head { position: static; background: none; }
 }
 /* phones and small tablets */
 @media (max-width: 700px) {
@@ -433,13 +471,6 @@ details[data-agenda] { margin-top: 8px; }
   input[type=range] { width: 120px; }
   .goal-field select, .goal-pink-row select, .target-editor select { font-size: var(--fs-lg); }
   .goal-attempts { font-size: var(--fs-sm); }
-  /* one compact row per stat instead of five boxes */
-  .stats { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-  .stat { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px; }
-  .stat-k { flex: 0 0 56px; }
-  .stat-v { flex: 0 0 84px; font-size: var(--fs-lg); }
-  .stat-s { min-width: 0; }
-  .stat.outcome { padding: 6px 8px; margin-bottom: 4px; }
 }
 /* touch: larger targets, no drag handle (the arrow buttons reorder), and 16px fields so iOS does not zoom on focus */
 @media (pointer: coarse) {
@@ -454,5 +485,7 @@ details[data-agenda] { margin-top: 8px; }
   .wishlist .grip { display: none; }
   .wishlist li { padding: 5px 4px; }
   .wishlist .wl-move, .wishlist .wl-x { font-size: var(--fs-sm); line-height: 22px; padding: 0 8px; }
+  /* taller chips on touch screens: 27px chip, 2px margins, 4px row gap */
+  .wl-extra.clamped { max-height: 101px; }
   input[type=range] { height: 28px; }
 }

@@ -1,4 +1,5 @@
-// The suggested deck: the six cards with their spark chances, the deck issues if any, and how the search chose them.
+// The suggested deck: the six cards with their spark chances. How the search chose them and what the model leaves out
+// per card are rendered by the prediction details panel through deckBuild().
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import type { RunPlan } from '../../model/run.ts';
@@ -38,6 +39,11 @@ function limitations(c: RunPlan) {
   </details>`;
 }
 
+/** The search steps and the per-card model limitations, for the prediction details panel. */
+export function deckBuild(c: RunPlan) {
+  return html`<ol class="small">${c.deckResult.steps.map((s) => html`<li>${s}</li>`)}</ol>${limitations(c)}`;
+}
+
 export function renderDeck(c: RunPlan) {
   const d = c.deckResult;
   const ordered = [...d.deck.filter((x) => !x.borrowed), ...d.deck.filter((x) => x.borrowed)];
@@ -46,8 +52,5 @@ export function renderDeck(c: RunPlan) {
     : html`<div class="muted">${COPY.deck.noCards}</div>`;
   return panel({ title: COPY.deck.title, kind: 'result', tip: COPY.deck.tip }, html`
     ${searchState.pending ? html`<p class="status small muted" data-plan-pending role="status" aria-live="polite">${COPY.app.searching}</p>` : nothing}
-    ${deck}
-    ${limitations(c)}
-    ${c.issues.length ? html`<div role="alert" data-plan-issues>${c.issues.map((issue) => html`<p class="warn">${issue}</p>`)}</div>` : nothing}
-    <details><summary>${COPY.deck.steps}</summary><ol class="small">${d.steps.map((s) => html`<li>${s}</li>`)}</ol></details>`);
+    ${deck}`);
 }

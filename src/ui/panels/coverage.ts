@@ -1,11 +1,11 @@
 // Target coverage: which target hints the deck can hand over, through which sources, and what buying them costs.
+// Rendered as a section of the prediction details panel.
 import { html, nothing } from 'lit-html';
 import type { RunPlan } from '../../model/run.ts';
 import type { SkillSource } from '../../model/sparks.ts';
 import { combineSources } from '../../model/sparks.ts';
 import { COPY } from '../copy.ts';
 import { num, pill, skillName, skillWithTip } from '../format.ts';
-import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
 /** One source of a target skill: who gives it, which form, how likely, and through what. */
@@ -18,9 +18,9 @@ function spCost(c: RunPlan) {
   return html`<div class="small ${over ? 'warn' : 'muted'}">Worst-case target SP cost: <b>${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}</b> of ${num(p.sp)} estimated SP${over ? ', more than the run is expected to earn' : ''}${tip(`${COPY.coverage.spCostTip} (${detail})`)}</div>`;
 }
 
-export function renderCoverage(c: RunPlan) {
+export function coverageTable(c: RunPlan) {
   const d = c.deckResult;
-  return panel({ title: COPY.coverage.title, kind: 'result', tip: COPY.coverage.tip }, html`
+  return html`
     <div class="scroll-x"><table class="coverage"><thead><tr><th>Skill</th><th class="num col-detail">Gold hint</th><th class="num col-detail">◎ or white hint</th><th class="num">Spark chance</th><th>Sources</th></tr></thead><tbody>
       ${c.targets.map((t) => {
         const srcs = d.coverage.get(t.id) ?? [];
@@ -31,5 +31,5 @@ export function renderCoverage(c: RunPlan) {
       })}
       ${c.targets.length ? nothing : html`<tr><td colspan="5" class="muted">${COPY.targets.none}</td></tr>`}
     </tbody></table></div>
-    ${spCost(c)}`);
+    ${spCost(c)}`;
 }
