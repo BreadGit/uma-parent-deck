@@ -1,0 +1,649 @@
+{
+  "results": [
+    {
+      "round": "A",
+      "name": "ordinary",
+      "rows": [
+        {
+          "focus": "balanced",
+          "cpuMs": 18439.408,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09369724382285921,
+            "probability": 0.0936972438228592,
+            "upperProbability": 0.0936972438228592,
+            "preferred": 4.283140026154596,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ],
+            [
+              20008,
+              4,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              20020,
+              4,
+              false
+            ]
+          ]
+        },
+        {
+          "focus": "stamina",
+          "cpuMs": 17956.023,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09426933718386536,
+            "probability": 0.09426933718386535,
+            "upperProbability": 0.09426933718386535,
+            "preferred": 4.2987034385541945,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ],
+            [
+              30078,
+              2,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              30002,
+              0,
+              false
+            ]
+          ]
+        },
+        {
+          "focus": "sprint",
+          "cpuMs": 16789.763,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09297622396399319,
+            "probability": 0.09297622396399317,
+            "upperProbability": 0.09297622396399317,
+            "preferred": 4.278248667971864,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30078,
+              2,
+              false
+            ],
+            [
+              20008,
+              4,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ]
+          ]
+        }
+      ],
+      "hits": 0,
+      "calls": 0
+    },
+    {
+      "round": "A",
+      "name": "cached",
+      "rows": [
+        {
+          "focus": "balanced",
+          "cpuMs": 16528.969,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09369724382285921,
+            "probability": 0.0936972438228592,
+            "upperProbability": 0.0936972438228592,
+            "preferred": 4.283140026154596,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ],
+            [
+              20008,
+              4,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              20020,
+              4,
+              false
+            ]
+          ]
+        },
+        {
+          "focus": "stamina",
+          "cpuMs": 15413.206,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09426933718386536,
+            "probability": 0.09426933718386535,
+            "upperProbability": 0.09426933718386535,
+            "preferred": 4.2987034385541945,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ],
+            [
+              30078,
+              2,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              30002,
+              0,
+              false
+            ]
+          ]
+        },
+        {
+          "focus": "sprint",
+          "cpuMs": 16614.168,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09297622396399319,
+            "probability": 0.09297622396399317,
+            "upperProbability": 0.09297622396399317,
+            "preferred": 4.278248667971864,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30078,
+              2,
+              false
+            ],
+            [
+              20008,
+              4,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ]
+          ]
+        }
+      ],
+      "hits": 568,
+      "calls": 7546
+    },
+    {
+      "round": "B",
+      "name": "cached",
+      "rows": [
+        {
+          "focus": "balanced",
+          "cpuMs": 16746.277,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09369724382285921,
+            "probability": 0.0936972438228592,
+            "upperProbability": 0.0936972438228592,
+            "preferred": 4.283140026154596,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ],
+            [
+              20008,
+              4,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              20020,
+              4,
+              false
+            ]
+          ]
+        },
+        {
+          "focus": "stamina",
+          "cpuMs": 16096.689,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09426933718386536,
+            "probability": 0.09426933718386535,
+            "upperProbability": 0.09426933718386535,
+            "preferred": 4.2987034385541945,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ],
+            [
+              30078,
+              2,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              30002,
+              0,
+              false
+            ]
+          ]
+        },
+        {
+          "focus": "sprint",
+          "cpuMs": 17112.051,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09297622396399319,
+            "probability": 0.09297622396399317,
+            "upperProbability": 0.09297622396399317,
+            "preferred": 4.278248667971864,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30078,
+              2,
+              false
+            ],
+            [
+              20008,
+              4,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ]
+          ]
+        }
+      ],
+      "hits": 568,
+      "calls": 7546
+    },
+    {
+      "round": "B",
+      "name": "ordinary",
+      "rows": [
+        {
+          "focus": "balanced",
+          "cpuMs": 17267.078,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09369724382285921,
+            "probability": 0.0936972438228592,
+            "upperProbability": 0.0936972438228592,
+            "preferred": 4.283140026154596,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ],
+            [
+              20008,
+              4,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              20020,
+              4,
+              false
+            ]
+          ]
+        },
+        {
+          "focus": "stamina",
+          "cpuMs": 17510.503,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09426933718386536,
+            "probability": 0.09426933718386535,
+            "upperProbability": 0.09426933718386535,
+            "preferred": 4.2987034385541945,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ],
+            [
+              30078,
+              2,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              30002,
+              0,
+              false
+            ]
+          ]
+        },
+        {
+          "focus": "sprint",
+          "cpuMs": 17027.859,
+          "score": {
+            "count": 3,
+            "total": 3,
+            "comparison": 0.09297622396399319,
+            "probability": 0.09297622396399317,
+            "upperProbability": 0.09297622396399317,
+            "preferred": 4.278248667971864,
+            "whiteIds": [
+              201601
+            ],
+            "blue": true,
+            "pink": true,
+            "approximate": true,
+            "subsetApproximate": false
+          },
+          "deck": [
+            [
+              30017,
+              4,
+              true
+            ],
+            [
+              30052,
+              0,
+              false
+            ],
+            [
+              30078,
+              2,
+              false
+            ],
+            [
+              20008,
+              4,
+              false
+            ],
+            [
+              30115,
+              1,
+              false
+            ],
+            [
+              30039,
+              2,
+              false
+            ]
+          ]
+        }
+      ],
+      "hits": 0,
+      "calls": 0
+    }
+  ],
+  "cpuRatio": 0.9382871237828703
+}

@@ -1,0 +1,7100 @@
+{
+  "cases": [
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 0
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 1
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 2
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 3
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 4
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 5
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 6
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 7
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 8
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 9
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 10
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 11
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 12
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 13
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 14
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 15
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 16
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 17
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 18
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 19
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 20
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 21
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 22
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 23
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 24
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 25
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 26
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 27
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 28
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 29
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 30
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 31
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 32
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 33
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 34
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 35
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 36
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 37
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 38
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 39
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 40
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 41
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 42
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 43
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 44
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 45
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 46
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 47
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 48
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 49
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 50
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 51
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 52
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 53
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 54
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 55
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 56
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 57
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 58
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 59
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 60
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 61
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 62
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 63
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 64
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 65
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 66
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 67
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 68
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 69
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 70
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 71
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 72
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 73
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 74
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 75
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 76
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 77
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 78
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 79
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 80
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 81
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 82
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 83
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 84
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 85
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 86
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 87
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 88
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 89
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 90
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 91
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 92
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 93
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 94
+    },
+    {
+      "cohort": "templates",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 95
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 96
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 97
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 98
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 99
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 100
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 101
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 102
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 103
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 104
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 105
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 106
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 107
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 108
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 109
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 110
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 111
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 112
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 113
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 114
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 115
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 116
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 117
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 118
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 119
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 120
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 121
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 122
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 123
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 124
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 125
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 126
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 127
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 128
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 129
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 130
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 131
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 132
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 133
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 134
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 135
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 136
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 137
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 138
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 139
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 140
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 141
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 142
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 143
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 144
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 145
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 146
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 147
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 148
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 149
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 150
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 151
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 152
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 153
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 154
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 155
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 156
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 157
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 158
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 159
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 160
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 161
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 162
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 163
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 164
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 165
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 166
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 167
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 168
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 169
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 170
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 171
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 172
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 173
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 174
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 175
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 176
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 177
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 178
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 179
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 180
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 181
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 182
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 183
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 184
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 185
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 186
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 187
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 188
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 189
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 190
+    },
+    {
+      "cohort": "templates",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 191
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 192
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 193
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 194
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 195
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 196
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 197
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 198
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 199
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 200
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 201
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 202
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 203
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 204
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 205
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 206
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 207
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 208
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 209
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 210
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 211
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 212
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 213
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 214
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 215
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 216
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 217
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 218
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 219
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 220
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 221
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 222
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 223
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 224
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 225
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 226
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 227
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 228
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 229
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 230
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 231
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 232
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 233
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 234
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 235
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 236
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 237
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 238
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 239
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 240
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 241
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 242
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 243
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 244
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 245
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 246
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 247
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 248
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 249
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 250
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 251
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 252
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 253
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 254
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 255
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 256
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 257
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 258
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 259
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 260
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 261
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 262
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 263
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 264
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 265
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 266
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 267
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 268
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 269
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 270
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 271
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 272
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 273
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 274
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 275
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 276
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 277
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 278
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 279
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 280
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 281
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 282
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 283
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 284
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 285
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 286
+    },
+    {
+      "cohort": "templates",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 287
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 288
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 289
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 290
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 291
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 292
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 293
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 294
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 295
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 296
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 297
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 298
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 299
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 300
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 301
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 302
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 303
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 304
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 305
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 306
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 307
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 308
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 309
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 310
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 311
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 312
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 313
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 314
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 315
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 316
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 317
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 318
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 319
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 320
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 321
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 322
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 323
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 324
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 325
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 326
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 327
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 328
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 329
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 330
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 331
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 332
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 333
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 334
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 335
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 336
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 337
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 338
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 339
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 340
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 341
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 342
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 343
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 344
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 345
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 346
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 347
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 348
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 349
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 350
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 351
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 352
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 353
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 354
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 355
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 356
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 357
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 358
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 359
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 360
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 361
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 362
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 363
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 364
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 365
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 366
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 367
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 368
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 369
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 370
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 371
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 372
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 373
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 374
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 375
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 376
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 377
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 378
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 379
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 380
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 381
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 382
+    },
+    {
+      "cohort": "templates",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 383
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 384
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 385
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 386
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 387
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 388
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 389
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 390
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 391
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 392
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 393
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 394
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 395
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 396
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 397
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 398
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 399
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 400
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 401
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 402
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 403
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 404
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 405
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 406
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 407
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 408
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 409
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 410
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 411
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 412
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 413
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 414
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 415
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 416
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 417
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 418
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 419
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 420
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 421
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 422
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 423
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 424
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 425
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 426
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 427
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 428
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 429
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 430
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 431
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 432
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 433
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 434
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 435
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 436
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 437
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 438
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 439
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 440
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 441
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 442
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 443
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 444
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 445
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 446
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 447
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 448
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 449
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 450
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 451
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 452
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 453
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 454
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 455
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 100401,
+      "id": 456
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "front-runner-parent-lite",
+      "trainee": 102001,
+      "id": 457
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 100401,
+      "id": 458
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "front-runner-parent-decent",
+      "trainee": 102001,
+      "id": 459
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 100401,
+      "id": 460
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "front-runner-parent-godly",
+      "trainee": 102001,
+      "id": 461
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100601,
+      "id": 462
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-lite",
+      "trainee": 100101,
+      "id": 463
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100601,
+      "id": 464
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "id": 465
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100601,
+      "id": 466
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-godly",
+      "trainee": 100101,
+      "id": 467
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 101101,
+      "id": 468
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "late-surger-parent-lite",
+      "trainee": 103701,
+      "id": 469
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 101101,
+      "id": 470
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "late-surger-parent-decent",
+      "trainee": 103701,
+      "id": 471
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 101101,
+      "id": 472
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "late-surger-parent-godly",
+      "trainee": 103701,
+      "id": 473
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 100701,
+      "id": 474
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "end-closer-parent-lite",
+      "trainee": 105001,
+      "id": 475
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 100701,
+      "id": 476
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "end-closer-parent-decent",
+      "trainee": 105001,
+      "id": 477
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 100701,
+      "id": 478
+    },
+    {
+      "cohort": "templates",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "end-closer-parent-godly",
+      "trainee": 105001,
+      "id": 479
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 480
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 481
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 482
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 483
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 484
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 485
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 486
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 487
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 488
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 489
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 490
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 491
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 492
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 493
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 494
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 495
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 496
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 497
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 498
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 499
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 500
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 501
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 502
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 503
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 504
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 505
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 506
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 507
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 508
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 509
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 510
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 511
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 512
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 513
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 514
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 515
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 516
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 517
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 518
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 519
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 520
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 521
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 522
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 523
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 524
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 525
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 526
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 527
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 528
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 529
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 530
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 531
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 532
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 533
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 534
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 535
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 536
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 537
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 538
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 539
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 540
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 541
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 542
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 543
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 544
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 545
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 546
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 547
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 548
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 549
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 550
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 551
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 552
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 553
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 554
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 555
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 556
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 557
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 558
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 559
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 560
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 561
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 562
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 563
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 564
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 565
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 566
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 567
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 568
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 569
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 570
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 571
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 572
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 573
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 574
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "speed",
+      "id": 575
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "stamina",
+      "id": 576
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "power",
+      "id": 577
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "guts",
+      "id": 578
+    },
+    {
+      "cohort": "single-blue",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "blue": "wit",
+      "id": 579
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "starter",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 580
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "starter",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 581
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "starter",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 582
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "starter",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 583
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "budget",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 584
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "budget",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 585
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "budget",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 586
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "budget",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 587
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "mixed",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 588
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "mixed",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 589
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "mixed",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 590
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "mixed",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 591
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "upgraded",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 592
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "upgraded",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 593
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 594
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 595
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "complete",
+      "legacy": "empty",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 596
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "complete",
+      "legacy": "template",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 597
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "complete",
+      "legacy": "mixed",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 598
+    },
+    {
+      "cohort": "white-three-star",
+      "inv": "complete",
+      "legacy": "stamina",
+      "template": "pace-chaser-parent-decent",
+      "trainee": 100101,
+      "whiteStars": 3,
+      "id": 599
+    }
+  ],
+  "focuses": [
+    "balanced",
+    "stamina",
+    "sprint"
+  ],
+  "inventories": {
+    "starter": {
+      "10001": null,
+      "10002": null,
+      "10003": 4,
+      "10004": null,
+      "10005": null,
+      "10006": 4,
+      "10007": null,
+      "10008": null,
+      "10009": null,
+      "10010": null,
+      "10011": 4,
+      "10012": null,
+      "10013": null,
+      "10014": null,
+      "10015": null,
+      "10016": null,
+      "10017": null,
+      "10018": null,
+      "10019": 4,
+      "10020": null,
+      "10021": null,
+      "10022": null,
+      "10023": null,
+      "10024": 4,
+      "10025": null,
+      "10026": null,
+      "10027": 4,
+      "10028": null,
+      "10029": null,
+      "10030": null,
+      "10031": null,
+      "10032": 4,
+      "10033": null,
+      "10034": null,
+      "10035": null,
+      "10036": null,
+      "10037": 4,
+      "10038": null,
+      "10039": null,
+      "10040": 4,
+      "10041": null,
+      "10042": null,
+      "10043": null,
+      "10044": null,
+      "10045": 4,
+      "10046": null,
+      "10047": null,
+      "10048": 4,
+      "10049": null,
+      "10050": null,
+      "10051": null,
+      "10052": null,
+      "10053": 4,
+      "10054": null,
+      "10055": null,
+      "10056": null,
+      "10057": null,
+      "10058": 4,
+      "10059": null,
+      "10060": null,
+      "10061": 4,
+      "10062": null,
+      "10063": null,
+      "10064": null,
+      "10065": null,
+      "10066": 4,
+      "10067": null,
+      "10068": null,
+      "10069": null,
+      "10070": null,
+      "10071": 4,
+      "10072": null,
+      "10073": null,
+      "10074": 4,
+      "10075": null,
+      "10076": null,
+      "10077": null,
+      "10078": null,
+      "10079": 4,
+      "10080": null,
+      "10081": null,
+      "10083": null,
+      "10084": null,
+      "20001": null,
+      "20002": null,
+      "20003": null,
+      "20004": 0,
+      "20005": null,
+      "20006": null,
+      "20007": 0,
+      "20008": null,
+      "20009": null,
+      "20010": null,
+      "20011": null,
+      "20012": 0,
+      "20013": null,
+      "20014": null,
+      "20015": null,
+      "20016": null,
+      "20017": 0,
+      "20018": null,
+      "20019": null,
+      "20020": 0,
+      "20021": null,
+      "20022": null,
+      "20023": null,
+      "20024": null,
+      "20025": 0,
+      "20026": null,
+      "20027": null,
+      "20028": null,
+      "20029": null,
+      "20030": 0,
+      "20031": null,
+      "20032": null,
+      "20033": 0,
+      "20034": null,
+      "20035": null,
+      "20037": null,
+      "20038": 0,
+      "20039": null,
+      "20040": null,
+      "20041": 0,
+      "20042": null,
+      "20043": null,
+      "20044": null,
+      "20045": null,
+      "20046": 0,
+      "20047": null,
+      "20048": null,
+      "20049": null,
+      "20050": null,
+      "20051": 0,
+      "20052": null,
+      "30001": null,
+      "30002": null,
+      "30003": null,
+      "30004": null,
+      "30005": null,
+      "30006": null,
+      "30007": null,
+      "30008": null,
+      "30009": null,
+      "30010": null,
+      "30011": null,
+      "30012": null,
+      "30013": null,
+      "30014": null,
+      "30015": null,
+      "30016": null,
+      "30017": null,
+      "30018": null,
+      "30019": null,
+      "30020": null,
+      "30021": null,
+      "30022": null,
+      "30023": null,
+      "30024": null,
+      "30025": null,
+      "30026": null,
+      "30027": null,
+      "30028": null,
+      "30029": null,
+      "30030": null,
+      "30031": null,
+      "30032": null,
+      "30033": null,
+      "30034": null,
+      "30036": null,
+      "30038": null,
+      "30039": null,
+      "30040": null,
+      "30041": null,
+      "30042": null,
+      "30043": null,
+      "30044": null,
+      "30045": null,
+      "30046": null,
+      "30047": null,
+      "30048": null,
+      "30052": 0,
+      "30053": null,
+      "30054": null,
+      "30055": null,
+      "30056": null,
+      "30057": null,
+      "30062": null,
+      "30063": null,
+      "30064": null,
+      "30065": null,
+      "30066": null,
+      "30067": null,
+      "30068": null,
+      "30069": null,
+      "30070": null,
+      "30071": null,
+      "30072": null,
+      "30073": null,
+      "30074": null,
+      "30075": null,
+      "30076": null,
+      "30077": null,
+      "30078": null,
+      "30079": null,
+      "30080": null,
+      "30081": null,
+      "30082": null,
+      "30083": null,
+      "30084": null,
+      "30085": null,
+      "30086": null,
+      "30087": null,
+      "30088": null,
+      "30089": null,
+      "30090": null,
+      "30091": null,
+      "30092": null,
+      "30093": null,
+      "30094": null,
+      "30095": null,
+      "30096": null,
+      "30097": null,
+      "30098": null,
+      "30099": null,
+      "30100": null,
+      "30101": null,
+      "30102": null,
+      "30103": null,
+      "30104": null,
+      "30105": null,
+      "30106": null,
+      "30107": null,
+      "30108": null,
+      "30109": null,
+      "30110": null,
+      "30111": null,
+      "30112": null,
+      "30113": null,
+      "30114": null,
+      "30115": null,
+      "30116": null,
+      "30117": null,
+      "30118": null,
+      "30119": null,
+      "30120": null,
+      "30121": null,
+      "30145": null,
+      "30146": null
+    },
+    "budget": {
+      "10001": 4,
+      "10002": 4,
+      "10003": 4,
+      "10004": 4,
+      "10005": 4,
+      "10006": 4,
+      "10007": 4,
+      "10008": 4,
+      "10009": 4,
+      "10010": 4,
+      "10011": 4,
+      "10012": 4,
+      "10013": 4,
+      "10014": 4,
+      "10015": 4,
+      "10016": 4,
+      "10017": 4,
+      "10018": 4,
+      "10019": 4,
+      "10020": 4,
+      "10021": 4,
+      "10022": 4,
+      "10023": 4,
+      "10024": 4,
+      "10025": 4,
+      "10026": 4,
+      "10027": 4,
+      "10028": 4,
+      "10029": 4,
+      "10030": 4,
+      "10031": 4,
+      "10032": 4,
+      "10033": 4,
+      "10034": 4,
+      "10035": 4,
+      "10036": 4,
+      "10037": 4,
+      "10038": 4,
+      "10039": 4,
+      "10040": 4,
+      "10041": 4,
+      "10042": 4,
+      "10043": 4,
+      "10044": 4,
+      "10045": 4,
+      "10046": 4,
+      "10047": 4,
+      "10048": 4,
+      "10049": 4,
+      "10050": 4,
+      "10051": 4,
+      "10052": 4,
+      "10053": 4,
+      "10054": 4,
+      "10055": 4,
+      "10056": 4,
+      "10057": 4,
+      "10058": 4,
+      "10059": 4,
+      "10060": 4,
+      "10061": 4,
+      "10062": 4,
+      "10063": 4,
+      "10064": 4,
+      "10065": 4,
+      "10066": 4,
+      "10067": 4,
+      "10068": 4,
+      "10069": 4,
+      "10070": 4,
+      "10071": 4,
+      "10072": 4,
+      "10073": 4,
+      "10074": 4,
+      "10075": 4,
+      "10076": 4,
+      "10077": 4,
+      "10078": 4,
+      "10079": 4,
+      "10080": 4,
+      "10081": 4,
+      "10083": 4,
+      "10084": 4,
+      "20001": 4,
+      "20002": 4,
+      "20003": 4,
+      "20004": 4,
+      "20005": 4,
+      "20006": 4,
+      "20007": 4,
+      "20008": 4,
+      "20009": 4,
+      "20010": 4,
+      "20011": 4,
+      "20012": 4,
+      "20013": 4,
+      "20014": 4,
+      "20015": 4,
+      "20016": 4,
+      "20017": 4,
+      "20018": 4,
+      "20019": 4,
+      "20020": 4,
+      "20021": 4,
+      "20022": 4,
+      "20023": 4,
+      "20024": 4,
+      "20025": 4,
+      "20026": 4,
+      "20027": 4,
+      "20028": 4,
+      "20029": 4,
+      "20030": 4,
+      "20031": 4,
+      "20032": 4,
+      "20033": 4,
+      "20034": 4,
+      "20035": 4,
+      "20037": 4,
+      "20038": 4,
+      "20039": 4,
+      "20040": 4,
+      "20041": 4,
+      "20042": 4,
+      "20043": 4,
+      "20044": 4,
+      "20045": 4,
+      "20046": 4,
+      "20047": 4,
+      "20048": 4,
+      "20049": 4,
+      "20050": 4,
+      "20051": 4,
+      "20052": 4,
+      "30001": null,
+      "30002": null,
+      "30003": null,
+      "30004": null,
+      "30005": null,
+      "30006": null,
+      "30007": null,
+      "30008": null,
+      "30009": null,
+      "30010": null,
+      "30011": null,
+      "30012": null,
+      "30013": null,
+      "30014": null,
+      "30015": null,
+      "30016": null,
+      "30017": null,
+      "30018": null,
+      "30019": null,
+      "30020": null,
+      "30021": null,
+      "30022": null,
+      "30023": null,
+      "30024": null,
+      "30025": null,
+      "30026": null,
+      "30027": null,
+      "30028": null,
+      "30029": null,
+      "30030": null,
+      "30031": null,
+      "30032": null,
+      "30033": null,
+      "30034": null,
+      "30036": null,
+      "30038": null,
+      "30039": null,
+      "30040": null,
+      "30041": null,
+      "30042": null,
+      "30043": null,
+      "30044": null,
+      "30045": null,
+      "30046": null,
+      "30047": null,
+      "30048": null,
+      "30052": 0,
+      "30053": null,
+      "30054": null,
+      "30055": null,
+      "30056": null,
+      "30057": null,
+      "30062": null,
+      "30063": null,
+      "30064": null,
+      "30065": null,
+      "30066": null,
+      "30067": null,
+      "30068": null,
+      "30069": null,
+      "30070": null,
+      "30071": null,
+      "30072": null,
+      "30073": null,
+      "30074": null,
+      "30075": null,
+      "30076": null,
+      "30077": null,
+      "30078": null,
+      "30079": null,
+      "30080": null,
+      "30081": null,
+      "30082": null,
+      "30083": null,
+      "30084": null,
+      "30085": null,
+      "30086": null,
+      "30087": null,
+      "30088": null,
+      "30089": null,
+      "30090": null,
+      "30091": null,
+      "30092": null,
+      "30093": null,
+      "30094": null,
+      "30095": null,
+      "30096": null,
+      "30097": null,
+      "30098": null,
+      "30099": null,
+      "30100": null,
+      "30101": null,
+      "30102": null,
+      "30103": null,
+      "30104": null,
+      "30105": null,
+      "30106": null,
+      "30107": null,
+      "30108": null,
+      "30109": null,
+      "30110": null,
+      "30111": null,
+      "30112": null,
+      "30113": null,
+      "30114": null,
+      "30115": null,
+      "30116": null,
+      "30117": null,
+      "30118": null,
+      "30119": null,
+      "30120": null,
+      "30121": null,
+      "30145": null,
+      "30146": null
+    },
+    "mixed": {
+      "10001": 4,
+      "10002": 4,
+      "10003": 4,
+      "10004": 4,
+      "10005": 4,
+      "10006": 4,
+      "10007": 4,
+      "10008": 4,
+      "10009": 4,
+      "10010": 4,
+      "10011": 4,
+      "10012": 4,
+      "10013": 4,
+      "10014": 4,
+      "10015": 4,
+      "10016": 4,
+      "10017": 4,
+      "10018": 4,
+      "10019": 4,
+      "10020": 4,
+      "10021": 4,
+      "10022": 4,
+      "10023": 4,
+      "10024": 4,
+      "10025": 4,
+      "10026": 4,
+      "10027": 4,
+      "10028": 4,
+      "10029": 4,
+      "10030": 4,
+      "10031": 4,
+      "10032": 4,
+      "10033": 4,
+      "10034": 4,
+      "10035": 4,
+      "10036": 4,
+      "10037": 4,
+      "10038": 4,
+      "10039": 4,
+      "10040": 4,
+      "10041": 4,
+      "10042": 4,
+      "10043": 4,
+      "10044": 4,
+      "10045": 4,
+      "10046": 4,
+      "10047": 4,
+      "10048": 4,
+      "10049": 4,
+      "10050": 4,
+      "10051": 4,
+      "10052": 4,
+      "10053": 4,
+      "10054": 4,
+      "10055": 4,
+      "10056": 4,
+      "10057": 4,
+      "10058": 4,
+      "10059": 4,
+      "10060": 4,
+      "10061": 4,
+      "10062": 4,
+      "10063": 4,
+      "10064": 4,
+      "10065": 4,
+      "10066": 4,
+      "10067": 4,
+      "10068": 4,
+      "10069": 4,
+      "10070": 4,
+      "10071": 4,
+      "10072": 4,
+      "10073": 4,
+      "10074": 4,
+      "10075": 4,
+      "10076": 4,
+      "10077": 4,
+      "10078": 4,
+      "10079": 4,
+      "10080": 4,
+      "10081": 4,
+      "10083": 4,
+      "10084": 4,
+      "20001": 4,
+      "20002": 4,
+      "20003": 4,
+      "20004": 4,
+      "20005": 4,
+      "20006": 4,
+      "20007": 4,
+      "20008": 4,
+      "20009": 4,
+      "20010": 4,
+      "20011": 4,
+      "20012": 4,
+      "20013": 4,
+      "20014": 4,
+      "20015": 4,
+      "20016": 4,
+      "20017": 4,
+      "20018": 4,
+      "20019": 4,
+      "20020": 4,
+      "20021": 4,
+      "20022": 4,
+      "20023": 4,
+      "20024": 4,
+      "20025": 4,
+      "20026": 4,
+      "20027": 4,
+      "20028": 4,
+      "20029": 4,
+      "20030": 4,
+      "20031": 4,
+      "20032": 4,
+      "20033": 4,
+      "20034": 4,
+      "20035": 4,
+      "20037": 4,
+      "20038": 4,
+      "20039": 4,
+      "20040": 4,
+      "20041": 4,
+      "20042": 4,
+      "20043": 4,
+      "20044": 4,
+      "20045": 4,
+      "20046": 4,
+      "20047": 4,
+      "20048": 4,
+      "20049": 4,
+      "20050": 4,
+      "20051": 4,
+      "20052": 4,
+      "30001": null,
+      "30002": 0,
+      "30003": null,
+      "30004": null,
+      "30005": 1,
+      "30006": null,
+      "30007": null,
+      "30008": null,
+      "30009": null,
+      "30010": 0,
+      "30011": null,
+      "30012": null,
+      "30013": 1,
+      "30014": null,
+      "30015": null,
+      "30016": null,
+      "30017": null,
+      "30018": 0,
+      "30019": null,
+      "30020": null,
+      "30021": null,
+      "30022": null,
+      "30023": 2,
+      "30024": null,
+      "30025": null,
+      "30026": 0,
+      "30027": null,
+      "30028": null,
+      "30029": null,
+      "30030": null,
+      "30031": 2,
+      "30032": null,
+      "30033": null,
+      "30034": 0,
+      "30036": null,
+      "30038": null,
+      "30039": 2,
+      "30040": null,
+      "30041": null,
+      "30042": null,
+      "30043": null,
+      "30044": 1,
+      "30045": null,
+      "30046": null,
+      "30047": 2,
+      "30048": null,
+      "30052": 0,
+      "30053": null,
+      "30054": null,
+      "30055": 2,
+      "30056": null,
+      "30057": 0,
+      "30062": null,
+      "30063": null,
+      "30064": null,
+      "30065": 0,
+      "30066": null,
+      "30067": null,
+      "30068": 1,
+      "30069": null,
+      "30070": null,
+      "30071": null,
+      "30072": null,
+      "30073": 0,
+      "30074": null,
+      "30075": null,
+      "30076": null,
+      "30077": null,
+      "30078": 2,
+      "30079": null,
+      "30080": null,
+      "30081": 0,
+      "30082": null,
+      "30083": null,
+      "30084": null,
+      "30085": null,
+      "30086": 2,
+      "30087": null,
+      "30088": null,
+      "30089": 0,
+      "30090": null,
+      "30091": 1,
+      "30092": null,
+      "30093": null,
+      "30094": 2,
+      "30095": null,
+      "30096": null,
+      "30097": null,
+      "30098": null,
+      "30099": 1,
+      "30100": null,
+      "30101": null,
+      "30102": 2,
+      "30103": null,
+      "30104": null,
+      "30105": null,
+      "30106": null,
+      "30107": 1,
+      "30108": null,
+      "30109": null,
+      "30110": 2,
+      "30111": null,
+      "30112": 0,
+      "30113": null,
+      "30114": null,
+      "30115": 1,
+      "30116": null,
+      "30117": null,
+      "30118": null,
+      "30119": null,
+      "30120": 0,
+      "30121": null,
+      "30145": null,
+      "30146": 1
+    },
+    "upgraded": {
+      "10001": 4,
+      "10002": 4,
+      "10003": 4,
+      "10004": 4,
+      "10005": 4,
+      "10006": 4,
+      "10007": 4,
+      "10008": 4,
+      "10009": 4,
+      "10010": 4,
+      "10011": 4,
+      "10012": 4,
+      "10013": 4,
+      "10014": 4,
+      "10015": 4,
+      "10016": 4,
+      "10017": 4,
+      "10018": 4,
+      "10019": 4,
+      "10020": 4,
+      "10021": 4,
+      "10022": 4,
+      "10023": 4,
+      "10024": 4,
+      "10025": 4,
+      "10026": 4,
+      "10027": 4,
+      "10028": 4,
+      "10029": 4,
+      "10030": 4,
+      "10031": 4,
+      "10032": 4,
+      "10033": 4,
+      "10034": 4,
+      "10035": 4,
+      "10036": 4,
+      "10037": 4,
+      "10038": 4,
+      "10039": 4,
+      "10040": 4,
+      "10041": 4,
+      "10042": 4,
+      "10043": 4,
+      "10044": 4,
+      "10045": 4,
+      "10046": 4,
+      "10047": 4,
+      "10048": 4,
+      "10049": 4,
+      "10050": 4,
+      "10051": 4,
+      "10052": 4,
+      "10053": 4,
+      "10054": 4,
+      "10055": 4,
+      "10056": 4,
+      "10057": 4,
+      "10058": 4,
+      "10059": 4,
+      "10060": 4,
+      "10061": 4,
+      "10062": 4,
+      "10063": 4,
+      "10064": 4,
+      "10065": 4,
+      "10066": 4,
+      "10067": 4,
+      "10068": 4,
+      "10069": 4,
+      "10070": 4,
+      "10071": 4,
+      "10072": 4,
+      "10073": 4,
+      "10074": 4,
+      "10075": 4,
+      "10076": 4,
+      "10077": 4,
+      "10078": 4,
+      "10079": 4,
+      "10080": 4,
+      "10081": 4,
+      "10083": 4,
+      "10084": 4,
+      "20001": 4,
+      "20002": 4,
+      "20003": 4,
+      "20004": 4,
+      "20005": 4,
+      "20006": 4,
+      "20007": 4,
+      "20008": 4,
+      "20009": 4,
+      "20010": 4,
+      "20011": 4,
+      "20012": 4,
+      "20013": 4,
+      "20014": 4,
+      "20015": 4,
+      "20016": 4,
+      "20017": 4,
+      "20018": 4,
+      "20019": 4,
+      "20020": 4,
+      "20021": 4,
+      "20022": 4,
+      "20023": 4,
+      "20024": 4,
+      "20025": 4,
+      "20026": 4,
+      "20027": 4,
+      "20028": 4,
+      "20029": 4,
+      "20030": 4,
+      "20031": 4,
+      "20032": 4,
+      "20033": 4,
+      "20034": 4,
+      "20035": 4,
+      "20037": 4,
+      "20038": 4,
+      "20039": 4,
+      "20040": 4,
+      "20041": 4,
+      "20042": 4,
+      "20043": 4,
+      "20044": 4,
+      "20045": 4,
+      "20046": 4,
+      "20047": 4,
+      "20048": 4,
+      "20049": 4,
+      "20050": 4,
+      "20051": 4,
+      "20052": 4,
+      "30001": null,
+      "30002": 4,
+      "30003": null,
+      "30004": null,
+      "30005": 4,
+      "30006": null,
+      "30007": null,
+      "30008": null,
+      "30009": null,
+      "30010": 4,
+      "30011": null,
+      "30012": null,
+      "30013": 4,
+      "30014": null,
+      "30015": null,
+      "30016": null,
+      "30017": null,
+      "30018": 4,
+      "30019": null,
+      "30020": null,
+      "30021": null,
+      "30022": null,
+      "30023": 4,
+      "30024": null,
+      "30025": null,
+      "30026": 4,
+      "30027": null,
+      "30028": null,
+      "30029": null,
+      "30030": null,
+      "30031": 4,
+      "30032": null,
+      "30033": null,
+      "30034": 4,
+      "30036": null,
+      "30038": null,
+      "30039": 4,
+      "30040": null,
+      "30041": null,
+      "30042": null,
+      "30043": null,
+      "30044": 4,
+      "30045": null,
+      "30046": null,
+      "30047": 4,
+      "30048": null,
+      "30052": 4,
+      "30053": null,
+      "30054": null,
+      "30055": 4,
+      "30056": null,
+      "30057": 4,
+      "30062": null,
+      "30063": null,
+      "30064": null,
+      "30065": 4,
+      "30066": null,
+      "30067": null,
+      "30068": 4,
+      "30069": null,
+      "30070": null,
+      "30071": null,
+      "30072": null,
+      "30073": 4,
+      "30074": null,
+      "30075": null,
+      "30076": null,
+      "30077": null,
+      "30078": 4,
+      "30079": null,
+      "30080": null,
+      "30081": 4,
+      "30082": null,
+      "30083": null,
+      "30084": null,
+      "30085": null,
+      "30086": 4,
+      "30087": null,
+      "30088": null,
+      "30089": 4,
+      "30090": null,
+      "30091": 4,
+      "30092": null,
+      "30093": null,
+      "30094": 4,
+      "30095": null,
+      "30096": null,
+      "30097": null,
+      "30098": null,
+      "30099": 4,
+      "30100": null,
+      "30101": null,
+      "30102": 4,
+      "30103": null,
+      "30104": null,
+      "30105": null,
+      "30106": null,
+      "30107": 4,
+      "30108": null,
+      "30109": null,
+      "30110": 4,
+      "30111": null,
+      "30112": 4,
+      "30113": null,
+      "30114": null,
+      "30115": 4,
+      "30116": null,
+      "30117": null,
+      "30118": null,
+      "30119": null,
+      "30120": 4,
+      "30121": null,
+      "30145": null,
+      "30146": 4
+    },
+    "complete": {
+      "10001": 4,
+      "10002": 4,
+      "10003": 4,
+      "10004": 4,
+      "10005": 4,
+      "10006": 4,
+      "10007": 4,
+      "10008": 4,
+      "10009": 4,
+      "10010": 4,
+      "10011": 4,
+      "10012": 4,
+      "10013": 4,
+      "10014": 4,
+      "10015": 4,
+      "10016": 4,
+      "10017": 4,
+      "10018": 4,
+      "10019": 4,
+      "10020": 4,
+      "10021": 4,
+      "10022": 4,
+      "10023": 4,
+      "10024": 4,
+      "10025": 4,
+      "10026": 4,
+      "10027": 4,
+      "10028": 4,
+      "10029": 4,
+      "10030": 4,
+      "10031": 4,
+      "10032": 4,
+      "10033": 4,
+      "10034": 4,
+      "10035": 4,
+      "10036": 4,
+      "10037": 4,
+      "10038": 4,
+      "10039": 4,
+      "10040": 4,
+      "10041": 4,
+      "10042": 4,
+      "10043": 4,
+      "10044": 4,
+      "10045": 4,
+      "10046": 4,
+      "10047": 4,
+      "10048": 4,
+      "10049": 4,
+      "10050": 4,
+      "10051": 4,
+      "10052": 4,
+      "10053": 4,
+      "10054": 4,
+      "10055": 4,
+      "10056": 4,
+      "10057": 4,
+      "10058": 4,
+      "10059": 4,
+      "10060": 4,
+      "10061": 4,
+      "10062": 4,
+      "10063": 4,
+      "10064": 4,
+      "10065": 4,
+      "10066": 4,
+      "10067": 4,
+      "10068": 4,
+      "10069": 4,
+      "10070": 4,
+      "10071": 4,
+      "10072": 4,
+      "10073": 4,
+      "10074": 4,
+      "10075": 4,
+      "10076": 4,
+      "10077": 4,
+      "10078": 4,
+      "10079": 4,
+      "10080": 4,
+      "10081": 4,
+      "10083": 4,
+      "10084": 4,
+      "20001": 4,
+      "20002": 4,
+      "20003": 4,
+      "20004": 4,
+      "20005": 4,
+      "20006": 4,
+      "20007": 4,
+      "20008": 4,
+      "20009": 4,
+      "20010": 4,
+      "20011": 4,
+      "20012": 4,
+      "20013": 4,
+      "20014": 4,
+      "20015": 4,
+      "20016": 4,
+      "20017": 4,
+      "20018": 4,
+      "20019": 4,
+      "20020": 4,
+      "20021": 4,
+      "20022": 4,
+      "20023": 4,
+      "20024": 4,
+      "20025": 4,
+      "20026": 4,
+      "20027": 4,
+      "20028": 4,
+      "20029": 4,
+      "20030": 4,
+      "20031": 4,
+      "20032": 4,
+      "20033": 4,
+      "20034": 4,
+      "20035": 4,
+      "20037": 4,
+      "20038": 4,
+      "20039": 4,
+      "20040": 4,
+      "20041": 4,
+      "20042": 4,
+      "20043": 4,
+      "20044": 4,
+      "20045": 4,
+      "20046": 4,
+      "20047": 4,
+      "20048": 4,
+      "20049": 4,
+      "20050": 4,
+      "20051": 4,
+      "20052": 4,
+      "30001": 4,
+      "30002": 4,
+      "30003": 4,
+      "30004": 4,
+      "30005": 4,
+      "30006": 4,
+      "30007": 4,
+      "30008": 4,
+      "30009": 4,
+      "30010": 4,
+      "30011": 4,
+      "30012": 4,
+      "30013": 4,
+      "30014": 4,
+      "30015": 4,
+      "30016": 4,
+      "30017": 4,
+      "30018": 4,
+      "30019": 4,
+      "30020": 4,
+      "30021": 4,
+      "30022": 4,
+      "30023": 4,
+      "30024": 4,
+      "30025": 4,
+      "30026": 4,
+      "30027": 4,
+      "30028": 4,
+      "30029": 4,
+      "30030": 4,
+      "30031": 4,
+      "30032": 4,
+      "30033": 4,
+      "30034": 4,
+      "30036": 4,
+      "30038": 4,
+      "30039": 4,
+      "30040": 4,
+      "30041": 4,
+      "30042": 4,
+      "30043": 4,
+      "30044": 4,
+      "30045": 4,
+      "30046": 4,
+      "30047": 4,
+      "30048": 4,
+      "30052": 4,
+      "30053": 4,
+      "30054": 4,
+      "30055": 4,
+      "30056": 4,
+      "30057": 4,
+      "30062": 4,
+      "30063": 4,
+      "30064": 4,
+      "30065": 4,
+      "30066": 4,
+      "30067": 4,
+      "30068": 4,
+      "30069": 4,
+      "30070": 4,
+      "30071": 4,
+      "30072": 4,
+      "30073": 4,
+      "30074": 4,
+      "30075": 4,
+      "30076": 4,
+      "30077": 4,
+      "30078": 4,
+      "30079": 4,
+      "30080": 4,
+      "30081": 4,
+      "30082": 4,
+      "30083": 4,
+      "30084": 4,
+      "30085": 4,
+      "30086": 4,
+      "30087": 4,
+      "30088": 4,
+      "30089": 4,
+      "30090": 4,
+      "30091": 4,
+      "30092": 4,
+      "30093": 4,
+      "30094": 4,
+      "30095": 4,
+      "30096": 4,
+      "30097": 4,
+      "30098": 4,
+      "30099": 4,
+      "30100": 4,
+      "30101": 4,
+      "30102": 4,
+      "30103": 4,
+      "30104": 4,
+      "30105": 4,
+      "30106": 4,
+      "30107": 4,
+      "30108": 4,
+      "30109": 4,
+      "30110": 4,
+      "30111": 4,
+      "30112": 4,
+      "30113": 4,
+      "30114": 4,
+      "30115": 4,
+      "30116": 4,
+      "30117": 4,
+      "30118": 4,
+      "30119": 4,
+      "30120": 4,
+      "30121": 4,
+      "30145": 4,
+      "30146": 4
+    }
+  },
+  "legacyExamples": {
+    "empty": {
+      "goal": {
+        "blueStats": [
+          "speed",
+          "stamina",
+          "power",
+          "guts",
+          "wit"
+        ],
+        "blueStars": 2,
+        "pink": [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ]
+      },
+      "pinkLineage": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "targets": [
+        {
+          "id": 201601,
+          "role": "required",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200452,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201262,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200012,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200022,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201611,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201252,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201242,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201522,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200192,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200202,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200172,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200152,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200162,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200132,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200142,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        }
+      ],
+      "targetLineage": {},
+      "wishlistOrder": [],
+      "wishlistExcluded": [],
+      "traineeCardId": 100401,
+      "traineeStars": 3,
+      "aptOverrides": {},
+      "raceOverrides": {},
+      "pinnedIds": [
+        30052
+      ],
+      "borrowFromAll": false,
+      "parentSparks": [
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    "template": {
+      "goal": {
+        "blueStats": [
+          "speed",
+          "stamina",
+          "power",
+          "guts",
+          "wit"
+        ],
+        "blueStars": 2,
+        "pink": [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ]
+      },
+      "pinkLineage": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "targets": [
+        {
+          "id": 201601,
+          "role": "required",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200452,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201262,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200012,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200022,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201611,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201252,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201242,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201522,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200192,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200202,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200172,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200152,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200162,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200132,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200142,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        }
+      ],
+      "targetLineage": {},
+      "wishlistOrder": [],
+      "wishlistExcluded": [],
+      "traineeCardId": 100401,
+      "traineeStars": 3,
+      "aptOverrides": {},
+      "raceOverrides": {},
+      "pinnedIds": [
+        30052
+      ],
+      "borrowFromAll": false,
+      "parentSparks": [
+        [
+          {
+            "stat": "speed",
+            "stars": 2
+          },
+          {
+            "stat": "stamina",
+            "stars": 2
+          },
+          {
+            "stat": "power",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "stat": "speed",
+            "stars": 2
+          },
+          {
+            "stat": "guts",
+            "stars": 2
+          },
+          {
+            "stat": "wit",
+            "stars": 2
+          }
+        ]
+      ]
+    },
+    "mixed": {
+      "goal": {
+        "blueStats": [
+          "speed",
+          "stamina",
+          "power",
+          "guts",
+          "wit"
+        ],
+        "blueStars": 2,
+        "pink": [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ]
+      },
+      "pinkLineage": [
+        {
+          "aptitude": "medium",
+          "stars": 3
+        },
+        {
+          "aptitude": "medium",
+          "stars": 3
+        },
+        {
+          "aptitude": "mile",
+          "stars": 3
+        },
+        {
+          "aptitude": "mile",
+          "stars": 3
+        },
+        {
+          "aptitude": "long",
+          "stars": 3
+        },
+        {
+          "aptitude": "long",
+          "stars": 3
+        }
+      ],
+      "targets": [
+        {
+          "id": 201601,
+          "role": "required",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200452,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201262,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200012,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200022,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201611,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201252,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201242,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201522,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200192,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200202,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200172,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200152,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200162,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200132,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200142,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        }
+      ],
+      "targetLineage": {
+        "200012": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200022": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200132": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200142": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200152": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200162": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200172": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200192": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200202": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200452": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201242": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201252": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201262": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201522": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201601": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201611": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        }
+      },
+      "wishlistOrder": [],
+      "wishlistExcluded": [],
+      "traineeCardId": 100401,
+      "traineeStars": 3,
+      "aptOverrides": {},
+      "raceOverrides": {},
+      "pinnedIds": [
+        30052
+      ],
+      "borrowFromAll": false,
+      "parentSparks": [
+        [
+          {
+            "stat": "speed",
+            "stars": 3
+          },
+          {
+            "stat": "stamina",
+            "stars": 3
+          },
+          {
+            "stat": "power",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "stat": "speed",
+            "stars": 3
+          },
+          {
+            "stat": "guts",
+            "stars": 3
+          },
+          {
+            "stat": "wit",
+            "stars": 3
+          }
+        ]
+      ]
+    },
+    "stamina": {
+      "goal": {
+        "blueStats": [
+          "speed",
+          "stamina",
+          "power",
+          "guts",
+          "wit"
+        ],
+        "blueStars": 2,
+        "pink": [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ]
+      },
+      "pinkLineage": [
+        {
+          "aptitude": "medium",
+          "stars": 3
+        },
+        {
+          "aptitude": "medium",
+          "stars": 3
+        },
+        {
+          "aptitude": "mile",
+          "stars": 3
+        },
+        {
+          "aptitude": "mile",
+          "stars": 3
+        },
+        {
+          "aptitude": "long",
+          "stars": 3
+        },
+        {
+          "aptitude": "long",
+          "stars": 3
+        }
+      ],
+      "targets": [
+        {
+          "id": 201601,
+          "role": "required",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200452,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201262,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200012,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 200022,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201611,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201252,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201242,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 0
+        },
+        {
+          "id": 201522,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200192,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200202,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200172,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200152,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200162,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200132,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        },
+        {
+          "id": 200142,
+          "role": "preferred",
+          "stars": 2,
+          "priority": 1
+        }
+      ],
+      "targetLineage": {
+        "200012": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200022": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200132": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200142": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200152": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200162": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200172": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200192": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200202": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "200452": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201242": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201252": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201262": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201522": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201601": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        },
+        "201611": {
+          "k1": 3,
+          "p1": 7,
+          "k2": 3,
+          "p2": 7
+        }
+      },
+      "wishlistOrder": [],
+      "wishlistExcluded": [],
+      "traineeCardId": 100401,
+      "traineeStars": 3,
+      "aptOverrides": {},
+      "raceOverrides": {},
+      "pinnedIds": [
+        30052
+      ],
+      "borrowFromAll": false,
+      "parentSparks": [
+        [
+          {
+            "stat": "stamina",
+            "stars": 3
+          },
+          {
+            "stat": "stamina",
+            "stars": 3
+          },
+          {
+            "stat": "stamina",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "stat": "stamina",
+            "stars": 3
+          },
+          {
+            "stat": "stamina",
+            "stars": 3
+          },
+          {
+            "stat": "stamina",
+            "stars": 3
+          }
+        ]
+      ]
+    }
+  },
+  "multipliers": {
+    "balanced": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "stamina": [
+      0.988,
+      1.0838,
+      1.0109,
+      0.9769,
+      0.9696
+    ],
+    "sprint": [
+      1.0083,
+      0.9222,
+      1.0278,
+      1.0501,
+      1.0337
+    ]
+  },
+  "quickBudget": 24,
+  "workers": 8,
+  "generatedAt": "2026-09-19T03:19:21.675Z",
+  "validation": "120 stratified full-budget cases, 14 exploratory cases and five matched blue-legacy changes",
+  "sourceCommit": "3d90d19dd18fc7dba5ecb7ed04056e258a92f7ff",
+  "sourceHashes": {
+    "src/model/run.ts": "d4ec8dc3ab82b756fbf385b10e82c3272c69c615cd57a5c38c3b131f8ea9c06a",
+    "src/model/goal-deck.ts": "ea9688670b573e298c41db0c876490aab413e77524450180e3ee9969584d7868",
+    "src/model/goal-objective.ts": "efcece2ac85584662159dd9647ab77f2070b5fe632b6f81904a653aaf871b9b9",
+    "src/model/goal-templates.ts": "317badbd2eb2e93da6220e5b3a695c094733fe12d0a8732f300768cad7a7af20",
+    "src/settings.ts": "4ed7d1782247c4582d95abcbd335b39024ca785796f1db9c1852152e03d29d2d",
+    "data/stat-model.json": "43d7f2d185f805eadf3bd099c58dec626896c8177cb895ba3eb314ff930ba99e",
+    "analysis/focus-search-prototype.mjs": "912b476f00bf6279a1c37d8b5851d89a757ca105a0a1c29c1351ceb5102fb56c",
+    "analysis/summarize-focus-prototype.mjs": "00e5a6eb39d3ec74a22de5e101c42dc3fe85d0e9dbfb0a004d8531ae3c330109"
+  },
+  "additionalChecks": {
+    "fixedDeckDominanceCases": 100,
+    "matchedPinkGoalCases": 100,
+    "focusesPerCase": 3,
+    "cacheBenchmark": "cache-check-warm.json",
+    "parallelLatencyBenchmark": "latency.json"
+  }
+}

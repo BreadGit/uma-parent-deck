@@ -1,0 +1,3486 @@
+{
+  "dominance": [
+    {
+      "inv": "starter",
+      "legacy": "empty",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000008788695799798869
+        ],
+        [
+          "stamina",
+          0.000008766770010251921
+        ],
+        [
+          "sprint",
+          0.000008816282063381566
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "empty",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000007533551070348341
+        ],
+        [
+          "stamina",
+          0.000008642798845184033
+        ],
+        [
+          "sprint",
+          0.0000043878003354488044
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "empty",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000008749999999999994
+        ],
+        [
+          "stamina",
+          0.00000875
+        ],
+        [
+          "sprint",
+          0.000008750000000000003
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "empty",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000007795344014525627
+        ],
+        [
+          "stamina",
+          0.000007011830331684225
+        ],
+        [
+          "sprint",
+          0.000008580119374684148
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "empty",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000008749999941862844
+        ],
+        [
+          "stamina",
+          0.000008749994058575342
+        ],
+        [
+          "sprint",
+          0.000008749999999849007
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "template",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00000986633082128752
+        ],
+        [
+          "stamina",
+          0.000009450747631411308
+        ],
+        [
+          "sprint",
+          0.000010238956618641261
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "template",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0000084267793215476
+        ],
+        [
+          "stamina",
+          0.000008735480332888553
+        ],
+        [
+          "sprint",
+          0.000006688251191378454
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "template",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000008749999999999996
+        ],
+        [
+          "stamina",
+          0.000008750000000000003
+        ],
+        [
+          "sprint",
+          0.000008749999999999996
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "template",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000008581588948397588
+        ],
+        [
+          "stamina",
+          0.000008353417334378182
+        ],
+        [
+          "sprint",
+          0.0000087330603985393
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "template",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00000874999999990014
+        ],
+        [
+          "stamina",
+          0.000008749999980746024
+        ],
+        [
+          "sprint",
+          0.00000874999999999986
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "mixed",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0012285720837629565
+        ],
+        [
+          "stamina",
+          0.0011457653589808567
+        ],
+        [
+          "sprint",
+          0.0012875223078729538
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "mixed",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008330566011038259
+        ],
+        [
+          "stamina",
+          0.0008431313309848581
+        ],
+        [
+          "sprint",
+          0.0007476154176875197
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "mixed",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008434526262437692
+        ],
+        [
+          "stamina",
+          0.0008434526262437694
+        ],
+        [
+          "sprint",
+          0.0008434526262437694
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "mixed",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008394584044039714
+        ],
+        [
+          "stamina",
+          0.000832618434444614
+        ],
+        [
+          "sprint",
+          0.0008431506214088403
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "mixed",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008434526262429653
+        ],
+        [
+          "stamina",
+          0.0008434526261011615
+        ],
+        [
+          "sprint",
+          0.000843452626243768
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "stamina",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008471826918397649
+        ],
+        [
+          "stamina",
+          0.0008450691644368115
+        ],
+        [
+          "sprint",
+          0.0008498418582931453
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "stamina",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008440053329234106
+        ],
+        [
+          "stamina",
+          0.0008534957284957307
+        ],
+        [
+          "sprint",
+          0.0008434701363880964
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "stamina",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000843452626243769
+        ],
+        [
+          "stamina",
+          0.0008434526262437694
+        ],
+        [
+          "sprint",
+          0.0008434526262437697
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "stamina",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0007514289578886045
+        ],
+        [
+          "stamina",
+          0.0006759024809182608
+        ],
+        [
+          "sprint",
+          0.0008270770537214165
+        ]
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "stamina",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008434526206396625
+        ],
+        [
+          "stamina",
+          0.0008434520535226
+        ],
+        [
+          "sprint",
+          0.0008434526262292147
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "empty",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00003367401085245695
+        ],
+        [
+          "stamina",
+          0.00003166529603790852
+        ],
+        [
+          "sprint",
+          0.00003540040546060157
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "empty",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000005087862751019284
+        ],
+        [
+          "stamina",
+          0.00001501700094082676
+        ],
+        [
+          "sprint",
+          9.297311480077301e-7
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "empty",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028125000000000003
+        ],
+        [
+          "stamina",
+          0.00002812499999999999
+        ],
+        [
+          "sprint",
+          0.000028125000000000023
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "empty",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000022173888514345465
+        ],
+        [
+          "stamina",
+          0.000018701520600572853
+        ],
+        [
+          "sprint",
+          0.000026626986161027644
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "empty",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999813130575
+        ],
+        [
+          "stamina",
+          0.0000281249809025636
+        ],
+        [
+          "sprint",
+          0.00002812499999951467
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "template",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00004838250344997901
+        ],
+        [
+          "stamina",
+          0.000045464913190108964
+        ],
+        [
+          "sprint",
+          0.000050146484845806445
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "template",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000012018393228811921
+        ],
+        [
+          "stamina",
+          0.000022173698700500156
+        ],
+        [
+          "sprint",
+          0.000003835151320343584
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "template",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999999999996
+        ],
+        [
+          "stamina",
+          0.000028125000000000003
+        ],
+        [
+          "sprint",
+          0.000028125000000000003
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "template",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000026725812221515152
+        ],
+        [
+          "stamina",
+          0.000025302282721143144
+        ],
+        [
+          "sprint",
+          0.000027921305682601094
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "template",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999999679025
+        ],
+        [
+          "stamina",
+          0.000028124999938112225
+        ],
+        [
+          "sprint",
+          0.000028124999999999552
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "mixed",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00167165655743976
+        ],
+        [
+          "stamina",
+          0.0016358557127135653
+        ],
+        [
+          "sprint",
+          0.0016891217545897854
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "mixed",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0005422129758627162
+        ],
+        [
+          "stamina",
+          0.0007774080069840127
+        ],
+        [
+          "sprint",
+          0.0002475122636312277
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "mixed",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035982752
+        ],
+        [
+          "stamina",
+          0.0008630678035982755
+        ],
+        [
+          "sprint",
+          0.0008630678035982752
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "mixed",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008506898215579126
+        ],
+        [
+          "stamina",
+          0.0008342723081009487
+        ],
+        [
+          "sprint",
+          0.0008617238640468444
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "mixed",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035974529
+        ],
+        [
+          "stamina",
+          0.0008630678034523513
+        ],
+        [
+          "sprint",
+          0.0008630678035982741
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "stamina",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0010333494963475384
+        ],
+        [
+          "stamina",
+          0.0009717083556169561
+        ],
+        [
+          "sprint",
+          0.0010863271177731487
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "stamina",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630683125518995
+        ],
+        [
+          "stamina",
+          0.0008630916575017225
+        ],
+        [
+          "sprint",
+          0.0008630663651499665
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "stamina",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035982758
+        ],
+        [
+          "stamina",
+          0.0008630678035982754
+        ],
+        [
+          "sprint",
+          0.0008630678035982764
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "stamina",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0006804469069265484
+        ],
+        [
+          "stamina",
+          0.0005738908554198869
+        ],
+        [
+          "sprint",
+          0.0008170984697756377
+        ]
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "stamina",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630677978638406
+        ],
+        [
+          "stamina",
+          0.0008630672175580094
+        ],
+        [
+          "sprint",
+          0.0008630678035833824
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "empty",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00003367401085245695
+        ],
+        [
+          "stamina",
+          0.00003166529603790852
+        ],
+        [
+          "sprint",
+          0.00003540040546060157
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "empty",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000005087862751019284
+        ],
+        [
+          "stamina",
+          0.00001501700094082676
+        ],
+        [
+          "sprint",
+          9.297311480077301e-7
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "empty",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028125000000000003
+        ],
+        [
+          "stamina",
+          0.00002812499999999999
+        ],
+        [
+          "sprint",
+          0.000028125000000000023
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "empty",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000022173888514345465
+        ],
+        [
+          "stamina",
+          0.000018701520600572853
+        ],
+        [
+          "sprint",
+          0.000026626986161027644
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "empty",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999813130575
+        ],
+        [
+          "stamina",
+          0.0000281249809025636
+        ],
+        [
+          "sprint",
+          0.00002812499999951467
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "template",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00004838250344997901
+        ],
+        [
+          "stamina",
+          0.000045464913190108964
+        ],
+        [
+          "sprint",
+          0.000050146484845806445
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "template",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000012018393228811921
+        ],
+        [
+          "stamina",
+          0.000022173698700500156
+        ],
+        [
+          "sprint",
+          0.000003835151320343584
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "template",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999999999996
+        ],
+        [
+          "stamina",
+          0.000028125000000000003
+        ],
+        [
+          "sprint",
+          0.000028125000000000003
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "template",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000026725812221515152
+        ],
+        [
+          "stamina",
+          0.000025302282721143144
+        ],
+        [
+          "sprint",
+          0.000027921305682601094
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "template",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999999679025
+        ],
+        [
+          "stamina",
+          0.000028124999938112225
+        ],
+        [
+          "sprint",
+          0.000028124999999999552
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "mixed",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00167165655743976
+        ],
+        [
+          "stamina",
+          0.0016358557127135653
+        ],
+        [
+          "sprint",
+          0.0016891217545897854
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "mixed",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0005422129758627162
+        ],
+        [
+          "stamina",
+          0.0007774080069840127
+        ],
+        [
+          "sprint",
+          0.0002475122636312277
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "mixed",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035982752
+        ],
+        [
+          "stamina",
+          0.0008630678035982755
+        ],
+        [
+          "sprint",
+          0.0008630678035982752
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "mixed",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008506898215579126
+        ],
+        [
+          "stamina",
+          0.0008342723081009487
+        ],
+        [
+          "sprint",
+          0.0008617238640468444
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "mixed",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035974529
+        ],
+        [
+          "stamina",
+          0.0008630678034523513
+        ],
+        [
+          "sprint",
+          0.0008630678035982741
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "stamina",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0010333494963475384
+        ],
+        [
+          "stamina",
+          0.0009717083556169561
+        ],
+        [
+          "sprint",
+          0.0010863271177731487
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "stamina",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630683125518995
+        ],
+        [
+          "stamina",
+          0.0008630916575017225
+        ],
+        [
+          "sprint",
+          0.0008630663651499665
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "stamina",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035982758
+        ],
+        [
+          "stamina",
+          0.0008630678035982754
+        ],
+        [
+          "sprint",
+          0.0008630678035982764
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "stamina",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0006804469069265484
+        ],
+        [
+          "stamina",
+          0.0005738908554198869
+        ],
+        [
+          "sprint",
+          0.0008170984697756377
+        ]
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "stamina",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630677978638406
+        ],
+        [
+          "stamina",
+          0.0008630672175580094
+        ],
+        [
+          "sprint",
+          0.0008630678035833824
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "empty",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00004207496481738319
+        ],
+        [
+          "stamina",
+          0.00003871164593853864
+        ],
+        [
+          "sprint",
+          0.000044425999108706225
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "empty",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000005087862751019284
+        ],
+        [
+          "stamina",
+          0.00001501700094082676
+        ],
+        [
+          "sprint",
+          9.297311480077301e-7
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "empty",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028125000000000003
+        ],
+        [
+          "stamina",
+          0.00002812499999999999
+        ],
+        [
+          "sprint",
+          0.000028125000000000023
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "empty",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00002350146343574227
+        ],
+        [
+          "stamina",
+          0.000020389117702268268
+        ],
+        [
+          "sprint",
+          0.00002711107201215065
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "empty",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999813130575
+        ],
+        [
+          "stamina",
+          0.0000281249809025636
+        ],
+        [
+          "sprint",
+          0.00002812499999951467
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "template",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00005399306243549032
+        ],
+        [
+          "stamina",
+          0.00005247300287646947
+        ],
+        [
+          "sprint",
+          0.00005473634524182472
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "template",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000012018393228811921
+        ],
+        [
+          "stamina",
+          0.000022173698700500156
+        ],
+        [
+          "sprint",
+          0.000003835151320343584
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "template",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999999999996
+        ],
+        [
+          "stamina",
+          0.000028125000000000003
+        ],
+        [
+          "sprint",
+          0.000028125000000000003
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "template",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000027157290872384807
+        ],
+        [
+          "stamina",
+          0.000026048517058565748
+        ],
+        [
+          "sprint",
+          0.000028003499411059354
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "template",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999999679025
+        ],
+        [
+          "stamina",
+          0.000028124999938112225
+        ],
+        [
+          "sprint",
+          0.000028124999999999552
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0017171006224665764
+        ],
+        [
+          "stamina",
+          0.0017077002276079142
+        ],
+        [
+          "sprint",
+          0.0017208461099713602
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0005422129758627162
+        ],
+        [
+          "stamina",
+          0.0007774080069840127
+        ],
+        [
+          "sprint",
+          0.0002475122636312277
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035982752
+        ],
+        [
+          "stamina",
+          0.0008630678035982755
+        ],
+        [
+          "sprint",
+          0.0008630678035982752
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008550491867903501
+        ],
+        [
+          "stamina",
+          0.0008432306554453853
+        ],
+        [
+          "sprint",
+          0.0008623148479512728
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035974529
+        ],
+        [
+          "stamina",
+          0.0008630678034523513
+        ],
+        [
+          "sprint",
+          0.0008630678035982741
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0012911483545391515
+        ],
+        [
+          "stamina",
+          0.0011879386749812856
+        ],
+        [
+          "sprint",
+          0.0013632942034990233
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630683125518995
+        ],
+        [
+          "stamina",
+          0.0008630916575017225
+        ],
+        [
+          "sprint",
+          0.0008630663651499665
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035982758
+        ],
+        [
+          "stamina",
+          0.0008630678035982754
+        ],
+        [
+          "sprint",
+          0.0008630678035982764
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0007211860063584451
+        ],
+        [
+          "stamina",
+          0.0006256779033814541
+        ],
+        [
+          "sprint",
+          0.0008319535422123217
+        ]
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630677978638406
+        ],
+        [
+          "stamina",
+          0.0008630672175580094
+        ],
+        [
+          "sprint",
+          0.0008630678035833824
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "empty",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00004207496481738319
+        ],
+        [
+          "stamina",
+          0.00003871164593853864
+        ],
+        [
+          "sprint",
+          0.000044425999108706225
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "empty",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000005087862751019284
+        ],
+        [
+          "stamina",
+          0.00001501700094082676
+        ],
+        [
+          "sprint",
+          9.297311480077301e-7
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "empty",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028125000000000003
+        ],
+        [
+          "stamina",
+          0.00002812499999999999
+        ],
+        [
+          "sprint",
+          0.000028125000000000023
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "empty",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00002350146343574227
+        ],
+        [
+          "stamina",
+          0.000020389117702268268
+        ],
+        [
+          "sprint",
+          0.00002711107201215065
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "empty",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999813130575
+        ],
+        [
+          "stamina",
+          0.0000281249809025636
+        ],
+        [
+          "sprint",
+          0.00002812499999951467
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "template",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.00005399306243549032
+        ],
+        [
+          "stamina",
+          0.00005247300287646947
+        ],
+        [
+          "sprint",
+          0.00005473634524182472
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "template",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.000012018393228811921
+        ],
+        [
+          "stamina",
+          0.000022173698700500156
+        ],
+        [
+          "sprint",
+          0.000003835151320343584
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "template",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999999999996
+        ],
+        [
+          "stamina",
+          0.000028125000000000003
+        ],
+        [
+          "sprint",
+          0.000028125000000000003
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "template",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000027157290872384807
+        ],
+        [
+          "stamina",
+          0.000026048517058565748
+        ],
+        [
+          "sprint",
+          0.000028003499411059354
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "template",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.000028124999999679025
+        ],
+        [
+          "stamina",
+          0.000028124999938112225
+        ],
+        [
+          "sprint",
+          0.000028124999999999552
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "mixed",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0017171006224665764
+        ],
+        [
+          "stamina",
+          0.0017077002276079142
+        ],
+        [
+          "sprint",
+          0.0017208461099713602
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "mixed",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0005422129758627162
+        ],
+        [
+          "stamina",
+          0.0007774080069840127
+        ],
+        [
+          "sprint",
+          0.0002475122636312277
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "mixed",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035982752
+        ],
+        [
+          "stamina",
+          0.0008630678035982755
+        ],
+        [
+          "sprint",
+          0.0008630678035982752
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "mixed",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008550491867903501
+        ],
+        [
+          "stamina",
+          0.0008432306554453853
+        ],
+        [
+          "sprint",
+          0.0008623148479512728
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "mixed",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035974529
+        ],
+        [
+          "stamina",
+          0.0008630678034523513
+        ],
+        [
+          "sprint",
+          0.0008630678035982741
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "stamina",
+      "blue": "speed",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0012911483545391515
+        ],
+        [
+          "stamina",
+          0.0011879386749812856
+        ],
+        [
+          "sprint",
+          0.0013632942034990233
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "stamina",
+      "blue": "stamina",
+      "expected": "stamina",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630683125518995
+        ],
+        [
+          "stamina",
+          0.0008630916575017225
+        ],
+        [
+          "sprint",
+          0.0008630663651499665
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "stamina",
+      "blue": "power",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630678035982758
+        ],
+        [
+          "stamina",
+          0.0008630678035982754
+        ],
+        [
+          "sprint",
+          0.0008630678035982764
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "stamina",
+      "blue": "guts",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0007211860063584451
+        ],
+        [
+          "stamina",
+          0.0006256779033814541
+        ],
+        [
+          "sprint",
+          0.0008319535422123217
+        ]
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "stamina",
+      "blue": "wit",
+      "expected": "sprint",
+      "probabilities": [
+        [
+          "balanced",
+          0.0008630677978638406
+        ],
+        [
+          "stamina",
+          0.0008630672175580094
+        ],
+        [
+          "sprint",
+          0.0008630678035833824
+        ]
+      ]
+    }
+  ],
+  "pink": [
+    {
+      "inv": "starter",
+      "legacy": "empty",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.000001064064321571174,
+          0.0000010913842603094543,
+          9.85937797219417e-7
+        ],
+        [
+          1.0640643215711742e-7,
+          1.0913842603094545e-7,
+          9.859377972194173e-8
+        ],
+        [
+          1.7025029145138788e-7,
+          1.7462148164951274e-7,
+          1.5775004755510678e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1.7025029145138788e-7,
+          1.7462148164951274e-7,
+          1.5775004755510678e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "template",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.000001106600980567824,
+          0.0000011065263627286182,
+          0.0000010701256922935756
+        ],
+        [
+          1.1066009805678244e-7,
+          1.1065263627286185e-7,
+          1.0701256922935759e-7
+        ],
+        [
+          1.770561568908519e-7,
+          1.7704421803657894e-7,
+          1.7122011076697213e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1.770561568908519e-7,
+          1.7704421803657894e-7,
+          1.7122011076697213e-7
+        ]
+      ],
+      "winners": [
+        "balanced",
+        "balanced",
+        "balanced",
+        "balanced",
+        "balanced"
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "mixed",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011239269828427035,
+          0.00011109194586072722,
+          0.00011136211050293456
+        ],
+        [
+          0.000011239269828427036,
+          0.000011109194586072724,
+          0.000011136211050293457
+        ],
+        [
+          0.000014985693104569379,
+          0.000014812259448096961,
+          0.000014848281400391273
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.000029971386209138758,
+          0.000029624518896193923,
+          0.000029696562800782545
+        ]
+      ],
+      "winners": [
+        "balanced",
+        "balanced",
+        "balanced",
+        "balanced",
+        "balanced"
+      ]
+    },
+    {
+      "inv": "starter",
+      "legacy": "stamina",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.0001055118882394724,
+          0.00010565021663800684,
+          0.00010555172020241163
+        ],
+        [
+          0.000010551188823947243,
+          0.000010565021663800687,
+          0.000010555172020241165
+        ],
+        [
+          0.000014068251765262985,
+          0.000014086695551734244,
+          0.000014073562693654882
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.00002813650353052597,
+          0.00002817339110346849,
+          0.000028147125387309764
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "empty",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.000003043740517933219,
+          0.000003254305097042209,
+          0.000002972157134495129
+        ],
+        [
+          3.0437405179332195e-7,
+          3.25430509704221e-7,
+          2.97215713449513e-7
+        ],
+        [
+          4.869984828693152e-7,
+          5.206888155267535e-7,
+          4.7554514151922076e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          4.869984828693152e-7,
+          5.206888155267535e-7,
+          4.7554514151922076e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "template",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.0000034927914701380736,
+          0.000003691968799804951,
+          0.0000033213009534133515
+        ],
+        [
+          3.492791470138074e-7,
+          3.6919687998049517e-7,
+          3.321300953413352e-7
+        ],
+        [
+          5.588466352220919e-7,
+          5.907150079687923e-7,
+          5.314081525461363e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          5.588466352220919e-7,
+          5.907150079687923e-7,
+          5.314081525461363e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "mixed",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011502318935611115,
+          0.00012023179853103311,
+          0.00010798338181013734
+        ],
+        [
+          0.000011502318935611117,
+          0.000012023179853103313,
+          0.000010798338181013736
+        ],
+        [
+          0.000015336425247481485,
+          0.00001603090647080441,
+          0.000014397784241351644
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.00003067285049496297,
+          0.00003206181294160882,
+          0.00002879556848270329
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "budget",
+      "legacy": "stamina",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011107627289035423,
+          0.00010992092778049675,
+          0.00011206958044680229
+        ],
+        [
+          0.000011107627289035425,
+          0.000010992092778049677,
+          0.00001120695804468023
+        ],
+        [
+          0.000014810169718713896,
+          0.000014656123704066232,
+          0.000014942610726240303
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.000029620339437427792,
+          0.000029312247408132464,
+          0.000029885221452480607
+        ]
+      ],
+      "winners": [
+        "sprint",
+        "sprint",
+        "sprint",
+        "sprint",
+        "sprint"
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "empty",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.000003043740517933219,
+          0.000003254305097042209,
+          0.000002972157134495129
+        ],
+        [
+          3.0437405179332195e-7,
+          3.25430509704221e-7,
+          2.97215713449513e-7
+        ],
+        [
+          4.869984828693152e-7,
+          5.206888155267535e-7,
+          4.7554514151922076e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          4.869984828693152e-7,
+          5.206888155267535e-7,
+          4.7554514151922076e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "template",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.0000034927914701380736,
+          0.000003691968799804951,
+          0.0000033213009534133515
+        ],
+        [
+          3.492791470138074e-7,
+          3.6919687998049517e-7,
+          3.321300953413352e-7
+        ],
+        [
+          5.588466352220919e-7,
+          5.907150079687923e-7,
+          5.314081525461363e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          5.588466352220919e-7,
+          5.907150079687923e-7,
+          5.314081525461363e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "mixed",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011502318935611115,
+          0.00012023179853103311,
+          0.00010798338181013734
+        ],
+        [
+          0.000011502318935611117,
+          0.000012023179853103313,
+          0.000010798338181013736
+        ],
+        [
+          0.000015336425247481485,
+          0.00001603090647080441,
+          0.000014397784241351644
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.00003067285049496297,
+          0.00003206181294160882,
+          0.00002879556848270329
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "mixed",
+      "legacy": "stamina",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011107627289035423,
+          0.00010992092778049675,
+          0.00011206958044680229
+        ],
+        [
+          0.000011107627289035425,
+          0.000010992092778049677,
+          0.00001120695804468023
+        ],
+        [
+          0.000014810169718713896,
+          0.000014656123704066232,
+          0.000014942610726240303
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.000029620339437427792,
+          0.000029312247408132464,
+          0.000029885221452480607
+        ]
+      ],
+      "winners": [
+        "sprint",
+        "sprint",
+        "sprint",
+        "sprint",
+        "sprint"
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "empty",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.0000032012584263613768,
+          0.000003386424173584559,
+          0.0000031413871751578415
+        ],
+        [
+          3.2012584263613773e-7,
+          3.386424173584559e-7,
+          3.1413871751578423e-7
+        ],
+        [
+          5.122013482178204e-7,
+          5.418278677735295e-7,
+          5.026219480252547e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          5.122013482178204e-7,
+          5.418278677735295e-7,
+          5.026219480252547e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "template",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.0000035980375971661066,
+          0.000003823415819769818,
+          0.0000034075679106512634
+        ],
+        [
+          3.5980375971661074e-7,
+          3.8234158197698187e-7,
+          3.407567910651264e-7
+        ],
+        [
+          5.756860155465772e-7,
+          6.11746531163171e-7,
+          5.452108657042022e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          5.756860155465772e-7,
+          6.11746531163171e-7,
+          5.452108657042022e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "mixed",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011587556080157348,
+          0.00012157917461144359,
+          0.00010857980010936334
+        ],
+        [
+          0.00001158755608015735,
+          0.000012157917461144361,
+          0.000010857980010936336
+        ],
+        [
+          0.00001545007477354313,
+          0.000016210556614859143,
+          0.000014477306681248444
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.00003090014954708626,
+          0.000032421113229718286,
+          0.00002895461336249689
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "upgraded",
+      "legacy": "stamina",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011591009914590921,
+          0.00011397537176852084,
+          0.00011726309754584879
+        ],
+        [
+          0.000011591009914590922,
+          0.000011397537176852085,
+          0.00001172630975458488
+        ],
+        [
+          0.000015454679886121226,
+          0.000015196716235802777,
+          0.000015635079672779837
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.00003090935977224245,
+          0.000030393432471605553,
+          0.00003127015934555967
+        ]
+      ],
+      "winners": [
+        "sprint",
+        "sprint",
+        "sprint",
+        "sprint",
+        "sprint"
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "empty",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.0000032012584263613768,
+          0.000003386424173584559,
+          0.0000031413871751578415
+        ],
+        [
+          3.2012584263613773e-7,
+          3.386424173584559e-7,
+          3.1413871751578423e-7
+        ],
+        [
+          5.122013482178204e-7,
+          5.418278677735295e-7,
+          5.026219480252547e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          5.122013482178204e-7,
+          5.418278677735295e-7,
+          5.026219480252547e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "template",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.0000035980375971661066,
+          0.000003823415819769818,
+          0.0000034075679106512634
+        ],
+        [
+          3.5980375971661074e-7,
+          3.8234158197698187e-7,
+          3.407567910651264e-7
+        ],
+        [
+          5.756860155465772e-7,
+          6.11746531163171e-7,
+          5.452108657042022e-7
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          5.756860155465772e-7,
+          6.11746531163171e-7,
+          5.452108657042022e-7
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "mixed",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011587556080157348,
+          0.00012157917461144359,
+          0.00010857980010936334
+        ],
+        [
+          0.00001158755608015735,
+          0.000012157917461144361,
+          0.000010857980010936336
+        ],
+        [
+          0.00001545007477354313,
+          0.000016210556614859143,
+          0.000014477306681248444
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.00003090014954708626,
+          0.000032421113229718286,
+          0.00002895461336249689
+        ]
+      ],
+      "winners": [
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina",
+        "stamina"
+      ]
+    },
+    {
+      "inv": "complete",
+      "legacy": "stamina",
+      "goals": [
+        [
+          {
+            "aptitude": "any",
+            "stars": 1
+          }
+        ],
+        [
+          {
+            "aptitude": "any",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          }
+        ],
+        [
+          {
+            "aptitude": "dirt",
+            "stars": 3
+          }
+        ],
+        [
+          {
+            "aptitude": "medium",
+            "stars": 2
+          },
+          {
+            "aptitude": "mile",
+            "stars": 2
+          }
+        ]
+      ],
+      "probabilities": [
+        [
+          0.00011591009914590921,
+          0.00011397537176852084,
+          0.00011726309754584879
+        ],
+        [
+          0.000011591009914590922,
+          0.000011397537176852085,
+          0.00001172630975458488
+        ],
+        [
+          0.000015454679886121226,
+          0.000015196716235802777,
+          0.000015635079672779837
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0.00003090935977224245,
+          0.000030393432471605553,
+          0.00003127015934555967
+        ]
+      ],
+      "winners": [
+        "sprint",
+        "sprint",
+        "sprint",
+        "sprint",
+        "sprint"
+      ]
+    }
+  ]
+}
