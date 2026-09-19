@@ -5,7 +5,7 @@ import type { Card } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { effectiveLb } from '../../model/run.ts';
 import { data, store, update, view } from '../context.ts';
-import { pinCard, setSetting, unpinCard } from '../actions.ts';
+import { pinCard, setSetting, unignoreCard, unpinCard } from '../actions.ts';
 import { COPY } from '../copy.ts';
 import { inputValue, isChecked, options, searchBox, selectValue } from '../fields.ts';
 import { capitalize, cardImg, cardThumb, cardUrl, pct, typeIcon } from '../format.ts';
@@ -25,10 +25,13 @@ function matches(): Card[] {
 }
 const lbOf = (card: Card) => effectiveLb(store.inventory, card, store.settings.defaultLb);
 
-function pinRow(id: number) {
+/** A pinned or ignored card: art, name, its limit break (or that it would be borrowed) and the button that removes it from the list. */
+function cardRow(id: number, action: 'unpin-card' | 'unignore-card') {
   const card = data.cardById.get(id); if (!card) return nothing;
   const lb = lbOf(card);
-  return html`<span class="chip pin-row">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} <span class="muted">${card.title}</span></a><span class="pin-lb">${lb == null ? html`<span class="tag borrow">borrow</span>${tip(COPY.run.borrowTip)}` : `LB${lb}`}</span><button data-action="unpin-card" data-id="${id}" aria-label="Unpin ${card.charName}" @click=${() => unpinCard(id)}>✕</button></span>`;
+  const label = action === 'unpin-card' ? COPY.cards.unpin(card.charName) : COPY.cards.unignore(card.charName);
+  const remove = action === 'unpin-card' ? unpinCard : unignoreCard;
+  return html`<span class="chip pin-row">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} <span class="muted">${card.title}</span></a><span class="pin-lb">${lb == null ? html`<span class="tag borrow">borrow</span>${action === 'unpin-card' ? tip(COPY.run.borrowTip) : nothing}` : `LB${lb}`}</span><button data-action=${action} data-id="${id}" aria-label=${label} @click=${() => remove(id)}>✕</button></span>`;
 }
 
 /** The range input stays mounted while dragged, so its live value is written to the output directly. */
@@ -41,7 +44,7 @@ function threshold() {
 
 export function renderRun(c: RunPlan) {
   const lhOptions = c.pool.filter((p) => LIGHT_HELLO_IDS.includes(p.card.id) && !c.unowned.has(p.card.id));
-  const pins = store.run.pinnedIds.length ? store.run.pinnedIds.map(pinRow) : html`<span class="muted small">${COPY.run.noPins}</span>`;
+  const pins = store.run.pinnedIds.length ? store.run.pinnedIds.map((id) => cardRow(id, 'unpin-card')) : html`<span class="muted small">${COPY.run.noPins}</span>`;
   return panel({ title: COPY.run.title, step: 4 }, html`
     <label class="row"><span class="row-k">${COPY.run.scenario}</span><span>Our Grand Concert</span></label>
     <label class="row"><span class="row-k">${COPY.run.focus}${tip(COPY.run.focusTip)}</span>
@@ -56,5 +59,7 @@ export function renderRun(c: RunPlan) {
     <div class="chips pin-list">${pins}</div>
     ${c.ownedPinIds.length > OWNED_SLOTS ? html`<div class="small muted">${COPY.run.tooManyPins(c.ownedPinIds.length)}</div>
       <label class="row"><span class="row-k">${COPY.run.borrowFromAll}</span><input type="checkbox" data-run="borrowFromAll" .checked=${live(store.run.borrowFromAll)} @change=${(e: Event) => update((s) => { s.run.borrowFromAll = isChecked(e); })} /></label>` : nothing}
-    ${!lhOptions.length ? html`<div class="small warn">${COPY.run.noLightHello}</div>` : nothing}`);
+    ${!lhOptions.length ? html`<div class="small warn">${COPY.run.noLightHello}</div>` : nothing}
+    ${store.run.ignoredIds.length ? html`${sub(COPY.run.ignored, { tip: COPY.run.ignoredTip })}
+      <div class="chips pin-list" data-ignore-list>${store.run.ignoredIds.map((id) => cardRow(id, 'unignore-card'))}</div>` : nothing}`);
 }

@@ -21,7 +21,7 @@ const DEFAULTS: SharedChoices = {
     goal: { blueStats: ['speed', 'stamina', 'power', 'guts', 'wit'], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] },
     targets: [], targetLineage: {}, parentSparks: [[null, null, null], [null, null, null]],
     pinkLineage: [null, null, null, null, null, null], aptOverrides: {}, pinnedIds: [], borrowFromAll: false,
-    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {},
+    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {}, ignoredIds: [],
   },
   settings: { focus: 'stamina', winThreshold: 0.8 },
 };
@@ -54,12 +54,12 @@ export function sharedChoices(state: AppState): SharedChoices {
     run: { traineeCardId: r.traineeCardId, traineeStars: r.traineeStars, goal: r.goal, targets: r.targets,
       targetLineage: r.targetLineage, parentSparks: r.parentSparks, pinkLineage: r.pinkLineage,
       aptOverrides: r.aptOverrides, pinnedIds: r.pinnedIds, borrowFromAll: r.borrowFromAll,
-      wishlistOrder: r.wishlistOrder, wishlistExcluded: r.wishlistExcluded, raceOverrides: r.raceOverrides },
+      wishlistOrder: r.wishlistOrder, wishlistExcluded: r.wishlistExcluded, raceOverrides: r.raceOverrides, ignoredIds: r.ignoredIds },
     settings: { focus: state.settings.focus, winThreshold: state.settings.winThreshold },
   });
 }
 
-// Format 3 slots are documented in docs/sharing.md. Numeric IDs are always the game IDs, never data indexes.
+// Format 4 slots are documented in docs/sharing.md. Numeric IDs are always the game IDs, never data indexes.
 function pack({ run: r, settings: s }: SharedChoices): unknown[] {
   return [r.traineeCardId, r.traineeStars,
     [r.goal.blueStats.reduce((mask, stat) => mask | 1 << STATS.indexOf(stat), 0), r.goal.blueStars,
@@ -74,13 +74,16 @@ function pack({ run: r, settings: s }: SharedChoices): unknown[] {
       const calendarId = id(Number(key));
       if (String(calendarId) !== key || typeof included !== 'boolean') invalid();
       return included ? calendarId : -calendarId;
-    })];
+    }),
+    r.ignoredIds];
 }
+/** How many top-level slots each positional format has. */
+const SLOTS: Record<number, number> = { 2: 14, 3: 15, 4: 16 };
 const PACKED_DEFAULTS = pack(DEFAULTS);
 
-function unpack(raw: unknown, version = 3): SharedChoices {
+function unpack(raw: unknown, version = 4): SharedChoices {
   const entries = list(raw);
-  if (entries.length > (version === 2 ? 14 : PACKED_DEFAULTS.length)) invalid();
+  if (entries.length > (SLOTS[version] ?? invalid())) invalid();
   const a = PACKED_DEFAULTS.map((fallback, i) => entries[i] === undefined || entries[i] === null ? structuredClone(fallback) : entries[i]);
   const goal = tuple(a[2], 3), mask = integer(goal[0], 0, 31);
   const pink = unique(list(goal[2]).map((v) => {
@@ -115,14 +118,16 @@ function unpack(raw: unknown, version = 3): SharedChoices {
   }), ([key]) => key);
   const threshold = a[13];
   if (typeof threshold !== 'number' || !Number.isFinite(threshold) || threshold < 0 || threshold > 1) invalid();
+  const pinnedIds = ids(a[8]), ignoredIds = ids(a[15]);
+  if (ignoredIds.some((id) => pinnedIds.includes(id))) invalid();
   return {
     run: {
       traineeCardId: a[0] === null ? null : id(a[0]), traineeStars: integer(a[1], 1, 5),
       goal: { blueStats: STATS.filter((_, i) => mask & 1 << i), blueStars: stars(goal[1]), pink }, targets,
       targetLineage: Object.fromEntries(lineage.map((l) => [l.id, l.value])), parentSparks, pinkLineage,
-      aptOverrides: Object.fromEntries(overrides.map((p) => [p.aptitude, p.grade])), pinnedIds: ids(a[8]),
+      aptOverrides: Object.fromEntries(overrides.map((p) => [p.aptitude, p.grade])), pinnedIds,
       ...(version === 2 ? {} : { raceOverrides: Object.fromEntries(races) }),
-      borrowFromAll: !!integer(a[9], 0, 1), wishlistOrder: ids(a[10]), wishlistExcluded: ids(a[11]),
+      borrowFromAll: !!integer(a[9], 0, 1), wishlistOrder: ids(a[10]), wishlistExcluded: ids(a[11]), ignoredIds,
     },
     settings: { focus: choice(a[12], FOCUSES), winThreshold: threshold as number },
   };
@@ -156,7 +161,7 @@ export async function encodeShare(choices: SharedChoices): Promise<string> {
   const bytes = new TextEncoder().encode(JSON.stringify(entries));
   if (bytes.length > MAX_JSON_BYTES) throw new ShareCodeError('size');
   const compressed = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
-  const code = compressed.length < bytes.length ? `3d${base64(compressed)}` : `3j${base64(bytes)}`;
+  const code = compressed.length < bytes.length ? `4d${base64(compressed)}` : `4j${base64(bytes)}`;
   if (code.length > MAX_CODE_LENGTH) throw new ShareCodeError('size');
   return code;
 }
@@ -166,7 +171,7 @@ export async function decodeShare(code: string): Promise<SharedChoices> {
   try {
     if (code.length > MAX_CODE_LENGTH) throw new ShareCodeError('size');
     if (!/^[0-9][dj][A-Za-z0-9_-]+$/.test(code)) invalid();
-    if (!['1', '2', '3'].includes(code[0]!)) throw new ShareCodeError('version');
+    if (!['1', '2', '3', '4'].includes(code[0]!)) throw new ShareCodeError('version');
     const bytes = Uint8Array.from(atob(code.slice(2).replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0));
     if (base64(bytes) !== code.slice(2)) invalid();
     const source = new Blob([bytes]).stream();

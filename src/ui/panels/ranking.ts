@@ -5,11 +5,12 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
-import { cardTargetChances, compareTargetChances, type TargetSparkChance } from '../../model/card-ranking.ts';
+import { cardTargetChances, compareTargetChances, rankingRows, type TargetSparkChance } from '../../model/card-ranking.ts';
 import { cardEffectCoverage } from '../../model/support-effects.ts';
 import { data, refresh, store, update, view } from '../context.ts';
-import { pinCard, unpinCard } from '../actions.ts';
+import { ignoreToggle, pinToggle } from '../card-toggles.ts';
 import { COPY } from '../copy.ts';
+import { deckOrder } from './deck.ts';
 import { basisLabel, basisTip, coverageFlag } from '../effect-coverage.ts';
 import { isChecked, lbSelect } from '../fields.ts';
 import { cardThumb, cardUrl, num, probability, skillName, typeIcon } from '../format.ts';
@@ -49,16 +50,13 @@ function targetChancesCell(cardId: number, targets: TargetSparkChance[]) {
   </td>`;
 }
 
-const PIN_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22.3126 10.1753L20.8984 11.5895L20.1913 10.8824L15.9486 15.125L15.2415 18.6606L13.8273 20.0748L9.58466 15.8321L4.63492 20.7819L3.2207 19.3677L8.17045 14.4179L3.92781 10.1753L5.34202 8.76107L8.87756 8.05396L13.1202 3.81132L12.4131 3.10422L13.8273 1.69L22.3126 10.1753Z"></path></svg>`;
-
 function row(c: RunPlan, x: CardScore, chances: TargetSparkChance[], focusMul: number[]) {
   const owned = !c.unowned.has(x.card.id);
-  const pinned = store.run.pinnedIds.includes(x.card.id);
-  const pinLabel = `${pinned ? 'Unpin' : 'Pin'} ${x.card.charName} [${x.card.title}]`;
-  return html`<tr class="${owned ? '' : 'dim'}">
+  const ignored = store.run.ignoredIds.includes(x.card.id);
+  return html`<tr class="${owned ? '' : 'dim'} ${ignored ? 'ignored' : ''}" data-ranking-row=${x.card.id}>
     <td>${cardThumb(x.card)}</td>
     <td><div class="ranking-card"><div class="ranking-card-name">${typeIcon(x.card)}<a class="card-link" href="${cardUrl(x.card)}" target="_blank" rel="noopener">${x.card.charName}</a>${c.trainee && c.trainee.charId === x.card.charId ? html` <span class="tag warn">${COPY.ranking.traineeCard}</span>` : nothing}<br/><span class="small muted">${x.card.title}</span></div>
-      <button type="button" class="ranking-pin ${pinned ? 'active' : ''}" data-action="toggle-card-pin" data-id="${x.card.id}" aria-label="${pinLabel}" aria-pressed="${pinned}" data-tip="${pinLabel}" @click=${() => pinned ? unpinCard(x.card.id) : pinCard(x.card.id)}>${PIN_ICON}</button>
+      ${pinToggle(x.card)}${ignoreToggle(x.card)}
     </div></td>
     <td>${lbSelect(c, x.card, x.lb)}</td>
     ${targetChancesCell(x.card.id, chances)}
@@ -74,7 +72,7 @@ export function renderRanking(c: RunPlan) {
   const chances = new Map(c.ranking.map((x) => [x.card.id, cardTargetChances(x, store.run.targets, c.ctx)]));
   // per-stat cells carry the training focus multipliers, like the Total column (their focus-weighted sum)
   const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
-  const rows = c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)).sort((a, b) =>
+  const rows = rankingRows(c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)), store.run.pinnedIds, deckOrder(c), (a, b) =>
     fn ? fn(b) - fn(a) : compareTargetChances(chances.get(a.card.id)!, chances.get(b.card.id)!));
   const th = (k: string, label: string | TemplateResult, cls = 'num') => html`<th class="${cls} sortable" data-sort="${k}" aria-sort=${sortKey === k ? 'descending' : 'none'} @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${sortKey === k ? ' ▾' : ''}</th>`;
   const totalTip = `What the card adds to the final stats at ${c.ctx.races} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. Target spark sorting uses Total when Required and Preferred chances both tie.`;

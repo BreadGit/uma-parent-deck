@@ -117,12 +117,41 @@ await page.fill('#card-search', 'kitasan');
 await page.waitForSelector('li[data-action="pin-card"]');
 await page.click('li[data-action="pin-card"]');
 await savedState('st.run.pinnedIds.includes(30028)');
-assert.equal(await page.locator('[data-action="toggle-card-pin"][data-id="30028"]').getAttribute('aria-pressed'), 'true');
+const rankingPin = page.locator('.ranking-table button[data-action="toggle-card-pin"][data-id="30028"]');
+const deckPin = page.locator('.deck .slot button[data-action="toggle-card-pin"][data-id="30028"]');
+assert.equal(await rankingPin.getAttribute('aria-pressed'), 'true');
+assert.equal(await deckPin.getAttribute('aria-pressed'), 'true', 'the deck slot carries the same pin button');
 assert.ok((await page.$$eval('.deck .slot .name', (n) => n.map((x) => x.textContent))).some((n) => n.includes('Kitasan Black')), 'pinned card should be in the deck');
-await page.click('.chip button[data-action="unpin-card"]:not([data-id="30052"])');
+// Pins take the leftmost slots in pin order and the top ranking rows, then the rest of the deck, whatever the sort.
+const runState = () => page.evaluate((key) => JSON.parse(localStorage.getItem(key)).run, STATE_KEY);
+const deckIds = () => page.$$eval('.deck .slot button[data-action="toggle-card-pin"]', (els) => els.map((el) => Number(el.dataset.id)));
+const rankingIds = () => page.$$eval('.ranking-table tbody tr', (rows) => rows.map((r) => Number(r.dataset.rankingRow)));
+const assertOrdering = async (where) => {
+  const st = await runState(), deck = await deckIds();
+  const pins = st.pinnedIds.filter((id) => deck.includes(id));
+  assert.deepEqual(deck.slice(0, pins.length), pins, `pinned cards take the first slots in pin order ${where}: ${deck}`);
+  const borrowed = await page.$$eval('.deck .slot', (slots) => slots.map((s) => !!s.querySelector('.tag.borrow')));
+  assert.deepEqual(borrowed.map(Number).join(''), '000001', `the friend's card is the last slot ${where}`);
+  const rows = await rankingIds();
+  const top = [...st.pinnedIds, ...deck.filter((id) => !st.pinnedIds.includes(id))].filter((id) => rows.includes(id));
+  assert.deepEqual(rows.slice(0, top.length), top, `pins then the deck lead the ranking ${where}`);
+  assert.ok(deck.every((id) => !st.ignoredIds.includes(id)), `no ignored card is in the deck ${where}`);
+};
+await assertOrdering('after pinning by search');
+assert.deepEqual((await deckIds()).slice(0, 2), [30052, 30028], 'Light Hello was pinned first, Kitasan second');
+await page.click('th[data-sort="sp"]');
+await savedState('st.ui.sortKey === "sp"');
+await assertOrdering('sorted by SP');
+await page.click('th[data-sort="score"]');
+await savedState('st.ui.sortKey === "score"');
+// The deck slot's button unpins too.
+await deckPin.click();
+await savedState('!st.run.pinnedIds.includes(30028)');
+assert.equal(await rankingPin.getAttribute('aria-pressed'), 'false');
+await assertFieldsMatchState(page, 'after unpinning from the deck slot');
 // Pin directly from the ranking, then unpin with the keyboard.
-const rankingPin = page.locator('button[data-action="toggle-card-pin"][data-id="30028"]');
-assert.equal(await page.locator('button[data-action="toggle-card-pin"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has a pin button');
+assert.equal(await page.locator('.ranking-table button[data-action="toggle-card-pin"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has a pin button');
+assert.equal(await page.locator('.ranking-table button[data-action="toggle-card-ignore"]').count(), await page.locator('.scroll tbody tr').count(), 'every ranked card has an ignore button');
 await rankingPin.click();
 await assertFieldsMatchState(page, 'with immediate deck estimates');
 assert.equal(await rankingPin.getAttribute('aria-pressed'), 'true');
@@ -133,6 +162,61 @@ await rankingPin.press('Enter');
 assert.equal(await rankingPin.getAttribute('aria-pressed'), 'false');
 assert.equal(await page.locator('.pin-list [data-action="unpin-card"][data-id="30028"]').count(), 0);
 await assertFieldsMatchState(page, 'after unpinning from the ranking');
+// Ignoring a deck card from the ranking: it leaves the deck, stays ranked but dimmed, and is listed in the Run panel.
+const victim = (await deckIds()).find((id) => id !== 30052);
+const rankingIgnore = page.locator(`.ranking-table button[data-action="toggle-card-ignore"][data-id="${victim}"]`);
+await rankingIgnore.click();
+await savedState(`st.run.ignoredIds.includes(${victim})`);
+assert.equal(await rankingIgnore.getAttribute('aria-pressed'), 'true');
+assert.ok(!(await deckIds()).includes(victim), 'an ignored card leaves the deck');
+assert.equal(await page.locator('.deck .slot').count(), 6, 'the deck refills around the ignored card');
+assert.equal(await page.locator(`.ranking-table tr.ignored[data-ranking-row="${victim}"]`).count(), 1, 'the ignored card stays ranked, dimmed');
+assert.equal(await page.locator(`[data-ignore-list] [data-action="unignore-card"][data-id="${victim}"]`).count(), 1, 'the Run panel lists the ignored card');
+await assertFieldsMatchState(page, 'after ignoring from the ranking');
+await assertOrdering('after ignoring a deck card');
+// Pinning an ignored card stops ignoring it, and ignoring a pinned card unpins it.
+await page.locator(`.ranking-table button[data-action="toggle-card-pin"][data-id="${victim}"]`).click();
+await savedState(`st.run.pinnedIds.includes(${victim}) && !st.run.ignoredIds.includes(${victim})`);
+assert.equal(await page.locator('[data-ignore-list]').count(), 0, 'an empty ignored list is not shown');
+assert.deepEqual((await deckIds()).slice(0, 2), [30052, victim], 'the new pin takes the second slot');
+await assertFieldsMatchState(page, 'after pinning an ignored card');
+await page.locator(`.deck .slot button[data-action="toggle-card-ignore"][data-id="${victim}"]`).click();
+await savedState(`!st.run.pinnedIds.includes(${victim}) && st.run.ignoredIds.includes(${victim})`);
+assert.ok(!(await deckIds()).includes(victim), 'ignoring from the deck slot removes the card');
+await assertFieldsMatchState(page, 'after ignoring from the deck slot');
+await page.click(`[data-ignore-list] [data-action="unignore-card"][data-id="${victim}"]`);
+await savedState('st.run.ignoredIds.length === 0');
+assert.equal(await rankingIgnore.getAttribute('aria-pressed'), 'false');
+await assertFieldsMatchState(page, 'after un-ignoring from the run panel');
+// Inventory edits one card at a time, as a user marks what they own, keep the pins in the first slots and on the top rows.
+await rankingPin.click();
+await savedState('st.run.pinnedIds.includes(30028)');
+{
+  const rankingLb = (id) => page.locator(`.ranking-table select[data-lb="${id}"]`);
+  await rankingLb(30028).selectOption('3');
+  await savedState('st.inventory["30028"] === 3');
+  await assertOrdering('after lowering a pinned card\'s LB');
+  const st = await runState(), deck = await deckIds();
+  const unpinned = deck.filter((id) => !st.pinnedIds.includes(id));
+  await rankingLb(unpinned[0]).selectOption('1');
+  await savedState(`st.inventory["${unpinned[0]}"] === 1`);
+  await assertOrdering('after lowering an unpinned deck card\'s LB');
+  await rankingLb(unpinned[1]).selectOption('none');
+  await savedState(`st.inventory["${unpinned[1]}"] === null`);
+  assert.ok(!(await deckIds()).includes(unpinned[1]), 'a card marked not owned leaves the deck');
+  await assertOrdering('after marking a deck card not owned');
+  const outside = (await rankingIds()).find((id) => !deck.includes(id) && !st.pinnedIds.includes(id));
+  await rankingLb(outside).selectOption('0');
+  await savedState(`st.inventory["${outside}"] === 0`);
+  await assertOrdering('after editing a card outside the deck');
+  await assertFieldsMatchState(page, 'after one-at-a-time inventory edits');
+  // choosing the default LB removes the entry rather than storing it
+  for (const id of [30028, unpinned[0], unpinned[1], outside]) await rankingLb(id).selectOption('4');
+  await savedState(`[30028, ${unpinned[0]}, ${unpinned[1]}, ${outside}].every((id) => st.inventory[id] === undefined)`);
+}
+await rankingPin.click();
+await savedState('!st.run.pinnedIds.includes(30028)');
+await assertOrdering('after the inventory edits are undone');
 // Prediction details builds its sections only once opened.
 assert.equal(await page.locator('[data-stat-breakdown]').count(), 0, 'the closed details panel renders no sections');
 await page.click('details[data-prediction-details] > summary');

@@ -67,6 +67,17 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 7 } }, data).run.traineeStars, 5);
 });
 
+test('ignored cards migrate as a numeric list, drop anything also pinned, and default to none', () => {
+  const current = { version: STATE_VERSION, run: { pinnedIds: [30052, 30028], ignoredIds: [30028, 30001, 'x', null, 30160] }, settings: {}, inventory: {}, ui: {} };
+  const s = migrate({ current }, data);
+  assert.deepEqual(s.run.pinnedIds, [30052, 30028]);
+  assert.deepEqual(s.run.ignoredIds, [30001, 30160], 'the pin wins when a card is in both lists; malformed entries are dropped');
+  assert.deepEqual(migrate({ current: { ...current, run: { ignoredIds: 'all' } } }, data).run.ignoredIds, []);
+  assert.deepEqual(migrate({ current: { version: 21, run: { pinnedIds: [30052] } } }, data).run.ignoredIds, [], 'saves from before the field ignore nothing');
+  assert.deepEqual(migrate({ state: { pinnedId: 30028, ignoredIds: [30001] } }, data).run.ignoredIds, [30001]);
+  assert.deepEqual(migrate({ current: s }, data), s, 'the current shape round-trips');
+});
+
 test('v4 saves (stars per parent) and v5 saves (start gains) become v6 sparks per uma; sides the screen cannot show or left at +0 become the default; an S aptitude override becomes A', () => {
   const v4 = { version: 4, run: { parentStars: [[3, 3, 0, 0, 0], [0, 0, 0, 0, 0]], aptOverrides: { turf: 'S', dirt: 'B' } }, settings: {}, inventory: {}, ui: { sortKey: 'score', theme: 'light' } };
   const s = migrate({ current: v4 }, data);

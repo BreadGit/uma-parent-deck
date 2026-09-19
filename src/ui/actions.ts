@@ -1,4 +1,4 @@
-// Actions more than one panel triggers: settings, pins, and opening the pink spark editor.
+// Actions more than one panel triggers: settings, pins, ignores, and opening the pink spark editor.
 import { parseSetting, SETTING_SPEC, type Settings } from '../settings.ts';
 import { refresh, store, update, view } from './context.ts';
 
@@ -28,12 +28,25 @@ export function setSetting(key: keyof Settings, raw: string | boolean): boolean 
   return true;
 }
 
+/** A card is pinned or ignored, never both: each choice clears the other. */
 export function pinCard(id: number) {
   view.cardQuery = '';
-  update((s) => { if (!s.run.pinnedIds.includes(id)) s.run.pinnedIds.push(id); });
+  update((s) => {
+    s.run.ignoredIds = s.run.ignoredIds.filter((x) => x !== id);
+    if (!s.run.pinnedIds.includes(id)) s.run.pinnedIds.push(id);
+  });
 }
 export function unpinCard(id: number) {
   update((s) => { s.run.pinnedIds = s.run.pinnedIds.filter((x) => x !== id); });
+}
+export function ignoreCard(id: number) {
+  update((s) => {
+    s.run.pinnedIds = s.run.pinnedIds.filter((x) => x !== id);
+    if (!s.run.ignoredIds.includes(id)) s.run.ignoredIds.push(id);
+  });
+}
+export function unignoreCard(id: number) {
+  update((s) => { s.run.ignoredIds = s.run.ignoredIds.filter((x) => x !== id); });
 }
 
 /** Open the pink spark editor in Legacy, showing the input column if it is hidden, and move focus to its first field. */

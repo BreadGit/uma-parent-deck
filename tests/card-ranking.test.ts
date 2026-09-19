@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
-import { cardTargetChances, compareTargetChances } from '../src/model/card-ranking.ts';
+import { cardTargetChances, compareTargetChances, deckDisplayOrder, rankingRows } from '../src/model/card-ranking.ts';
 import { makeCtx, scoreCard, traineeCoverage, type CardScore } from '../src/model/deck.ts';
 import { resolveTarget, type SkillSource } from '../src/model/sparks.ts';
 
@@ -74,4 +74,30 @@ test('preferred ranking weights halve per priority while individual probabilitie
     close(estimate.targets[0]!.probability, .1);
     close(estimate.preferred, .1 * weight!);
   }
+});
+
+test('deck slots show pins first in pin order, then the other owned cards best first, then the borrow', () => {
+  const entry = (id: number, value: number, borrowed = false) => ({ card: { id }, value, borrowed });
+  const byValue = (a: { value: number }, b: { value: number }) => b.value - a.value;
+  const deck = [entry(5, 9, true), entry(1, 1), entry(2, 5), entry(3, 3), entry(4, 4), entry(6, 2)];
+  assert.deepEqual(deckDisplayOrder(deck, [4, 2], byValue).map((e) => e.card.id), [4, 2, 3, 6, 1, 5]);
+  assert.deepEqual(deckDisplayOrder(deck, [2, 4, 99], byValue).map((e) => e.card.id), [2, 4, 3, 6, 1, 5], 'a pin outside the deck changes nothing');
+  assert.deepEqual(deckDisplayOrder(deck, [], byValue).map((e) => e.card.id), [2, 4, 3, 6, 1, 5]);
+  assert.deepEqual(deckDisplayOrder(deck, [5], byValue).map((e) => e.card.id), [2, 4, 3, 6, 1, 5], "the friend's card stays last even when pinned");
+  const ties = [entry(3, 1), entry(1, 1), entry(2, 1)];
+  assert.deepEqual(deckDisplayOrder(ties, [], byValue).map((e) => e.card.id), [1, 2, 3], 'equal cards fall back to the card id, so the order never depends on search order');
+  assert.deepEqual(deckDisplayOrder(ties.slice().reverse(), [], byValue).map((e) => e.card.id), [1, 2, 3]);
+});
+
+test('ranking rows keep every pin on top in pin order, then the rest of the deck as shown, whatever the sort', () => {
+  const entry = (id: number, value: number) => ({ card: { id }, value });
+  const byValue = (a: { value: number }, b: { value: number }) => b.value - a.value;
+  const ranking = [entry(1, 10), entry(2, 9), entry(3, 8), entry(4, 7), entry(5, 6), entry(6, 5), entry(7, 4)];
+  const deck = [{ card: { id: 6 } }, { card: { id: 2 } }, { card: { id: 7 } }];
+  assert.deepEqual(rankingRows(ranking, [7, 5], deck, byValue).map((e) => e.card.id), [7, 5, 6, 2, 1, 3, 4]);
+  assert.deepEqual(rankingRows(ranking, [], deck, byValue).map((e) => e.card.id), [6, 2, 7, 1, 3, 4, 5]);
+  assert.deepEqual(rankingRows(ranking, [4], [], byValue).map((e) => e.card.id), [4, 1, 2, 3, 5, 6, 7]);
+  assert.deepEqual(rankingRows(ranking, [99], deck, byValue).map((e) => e.card.id), [6, 2, 7, 1, 3, 4, 5], 'a pin hidden from the ranking leaves no gap');
+  const reversed = (a: { value: number }, b: { value: number }) => a.value - b.value;
+  assert.deepEqual(rankingRows(ranking, [7, 5], deck, reversed).map((e) => e.card.id), [7, 5, 6, 2, 4, 3, 1], 'only the rows below the deck follow the sort');
 });

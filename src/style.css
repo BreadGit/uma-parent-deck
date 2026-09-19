@@ -7,7 +7,7 @@
   --gold: #c9a227; --ok: #23804a; --warn: #b5651d; --danger: #c9302c; --danger-hover: #a52824;
   --soft: #eef2f8; --soft2: #fafbfd; --input: #fff; --shadow: rgba(20,30,50,.08); --backdrop: rgba(20,30,50,.45);
   --pill: #e6eaf0; --pill-warn-bg: #fbe6d1; --pill-warn: #8a4a08;
-  --tag-gold-bg: #fbf3d6; --tag-gold-fg: #8a6d0b; --tag-warn-bg: #fbe6d1; --tag-warn-fg: #8a4a08; --tag-ok-bg: #d8f0e1; --tag-ok-fg: #1d6b3d; --tag-pin-fg: #fff;
+  --tag-gold-bg: #fbf3d6; --tag-gold-fg: #8a6d0b; --tag-warn-bg: #fbe6d1; --tag-warn-fg: #8a4a08; --tag-ok-bg: #d8f0e1; --tag-ok-fg: #1d6b3d;
   --tag-borrow-bg: #c9366c; --tag-borrow-fg: #fff; --tag-goal-bg: #c9a227; --tag-goal-fg: #2b2306; --dirt: #a35a00; --parent1: #2a63d6; --parent2: #c9366c; --stat-head: #2e9e5b;
   --type-speed-bg: #dceeff; --type-speed-fg: #1a5fb4; --type-stamina-bg: #ffe1e1; --type-stamina-fg: #b42222; --type-power-bg: #ffedd3; --type-power-fg: #a35a00;
   --type-guts-bg: #ffe0ef; --type-guts-fg: #b02a6a; --type-wit-bg: #dff5e8; --type-wit-fg: #1f7a45; --type-pal-bg: #efe4ff; --type-pal-fg: #6b3fb4;
@@ -20,7 +20,7 @@
   --gold: #e0b93a; --ok: #4cc47f; --warn: #f0a050; --danger: #d9534f; --danger-hover: #c0392b;
   --soft: #2a313c; --soft2: #232932; --input: #161a20; --shadow: rgba(0,0,0,.5); --backdrop: rgba(0,0,0,.6);
   --pill: #2c333e; --pill-warn-bg: #3f2e1a; --pill-warn: #f2b56e;
-  --tag-gold-bg: #45391a; --tag-gold-fg: #f2d377; --tag-warn-bg: #4a3316; --tag-warn-fg: #ffc37a; --tag-ok-bg: #1f3a2b; --tag-ok-fg: #7fdca4; --tag-pin-fg: #14171c;
+  --tag-gold-bg: #45391a; --tag-gold-fg: #f2d377; --tag-warn-bg: #4a3316; --tag-warn-fg: #ffc37a; --tag-ok-bg: #1f3a2b; --tag-ok-fg: #7fdca4;
   --tag-borrow-bg: #ff6fa0; --tag-borrow-fg: #14171c; --tag-goal-bg: #e0b93a; --tag-goal-fg: #14171c; --dirt: #ffc37a; --parent1: #6b9cff; --parent2: #ff6fa0; --stat-head: #2e9e5b;
   --type-speed-bg: #1e3350; --type-speed-fg: #8fbcff; --type-stamina-bg: #4a2222; --type-stamina-fg: #ff9a9a; --type-power-bg: #4a3316; --type-power-fg: #ffc37a;
   --type-guts-bg: #4a2238; --type-guts-fg: #ff9ccc; --type-wit-bg: #1e3d2b; --type-wit-fg: #8ee0ad; --type-pal-bg: #352a4d; --type-pal-fg: #c9aeff;
@@ -191,8 +191,10 @@ table.coverage td.src-list { width: 55%; }
 .ranking-table th:first-child, .ranking-table th:nth-child(2) { z-index: 3; }
 .ranking-card { display: flex; align-items: center; gap: 10px; }
 .ranking-card-name { flex: 1; }
-.ranking-pin { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; width: 28px; height: 28px; padding: 4px; }
-.ranking-pin svg { width: 18px; height: 18px; }
+tr.ignored td:not(:first-child):not(:nth-child(2)) { opacity: .45; }
+/* the pin and ignore buttons a card carries, in the ranking row and at the top of a deck slot */
+.card-toggle { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; width: 28px; height: 28px; padding: 4px; }
+.card-toggle svg { width: 18px; height: 18px; }
 .basis-label { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; white-space: nowrap; }
 .estimate-limitations p { margin: 6px 0; }
 .effect-coverage { margin: 8px 0; padding-left: 18px; }
@@ -214,7 +216,6 @@ table.coverage td.src-list { width: 55%; }
 .tag.gold { --tag-bg: var(--tag-gold-bg); --tag-fg: var(--tag-gold-fg); }
 .tag.warn { --tag-bg: var(--tag-warn-bg); --tag-fg: var(--tag-warn-fg); }
 .tag.ok { --tag-bg: var(--tag-ok-bg); --tag-fg: var(--tag-ok-fg); }
-.tag.pin { --tag-bg: var(--accent); --tag-fg: var(--tag-pin-fg); vertical-align: middle; }
 .tag.borrow { --tag-bg: var(--tag-borrow-bg); --tag-fg: var(--tag-borrow-fg); }
 .tag.goal { --tag-bg: var(--tag-goal-bg); --tag-fg: var(--tag-goal-fg); font-weight: 600; }
 .tag.type-speed { --tag-bg: var(--type-speed-bg); --tag-fg: var(--type-speed-fg); }
@@ -337,8 +338,8 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .deck { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
 .deck .slot { position: relative; min-width: 0; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; background: var(--soft2); }
 .deck .slot img { width: 72px; height: 72px; border-radius: var(--radius); }
-.deck .slot .slot-top { height: 18px; text-align: right; margin-bottom: 6px; }
-.deck .slot .slot-top .tag { margin: 0; }
+.deck .slot .slot-top { display: flex; align-items: center; gap: 4px; height: 28px; margin-bottom: 6px; }
+.deck .slot .slot-top .tag { margin: 0 0 0 auto; }
 .deck .slot .name { font-size: var(--fs-sm); margin-top: 4px; min-height: 32px; }
 .deck .slot .name .type-icon { width: 16px; height: 16px; margin-right: 3px; }
 .deck .slot .name .title { display: block; }

@@ -238,7 +238,8 @@ test('phone ranking reveals controls and spark chances when scrolled sideways', 
   saved.run.targets = [{ id: 200352, role: 'preferred', stars: 2, priority: 0 }];
   const page = await editor(t, saved);
   await page.setViewportSize({ width: 390, height: 844 });
-  const row = page.locator('.ranking-table tbody tr').first();
+  // the pinned Light Hello leads the ranking without a chance at this target, so take the first row that has one
+  const row = page.locator('.ranking-table tbody tr').filter({ has: page.locator('[data-target-spark]') }).first();
   assert.ok(await row.locator('[data-target-spark]').count(), 'the row has a spark chance to read');
   const lb = row.locator('[data-lb]');
   const id = await lb.getAttribute('data-lb');
@@ -579,7 +580,7 @@ test('ranking pins persist and an unowned pin requests a borrowed card', async (
   saved.inventory['30028'] = null;
   saved.ui.showUnowned = true;
   const page = await editor(t, saved);
-  const button = page.locator('button[data-action="toggle-card-pin"][data-id="30028"]');
+  const button = page.locator('.ranking-table button[data-action="toggle-card-pin"][data-id="30028"]');
   await button.click();
   assert.equal(await button.getAttribute('aria-pressed'), 'true');
   assert.ok((await state(page)).run.pinnedIds.includes(30028));
@@ -1787,7 +1788,7 @@ test('share URL navigation rejects bad input atomically without sharing controls
   assert.equal(await page.locator('[data-share-controls], [data-share], [data-section="share"]').count(), 0);
   assert.equal(await page.getByText('Share run', { exact: true }).count(), 0);
   const before = await state(page);
-  for (const code of ['2dinvalid', '4jW10']) {
+  for (const code of ['2dinvalid', '5jW10']) {
     await navigateShare(page, shareUrl(url, code));
     await page.waitForSelector('[data-dialog]');
     assert.deepEqual(await state(page), before);
@@ -1860,11 +1861,11 @@ test('slow share compression cannot overwrite a newer edit', async (t) => {
 test('invalid startup shares keep the saved run and a valid URL recovers', async (t) => {
   const page = await editor(t, shareFixture());
   const before = await state(page);
-  await page.goto(shareUrl(url, '4jW10'));
+  await page.goto(shareUrl(url, '5jW10'));
   await page.waitForSelector('#target-search-required');
   await page.waitForSelector('[data-dialog]');
   assert.deepEqual(await state(page), before);
-  assert.equal(new URL(page.url()).searchParams.get('run'), '4jW10');
+  assert.equal(new URL(page.url()).searchParams.get('run'), '5jW10');
   await page.click('[data-dialog-confirm]');
   await page.goto(shareUrl(url, '2jW10'));
   await page.waitForSelector('#trainee-search');

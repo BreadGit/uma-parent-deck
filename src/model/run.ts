@@ -34,6 +34,7 @@ export interface RunInput {
   raceOverrides: Record<string, boolean>;  // calendar id -> forced in (true) or out (false)
   pinnedIds: number[];                     // pinned support cards: owned ones shortlist the owned slots, unowned ones ask for the friend's slot
   borrowFromAll: boolean;                  // with six or more owned pins, borrow the best card overall rather than the best leftover pin
+  ignoredIds: number[];                    // cards excluded from this run: never suggested for an owned slot or the friend's slot
   parentSparks: ParentSparks[];            // [parent 1, parent 2], the blue spark each of the side's three umas carries
 }
 
@@ -58,6 +59,7 @@ export interface RunPlan {
   unowned: Set<number>;                    // card ids marked not owned
   pinnedIds: number[];                     // pins that exist in the data
   ownedPinIds: number[];                   // the pins that are in the inventory
+  ignoredIds: number[];                    // ignored cards that exist in the data
   existing: Existing;                      // what the trainee and lineage already cover
   ranking: CardScore[];
   deckResult: DeckResult;
@@ -140,15 +142,25 @@ export function applyUserOrder(cands: WishlistEntry[], order: number[], excluded
   return cands.filter((w) => !excluded.includes(w.key)).slice().sort((a, b) => index(a) - index(b) || (b.weight - a.weight));
 }
 
-/** Validate restored results with the same ownership, borrow and pin rules used by search. */
+/** The cards search may choose: owned cards at their LB, any card at the borrowed LB, and the pins among them. Ignored cards are in neither pool. */
+function selectablePools(input: RunInput, settings: Settings, inventory: Inventory, data: Data) {
+  const { pool, unowned } = cardPool(data, inventory, settings);
+  const ignoredIds = input.ignoredIds.filter((id) => data.cardById.has(id));
+  const ignored = new Set(ignoredIds);
+  const deckPool = pool.filter((p) => !unowned.has(p.card.id) && !ignored.has(p.card.id));
+  // Any Global card can be borrowed from a friend, assumed at the borrowed limit break.
+  const borrowPool = data.cards.filter((card) => !ignored.has(card.id)).map((card) => ({ card, lb: BORROWED_LB }));
+  const pinnedIds = input.pinnedIds.filter((id) => data.cardById.has(id) && !ignored.has(id));
+  return { pool, unowned, ignoredIds, deckPool, borrowPool, pinnedIds };
+}
+
+/** Validate restored results with the same ownership, borrow, pin and ignore rules used by search. */
 export function isLegalRunSelection(selection: DeckSelection, input: RunInput, settings: Settings, inventory: Inventory, data: Data): boolean {
   if (!input.traineeCardId || !input.goal.blueStats.length) return false;
   const trainee = data.charByCardId.get(input.traineeCardId);
   if (!trainee || selection.some((e) => !data.cardById.has(e.id))) return false;
-  const { pool, unowned } = cardPool(data, inventory, settings);
-  const constraints = goalDeckConstraints({ owned: pool.filter((e) => !unowned.has(e.card.id)),
-    borrows: data.cards.map((card) => ({ card, lb: BORROWED_LB })),
-    pinnedIds: input.pinnedIds.filter((id) => data.cardById.has(id)), borrowFromAll: input.borrowFromAll, traineeId: trainee.charId });
+  const { deckPool, borrowPool, pinnedIds } = selectablePools(input, settings, inventory, data);
+  const constraints = goalDeckConstraints({ owned: deckPool, borrows: borrowPool, pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId });
   return !!constraints?.legal(selection.map((e) => ({ ...e, card: data.cardById.get(e.id)! })));
 }
 
@@ -252,12 +264,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const baseCtx: Ctx = { data, settings, races: sum.count + (SCENARIO_FINALE_FANS[settings.scenarioId]?.length ?? 0), totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage, priority: [], fansBefore };
   baseCtx.sources = prepareRunSources(baseCtx);
   const preparedPrediction = preparePrediction(input, baseCtx);
-  const { pool, unowned } = cardPool(data, inventory, settings);
-  const deckPool = pool.filter((p) => !unowned.has(p.card.id));
-  const pinnedIds = input.pinnedIds.filter((id) => data.cardById.has(id));
+  const { pool, unowned, ignoredIds, deckPool, borrowPool, pinnedIds } = selectablePools(input, settings, inventory, data);
   const ownedPinIds = pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
-  // Any Global card can be borrowed from a friend, assumed at the borrowed limit break.
-  const borrowPool = data.cards.map((card) => ({ card, lb: BORROWED_LB }));
   const build = { pinnedIds, borrowPool, borrowFromAll: input.borrowFromAll, size: DECK_SIZE };
   const goal = goalWithTargets(input.goal, activeTargets);
   const required = new Set(goal.required.map((r) => r.id));
@@ -342,7 +350,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   } else deckResult.steps = retained ? ['Kept the displayed cards and updated their estimates for your current inputs.'] : initial.steps;
   const spCost = targetSpCost(targets, deckResult.coverage);
   return {
-    search, priorityIssues, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, existing, ranking, deckResult, ...prediction, spCost,
+    search, priorityIssues, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, ignoredIds, existing, ranking, deckResult, ...prediction, spCost,
     wl: ordered.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: ordered.slice(PRIORITIZED_SKILLS_MAX), wlExcluded: excluded,
   };
 }

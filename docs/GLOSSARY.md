@@ -59,7 +59,8 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   and other cards. Star quality assumes rank SS on every run. Required targets use their selected
   minimum stars, and Preferred targets count at any star level. These are not changes to the suggested deck's goal
   estimate. Cards sort by the sum of Required chances, then priority-weighted Preferred chances, then Total stat gain;
-  sums are not displayed. Pins follow the selected sort. Only positive chances appear, with Required
+  sums are not displayed. Pinned cards take the top rows in pin order, then the rest of the suggested deck
+  in the order the deck shows it; the selected sort orders the rows below. Only positive chances appear, with Required
   targets first and no role labels. Four targets are initially visible per card; "+N more" expands the rest in the row.
 - **Coverage**: which target hints the run can obtain and through which sources. Spark chance assumes the
   player buys the gold form when available, otherwise a released ◎ upgrade if that family has one, otherwise the base skill.
@@ -72,7 +73,11 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
 - **Pinned card**: a card requested for the deck. Search maximizes the number of compatible pins
   within five owned slots and one borrowed slot. Owned pins take priority for owned slots when pin
   counts tie. A pin not in the inventory asks for the borrowed slot at LB4. Borrow from all controls
-  whether leftover owned pins constrain that slot. **Inventory**: your cards' limit breaks; unmarked cards count as owned at the
+  whether leftover owned pins constrain that slot. Pins fill the deck's first slots in pin order; the other
+  owned cards follow, best target chances first, and the friend's card is last.
+- **Ignored card**: a card excluded from this run. Search never suggests it for an owned slot or the
+  friend's slot. It stays in the ranking, dimmed, so it can be un-ignored there. A card is pinned or
+  ignored, never both: each choice clears the other. **Inventory**: your cards' limit breaks; unmarked cards count as owned at the
   default LB.
 - **Observed / adjusted / model** (basis): a card's stat contribution uses a qualifying observation at
   the selected limit break, an observation shifted by the model's limit-break difference, or the fitted

@@ -23,7 +23,7 @@ const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck
 export const DEFAULT_RUN: RunInput = {
   goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(),
   targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
-  aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [defaultParentSparks(), defaultParentSparks()],
+  aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], parentSparks: [defaultParentSparks(), defaultParentSparks()],
 };
 export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system', showUnowned: true, inputsHidden: false };
 
@@ -62,6 +62,8 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   // pins: a single pinnedId (v1) became pinnedIds (v2)
   if (Array.isArray(raw.pinnedIds)) run.pinnedIds = numList(raw.pinnedIds);
   else if (typeof raw.pinnedId === 'number') run.pinnedIds = [raw.pinnedId];
+  // ignored cards: a card is pinned or ignored, never both; the pin wins
+  if (Array.isArray(raw.ignoredIds)) run.ignoredIds = numList(raw.ignoredIds).filter((id) => !run.pinnedIds.includes(id));
   // lineage: {n, stars} (v1) became per-side counts and star totals {k1, k2, p1, p2} (v2)
   run.targetLineage = {};
   if (isPlainObject(raw.targetLineage)) for (const [k, v] of Object.entries(raw.targetLineage)) {

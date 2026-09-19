@@ -16,7 +16,7 @@ const empty: SharedChoices = {
     goal: { blueStats: ['speed', 'stamina', 'power', 'guts', 'wit'], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] },
     targets: [], targetLineage: {}, parentSparks: [[null, null, null], [null, null, null]],
     pinkLineage: [null, null, null, null, null, null], aptOverrides: {}, pinnedIds: [], borrowFromAll: false,
-    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {},
+    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {}, ignoredIds: [],
   },
   settings: { focus: 'stamina', winThreshold: 0.8 },
 };
@@ -29,7 +29,7 @@ const populated: SharedChoices = {
     parentSparks: [[{ stat: 'speed', stars: 3 }, null, { stat: 'power', stars: 2 }], [null, null, null]],
     pinkLineage: [{ aptitude: 'mile', stars: 3, inferred: true }, null, null, null, null, null],
     aptOverrides: { mile: 'A' }, pinnedIds: [30160], borrowFromAll: true,
-    wishlistOrder: [201601, 200472], wishlistExcluded: [200012], raceOverrides: {},
+    wishlistOrder: [201601, 200472], wishlistExcluded: [200012], raceOverrides: {}, ignoredIds: [],
   },
   settings: { focus: 'sprint', winThreshold: 0.65 },
 };
@@ -165,7 +165,7 @@ test('malformed codes fail before any choices can be applied', async () => {
   for (const code of ['', 'garbage', '2dinvalid', '2jW10=', '2jW11', prototype.slice(0, -3), ...badPayloads.map(plain)]) {
     await assert.rejects(decodeShare(code), ShareCodeError, code.slice(0, 80));
   }
-  await assert.rejects(decodeShare('4jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
+  await assert.rejects(decodeShare('5jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
   await assert.rejects(decodeShare(`1j${Buffer.from('[21]').toString('base64url')}`), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
 });
 
@@ -182,11 +182,11 @@ test('share URLs preserve unrelated URL parameters and fragments', () => {
   assert.equal(shareUrl(url, null), 'https://example.com/planner/?theme=dark#goal');
 });
 
-test('format 3 stores signed calendar IDs and replaces the whole override set', async () => {
+test('format 4 stores signed calendar IDs and replaces the whole override set', async () => {
   const choices = structuredClone(populated);
   choices.run.raceOverrides = { 624: true, 623: false, 999999: false };
   const code = await encodeShare(choices);
-  assert.equal(code[0], '3');
+  assert.equal(code[0], '4');
   assert.deepEqual(await decodeShare(code), choices);
   const literal = '3j' + Buffer.from(JSON.stringify([...Array(14).fill(null), [-623, 624, -999999]])).toString('base64url');
   assert.deepEqual((await decodeShare(literal)).run.raceOverrides, choices.run.raceOverrides);
@@ -202,6 +202,27 @@ test('format 3 stores signed calendar IDs and replaces the whole override set', 
   const reverse = structuredClone(choices);
   reverse.run.raceOverrides = { 999999: false, 623: false, 624: true };
   assert.equal(await encodeShare(reverse), code);
+});
+
+test('format 4 adds ignored cards in slot 15; older codes and formats leave nothing ignored', async () => {
+  const choices = structuredClone(populated);
+  choices.run.ignoredIds = [30028, 30001];
+  const code = await encodeShare(choices);
+  assert.equal(code[0], '4');
+  assert.deepEqual(await decodeShare(code), choices);
+  assert.equal(await encodeShare(populated), (await encodeShare(populated)).replace(/^3/, '4'), 'no ignores: the trailing slot is omitted');
+  const literal = (version: string, slots: unknown[]) => `${version}j` + Buffer.from(JSON.stringify(slots)).toString('base64url');
+  assert.deepEqual((await decodeShare(literal('4', [...Array(15).fill(null), [30028]]))).run.ignoredIds, [30028]);
+  assert.deepEqual((await decodeShare(literal('4', [...Array(15).fill(null)]))).run.ignoredIds, []);
+  assert.deepEqual((await decodeShare(literal('3', [...Array(15).fill(null)]))).run.ignoredIds, []);
+  await assert.rejects(decodeShare(literal('3', [...Array(15).fill(null), [30028]])), ShareCodeError, 'format 3 has no slot 15');
+  await assert.rejects(decodeShare(literal('4', [...Array(16).fill(null), 1])), ShareCodeError, 'format 4 ends at slot 15');
+  for (const ignored of [[0], [1.5], [30028, 30028], ['30028'], {}]) await assert.rejects(decodeShare(literal('4', [...Array(15).fill(null), ignored])), ShareCodeError);
+  await assert.rejects(decodeShare(literal('4', [...Array(8).fill(null), [30028], ...Array(6).fill(null), [30028]])), ShareCodeError, 'a card cannot be pinned and ignored');
+  const local = defaultState(data);
+  local.run.ignoredIds = [30001];
+  applySharedChoices(local, await decodeShare('3jW10'));
+  assert.deepEqual(local.run.ignoredIds, [], 'an older link replaces the ignored cards like every other choice');
 });
 
 test('schedule overrides reject ambiguous IDs and invalid flags', async () => {

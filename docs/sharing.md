@@ -3,7 +3,7 @@
 A share is a snapshot of panels 1–4, the user's prioritized skill order and exclusions, and manual
 G1 schedule overrides.
 It contains the trainee, parent goal, targets and their lineage, blue and pink legacy sparks,
-aptitude overrides, pinned cards, borrowing choice, training focus and win threshold.
+aptitude overrides, pinned and ignored cards, borrowing choice, training focus and win threshold.
 It excludes inventory, advanced settings, theme, transient UI state and cached
 recommendations. It preserves choices rather than a particular calculated result.
 
@@ -31,7 +31,8 @@ DEFLATE of that JSON. The remaining characters are unpadded base64url. The encod
 byte representation is smaller. Both incoming codes and decompressed JSON have size limits to bound
 loading work.
 
-Format 3 extends format 2 with slot 14. Formats 2 and 3 use these positional slots.
+Format 3 extends format 2 with slot 14, and format 4 extends format 3 with slot 15. Formats 2, 3 and 4
+use these positional slots; a format's decoder rejects slots past its last.
 A null or omitted top-level slot has the fixed format default;
 trailing default slots are omitted. Nested tuples have fixed lengths. Empty lists differ from default
 values wherever a default is nonempty.
@@ -52,7 +53,8 @@ values wherever a default is nonempty.
 | 11 | Prioritized exclusions | Game skill IDs in user order |
 | 12 | Training focus | Fixed focus index |
 | 13 | Win threshold | Number 0–1 |
-| 14 | Schedule overrides, format 3 only | Signed calendar IDs; positive forces in, negative forces out |
+| 14 | Schedule overrides, formats 3 and 4 | Signed calendar IDs; positive forces in, negative forces out |
+| 15 | Ignored support cards, format 4 only | Game card IDs in user order; none may also be pinned |
 
 The fixed stat order is speed, stamina, power, guts, wit. The fixed aptitude order is turf, dirt,
 sprint, mile, medium, long, front, pace, late, end. Pink goals reserve index 0 for any aptitude;
@@ -63,9 +65,10 @@ The flag values are 0 for false and 1 for true. These indexes must never come fr
 The literal defaults in `src/share.ts` are part of the format contract. They must not follow changes
 to application defaults. Format 1 is the original prototype's named-object payload with a leading
 saved-state version of 20. Its decoder retains that payload's defaults and does not check the current
-saved-state version. New shares always use format 3.
+saved-state version. New shares always use format 4.
 
-Format 3 defaults schedule overrides to an empty list, which restores automatic scheduling.
+Format 4 defaults ignored cards to an empty list, as every older format does on decode: a share replaces
+the ignored cards like the pinned cards. Format 3 defaults schedule overrides to an empty list, which restores automatic scheduling.
 Formats 1 and 2 omit that field on decode, so importing them preserves the receiving device's
 overrides. Calendar IDs must be canonical positive safe integers, independent of dataset row order.
 Each ID appears once; conflicting signs are invalid. Unknown IDs survive loading and data refreshes.

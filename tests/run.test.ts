@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
-import { applyUserOrder, derivePriority, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
+import { applyUserOrder, derivePriority, isLegalRunSelection, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankEstimate, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
@@ -17,7 +17,7 @@ const data = loadData();
 const settings = { ...DEFAULT_SETTINGS };
 const byName = (n: string) => must(data.skills.find((s) => s.name === n && !s.unreleasedEn), `released skill ${n}`);
 const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);
-const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, parentSparks: [[null, null, null], [null, null, null]] };
+const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], parentSparks: [[null, null, null], [null, null, null]] };
 const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight });
 
 test('star tables: every listed table is used as is; only a missing one interpolates, and counts outside the range clamp', () => {
@@ -204,6 +204,30 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data, { budget: 8 });
   assert.ok(!unowned.deckResult.deck.some((d) => d.card.id === 30052 && !d.borrowed), 'an unowned pin is skipped');
   assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking: the model retains unowned cards for the UI visibility filter');
+});
+
+test('ignored cards are never suggested: not for an owned slot, not as the borrow, not even when pinned', () => {
+  const input: RunInput = { ...structuredClone(empty), traineeCardId: sw.cardId, targets: [{ id: 200352, role: 'preferred', stars: 2, priority: 0 }] };
+  const base = planRun(input, settings, {}, data, { search: false });
+  const owned = must(base.deckResult.deck.find((e) => !e.borrowed), 'an owned deck card');
+  const borrowed = must(base.deckResult.deck.find((e) => e.borrowed), 'the borrowed deck card');
+  const ignoredIds = [owned.card.id, borrowed.card.id];
+  const without = planRun({ ...input, ignoredIds }, settings, {}, data, { search: false });
+  assert.deepEqual(without.ignoredIds, ignoredIds);
+  assert.ok(without.deckResult.deck.every((e) => !ignoredIds.includes(e.card.id)), 'both ignored cards leave the deck');
+  assert.equal(without.deckResult.deck.length, base.deckResult.deck.length, 'the deck is refilled');
+  assert.ok(without.ranking.some((r) => r.card.id === owned.card.id), 'an ignored card is still ranked, so it can be un-ignored there');
+  const pinnedToo = planRun({ ...input, ignoredIds, pinnedIds: [...input.pinnedIds, owned.card.id] }, settings, {}, data, { search: false });
+  assert.ok(!pinnedToo.deckResult.deck.some((e) => e.card.id === owned.card.id), 'ignoring wins over a stale pin');
+  assert.ok(!pinnedToo.pinnedIds.includes(owned.card.id) && !pinnedToo.deckResult.steps.some((s) => s.includes('pinned but not chosen')), 'an ignored pin is not reported as a pin the search dropped');
+  const previous = base.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
+  const retained = planRun({ ...input, ignoredIds: [owned.card.id] }, settings, {}, data, { previous, search: false });
+  assert.ok(!retained.deckResult.deck.some((e) => e.card.id === owned.card.id), 'a retained deck cannot keep an ignored card');
+  const goalInput: RunInput = { ...input, goal: { ...input.goal, blueStats: ['speed'] } };
+  assert.equal(isLegalRunSelection(previous, goalInput, settings, {}, data), true);
+  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [owned.card.id] }, settings, {}, data), false, 'a saved recommendation with an ignored card is discarded');
+  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [borrowed.card.id] }, settings, {}, data), false, 'the borrow cannot be an ignored card either');
+  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [99999999] }, settings, {}, data), true, 'an ignored id missing from the data changes nothing');
 });
 
 test('retained decks update estimates and limit breaks, but cannot bypass ownership, pins or trainee exclusion', () => {
