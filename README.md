@@ -21,8 +21,10 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 - Warnings gathers everything that limits or changes the results: missing goal inputs, pink sparks worth
   entering, a zero estimate, a search that could not complete every requirement, a required skill removed
   from the prioritized list, and choice conflicts, where two wanted skills compete for one event option.
-  Prediction details holds the reasoning behind the numbers: what limits the goal estimate and its
-  per-spark breakdown, where the stats come from, Target coverage, and how the deck was built.
+  Prediction details is for checking the tool's work: it opens on request, each section leads with its
+  numbers (what limits the goal estimate and its per-spark breakdown, where the stats come from, Target
+  coverage, how the deck was built), and the method behind each sits in a "How …" disclosure at the end
+  of the section.
 - Every chance is formatted the same way: one decimal above 1%, more below, so a card's own spark chance
   in Card ranking and the deck's spark chance in Target coverage (inside Prediction details) read alike. Race win chances come in 5%
   steps and stay whole numbers. Pills are neutral; colour is reserved for a real warning such as a

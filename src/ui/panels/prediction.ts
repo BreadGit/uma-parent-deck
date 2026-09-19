@@ -8,7 +8,7 @@ import { data, store } from '../context.ts';
 import { COPY } from '../copy.ts';
 import { basisLabel } from '../effect-coverage.ts';
 import { capitalize, cardLink, cardThumb, num, pill } from '../format.ts';
-import { panel } from '../panel.ts';
+import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
 export function statBreakdown(c: RunPlan) {
@@ -36,11 +36,14 @@ export function statBreakdown(c: RunPlan) {
       ${row(html`<b>Final</b>`, c.finalMean, 'total')}
       ${row('Estimated spread (±1 sd)', c.finalSd)}
     </tbody></table></div>
-    <p class="small muted">Rank score: stats ${num(c.rank.statPts)}, unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, purchased skills ${num(c.rank.skillPts - c.rank.uniquePts)}. The skill estimate spends ${num(c.purchases.spent)} of ${num(p.sp)} SP. Required base skills come first, then preferred bases and upgrades; remaining SP buys skills by rating per SP.</p>
-    <p class="small muted">${COPY.prediction.scaling(store.settings.focus, focusMul.map((m) => m.toFixed(2)).join(' / '), scale.toFixed(2), c.ctx.races, data.model.races.reference)}</p>
-    <p class="small muted">${COPY.prediction.purchases(store.settings.purchaseHintLevel, c.purchases.unverified.length)}</p>
-    <p class="small muted">${COPY.prediction.evidence(data.model.fit.rmse.toFixed(1), data.model.fit.n)}</p>
-    <p class="small muted">${COPY.prediction.raceBonus(raceBonus)}${capped ? ` ${COPY.prediction.capped}` : ''}</p>`;
+    <p class="small muted">Rank score: stats ${num(c.rank.statPts)}, unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, purchased skills ${num(c.rank.skillPts - c.rank.uniquePts)}. The skill estimate spends ${num(c.purchases.spent)} of ${num(p.sp)} SP.</p>
+    ${about(COPY.details.aboutStats, [
+      'Required base skills are bought first, then preferred bases and upgrades; remaining SP buys skills by rating per SP.',
+      COPY.prediction.scaling(store.settings.focus, focusMul.map((m) => m.toFixed(2)).join(' / '), scale.toFixed(2), c.ctx.races, data.model.races.reference),
+      COPY.prediction.purchases(store.settings.purchaseHintLevel, c.purchases.unverified.length),
+      COPY.prediction.evidence(data.model.fit.rmse.toFixed(1), data.model.fit.n),
+      `${COPY.prediction.raceBonus(raceBonus)}${capped ? ` ${COPY.prediction.capped}` : ''}`,
+    ])}`;
 }
 
 export function renderPrediction(c: RunPlan) {

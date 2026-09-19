@@ -61,6 +61,8 @@ const predictions = (page) => page.locator('h2', { hasText: 'Predicted run' });
 /** The app's own <dialog> replaces window.confirm and alert. */
 const confirmDialog = async (page) => { await page.waitForSelector('dialog[data-dialog][open]'); await page.click('[data-dialog-confirm]'); };
 const openAgenda = (page) => page.click('details[data-agenda] > summary');
+/** Prediction details opens on request; open it before reading or clicking anything inside. */
+const openDetails = async (page) => { await page.waitForSelector('.results'); const closed = page.locator('details[data-prediction-details]:not([open]) > summary'); if (await closed.count()) await closed.click(); };
 
 test('Basis labels distinguish observations, adjusted observations and model estimates without growing the row', async (t) => {
   const page = await editor(t, defaultState(data));
@@ -116,6 +118,7 @@ test('effect warnings respect unique unlocks and explain observed deck effects o
   assert.match(await basis.locator('.tip').getAttribute('data-tip'), /Fixed at the recorded deck conditions: Unique effect "If there are at least 4 different types/);
   await assertFieldsMatchState(page, 'after unlocking an observed deck effect');
 
+  await openDetails(page);
   const limitations = page.locator('[data-estimate-limitations]');
   await limitations.locator('summary').tap();
   const oguri = limitations.locator('[data-card-limitations="30146"]');
@@ -143,6 +146,7 @@ test('Light Hello uses repaired community measurements and separates formula omi
   assert.match(await scoring.innerText(), /already include effects the formula cannot separate/);
   await assertFieldsMatchState(page, 'after reading Light Hello\'s measured contribution');
 
+  await openDetails(page);
   await page.locator('[data-estimate-limitations] > summary').click();
   const deckNote = page.locator('[data-card-limitations="30052"]');
   assert.match(await deckNote.innerText(), /Observed · LB4/);
@@ -595,6 +599,7 @@ test('SSR event-rate edits update gold coverage immediately and survive reload u
   await target(page, 'Corner Recovery');
   await pin(page, 'piece of mind');
   await page.click('[data-details="advanced"] > summary');
+  await openDetails(page);
   const gold = coverage(page, 'Corner Recovery').locator('td').nth(1);
   assert.notEqual(await gold.innerText(), '100.0%');
   await page.fill('[data-setting-list="chainRatesSSR"]', '1,1,1');
@@ -603,6 +608,7 @@ test('SSR event-rate edits update gold coverage immediately and survive reload u
   assert.equal(await coverage(page, 'Corner Recovery').locator('td').nth(3).innerText(), '40.0%');
   const before = await coverage(page, 'Corner Recovery').innerText();
   await page.reload();
+  await openDetails(page);
   assert.equal(await coverage(page, 'Corner Recovery').innerText(), before);
 });
 
@@ -620,6 +626,7 @@ test('skill advice includes prerequisite costs and buyable circle upgrades', asy
   const page = await editor(t);
   await trainee(page);
   await pin(page, 'piece of mind');
+  await openDetails(page);
   await target(page, 'Swinging Maestro');
   assert.match(await page.locator('div.small').filter({ hasText: /^Worst-case target SP cost:/ }).innerText(), /340 of/);
   await page.click('[data-action="remove-target"]');
@@ -653,6 +660,7 @@ test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious cir
   Object.assign(saved.settings, { hintBase: 0, chainRatesSSR: [0, 0, 0], chainRatesSR: [0, 0], randomEventRate: 0,
     palChainRate: 0, groupOutingRate: 0, groupFinaleRate: 0, specialEventRate: 0 });
   const page = await editor(t, saved);
+  await openDetails(page);
   // one 3★ copy: 9% per inspiration event at affinity 150 is 22.5%, so 39.9% over two events
   for (const [name, spark] of [['Corner Recovery', '8.8%'], ['Lucky Seven', '8.8%'], ['Right-Handed', '11.0%'], ['Mile Straightaways', '11.0%']]) {
     const row = coverage(page, name);
@@ -782,6 +790,7 @@ test('white target chips migrate old goals and support zero or many required spa
   assert.deepEqual((await state(page)).run.targets.filter((t) => t.role === 'required'), []);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   assert.equal(await page.locator('[data-goal-zero]').count(), 0);
+  await openDetails(page);
   assert.match(await page.locator('[data-goal-details]').innerText(), /No required white sparks/);
   await waitForPlan(page);
   const probability = await page.locator('[data-goal-probability]').innerText();
@@ -870,6 +879,7 @@ test('Any pink defaults to one star, updates estimates, and persists across relo
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
   const page = await editor(t, saved);
+  await openDetails(page);
   const pinkRow = page.locator('.goal-breakdown tr').filter({ hasText: 'Pink (' });
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
   assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
@@ -888,6 +898,7 @@ test('Any pink defaults to one star, updates estimates, and persists across relo
   await page.reload();
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
   assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
+  await openDetails(page);
   assert.match(await pinkRow.innerText(), /100(?:\.0)?%/);
 });
 
@@ -956,7 +967,7 @@ test('pink inputs default to zero sparks and retain partial estimates across edi
   assert.equal(await page.locator('[data-goal-warnings]').count(), 0);
   assert.deepEqual((await state(page)).run.pinkLineage, [{ aptitude: 'end', stars: 3 }, ...Array(5).fill(null)]);
   await assertFieldsMatchState(page, 'after entering one pink spark');
-  const pinkProbability = () => page.locator('[data-goal-details] tbody tr').filter({ hasText: /^Pink \(/ }).locator('td').last().innerText();
+  const pinkProbability = async () => { await openDetails(page); return page.locator('[data-goal-details] tbody tr').filter({ hasText: /^Pink \(/ }).locator('td').last().innerText(); };
   const partialPinkProbability = await pinkProbability(), partialRun = (await state(page)).run;
   await page.reload();
   await page.waitForSelector('[data-goal-result]');
@@ -1148,6 +1159,7 @@ test('goal explanations distinguish a difficult requirement, missing pink eligib
   saved.run.traineeCardId = 100101;
   saved.run.goal = { ...saved.run.goal, blueStars: 1, pink: [{ aptitude: 'any', stars: 3 }] };
   const page = await editor(t, saved);
+  await openDetails(page);
   const limits = page.locator('[data-goal-limits]');
   assert.match(await page.locator('[data-goal-probability]').innerText(), /Chance per final spark roll/);
   // Any 1-star blue is certain. Any 3-star pink is 10%, so pink is the limiting individual roll.
@@ -1186,6 +1198,7 @@ test('pink probability ranges remain visible and disabled and dimmed fields have
   const page = await editor(t, saved);
   assert.match(await page.locator('[data-goal-probability]').innerText(), /% to .*%/);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
+  await openDetails(page);
   assert.match(await page.locator('[data-goal-limits]').innerText(), /Pink eligibility is uncertain/);
   assert.match(await page.locator('[data-goal-attempts="0.5"]').innerText(), / to .* attempts/);
   await page.click('[data-action="reset-pink-sparks"]');

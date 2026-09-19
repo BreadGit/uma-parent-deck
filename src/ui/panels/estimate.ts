@@ -11,7 +11,7 @@ import { store } from '../context.ts';
 import { openPinkSparks } from '../actions.ts';
 import { COPY } from '../copy.ts';
 import { capitalize, estimatedProbability, int, probability } from '../format.ts';
-import { panel } from '../panel.ts';
+import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
 const pinkLabel = (aptitude: 'any' | keyof typeof APTITUDE_LABELS) => aptitude === 'any' ? 'Any' : APTITUDE_LABELS[aptitude];
@@ -77,22 +77,28 @@ function breakdown(c: RunPlan) {
     ${g.pink.length > 1 ? result.pink.alternatives?.map((p) => html`<tr><td>${pinkLabel(p.aptitude)} ${p.stars}★+ contribution</td><td class="num">Needs final A/S</td><td class="num">${range(p.probability, p.upperProbability)}</td></tr>`) : nothing}
     ${result.required.map((w) => html`<tr><td>${w.target.name}</td><td class="num">${probability(w.available)}</td><td class="num">${probability(w.probability)}</td></tr>`)}
   </tbody></table></div>
-  ${g.pink.length > 1 && result.pink.probability !== result.pink.upperProbability ? html`<p class="small muted">Alternative contribution ranges can use different eligibility scenarios. Their endpoints need not add to the combined pink range.</p>` : nothing}
-  <p class="small muted">${result.required.length ? `All ${result.required.length} required white skill${result.required.length === 1 ? '' : 's'} purchased ${probability(result.allAvailable)} · ` : 'No required white sparks · '}SS or better ${estimatedProbability(result.pSS)}. White skill availability includes purchases within the SP budget. Each spark chance is shown individually; shared events and rank affect the combined result.</p>`;
+  <p class="small muted">${result.required.length ? `All ${result.required.length} required white skill${result.required.length === 1 ? '' : 's'} purchased ${probability(result.allAvailable)} · ` : 'No required white sparks · '}SS or better ${estimatedProbability(result.pSS)}.</p>`;
 }
 
-/** What limits the estimate, the per-requirement breakdown, preferred sparks and assumptions, for the details panel. */
+/**
+ * For the details panel: what limits the estimate, the per-requirement breakdown and the preferred sparks, with the
+ * assumptions and the search's preferred score behind a disclosure.
+ */
 export function goalDetails(c: RunPlan) {
-  const result = c.goalEstimate, limits = goalLimits(c), selected = c.search?.score;
+  const result = c.goalEstimate, limits = goalLimits(c), selected = c.search?.score, g = store.run.goal;
+  const eligibility = result.pink.eligibility.filter((e) => e.probability === null || (e.probability > 0 && e.probability < 1));
   return html`
     ${limits.length ? html`<ul class="small" data-goal-limits>${limits.map((limit) => html`<li>${limit}</li>`)}</ul>` : nothing}
-    ${selected && result.preferred.length ? html`<p class="small" data-goal-preferred>Preferred score: ${selected.preferred.toFixed(2)} ${selected.count ? 'on parents meeting ' + (selected.count === selected.total ? 'every requirement' : 'the remaining goal') : 'per final spark roll'}.</p>` : nothing}
     ${breakdown(c)}
-    ${result.preferred.length ? html`<p class="small"><b>${COPY.estimate.preferred}:</b> ${result.preferred.map((w) => `${w.target.name} ${probability(w.probability)} per attempt`).join(' · ')}. ${COPY.estimate.preferredNote}</p>` : nothing}
-    <p class="small"><b>${COPY.estimate.assumptions}</b></p>
-    <ul class="small">${result.notes.map((note) => html`<li>${note}</li>`)}</ul>
-    <p class="small muted">${COPY.estimate.assumptionsNote}</p>
-    <ul class="small">${result.pink.eligibility.filter((e) => e.probability === null || (e.probability > 0 && e.probability < 1)).map((e) => html`<li>${APTITUDE_LABELS[e.aptitude]} eligible at the end: ${e.probability === null ? '0% to 100%' : probability(e.probability)}</li>`)}</ul>`;
+    ${result.preferred.length ? html`<p class="small"><b>${COPY.estimate.preferred}:</b> ${result.preferred.map((w) => `${w.target.name} ${probability(w.probability)} per attempt`).join(' · ')}.</p>` : nothing}
+    ${about(COPY.details.aboutGoal, html`
+      <p class="small">White skill availability includes purchases within the SP budget. Each spark chance is shown individually; shared events and rank affect the combined result.${result.preferred.length ? ` ${COPY.estimate.preferredNote}` : ''}</p>
+      ${g.pink.length > 1 && result.pink.probability !== result.pink.upperProbability ? html`<p class="small">Alternative contribution ranges can use different eligibility scenarios. Their endpoints need not add to the combined pink range.</p>` : nothing}
+      ${selected && result.preferred.length ? html`<p class="small" data-goal-preferred>Preferred score: ${selected.preferred.toFixed(2)} ${selected.count ? 'on parents meeting ' + (selected.count === selected.total ? 'every requirement' : 'the remaining goal') : 'per final spark roll'}, the tie-breaker the search uses between decks with the same required chance.</p>` : nothing}
+      <p class="small"><b>${COPY.estimate.assumptions}</b></p>
+      <ul class="small">${result.notes.map((note) => html`<li>${note}</li>`)}</ul>
+      <p class="small">${COPY.estimate.assumptionsNote}</p>
+      ${eligibility.length ? html`<ul class="small">${eligibility.map((e) => html`<li>${APTITUDE_LABELS[e.aptitude]} eligible at the end: ${e.probability === null ? '0% to 100%' : probability(e.probability)}</li>`)}</ul>` : nothing}`)}`;
 }
 
 function attempts(p: number, upper: number | null) {

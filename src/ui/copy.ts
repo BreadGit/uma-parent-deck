@@ -46,9 +46,13 @@ export const COPY = {
   },
   details: {
     title: 'Prediction details',
-    tip: 'The reasoning behind the numbers above: what limits the goal estimate, where each stat comes from, how the deck covers each target, and how the search chose the deck.',
+    tip: 'For checking the tool\'s work. Every number above is broken into the parts it came from, and each section ends with how it is computed.',
+    sections: 'goal estimate · stat sources · target coverage · deck search',
+    explore: 'Explore how each number above was reached',
     estimate: 'Goal estimate breakdown',
-    estimateTip: 'Each required spark on its own, then the assumptions the combined estimate rests on.',
+    estimateTip: 'Each required spark on its own. The combined chance above needs all of them in one run.',
+    aboutGoal: 'How the goal estimate is computed',
+    aboutStats: 'How the stats are estimated',
   },
   trainee: {
     title: 'Trainee',
