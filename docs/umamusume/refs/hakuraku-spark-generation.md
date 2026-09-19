@@ -4,6 +4,9 @@ Reviewed 2026-09-08. Curated measurements and probability tables, paraphrased fr
 [Hakuraku's spark-generation research](https://hakuraku.moe/notes/spark_generation).
 The site's [Markdown source](https://hakuraku.moe/notes/spark-generation.md) is readable without
 JavaScript. Its manifest dates the note to 2026-03-28; the document includes later additions.
+The same note is available as a
+[commit-pinned source](https://github.com/ayaliz/hakuraku/blob/c3bd3af347bd49934885d6af91ed484b8b7166da/public/notes/spark-generation.md)
+in the repository for hakuraku.moe, checked 2026-09-18.
 
 ## Source precedence and scope
 
@@ -22,8 +25,10 @@ of at least 2 stars is approximately 50%, not 55%, for both blue and white spark
 
 ## Blue generation
 
-Use an equal 20% chance per stat. Hakuraku observes small deviations but identifies possible
-retention bias. Do not introduce an unverified stat-weighted selection formula.
+Use an equal 20% approximation per stat. Hakuraku observes small, statistically significant
+deviations and suggests possible stat weighting without identifying a formula. Retention bias
+in the room-match sample is a separate project caution, not an explanation established by the
+author. Do not introduce an unverified stat-weighted selection formula.
 
 Probabilities below are conditional on that stat being selected. Boundaries are inclusive at
 600 and 1,100.
