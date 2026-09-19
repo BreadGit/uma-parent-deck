@@ -290,20 +290,26 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .template-picker { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; margin: 10px 0; }
 .template-targets { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0; margin: 0 0 12px; list-style: none; }
 
-/* target white sparks: chips grouped by role, one editor inline under the selected chip's row */
-.target-group h3 { margin: 12px 0 6px; }
-.target-tokens { display: flex; flex-wrap: wrap; gap: 7px; }
-.target-token { display: inline-flex; align-items: stretch; border: 1px solid var(--line); border-radius: 7px; background: var(--soft2); max-width: 100%; }
-.target-token.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.target-token button { border: 0; background: transparent; }
-.target-token-select { display: flex; align-items: center; gap: 6px; padding: 7px 3px 7px 7px; min-width: 0; text-align: left; font-size: var(--fs-sm); }
-.target-token-select img { width: 20px; height: 20px; flex-shrink: 0; }
-.target-token-select span { overflow-wrap: anywhere; }
-.target-token-select small { display: block; color: var(--muted); font-size: var(--fs-xs); margin-top: 2px; }
-.target-token-select small.required { color: var(--accent); }
-.target-token-remove { color: var(--muted); padding: 3px 7px; font-size: var(--fs-lg); }
-.target-editor { flex: 1 1 100%; border: 1px solid var(--accent); border-radius: 7px; background: var(--soft); padding: 12px; margin: 2px 0 6px; }
+/* target white sparks: a collapsible group per role with its own search box and an inline list of names; the editor
+   for the selected name takes a full row under that name's line. The summary draws its own arrow because flex layout
+   drops the native marker. */
+.target-group { margin-top: 6px; }
+.target-group > summary { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 2px 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); list-style: none; }
+.target-group > summary::-webkit-details-marker { display: none; }
+.target-group > summary::before { content: '▸'; color: var(--muted); font-size: var(--fs-xs); flex: none; }
+.target-group[open] > summary::before { content: '▾'; }
+.target-peek { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: var(--fs-xs); font-weight: 400; }
+.target-group[open] .target-peek { display: none; }
+.target-search { margin: 4px 0 2px; }
+.target-list { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin-top: 4px; font-size: var(--fs-sm); line-height: 1.8; }
+.target-name { display: inline-flex; align-items: center; gap: 3px; margin: 0; padding: 0 3px; border: 0; border-radius: 4px; background: transparent; color: var(--text); font-size: var(--fs-sm); text-decoration: underline dotted var(--line-strong); text-underline-offset: 3px; }
+.target-name:hover { background: var(--soft2); }
+.target-name.selected { background: var(--soft); box-shadow: 0 0 0 1px var(--accent); text-decoration: none; }
+.target-name img { width: 14px; height: 14px; }
+.target-name-stars { color: var(--accent); font-size: var(--fs-xs); }
+.target-editor { flex: 1 1 100%; border: 1px solid var(--accent); border-radius: 7px; background: var(--soft); padding: 12px; margin: 4px 0 6px; }
 .target-editor-name { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.target-editor-name .target-remove { margin-left: auto; }
 .panel .target-editor h3 { text-transform: none; letter-spacing: normal; font-size: var(--fs-sm); color: var(--muted); margin: 14px 0 9px; }
 .target-editor-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .target-roles { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }

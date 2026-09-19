@@ -107,7 +107,7 @@ const advancedOverflow = await page.$eval('details[data-details="advanced"]', (d
 });
 assert.ok(advancedOverflow <= 0.5, `advanced settings overflow their panel by ${advancedOverflow}px`);
 for (const q of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) {
-  await page.fill('#target-search', q);
+  await page.fill('#target-search-preferred', q);
   await page.waitForSelector('li[data-action="add-target"]');
   await page.click('li[data-action="add-target"]');
 }
@@ -335,7 +335,7 @@ await assertFieldsMatchState(page, 'after selecting a planning override below ba
 assert.equal(await page.inputValue('[data-apt="end"]'), 'D');
 await page.click('[data-action="reset-legacy"]');
 await assertFieldsMatchState(page, 'after resetting aptitude rebalance checks');
-// Goal roles share the target chips. Editor selection is transient; goals and lineage persist.
+// Each role group has its own search and names open one editor. Editor selection is transient; goals and lineage persist.
 assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
 assert.equal(await page.locator('[data-goal-result]').count(), 1);
 await assertFieldsMatchState(page, 'with automatic parent goal evaluation');
@@ -363,7 +363,7 @@ for (const id of [200352, 201601, 200472]) {
   await page.click(`[data-target-role="required"][data-id="${id}"]`);
   await assertFieldsMatchState(page, `after requiring target ${id}`);
 }
-assert.equal(await page.locator('[data-required-count]').innerText(), '3 required');
+assert.equal(await page.locator('[data-target-count="required"]').innerText(), '3');
 assert.equal(await page.locator('.deck .slot').count(), 6, 'goal search keeps a complete legal deck');
 assert.equal(await page.locator('[data-pink-sparks-form]').count(), 0, 'pink ancestry starts collapsed');
 await page.click('[data-action="toggle-pink-sparks"]');
@@ -402,18 +402,44 @@ await assertFieldsMatchState(page, 'after white lineage copies');
 await page.selectOption('[data-lineage-p="201601"][data-side="p1"]', '5');
 await assertFieldsMatchState(page, 'after white lineage stars');
 await page.click('[data-action="select-target"][data-id="201601"]');
-assert.equal(await page.locator('[data-target-editor]').count(), 0, 'clicking the selected chip closes the editor');
+assert.equal(await page.locator('[data-target-editor]').count(), 0, 'clicking the selected name closes the editor');
 await assertFieldsMatchState(page, 'after closing target editor');
 await page.click('[data-action="select-target"][data-id="201601"]');
 await assertFieldsMatchState(page, 'after reopening target editor');
-assert.equal(await page.locator('[data-target-editor] [data-action="remove-target"]').count(), 0, 'removal lives on the chip');
+assert.equal(await page.locator('[data-target-editor] [data-action="remove-target"]').count(), 1, 'removal lives in the editor');
 for (const query of ['Lucky Seven', 'Right-Handed']) {
-  await page.fill('#target-search', query);
+  await page.fill('#target-search-preferred', query);
   await page.locator('[data-action="add-target"]').first().click();
   await assertFieldsMatchState(page, `after adding ${query} as preferred`);
 }
+await savedState('st.run.targets.slice(-2).every((t) => t.role === "preferred")');
 await page.click('[data-action="remove-target"][data-id="200012"]');
-await assertFieldsMatchState(page, 'after removing the active chip');
+await assertFieldsMatchState(page, 'after removing the active target');
+assert.equal(await page.locator('[data-target-editor]').count(), 0);
+// The required box adds straight to the required group and opens the editor there.
+await page.fill('#target-search-required', 'Straightaway Recovery');
+await page.locator('[data-action="add-target"]').first().click();
+await assertFieldsMatchState(page, 'after adding a required target through its own search');
+await savedState('st.run.targets.at(-1).role === "required"');
+assert.equal(await page.locator('[data-target-group="required"] [data-target-editor]').count(), 1);
+assert.equal(await page.inputValue('#target-search-required'), '', 'a pick clears its own search');
+await page.click('[data-target-editor] [data-action="remove-target"]');
+await savedState('st.run.targets.length === 4');
+// Closing a group closes its editor and hides its search; moving a target into a closed group reopens it.
+await page.click('[data-action="select-target"][data-id="201601"]');
+await page.click('[data-target-group="required"] > summary');
+await assertFieldsMatchState(page, 'after closing the required group');
+assert.equal(await page.locator('[data-target-editor]').count(), 0, 'closing a group closes its editor');
+assert.equal(await page.locator('[data-target-group="required"][open]').count(), 0);
+assert.equal(await page.locator('#target-search-required').isVisible(), false, 'a closed group hides its search');
+await page.locator('[data-target-group="preferred"] [data-action="select-target"]').first().click();
+await page.click('[data-target-editor] [data-target-role="required"]');
+await assertFieldsMatchState(page, 'after moving a target into the closed group');
+assert.equal(await page.locator('[data-target-group="required"][open] [data-target-editor]').count(), 1, 'the group holding the moved target opens');
+await page.click('[data-target-editor] [data-target-role="preferred"]');
+await assertFieldsMatchState(page, 'after moving it back');
+assert.equal(await page.locator('[data-target-group="required"][open]').count(), 1, 'the reopened group stays open');
+await page.click('[data-target-editor] [data-action="select-target"], [data-target-group="preferred"] [data-action="select-target"].selected');
 assert.equal(await page.locator('[data-target-editor]').count(), 0);
 await page.reload();
 await page.waitForSelector('[data-goal-result]');
@@ -428,7 +454,7 @@ for (const id of [200352, 201601, 200472]) {
   await page.click(`[data-target-role="preferred"][data-id="${id}"]`);
   await assertFieldsMatchState(page, `after making ${id} preferred`);
 }
-assert.equal(await page.locator('[data-required-count]').innerText(), '0 required');
+assert.equal(await page.locator('[data-target-count="required"]').innerText(), '0');
 assert.equal(await page.locator('[data-goal-issues]').count(), 0, 'zero required whites is a complete white goal');
 await page.click('[data-target-role="required"][data-id="200472"]');
 await assertFieldsMatchState(page, 'after selecting one required white');

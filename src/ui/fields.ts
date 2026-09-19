@@ -7,6 +7,7 @@ import type { Card } from '../types.ts';
 import type { RunPlan } from '../model/run.ts';
 import { COPY } from './copy.ts';
 import { refresh, store, update, view } from './context.ts';
+import type { SearchField } from './context.ts';
 
 export interface Option { value: string; label: string; cls?: string }
 
@@ -29,7 +30,7 @@ export interface SearchBox<T> {
   id: string;
   placeholder: string;
   /** Which view field holds the query; the smoke test reads it from data-input. */
-  field: 'query' | 'traineeQuery' | 'cardQuery';
+  field: SearchField;
   items: T[];
   key: (item: T) => number;
   action: string;
@@ -108,7 +109,7 @@ export function installSuggestDismiss(root: HTMLElement) {
     if ((e.target as Element).closest('.suggest')) return;
     if (view.activeSearch === null) return;
     view.activeSearch = null;
-    view.suggestIndexes = { query: -1, traineeQuery: -1, cardQuery: -1 };
+    view.suggestIndexes = { requiredQuery: -1, preferredQuery: -1, traineeQuery: -1, cardQuery: -1 };
     refresh();
   });
 }

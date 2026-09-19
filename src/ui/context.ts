@@ -15,16 +15,22 @@ export const store: AppState = loadState(data, defaultInventory);
 let inputKey = planningKey(store.run, store.settings, store.inventory);
 export let stateRevision = 0;
 
+/** The view fields that hold a search box's text. */
+export type SearchField = 'requiredQuery' | 'preferredQuery' | 'traineeQuery' | 'cardQuery';
 /** State that is not persisted: search boxes, open panels, the highlighted suggestion, drag state. */
 const viewState = {
-  query: '',
+  /** Each target group has its own search box. */
+  requiredQuery: '',
+  preferredQuery: '',
   targetEditorId: null as number | null,
+  /** The target groups start open; one holding the selected target is shown open regardless. */
+  targetGroupsOpen: { required: true, preferred: true },
   goalTemplateId: '',
   traineeQuery: '',
   cardQuery: '',
-  activeSearch: null as 'query' | 'traineeQuery' | 'cardQuery' | null,
+  activeSearch: null as SearchField | null,
   /** Each search keeps its own keyboard highlight; -1 is none. */
-  suggestIndexes: { query: -1, traineeQuery: -1, cardQuery: -1 },
+  suggestIndexes: { requiredQuery: -1, preferredQuery: -1, traineeQuery: -1, cardQuery: -1 } as Record<SearchField, number>,
   showAdvanced: false,
   showSparks: false,
   showPinkSparks: false,

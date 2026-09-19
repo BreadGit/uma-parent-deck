@@ -33,7 +33,7 @@ async function fresh(t, saved, { held = false, settle = !held, touch = false } =
   page.on('console', (e) => { if (e.type() === 'error') errors.push(e.text()); });
   t.after(() => assert.deepEqual(errors, [], 'browser errors'));
   await page.goto(url);
-  await page.waitForSelector('#target-search');
+  await page.waitForSelector('#target-search-required');
   if (settle) await waitForPlan(page);
   return page;
 }
@@ -52,7 +52,7 @@ async function pick(page, selector, query, action) {
   await page.locator(`[data-action="${action}"]`).first().click();
 }
 const trainee = (page, query = 'special dreamer') => pick(page, '#trainee-search', query, 'pick-trainee');
-const target = (page, query) => pick(page, '#target-search', query, 'add-target');
+const target = (page, query) => pick(page, '#target-search-preferred', query, 'add-target');
 const pin = (page, query) => pick(page, '#card-search', query, 'pin-card');
 const coverage = (page, skill) => page.locator('table').filter({ has: page.locator('th', { hasText: 'Gold hint' }) }).locator('tbody tr').filter({ has: page.locator('td:first-child', { hasText: skill }) });
 const inventoryFile = (inventory) => ({ name: 'inventory.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(inventory)) });
@@ -188,7 +188,7 @@ test('rejected advanced settings retain the draft and accept the original value'
 
 test('outside clicks dismiss suggestions without clearing search text', async (t) => {
   const page = await editor(t);
-  const queries = { 'trainee-search': 'special', 'target-search': 'groundwork', 'card-search': 'a' };
+  const queries = { 'trainee-search': 'special', 'target-search-required': 'groundwork', 'card-search': 'a' };
   for (const [id, query] of Object.entries(queries)) await page.fill(`#${id}`, query);
   await page.locator('h1').click();
   for (const [id, query] of Object.entries(queries)) {
@@ -196,9 +196,9 @@ test('outside clicks dismiss suggestions without clearing search text', async (t
     assert.equal(await page.locator(`#${id}`).getAttribute('aria-expanded'), 'false');
   }
   await assertFieldsMatchState(page, 'after dismissing suggestions');
-  await page.click('#target-search');
-  assert.equal(await page.locator('#target-search').getAttribute('aria-expanded'), 'true');
-  await page.press('#target-search', 'Enter');
+  await page.click('#target-search-required');
+  assert.equal(await page.locator('#target-search-required').getAttribute('aria-expanded'), 'true');
+  await page.press('#target-search-required', 'Enter');
   assert.equal((await state(page)).run.targets.length, 1);
   await assertFieldsMatchState(page, 'after picking from a preserved search');
 });
@@ -258,14 +258,14 @@ test('phone ranking reveals controls and spark chances when scrolled sideways', 
 
 test('search boxes keep keyboard selections separate when focus switches', async (t) => {
   const page = await editor(t);
-  await page.fill('#target-search', 'groundwork');
-  const targetId = Number(await page.locator('#target-search-list li').first().getAttribute('data-id'));
+  await page.fill('#target-search-required', 'groundwork');
+  const targetId = Number(await page.locator('#target-search-required-list li').first().getAttribute('data-id'));
   await page.fill('#card-search', 'a');
   for (let i = 0; i < 10; i++) await page.press('#card-search', 'ArrowDown');
-  assert.equal(await page.locator('#target-search').getAttribute('aria-expanded'), 'false');
-  await page.click('#target-search');
+  assert.equal(await page.locator('#target-search-required').getAttribute('aria-expanded'), 'false');
+  await page.click('#target-search-required');
   assert.equal(await page.locator('#card-search').getAttribute('aria-expanded'), 'false');
-  await page.press('#target-search', 'Enter');
+  await page.press('#target-search-required', 'Enter');
   assert.ok((await state(page)).run.targets.some((entry) => entry.id === targetId));
   await assertFieldsMatchState(page, 'after selecting a target following a card search');
   await page.focus('#card-search');
@@ -815,7 +815,7 @@ test('search suggestions open inside the pinned input column and keyboard rows s
   await assertFieldsMatchState(page, 'after navigating suggestions inside the pinned column');
 });
 
-test('white target chips migrate old goals and support zero or many required sparks', async (t) => {
+test('white targets migrate old goals and support zero or many required sparks', async (t) => {
   const saved = defaultState(data);
   saved.version = 7;
   saved.run.traineeCardId = 100101;
@@ -824,19 +824,19 @@ test('white target chips migrate old goals and support zero or many required spa
   saved.run.aptOverrides.end = 'B';
   saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
   const page = await fresh(t, saved);
-  assert.equal(await page.locator('[data-required-count]').innerText(), '1 required');
+  assert.equal(await page.locator('[data-target-count="required"]').innerText(), '1');
   assert.equal(await page.locator('[data-action="select-target"]').count(), 4);
   assert.equal(await page.locator('[data-goal-required]').count(), 0);
   for (const id of [200012, 201601, 200472]) {
     await page.click(`[data-action="select-target"][data-id="${id}"]`);
     await page.click(`[data-target-role="required"][data-id="${id}"]`);
   }
-  assert.equal(await page.locator('[data-required-count]').innerText(), '4 required');
+  assert.equal(await page.locator('[data-target-count="required"]').innerText(), '4');
   assert.equal(await page.locator('.deck .slot').count(), 6);
   assert.equal(await page.locator('[data-goal-issues]').count(), 0);
   await page.reload();
-  await page.waitForSelector('[data-required-count]');
-  assert.equal(await page.locator('[data-required-count]').innerText(), '4 required');
+  await page.waitForSelector('[data-target-count="required"]');
+  assert.equal(await page.locator('[data-target-count="required"]').innerText(), '4');
   await page.click('[data-action="select-target"][data-id="200352"]');
   assert.equal(await page.inputValue('[data-target-stars="200352"]'), '3');
   await page.click('[data-action="select-target"][data-id="200352"]');
@@ -859,7 +859,7 @@ test('white target chips migrate old goals and support zero or many required spa
   assert.match(await page.locator('[data-goal-probability]').innerText(), /%/);
 });
 
-test('chip selection toggles its editor and removal updates goals without activating another chip', async (t) => {
+test('selecting a target name toggles its editor and removal updates goals without activating another target', async (t) => {
   const page = await editor(t);
   await target(page, 'Groundwork');
   assert.equal(await page.locator('[data-target-editor]').getAttribute('data-target-editor'), '201601');
@@ -869,7 +869,7 @@ test('chip selection toggles its editor and removal updates goals without activa
   await page.selectOption('[data-lineage-p="201601"][data-side="p1"]', '4');
   assert.equal(await page.locator('[data-target-editor] h3').first().innerText(), 'Goals for target white spark');
   assert.match(await page.locator('[data-target-editor] h3').last().innerText(), /^White sparks in lineage/);
-  assert.equal(await page.locator('[data-target-editor] [data-action="remove-target"]').count(), 0);
+  assert.equal(await page.locator('[data-target-editor] [data-action="remove-target"]').count(), 1);
   await target(page, 'Lucky Seven');
   await page.click('[data-action="select-target"][data-id="201601"]');
   assert.equal(await page.inputValue('[data-target-stars="201601"]'), '3');
@@ -878,9 +878,12 @@ test('chip selection toggles its editor and removal updates goals without activa
   assert.equal(await page.locator('[data-target-editor]').count(), 0);
   await page.locator('[data-action="select-target"][data-id="201601"]').press('Enter');
   assert.equal(await page.locator('[data-target-editor]').count(), 1);
+  await page.click('[data-action="select-target"][data-id="201562"]');
   await page.click('[data-action="remove-target"][data-id="201562"]');
-  assert.equal(await page.locator('[data-target-editor]').getAttribute('data-target-editor'), '201601');
+  assert.equal(await page.locator('[data-target-editor]').count(), 0, 'removing the selected target closes its editor without opening another');
   assert.deepEqual((await state(page)).run.targets.filter((t) => t.role === 'preferred'), []);
+  await page.click('[data-action="select-target"][data-id="201601"]');
+  assert.equal(await page.inputValue('[data-target-stars="201601"]'), '3');
   await page.click('[data-action="remove-target"][data-id="201601"]');
   assert.equal(await page.locator('[data-target-editor]').count(), 0);
   const after = await state(page);
@@ -888,7 +891,7 @@ test('chip selection toggles its editor and removal updates goals without activa
   assert.deepEqual(after.run.targets.filter((t) => t.role === 'required'), []);
   assert.deepEqual(after.run.targetLineage, {});
   await page.reload();
-  await page.waitForSelector('#target-search');
+  await page.waitForSelector('#target-search-required');
   assert.equal(await page.locator('[data-action="select-target"]').count(), 0);
 });
 
@@ -1205,7 +1208,7 @@ test('saved white siblings and gold-only targets stay visible and keep lineage',
   assert.deepEqual((await state(page)).run.targetLineage, saved.run.targetLineage);
   await page.reload();
   assert.deepEqual((await state(page)).run.targets.map((t) => t.id), saved.run.targets);
-  await page.fill('#target-search', 'Runaway');
+  await page.fill('#target-search-required', 'Runaway');
   await page.click(`[data-action="add-target"][data-id="${gold.id}"]`);
   assert.equal((await state(page)).run.targets.length, 3, 'search resolves the retained target without duplicating it');
   await assertFieldsMatchState(page, 'after finding the preserved gold-only target');
@@ -1226,7 +1229,7 @@ test('goal explanations distinguish a difficult requirement, missing pink eligib
   assert.doesNotMatch(await limits.innerText(), /Lowest individual chance/);
   await assertFieldsMatchState(page, 'after explaining missing pink eligibility');
   const runaway = data.skills.find((s) => s.name === 'Runaway');
-  await page.fill('#target-search', 'Runaway');
+  await page.fill('#target-search-required', 'Runaway');
   await page.click(`[data-action="add-target"][data-id="${runaway.id}"]`);
   await page.click('[data-target-role="required"]');
   assert.match(await limits.innerText(), /Runaway is impossible as a white spark because it has no released white form/);
@@ -1325,7 +1328,7 @@ test('completed recommendations survive reload without a worker, while changed i
     window.rankingObserver.observe(document.querySelector('section.panel:last-child'), { subtree: true, attributes: true, childList: true, characterData: true });
   });
   for (let i = 0; i < 4; i++) await page.locator('[data-action="select-target"]').first().click();
-  await page.fill('#target-search', 'ground');
+  await page.fill('#target-search-required', 'ground');
   assert.equal(await page.evaluate(() => window.rankingMutations), 0);
   assert.equal(await page.evaluate(() => window.rankingReads), 0, 'view edits do not read unchanged ranking fields');
   assert.equal(await page.evaluate(() => window.panelReads), 0, 'view edits do not walk unchanged panels');
@@ -1362,7 +1365,7 @@ test('completed recommendations survive reload without a worker, while changed i
     const current = structuredClone(finished); change(current);
     await page.evaluate(({ key, current }) => localStorage.setItem(key, JSON.stringify(current)), { key: STATE_KEY, current });
     await page.goto(url);
-    await page.waitForSelector('#target-search');
+    await page.waitForSelector('#target-search-required');
     await page.waitForFunction(() => window.searchWorkers.length === 1);
     assert.equal(await page.locator('[data-plan-pending]').count(), 1, label);
   }
@@ -1433,10 +1436,11 @@ test('preferred white priority edits persist and role changes retain required st
   await field.fill('2');
   await field.press('Tab');
   await assertFieldsMatchState(page, 'after setting preferred priority two');
-  assert.match(await page.locator('[data-action="select-target"]').innerText(), /Preferred · priority 2/);
+  assert.match(await page.locator('[data-action="select-target"]').innerText(), /P2$/);
   await page.click('[data-target-role="required"]');
   await page.selectOption('[data-target-stars="201601"]', '3');
   await assertFieldsMatchState(page, 'after setting required stars');
+  assert.match(await page.locator('[data-action="select-target"]').innerText(), /3★\+$/);
   await page.click('[data-target-role="preferred"]');
   await assertFieldsMatchState(page, 'after returning to preferred');
   assert.equal(await field.inputValue(), '2');
@@ -1686,7 +1690,7 @@ for (const pending of ['timer', 'compression']) {
     assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
     await assertFieldsMatchState(page, 'while decoding the destination share');
     await page.reload();
-    await page.waitForSelector('#target-search');
+    await page.waitForSelector('#target-search-required');
     await waitForShare(page);
     assert.deepEqual(sharedChoices(await state(page)), sharedChoices(incoming));
     assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(incoming));
@@ -1744,7 +1748,7 @@ test('share URLs restore their scope, follow edits, and survive an immediate rel
   const link = new URL(shareUrl(url, await encodeShare(sharedChoices(source))));
   link.searchParams.set('keep', 'yes'); link.hash = 'shared';
   await page.goto(link.href);
-  await page.waitForSelector('#target-search');
+  await page.waitForSelector('#target-search-required');
   await waitForShare(page);
   const loaded = await state(page);
   assert.deepEqual(sharedChoices(loaded), sharedChoices(source));
@@ -1756,7 +1760,7 @@ test('share URLs restore their scope, follow edits, and survive an immediate rel
   await page.selectOption('[data-setting="focus"]', 'balanced');
   assert.equal(new URL(page.url()).searchParams.has('run'), false, 'remove stale snapshots during the debounce');
   await page.reload();
-  await page.waitForSelector('#target-search');
+  await page.waitForSelector('#target-search-required');
   assert.equal((await state(page)).settings.focus, 'balanced', 'reload keeps the edit made before compression');
   await waitForShare(page);
   assert.equal((await decodeShare(new URL(page.url()).searchParams.get('run'))).settings.focus, 'balanced');
@@ -1817,7 +1821,7 @@ test('unavailable shared IDs stay visible and survive edits, reloads, and re-sha
   assert.match(await page.locator('[data-unavailable-choices]').innerText(), /99999993/);
   await page.selectOption('[data-setting="focus"]', 'balanced');
   await waitForShare(page);
-  await page.reload(); await page.waitForSelector('#target-search'); await waitForShare(page);
+  await page.reload(); await page.waitForSelector('#target-search-required'); await waitForShare(page);
   saved.settings.focus = 'balanced';
   assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
   assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(saved));
@@ -1857,7 +1861,7 @@ test('invalid startup shares keep the saved run and a valid URL recovers', async
   const page = await editor(t, shareFixture());
   const before = await state(page);
   await page.goto(shareUrl(url, '4jW10'));
-  await page.waitForSelector('#target-search');
+  await page.waitForSelector('#target-search-required');
   await page.waitForSelector('[data-dialog]');
   assert.deepEqual(await state(page), before);
   assert.equal(new URL(page.url()).searchParams.get('run'), '4jW10');

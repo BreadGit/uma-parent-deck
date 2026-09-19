@@ -83,8 +83,8 @@ export const COPY = {
   },
   targets: {
     legend: 'Target white sparks',
-    tip: 'The white skills you want the finished parent to carry as sparks. A card that gives the skill or its gold form counts as a source. Select a chip to edit its goal and lineage, and select it again to close.',
-    placeholder: 'Search a skill to add…',
+    tip: 'The white skills you want the finished parent to carry as sparks. A card that gives the skill or its gold form counts as a source. Each group adds through its own search. Select a name to edit its goal and lineage, and select it again to close. Closing a group also closes its editor.',
+    placeholder: { required: 'Add a required skill…', preferred: 'Add a preferred skill…' },
     required: 'Required',
     preferred: 'Preferred',
     none: 'No targets yet. Search a skill above or load a template.',
@@ -95,6 +95,7 @@ export const COPY = {
     priorityTip: 'Lower numbers give more weight: priority 0 = 1, priority 1 = 0.5, priority 2 = 0.25. Preferred white sparks count at any star level. Several lower-weight sparks can outweigh one higher-weight spark. This does not change the prioritized-skills list.',
     lineageTip: (multiplier: number) => `Copies of this white spark already in the lineage, per parent side: how many of the three umas on that side (the parent and her two grandparents) carry it, and their star total. Each copy rolls for the hint at both inspiration events, and each copy multiplies the spark chance by ×${multiplier}.`,
     fromTrainee: 'from trainee',
+    remove: 'Remove',
   },
   legacy: {
     title: 'Legacy',

@@ -15,7 +15,7 @@ async function loadTemplate(template: GoalTemplate) {
   if (!await confirmDialog(COPY.templates.confirm(template.name), 'Load')) return;
   const { goal, targets, targetLineage } = structuredClone(template);
   view.targetEditorId = null;
-  view.query = '';
+  view.requiredQuery = ''; view.preferredQuery = '';
   update((s) => {
     s.run.goal = goal; s.run.targets = targets;
     for (const [id, lineage] of Object.entries(targetLineage ?? {})) s.run.targetLineage[id] ??= lineage;

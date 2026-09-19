@@ -48,7 +48,7 @@ async function loadShare(code: string) {
     if (revision !== stateRevision) { void notice(COPY.share.editedDuringLoad); return; }
     view.targetEditorId = null;
     view.goalTemplateId = '';
-    view.query = ''; view.traineeQuery = ''; view.cardQuery = ''; view.activeSearch = null;
+    view.requiredQuery = ''; view.preferredQuery = ''; view.traineeQuery = ''; view.cardQuery = ''; view.activeSearch = null;
     view.drag = { key: null, over: null };
     if (shareKey(choices) !== shareKey(sharedChoices(store))) {
       try { update((s) => applySharedChoices(s, choices)); }

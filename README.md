@@ -38,8 +38,10 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   tap without activating the surrounding field or disclosure. Advanced settings show each field's default,
   mark changed values, and explain the accepted range when a value is rejected.
 
-- Parent goal groups the blue, pink, and white goals. Target white sparks uses compact chips with one shared editor. Select a chip to edit its goal
-  and lineage; select it again to close. Remove a target with the × on its chip. Any number of targets,
+- Parent goal groups the blue, pink, and white goals. Target white sparks lists the Required and Preferred
+  targets as two collapsible groups, each with its own search box that adds to that group. Names sit
+  inline with their star minimum or priority. Select a name to edit its goal and lineage under that line;
+  select it again to close, or close the group. Remove a target from its editor. Any number of targets,
   including zero, can be Required. Preferred targets are optional extras at any star level. Their
   ranking weights halve with each priority step, starting at priority 0 with weight 1. Required targets have
   individual minimum stars. Separate headers distinguish target goals from existing lineage.
