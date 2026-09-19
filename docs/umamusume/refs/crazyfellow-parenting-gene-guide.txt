@@ -4,6 +4,10 @@ Exported: 2026-09-06
 Format: Google Docs plain-text export. Images and visual table formatting are not preserved.
 Terminology note: This source uses JP-community terms. For Global terminology, see ../new-player-info.txt.
 
+Scope note
+
+This is a broad research document covering inheritance, parent farming, scenarios, and training modes. It remains useful as a reference, but mixes historical advice, later corrections, Global mechanics, and newer JP-only features. Check each section's date, server, and training mode before applying it. A newer correction may appear elsewhere while the older passage remains in place. The source text below is preserved; use README.md in this directory to find curated notes that compare conflicting evidence.
+
 Mode distinction
 
 This guide discusses two separate game features:
