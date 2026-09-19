@@ -64,6 +64,10 @@ The sheet also lists the expected finishing place when the roll fails, by score:
 
 ## Empirical sample (Shoppo_ura's tweets, quoted in the guide)
 
+The last column reproduces the source's approximate 95% margins in percentage points.
+Its zero margins for all-win or all-loss samples do not establish a certain outcome.
+Use the trial counts when assessing those rows; the fitted model is separate from the observations.
+
 | Surface | Distance | Consecutive | Wins | Trials | Win rate | 95% CI |
 |---|---|---|---:|---:|---:|---:|
 | A | A | under 3 | 1404 | 1404 | 100.0% | 0.0% |

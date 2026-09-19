@@ -2,11 +2,11 @@ Source: Crazyfellow's Parenting & Gene guide
 Original: https://docs.google.com/document/d/1Q3IJKbtkplmuY-PAJMNjYiLtasv0eU0aIBEqp8_C3tg
 Exported: 2026-09-06
 Format: Google Docs plain-text export. Images and visual table formatting are not preserved.
-Terminology note: This source uses JP-community terms. For Global terminology, see ../new-player-info.txt.
+Terminology note: This source uses JP-community terms. For Global terminology, see ../GLOSSARY.md.
 
 Scope note
 
-This is a broad research document covering inheritance, parent farming, scenarios, and training modes. It remains useful as a reference, but mixes historical advice, later corrections, Global mechanics, and newer JP-only features. Check each section's date, server, and training mode before applying it. A newer correction may appear elsewhere while the older passage remains in place. The source text below is preserved; use README.md in this directory to find curated notes that compare conflicting evidence.
+This is a broad research document covering inheritance, parent farming, scenarios, and training modes. It remains useful as a reference, but mixes historical advice, later corrections, Global mechanics, and newer JP-only features. Check each section's date, server, and training mode before applying it. Project editorial corrections dated 2026-09-18 reconcile known contradictions in shared mechanics, label historical sections, and separate mode-specific evidence. Original research, opinions, and unresolved claims remain attributed to the author. Use README.md in this directory to find curated notes and source precedence. Scenario rankings and JP release discussions are historical observations, not a current Global availability or card recommendation list.
 
 Mode distinction
 
@@ -164,9 +164,11 @@ Chapter 1: Compatibility & Inheritance effects
 When starting a run, both your parents' overall compatibility score will be displayed using the ◎ / 〇 / △ symbols.
 
 Overall Compatibility
-◎ Great compatibility (>150 points)
-〇 Good compatibility  (51 – 150 points)
-△ Poor compatibility ( <50 points)
+◎ Great compatibility (151 points or more)
+〇 Good compatibility (51 through 150 points)
+△ Poor compatibility (50 points or less)
+
+Project verification (2026-09-18): these exact boundaries match GameTora's compatibility calculator. Its symbol expression tests total > 150, then total > 50. Source https://gametora.com/_next/static/chunks/2464-2e90db37675bc47e.js, linked by https://gametora.com/umamusume/compatibility. The overall tier is separate from the individual affinity used for spark activation.
 
 
 This overall compatibility is calculated based on the relationship of all parents & grandparents with your target horse, added with the total number of overlapping races that each of them has run.
@@ -179,7 +181,7 @@ However, the exact compatibility numbers are hidden in the game and you will nee
 A new QOL has been added to the JP version. Compatibility numbers are now displayed and individual breakdowns can be shown. I'm not going to retroactively tweak the rest of my guide to accommodate this visibility update, so all you get will be this note.
 While the game displays a single cumulative symbol (◎/〇/△), the underlying math is actually the sum of several Individual Compatibility links.
 Individual Compatibility is the hidden point value assigned to a specific parent or grandparent in your lineage. The "Overall" symbol is simply the final result of these separate individual links being added together. This will be visited in greater detail in later chapters.
-Why it matters: You might see a ◎  "Overall" rating and think the parents are a perfect match,but it may just be the sum of poor compatibilities, ie 50 +25 +25 + 50 + 25 + 25 = 150. You should definitely worry if you do not see ◎ before starting a run.
+Why it matters: You might see a ◎  "Overall" rating and think the parents are a perfect match,but it may just be the sum of poor compatibilities, for example, 50 + 25 + 25 + 50 + 25 + 25 = 200. Even that total can include weak individual relationships. You should definitely worry if you do not see ◎ before starting a run.
 Ideally you’d want your overall compatibility above 300, optimally around 500.
 
 
@@ -191,7 +193,7 @@ How can you control these points?
 *24 June 2026. Global is now using the updated compatibility system.
 The Current System (JP Post-2.0 anniversary / Grand Masters and beyond scenarios)
 The compatibility system has been revamped to only count racing G1 races.
-* G1 Only: Only overlapping G1 races now grant bonus compatibility.
+* G1 Only: Only overlapping G1 wins now grant bonus compatibility.
 * Simplified Gains: G2/G3 races and Title bonuses (Triple Crown/Tiara) no longer contribute.
 * Increased Value: G1 races now grant +3 points each (previously +1), and the base compatibility for Umas has been boosted across the board.
 * Parent to Parent overlapping races now count towards compatibility.
@@ -214,9 +216,9 @@ Global Section (URA to GL scenario) - Legacy Compatibility
 ** This legacy compatibility system is currently obsolete for all different server region versions of the game as of 24 June 2026
 Apparently Cygames (Global) decided to push the compatibility system earlier and it is no longer delayed till the 2.0 Anniversary patch (GM scenario)
 
-⚠️The Global server currently uses the "Legacy" compatibility system. However, once the 2.0 anniversary update arrives, G2 and G3 races will stop providing compatibility bonuses. The compatibility for parents created using mainly G2/G3 races will significantly drop in the future.
+Historical Global guidance before 24 June 2026. The legacy system counted G2 and G3 wins. Those wins no longer provide compatibility bonuses. Existing parents retain their race records, but current compatibility uses the updated rules above.
 
-Take note: Because the current system counts G1, G2, and G3 races, you can currently build "Super Parents" with insane compatibility scores, preferably while in MANT scenario, by stacking everyone in your lineage with 60+ overlapping wins.
+Under that historical system, trainers could stack 60+ overlapping G1/G2/G3 wins in MANT for high compatibility. The legacy explanation and title table below describe those old rules only.
 Raising Compatibility
 In the legacy compatibility system, bonus compatibility is created via stacking overlapping races across your parenting lineage with bonuses from assembling titles/epithets.
 * Races: For every identical race win (G1, G2, or G3) shared between a parent/grandparent and the target horse, you gain +1 compatibility point.
@@ -292,7 +294,7 @@ Useful tools and Links
 https://mee1080.github.io/umaishow/ You can refer to this compatibility table for the base compatibility between each parent.
 
 
-A Note for Global Players: The Global server currently follows the original Japanese schedule and utilises the "legacy" system, where compatibility values are significantly lower. These values only apply from the Grand Masters (GM) scenario onwards; for earlier gameplay, please consult an older compatibility source.
+Global adopted the updated compatibility system on 24 June 2026, before Grand Masters. Select the applicable server data in compatibility tools; do not infer the rules solely from the scenario name.
 
 
 https://gametora.com/umamusume/compatibility Gametora also has a rudimentary base compatibility planner. Switch servers at the top left of the page to view the respective server’s data.
@@ -305,7 +307,7 @@ https://design.u-ma.org/
 Very cute lineage planner website, highly recommended for planning an overall lineage.
 ________________
 自主トレ育成 / Background auto / Independant training
-Cygames has introduced background auto to JP servers on 30 June 2026 and announced that its coming to Global servers too in early July 2026.
+The author records the JP launch of background auto on 30 June 2026 and its announced Global rollout in early July 2026. Global calls this mode Independent Training.
 
 
 Screenshots will be from the JP version unless someone who plays global wants to feed me the relevant screenshots.
@@ -337,7 +339,7 @@ Cons
 Background auto:
 Pros
 * Can be done in the background and you can actually watch the Uma Musume bond stories, live theatre and other game events you normally wouldn’t be able to do while playing.
-* Can never fail the run, all objective races are automatically won.
+* Can never fail the run. Objective races with a placement requirement are automatically won; participation-only objectives still roll the ordinary race odds.
 * Guaranteed wins against difficult opponents during objective races, but has a dual-edged edge problem, elaborated below..
 Cons
 * Winning races is chance-based. Your aptitude (ranked A to G) affects win probability — higher is better. However, certain Umas can still win races reliably even with low (C or D) aptitudes. Since background auto tends to pick up random race losses, using auto-kun may give much better overall compatibility
@@ -358,11 +360,13 @@ Your odds of winning a race begins at 110% if you have A/A distance and ground a
 S aptitude has been known to function the same as A aptitude, also beginning at 110%
 
 
-The odds will be lowered for each aptitude below A, and will drop even further for every consecutive race you run starting from the 4th turn. Cygames did not provide any details on the exact odds it will be lowered by. However, our trusty lad Shoppo_ura has spent the time investigating the odds.
+The odds are lowered for each surface or distance aptitude below A, with a streak penalty starting at the third consecutive race. A/A absorbs that first penalty because its raw score falls from 110% to 105%, still above the 100% cap. Cygames did not provide any details on the exact odds it will be lowered by. However, our trusty lad Shoppo_ura has spent the time investigating the odds.
 
 
 Shoppo’s tweet here https://x.com/shoppo_ura/status/2071769445605999036?s=20 with his table of results.
 
+
+Project note (2026-09-18): shoppo-independent-training-race-odds.md has the corrected 26 July 2026 fitted penalties and source spreadsheet. The observations below are measured samples, not exact probabilities. Surface E and distance E have different fitted penalties. Do not transfer these race rules to ordinary Auto-Train.
 
 Tabled sample data of race wins (from his tweet)
 Apt = Aptitude
@@ -564,7 +568,7 @@ Shoppo also investigated win rate reduction for running consecutive races @
 https://x.com/shoppo_ura/status/2077988949495279684?s=20
 
 
-Essentially aptitudes for ground and distance have the same weightage. Meaning AG = GA = DD
+Project correction (2026-09-18): this equal-weight shorthand was superseded by Shoppo's 26 July corrected table. Surface E has a -50-point penalty and distance E a -40-point penalty. AG and GA have a 20% win chance without a streak; DD has 50%. See shoppo-independent-training-race-odds.md.
 
 
 26 July 2026
@@ -605,10 +609,10 @@ Balanced = balanced stat distribution, Stamina - higher stamina focus, Sprint - 
 
 Next is Skill Hint Prioritization.
 Note: BG Auto will NOT buy skills during your run.
-These settings simply force Auto-kun to:
+The author describes the following Auto-Train behavior. Applying it to Independent Training is an unverified inference:
 1. Click on support cards with an active "!" hint event if they offer these specific skills.
 2. Pick event choices that grant the corresponding skill.
-*While Cygames hasn’t explicitly explained how background runs are simulated, post-run data suggests they follow the same decision-making system as Auto-kun.
+*Project note (2026-09-18): Independent Training support-hint prioritization and this event-choice strategy are not established by the Auto-Train observations. Treat the following Anshinzawa recommendation as Auto-Train advice unless mode-specific evidence confirms it.
 
 
 In my screenshot above you can see that I’ve placed straight line recovery in the hint priority list. I recommend always including Straight Line Recovery to your hint priority list. By default, Auto-kun gambles on the top option for the random Anshinzawa event, which has a massive 80% failure rate and devastating penalties (-2 mood, lost stats, or Insomnia)
@@ -694,14 +698,15 @@ Scenario gene gives pow & int
 Why choose Aoharu over URA?
 You get more random hints from bursting the gauges. Your average stat lines are higher than URA, having Riko in your deck gives ~ 150 Stamina/100 Guts for free from her dates, events and end of run bonuses. You hit the rest button way less than URA if you play it right, bring INT cards / burst on Int for energy. Base energy consumption is lower too.
 Make a New Track
+Historical scenario evaluation. The launch-era compatibility claims below predate the G1-only rework; the Global rework was already active on 24 June 2026.
 Runs here take close to over an hour to do, 45 minutes if you are a god. Run times are cut by 33% faster after the event speed up QOL is implemented. Originally this QOL was added together with GL’s launch but Global may get it earlier. I don’t work for cygames so I dont know what they would do.
-Take note that the G2/G3 races will be useless for compatibility after the compatibility rework.
+G2/G3 wins no longer add compatibility under the updated rules. They may still matter for scenario objectives or hidden sparks.
 This is a “racist” scenario - If the uma cannot run mile races, they cannot play this scenario well. Rip Tamamo and Eishin flash (released just before this scenario)
 
 Launch of Scenario: ☆☆☆☆☆ The perfect scenario for farming the next half of the year.
-* Compatibility: It is incredibly easy to stack 50–63 bonus race points for all Umas, provided they can run mile/mid races.
+* Historical compatibility: before the rework, this scenario allowed 50-63 shared graded-race wins. Current compatibility counts shared G1 wins at +3 per applicable relationship.
 * Stats & Factors: You gain significant "free" stats just by progressing the run. Furthermore, the scenario’s Climax genes give Stamina and Guts—the best possible combination. (I personally favour Stamina as a bonus stat, you will find out why when GL comes)
-* Longevity:  This is a God-tier scenario for parenting, though the honeymoon period will not last forever. While it currently provides "mega" compatibility, it will eventually be phased out with the compatibility overhaul when GM arrives
+* Historical longevity assessment: the original recommendation relied on legacy graded-race bonuses. Those bonuses ended with the compatibility rework, which Global received before GM.
 Expected SP: Around 2k~ 2.5k  Depends on deck but there's not a lot of variance.
 
 
@@ -798,7 +803,7 @@ Auto time: 20~ minutes give or take
 Manual time: 30 to 45 minutes - Since there's scenario menus to click through.
 
 
-This scenario is shortened and DOES not have any races beyond Year 3 December, so you will not gain additional race compatibility from overlapping URA races. (Aug 25 misinfo update - URA races are not counted as G1s)  Special events for each Umas are also limited, not all of them will function, but some Uma’s quirks still apply.
+This scenario is shortened and has no races beyond Year 3 December. That does not remove a URA-finals compatibility bonus, because URA finals do not count as G1s.  Special events for each Umas are also limited, not all of them will function, but some Uma’s quirks still apply.
 
 (Not relevant to parenting) Oonige's condition is to just win against 3 Legends or Almond Eye.
 
@@ -807,7 +812,7 @@ Mandatory card: Scenario Twinkle Legends card, any LB
 Initial rating: ☆☆☆☆☆☆☆ 7/5
 The more manual input u have for the run the better, full auto final results have a huge range (UG to UD ratings) since it is very stamp & route RNG dependent and this scenario also does not have mood up events.
 Current Rating: Obsoleted because Cygames broke the game with the next DYI scenario with an emergency patch
-* Lowered because it is no longer the only auto scenario & does not have URA races for a tiny bit more compatibility. The stats are not spread out and highly dependent on your deck choice.
+* Lowered because it is no longer the only auto scenario. The stats are not spread out and highly dependent on your deck choice. URA finals do not add compatibility, so their absence is not a compatibility penalty.
 
 Twinkle Legends scenario genes give Power & Guts
 This Scenario does not have any extra scenario specific genes
@@ -1438,10 +1443,7 @@ Split ratings for Onsen scenario :
 Current : Superceded by Tracen-ken , higher SP ceiling & stronger hint mechanics
 ________________
 Other notes for scenario evaluations
-The G1 classification of races also applies for each scenario’s specific races.
-* This portion of the guide was written in early 2021 and will need additional verification, U-Tools says Ura finales doesnt count though.
-
-URA/Aoharu/UAF/GFF/Mecha/DYI  have shared URA races during the final turns while MANT, LARC, GL & GM, have their own individual scenario races that do not aid compatibility cross scenarios. Take this into account when mixing parents across scenarios!
+Only races classified as G1 contribute to the updated compatibility calculation. URA finals are scenario races, not G1s, even when two parents ran the same finals. The earlier claim that shared URA finals add compatibility was withdrawn by the author in the correction below.
 Twinkle Series has no extra races.
 
 
@@ -1682,14 +1684,14 @@ Higher ☆ benefits you in two ways:
    1. You have a higher chance of proccing the upper end of the possible ranges, view table above for each range.
    2. Increased chances of the gene proccing, higher chance per ☆
    3. (outdated : the previous theory was 1 ☆ = 5% / 2☆ = 10% / 3☆ = 15%)
-The chances are ~ halved compared to the main parent if the gene belongs to a grandparent (rough maths, based on how GP compatibility is calculated)
+Grandparents often have lower activation chances because their individual compatibility is lower. Do not apply an extra one-half multiplier after using individual compatibility in the activation formula. See aptitude-inheritance.md.
 The % chance of procs supposedly increases when you get a gold inheritance event, exact effects are unknown, if by some chance you have data, link me.
 Exact chances : View the bonus chapter below for new data about this.
 
 
 ________________
 Stat Uncap Mechanics
-(For Global players: This section does not apply to you until the stat cap is raised beyond 1200)
+(This section applies to scenarios with stat caps above 1200. Global Our Grand Concert has such caps; older scenario discussions may not.)
 
 Stat Uncap refers to the increase in maximum stat limits gained by inheriting certain genes.
 
@@ -1698,12 +1700,13 @@ Stat uncaps are affected by the quality of your blue genes during both the initi
 
 Update: You can view which stat will be increased by clicking on their Green Genes. Agnes digital’s unique raises speed/stam/power (int is not raised even though she also has bonus there)
 Mid run inheritance table
+Project note (2026-09-18): this is an older qualitative summary, not a probability table. The later individual-compatibility model takes precedence. A displayed ◎ does not guarantee that all six blue sparks activate.
 
 
 
 
 	◎ Great compatibility
-(>150 points)
+(151 points or more)
 	〇 Good compatibility
 	△ Poor compatibility
 	Blue Gene
@@ -1737,7 +1740,7 @@ Minimum of +1 hint
 ^Will be explained in chapter 3, hidden Red Gene values.
 
 
-Note: This chart illustrates how compatibility affects the inheritance events. However, the initial inheritance of green is an exception and remains unaffected by compatibility.
+Project note (2026-09-18): the source contradicted itself about initial Green inheritance. The paragraph below reports deterministic hint levels that can vary with affinity. That claim concerns hint level, not whether the parent's inherited unique is available at the start. The exact initial hint-level formula is not established here.
 
 
 Special case: The initial green inheritance occurs during the run, just before turn 1, so it is affected by compatibility. Take note that even though this isn't applied before the run starts, the roll is not RNG and the hint grade obtained will always be the same for any run. Ie. you will see the same lowered green hint level for △ compatibilities.
@@ -2018,7 +2021,7 @@ This means that you will have a 1 in 5 or 20% chance of rolling for any individu
 
 
 Next, the game checks under which grade your selected stat is and a 2nd roll is conducted according to the chart below.
-In order to be able to be eligible to obtain a 3★ blue gene, the selected status must be at least B rank or higher, above 600 stats.
+A 3★ blue spark requires the selected stat to be at least 600, inclusive.
 
 
 Blue Gene Chart
@@ -2165,10 +2168,10 @@ The chart above is the data collected for Arc Maestro, arguably the bestest most
 
 This chart shows if there is a common gene among the lineage of the parents/grandparents, you will receive a higher chance of generating the skill gene post run.
 
-Learning the gold version of a skill will increase the odds of your gene generation to a minimum of 40% and maximum of 70%
+Learning the gold version raises the estimated skill-spark generation base to 40%. With n matching parent/grandparent sparks, use 40% × 1.1^n, up to about 70.86% at n = 6. This is an empirical fit; see hakuraku-spark-generation.md.
 
 
-Skill generation odds
+Historical linear approximation (superseded by the exponential fit below)
 
 
 	Min
@@ -2204,8 +2207,7 @@ Learned 〇
 	3★ chance
 
 
-Learning ◎ of said skill gives better chances for a min/max of 25%/30% from this data set and so on. By extrapolation, if 6 parent/gp owns it in the linage, it caps off at 40%
-(same 2.5% increase in proc rate per lineage that has it)
+Learning the released ◎ version raises the estimated base to 25%. Use 25% × 1.1^n, up to about 44.29% at six lineage copies. The earlier additive extrapolation to 40% was a simplification and is not the estimate used here.
 
 
 Summary of this section
@@ -2213,7 +2215,7 @@ Summary of this section
 The lowest chance of generating the gene is 20% for the basic version of any skill.
 
 
-All skills have a flat 5% chance of being a 3★, so it means you have a 95% chance to roll a 1-2 ★. However, you can increase the chance for 2★ and above with higher grades, explained later in the last section of this chapter.
+After a white skill spark generates, its star quality depends on final rank score. The 3★ estimate is 5% at scores 6,500-17,499, 10% at 17,500-28,799, and approximately 12.5% at 28,800+. The low and UE bands have different evidence limits; see hakuraku-spark-generation.md.
 Race genes
 
 
@@ -2242,7 +2244,7 @@ Source : Aoneko Uma’s data and NottinTV’s explanations https://www.youtube.c
 
 
 The data shows that there is no bias in different G1 races, meaning all races will follow the  same gene proc rates.
-Based on the data above you will have between 20% to 30% to inherit a G1/Race gene per run, with 5% chance for a 3★★★ version
+The author estimates G1 race-spark generation using the same 20% × 1.1^n curve, about 20%-35.43% across zero through six lineage copies. This is end-of-run generation, not mid-run activation. Star quality depends on final rank score; 5% for 3★ applies only to the 6,500-17,499 score band.
 
 
 
@@ -2271,8 +2273,7 @@ For example inheriting the URA scenario gene adds a range of [10/20/30 & 10/20/3
 
 
 Generation chances
-No data on if scenario genes has a higher chance to proc if the parent lineage has it, or even what rates they follow. For now I’d assume it follows the same logic as race genes.
-Aya has helped investigate the scenario genes below and its data to suggest it probably follows the same mechanics as skill and race genes.
+The author originally lacked lineage-generation data for scenario sparks. Aya's later sample below supports higher rates with more lineage copies, but has no six-copy sample and limited observations at five copies. Treat a shared formula with skill sparks as a fit to investigate, not an established universal rule.
 
 
 Common Linage
@@ -2317,7 +2318,7 @@ Common Linage
 	-
 	Findings:
    1. Common lineages increase odds of generation
-   2. Same min and max.
+   2. The sample supports a base near 20%; it does not measure a six-copy maximum.
    3. The anomaly datapoint on 5 common linages can be attributed to the low sample size.
 
 
@@ -2343,10 +2344,10 @@ UAF, GFF & Mecha Scenario also introduce new scenario genes but no longer genera
 Chance of appearance for Mini scenario genes
 
 
-Based on the above data. I assume it follows the same appearance rate according to white skill genes since these are not linked to races. With a base chance of 20% to appear and up to a max of 30% if every parent has the same gene.
+The author assumes that mini scenario sparks follow the white-skill generation curve. Their rates are not established by the data above. The earlier claimed 30% maximum also conflicts with the later exponential estimate; do not use it as a measured cap.
 ________________
 Summarising the white gene generation rates
-Simplified linear interpretation
+Historical linear approximation. Use the exponential fit below for current estimates; the additive increments and maxima in this table are superseded.
 
 
 	Min
@@ -2375,7 +2376,7 @@ Advanced explanation for the data purists
 Please take note that I’ve been treating the white skill generation rates as a linear growth function for ease of explanation and understanding for everyone thus far. However, aoneko_uma has a different conclusion of the gene generation based on his data collection at https://x.com/aoneko_pochi/status/1775048834328195556. The exponential relationship of this growth has also been confirmed with data obtained from Uma.moe & aya. N= 26,532,199 Team Trials Umas.
 
 
-While I’ve used the same min and max chances above to simplify the relationship, aoneko proposes that the additional chances per lineage follows an exponential growth instead.
+Project correction (2026-09-18): the linear and exponential estimates do not have identical maxima. At six copies, the exponential estimates are about 35.43% for white, 44.29% for ◎, and 70.86% for gold. Hakuraku supports the exponential fit for skill sparks; extending it to race sparks is the author's interpretation, not the same measured skill-family result.
 
 
 
@@ -2429,7 +2430,7 @@ Completing a run where your end grade is SS or above will increase the star QUAL
 2023 data
 Source: https://aoneko-uma.fanbox.cc/posts/3891258
 In the above article, Aoneko investigates whether the new rating ceiling of UG/UF has any effect on white genes, and whether going above 1300 for stats affects blue genes.
-Answer: No, the increased gene quality stops at SS grade for the Uma and SS for stats.
+Historical 2023 answer. No additional increase was detected in that study. The later UE finding below supersedes its claimed ceiling for white star quality.
 2024 Update
 https://twitter.com/aoneko_pochi/status/1774676602628301180
 
@@ -2451,11 +2452,11 @@ Chance of Stars for white genes
 	90%
 	10%
 	0%
-	Below SS grade (less than 17500 score)
+	Score 6500 through 17499
 	50%
 	45%
 	5%
-	Above SS grade  , Below UE (More than 17500 score)
+	Score 17500 through 28799
 	20%
 	70%
 	10%
@@ -2557,8 +2558,8 @@ She lost Tennoushou Spring (lower compatibility with others who won it) and othe
 When building parents it would be best to follow this strategy of using the same support deck and running the same races as your parents for the following reasons.
 
 
-1. The same support deck means you have access to buying up the same skills, which increases the chance of the same skills appearing in your run generation for up to 70% chance of the gene being generated.
-2.  Other than compatibility reasons, running the same races further leads to a higher chance of the common G1 genes being generated, allowing reinforcement of the genes, for up to 30% chance of passing it down.
+1. The same support deck provides access to the same skills. Buying a skill makes its spark eligible, and matching lineage sparks raise the estimated generation rate. Gold with six lineage copies reaches about 70.86% under the empirical fit.
+2. Winning the same G1s enables the corresponding race sparks. Matching lineage race sparks are thought to raise their generation chance; see the evidence limits in the race-spark section above. Running the same race alone does not establish a fixed 30% rate.
 As a reminder, there is no benefit for repeating any G1s that appear during the Classic or Senior years. Ie Arima Kinen on both years.
 
 
@@ -2935,6 +2936,7 @@ I would not suggest more than 1 position related gene - this is so you don't run
 
 ________________
 Chapter 7: 4th Anniversary new white genes
+Project scope note (2026-09-18): this chapter describes JP fourth-anniversary additions. Do not infer Global availability from this chapter; check the relevant server's skill and spark data.
 
 
 The 4th Anniversary updates added a bunch of new genes to the gene pool. You can view and access the list of these genes from the in game filter menu here.
@@ -3160,7 +3162,7 @@ Alternatively, LARC works as a smooth brained method to bridge the compatibility
 However, as the scenario is shortened and the total number of overlapping races is capped out at 16. There is a hardcapped ceiling on the max compatibility. Very low skill points compared to current scenarios.
 
 
-For global (Pre-affinity rework): prioritise ◎ (Double Circle) Compatibility when pairing Umamusume. Use the in-game compatibility checker, or gametora’s compatibility tool for numbers to plan. To maximise compatibility, plan your parents to run the same overlapping races. Only G1, G2, and G3 races contribute to affinity before the rework; "OP" races do not count.
+Historical Global advice before 24 June 2026 (pre-affinity rework): prioritise ◎ (Double Circle) Compatibility when pairing Umamusume. Use the in-game compatibility checker, or gametora’s compatibility tool for numbers to plan. To maximise compatibility, plan your parents to run the same overlapping races. Only G1, G2, and G3 races contribute to affinity before the rework; "OP" races do not count.
 
 
 To summarise the entire thing above
@@ -3234,7 +3236,7 @@ Just a snapshot of his inheritance data.
 
 
 
-In conclusion: The effects of compatibility have been proven to be the same throughout all scenarios and can be assumed to follow the formula below.
+The cited measurements support the individual-compatibility formula below across the tested scenarios. This is evidence for a model, not proof of every server or scenario implementation. Cap the resulting probability at 100%.
 Inheritance formula:
 base_inheritance_odds_per_type * (1 + individual_compatibility_score/ 100) = inheritance_odds_per_type
 3☆ Green Gene example: 15% * (1 + 200/100) -> 15% * (1 + 2) = 45%
@@ -3355,6 +3357,7 @@ ________________
 
 ________________
 Inheritance-only Uma Musume / 継承専用ウマ娘
+Project scope note (2026-09-18): this section describes the JP bulk-inheritance feature and its dated measurements. Its paid-plan, support-card, priority-factor, and Trainer Guide claims do not establish the same rules for Global Independent Training.
 The official text is Inheritance, not legacies. Global localisation is bad >:(
 
 
@@ -3408,7 +3411,7 @@ Shoppo also investigated win rate reduction for running consecutive races @
 https://x.com/shoppo_ura/status/2077988949495279684?s=20
 
 
-Essentially aptitudes for ground and distance have the same weightage. Meaning AG = GA = DD
+Project correction (2026-09-18): this equal-weight shorthand was superseded by Shoppo's 26 July corrected table. Surface E has a -50-point penalty and distance E a -40-point penalty. AG and GA have a 20% win chance without a streak; DD has 50%. See shoppo-independent-training-race-odds.md.
 ________________
 Patched out on May 20 2026
                      * The win rate rate will be increased by 30% if the uma already has a trophy for the race they are competing in.
@@ -3483,7 +3486,7 @@ He can’t tell if it's because the hot spring resort has a higher acquisition r
 
 
 ★ Rarity of genes
-The star rate for priority factors is the upper end of the rates. (UE and above)
+The measured star rate for these priority factors was 10% for 3★. This corresponds to the ordinary 17,500-28,799 score band, not the 12.5% UE estimate. It does not establish a final rank score for bulk-inheritance veterans.
 
 
 ★3:★2:★1 = 10%:70%:20%
@@ -3492,7 +3495,7 @@ The star rate for priority factors is the upper end of the rates. (UE and above)
 According to the help section of the Inheritance-only, these seem to depend on support cards, but in his tests, all support cards were fully enhanced SSR and had the same star rate, so hes wondering if this is the maximum tier of rates?
 
 
-So he tested and significantly reduced the support card power and noted that his white rarity rates were following the SS to UF banding.
+With reduced support-card strength, the measured white star rates instead matched the ordinary 6,500-17,499 score band. This observation does not establish that bulk inheritance computes the same hidden score.
 ★3:★2:★1 = 5%:45%:50% was used.
 
 
@@ -3615,11 +3618,9 @@ Rank score band
 
 
 Race genes/White skills explained
-You have between 20% to 30% chance to inherit a G1 race gene per run. (And you must win that particular G1 Race too)
-White skill chance of inheritance: [20-30% / 40-70%]    [White skill/Gold skill]
+End-of-run skill-spark generation is estimated as base × 1.1^n, with base 20% for white, 25% for a released ◎ upgrade, and 40% for gold. n counts matching sparks among the six parents/grandparents. The author also applies the 20% base to race sparks; that extension has weaker evidence than the measured skill-family fit. A race spark requires winning that G1 at least once.
 
-All white skills have a flat 5% chance of being a 3★, so it means a 95% chance to be 1-2 ★
-This % is doubled if your uma’s grade is SS and above, increases further if you end at UE and above.
+These generation chances are separate from mid-run inheritance activation. Conditional star quality follows the final-rank table below; it is not a flat 5% for 3★.
 
 
 Chance of Stars for white genes
@@ -3630,11 +3631,11 @@ Chance of Stars for white genes
 	90%
 	10%
 	0%
-	Below SS grade (less than 17500 score)
+	Score 6500 through 17499
 	50%
 	45%
 	5%
-	Above SS grade  , Below UE (More than 17500 score)
+	Score 17500 through 28799
 	20%
 	70%
 	10%
@@ -3657,8 +3658,8 @@ Effects of compatibility on parents:
 Higher compatibility raises the odds of inheriting genes from said lineage.
 
 
-For the best compatibility overlap all the races you can, raise dirt aptitude for dirt races increased compatibility and/or bridging other rotations.
--Dirt rotations are not for you Global gremlins. yet
+For higher compatibility, overlap G1 wins. Raising dirt aptitude can enable more shared G1 races or bridge different race rotations.
+Dirt rotations can add shared G1 wins in Global too, if the trainee can win those races. Race availability and aptitude requirements still limit the rotation.
 
 Conclusion: At the end of the day it's up to you as to how greedy you are for genes, what you wish to target for your ideal breeding parent and what combination of strategies you use in training/picking choices.
 

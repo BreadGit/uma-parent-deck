@@ -13,9 +13,11 @@ Skills of the same rarity can have different evaluation values. Examples before 
 | Right-Handed ◎ | 174 |
 | Corner Recovery ○ | 217 |
 
-Aptitude-conditioned skills receive evaluation multipliers from the relevant aptitude group.
-The buckets used by UmaTools are S/A at 1.1, B/C at 0.9, D/E/F at 0.8 and G at 0.7.
-An unconditioned skill receives its base value.
+Aptitude-conditioned skills can have individual scores for each aptitude bucket. UmaTools also
+uses approximate multipliers for missing bucket values and compound conditions: S/A at 1.1,
+B/C at 0.9, D/E/F at 0.8 and G at 0.7. These are fallback estimates, not verified multipliers
+for every skill. An unconditioned skill receives its base value. See the
+[rating-table source scope](umatools-rating-tables.md#skill-rating-and-aptitude-buckets).
 
 Hint levels 0 through 5 discount SP costs by 0%, 10%, 20%, 30%, 35% and 40%.
 Each discounted purchase cost is rounded down. Upgrades require lower forms to be bought;

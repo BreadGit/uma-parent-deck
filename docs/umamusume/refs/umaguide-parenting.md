@@ -4,15 +4,25 @@
 
 Source: https://uma.guide/guides/parenting-in-umamusume
 
+Project corrections reviewed 2026-09-18. This vendored copy uses the measured star tables and
+empirical skill-spark formula in [Hakuraku's research](hakuraku-spark-generation.md), and the
+pink activation rates in [aptitude inheritance](aptitude-inheritance.md). The original source
+had a 2% one-star pink rate, reversed middle-band star columns, and derived comparisons that
+needed recalculation. Strategy recommendations, scenario comparisons, skill availability, and
+release predictions below describe the source's Global snapshot, not an evergreen release guide.
+References to site tools such as Roster Viewer and Pinned Sources mean uma.guide's tools.
+
 # Global Parenting Guide ​
 
 This guide will cover the generation of Parents, the hidden mechanics behind parenting, and general advice.
 
 WARNING
 
-This guide does NOT explicitly cover Independent training, because the game does not tell us how it functions, such as the odds of winning races or of finishing card chains. Additionally, at this time we lack a statistically significant data set to draw reliable conclusions.
+This guide focuses on manual parent runs. Its original independent-training observations below
+are historical. Use the [corrected independent-training reference](shoppo-independent-training-race-odds.md)
+for measured race estimates. Manual-race stat and skill advice does not apply to those estimates.
 
-All of the information covered in this guide can be applied to an Independent run; however, early observations indicate some key differences.
+The source recorded these early independent-training observations; they are not calibrated estimates:
 
 - The race win rate of an Uma with unsuitable Aptitudes (below C) appears to be significantly higher in Independent training, so try to include those races.
 - SP values appear to be higher than in manual runs.
@@ -37,7 +47,7 @@ An Uma can only generate a Pink Spark if she has an A or above rank in the respe
 
 ### Green Sparks ​
 
-- Provides the inherited version of an Uma's Unique Skill and increases max Stat Caps based on the Parent Uma's Growths. A Parent Uma's Green Spark will always give you the inherited version of the Skill at the beginning of the Career. During Inspiration Events, it is possible to proc Green Sparks for hints of said inherited Skill from both the Parents and Grandparents, as well as a tiny increase to your Stat Cap.
+- Provides the inherited version of an Uma's Unique Skill and increases max Stat Caps based on the Parent Uma's Growths. A Parent Uma's Green Spark makes the inherited version available to buy at the beginning of the Career. It grants a hint, not an automatic Skill purchase. During Inspiration Events, it is possible to proc Green Sparks for hints of said inherited Skill from both the Parents and Grandparents, as well as a tiny increase to your Stat Cap.
 Only 3★ Umas and above can generate Green Sparks. An Uma finishing her Career at 1★ or 2★ will not pass down her Unique Skill.
 
 ### White Sparks ​
@@ -51,7 +61,7 @@ Only 3★ Umas and above can generate Green Sparks. An Uma finishing her Career 
 Affinity influences the chance of Sparks proccing during the Classic and Senior year Inspiration Events. There are two types of Affinity:
 
 - Base Affinity, a fixed value that varies between any two Uma. The Base Affinity of a Grandparent cannot exceed the Base Affinity of a Parent.
-- Race Affinity, which comes from shared unique G1 wins between the Parent and the Grandparents.
+- Race Affinity, which adds 3 points for each shared unique G1 win within an applicable relationship. This includes the two Parents' shared wins and each Parent's overlap with its own Parents. G2/G3 wins and title bonuses do not contribute under the updated system.
 Winning the same race twice
 
 Races that run in both Classic and Senior year, such as Takarazuka Kinen and Arima Kinen, only count toward Affinity once. Winning the same race in both years gives no extra Affinity.
@@ -61,7 +71,7 @@ Races that run in both Classic and Senior year, such as Takarazuka Kinen and Ari
 | Spark type↓ / Base chance→ | ★1 Rate | ★2 Rate | ★3 Rate |
 | --- | --- | --- | --- |
 | Blue Sparks | 70% | 80% | 90% |
-| Pink Sparks | 2% | 3% | 5% |
+| Pink Sparks | 1% | 3% | 5% |
 | Green Sparks | 5% | 10% | 15% |
 | Race Sparks | 1% | 2% | 3% |
 | White & Scenario Sparks | 3% | 6% | 9% |
@@ -74,23 +84,34 @@ Affinity scales these base rates linearly, using the formula below. Each Parent 
 
 Affinity is a multiplier on the base rate, but the base rate itself is set by the Spark's star count.
 
-For White, Green and Race Sparks, taking a Spark from 1★ to 2★ doubles its inheritance rate. Affinity scales the base rate by 1 + Affinity/100, so matching that same 2.00x from Affinity alone takes 100 Affinity points on that Uma, or roughly 33 shared G1 wins. Affinity is per Uma, not lineage-wide, so that cost is paid again for every Parent and Grandparent we want it from.
+For White, Green and Race Sparks, taking a Spark from 1★ to 2★ doubles the uncapped
+inheritance rate at the same individual Affinity. Pink triples; Blue increases by about 14%.
+The activation estimate is `min(1, base × (1 + Affinity / 100))`.
 
-| Spark type | 1★ → 2★ | Multiplier | Affinity for the same gain | Shared G1 wins |
-| --- | --- | --- | --- | --- |
-| Blue | 70% → 80% | 1.14x | +14 | ~5 |
-| Pink | 2% → 3% | 1.50x | +50 | ~17 |
-| Green | 5% → 10% | 2.00x | +100 | ~33 |
-| Race | 1% → 2% | 2.00x | +100 | ~33 |
-| White & Scenario | 3% → 6% | 2.00x | +100 | ~33 |
+| Spark type | 1★ → 2★ | Multiplier before the 100% cap | Extra Affinity to match, starting at zero |
+| --- | --- | --- | --- |
+| Blue | 70% → 80% | 1.14x | 14.29 |
+| Pink | 1% → 3% | 3.00x | 200 |
+| Green | 5% → 10% | 2.00x | 100 |
+| Race | 1% → 2% | 2.00x | 100 |
+| White & Scenario | 3% → 6% | 2.00x | 100 |
 
-For those three Spark types 1★ → 2★ is also a larger jump than 2★ → 3★, which is worth 1.50x.
+The Affinity column is a zero-start comparison, not a fixed cost at every Affinity.
+Starting at individual Affinity `A`, matching a star multiplier `m` with extra Affinity alone
+takes `(m - 1) × (100 + A)` points before probability caps. Shared G1 wins contribute within
+specific relationships, so this does not translate into one lineage-wide race count.
 
-Rank is what moves Sparks off 1★. At SS, White and Green Sparks generate 1★/2★/3★ at 20%/70%/10%, versus 45%/50%/5% below it. 3★ gains 5 points, while 25 points move out of 1★ and 20 of them land in 2★.
+At rank score 17,500, the measured White and Green star distribution changes from approximately
+50%/45%/5% to 20%/70%/10%. Thirty percentage points leave 1★, with 25 moving to 2★ and five to 3★.
+For a generated White Skill Spark at zero Affinity, the expected activation chance changes from
+`0.50 × 3% + 0.45 × 6% + 0.05 × 9% = 4.65%` to
+`0.20 × 3% + 0.70 × 6% + 0.10 × 9% = 5.7%` per event.
+The gain is 1.05 percentage points, about 22.6% relative. It combines a 0.75-point gain from
+moving 1★ outcomes to 2★ and a 0.30-point gain from moving them to 3★.
 
-On any given White Spark that is an expected inheritance chance of 4.8% below SS and 5.7% at SS, two thirds of the gain coming from escaping 1★ rather than from reaching 3★.
-
-SS rank and Affinity stack. Rank decides what star level we are likely to generate, and thus the base rate of inheritance. Affinity scales that base rate. A run that trades away rank for a few more overlapping races is giving up the larger of the two.
+Rank and Affinity both matter. Their tradeoff depends on whether a run crosses a rank threshold,
+the affected Spark types, each source's Affinity, and the races actually shared. SS is a useful
+target, but the tables do not prove that every rank gain outweighs every race gain.
 
 For clarity, we are using "inheritance" to refer to the Spark procs that are seen during the Inspiration Events in a Career.
 
@@ -102,30 +123,39 @@ Spark Generation is determined by a number of factors. While the outcome is ulti
 
 ### Blue Sparks ​
 
-Blue Sparks have an equal, fixed chance to be one of the 5 Stats, meaning Speed, Stamina, Power, Guts, and Wit each have a 20% chance.
+Use an equal 20% selection estimate for Speed, Stamina, Power, Guts, and Wit. Hakuraku's small
+measured deviations do not establish a Stat-weighted formula; see
+[Blue generation](hakuraku-spark-generation.md#blue-generation).
 
-Star count is based solely on an Uma's Stats, with 3 thresholds of note.
+Star count depends on the selected Stat, with thresholds at 600 and 1,100.
 
 Blue Spark Star Odds
 
 | Stats | 1★ | 2★ | 3★ |
 | --- | --- | --- | --- |
 | 1100+ | 20% | 70% | 10% |
-| 600-1099 | 45% | 50% | 5% |
+| 600-1099 | 50% | 45% | 5% |
 | 1-599 | 90% | 10% | 0% |
 
 ### White and Green Sparks ​
 
-White and Green Spark odds are based entirely on the Uma's rank.
+White and Green Spark **star quality** depends on overall rank score. This is separate
+from whether a Skill Spark generates at all. Green Sparks require a 3★ or higher trainee.
 
-White / Green Spark Star Odds
-
-| Rank | 1★ | 2★ | 3★ |
+| Rank score | Approximate 1★ | Approximate 2★ | Approximate 3★ |
 | --- | --- | --- | --- |
-| SS and above | 20% | 70% | 10% |
-| G-S+ | 45% | 50% | 5% |
+| Below 6,500 | 90% | 10% | 0% |
+| 6,500-17,499 | 50% | 45% | 5% |
+| 17,500-28,799 | 20% | 70% | 10% |
+| 28,800+ | 17.5% | 70% | 12.5% |
 
-White Spark generation is based on the number of times a White Spark appears in a full lineage, meaning all 6 Uma that make up an Uma's Legacy: 2 Parents and 4 Grandparents. Different tiers of the same Skill will also further influence generation chances, as shown in the table below.
+Hakuraku measures the middle and high bands for White Sparks and the bands from 1,000 upward
+for Green Sparks. The low White band is a community estimate. The additional 28,800 threshold
+is a community White table, extrapolated to Green in Crazyfellow's guide. It was outside
+Hakuraku's sampled score range. See [the curated measurements](hakuraku-spark-generation.md)
+for counts and limitations.
+
+Skill Spark generation is based on the number of times that Skill Spark appears in a full lineage, meaning all 6 Uma that make up an Uma's Legacy: 2 Parents and 4 Grandparents. Different tiers of the same Skill will also further influence generation chances, as shown in the table below.
 
 There is technically no limit to the number of White Sparks a Parent can have.
 
@@ -141,7 +171,10 @@ White Spark generation chances, based on the tier of Skill bought
 | 5 | 32.21% | 40.26% | 64.42% |
 | 6 | 35.43% | 44.29% | 70.86% |
 
-The formula for calculating White Spark generation is not exactly known. The most current, supported formula is an exponential one: base chance × 1.1n, where n is the number of times the Spark appears in the lineage.
+The exact server formula is unknown. These Skill Spark estimates use `base chance × 1.1^n`,
+where `n` is the number of the six ancestors carrying that Skill Spark. This empirical fit
+matches Hakuraku's measurements; other formulas also fit. It is not evidence for applying
+the same formula to Race or Scenario Sparks.
 
 ### Understanding White Spark generation ​
 
@@ -149,11 +182,11 @@ The formula for calculating White Spark generation is not exactly known. The mos
 - The desired Skill appearing in your Uma's lineage as a White Spark will give better odds.
 - The more times the White Spark appears in your Uma's lineage, the higher the odds of that White Spark generating.
 - Gold versions of Skills give a massive increase to the odds of generating a White Spark.
-It is important to note that Skills learned by the Uma in a lineage DO NOT matter at all. Having learned a Skill like No Stopping Me! on all 6 Uma in the lineage does not grant you the ~70% odds of generating that Spark on a new Parent. If we want the full ~70% chance, we need to have the White Spark for Nimble Navigator appear on every Uma in the lineage we are using (6 — 2 Parents, 4 Grandparents), and then also learn the Gold version of the Skill on the Uma we are currently running.
+It is important to note that Skills learned by the Uma in a lineage DO NOT matter at all. Having learned a Skill like No Stopping Me! on all 6 Uma in the lineage does not grant you the ~70% odds of generating that Spark on a new Parent. If we want the full ~70% chance, we need to have the White Spark for Nimble Navigator appear on every Uma in the lineage we are using (6 total, 2 Parents and 4 Grandparents), and then also learn the Gold version of the Skill on the Uma we are currently running.
 
 ### Application ​
 
-In our example below, we will assume that we have the exact same lineage on both sides for simplicity. This Parent is from URA, with two goals:
+In this calculated example, assume the same lineage on both sides and independent Skill Spark generation rolls. The percentages are conditional on buying the listed Skills, not the probability of obtaining their hints during the run. This Parent is from URA, with two goals:
 
 - Retain Uma Stan & Restraint
 - Acquire Racing Spirit: Stamina & Racing Spirit: Power
@@ -180,7 +213,7 @@ Assuming all Skills obtained are White ○, our odds are:
 
 - 0 desired Skills = 20.85%
 - 1+ desired Skills = 79.15%
-- 2+ desired Skills = 39%
+- 2+ desired Skills = 39.00%
 - 3+ desired Skills = 10.20%
 - 4 desired Skills = 1.08%
 So what happens if we make all Skills appear 6 times?
@@ -306,7 +339,7 @@ Senior Year
 [image: Mile Championship]
 [image: Champions Cup]
 [image: Tokyo Daishoten]
-These schedules are built to run the less consistent races during Senior year. Doing this allows your Trainee to have more Stats and Skills, which should make these races more favorable. Importantly for Trackblazer: Japan Cup is run in Senior year and Mile Championship is run in Classic year, for Scenario Epithet reasons.
+These schedules are built to run the less consistent races during Senior year. Doing this allows your Trainee to have more Stats and Skills, which should make these races more favorable. For Trackblazer, swap Japan Cup into Senior year and Mile Championship into Classic year compared with the schedules above. The source recommends this swap for Scenario Epithets.
 
 - Early Dec Hanshin Juvenile Fillies & Asahi Hai Futurity Stakes
 For this example, we resolve it by choosing Hanshin Juvenile Fillies, because Tiara Uma must run this race in Trackblazer, and we want to maintain maximum Affinity between Parents.
@@ -525,7 +558,11 @@ Reach maximum Affinity on all Parents and remove all dependency on Borrows; crea
 
 ## Scenario Overviews ​
 
-Stat Caps
+These are the source's manual-parent-run estimates and recommendations. They depend on deck
+and trainee, and are not independent-training forecasts. The original extraction omitted the
+stat-cap values; no cap table is reproduced here.
+
+### URA Finals
 
 After the rework, this Scenario has reasonably high and balanced Stat Caps; however, it does not have any mechanics to actually elevate more than one or maybe two Stats near the new Caps. Combined with the lower SP values, getting SS is very hard, making this Scenario suboptimal for making final Parents and Grandparents.
 
@@ -588,13 +625,13 @@ Skill Priority
 - Racing Spirit: Mood
 For a more detailed overview of the updated URA, check out our Updated URA Guide.
 
-Stat Caps
+### Unity Cup
 
 Overview
 
 - Has 5 unique Scenario Skills that can be inherited as White Sparks.
 - Provides a large amount of Skill hints, as the Unity mechanics make Card hints more consistent compared to other Scenarios.
-- Provides the generally good Skills It's On! & No Stopping Me! for free from interacting with the Scenario mechanic, allowing Trainers to easily inject two powerful Skills into a lineage without taking up valuable Card slots.
+- Provides hints for It's On! & No Stopping Me! through the Scenario mechanic. These Skills still cost SP to purchase, but do not require a Support Card as their source.
 - Allows for additional races without punishing overall Stat and SP gain.
 - Grants 2.7k - 3.3k SP on parent runs.
 Goal of parent farming in Unity Cup
@@ -614,11 +651,11 @@ Trainers have three options for how to use Unity:
 - If a Trainer is just starting out with Parents, they can start an effective loop from nothing in Unity, as it can provide 2 Gold Skills innately regardless of the Running Style, which makes generating a 3- or 4-Skill loop very easy.
 Race Bonus is still very important in this Scenario, as it scales the rewards from both races and Unity matches that occur throughout the Career.
 
-Stat Caps
+### Trackblazer
 
 Overview
 
-- No mandatory races, allowing for maximum Affinity.
+- Replaces trainee-specific career goals with scenario goals, giving more flexibility for shared G1 wins. Debut and the finale still occupy turns.
 - Consistent SS-rank Legacies.
 - 2.7k - 3.2k SP.
 - Longest average Career in the game, 35 - 40 min.
@@ -639,7 +676,7 @@ Front Runners
 - Because the vast majority of Front Runners have at least Long C, staying on Crown rotation means Parents will be better when you need to transition out of Trackblazer to later Scenarios, and it allows you to farm current Parents in other Scenarios.
 Trackblazer will be the go-to final stop for min-maxing Parents due to increased Affinity, and will only get power-crept after Grand Concert.
 
-Stat Caps
+### Our Grand Concert
 
 - A training-focused Scenario, which makes running all G1 races while also hitting desired SP and Stats extremely challenging.
 - Unity and Trackblazer are significantly better for Parents.

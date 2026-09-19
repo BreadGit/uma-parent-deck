@@ -1,6 +1,6 @@
 # Aptitude increases at inspiration events
 
-Reviewed 2026-09-08. This is a curated research note for predicting final pink-spark eligibility.
+Reviewed 2026-09-18. This is a curated research note for predicting final pink-spark eligibility.
 
 ## Sources
 
@@ -31,6 +31,13 @@ C can reach A with at least 4 stars. Further increases require mid-run inspirati
 A starting grade does not uniquely identify a star total, its distribution, or the ancestor slots.
 For example, 3★ + 1★ and 2★ + 2★ both provide the four stars needed for C to A,
 but those distributions have different mid-run activation odds.
+
+## Displayed compatibility
+
+The displayed total uses △ at 50 or less, ○ at 51 through 150, and ◎ at 151 or more.
+These boundaries match [GameTora's compatibility calculator](https://gametora.com/umamusume/compatibility),
+whose [inspected JavaScript](https://gametora.com/_next/static/chunks/2464-2e90db37675bc47e.js)
+tests `total > 150`, then `total > 50`. This total is not an individual ancestor's activation score.
 
 ## Activation probability
 

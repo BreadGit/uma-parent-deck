@@ -1,5 +1,14 @@
 # グランドライブ 調査メモ
 
+> Repository scope note, 2026-09-18. This is a historical JP manual-training research memo from
+> [umasim commit 018546e](https://github.com/mee1080/umasim/blob/018546efe2e555c87128d3962603117904910337/data/grand_live_memo.md).
+> The original body below is preserved. Its observations include pre-adjustment SP values, so its
+> base-training table is not the current Global table. Use the [GameTora scenario guide](gametora-our-grand-concert.md#base-training-values)
+> for the later values. Its November lyrics event is before the late-November action, whereas
+> GameTora says early November; the wording does not establish whether these are the same boundary.
+> It records an additional two-new-songs condition in the final period that GameTora's summary omits.
+> See [fan rewards](fan-rewards.md) for the usable concert measurements and independent-training limits.
+
 ## 攻略メモ
 
 ### ウララのローテーション

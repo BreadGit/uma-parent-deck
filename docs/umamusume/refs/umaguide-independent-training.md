@@ -4,6 +4,8 @@
 
 Source: https://uma.guide/guides/independent-training
 
+> Project editorial update, 2026-09-18. The race tables below replace the original uma.guide tables with [Shoppo_ura's corrected July 2026 estimates](shoppo-independent-training-race-odds.md). These are fitted independent-training odds, not manual-racing rules. Source-era deck examples and Global/JP feature notes remain dated to the 2026-09-05 snapshot.
+
 # Independent Training ​
 
 Independent Training is a background simulation mode designed by Cygames to eliminate the manual runtime grind for event rewards, standard items, and parent runs.
@@ -38,59 +40,86 @@ INFO
 
 You can also acquire fan count, bond level, race rewards, and points from various events in the same way as normal training.
 
-## How Winning Races Are Calculated ​
+## How Winning Races Are Calculated
 
-Winning races in Independent Training mode is not based on your stats and Skills. Instead, it's based on:
+Independent training uses a simplified race model. Stats, skills, mood and running-style aptitude do not enter the estimated win chance. Distance aptitude, surface aptitude and consecutive races do. Manual races use different mechanics.
 
-- Aptitudes. Your win chance is based on your Uma's Distance aptitude and Surface (Turf/Dirt) aptitude for that race. Find your Distance aptitude along the top and your Surface aptitude along the side to get your win chance. For example, a Mile B / Dirt B Uma has a 90% win chance in a dirt mile race like the February Stakes:
+The [Shoppo_ura reference](shoppo-independent-training-race-odds.md) records the corrected penalty tables and the supporting sample sizes. Its 110% A/A base is attributed to Cygames; the penalties are empirical estimates with uneven coverage, especially at low aptitudes.
 
-| Distance \ Surface | A+ | B | C | D | E | F | G |
+```text
+score = 110% + distance penalty + surface penalty + streak penalty
+win chance = clamp(score, 0%, 100%)
+```
+
+### Aptitudes
+
+Rows are distance aptitude; columns are surface aptitude. S uses the same value as A. The table retains the 110% raw score because streak penalties apply before the 100% cap. For example, distance B / surface B gives 90% before a streak penalty.
+
+| Distance \ Surface | A/S | B | C | D | E | F | G |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| A+ | 110% | 100% | 90% | 80% | 70% | 60% | 50% |
-| B | 100% | 90% | 80% | 70% | 60% | 50% | 40% |
-| C | 90% | 80% | 70% | 60% | 50% | 40% | 30% |
-| D | 80% | 70% | 60% | 50% | 40% | 30% | 20% |
-| E | 70% | 60% | 50% | 40% | 30% | 20% | 10% |
-| F | 60% | 50% | 40% | 30% | 20% | 10% | 0% |
-| G | 50% | 40% | 30% | 20% | 10% | 0% | 0% |
+| A/S | 110% | 100% | 90% | 80% | 60% | 50% | 20% |
+| B | 100% | 90% | 80% | 70% | 50% | 40% | 10% |
+| C | 90% | 80% | 70% | 60% | 40% | 30% | 0% |
+| D | 80% | 70% | 60% | 50% | 30% | 20% | 0% |
+| E | 70% | 60% | 50% | 40% | 20% | 10% | 0% |
+| F | 50% | 40% | 30% | 20% | 0% | 0% | 0% |
+| G | 20% | 10% | 0% | 0% | 0% | 0% | 0% |
 
-INFO
+Surface E has a 50-point penalty, while distance E has a 40-point penalty. Swapping distance and surface therefore does not always preserve the odds.
 
-Style aptitude is not factored in. A Front Runner Uma with G Style aptitude can still win races if her Distance and Surface aptitudes are high enough, with no penalty for a mismatched Style.
+### Consecutive races
 
-- Consecutive races. Racing back-to-back without Rest reduces your win chance:
+Racing in consecutive half-month slots applies the following penalties. A non-racing turn breaks the streak.
 
-| Consecutive Race Count | Win Chance Penalty |
-| --- | --- |
-| 3 Races | -10% |
-| 4 Races | -25% |
-| 5 Races | -35% |
-| 6+ Races | -50% |
+| Race in a streak | Penalty in percentage points |
+| --- | ---: |
+| 1st or 2nd | 0 |
+| 3rd | -5 |
+| 4th | -20 |
+| 5th | -30 |
+| 6th and later | -50 |
 
-- Placement if the Uma loses the race. Losing doesn't mean last place — your placement depends on your aptitude combination and how many consecutive races you've run:
+Apply the penalty to the raw score before capping the probability. An A/A trainee has 100% win chance on the third race (`110 - 5 = 105`), 90% on the fourth, 80% on the fifth and 60% from the sixth onward.
 
-| Consecutive Races \ Aptitude Combo | A+, A+ | A+, B | A+, C | A+, D | A+, E | A+, F | A+, G | B, G | C-G, G |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 Race | 1st | 1st | 2nd | 2nd | 3rd | 6th | 12th | 15th | 18th |
-| 2 Races | 1st | 1st | 2nd | 2nd | 3rd | 6th | 12th | 15th | 18th |
-| 3 Races | 1st | 2nd | 2nd | 3rd | 4th | 7th | 14th | 17th | 18th |
-| 4 Races | 2nd | 2nd | 3rd | 4th | 6th | 10th | 18th | 18th | 18th |
-| 5 Races | 2nd | 3rd | 4th | 6th | 8th | 12th | 18th | 18th | 18th |
-| 6+ Races | 4th | 6th | 8th | 10th | 12th | 18th | 18th | 18th | 18th |
+### Placement after a loss
 
-INFO
+The corrected source gives loss placements by score for a field of 18 runners. Use the score after streak penalties for this approximation; it does not establish every loss outcome or behavior for other field sizes. Scores at or above 100% always win.
 
-"Aptitude Combo" is your Distance aptitude paired with your Surface aptitude for the race, same as the win chance table above. Higher combined aptitude keeps your placement closer to the front even on a loss.
+| Score after penalties | Placement on a loss |
+| --- | ---: |
+| 95, 90, 85 or 80 | 2nd |
+| 75 or 70 | 3rd |
+| 65 or 60 | 4th |
+| 55 | 5th |
+| 50 | 6th |
+| 45 | 7th |
+| 40 | 8th |
+| 35 | 9th |
+| 30 | 10th |
+| 25 | 11th |
+| 20 | 12th |
+| 15 | 14th |
+| 10 | 15th |
+| 5 | 17th |
+| 0 or below | 18th |
+
+### Objective races
+
+An objective race with a placement requirement is always won in independent training. A participation-only objective, such as Haru Urara's Arima Kinen, uses the odds above. This exception comes from the parenting guide's observations, not Shoppo's spreadsheet. See [the objective-race source note](shoppo-independent-training-race-odds.md#objective-races).
 
 ## Tips for Getting SS Rating More Consistently ​
 
-- Use the latest scenario, currently Grand Concert.
-- The scenario-linked card is mandatory. In the Grand Concert scenario this is Light Hello.
-- Event stat gain is based on: Race Bonus.The Uma's Growth Bonuses.
-- Racing less increases the chances of getting SS more consistently, but the parent will lose affinity as a result.
+These are the source's Grand Concert recommendations as of 2026-09-05, not prerequisites or guarantees of SS rank.
+
+- Use Our Grand Concert for these deck examples.
+- The source recommends Light Hello for this scenario. She is not required to start a run, and this advice does not establish that SS is impossible without her.
+- Event-stat estimates depend on Race Bonus and the trainee's Growth Bonuses.
+- Fewer races leave more opportunities for stat gains. Omitting shared G1 wins can reduce the resulting parent's compatibility with a planned family.
 TIP
 
-Finishing the 3rd chain event of a Support Card has a really low chance during an Independent Training run.
+Support-chain completion is not guaranteed. The saved [Loopacord measurements](../loopacord-independent-training-research.xlsx),
+sheet "Chain Finish Rate Data", provide observations for one deck and race schedule.
+Do not treat those rates as universal across cards and schedules.
 
 ### Example Decks ​
 
@@ -122,7 +151,7 @@ High Budget
 - The Spark Reroll feature applies to the final screen of an Independent Training run.
 INFO
 
-The following do not yet apply on Global:
+The following were JP-only features in the source's 2026-09-05 snapshot. Check their Global release status before using them:
 
 - For Evolution Skills that require a specific number of Rests as a condition to unlock, Independent Training mode won't unlock them.
 - Skills whose final numerical potency scales dynamically based on your final Scenario Performance are automatically calculated and locked to their maximum possible value at the end of the run.

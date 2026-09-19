@@ -199,6 +199,11 @@ The Grand Live will depend on the outcome of the four Promotional Lives and the 
 
 Learning at least 18 songs (excluding "GIRLS' LEGEND U") before late December of the Senior year will make a special version of "GIRLS' LEGEND U" play in the Grand Live. It will also be available in the Live Theater afterward.
 
+> Source comparison, 2026-09-18. The [JP manual-training observations](umasim-grand-live-memo.md)
+> additionally require two new songs in the final period for the special concert. Use both
+> conditions when applying those [measured concert rewards](fan-rewards.md#concert-measurements).
+> Independent-training completion rates are not established by either source.
+
 With 17 or fewer songs, you will unlock a normal version of "GIRLS' LEGEND U" instead.
 
 ## Song Lessons
@@ -476,7 +481,14 @@ Practicing all available songs in a single training run will cost you the follow
 
 Learning 18–21 songs (excluding "GIRLS' LEGEND U") before late December of the Senior year awards a Lv 1 hint for the I Wanna Win with You skill. Learning all 22 songs upgrades this reward to Lv 3 hint. With 17 or fewer songs, you receive a Lv 1 hint for the On the Way to Our Dream skill instead.
 
+> The [JP memo](umasim-grand-live-memo.md) also associates two new songs in the final period with
+> the gold-skill reward. GameTora's text above specifies only the total-song threshold. The exact
+> gold-hint condition is unresolved between these sources; meeting both conditions is the conservative plan.
+
 Additionally, the 「あなたと私を繋げるライブ」training event will trigger in Early November of the Senior (third) year if you practice 16 or more songs before then, allowing you to choose one of five lyrics lines. The first four of these are connected to a scenario link character each, and the fifth one is an unrelated standard choice.
+
+> The same JP memo places this event before the late-November action. Both sources require 16 songs.
+> Their timing descriptions differ; do not infer an extra turn to learn songs from the older memo.
 
 [November lyrics choice event](https://gametora.com/images/umamusume/articles/grand_live/lyrics_event.png)
 
@@ -493,6 +505,9 @@ These hints are:
 | None | - | Lane Legerdemain |
 
 ## Base Training Values
+
+These are GameTora's later scenario values. The [historical JP memo](umasim-grand-live-memo.md)
+contains smaller SP gains and explicitly includes observations before an SP adjustment.
 
 The base training values of the different facilities partially differ from previous scenarios.
 

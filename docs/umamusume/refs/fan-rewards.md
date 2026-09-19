@@ -6,7 +6,8 @@ about independent training. A completed run's displayed fans are not enough to i
 ## Concert measurements
 
 [mee1080/umasim's Grand Live notes](https://github.com/mee1080/umasim/blob/018546efe2e555c87128d3962603117904910337/data/grand_live_memo.md)
-are primary manual JP observations. The [vendored original](umasim-grand-live-memo.md) is unchanged,
+are primary manual JP observations. The [vendored original](umasim-grand-live-memo.md) has a local
+scope note followed by the unchanged source body,
 from commit `018546efe2e555c87128d3962603117904910337`, retrieved 2026-09-11.
 The repository's [AGPL-3.0 license](umasim-LICENSE) is included. See the sections
 `ステータスアップ` and `ライブ上昇量` for the reward summary and individual observations.
@@ -31,7 +32,7 @@ fits the two reported Fuji runs more closely, but this is a hypothesis, not a ve
 
 ## Race rewards
 
-The vendored [mechanics guide](../mechanics.txt), under Fan Bonus, describes the deck effect on fans.
+The [game overview](../GAMEPLAY.md#supports-and-skills) distinguishes Fan Bonus from Race Bonus.
 [GameWith's own 38-trial measurement](https://gamewith.jp/uma-musume/article/show/261535) reports
 base fans multiplied by the additive deck Fan Bonus and a random multiplier. The measured mean is
 1.053, with observed values from 1.00 to 1.09. This sample does not prove the distribution or its limits

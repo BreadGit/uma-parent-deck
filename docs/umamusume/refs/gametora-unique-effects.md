@@ -1,6 +1,7 @@
 # GameTora compound unique effects
 
-Support cards unlock a unique effect at level 30 (SSR), 35 or 40. GameTora's static feed (`support-cards.json`,
+Support cards unlock a unique effect at the level recorded in the feed, commonly 25 for SR or
+30 for SSR, with exceptions. GameTora's static feed (`support-cards.json`,
 field `unique`) stores it as `{ level, effects: [{ type, value, value_1..value_4 }] }`. Types below 100 are plain
 passives with the same ids as `support_effects.json` (1 Friendship Bonus, 2 Mood Effect, 3 to 7 stat bonuses,
 8 Training Effectiveness, 9 to 13 Initial Stats, 14 Initial Bond, 15 Race Bonus, 16 Fan Bonus, 17 Hint Levels,

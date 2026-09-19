@@ -15,8 +15,9 @@ rank score at least 1,000 for blue and pink analysis. White analysis uses 83,169
 6,500 through 17,499 band and 23,786 in the 17,500+ band. Retained veterans can have selection bias.
 Do not use this study to infer independent-training hint pickup or event completion rates.
 
-The saved `umaguide-sparks.md` and `umaguide-parenting.md` tables put 45% in the middle band's
-1-star column and 50% in its 2-star column. Hakuraku supports the reverse. The middle-band chance
+The original `umaguide-sparks.md` and `umaguide-parenting.md` snapshots put 45% in the middle band's
+1-star column and 50% in its 2-star column. The local editions now correct these columns using
+Hakuraku's evidence. The middle-band chance
 of at least 2 stars is approximately 50%, not 55%, for both blue and white sparks.
 
 ## Blue generation

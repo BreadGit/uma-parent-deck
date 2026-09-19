@@ -1,16 +1,18 @@
 # Curated game references
 
 These references contain game information only. Use them for game knowledge before browsing. Source dates and modeling scope
-matter; a saved guide can contain older simplifications alongside newer research.
+matter. Local editorial corrections are dated in the affected documents. Historical measurements
+remain historical evidence, and unresolved differences are labeled rather than silently reconciled.
+For broad gameplay context, start with [Game basics and mechanics](../GAMEPLAY.md).
 
 For goal-parent probabilities, start with:
 
 - [Hakuraku spark generation](hakuraku-spark-generation.md). Audited numeric tables, sample counts,
-  and precedence over the reversed middle-band star columns in the older uma.guide snapshots.
+  and the evidence used to correct the middle-band star columns in the local uma.guide editions.
 - [Aptitude inheritance](aptitude-inheritance.md). Crazyfellow's mechanics and a commit-pinned
   audit of uma.moe's activation calculator. Separates activation odds from hidden increase sizes.
 - [Independent-training race odds](shoppo-independent-training-race-odds.md). Corrected
-  measurements that differ from the saved uma.guide independent-training table.
+  measurements now used by the local uma.guide independent-training table.
 - [Fan rewards](fan-rewards.md). Race placing rewards, support effects by level, and vendored
   primary concert measurements. Identifies gaps in the independent-training evidence.
 - [Skill evaluation](skill-evaluation.md). Individual rating values, hint discounts and prerequisite costs.
@@ -19,3 +21,7 @@ For goal-parent probabilities, start with:
 
 Support-chain measurements are in `../loopacord-independent-training-research.xlsx`, sheet
 "Chain Finish Rate Data".
+
+GameTora's [scenario guide](gametora-our-grand-concert.md) and the [JP research memo](umasim-grand-live-memo.md)
+still differ on November event timing and the final-period condition for the gold-skill reward.
+Their source notes identify those limits. Older SP observations are not current Global training values.

@@ -372,5 +372,6 @@ observed random totals. They are not inputs to the stat-model fit and do not cal
 
 Data from [GameTora](https://gametora.com). Independent training measurements from the
 Loopacord research sheet and [fujikiseki.xyz](https://fujikiseki.xyz/training-data/insights).
-Mechanics from the community Global reference documents and uma.guide. Game assets belong
+Mechanics are summarized in [Game basics and mechanics](docs/umamusume/GAMEPLAY.md) and the
+linked GameTora and community references, including uma.guide. Game assets belong
 to Cygames; this is a personal tool and the images are not for redistribution.

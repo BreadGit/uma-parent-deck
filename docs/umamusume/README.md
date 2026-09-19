@@ -7,9 +7,10 @@ Project behavior is documented in the [root README](../../README.md) and [tool g
 Use these local references before browsing for game information. Check source dates and whether a
 rule applies to Global or JP. The [curated reference index](refs/README.md) describes evidence and conflicts.
 
+- [Game basics and mechanics](GAMEPLAY.md): start here for the career loop, account progression,
+  ordinary races, independent training, supports, skills, and parent farming. This replaces the
+  outdated beginner and mechanics PDF/text pairs while retaining their useful broad context.
 - [Game glossary](GLOSSARY.md): Global terminology and community equivalents.
-- [New player guide](new-player-info.txt) and [mechanics guide](mechanics.txt): searchable text of
-  the Global reference PDFs stored alongside them.
 - [Curated references](refs/README.md): spark generation, inheritance, race odds, rating tables,
   support effects, and saved scenario guides.
 - [Two Fuji independent-training runs](fuji-independent-training-runs.json): user-reported inputs,
