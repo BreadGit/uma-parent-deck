@@ -2,11 +2,11 @@
 
 > Repository scope note, 2026-09-18. This is a historical JP manual-training research memo from
 > [umasim commit 018546e](https://github.com/mee1080/umasim/blob/018546efe2e555c87128d3962603117904910337/data/grand_live_memo.md).
-> The original body below is preserved. Its observations include pre-adjustment SP values, so its
+> This local excerpt omits manual skill-event and final-concert unlock instructions that this
+> independent-training project does not use. Reward observations are preserved.
+> Its observations include pre-adjustment SP values, so its
 > base-training table is not the current Global table. Use the [GameTora scenario guide](gametora-our-grand-concert.md#base-training-values)
-> for the later values. Its November lyrics event is before the late-November action, whereas
-> GameTora says early November; the wording does not establish whether these are the same boundary.
-> It records an additional two-new-songs condition in the final period that GameTora's summary omits.
+> for the later values.
 > See [fan rewards](fan-rewards.md) for the usable concert measurements and independent-training limits.
 
 ## 攻略メモ
@@ -139,10 +139,6 @@
     * 特別グランドライブ: 新曲3曲以上で全ステ+15、それ以下は未確認
   * スキルPt
     * 告知ライブ/グランドライブ後に楽曲数×20（イベント獲得楽曲は除く）
-  * スキルヒント
-    * シニア6月ライブ後に16曲以上→夢の途中
-    * シニア11月後半行動前16曲以上→選択肢に応じた金or白スキル
-    * シニア12月後半行動前18曲以上かつ新曲2曲以上→キミと勝ちたい
 * テクニックは、ジュニア→クラシック→シニアと進むにつれ、効果が上がり、必要パフォが増える
   * 効率の上がる体力を除き、安い方が更新できて強い
 * 楽曲表示して告知ライブ vs 楽曲獲得して告知ライブ
@@ -308,22 +304,6 @@
 
 ### 告知ライブ/グランドライブ
 
-* 合計曲数イベント
-  * シニア6月告知ライブ後
-    * 合計曲数16以上で夢の途中
-  * シニア11月後半イベント
-    * 合計曲数16以上で選択肢、スキル獲得
-    * 選択肢に該当するサポカを編成していれば金スキル、編成していなければ白スキル
-    * 選択肢
-      * 一緒に（ファル子）: 全速前進！/まっしぐら（ダートラストスパート1～5位速度）
-      * 走れる（ブルボン）: コンセントレーション/集中力
-      * ただいま（スズカ）: 切り開く者/前途洋々（中距離中盤1～3位回復）
-      * 打開する（タキオン）: 決死の覚悟/ありったけ（中距離終盤直線2～5位速度）
-      * 歌でつながる: レーンの魔術師（終盤横移動）
-  * シニア12月後半イベント
-    * グランドライブの特別/通常が決まる
-    * 合計曲数18以上かつ新曲2以上で特別
-      * なので特別グランドライブは必ず大成功になる
 * ステータスアップ
   * 告知ライブ
     * ステータス: 大成功→全+10、成功→全+3

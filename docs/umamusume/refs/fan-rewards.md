@@ -6,9 +6,9 @@ about independent training. A completed run's displayed fans are not enough to i
 ## Concert measurements
 
 [mee1080/umasim's Grand Live notes](https://github.com/mee1080/umasim/blob/018546efe2e555c87128d3962603117904910337/data/grand_live_memo.md)
-are primary manual JP observations. The [vendored original](umasim-grand-live-memo.md) has a local
-scope note followed by the unchanged source body,
-from commit `018546efe2e555c87128d3962603117904910337`, retrieved 2026-09-11.
+are primary manual JP observations. The [vendored excerpt](umasim-grand-live-memo.md) preserves the
+reward observations but omits manual skill-event and final-concert unlock instructions.
+The source is commit `018546efe2e555c87128d3962603117904910337`, retrieved 2026-09-11.
 The repository's [AGPL-3.0 license](umasim-LICENSE) is included. See the sections
 `ステータスアップ` and `ライブ上昇量` for the reward summary and individual observations.
 
@@ -21,8 +21,7 @@ The repository's [AGPL-3.0 license](umasim-LICENSE) is included. See the section
 | Ordinary final | Senior late December | 200 | 2,000 |
 | Special final | Senior late December | N/A | 9,000 |
 
-The notes require at least 18 total songs and two new songs in the final period for the special
-concert. The special concert always achieves great success. Four great promotional concerts
+The measured special concert achieves great success. Four great promotional concerts
 and a special final award 24,000 fans in total. The ordinary final replaces the special final.
 Rewards become available after the concert turn, not at the start of that turn.
 

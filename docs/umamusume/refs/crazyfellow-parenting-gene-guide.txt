@@ -8,6 +8,10 @@ Scope note
 
 This is a broad research document covering inheritance, parent farming, scenarios, and training modes. It remains useful as a reference, but mixes historical advice, later corrections, Global mechanics, and newer JP-only features. Check each section's date, server, and training mode before applying it. Project editorial corrections dated 2026-09-18 reconcile known contradictions in shared mechanics, label historical sections, and separate mode-specific evidence. Original research, opinions, and unresolved claims remain attributed to the author. Use README.md in this directory to find curated notes and source precedence. Scenario rankings and JP release discussions are historical observations, not a current Global availability or card recommendation list.
 
+Reading claims
+
+Use confidently stated findings as primary references for this project's game research within their stated date, server, and training mode. Follow any explicit later correction or local editorial correction. Passages marked as guesses, assumptions, unknowns, or requests for data remain uncertain; do not infer missing formulas or promote those passages into established rules. Cite the relevant passage when using a finding so its scope and evidence remain visible.
+
 Mode distinction
 
 This guide discusses two separate game features:

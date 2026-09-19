@@ -127,7 +127,7 @@ Higher final rank improves some star-quality probabilities; it does not guarante
 
 Scenarios add systems to the career, such as Our Grand Concert's lessons, tokens, and concerts.
 They can change training rewards, stat caps, available skills, and the value of support cards.
-[Our Grand Concert](refs/gametora-our-grand-concert.md) gives its song and event requirements.
+[Our Grand Concert](refs/gametora-our-grand-concert.md) describes its lessons, songs, and rewards.
 
 Fans are earned during careers and can satisfy entry requirements, career goals, and unique-skill
 level checks. They are not stat points or SP. Timing matters when a check occurs before later rewards.

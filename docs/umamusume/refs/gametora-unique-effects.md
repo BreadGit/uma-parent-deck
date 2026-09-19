@@ -19,7 +19,7 @@ Schemas decoded 2026-09-06 from one card per type; type 115 added from the Globa
 | 105 | value = per same-type card; value_1 = per Friend or Group card | Initial stat of the card's type +value per card in the deck; Friend and Group cards give value_1 to every stat | Symboli Rudolf 30090: 10, 2 |
 | 106 | value = maximum counted trainings; value_1 = effect id; value_2 = amount per training | Gain effect value_1 (+value_2) per friendship training with this card, up to value times | Sirius Symboli 30091: 5, 1, 3 → Friendship Bonus +3 per training, up to 5 times for +15 |
 | 107 | value = effect id; value_1/value_2 = unresolved; value_3 = maximum; value_4 = minimum | Effect value rises as current energy falls; GameTora's summary helper supplies the endpoints but its description omits the curve | Bamboo Memory 30094: 1, 10, 30, 15, 5 → Friendship Bonus between +5 and +15 |
-| 108 | value = effect id; value_1 = baseline maximum energy; value_2 = slope in hundredths; value_3 = minimum bonus; value_4 = maximum bonus | Effect value starts at +value_3%; add value_2 / 100 percentage points per maximum-energy point above value_1, capped at +value_4% | Seeking the Pearl 30095: 8, 100, 75, 5, 20 → Training Effectiveness +5% at maximum energy 100, +3 percentage points per 4 additional maximum energy, capped at +20% at 120 |
+| 108 | value = effect id; value_1 = baseline maximum energy; value_2 = slope in hundredths; value_3 = baseline bonus; value_4 = maximum bonus | Before rounding, start at +value_3%; add value_2 / 100 percentage points per maximum-energy point above value_1, capped at +value_4%. UmaSim truncates the resulting bonus; see evidence below | Seeking the Pearl 30095: 8, 100, 75, 5, 20 → Training Effectiveness +5% at maximum energy 100, +3 percentage points per 4 additional maximum energy, capped at +20% at 120 |
 | 109 | value = effect id (8); value_1 = bond per step | Training Effectiveness +1% per value_1 combined support bond, up to 20% at 600 | Ikuno Dictus 30099: 8, 30 |
 | 110 | value = effect id (8); value_1 = amount | Training Effectiveness +value_1 per support card on the same facility | El Condor Pasa 30102: 8, 5 |
 | 111 | value = effect id (8); value_1 = amount | Training Effectiveness +value_1 per level of the current facility | Maruzensky 30107: 8, 5 |
@@ -49,10 +49,35 @@ calculates the cap's maximum energy as `value_1 + (value_4 - value_3) * 100 / va
 |---|---:|---:|---:|---:|---:|---:|
 | Type 108 Training Effectiveness | 5% | 8% | 11% | 14% | 17% | 20% |
 
-These are the points described by GameTora. Its renderer does not simulate training, so it does
-not establish the game's rounding between those points or behavior below the baseline.
-The four-energy wording expresses the reduced slope; it does not prove four-energy activation steps.
+These are the points described by GameTora. The four-energy wording expresses the reduced slope;
+it does not establish four-energy activation steps. GameTora's renderer does not simulate training.
 
 For type 107, `lo` identifies `value_3` as the maximum and `value_4` as the minimum.
-Neither helper uses `value_1` or `value_2`, so their roles and the energy-dependent curve remain
-unverified. Do not infer them from the endpoint values alone.
+Neither helper uses `value_1` or `value_2`, so GameTora does not decode those fields.
+
+## Further evidence for types 107 and 108
+
+Investigated 2026-09-18 using GameTora's decoder and UmaSim's executable community model.
+
+### Type 108 rounding
+
+[UmaSim's implementation](https://github.com/mee1080/umasim/blob/00a82f73428bb6eaa213d3ea6b420e50d6b2b202/core/src/commonMain/kotlin/io/github/mee1080/umasim/data/SupportCardSpecialUnique.kt#L242)
+truncates the computed bonus to an integer before applying the cap. For Pearl at maximum
+energy `M >= 100`, this is `min(20, floor(5 + 0.75 × (M - 100)))`.
+
+| Maximum energy | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 120 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| UmaSim bonus | 5% | 5% | 6% | 7% | 8% | 8% | 9% | 10% | 20% |
+
+This supplies a documented community rounding rule, not a direct measurement of Global.
+
+### Type 107 remains incompletely decoded
+
+[UmaSim's implementation](https://github.com/mee1080/umasim/blob/00a82f73428bb6eaa213d3ea6b420e50d6b2b202/core/src/commonMain/kotlin/io/github/mee1080/umasim/data/SupportCardSpecialUnique.kt#L78)
+hard-codes `15 - floor(0.15 × (max(30, energy) - 30))` and retains a data-interpretation TODO.
+It does not derive the curve from all payload fields. At energy 110 it returns 3, below
+GameTora's stated minimum of 5. This cannot establish the full game formula.
+
+The fields and exact curve remain unverified from the inspected public evidence, not inherently
+unknowable. Leave them unresolved until direct measurements or a complete decoder become available.
+Neither manual-training formula establishes an average bonus in independent training.

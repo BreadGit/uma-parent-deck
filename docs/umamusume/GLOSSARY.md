@@ -35,13 +35,10 @@ For application behavior, see the [tool glossary](../GLOSSARY.md).
   fire only once their conditions are met, usually winning specific G1s in a given year, and often give a skill.
 - **Scenario**: the career mode. **Our Grand Concert** (Global 2026-07-22) has base stat
   caps of 1600 Speed, 1300 Stamina, 1300 Power, 1500 Guts and 1300 Wit. **Scenario completion skill**:
-  GameTora lists 18–21 songs for a Lv 1 I Wanna Win with You hint, all 22 for Lv 3, and fewer for
-  On the Way to Our Dream. These 22 are 21 lesson songs plus Make debut!, excluding GIRLS' LEGEND U.
-  See the [scenario source notes](refs/gametora-our-grand-concert.md#skills) for the JP observations'
-  additional final-period condition.
+  the finale can award a hint for I Wanna Win with You or On the Way to Our Dream.
+  The scenario has 21 lesson songs plus Make debut!, excluding GIRLS' LEGEND U.
   **Scenario-linked card**: a card with a special effect in that scenario.
-  **Scenario skill event**: the Senior November lyrics event requires at least 16 songs.
-  GameTora places it in early November; an older JP memo says before the late-November action.
+  **Scenario skill event**: a lyrics-choice event that can grant a skill hint.
   Each option is tied to Smart Falcon, Mihono Bourbon, Silence Suzuka, or Agnes Tachyon;
   picking that option with her in the run (trainee or card) gives the gold skill, otherwise the
   normal version. The unaffiliated option gives Lane Legerdemain.

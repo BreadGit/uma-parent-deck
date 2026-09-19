@@ -8,6 +8,9 @@ Source: https://gametora.com/umamusume/our-grand-concert
 
 # Our Grand Concert (Grand Live) Scenario
 
+> Project scope, 2026-09-18. Manual skill-event timing and final-concert unlock instructions are
+> omitted from this local edition. They are not inputs to independent-training estimates.
+
 By robflop & Gertas
 Last updated on 2026-07-22
 
@@ -197,14 +200,9 @@ As mentioned in the section about lessons, live performances will activate the c
 
 The Grand Live will depend on the outcome of the four Promotional Lives and the Hype Level gauge, but otherwise is not much different from a Promotional Live.
 
-Learning at least 18 songs (excluding "GIRLS' LEGEND U") before late December of the Senior year will make a special version of "GIRLS' LEGEND U" play in the Grand Live. It will also be available in the Live Theater afterward.
-
-> Source comparison, 2026-09-18. The [JP manual-training observations](umasim-grand-live-memo.md)
-> additionally require two new songs in the final period for the special concert. Use both
-> conditions when applying those [measured concert rewards](fan-rewards.md#concert-measurements).
-> Independent-training completion rates are not established by either source.
-
-With 17 or fewer songs, you will unlock a normal version of "GIRLS' LEGEND U" instead.
+The finale can use an ordinary or special version of "GIRLS' LEGEND U". See the
+[concert reward observations](fan-rewards.md#concert-measurements) for their different rewards.
+Those observations do not establish independent-training outcome probabilities.
 
 ## Song Lessons
 
@@ -479,18 +477,9 @@ Practicing all available songs in a single training run will cost you the follow
 
 ## Skills
 
-Learning 18–21 songs (excluding "GIRLS' LEGEND U") before late December of the Senior year awards a Lv 1 hint for the I Wanna Win with You skill. Learning all 22 songs upgrades this reward to Lv 3 hint. With 17 or fewer songs, you receive a Lv 1 hint for the On the Way to Our Dream skill instead.
-
-> The [JP memo](umasim-grand-live-memo.md) also associates two new songs in the final period with
-> the gold-skill reward. GameTora's text above specifies only the total-song threshold. The exact
-> gold-hint condition is unresolved between these sources; meeting both conditions is the conservative plan.
-
-Additionally, the 「あなたと私を繋げるライブ」training event will trigger in Early November of the Senior (third) year if you practice 16 or more songs before then, allowing you to choose one of five lyrics lines. The first four of these are connected to a scenario link character each, and the fifth one is an unrelated standard choice.
-
-> The same JP memo places this event before the late-November action. Both sources require 16 songs.
-> Their timing descriptions differ; do not infer an extra turn to learn songs from the older memo.
-
-[November lyrics choice event](https://gametora.com/images/umamusume/articles/grand_live/lyrics_event.png)
+The finale can award a hint for I Wanna Win with You or On the Way to Our Dream.
+The lyrics-choice event offers four character-affiliated options and one unaffiliated option.
+These are possible skill sources, not measured independent-training acquisition rates.
 
 Selecting a character-affiliated option while either training said character or using one of their support cards will allow you to get a hint for a specific gold skill; otherwise, you will get a hint for the normal version. The unaffiliated choice will always yield the same rare hint.
 
