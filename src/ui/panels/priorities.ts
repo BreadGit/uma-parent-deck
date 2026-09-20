@@ -95,9 +95,10 @@ function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
   const extra = isExtra(w);
   const extras = c.wl.filter(isExtra);
   const canMove = (delta: number) => { if (!extra || locked) return false; const j = extras.indexOf(w) + delta; return j >= 0 && j < extras.length; };
-  const hintCards = !w.gated && w.targetId !== null ? [...new Set((c.deckResult.coverage.get(w.targetId) ?? [])
-    .flatMap((s) => s.kind === 'hint' && s.skillId === w.skillId && s.cardName ? [s.cardName] : []))] : [];
-  const source = hintCards.length ? COPY.priorities.hintSource(hintCards) : w.reason;
+  const sources = !w.gated && w.targetId !== null ? (c.deckResult.coverage.get(w.targetId) ?? [])
+    .filter((s) => s.skillId === w.skillId && s.kind !== 'lineage' && s.kind !== 'innate' && s.kind !== 'awakening') : [];
+  const hintCards = [...new Set(sources.flatMap((s) => s.kind === 'hint' && s.cardName ? [s.cardName] : []))];
+  const source = hintCards.length && sources.every((s) => s.kind === 'hint') ? COPY.priorities.hintSource(hintCards) : w.reason;
   const name = skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `${COPY.priorities.source}: ${source}`);
   const sibs = extra ? siblingsOf(c, w.key) : [];
   return html`<li draggable="${extra && !locked ? 'true' : 'false'}" data-wl-key="${w.key}" data-wl-role="${w.role}" class="${extra ? 'wl-extra' : 'wl-target'} ${view.drag.key === w.key ? 'dragging' : ''} ${view.drag.over === w.key && view.drag.key !== w.key ? 'drop-target' : ''}">

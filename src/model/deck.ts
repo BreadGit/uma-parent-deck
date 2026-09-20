@@ -399,6 +399,12 @@ export type EntryRole = 'required' | 'preferred' | 'extra';
  */
 export interface WishlistEntry { key: number; skillId: number; name: string; form: string | null; gated: boolean; isTarget: boolean; role: EntryRole; targetId: number | null; reason: string; weight: number; events: EventRef[] }
 const uniqueEvents = (events: EventRef[]) => [...new Map(events.map((e) => [e.key, e])).values()];
+function sourceReasons(sources: SkillSource[], ctx: Ctx): string {
+  return [...new Set(sources.map((s) => {
+    const owner = s.cardName ?? (s.kind === 'scenario' ? s.event.label : ctx.trainee?.name);
+    return `${owner ? owner + ': ' : ''}${s.detail}`;
+  }))].join('; ');
+}
 
 /**
  * Candidates for the prioritized-skills list, by weight: targets gated behind an event choice, then other
@@ -427,13 +433,13 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
         const sk = ctx.data.skillById.get(skillId);
         const gold = !!srcs[0]?.gold;
         entries.push({ key: skillId, skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: true, isTarget: true, role: roleOf(t), targetId: t.id,
-          weight: 2 + spark + (gold ? 0.5 : 0), reason: srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; '), events: uniqueEvents(srcs.map((s) => s.event)) });
+          weight: 2 + spark + (gold ? 0.5 : 0), reason: sourceReasons(srcs, ctx), events: uniqueEvents(srcs.map((s) => s.event)) });
         seen.add(skillId);
       }
     } else {
       const src = all.find((s) => s.gold) ?? all[0]!;
       const sk = ctx.data.skillById.get(src.skillId);
-      entries.push({ key: src.skillId, skillId: src.skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: false, isTarget: true, role: roleOf(t), targetId: t.id, weight: spark, reason: 'Given without an event choice.', events: [] });
+      entries.push({ key: src.skillId, skillId: src.skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: false, isTarget: true, role: roleOf(t), targetId: t.id, weight: spark, reason: sourceReasons(all.filter((s) => s.skillId === src.skillId), ctx), events: [] });
       seen.add(src.skillId);
     }
   }
