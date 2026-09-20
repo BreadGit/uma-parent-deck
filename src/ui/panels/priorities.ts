@@ -1,9 +1,10 @@
-// The prioritized-skill list to enter in independent training: exclude, restore, add and reorder entries. Each
-// skill's tooltip ends with the event or card that gives it; the choice conflicts the order resolves are listed in
-// the warnings panel.
+// The prioritized-skill list to enter in independent training: exclude, restore, add, reorder and swap entries. The
+// run takes one option per event, so a row that takes a shared event carries the options it displaced as swap chips;
+// one click puts that option in its place. Each skill's tooltip ends with the event or card that gives it; the
+// choice conflicts the order resolves are listed in the warnings panel.
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
-import type { RunPlan } from '../../model/run.ts';
+import type { RunPlan, WishlistEvent } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import { resolveTarget } from '../../model/sparks.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
@@ -40,6 +41,16 @@ function nudgeSkill(key: number, delta: number) {
   if (i < 0 || j < 0 || j >= cur.length) return;
   moveSkill(key, cur[j]!);
 }
+/** Put `sibling` in `winner`'s place so it takes their shared event; the winner moves behind it. */
+function swapSkill(sibling: number, winner: number) {
+  const cur = plan().wl.map((w) => w.key).filter((k) => k !== sibling);
+  const i = cur.indexOf(winner);
+  if (i < 0) return;
+  cur.splice(i, 0, sibling);
+  update((s) => { s.run.wishlistOrder = cur; });
+}
+/** A required entry keeps its option: only a required sibling could outrank it, and one already would. */
+const canSwap = (sibling: number, winner: number) => !requiredSkill(winner) || requiredSkill(sibling);
 const resetList = () => update((s) => { s.run.wishlistOrder = []; s.run.wishlistExcluded = []; });
 
 // Drag state lives in the view and the classes are rendered from it, so no handler touches lit's elements.
@@ -56,22 +67,42 @@ const drag = {
   dragend: () => setDrag(null, null),
 };
 
-function kindTag(w: WishlistEntry) {
-  const kind = COPY.priorities.kinds[w.gated ? (w.isTarget ? 'target' : 'other') : 'given'];
-  const cls = w.gated ? (w.isTarget ? 'gold' : '') : 'warn';
+/** Every other candidate on the events `key` takes, in list order, each with the events it shares with the winner. */
+function siblingsOf(c: RunPlan, key: number): { entry: WishlistEntry; events: WishlistEvent[] }[] {
+  const out = new Map<number, WishlistEvent[]>();
+  for (const e of c.wlLayout.events) if (e.winner === key) for (const k of e.keys) if (k !== key) out.set(k, [...(out.get(k) ?? []), e]);
+  return [...out].map(([k, events]) => ({ entry: c.wlLayout.entries.get(k)!, events }));
+}
+const listedAt = (c: RunPlan, key: number) => { const i = c.wl.findIndex((w) => w.key === key); return i < 0 ? null : i + 1; };
+const entryName = (w: WishlistEntry) => w.form ? `${w.name} (for ${w.form})` : w.name;
+
+function kindTag(c: RunPlan, w: WishlistEntry) {
+  const conflict = w.gated && w.isTarget && !c.wlLayout.steers.get(w.key)?.length;
+  const kind = COPY.priorities.kinds[conflict ? 'conflict' : w.gated ? (w.isTarget ? 'target' : 'other') : 'given'];
+  const cls = conflict ? 'danger' : w.gated ? (w.isTarget ? 'gold' : '') : 'warn';
   return html`<span class="tag ${cls} wl-kind" data-tip=${kind.tip}>${requiredSkill(w.skillId) ? 'required' : kind.label}</span>`;
+}
+
+/** A chip that swaps `sibling` in for `winner` at their shared event. */
+function swapChip(c: RunPlan, sibling: WishlistEntry, winner: WishlistEntry, events: WishlistEvent[]) {
+  const at = listedAt(c, sibling.key);
+  const ok = canSwap(sibling.key, winner.key);
+  const tipText = ok ? `${COPY.priorities.swapTip(sibling.name, events.map((e) => e.label).join(' and '))}\n\n${COPY.priorities.source}: ${sibling.reason}` : COPY.priorities.keptByRequired(winner.name);
+  return html`<button class="wl-swap" data-action="wl-swap" data-id="${sibling.key}" data-for="${winner.key}" ?disabled=${!ok} data-tip=${tipText} @click=${() => swapSkill(sibling.key, winner.key)}>${entryName(sibling)}${at ? html` <span class="muted">${COPY.priorities.listedAt(at)}</span>` : nothing}</button>`;
 }
 
 function row(c: RunPlan, w: WishlistEntry, i: number) {
   const canMove = (j: number) => j >= 0 && j < c.wl.length && requiredSkill(w.key) === requiredSkill(c.wl[j]!.key);
+  const sibs = siblingsOf(c, w.key);
   return html`<li draggable="true" data-wl-key="${w.key}" class="${view.drag.key === w.key ? 'dragging' : ''} ${view.drag.over === w.key && view.drag.key !== w.key ? 'drop-target' : ''}">
     <span class="wl-num">${i + 1}.</span><span class="grip" aria-hidden="true">⋮⋮</span>
-    <span class="wl-body">${kindTag(w)}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `${COPY.priorities.source}: ${w.reason}`)}</span>
+    <span class="wl-body">${kindTag(c, w)}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `${COPY.priorities.source}: ${w.reason}`)}</span>
     <span class="wl-actions">
       <button class="small wl-move" data-action="wl-up" data-id="${w.key}" aria-label="Move ${w.name} up" data-tip="Move up" ?disabled=${!canMove(i - 1)} @click=${() => nudgeSkill(w.key, -1)}>▲</button>
       <button class="small wl-move" data-action="wl-down" data-id="${w.key}" aria-label="Move ${w.name} down" data-tip="Move down" ?disabled=${!canMove(i + 1)} @click=${() => nudgeSkill(w.key, 1)}>▼</button>
       <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Remove ${w.name} from the list" data-tip="Remove from the list" @click=${() => excludeSkill(w.key)}>✕</button>
-    </span></li>`;
+    </span>
+    ${sibs.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">${COPY.priorities.instead}</span>${sibs.map((s) => swapChip(c, s.entry, w, s.events))}</div>` : nothing}</li>`;
 }
 
 /**
@@ -91,7 +122,8 @@ function candidates(c: RunPlan) {
 export function renderPriorities(c: RunPlan) {
   const customized = store.run.wishlistOrder.length > 0 || store.run.wishlistExcluded.length > 0;
   const actions = customized ? html`<button class="small" data-action="wl-reset" @click=${resetList}>${COPY.priorities.reset}</button>` : nothing;
-  return panel({ title: COPY.priorities.title, kind: 'result', subtitle: `up to ${PRIORITIZED_SKILLS_MAX}`, tip: COPY.priorities.tip, actions }, html`
+  const hidden = c.wlLayout.shadowed.length;
+  return panel({ title: COPY.priorities.title, kind: 'result', subtitle: `up to ${PRIORITIZED_SKILLS_MAX}${hidden ? `, ${COPY.priorities.hidden(hidden)}` : ''}`, tip: COPY.priorities.tip, actions }, html`
     ${c.wl.length ? html`<ol class="wishlist" @dragstart=${drag.dragstart} @dragover=${drag.dragover} @drop=${drag.drop} @dragend=${drag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => row(c, w, i))}</ol>` : html`<div class="muted small">${COPY.priorities.empty}</div>`}
     ${candidates(c)}`);
 }

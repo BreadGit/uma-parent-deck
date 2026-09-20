@@ -5,7 +5,7 @@ import { teamInitialBond } from './support-effects.ts';
 import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import type { PreparedRunSources } from './run-sources.ts';
-import { hasWhiteSpark, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
+import { hasWhiteSpark, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
 
 /** Everything a run evaluation needs besides the cards: the data, the settings and the run's fixed choices. */
 export interface Ctx {
@@ -392,7 +392,9 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   return { deck, steps, coverage, sparks, conflicts, borrow, borrowAlternatives: alternatives };
 }
 
-export interface WishlistEntry { key: number; skillId: number; name: string; form: string | null; gated: boolean; isTarget: boolean; reason: string; weight: number }
+/** `events` are the choice events that offer the skill (one per event, whichever options), empty for a skill given without a choice. */
+export interface WishlistEntry { key: number; skillId: number; name: string; form: string | null; gated: boolean; isTarget: boolean; reason: string; weight: number; events: EventRef[] }
+const uniqueEvents = (events: EventRef[]) => [...new Map(events.map((e) => [e.key, e])).values()];
 
 /**
  * Candidates for the prioritized-skills list, best first: targets gated behind an event choice, then other
@@ -409,23 +411,23 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     // every option the run could pick, including ones currently losing a conflict, so the order can be changed
     const all = (ev.full.get(t.id) ?? []).filter((s) => s.kind !== 'lineage' && s.kind !== 'innate' && s.kind !== 'awakening');
     if (!all.length) continue;
-    const choice = all.filter((s) => s.isChoice);
+    const choice = all.filter(isChoiceSource);
     const spark = ev.sparks.get(t.id) ?? 0;
     if (choice.length) {
       // one entry per distinct skill the run can choose: the gold form and the white form are different picks
-      const bySkill = new Map<number, SkillSource[]>();
+      const bySkill = new Map<number, EventSource[]>();
       for (const s of choice) bySkill.set(s.skillId, [...(bySkill.get(s.skillId) ?? []), s]);
       for (const [skillId, srcs] of [...bySkill].sort((a, b) => Number(!!b[1][0]?.gold) - Number(!!a[1][0]?.gold))) {
         const sk = ctx.data.skillById.get(skillId);
         const gold = !!srcs[0]?.gold;
         entries.push({ key: skillId, skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: true, isTarget: true,
-          weight: 2 + spark + (gold ? 0.5 : 0), reason: srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; ') });
+          weight: 2 + spark + (gold ? 0.5 : 0), reason: srcs.map((s) => `${s.cardName ? s.cardName + ': ' : ''}${s.detail}`).join('; '), events: uniqueEvents(srcs.map((s) => s.event)) });
         seen.add(skillId);
       }
     } else {
       const src = all.find((s) => s.gold) ?? all[0]!;
       const sk = ctx.data.skillById.get(src.skillId);
-      entries.push({ key: src.skillId, skillId: src.skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: false, isTarget: true, weight: spark, reason: 'Given without an event choice.' });
+      entries.push({ key: src.skillId, skillId: src.skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: false, isTarget: true, weight: spark, reason: 'Given without an event choice.', events: [] });
       seen.add(src.skillId);
     }
   }
@@ -435,18 +437,19 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     const sk = ctx.data.skillById.get(o.skillId);
     if (!sk || sk.unreleasedEn) continue;
     seen.add(o.skillId);
-    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 1.2 : 1), reason: o.detail });
+    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 1.2 : 1), reason: o.detail, events: [o.event] });
   }
   // Other choice-gated skills from the deck's and the trainee's events (not targets): listing them steers the AI to that option.
   const offered = [...deck.map((d) => ({ owner: d.card.name, sources: eventSources(d.card, ctx.settings, ctx.data) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data) }] : [])];
-  for (const { owner, sources } of offered) {
-    for (const src of sources) {
-      if (!src.isChoice || seen.has(src.skillId) || targetFamilies.has(src.skillId)) continue;
-      const sk = ctx.data.skillById.get(src.skillId);
-      if (!sk || sk.unreleasedEn) continue;
-      seen.add(src.skillId);
-      entries.push({ key: src.skillId, skillId: src.skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * src.pObtain * (sk.rarity === 2 ? 1.2 : 1), reason: `${owner}: ${src.detail}` });
-    }
+  // A skill offered by several cards' events is one entry with every event, so the list can tell which of them it steers.
+  const bySkill = new Map<number, { owner: string; src: EventSource }[]>();
+  for (const { owner, sources } of offered) for (const src of sources) if (src.isChoice && !seen.has(src.skillId) && !targetFamilies.has(src.skillId)) bySkill.set(src.skillId, [...(bySkill.get(src.skillId) ?? []), { owner, src }]);
+  for (const [skillId, offers] of bySkill) {
+    const sk = ctx.data.skillById.get(skillId);
+    if (!sk || sk.unreleasedEn) continue;
+    const pObtain = Math.max(...offers.map((o) => o.src.pObtain));
+    entries.push({ key: skillId, skillId, name: sk.name, form: null, gated: true, isTarget: false, weight: 1 + 0.5 * pObtain * (sk.rarity === 2 ? 1.2 : 1),
+      reason: offers.map((o) => `${o.owner}: ${o.src.detail}`).join('; '), events: uniqueEvents(offers.map((o) => o.src.event)) });
   }
   return entries.sort((a, b) => b.weight - a.weight);
 }

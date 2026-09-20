@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
-import { applyUserOrder, derivePriority, isLegalRunSelection, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
+import { applyUserOrder, derivePriority, isLegalRunSelection, layoutWishlist, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankEstimate, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
@@ -18,7 +18,7 @@ const settings = { ...DEFAULT_SETTINGS };
 const byName = (n: string) => must(data.skills.find((s) => s.name === n && !s.unreleasedEn), `released skill ${n}`);
 const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);
 const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], borrowIgnored: false, parentSparks: [[null, null, null], [null, null, null]] };
-const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight });
+const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight, events: [] });
 
 test('star tables: every listed table is used as is; only a missing one interpolates, and counts outside the range clamp', () => {
   const ch = must(data.characters.find((c) => c.fourStarStats && c.fiveStarStats && c.rarity === 3), `data.characters.find((c) => c.fourStarStats && c.fiveStarStats && c.rarity === 3)`);
@@ -148,6 +148,26 @@ test("prioritized skills: the user's order applies to a whole skill family, ever
   for (const id of allIveGot.familyIds) assert.ok(pr.indexOf(id) < pr.indexOf(focus.id), `form ${id} outranks the target`);
   for (const id of focus.familyIds) assert.ok(pr.includes(id), 'the target is ranked in every form too');
   assert.deepEqual(new Set(derivePriority([], [focus], data)), focus.familyIds, 'targets absent from the list still get a rank');
+});
+
+test('prioritized skills: a candidate whose every event a higher entry takes is hidden behind it, a target in that place stays as a conflict, and only the listed entries take events', () => {
+  const ev = (key: string) => ({ key, label: key, option: '', optionIndex: 0 });
+  const on = (skillId: number, weight: number, events: string[], isTarget = false) => ({ ...entry(skillId, weight), isTarget, events: events.map(ev) });
+  const layout = layoutWishlist([on(1, 9, ['scenario']), on(2, 8, ['scenario']), on(3, 7, ['scenario', 'card-a']), on(4, 6, ['scenario'], true), on(5, 5, ['card-b'])]);
+  assert.deepEqual(layout.live.map((w) => w.key), [1, 3, 4, 5], 'the second scenario option steers nothing and leaves the list');
+  assert.deepEqual(layout.shadowed.map((s) => [s.entry.key, s.by]), [[2, [1]]]);
+  assert.deepEqual(layout.steers.get(3), ['card-a'], 'an entry on a taken event and a free one takes only the free one');
+  assert.deepEqual(layout.steers.get(4), [], 'a target on a taken event stays listed but takes nothing');
+  assert.deepEqual(layout.events.map((e) => [e.key, e.winner, e.keys]), [['scenario', 1, [1, 2, 3, 4]], ['card-a', 3, [3]], ['card-b', 5, [5]]].filter((e) => (e[2] as number[]).length > 1), 'shared events list every candidate in order');
+  const capped = layoutWishlist([on(1, 9, ['a']), on(2, 8, ['b']), on(3, 7, ['c']), on(4, 6, ['c'])], 2);
+  assert.deepEqual(capped.live.map((w) => w.key), [1, 2, 3, 4], 'past the list length nothing takes an event, so a sibling there stays a candidate');
+  assert.equal(capped.shadowed.length, 0);
+  assert.equal(capped.steers.has(3), false);
+  const plan = planRun(empty, settings, {}, data, { budget: 8 });
+  const scenarioListed = plan.wl.filter((w) => w.events.some((e) => e.key.startsWith('scenario:')));
+  assert.equal(scenarioListed.length, 1, 'one scenario option is listed');
+  assert.ok(plan.wlLayout.shadowed.length >= 1 && plan.wlLayout.shadowed.every((s) => s.by.includes(scenarioListed[0]!.key) || s.entry.events.every((e) => !e.key.startsWith('scenario:'))), 'the other scenario options sit behind it');
+  assert.ok(plan.wl.every((w) => w.isTarget || (plan.wlLayout.steers.get(w.key)?.length ?? 0) > 0), 'every listed non-target steers an event');
 });
 
 test('planRun: the prioritized order decides a shared event, and only the first ten entries steer choices', () => {

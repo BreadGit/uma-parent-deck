@@ -4,7 +4,7 @@ import { must } from './helpers.ts';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildVersion } from '../scripts/build-version.ts';
+import { buildVersion, parseBuildVersion } from '../scripts/build-version.ts';
 import { loadData } from '../src/data.ts';
 import { defaultState, migrate, resetRun, saveRecommendation, STATE_VERSION } from '../src/state.ts';
 import { parseRecommendation, planningKey } from '../src/recommendation.ts';
@@ -99,4 +99,12 @@ test('the recommendation build version changes automatically with source, data a
     writeFileSync(join(root, 'src/new-model.ts'), 'new source');
     assert.notEqual(buildVersion(root), initial);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('a dev server reports its build version through the virtual module and a preview build reports none', () => {
+  const hash = 'a'.repeat(64);
+  assert.equal(parseBuildVersion(`export const BUILD_VERSION = "${hash}";\n//# sourceMappingURL=data:application/json;base64,e30=`), hash);
+  assert.equal(parseBuildVersion('<!doctype html>\n<html lang="en">'), null);
+  assert.equal(parseBuildVersion(''), null);
+  assert.equal(parseBuildVersion('export const BUILD_VERSION = "not-a-hash";'), null);
 });

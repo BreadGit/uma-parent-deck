@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 import { ModuleKind, ScriptTarget, transpileModule } from 'typescript';
 import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, openApp, waitForPlan } from './browser-fields.mjs';
 import { holdSearch } from './browser-search.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
 import { encodeShare, decodeShare, sharedChoices, shareUrl } from '../src/share.ts';
@@ -32,7 +32,7 @@ async function fresh(t, saved, { held = false, settle = !held, touch = false } =
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (e) => { if (e.type() === 'error') errors.push(e.text()); });
   t.after(() => assert.deepEqual(errors, [], 'browser errors'));
-  await page.goto(url);
+  await openApp(page, url);
   await page.waitForSelector('#target-search-required');
   if (settle) await waitForPlan(page);
   return page;

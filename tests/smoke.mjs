@@ -1,7 +1,7 @@
 // Checks editor flows with search held pending, then completes a real search and checks six widths in both themes.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, openApp, waitForPlan } from './browser-fields.mjs';
 import { holdSearch, releaseSearch } from './browser-search.mjs';
 import { STATE_KEY } from '../src/state.ts';
 const url = process.env.URL ?? 'http://localhost:5173/';
@@ -15,7 +15,7 @@ const fieldValue = (selector, value) => page.waitForFunction(({ selector, value 
 const settled = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-await page.goto(url);
+await openApp(page, url);
 await page.waitForSelector('h1');
 await page.evaluate(() => localStorage.clear());
 await page.reload();
@@ -270,6 +270,18 @@ if (await candidatesClipped()) {
   await settled();
   assert.equal(await page.locator('[data-action="wl-candidates"]').getAttribute('aria-expanded'), 'false');
   assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'wl-candidates', 'the toggle keeps focus when the row closes');
+}
+// A row that takes a shared event lists the options it displaced; a chip puts that option in the row's place and back.
+const swapChip = page.locator('[data-action="wl-swap"]:not([disabled])').first();
+if (await swapChip.count()) {
+  const [sibling, winner] = await swapChip.evaluate((b) => [b.dataset.id, b.dataset.for]);
+  await swapChip.click();
+  await savedState(`st.run.wishlistOrder.indexOf(${sibling}) === st.run.wishlistOrder.indexOf(${winner}) - 1`);
+  await settled();
+  assert.equal(await page.locator(`.wishlist li[data-wl-key="${sibling}"] [data-action="wl-swap"][data-id="${winner}"]`).count(), 1, 'the displaced entry is a chip under the one that took its place');
+  await page.click(`[data-action="wl-swap"][data-id="${winner}"][data-for="${sibling}"]`);
+  await savedState(`st.run.wishlistOrder.indexOf(${winner}) === st.run.wishlistOrder.indexOf(${sibling}) - 1`);
+  await assertFieldsMatchState(page, 'after swapping an event option in and back');
 }
 const bodyText = await page.textContent('body');
 assert.ok(!bodyText.includes('blue spark 1★'), 'predicted run still shows blue spark odds');

@@ -153,6 +153,7 @@ npm run dev        # http://localhost:5173, also reachable on the LAN at http://
 npm test           # model tests (node --test); the analysis checks need python3 with numpy and openpyxl, and skip without them
 npm run test:quick # the same without the Python analysis checks, for the inner loop
 npm run smoke      # headless Chromium walk-through against the dev server, writes docs/screenshot.png
+npm run scratch -- /tmp/probe.mjs   # one-off browser script with the test helpers; also --eval '<expr>' or --shot <png>
 npm run test:e2e   # smoke, browser regressions, and scroll-anchor checks
 npm run build
 ```
@@ -165,8 +166,9 @@ the latest request to a real worker before checking the completed result at all 
 Keep search-quality and publication assertions in the real-worker cases.
 
 `npm run dev` binds to all interfaces (`vite --host`). Vite prints the network URL on start.
-Browser checks accept `URL` for another server, including `npm run preview`. Set `SCREENSHOT_PATH` to choose
-where the smoke screenshot goes, or to an empty string to skip writing it.
+Browser checks accept `URL` for another server, including `npm run preview`. Against a dev server they
+also check that it serves this checkout and stop when it serves another worktree. Set `SCREENSHOT_PATH`
+to choose where the smoke screenshot goes, or to an empty string to skip writing it.
 
 ### Sharing a run
 

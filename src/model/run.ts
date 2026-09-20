@@ -77,8 +77,9 @@ export interface RunPlan {
   rank: RankEstimate;
   spCost: SpCost;
   wl: WishlistEntry[];                     // the prioritized list as shown
-  wlRest: WishlistEntry[];                 // candidates past the list's length
+  wlRest: WishlistEntry[];                 // candidates past the list's length that would steer something if listed
   wlExcluded: WishlistEntry[];             // candidates the user removed
+  wlLayout: WishlistLayout;                // which entry takes which shared event, and the candidates hidden behind them
 }
 
 export interface GoalSearchSummary {
@@ -164,6 +165,43 @@ export function isLegalRunSelection(selection: DeckSelection, input: RunInput, s
   const { deckPool, borrowPool, pinnedIds } = selectablePools(input, settings, inventory, data);
   const constraints = goalDeckConstraints({ owned: deckPool, borrows: borrowPool, pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId });
   return !!constraints?.legal(selection.map((e) => ({ ...e, card: data.cardById.get(e.id)! })));
+}
+
+/** An event that more than one candidate is offered by. The run takes one option, so the candidate ranked first takes it. */
+export interface WishlistEvent { key: string; label: string; winner: number; keys: number[] }
+export interface WishlistLayout {
+  /** Every candidate after the user's order and exclusions, by key. */
+  entries: Map<number, WishlistEntry>;
+  /** Candidates that steer an event no higher entry took, or are targets; the first PRIORITIZED_SKILLS_MAX are the list. */
+  live: WishlistEntry[];
+  /** Non-target candidates whose every event a listed entry took: listing them steers nothing. `by` are the entries that took them. */
+  shadowed: { entry: WishlistEntry; by: number[] }[];
+  /** For each listed entry, the events it takes; a listed target with none is only a filler for its hints. */
+  steers: Map<number, string[]>;
+  /** Events shared by several candidates, with the entry that takes each. */
+  events: WishlistEvent[];
+}
+
+/**
+ * Walk the ordered candidates: an entry takes every event no entry above it took. Only the first `max` live entries
+ * take events, since only they are entered in the game. A non-target whose events are all taken is hidden behind the
+ * entries that took them instead of holding a slot; a target in that position stays, tagged as a filler.
+ */
+export function layoutWishlist(ordered: WishlistEntry[], max = PRIORITIZED_SKILLS_MAX): WishlistLayout {
+  const winner = new Map<string, WishlistEvent>();
+  const live: WishlistEntry[] = [], shadowed: WishlistLayout['shadowed'] = [];
+  const steers = new Map<number, string[]>();
+  for (const w of ordered) {
+    const free = w.events.filter((e) => !winner.has(e.key));
+    if (w.events.length && !free.length && !w.isTarget) { shadowed.push({ entry: w, by: [...new Set(w.events.map((e) => winner.get(e.key)!.winner))] }); continue; }
+    if (live.length < max) {
+      for (const e of free) winner.set(e.key, { key: e.key, label: e.label, winner: w.key, keys: [] });
+      steers.set(w.key, free.map((e) => e.key));
+    }
+    live.push(w);
+  }
+  for (const w of ordered) for (const e of w.events) winner.get(e.key)?.keys.push(w.key);
+  return { entries: new Map(ordered.map((w) => [w.key, w])), live, shadowed, steers, events: [...winner.values()].filter((e) => e.keys.length > 1) };
 }
 
 /**
@@ -294,8 +332,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048) => {
     const fans = estimateFans(schedule, entries, settings);
     const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
-    const candidates = wishlistCandidates(entries, targets, candidateCtx), ordered = order(candidates);
-    const priority = derivePriority(ordered, targets.filter((t) => !input.wishlistExcluded.some((id) => t.familyIds.has(id))), data, input.wishlistExcluded);
+    const candidates = wishlistCandidates(entries, targets, candidateCtx), ordered = order(candidates), layout = layoutWishlist(ordered);
+    const priority = derivePriority(layout.live, targets.filter((t) => !input.wishlistExcluded.some((id) => t.familyIds.has(id))), data, input.wishlistExcluded);
     const ctx: Ctx = { ...candidateCtx, priority, excluded: input.wishlistExcluded };
     const prediction = predictCandidate(entries, input, ctx, apt, sum.expectedLosses, sampleCount, preparedPrediction);
     const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.skillPoints, skillSd: Math.sqrt(settings.skillScoreSd ** 2 + prediction.purchases.variance) };
@@ -303,7 +341,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
     const sources = goalSources(goal, forms, ctx);
     const score = scoreGoal(goal, sources, basis, pink, settings);
-    return { score, statPower: deckStatPower(entries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, ordered } };
+    return { score, statPower: deckStatPower(entries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
   };
   let chosen = evaluateCandidate(initial.deck);
   let search: GoalSearchSummary | null = options.summary ?? null;
@@ -334,7 +372,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     });
     if (found) { chosen = found.best; search = summarize(found); }
   }
-  const { entries, ctx, fans, goalStats, basis, sources, candidates, ordered } = chosen.value;
+  const { entries, ctx, fans, goalStats, basis, sources, candidates, layout } = chosen.value;
   const prediction = finishPrediction(chosen.value.prediction, input, ctx);
   prediction.rank.pSS = basis.pSS;
   const deckResult = describeDeck(entries, targets, ctx);
@@ -353,7 +391,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const spCost = targetSpCost(targets, deckResult.coverage);
   return {
     search, priorityIssues, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, ignoredIds, existing, ranking, deckResult, ...prediction, spCost,
-    wl: ordered.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: ordered.slice(PRIORITIZED_SKILLS_MAX), wlExcluded: excluded,
+    wl: layout.live.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: layout.live.slice(PRIORITIZED_SKILLS_MAX), wlExcluded: excluded, wlLayout: layout,
   };
 }
 
