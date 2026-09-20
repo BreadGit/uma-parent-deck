@@ -254,7 +254,6 @@ export const COPY = {
       lostEvent: { label: 'lost event', tip: 'Another target listed higher takes every event option that gives this one, so it gets nothing from those events and keeps only its hints. To change that, raise its priority in Parent goal or change the competing target there.' },
     },
     instead: 'or instead:',
-    swapTip: (name: string, event: string) => `Take ${name} at ${event} instead. The current pick moves behind it.`,
     listedAt: (n: number) => `#${n}`,
     hidden: (n: number) => `${n} taken option${n === 1 ? '' : 's'} not listed`,
     pending: 'updating with the deck search',

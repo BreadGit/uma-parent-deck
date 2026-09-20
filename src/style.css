@@ -395,7 +395,7 @@ td.target-chances { min-width: 260px; }
 .wishlist li { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px; margin: 2px 0; padding: 3px 4px; border-radius: 4px; }
 .wishlist li.wl-extra[draggable="true"] { cursor: grab; }
 /* Target rows follow the goal editor. Their disabled controls share a focusable tooltip. */
-.wishlist .grip-none { visibility: hidden; }
+.wishlist .grip-disabled { opacity: .3; cursor: default; }
 .wishlist .wl-fixed button { pointer-events: none; }
 /* while a search runs the deck may change, so the extras are shown but not editable */
 .wishlist.wl-locked li.wl-extra, .wishlist.wl-locked ~ .wl-extra { opacity: .55; }

@@ -24,10 +24,15 @@ export const cardUrl = (c: Card) => `https://gametora.com/umamusume/supports/${c
 export const cardLink = (c: Card, label?: string | TemplateResult) => html`<a class="card-link" href="${cardUrl(c)}" target="_blank" rel="noopener">${label ?? c.name}</a>`;
 export const cardThumb = (c: Card, cls = 'thumb') => html`<a href="${cardUrl(c)}" target="_blank" rel="noopener"><img class="${cls}" src="${cardImg(c)}" alt="" loading="lazy" /></a>`;
 export const typeIcon = (c: Card) => html`<img class="type-icon" src="/assets/icons/type_${c.type}.png" alt="${c.type}" />`;
+/** A skill description followed by an optional note such as where it comes from. */
+export function skillTipText(id: number, note?: string): string {
+  const sk = data.skillById.get(id);
+  return [sk?.desc ? `${sk.name}${sk.rarity === 2 ? ' (gold)' : ''}: ${sk.desc}` : '', note ?? ''].filter(Boolean).join('\n\n');
+}
 /** A skill name with an info icon showing its description, followed by an optional note such as where it comes from. */
 export function skillWithTip(id: number, label?: string | TemplateResult, note?: string): TemplateResult {
   const sk = data.skillById.get(id);
-  const text = [sk?.desc ? `${sk.name}${sk.rarity === 2 ? ' (gold)' : ''}: ${sk.desc}` : '', note ?? ''].filter(Boolean).join('\n\n');
+  const text = skillTipText(id, note);
   return html`${label ?? sk?.name ?? `#${id}`}${text ? tip(text) : nothing}`;
 }
 /** The game's icon for a stat, as used on the legacy screen and the trainee's stat strip. */

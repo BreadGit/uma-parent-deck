@@ -5,12 +5,12 @@
 // tooltip ends with the event or card that gives it; the choice conflicts are listed in the warnings panel.
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
-import type { RunPlan, WishlistEvent } from '../../model/run.ts';
+import type { RunPlan } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { plan, refresh, searchState, store, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
-import { skillWithTip } from '../format.ts';
+import { skillTipText, skillWithTip } from '../format.ts';
 import { panel } from '../panel.ts';
 
 const isExtra = (w: WishlistEntry) => w.role === 'extra';
@@ -66,11 +66,11 @@ const drag = {
   dragend: () => setDrag(null, null),
 };
 
-/** Every other candidate on the events `key` takes, in list order, each with the events it shares with the winner. */
-function siblingsOf(c: RunPlan, key: number): { entry: WishlistEntry; events: WishlistEvent[] }[] {
-  const out = new Map<number, WishlistEvent[]>();
-  for (const e of c.wlLayout.events) if (e.winner === key) for (const k of e.keys) if (k !== key) out.set(k, [...(out.get(k) ?? []), e]);
-  return [...out].map(([k, events]) => ({ entry: c.wlLayout.entries.get(k)!, events }));
+/** Every other candidate on the events `key` takes, in list order. */
+function siblingsOf(c: RunPlan, key: number): WishlistEntry[] {
+  const out = new Set<number>();
+  for (const e of c.wlLayout.events) if (e.winner === key) for (const k of e.keys) if (k !== key) out.add(k);
+  return [...out].map((k) => c.wlLayout.entries.get(k)!);
 }
 const listedAt = (c: RunPlan, key: number) => { const i = c.wl.findIndex((w) => w.key === key); return i < 0 ? null : i + 1; };
 const entryName = (w: WishlistEntry) => w.form ? `${w.name} (for ${w.form})` : w.name;
@@ -85,9 +85,9 @@ function tags(c: RunPlan, w: WishlistEntry) {
 }
 
 /** A chip that swaps `sibling` in for `winner` at their shared event. Only extras take events from extras. */
-function swapChip(c: RunPlan, sibling: WishlistEntry, winner: WishlistEntry, events: WishlistEvent[], locked: boolean) {
+function swapChip(c: RunPlan, sibling: WishlistEntry, winner: WishlistEntry, locked: boolean) {
   const at = listedAt(c, sibling.key);
-  const tipText = `${COPY.priorities.swapTip(sibling.name, events.map((e) => e.label).join(' and '))}\n\n${COPY.priorities.source}: ${sibling.reason}`;
+  const tipText = skillTipText(sibling.skillId, `${COPY.priorities.source}: ${sibling.reason}`);
   return html`<button class="wl-swap" data-action="wl-swap" data-id="${sibling.key}" data-for="${winner.key}" ?disabled=${locked} data-tip=${tipText} @click=${() => swapSkill(sibling.key, winner.key)}>${entryName(sibling)}${at ? html` <span class="muted">${COPY.priorities.listedAt(at)}</span>` : nothing}</button>`;
 }
 
@@ -98,14 +98,14 @@ function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
   const name = skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `${COPY.priorities.source}: ${w.reason}`);
   const sibs = extra ? siblingsOf(c, w.key) : [];
   return html`<li draggable="${extra && !locked ? 'true' : 'false'}" data-wl-key="${w.key}" data-wl-role="${w.role}" class="${extra ? 'wl-extra' : 'wl-target'} ${view.drag.key === w.key ? 'dragging' : ''} ${view.drag.over === w.key && view.drag.key !== w.key ? 'drop-target' : ''}">
-    <span class="wl-num">${i + 1}.</span><span class="grip ${extra ? '' : 'grip-none'}" aria-hidden="true">⋮⋮</span>
+    <span class="wl-num">${i + 1}.</span><span class="grip ${extra ? '' : 'grip-disabled'}" aria-hidden="true">⋮⋮</span>
     <span class="wl-body">${tags(c, w)}${name}</span>
     <span class="wl-actions ${extra ? '' : 'wl-fixed'}" tabindex=${extra ? nothing : 0} role=${extra ? nothing : 'group'} aria-label=${extra ? nothing : COPY.priorities.targetsFixed} data-tip=${extra ? nothing : COPY.priorities.targetsFixed}>
       <button class="small wl-move" data-action="wl-up" data-id="${w.key}" aria-label="Move ${w.name} up" data-tip="Move up" ?disabled=${!canMove(-1)} @click=${() => nudgeSkill(w.key, -1)}>▲</button>
       <button class="small wl-move" data-action="wl-down" data-id="${w.key}" aria-label="Move ${w.name} down" data-tip="Move down" ?disabled=${!canMove(1)} @click=${() => nudgeSkill(w.key, 1)}>▼</button>
       <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Hide ${w.name}" data-tip="Hide from the list" ?disabled=${!extra || locked} @click=${() => { if (extra) hideSkill(w.key); }}>✕</button>
     </span>
-    ${sibs.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">${COPY.priorities.instead}</span>${sibs.map((s) => swapChip(c, s.entry, w, s.events, locked))}</div>` : nothing}</li>`;
+    ${sibs.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">${COPY.priorities.instead}</span>${sibs.map((s) => swapChip(c, s, w, locked))}</div>` : nothing}</li>`;
 }
 
 /**
