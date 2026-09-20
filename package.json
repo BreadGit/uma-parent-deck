@@ -14,7 +14,8 @@
     "check:data": "node --test tests/data.test.ts tests/source-validation.test.ts tests/support-import.test.ts tests/page-cache.test.ts tests/measurement-sources.test.ts tests/stat-inputs.test.ts tests/support-effects.test.ts tests/model-evaluation.test.ts",
     "smoke": "node tests/smoke.mjs",
     "test:e2e": "node tests/smoke.mjs && node tests/regressions.mjs && node --test tests/scroll-anchor.mjs",
-    "inspect": "node tests/inspect.ts"
+    "inspect": "node tests/inspect.ts",
+    "scratch": "node tests/scratch.mjs"
   },
   "dependencies": {
     "lit-html": "^3.3.3"

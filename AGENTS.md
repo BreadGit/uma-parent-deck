@@ -23,6 +23,14 @@ to avoid repeating it.
 
 Browser checks need a running dev or preview server. They default to port 5173; set `URL` for another
 address. Set `SCREENSHOT_PATH=''` to skip the smoke screenshot or set a temporary path to inspect it.
+Smoke and the regressions first compare the dev server's build hash with this checkout and stop when
+they differ, because a server for another worktree answers on the same port with other code.
+
+For a one-off browser check, run `node tests/scratch.mjs <script.mjs>`, `--eval '<expression>'` or
+`--shot <path.png>`: it supplies `page` and the test helpers, so the script can live in `/tmp` and
+needs no imports. A script elsewhere cannot import `playwright` itself; do not copy scratch files into
+the tree to work around that. Take field ids and `data-*` attributes from `src/ui`, not from memory,
+before waiting on a selector: a miss costs a 30-second timeout.
 
 Edits: never rely on an anchor string matching. Assert that a replacement applied. Three fixes in this
 project's history silently did nothing because the surrounding text had changed.
@@ -49,6 +57,17 @@ Keep a development server running for this project so the user can review it fro
 device on the same local network. At the start of a work session, check for an existing project server
 and reuse it. If none is running, start `npm run dev` from the project root and leave it running after
 the task finishes, unless the user asks otherwise.
+
+A server on port 5173 may belong to another checkout: find its directory with `readlink /proc/<pid>/cwd`
+(the pid is in `ss -ltnp`) before reusing it. In a git worktree, run `npm ci` first (a fresh worktree has
+no `node_modules`), start `npm run dev -- --port <n> --strictPort` on a free port, and pass
+`URL=http://localhost:<n>/` to the browser checks. Start a server as a background task and poll it with
+`curl`; do not `pkill` vite, since the running server is the one the user reviews from.
+
+The preview browser tools (`preview_open`, `preview_navigate`) cannot reach `localhost`. Navigate with
+`{kind: 'environment-port', port: <n>}`, which resolves to the LAN address, and confirm the returned
+title is `Uma parent deck` before evaluating anything: `preview_open` reports success while the tab sits
+on a Chrome error page.
 
 `npm run dev` already uses `vite --host` to listen on all interfaces. Preserve that default. Do not add
 `--host 127.0.0.1` or `--host localhost` unless the user explicitly requests access only from this computer.

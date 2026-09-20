@@ -1,7 +1,7 @@
 // Checks editor flows with search held pending, then completes a real search and checks six widths in both themes.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, openApp, waitForPlan } from './browser-fields.mjs';
 import { holdSearch, releaseSearch } from './browser-search.mjs';
 import { STATE_KEY } from '../src/state.ts';
 const url = process.env.URL ?? 'http://localhost:5173/';
@@ -15,7 +15,7 @@ const fieldValue = (selector, value) => page.waitForFunction(({ selector, value 
 const settled = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-await page.goto(url);
+await openApp(page, url);
 await page.waitForSelector('h1');
 await page.evaluate(() => localStorage.clear());
 await page.reload();

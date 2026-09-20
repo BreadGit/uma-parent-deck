@@ -3,4 +3,7 @@ dist/
 data/raw/page_*
 .DS_Store
 docs/screenshot.png
+# one-off browser scripts copied into the tree; use tests/scratch.mjs instead
+*.tmp.mjs
+_*.mjs
 __pycache__/

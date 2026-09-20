@@ -1,9 +1,40 @@
 import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
+import { buildVersion, BUILD_VERSION_PATH, parseBuildVersion } from '../scripts/build-version.ts';
 import { BLUE_SPARK_START_GAIN_BY_STARS } from '../src/model/rules.ts';
 import { loadData } from '../src/data.ts';
 import { startingAptitudes } from '../src/model/pink-inherit.ts';
 import { migrate, STATE_KEY } from '../src/state.ts';
 const data = loadData();
+const root = fileURLToPath(new URL('..', import.meta.url));
+const servedVersions = new Map();
+let ourVersion;
+
+/**
+ * Loads the app and checks that the server at `url` serves this checkout. A dev server for another worktree answers
+ * on the default port with other code, and its failures then read as bugs in this tree. Vite exposes the build hash
+ * the app itself reads, so the comparison costs one fetch per server; a preview build has no such module and is
+ * accepted as is. A server that does not answer fails with the command that starts one.
+ */
+export async function openApp(page, url) {
+  try {
+    await page.goto(url);
+  } catch (error) {
+    throw new Error(`no server answered at ${url}: start \`npm run dev\` in ${root} or pass URL=<address>`, { cause: error });
+  }
+  await assertServesThisTree(url);
+}
+
+export async function assertServesThisTree(url) {
+  if (!servedVersions.has(url)) {
+    servedVersions.set(url, fetch(new URL(BUILD_VERSION_PATH, url)).then((r) => (r.ok ? r.text() : '')).then(parseBuildVersion).catch(() => null));
+  }
+  const theirs = await servedVersions.get(url);
+  if (theirs === null) return;
+  ourVersion ??= buildVersion(root);
+  assert.equal(theirs, ourVersion, `the server at ${url} serves a different checkout than ${root} (served ${theirs.slice(0, 12)}, here ${ourVersion.slice(0, 12)}). ` +
+    'Find its directory with `readlink /proc/<pid>/cwd` (pid from `ss -ltnp`), or start one here with `npm run dev -- --port <n> --strictPort` and pass URL=http://localhost:<n>/');
+}
 
 export async function waitForPlan(page) {
   assert.notEqual(await page.evaluate(() => window.__searchHeld), true, 'release held search before asserting optimizer completion');

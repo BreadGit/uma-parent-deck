@@ -11,6 +11,14 @@ export function buildVersionFiles(root: string): string[] {
   ].sort();
 }
 
+/** Vite serves the virtual module here, so a running dev server can say which checkout it serves. */
+export const BUILD_VERSION_PATH = '/@id/__x00__virtual:build-version';
+
+/** The hash in a dev server's response for `BUILD_VERSION_PATH`, or null when the response is not that module (a preview build has none). */
+export function parseBuildVersion(source: string): string | null {
+  return /export const BUILD_VERSION = "([0-9a-f]{64})"/.exec(source)?.[1] ?? null;
+}
+
 /** Source and data changes invalidate saved calculations without a manually maintained version. */
 export function buildVersion(root: string): string {
   const hash = createHash('sha256');
