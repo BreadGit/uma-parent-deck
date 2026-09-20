@@ -12,15 +12,15 @@ import { COPY } from '../copy.ts';
 import { skillWithTip } from '../format.ts';
 import { panel } from '../panel.ts';
 
-const requiredSkill = (key: number) => store.run.targets.some((t) => t.role === 'required' && t.id === resolveTarget(key, data)?.id);
-function excludeSkill(key: number) {
+export const requiredSkill = (key: number) => store.run.targets.some((t) => t.role === 'required' && t.id === resolveTarget(key, data)?.id);
+export function excludeSkill(key: number) {
   update((s) => { s.run.wishlistExcluded = [...new Set([...s.run.wishlistExcluded, key])]; s.run.wishlistOrder = s.run.wishlistOrder.filter((x) => x !== key); });
 }
-function restoreSkill(key: number) {
+export function restoreSkill(key: number) {
   update((s) => { s.run.wishlistExcluded = s.run.wishlistExcluded.filter((x) => x !== key); });
 }
 /** Put an unlisted candidate into the last slot of the list. */
-function addSkill(key: number) {
+export function addSkill(key: number) {
   const cur = plan().wl.map((w) => w.key).filter((x) => x !== key);
   cur.splice(PRIORITIZED_SKILLS_MAX - 1, cur.length, key);
   update((s) => { s.run.wishlistOrder = cur; });
@@ -34,13 +34,13 @@ function moveSkill(from: number, to: number) {
   cur.splice(i, 1); cur.splice(j, 0, from);
   update((s) => { s.run.wishlistOrder = cur; });
 }
-function nudgeSkill(key: number, delta: number) {
+export function nudgeSkill(key: number, delta: number) {
   const cur = plan().wl.map((w) => w.key);
   const i = cur.indexOf(key), j = i + delta;
   if (i < 0 || j < 0 || j >= cur.length) return;
   moveSkill(key, cur[j]!);
 }
-const resetList = () => update((s) => { s.run.wishlistOrder = []; s.run.wishlistExcluded = []; });
+export const resetList = () => update((s) => { s.run.wishlistOrder = []; s.run.wishlistExcluded = []; });
 
 // Drag state lives in the view and the classes are rendered from it, so no handler touches lit's elements.
 const dragItem = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('li[data-wl-key]');
@@ -49,7 +49,7 @@ const setDrag = (key: number | null, over: number | null) => {
   view.drag = { key, over };
   refresh();
 };
-const drag = {
+export const drag = {
   dragstart: (ev: DragEvent) => { const li = dragItem(ev); if (!li) return; const key = Number(li.dataset.wlKey); ev.dataTransfer?.setData('text/plain', String(key)); setDrag(key, null); },
   dragover: (ev: DragEvent) => { const li = dragItem(ev); if (!li || view.drag.key == null) return; ev.preventDefault(); setDrag(view.drag.key, Number(li.dataset.wlKey)); },
   drop: (ev: DragEvent) => { const li = dragItem(ev); const from = view.drag.key; if (!li || from == null) return; ev.preventDefault(); setDrag(null, null); moveSkill(from, Number(li.dataset.wlKey)); },
@@ -78,7 +78,7 @@ function row(c: RunPlan, w: WishlistEntry, i: number) {
  * The candidates outside the list and the removed ones, each with a button that brings it in. The row is clamped to
  * three lines; app.ts observes whether that hides any and the toggle appears only then (or while the row is expanded).
  */
-function candidates(c: RunPlan) {
+export function candidates(c: RunPlan) {
   if (!c.wlRest.length && !c.wlExcluded.length) return nothing;
   const expanded = view.showAllCandidates;
   return html`<div class="small muted wl-extra ${expanded ? '' : 'clamped'}" data-candidates>

@@ -46,6 +46,8 @@ const viewState = {
   showAllCandidates: false,
   /** Observed after layout by app.ts: whether the clamped candidates hide any. */
   candidatesOverflow: false,
+  /** PROTOTYPE: which rendering of the prioritized list is shown; from ?variant=. Remove with the prototype. */
+  prototypeVariant: new URLSearchParams(location.search).get('variant') ?? 'A',
 };
 export type View = typeof viewState;
 

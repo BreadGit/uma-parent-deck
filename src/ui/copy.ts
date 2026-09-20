@@ -247,7 +247,15 @@ export const COPY = {
       target: { label: 'target', tip: 'Leads to a target and needs the run to pick this option at an event.' },
       other: { label: 'not a target', tip: 'Not a target, but listing it steers the run to this option and its skill.' },
       given: { label: 'target, no choice', tip: 'A target the run gets without choosing anything. It is listed to fill the slot; the order does not matter for it.' },
+      taken: { label: 'target, option taken', tip: 'Every event option that gives this target goes to a skill listed higher. It stays listed as a target so the run can still chase its hints.' },
     },
+    // PROTOTYPE copy for the event-group renderings
+    instead: 'or instead:',
+    takenBy: (name: string) => `This option goes to ${name}, which is required.`,
+    swapTip: (name: string, event: string) => `Take ${name} at ${event} instead. The current pick moves behind it.`,
+    sharedEvents: 'Shared events',
+    sharedNote: 'Each of these events gives one option. The entry ranked first takes it; the others are not listed until you pick one of them instead.',
+    listedAt: (n: number) => `#${n}`,
   },
   prediction: {
     title: 'Predicted run',
