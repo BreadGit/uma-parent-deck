@@ -241,6 +241,7 @@ export const COPY = {
     notListed: 'Not listed:',
     hiddenRow: 'Hidden:',
     source: 'Source',
+    hintSource: (cards: string[]) => `Available as a hint on ${cards.length === 1 ? 'this card' : 'these cards'} in the deck: ${cards.join('; ')}.`,
     allCandidates: 'Show all candidates',
     fewerCandidates: 'Show fewer',
     targetsFixed: 'Target skills cannot be removed from the prioritized skills list. Change targets and their order in Parent goal.',
