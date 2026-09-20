@@ -22,11 +22,14 @@ const recommendation = { build: 'build-a', key: keyOf(), selection, summary };
 
 test('recommendation fingerprints include every run, setting and inventory field and survive migration ordering', () => {
   assert.equal(keyOf(migrate({ current: state }, data)), keyOf());
+  // The arrangement of the extra prioritized skills changes the plan shown, not the deck search, so it is not in the key.
+  const displayOnly = new Set(['wishlistOrder', 'wishlistExcluded']);
   for (const section of ['run', 'settings', 'inventory'] as const) {
     for (const key of [...Object.keys(state[section]), 'future-field']) {
       const changed = structuredClone(state);
       Object.assign(changed[section], { [key]: 'changed' });
-      assert.notEqual(keyOf(changed), keyOf(), `${section}.${key}`);
+      if (section === 'run' && displayOnly.has(key)) assert.equal(keyOf(changed), keyOf(), `${section}.${key} is display-only`);
+      else assert.notEqual(keyOf(changed), keyOf(), `${section}.${key}`);
     }
   }
   const changedUi = structuredClone(state);

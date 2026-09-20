@@ -39,7 +39,6 @@ export interface Settings {
   blueInspirationGainMean: number[]; // assumed mean stat roll when a 1/2/3★ blue spark procs at an inspiration event
   uniqueAprilBondRate: number;   // the April unique-skill level-up's chairperson bond check passes
   lossPenalty: number;           // total stat points lost per expected race loss
-  purchaseHintLevel: number;     // assumed hint level for discounted purchases
   skillScoreSd: number;          // uncertainty of the skill part of the rank score
   totalTurnsOverride: number | null;
 }
@@ -80,7 +79,6 @@ export const DEFAULT_SETTINGS: Settings = {
   blueInspirationGainMean: [5.5, 8.5, 14.5],
   uniqueAprilBondRate: 0.5,
   lossPenalty: 0,
-  purchaseHintLevel: 1,
   skillScoreSd: 400,
   totalTurnsOverride: null,
 };
@@ -138,7 +136,6 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   blueInspirationGainMean: { kind: 'list', length: 3, min: 0, max: 30 },
   uniqueAprilBondRate: rate,
   lossPenalty: { kind: 'number', min: 0, max: 10000 },
-  purchaseHintLevel: { kind: 'enum', values: [0, 1, 2, 3, 4, 5] },
   skillScoreSd: { kind: 'number', min: 0, max: 100000 },
   totalTurnsOverride: { kind: 'number-or-null', min: RACES_REFERENCE + 1, max: 200 },
 };
@@ -220,7 +217,6 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   blueInspirationGainMean: 'Assumed average stat gain when a 1★ / 2★ / 3★ blue spark procs at an inspiration event. The game rolls a random value between 1 and 10, 1 and 16, and 1 and 28 respectively, and higher stars are said to roll near the top more often, but the distribution has not been measured. Defaults are the midpoints of those ranges; they are an assumption, not a game rule.',
   uniqueAprilBondRate: "The unique skill gains a level at three fan checks: Senior early February (60,000 fans), early April (70,000 fans and a green bond with the chairperson) and late December (120,000 fans); dirt-oriented trainees need 40,000 / 60,000 / 80,000. Fans include earlier calendar placing rewards with the deck Fan Bonus and earlier concerts. Finales arrive too late for these checks. The April bond check is not predicted, so this is the chance it passes. 0.5 is a placeholder.",
   lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. Default 0 because the effect of losses and conditions like Skin Outbreak has not been measured.',
-  purchaseHintLevel: 'Assumed hint level for purchases whose actual discounts are unknown. Levels 0/1/2/3/4/5 reduce cost by 0/10/20/30/35/40%. Default 1 is an estimate, not a measured average. Innate and awakening skills use full cost unless their hint levels are modeled. Fast Learner is not assumed.',
   skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. Default 400, roughly two skills either way.',
   totalTurnsOverride: `Total career turns used to scale card stats and SP by races run, as (T - races) / (T - ${RACES_REFERENCE}). Blank uses the value fitted from the 28-race and 23-race measurements. Values of ${RACES_REFERENCE} or less are rejected because they would divide by zero or flip the sign.`,
 };
@@ -242,7 +238,7 @@ export const ADVANCED_SETTING_GROUPS: SettingGroup[] = [
   { title: 'Trainee events', fields: [n('charStoryEventRate', 'Story and choice events play'), n('charOutingRate', 'Outing event happens'), n('charUndecodedEventRate', 'Undecoded event skill obtained'), n('charConditionFallbackRate', 'Secret-event condition not scorable')] },
   { title: 'Scenario', fields: [n('scenarioPickRate', 'Skill event option taken'), n('scenarioSongsRate', '18 or more songs learned'), n('concertGreatSuccessRate', 'Concert great success'), n('uniqueAprilBondRate', 'April bond check passes')] },
   { title: 'Spark chance at run end', fields: [n('goldSparkRate', 'Gold skill owned'), n('circleSparkRate', '◎ form owned'), n('whiteSparkRate', 'White skill owned'), list('whiteStarsBelowB', 'White stars below B, 1/2/3★'), list('whiteStarsUE', 'White stars at UE+, 1/2/3★')] },
-  { title: 'Rank score', fields: [n('purchaseHintLevel', 'Assumed hint level', 1), n('skillScoreSd', 'Skill score spread', 10)] },
+  { title: 'Rank score', fields: [n('skillScoreSd', 'Skill score spread', 10)] },
   { title: 'Stat model', fields: [n('lossPenalty', 'Stat lost per expected race loss', 1), n('totalTurnsOverride', 'Total career turns', 1)] },
 ];
 

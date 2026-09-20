@@ -1,24 +1,26 @@
-import { DEFAULT_GOAL, emptyPinkLineage } from '../src/model/goal-input.ts';
+import { DEFAULT_GOAL, emptyPinkLineage, goalWithTargets } from '../src/model/goal-input.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
-import { applyUserOrder, derivePriority, isLegalRunSelection, layoutWishlist, planRun, targetSpCost, type RunInput } from '../src/model/run.ts';
+import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, isLegalRunSelection, layoutWishlist, permutations, planRun, targetSpCost, withRequiredOrder, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankEstimate, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
 import { displayedStat } from '../src/model/stat-outcomes.ts';
 import { SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
 import { raceScale } from '../src/model/stats.ts';
-import type { WishlistEntry } from '../src/model/deck.ts';
+import type { EntryRole, WishlistEntry } from '../src/model/deck.ts';
+import type { Target } from '../src/model/sparks.ts';
 
 const data = loadData();
 const settings = { ...DEFAULT_SETTINGS };
 const byName = (n: string) => must(data.skills.find((s) => s.name === n && !s.unreleasedEn), `released skill ${n}`);
 const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);
 const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], borrowIgnored: false, parentSparks: [[null, null, null], [null, null, null]] };
-const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, reason: '', weight, events: [] });
+const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, role: 'extra', targetId: null, reason: '', weight, events: [] });
+const targetEntry = (t: Target, role: EntryRole, weight: number, skillId = t.id): WishlistEntry => ({ ...entry(skillId, weight), isTarget: true, role, targetId: t.id });
 
 test('star tables: every listed table is used as is; only a missing one interpolates, and counts outside the range clamp', () => {
   const ch = must(data.characters.find((c) => c.fourStarStats && c.fiveStarStats && c.rarity === 3), `data.characters.find((c) => c.fourStarStats && c.fiveStarStats && c.rarity === 3)`);
@@ -133,21 +135,31 @@ test('worst-case target SP cost: each family once with prerequisite costs, missi
   assert.equal(targetSpCost([{ ...corner, white: { ...corner.white!, cost: null }, gold: null }], new Map()).incomplete, true);
 });
 
-test("prioritized skills: the user's order applies to a whole skill family, every form of a family ranks together, targets absent from the list go last", () => {
-  const focus = resolveTarget(byName('Focus').id, data)!;
-  const concentration = focus.gold!.id;
-  const cands = [entry(byName('Groundwork').id, 5), entry(focus.white!.id, 4), entry(byName('Lane Legerdemain').id, 3)];
-  // the user dragged Concentration (the gold form) first; the deck changed and the list now offers Focus (the white form)
-  const ordered = applyUserOrder(cands, [concentration, byName('Groundwork').id], [], data);
-  assert.deepEqual(ordered.map((w) => w.skillId), [focus.white!.id, byName('Groundwork').id, byName('Lane Legerdemain').id]);
-  const excluded = applyUserOrder(cands, [], [byName('Groundwork').id], data);
-  assert.ok(!excluded.some((w) => w.skillId === byName('Groundwork').id), 'an excluded skill leaves the list');
-  assert.deepEqual(excluded.map((w) => w.weight), [4, 3], 'no order: by weight');
-  const allIveGot = resolveTarget(byName("All I've Got").id, data)!;
-  const pr = derivePriority([entry(allIveGot.gold!.id, 5), entry(focus.gold!.id, 4)], [focus], data);
-  for (const id of allIveGot.familyIds) assert.ok(pr.indexOf(id) < pr.indexOf(focus.id), `form ${id} outranks the target`);
-  for (const id of focus.familyIds) assert.ok(pr.includes(id), 'the target is ranked in every form too');
-  assert.deepEqual(new Set(derivePriority([], [focus], data)), focus.familyIds, 'targets absent from the list still get a rank');
+test('prioritized skills: the list derives from the goal (required, preferred by priority, extras by weight); the user arranges only the extras; every form of a family ranks together', () => {
+  const focus = resolveTarget(byName('Focus').id, data)!, groundwork = resolveTarget(201601, data)!, corner = resolveTarget(200352, data)!;
+  const lane = byName('Lane Legerdemain').id, maverick = byName('Maverick ○').id;
+  const cands = [entry(lane, 3), targetEntry(focus, 'preferred', 9, focus.gold!.id), targetEntry(focus, 'preferred', 8.5, focus.white!.id), targetEntry(groundwork, 'required', 1), entry(maverick, 5), targetEntry(corner, 'preferred', 9.9)];
+  const goal = goalWithTargets(DEFAULT_GOAL, [{ id: groundwork.id, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }, { id: corner.id, role: 'preferred', stars: 2, priority: 1 }]);
+  const derived = deriveOrder(cands, goal);
+  assert.deepEqual(derived.map((w) => w.key), [groundwork.id, focus.gold!.id, focus.white!.id, corner.id, maverick, lane], 'required, then preferred by priority with the gold form first, then extras by weight');
+  const swapped = goalWithTargets(DEFAULT_GOAL, [{ id: groundwork.id, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 2 }, { id: corner.id, role: 'preferred', stars: 2, priority: 1 }]);
+  assert.deepEqual(deriveOrder(cands, swapped).map((w) => w.key).slice(1, 4), [corner.id, focus.gold!.id, focus.white!.id], 'a lower priority number comes first');
+  const arranged = applyExtrasOrder(derived, [lane, focus.gold!.id], [maverick]);
+  assert.deepEqual(arranged.map((w) => w.key), [groundwork.id, focus.gold!.id, focus.white!.id, corner.id, lane], 'targets keep their place; a placed extra comes first; a hidden one leaves');
+  const pr = derivePriority([targetEntry(focus, 'preferred', 9, focus.gold!.id), entry(lane, 3)], [focus], data);
+  for (const id of focus.familyIds) assert.ok(pr.includes(id) && pr.indexOf(id) < pr.indexOf(lane), 'every form of the target ranks together, above the extra');
+  assert.deepEqual(new Set(derivePriority([entry(lane, 3)], [focus], data)), resolveTarget(lane, data)!.familyIds, 'a target absent from the list is not ranked; the extra is, in every form');
+});
+
+test('prioritized skills: required targets sharing an event are the contested ones, and every order of them is tried', () => {
+  const focus = resolveTarget(byName('Focus').id, data)!, groundwork = resolveTarget(201601, data)!, corner = resolveTarget(200352, data)!;
+  const ev = (key: string) => ({ key, label: key, option: '', optionIndex: 0 });
+  const on = (w: WishlistEntry, ...keys: string[]) => ({ ...w, events: keys.map(ev) });
+  const ordered = [on(targetEntry(groundwork, 'required', 1), 'a'), on(targetEntry(focus, 'required', 1), 'a', 'b'), on(targetEntry(corner, 'required', 1), 'c'), on(entry(byName('Lane Legerdemain').id, 3), 'a')];
+  assert.deepEqual(contestedRequired(ordered).sort(), [groundwork.id, focus.id].sort(), 'an extra on the event does not make the target contested');
+  assert.deepEqual(withRequiredOrder(ordered, [focus.id, groundwork.id]).map((w) => w.targetId ?? 0), [focus.id, groundwork.id, corner.id, 0], 'the named targets lead, the others follow in place');
+  assert.equal(permutations([1, 2, 3]).length, 6);
+  assert.deepEqual(permutations<number>([]), [[]]);
 });
 
 test('prioritized skills: a candidate whose every event a higher entry takes is hidden behind it, a target in that place stays as a conflict, and only the listed entries take events', () => {
@@ -170,34 +182,28 @@ test('prioritized skills: a candidate whose every event a higher entry takes is 
   assert.ok(plan.wl.every((w) => w.isTarget || (plan.wlLayout.steers.get(w.key)?.length ?? 0) > 0), 'every listed non-target steers an event');
 });
 
-test('planRun: the prioritized order decides a shared event, and only the first ten entries steer choices', () => {
+test("planRun: the goal's priorities decide a shared event; arranging the list does not; an extra never takes an event from a listed target", () => {
   const groundwork = resolveTarget(201601, data)!;
   const focus = resolveTarget(byName('Focus').id, data)!;
   const falcon = must(data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power'), `data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type ==...`);
-  const base: RunInput = { ...empty, targets: [groundwork.id, focus.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), pinnedIds: [falcon.id] };
-  const a = planRun({ ...base, wishlistOrder: [groundwork.id, focus.id] }, settings, {}, data);
-  const b = planRun({ ...base, wishlistOrder: [focus.id, groundwork.id] }, settings, {}, data);
-  const falconEvent = (p: typeof a) => p.deckResult.conflicts.find((c) => c.eventKey.startsWith(`${falcon.id}:chain`));
+  const targets = (groundworkPriority: number, focusPriority: number) => [{ id: groundwork.id, role: 'preferred' as const, stars: 2, priority: groundworkPriority }, { id: focus.id, role: 'preferred' as const, stars: 2, priority: focusPriority }];
+  const a = planRun({ ...empty, targets: targets(0, 1), pinnedIds: [falcon.id] }, settings, {}, data);
+  const b = planRun({ ...empty, targets: targets(1, 0), pinnedIds: [falcon.id] }, settings, {}, data);
+  const c = planRun({ ...empty, targets: targets(0, 1), pinnedIds: [falcon.id], wishlistOrder: [focus.id, groundwork.id] }, settings, {}, data);
+  const falconEvent = (p: typeof a) => p.deckResult.conflicts.find((e) => e.eventKey.startsWith(`${falcon.id}:chain`));
   assert.equal(falconEvent(a)?.taken.target, groundwork.id);
   assert.equal(falconEvent(b)?.taken.target, focus.id);
-  // six pins fix the whole deck, so the candidate list does not move between plans
+  assert.equal(falconEvent(c)?.taken.target, groundwork.id, 'the list order is not an input');
+  assert.deepEqual(a.wl.slice(0, 1).map((w) => w.targetId), [groundwork.id]);
+  assert.deepEqual(b.wl.slice(0, 1).map((w) => w.targetId), [focus.id]);
+  // Lane Legerdemain shares the scenario event with Focus; placed first among the extras it still sits below the target
   const lane = byName('Lane Legerdemain');
-  const seen = new Set([sw.charId, falcon.charId]);
-  const pins = [30052, falcon.id];
-  for (const c of data.cards) { if (pins.length === 6) break; if (c.rarity === 'SSR' && !seen.has(c.charId) && c.charName !== 'Light Hello') { seen.add(c.charId); pins.push(c.id); } }
-  const fixed: RunInput = { ...empty, targets: [focus.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), traineeCardId: sw.cardId, pinnedIds: pins };
-  const probe = planRun(fixed, settings, {}, data);
-  // fillers: candidates that are neither the target family nor another option of the scenario event
-  const others = [...probe.wl, ...probe.wlRest].filter((w) => w.key !== lane.id && !focus.familyIds.has(w.key) && !w.reason.startsWith('Scenario')).map((w) => w.key);
-  assert.ok(others.length >= 10, `need ten other candidates, have ${others.length}`);
-  const laneTakes = (p: typeof probe) => p.deckResult.conflicts.find((c) => c.eventKey.startsWith('scenario:') && c.taken.skillId === lane.id);
-  const blocked = planRun({ ...fixed, wishlistOrder: [...others.slice(0, 9), lane.id, focus.id] }, settings, {}, data);
-  assert.ok(blocked.wl.some((w) => w.key === lane.id) && !blocked.wl.some((w) => focus.familyIds.has(w.key)), 'Lane Legerdemain is listed, Focus is not');
-  assert.ok(laneTakes(blocked), 'Lane Legerdemain in tenth place takes the scenario event from an unlisted Focus');
-  const free = planRun({ ...fixed, wishlistOrder: [...others.slice(0, 10), lane.id, focus.id] }, settings, {}, data);
-  assert.ok(!free.wl.some((w) => w.key === lane.id) && free.wlRest.some((w) => w.key === lane.id), 'Lane Legerdemain is now eleventh');
-  assert.equal(laneTakes(free), undefined, 'in eleventh place it is not prioritized and cannot steer the choice');
-  assert.ok(free.deckResult.coverage.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Focus keeps the scenario event when Lane Legerdemain is eleventh');
+  const fixed: RunInput = { ...empty, targets: [{ id: focus.id, role: 'preferred', stars: 2, priority: 0 }], traineeCardId: sw.cardId, wishlistOrder: [lane.id] };
+  const plan = planRun(fixed, settings, {}, data);
+  assert.ok(plan.wl[0]!.targetId === focus.id, 'the target is first');
+  assert.ok(!plan.deckResult.conflicts.some((e) => e.eventKey.startsWith('scenario:') && e.taken.skillId === lane.id), 'Lane Legerdemain cannot take the scenario event');
+  assert.ok(plan.deckResult.coverage.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Focus keeps the scenario event');
+  assert.ok(plan.wlLayout.shadowed.some((s) => s.entry.key === lane.id), 'Lane Legerdemain is hidden behind Focus');
 });
 
 test('planRun: an empty input still builds a full deck with scenario options; the trainee, her lineage and the inventory shape the result', () => {

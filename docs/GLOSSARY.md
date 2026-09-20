@@ -44,19 +44,25 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   with race wins scored from the agenda and conditions the tool cannot score given the fallback rate.
 - **Choice-gated**: a source that only happens if the run picks that option at an event. Only one
   option per event can be taken.
-- **Prioritized skills**: the tool's suggested list of up to ten entries for independent training. Entry tags:
-  **required** (leads to a Required target), **target** (choice-gated, leads to a Preferred target),
-  **not a target** (choice-gated, doesn't), **target, no
-  choice** (given regardless, listed as filler), **target, conflict** (a target whose every event option a
-  higher entry takes; it stays listed for its hints). Only these ten steer event choices; the tool assumes their
-  order decides which option wins a conflict, which the game does not confirm. The run takes one option per
-  event, so a candidate that is not a target and whose every event a higher entry already takes is not
-  listed: it sits as a chip under the entry that took it, and the chip swaps it into that entry's place. A
-  candidate offered by another event the list does not take stays listed for that event. Each entry's info icon ends
-  with its source, the card or event that gives the skill. Candidates outside the ten sit below the list
-  with an add button; the row shows three lines and "Show all candidates" expands it.
-- **Choice conflict**: two or more targets (or a ranked non-target option) competing for one event's
-  single option. The higher entry in the prioritized list takes it. Listed in the Warnings panel.
+- **Prioritized skills**: the list of up to ten entries to enter in independent training, derived from
+  Parent goal and the deck: required targets in the goal's order, preferred targets by their goal priority,
+  then **extras**, skills the deck's events offer that are not targets, by the tool's weight. Each row carries
+  its role tag (**required**, **preferred**, **extra**) and, for a target, a status mark when there is
+  something to say: **hints only** (given without an event choice, listed so the run chases its hints) or
+  **lost event** (another target listed higher takes every event option that gives it). Only these ten steer
+  event choices; a target outside them is not credited with its event options. The tool assumes the list
+  order decides which option wins a conflict, which the game does not confirm. Target rows are fixed; their
+  order changes in Parent goal. Extras are the user's to reorder, hide, add and swap, and that arrangement
+  re-evaluates the deck shown without starting a deck search. The run takes one option per event, so an
+  extra whose every event a higher entry already takes is not listed: it sits as a chip under the entry that
+  took it, and the chip swaps it into that entry's place. While a search runs the extras are locked, since the
+  deck found may offer different ones. Each entry's info icon ends with its source, the card or event that
+  gives the skill. Candidates outside the ten sit below the list with an add button; the row shows three
+  lines and "Show all candidates" expands it.
+- **Choice conflict**: two or more targets (or a listed extra and a target) competing for one event's single
+  option. The target listed higher takes it: required before preferred, preferred by their goal priority, and
+  between required targets whichever order gives the best chance of every required spark, tried for up to
+  three contested targets. Listed in the Warnings panel; the fix is a priority or target change in Parent goal.
 - **Spark chance**: estimated chance a target becomes a white spark at run end.
   **Target spark chances** in Card ranking use each card's own hint and event sources, current
   skill priorities, and lineage generation bonuses. They exclude trainee, scenario, inherited hints

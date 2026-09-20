@@ -279,6 +279,19 @@ test('one option per event: the prioritized order decides which target takes it,
   assert.equal(d.conflicts.find((x) => x.eventKey === ikey)?.dropped[0]?.target, standard.id);
 });
 
+test('a target absent from a non-empty list gets nothing from its choice events, and nothing is reported', () => {
+  const focus = target('Focus'), lane = byName('Lane Legerdemain');
+  const base = ctxOf();
+  const listed = evaluate(traineeCoverage([focus], base), [focus], base);
+  assert.ok(listed.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'an empty list counts every target as listed');
+  const unlisted = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [lane.id] });
+  assert.ok(!unlisted.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'the scenario option is not credited');
+  assert.equal(unlisted.map.get(focus.id)!.length, listed.map.get(focus.id)!.filter((s) => !s.isChoice).length, 'sources that need no choice stay');
+  assert.ok(unlisted.conflicts.some((c) => c.taken.skillId === lane.id && c.dropped.some((d) => d.target === focus.id)), 'a listed extra on the event takes it and the loss is reported');
+  const nobody = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [byName('Maverick ○').id] });
+  assert.ok(!nobody.map.get(focus.id)!.some((s) => s.kind === 'scenario') && nobody.conflicts.length === 0, 'with no listed skill on the event, nothing is taken and nothing is reported');
+});
+
 test('a non-target option ranked above a target takes the event and is reported, with every form of its family ranked together', () => {
   const focus = target('Focus'), lane = byName('Lane Legerdemain'), allIveGot = target("All I've Got");
   const base = ctxOf();

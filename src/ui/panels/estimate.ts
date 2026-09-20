@@ -27,8 +27,8 @@ function goalLimits(c: RunPlan): string[] {
   if (r.pink.upperProbability === 0) limits.push(`${pinkName} cannot reach final A/S under the entered grades and pink sparks. Empty lineage slots count as zero; check Legacy if sparks are missing.`);
   for (const w of r.required) {
     if (!hasWhiteSpark(w.target)) limits.push(`${w.target.name} is impossible as a white spark because it has no released white form.`);
-    else if (c.search?.unavailableWhiteIds.includes(w.target.id)) limits.push(`${w.target.name} is impossible under the current inputs: no modeled skill source exists in the allowed card pool, trainee, or lineage. Check excluded skill choices and source-rate settings.`);
-    else if (w.available === 0) limits.push(`${w.target.name} has no estimated purchase chance with this deck and its current event choices. Check its skill sources, the prioritized skill list and the SP budget.`);
+    else if (c.search?.unavailableWhiteIds.includes(w.target.id)) limits.push(`${w.target.name} is impossible under the current inputs: no modeled skill source exists in the allowed card pool, trainee, or lineage. Check the source-rate settings.`);
+    else if (w.available === 0) limits.push(`${w.target.name} has no estimated purchase chance with this deck and its current event choices. Check its skill sources and whether it is among the ten prioritized skills.`);
     else if (w.probability === 0) limits.push(`${w.target.name} can be purchased, but has no estimated chance at the required stars with this deck. Check spark-generation settings and predicted rank.`);
   }
   if (limits.length) return limits;

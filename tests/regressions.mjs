@@ -324,7 +324,9 @@ test('touch help icons stay pinned without activating labels or disclosures', as
 test('ranking expands all target chances and keeps the last target reachable on phones', async (t) => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
-  // Breakaway Battleship Gold Ship offers these 18 target families through hints and events.
+  // Breakaway Battleship Gold Ship offers these 18 target families through hints and events. Only the ten listed
+  // prioritized skills are credited with event options, so the card shows a chance for the families it hints or
+  // whose events the list steers: more than the four the collapsed row holds.
   saved.run.targets = [200622, 200642, 200752, 201212, 201232, 201472, 201482, 201502, 201512,
     201552, 201581, 201591, 201601, 201631, 202022, 200342, 202032, 200052]
     .map((id) => ({ id, role: 'preferred', stars: 2, priority: 0 }));
@@ -341,18 +343,20 @@ test('ranking expands all target chances and keeps the last target reachable on 
     await page.keyboard.press('Enter');
     assert.equal(await more.getAttribute('aria-expanded'), 'true');
     assert.equal(await more.innerText(), 'Show fewer');
-    assert.equal(await row.locator('[data-target-spark]:visible').count(), 18);
+    const chances = await row.locator('[data-target-spark]:visible').count();
+    assert.ok(chances > 4 && chances <= 18, `expanding shows every chance the card has, ${chances} here`);
     // A persisted presentation change must not collapse the card's transient expansion.
     await page.click('[data-sort="sp"]');
-    assert.equal(await row.locator('[data-target-spark]:visible').count(), 18);
-    const last = row.locator('[data-target-spark="200052"]');
-    assert.match(await last.innerText(), /Hanshin Racecourse/);
+    assert.equal(await row.locator('[data-target-spark]:visible').count(), chances);
+    const last = row.locator('[data-target-spark]:visible').last();
+    const lastName = (await last.locator('span').first().innerText()).trim();
+    assert.ok(lastName.length > 0);
     await last.locator('.tip').focus();
     assert.equal(await last.evaluate((el) => {
       const rect = el.getBoundingClientRect(), scroll = el.closest('.scroll').getBoundingClientRect();
       return rect.top >= Math.max(0, scroll.top) && rect.bottom <= Math.min(innerHeight, scroll.bottom);
     }), true, `last target is reachable at ${width}px in ${theme}`);
-    assert.match(await page.locator('#tooltip').innerText(), /Hanshin Racecourse/);
+    assert.ok((await page.locator('#tooltip').innerText()).includes(lastName), `the tooltip is for ${lastName}`);
     await more.focus();
     await page.keyboard.press('Space');
     assert.equal(await more.getAttribute('aria-expanded'), 'false');
@@ -505,9 +509,9 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   const heading = page.locator('h2').filter({ hasText: 'Prioritized skills' });
   await heading.scrollIntoViewIfNeeded();
   const position = () => heading.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
-  const before = await position();
-  await page.locator('[data-action="wl-down"]:not([disabled])').first().click();
-  assert.ok(Math.abs(await position() - before) <= 1, 'reordering does not collapse the content above the editor');
+  // the deck found may offer other extras, so the extras cannot be arranged while the search runs
+  assert.equal(await page.locator('[data-wl-locked]').count(), 1, 'the list is marked as updating');
+  assert.equal(await page.locator('[data-action="wl-down"]:not([disabled]), [data-action="wl-exclude"]:not([disabled]), [data-action="wl-swap"]:not([disabled])').count(), 0, 'extras controls are disabled while a search runs');
   await page.evaluate(() => {
     const field = document.querySelector('[data-goal-stars="pink"]');
     for (const value of ['3', '1', '2']) { field.value = value; field.dispatchEvent(new Event('change', { bubbles: true })); }
@@ -519,7 +523,7 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   await page.evaluate((selection) => window.searchWorkers[0].deliver(selection), alternative);
   assert.deepEqual(await cards(), original, 'a cancelled search cannot publish a late result');
   assert.equal(await page.evaluate(() => window.retainedDeck === document.querySelector('.deck') && window.retainedList === document.querySelector('.wishlist')), true);
-  const retainedControl = page.locator('[data-action="wl-exclude"][data-id="201601"]');
+  const retainedControl = page.locator('.wishlist [data-wl-key="201601"] .tip').first();
   await retainedControl.evaluate((el) => { el.focus({ preventScroll: true }); window.scrollTo(0, el.getBoundingClientRect().top + scrollY - 200); });
   await page.waitForTimeout(220);
   const anchorBefore = await retainedControl.evaluate((el) => ({ viewport: el.getBoundingClientRect().top, document: el.getBoundingClientRect().top + scrollY }));
@@ -531,10 +535,15 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   assert.ok(Math.abs(anchorAfter.viewport - anchorBefore.viewport) <= 1, 'the skill control stays at the same screen position');
   assert.notDeepEqual(await cards(), original, 'the final result replaces the cards once');
   assert.equal(await page.locator('.deck .slot').count(), 6);
+  assert.equal(await page.locator('[data-wl-locked]').count(), 0, 'the list unlocks once the search publishes');
+  const settled = await position();
+  await page.locator('[data-action="wl-down"]:not([disabled])').first().click();
+  assert.ok(Math.abs(await position() - settled) <= 1, 'reordering does not collapse the content above the editor');
+  assert.equal(await page.evaluate(() => window.searchWorkers.length), 2, 'arranging the extras starts no search');
   await assertFieldsMatchState(page, 'after debounced search and skill reordering');
 });
 
-test('required skill priority is visible and exclusions leave the displayed order intact', async (t) => {
+test('target rows follow the goal and carry no controls; only extras can be arranged or hidden', async (t) => {
   const saved = defaultState(data);
   const focus = data.skills.find((s) => s.name === 'Focus');
   const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power');
@@ -542,16 +551,23 @@ test('required skill priority is visible and exclusions leave the displayed orde
   saved.run.pinnedIds.push(falcon.id);
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }];
   saved.run.wishlistOrder = [focus.id, 201601];
-  const page = await editor(t, saved);
-  assert.equal(await page.locator('.wishlist li').first().getAttribute('data-wl-key'), '201601');
-  assert.match(await page.locator('.wishlist li').first().innerText(), /required/);
-  assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder);
+  const page = await fresh(t, saved);
+  await waitForPlan(page);
+  const first = page.locator('.wishlist li').first();
+  assert.equal(await first.getAttribute('data-wl-key'), '201601', 'the required target is first whatever the saved order says');
+  assert.match(await first.innerText(), /required/);
+  assert.equal(await first.getAttribute('draggable'), 'false');
+  assert.equal(await page.locator('.wishlist li[data-wl-role="required"] button, .wishlist li[data-wl-role="preferred"] button').count(), 0, 'target rows have no arrows or hide button');
+  assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder, 'the saved order is kept even where it names targets');
   assert.equal(await page.locator('[data-action="wl-export"]').count(), 0, 'the list has no export button');
-  await page.click('[data-action="wl-exclude"][data-id="201601"]');
-  assert.match(await page.locator('[data-priority-conflict]').innerText(), /Groundwork is required but excluded/);
-  assert.equal(await page.locator('.wishlist [data-wl-key="201601"]').count(), 0);
-  assert.match(await page.locator('.wishlist li').first().innerText(), /Focus/, 'the preferred skill moves to the top once the required one is excluded');
-  await assertFieldsMatchState(page, 'after excluding the required skill');
+  const extra = page.locator('.wishlist li[data-wl-role="extra"]').first();
+  const key = await extra.getAttribute('data-wl-key');
+  await page.click(`[data-action="wl-exclude"][data-id="${key}"]`);
+  assert.equal(await page.locator(`.wishlist [data-wl-key="${key}"]`).count(), 0, 'a hidden extra leaves the list');
+  assert.equal(await page.locator(`[data-action="wl-restore"][data-id="${key}"]`).count(), 1, 'and can be put back');
+  assert.equal(await page.locator('[data-priority-conflict]').count(), 0, 'hiding raises no warning');
+  assert.equal(await first.getAttribute('data-wl-key'), '201601');
+  await assertFieldsMatchState(page, 'after hiding an extra');
 });
 
 test('the first reset clears targets, trainee, pins and inheritance while preserving settings and inventory', async (t) => {
@@ -982,7 +998,8 @@ test('pink reset clears manual and inferred sparks and starting increases while 
   await waitForPlan(page);
   const reset = await state(page);
   assert.ok(reset.recommendation);
-  assert.deepEqual(JSON.parse(reset.recommendation.key), [reset.run, reset.settings, reset.inventory]);
+  const { wishlistOrder: _order, wishlistExcluded: _hidden, ...searched } = reset.run;
+  assert.deepEqual(JSON.parse(reset.recommendation.key), [searched, reset.settings, reset.inventory], 'the key leaves the extras arrangement out');
   expected.recommendation = reset.recommendation;
   assert.deepEqual(reset, expected);
   assert.equal(await page.inputValue('[data-apt="end"]'), data.charByCardId.get(100101).aptitudes.end);

@@ -1,9 +1,9 @@
 import { STATS, type Card, type Character, type Data, type Inventory, type Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type WhiteTarget } from './goal-input.ts';
+import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type ResolvedGoal, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
 import { evaluateParentGoal, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
-import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
+import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, evaluateDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { EXPLORATION_SAMPLES, SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
@@ -26,8 +26,8 @@ export interface RunInput {
   pinkLineage: (PinkSpark | null)[];
   targets: WhiteTarget[];                  // one entry per family, with its goal role and minimum stars
   targetLineage: Record<string, Lineage>;  // target id -> copies of the spark already in the lineage
-  wishlistOrder: number[];                 // prioritized-skill keys the user arranged, in order
-  wishlistExcluded: number[];              // prioritized-skill keys the user removed
+  wishlistOrder: number[];                 // extra prioritized skills the user arranged, in order (targets keep the goal's order)
+  wishlistExcluded: number[];              // extra prioritized skills the user hid from the list
   traineeCardId: number | null;
   traineeStars: number;                    // picks the base stat table
   aptOverrides: Partial<Aptitudes>;
@@ -46,7 +46,6 @@ export interface StatCaps { cap: number[]; uncap: number[]; capped: boolean[] }
 
 export interface RunPlan {
   search: GoalSearchSummary | null;
-  priorityIssues: string[];
   goalEstimate: GoalEstimate;
   issues: string[];                        // correct these before using run predictions
   trainee: Character | null;
@@ -76,9 +75,9 @@ export interface RunPlan {
   statCaps: StatCaps | null;
   rank: RankEstimate;
   spCost: SpCost;
-  wl: WishlistEntry[];                     // the prioritized list as shown
+  wl: WishlistEntry[];                     // the prioritized list as shown: the goal's targets in its order, then the extras as the user arranged them
   wlRest: WishlistEntry[];                 // candidates past the list's length that would steer something if listed
-  wlExcluded: WishlistEntry[];             // candidates the user removed
+  wlHidden: WishlistEntry[];               // extras the user hid
   wlLayout: WishlistLayout;                // which entry takes which shared event, and the candidates hidden behind them
 }
 
@@ -128,20 +127,47 @@ function cardPool(data: Data, inventory: Inventory, settings: Settings) {
 }
 
 /**
- * Sort prioritized-skill candidates by the user's order, then by weight. A remembered position applies to the
- * whole skill family (gold, ○ and normal forms), so an entry that flips form when the deck changes keeps its
- * place instead of dropping to the bottom. Excluded keys are removed.
+ * The list the tool builds from the goal: required targets in the goal's order, preferred targets by their goal
+ * priority (then the goal's order), then extras by weight. Within a target the candidates keep their order, the
+ * gold form first. This order, not anything the user arranges, is what the deck search evaluates.
  */
-export function applyUserOrder(cands: WishlistEntry[], order: number[], excluded: number[], data: Data): WishlistEntry[] {
-  const familyOf = (key: number) => resolveTarget(key, data)?.id ?? key;
-  const orderFamilies = order.map(familyOf);
-  const index = (w: WishlistEntry) => {
-    const exact = order.indexOf(w.key);
-    if (exact >= 0) return exact;
-    const fam = orderFamilies.indexOf(familyOf(w.key));
-    return fam < 0 ? Infinity : fam;
-  };
-  return cands.filter((w) => !excluded.includes(w.key)).slice().sort((a, b) => index(a) - index(b) || (b.weight - a.weight));
+export function deriveOrder(cands: WishlistEntry[], goal: ResolvedGoal): WishlistEntry[] {
+  const requiredAt = new Map(goal.required.map((r, i) => [r.id, i]));
+  const preferredAt = new Map(goal.preferred.map((p, i) => [p.id, i]));
+  const preferredPriority = new Map(goal.preferred.map((p) => [p.id, p.priority]));
+  const key = (w: WishlistEntry): [number, number, number] => w.role === 'required' ? [0, requiredAt.get(w.targetId!) ?? 0, 0]
+    : w.role === 'preferred' ? [1, preferredPriority.get(w.targetId!) ?? 0, preferredAt.get(w.targetId!) ?? 0] : [2, -w.weight, 0];
+  return cands.map((w, i) => ({ w, i, k: key(w) })).sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2] || a.i - b.i).map((x) => x.w);
+}
+
+/**
+ * The user's arrangement of the extras, for display and for the estimate of the deck shown: hidden extras leave,
+ * placed ones come first in that order, the rest keep their weight order. Targets keep the goal's order.
+ */
+export function applyExtrasOrder(ordered: WishlistEntry[], order: number[], hidden: number[]): WishlistEntry[] {
+  const at = (w: WishlistEntry) => { const i = order.indexOf(w.key); return i < 0 ? Infinity : i; };
+  const extras = ordered.filter((w) => w.role === 'extra' && !hidden.includes(w.key)).map((w, i) => ({ w, i })).sort((a, b) => at(a.w) - at(b.w) || a.i - b.i).map((x) => x.w);
+  return [...ordered.filter((w) => w.role !== 'extra'), ...extras];
+}
+
+/** Required targets that share a choice event with another required target, whose relative order the joint chance decides. */
+export function contestedRequired(ordered: WishlistEntry[]): number[] {
+  const byEvent = new Map<string, Set<number>>();
+  for (const w of ordered) if (w.role === 'required') for (const e of w.events) byEvent.set(e.key, new Set([...(byEvent.get(e.key) ?? []), w.targetId!]));
+  const out = new Set<number>();
+  for (const ids of byEvent.values()) if (ids.size > 1) for (const id of ids) out.add(id);
+  return [...out];
+}
+/** Up to this many contested required targets, every order of them is tried; beyond it the goal's order stands. */
+export const CONTESTED_REQUIRED_MAX = 3;
+export function permutations<T>(items: T[]): T[][] {
+  if (items.length <= 1) return [items];
+  return items.flatMap((x, i) => permutations([...items.slice(0, i), ...items.slice(i + 1)]).map((rest) => [x, ...rest]));
+}
+/** The order with the named required targets first, in that order; the other required targets and the rest keep their places after them. */
+export function withRequiredOrder(ordered: WishlistEntry[], first: number[]): WishlistEntry[] {
+  const at = (w: WishlistEntry) => w.role !== 'required' ? first.length + 1 : first.includes(w.targetId!) ? first.indexOf(w.targetId!) : first.length;
+  return ordered.map((w, i) => ({ w, i })).sort((a, b) => at(a.w) - at(b.w) || a.i - b.i).map((x) => x.w);
 }
 
 /** The cards search may choose: owned cards at their LB, any card at the borrowed LB, and the pins among them. Ignored cards
@@ -207,19 +233,17 @@ export function layoutWishlist(ordered: WishlistEntry[], max = PRIORITIZED_SKILL
 /**
  * The priority list an event's single choice is resolved by: skill ids in prioritized-skill order, with every
  * form of a family ranked together at the family's first appearance, so a gold/normal flip keeps the same rank.
- * Only the entries the game can take (the first ten) steer choices; targets absent from them go last, ranked only
- * against each other.
+ * Only the entries the game can take (the first ten) are in it: a target absent from them steers no choice.
  */
-export function derivePriority(ordered: WishlistEntry[], targets: Target[], data: Data, excluded: number[] = []): number[] {
+export function derivePriority(ordered: WishlistEntry[], targets: Target[], data: Data): number[] {
   const priority: number[] = [];
-  const pushFamily = (ids: Iterable<number>) => { for (const id of ids) if (!excluded.includes(id) && !priority.includes(id)) priority.push(id); };
+  const pushFamily = (ids: Iterable<number>) => { for (const id of ids) if (!priority.includes(id)) priority.push(id); };
   for (const w of ordered.slice(0, PRIORITIZED_SKILLS_MAX)) {
     const target = targets.find((t) => t.familyIds.has(w.skillId));
     if (target) { pushFamily(target.familyIds); continue; }
     const fam = resolveTarget(w.skillId, data);
     pushFamily(fam ? fam.familyIds : [w.skillId]);
   }
-  for (const t of targets) pushFamily(t.familyIds);
   return priority;
 }
 
@@ -248,20 +272,20 @@ function preparePrediction(input: RunInput, ctx: Ctx) {
   const parentGains = input.parentSparks.map(gainsOfParentSparks);
   const inherited = STATS.map((_, i) => inheritedFromParents(parentGains, i, ctx.settings));
   const goal = goalWithTargets(input.goal, input.targets.filter((t) => goalFamily(t.id, ctx.data) === t.id));
-  return { parentGains, inherited, priority: [...goal.required, ...goal.preferred].map((t) => t.id) };
+  return { parentGains, inherited, goalTargets: [...goal.required, ...goal.preferred].map((t) => resolveTarget(t.id, ctx.data)).filter((t): t is Target => !!t) };
 }
 
-function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, sampleCount: number, prepared: ReturnType<typeof preparePrediction>) {
+function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, prepared: ReturnType<typeof preparePrediction>) {
   const { data, settings, trainee } = ctx;
   const fansBefore = ctx.fansBefore ?? (() => 0);
   const stars = clampStars(trainee, input.traineeStars);
   const pred = predictDeck(deck, trainee, ctx.races, settings.focus, expectedLosses, data.model, settings, fansBefore);
-  const { parentGains, inherited, priority } = prepared;
+  const { parentGains, inherited, goalTargets } = prepared;
   const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => displayedStat(v) > caps[i]! + inherited[i]!.uncap) } : null;
   const rawFinalSd = pred.sd.map((sd, i) => Math.sqrt(sd ** 2 + inherited[i]!.variance));
-  const purchases = estimatePurchases(deck, ctx, pred.sp, priority, apt, Math.min(sampleCount, 512));
+  const purchases = estimatePurchases(deck, goalTargets, ctx, apt);
   // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
   const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
   const skillPoints = skillPointsOf(purchases.score, trainee, stars, uniqueLevel);
@@ -282,8 +306,8 @@ function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input
 }
 
 /** Predict a supplied deck without selecting cards. */
-export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, sampleCount = 512, prepared = preparePrediction(input, ctx)): DeckPrediction {
-  return finishPrediction(predictCandidate(deck, input, ctx, apt, expectedLosses, sampleCount, prepared), input, ctx);
+export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, prepared = preparePrediction(input, ctx)): DeckPrediction {
+  return finishPrediction(predictCandidate(deck, input, ctx, apt, expectedLosses, prepared), input, ctx);
 }
 
 /** Plan the whole run: schedule, deck, prediction, rank estimate and prioritized skills. Pure; the app memoizes it. */
@@ -309,9 +333,28 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const build = { pinnedIds, borrowPool, borrowFromAll: input.borrowFromAll, size: DECK_SIZE };
   const goal = goalWithTargets(input.goal, activeTargets);
   const required = new Set(goal.required.map((r) => r.id));
-  const isRequired = (w: WishlistEntry) => required.has(resolveTarget(w.skillId, data)?.id ?? w.skillId);
-  const order = (cands: WishlistEntry[]) => applyUserOrder(cands, input.wishlistOrder, input.wishlistExcluded, data)
-    .sort((a, b) => Number(isRequired(b)) - Number(isRequired(a)));
+  /**
+   * The list for a deck and the families it resolves choices with. The search sees the derived order; the deck shown
+   * is evaluated with the user's extras (`display`), so the estimate matches what they will type. When required
+   * targets share events, every order of them is tried and the one with the best joint required chance stands.
+   */
+  const listFor = (entries: GoalDeckEntry[], ctx: Ctx, display: boolean) => {
+    const candidates = wishlistCandidates(entries, targets, ctx, required);
+    const derived = deriveOrder(candidates, goal);
+    const contested = contestedRequired(derived);
+    const orders = contested.length >= 2 && contested.length <= CONTESTED_REQUIRED_MAX ? permutations(contested).map((p) => withRequiredOrder(derived, p)) : [derived];
+    let best: { ordered: WishlistEntry[]; layout: WishlistLayout; priority: number[]; joint: number } | null = null;
+    for (const base of orders) {
+      const ordered = display ? applyExtrasOrder(base, input.wishlistOrder, input.wishlistExcluded) : base;
+      const layout = layoutWishlist(ordered);
+      const priority = derivePriority(layout.live, targets, data);
+      if (orders.length === 1) { best = { ordered, layout, priority, joint: 1 }; break; }
+      const sparks = evaluateDeck(entries, targets, { ...ctx, priority }).sparks;
+      const joint = goal.required.reduce((p, r) => p * (sparks.get(r.id) ?? 0), 1);
+      if (!best || joint > best.joint + 1e-12) best = { ordered, layout, priority, joint };
+    }
+    return { candidates, ...best! };
+  };
   const pink = pinkGoalsEstimate(apt, goal.pink, input.pinkLineage, settings.affinity, settings.pinkInspirationRates);
   const previous = options.previous?.flatMap((e) => {
     const card = data.cardById.get(e.id);
@@ -329,13 +372,12 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   if (ownedCount !== DECK_SIZE - BORROWED_SLOTS || borrowedCount !== BORROWED_SLOTS) {
     issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
   }
-  const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048) => {
+  const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048, display = false) => {
     const fans = estimateFans(schedule, entries, settings);
     const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
-    const candidates = wishlistCandidates(entries, targets, candidateCtx), ordered = order(candidates), layout = layoutWishlist(ordered);
-    const priority = derivePriority(layout.live, targets.filter((t) => !input.wishlistExcluded.some((id) => t.familyIds.has(id))), data, input.wishlistExcluded);
-    const ctx: Ctx = { ...candidateCtx, priority, excluded: input.wishlistExcluded };
-    const prediction = predictCandidate(entries, input, ctx, apt, sum.expectedLosses, sampleCount, preparedPrediction);
+    const { candidates, layout, priority } = listFor(entries, candidateCtx, display);
+    const ctx: Ctx = { ...candidateCtx, priority };
+    const prediction = predictCandidate(entries, input, ctx, apt, sum.expectedLosses, preparedPrediction);
     const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.skillPoints, skillSd: Math.sqrt(settings.skillScoreSd ** 2 + prediction.purchases.variance) };
     const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
     const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
@@ -343,7 +385,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const score = scoreGoal(goal, sources, basis, pink, settings);
     return { score, statPower: deckStatPower(entries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
   };
-  let chosen = evaluateCandidate(initial.deck);
+  let chosen = evaluateCandidate(initial.deck, 2048, true);
   let search: GoalSearchSummary | null = options.summary ?? null;
   if (options.search !== false && !options.selection && trainee && goal.blueStats.length && !issues.length) {
     const baseRanking = rankCards(deckPool, targets, traineeCoverage(targets, baseCtx), baseCtx);
@@ -358,7 +400,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       optimistic.chars.add(card.card.charId);
       for (const [id, sources] of card.mine) optimistic.sources.set(id, [...(optimistic.sources.get(id) ?? []), ...sources]);
     }
-    const allSources = evaluateSources(optimistic, targets, { ...baseCtx, excluded: input.wishlistExcluded }).full;
+    const allSources = evaluateSources(optimistic, targets, baseCtx).full;
     const unavailableWhiteIds = goal.required.filter((r) => !(allSources.get(r.id) ?? []).some((s) => s.pObtain > 0)).map((r) => r.id);
     const summarize = (found: GoalSearchResult<typeof chosen.value>): GoalSearchSummary =>
       ({ score: found.best.score, evaluated: found.evaluated, screened: found.screened, exhaustive: found.exhaustive, unavailableWhiteIds });
@@ -370,7 +412,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       screenBudget: options.budget === undefined ? SCREENED_DECKS : options.budget * 8,
       onProgress: options.onProgress ? (progress) => options.onProgress!(progress.best.entries.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), summarize(progress)) : undefined,
     });
-    if (found) { chosen = found.best; search = summarize(found); }
+    // The deck shown is evaluated once more with the user's extras, so the estimate matches the list they will type.
+    if (found) { chosen = evaluateCandidate(found.best.value.entries, 2048, true); search = summarize(found); }
   }
   const { entries, ctx, fans, goalStats, basis, sources, candidates, layout } = chosen.value;
   const prediction = finishPrediction(chosen.value.prediction, input, ctx);
@@ -379,10 +422,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   sum.expectedFans = fans.total;
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);
   const goalEstimate = evaluateParentGoal(goal, input.pinkLineage, apt, deckResult, ctx, goalStats, issues, basis, sources.forms);
-  const excluded = candidates.filter((w) => input.wishlistExcluded.includes(w.key));
-  const priorityIssues = input.wishlistExcluded.filter((id) => required.has(resolveTarget(id, data)?.id ?? id))
-    .map((id) => `${data.skillById.get(id)?.name ?? id} is required but excluded from the prioritized list. Its excluded choice sources are not counted. Restore it or reset the list to use those choices.`);
-  goalEstimate.notes.push(...priorityIssues);
+  const hidden = candidates.filter((w) => w.role === 'extra' && input.wishlistExcluded.includes(w.key));
   if (search) {
     deckResult.steps = [`Best deck found after fully evaluating ${search.evaluated} legal decks${search.screened ? ` and screening ${search.screened} decks with a cheaper estimate` : ''}${search.exhaustive ? '; every legal deck in this small pool was checked' : '; bounded search does not guarantee the global best'}.`,
       `Required goals come first. Preferred sparks on successful parents can decide within ${(settings.goalTieTolerance * 100).toLocaleString()}% of the best required chance found.`,
@@ -390,8 +430,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   } else deckResult.steps = retained ? ['Kept the displayed cards and updated their estimates for your current inputs.'] : initial.steps;
   const spCost = targetSpCost(targets, deckResult.coverage);
   return {
-    search, priorityIssues, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, ignoredIds, existing, ranking, deckResult, ...prediction, spCost,
-    wl: layout.live.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: layout.live.slice(PRIORITIZED_SKILLS_MAX), wlExcluded: excluded, wlLayout: layout,
+    search, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, ignoredIds, existing, ranking, deckResult, ...prediction, spCost,
+    wl: layout.live.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: layout.live.slice(PRIORITIZED_SKILLS_MAX), wlHidden: hidden, wlLayout: layout,
   };
 }
 

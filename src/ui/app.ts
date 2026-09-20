@@ -95,7 +95,7 @@ function page() {
             ${section('estimate', () => renderGoalResult(c))}
             ${section('prediction', () => renderPrediction(c))}
           </div>
-          <div class="results-col">${section('priorities', () => renderPriorities(c))}</div>
+          <div class="results-col">${section('priorities', () => renderPriorities(c), [searchState.pending])}</div>
         </div>
         ${section('schedule', () => renderSchedule(c))}` : section('estimate', () => renderGoalResult(c))}
         ${section('details', () => renderPredictionDetails(c))}

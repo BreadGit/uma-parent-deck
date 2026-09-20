@@ -21,8 +21,8 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   Below 1200 px the page is one column. On phones, all Card ranking
   columns scroll sideways so the card names cannot cover the inventory controls or spark chances.
 - Warnings gathers everything that limits or changes the results: missing goal inputs, pink sparks worth
-  entering, a zero estimate, a search that could not complete every requirement, a required skill removed
-  from the prioritized list, and choice conflicts, where two wanted skills compete for one event option.
+  entering, a zero estimate, a search that could not complete every requirement, and choice conflicts,
+  where two wanted skills compete for one event option.
   Prediction details is for checking the tool's work: it opens on request, each section leads with its
   numbers (what limits the goal estimate and its per-spark breakdown, where the stats come from, Target
   coverage, how the deck was built), and the method behind each sits in a "How …" disclosure at the end
@@ -100,10 +100,11 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   and cheaper candidate screening can miss the best deck. Displayed probabilities use the full evaluator.
 - The predicted run shows expected stats (converted above 1,200 and clamped to the scenario caps plus the blue sparks' start
   uncaps), chance of ≥600 and ≥1100 per stat (blue spark star bands), chance of SS rank and the
-  estimated SP and budgeted skill rating. Target coverage compares SP with the worst-case target cost.
-  Prioritized skills shows up to ten entries for independent training. Required targets come first,
-  followed by preferred targets and other skills with event choices. Only those ten entries
-  steer event choices. Custom ordering applies within those groups, and the list can be exported.
+  estimated SP and the rating of every skill the run is assumed to buy. Target coverage compares SP with
+  the worst-case target cost. Prioritized skills shows up to ten entries for independent training, derived
+  from the parent goal: required targets first, then preferred targets by priority, then extras the deck's
+  events offer. Only those ten entries steer event choices. Target rows follow the goal editor; the extras
+  can be reordered, hidden and swapped, which re-evaluates the deck shown without a new search.
 - Every card counts as owned at a default limit break (4 for every rarity, editable) until you
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
@@ -172,7 +173,7 @@ to choose where the smoke screenshot goes, or to an empty string to skip writing
 
 ### Sharing a run
 
-The address bar follows panels 1–4, prioritized skill ordering and exclusions, and manual G1 schedule
+The address bar follows panels 1–4, the arrangement of the extra prioritized skills, and manual G1 schedule
 picks and skips after a short pause in editing. Copy the URL from the address bar to share or
 bookmark those choices.
 Opening a link with `?run=<code>` loads it before rendering the app. To load a raw code,

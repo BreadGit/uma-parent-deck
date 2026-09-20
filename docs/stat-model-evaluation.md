@@ -206,24 +206,23 @@ run `node scripts/import-skill-ratings.mjs /path/to/gamewith_skills_enriched.jso
 Unmatched purchased skills retain the older rarity estimate and the prediction discloses them.
 
 Purchases use the modeled trainee, deck, scenario and lineage sources, with the same shared
-event outcomes and prioritized choices as coverage. Required base skills come first, then
-preferred base skills, then their best affordable upgrades. Remaining SP buys available
-upgrades or skills greedily by incremental rating per SP. This is an explicit purchase policy,
-not an optimal knapsack solution or a prediction of every player's purchases. Gold and circle
-upgrades pay prerequisite costs; only the highest purchased form contributes rating.
-Innate and awakening skills consume this same budget. There is no extra innate rating allowance.
+event outcomes and prioritized choices as coverage. The run is assumed to buy every required
+and preferred target and every listed extra it gets a hint or event option for, at full price
+and whatever the SP budget; skills the deck hints but the list does not name are not bought.
+This is a worst case for SP, not a prediction of every player's purchases. The prediction
+reports that cost against the estimated SP and flags it when it is more than the run earns.
+Gold and circle upgrades pay prerequisite costs; only the highest owned form contributes
+rating. Innate and awakening skills are bought at full price like everything else.
 
-The hint-level setting defaults to level 1, an unmeasured assumption. Innate and awakening
-skills use full cost because their availability does not establish a hint discount. Fast Learner
-and actual per-skill hint levels are not inferred. Unspent SP gives no rating. The unique skill
-adds its level-based rating separately. The remaining skill-score spread setting describes
-unmeasured purchase-policy error, in addition to modeled source variation.
+Hint discounts, Fast Learner and per-skill hint levels are not modeled. The unique skill adds
+its level-based rating separately. The skill-score spread setting describes unmeasured
+purchase error, in addition to modeled source variation.
 
 Small joint source distributions are enumerated exactly. Large ones use deterministic samples,
-and the UI notes that rare joint outcomes can be missed. The purchase budget couples families
-that would otherwise be independent. Parent-goal estimates now use purchased forms, so they
-cannot assume all hinted upgrades are affordable. Rank still uses a normal approximation to
-the purchase rating and treats purchases independently of final stats and spark quality.
+and the UI notes that rare joint outcomes can be missed. Families that share no event stay
+independent; the SP budget does not couple them, since every owned form is assumed bought.
+Parent-goal estimates use the owned forms. Rank uses a normal approximation to the purchase
+rating and treats purchases independently of final stats and spark quality.
 Skill-point variation, unknown sources and correlations between hint pickup and training
 remain calibration limits. The old points-per-SP and innate-share settings no longer apply;
 state migration preserves other choices and clears cached recommendations.

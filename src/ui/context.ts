@@ -96,7 +96,9 @@ export function update(fn: (s: AppState) => void) {
   renderer();
 }
 
-let cache: { key: string; value: RunPlan } | null = null;
+/** The search key plus the user's arrangement of the extras, which changes the plan shown but not the search. */
+const displayKey = () => `${inputKey}${JSON.stringify([store.run.wishlistOrder, store.run.wishlistExcluded])}`;
+let cache: { searchKey: string; displayKey: string; value: RunPlan } | null = null;
 export const searchState = { pending: false, error: '' };
 let worker: Worker | null = null, requestId = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -107,13 +109,16 @@ export function retrySearch() {
   cache = null;
   renderer();
 }
-/** Keep the displayed cards while updating their estimates and searching after a pause in editing. */
+/**
+ * Keep the displayed cards while updating their estimates and searching after a pause in editing. An edit to the
+ * extra prioritized skills re-evaluates the deck shown and leaves any running search alone.
+ */
 export function plan(): RunPlan {
-  const key = inputKey;
-  if (cache?.key === key) return cache.value;
-  clearTimeout(timer);
-  worker?.terminate(); worker = null;
-  const id = ++requestId;
+  const key = inputKey, shown = displayKey();
+  if (cache?.displayKey === shown) return cache.value;
+  const sameSearch = cache?.searchKey === key;
+  if (!sameSearch) { clearTimeout(timer); worker?.terminate(); worker = null; }
+  const id = sameSearch ? requestId : ++requestId;
   const saved = store.recommendation;
   const restored = saved?.build === BUILD_VERSION && saved.key === key
     && isLegalRunSelection(saved.selection, store.run, store.settings, store.inventory, data) ? saved : undefined;
@@ -121,12 +126,13 @@ export function plan(): RunPlan {
   const value = planRun(store.run, store.settings, store.inventory, data,
     restored ? { selection: restored.selection, summary: restored.summary, search: false } : { previous, search: false });
   previous = value.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
-  cache = { key, value };
+  cache = { searchKey: key, displayKey: shown, value };
+  if (sameSearch) return value;
   searchState.error = '';
   searchState.pending = !restored && !!value.trainee && !value.issues.length && store.run.goal.blueStats.length > 0;
   if (searchState.pending) timer = setTimeout(() => {
     const fail = () => {
-      if (id !== requestId || cache?.key !== key) return;
+      if (id !== requestId || cache?.searchKey !== key) return;
       searchState.pending = false;
       searchState.error = 'Deck search could not finish.';
       worker?.terminate(); worker = null;
@@ -136,19 +142,25 @@ export function plan(): RunPlan {
       worker = new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
       worker.onerror = fail;
       worker.onmessage = (event: MessageEvent<PlanWorkerResponse>) => {
-        if (id !== requestId || event.data.id !== id || cache?.key !== key) return;
-        if (event.data.error) { fail(); return; }
-        // Publish once, after both search stages, so intermediate results do not move the editor.
-        if (!event.data.complete || !event.data.selection) return;
-        cache.value = planRun(store.run, store.settings, store.inventory, data,
-          { selection: event.data.selection, summary: event.data.summary, search: false });
-        previous = event.data.selection;
-        searchState.pending = false;
-        worker?.terminate(); worker = null;
-        if (event.data.summary && isLegalRunSelection(event.data.selection, store.run, store.settings, store.inventory, data)) {
-          saveRecommendation(store, { build: BUILD_VERSION, key, selection: event.data.selection, summary: event.data.summary });
-        }
-        renderer();
+        const publish = () => {
+          if (id !== requestId || event.data.id !== id || cache?.searchKey !== key) return;
+          if (event.data.error) { fail(); return; }
+          // Publish once, after both search stages, so intermediate results do not move the editor.
+          if (!event.data.complete || !event.data.selection) return;
+          // Never replace the list under a row the user is dragging.
+          if (view.drag.key != null) { setTimeout(publish, 150); return; }
+          cache.value = planRun(store.run, store.settings, store.inventory, data,
+            { selection: event.data.selection, summary: event.data.summary, search: false });
+          cache.displayKey = displayKey();
+          previous = event.data.selection;
+          searchState.pending = false;
+          worker?.terminate(); worker = null;
+          if (event.data.summary && isLegalRunSelection(event.data.selection, store.run, store.settings, store.inventory, data)) {
+            saveRecommendation(store, { build: BUILD_VERSION, key, selection: event.data.selection, summary: event.data.summary });
+          }
+          renderer();
+        };
+        publish();
       };
       worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory, previous } satisfies PlanWorkerRequest);
     } catch { fail(); }

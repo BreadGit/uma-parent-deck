@@ -16,8 +16,9 @@ const source = (skillId: number, roll: Parameters<typeof decodeEventRoll>[0], st
   event: { key: `test:chain:${stage}`, label: 'Shared choice', option: 'one', optionIndex: 0 },
   chain: { key: 'test:chain', stage, pReach: roll.pFire },
 });
-function check(targets: Target[], sources: Map<number, SkillSource[]>, excluded: number[]) {
-  const ctx = makeCtx({ data, settings, trainee: null, races: 20, totalTurns: 72, excluded });
+/** `priority` lists the target ids the prioritized list holds; empty lists every target. */
+function check(targets: Target[], sources: Map<number, SkillSource[]>, priority: number[]) {
+  const ctx = makeCtx({ data, settings, trainee: null, races: 20, totalTurns: 72, priority });
   const coverage = evaluate({ cards: [], chars: new Set(), sources }, targets, ctx);
   const joint = whiteGenerationMoments(jointSkillForms(targets, coverage.map, data), [], settings);
   targets.forEach((target, i) => {
@@ -27,16 +28,19 @@ function check(targets: Target[], sources: Map<number, SkillSource[]>, excluded:
   return joint;
 }
 
-test("excluding Twin Turbo's gold reward retains only the 1.2% white spark chance", () => {
+test("Twin Turbo's chain reward counts only while the target is listed", () => {
   const card = must(data.cardById.get(30026), `data.cardById.get(30026)`), target = resolveTarget(200532, data)!;
   const sources = cardSourcesForTarget(card, 4, target, 20, 72, data, settings);
-  const joint = check([target], new Map([[target.id, sources]]), [200531]);
-  // Chain 3 fires in 12% of runs; half its outcomes give white; white generates at 20%.
-  close(joint.available[0]!, .12 * .5);
-  close(joint.each[0]!, .12 * .5 * .2);
+  const listed = check([target], new Map([[target.id, sources]]), [target.id]);
+  // Chain 3 fires in 12% of runs; half its outcomes give gold (40%), half white (20%).
+  close(listed.available[0]!, .12);
+  close(listed.each[0]!, .12 * .5 * .4 + .12 * .5 * .2);
+  const unlisted = check([target], new Map([[target.id, sources]]), [200352]);
+  close(unlisted.available[0]!, 0);
+  close(unlisted.each[0]!, 0);
 });
 
-test('excluding one shared reward preserves the other family and nested chain reach', () => {
+test('a shared reward gives both families, and a later chain stage guarantees the earlier ones', () => {
   const a = resolveTarget(200352, data)!, b = resolveTarget(201601, data)!, c = resolveTarget(201581, data)!;
   const roll = { pFire: .6, outcomes: [[{ t: 'sk', d: a.gold!.id }, { t: 'sk', d: b.id }], [{ t: 'sk', d: a.id }, { t: 'sk', d: b.id }]] };
   const later = source(c.id, { pFire: .2, outcomes: [[{ t: 'sk', d: c.id }]] }, 3);
@@ -44,23 +48,13 @@ test('excluding one shared reward preserves the other family and nested chain re
   later.pObtain = .2;
   const joint = check([a, b, c], new Map([
     [a.id, [source(a.id, roll), source(a.gold!.id, roll)]], [b.id, [bSource]], [c.id, [later]],
-  ]), [a.gold!.id]);
-  close(joint.available[0]!, .3);
+  ]), []);
+  close(joint.available[0]!, .6);
   close(joint.available[1]!, .6);
   close(joint.available[2]!, .2);
-  // Reaching stage 3 guarantees stage 1, whose white outcome still has probability one half.
-  close(joint.allAvailable, .2 * .5);
-  close(joint.all, .2 * .5 * .2 ** 3);
-});
-
-test('excluding the gold branch of a random reward does not redistribute its probability', () => {
-  const target = resolveTarget(200352, data)!;
-  const roll = { pFire: .4, outcomes: [[{ t: 'sr', d: [{ d: target.gold!.id, v: '1' }, { d: target.id, v: '1' }] }]] };
-  const white = { ...source(target.id, roll), pObtain: .1 }, gold = { ...source(target.gold!.id, roll), pObtain: .3 };
-  const joint = check([target], new Map([[target.id, [white, gold]]]), [target.gold!.id]);
-  // At the default gold-roll stat, the original white branch retains its 25% share.
-  close(joint.available[0]!, .4 * .25);
-  close(joint.each[0]!, .4 * .25 * .2);
+  // Reaching stage 3 guarantees stage 1, which always gives a (gold or white, half each) and b.
+  close(joint.allAvailable, .2);
+  close(joint.all, .2 * (.5 * .4 + .5 * .2) * .2 * .2);
 });
 
 test('simultaneous forms in one outcome count once at the best form', () => {
