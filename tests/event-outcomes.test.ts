@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
+import { SCENARIO_COMPLETION_SKILLS } from '../src/model/rules.ts';
 import { evaluate, makeCtx } from '../src/model/deck.ts';
-import { decodeEventRoll, cardSourcesForTarget, combineSources, resolveTarget, type EventSource, type SkillSource, type Target } from '../src/model/sparks.ts';
+import { decodeEventRoll, cardSourcesForTarget, combineSources, pruneConflicts, scenarioCompletionSources, resolveTarget, type EventSource, type SkillSource, type Target } from '../src/model/sparks.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
 
 const data = loadData();
@@ -64,4 +65,38 @@ test('simultaneous forms in one outcome count once at the best form', () => {
   const joint = check([target], new Map([[target.id, sources]]), []);
   close(joint.available[0]!, .6);
   close(joint.each[0]!, .6 * .4);
+});
+
+test('unlisted automatic event rewards survive while unlisted choice rewards do not', () => {
+  const target = resolveTarget(200352, data)!;
+  const automatic = { ...source(target.id, { pFire: .6, outcomes: [[{ t: 'sk', d: target.id }]] }), pObtain: .6, isChoice: false };
+  const result = check([target], new Map([[target.id, [automatic]]]), [201601]);
+  close(result.available[0]!, .6);
+  close(result.each[0]!, .6 * settings.whiteSparkRate);
+});
+
+test('unsteered common rewards keep one option and do not credit its choice-gated sibling', () => {
+  const a = resolveTarget(201601, data)!, b = resolveTarget(200352, data)!;
+  const both = { pFire: .6, outcomes: [[{ t: 'sk', d: a.id }, { t: 'sk', d: b.id }]] };
+  const onlyA = { pFire: .6, outcomes: [[{ t: 'sk', d: a.id }]] };
+  const first = { ...source(a.id, both), pObtain: .6, isChoice: false };
+  const second = { ...source(a.id, onlyA), pObtain: .6, isChoice: false, event: { ...first.event, optionIndex: 1 } };
+  const choice = { ...source(b.id, both), pObtain: .6 };
+  const coverage = pruneConflicts(new Map([[a.id, [first, second]], [b.id, [choice]]]), [999], [], settings, [a, b]).map;
+  assert.equal(coverage.get(a.id)!.length, 1);
+  assert.equal(coverage.get(b.id)!.length, 0);
+  const joint = whiteGenerationMoments(jointSkillForms([a, b], coverage, data), [], settings);
+  close(joint.available[0]!, .6);
+  close(joint.available[1]!, 0);
+});
+
+test('the unlisted scenario completion reward retains its exclusive gold and white outcomes', () => {
+  const target = resolveTarget(SCENARIO_COMPLETION_SKILLS[settings.scenarioId]!.white, data)!;
+  assert.equal(target.gold!.name, 'I Wanna Win with You');
+  const sources = scenarioCompletionSources(target, data, { ...settings, scenarioSongsRate: .8 });
+  const coverage = pruneConflicts(new Map([[target.id, sources]]), [201601], [], settings, [target]).map;
+  const own = combineSources(coverage.get(target.id)!);
+  close(own.pAny, 1);
+  close(own.pGold, .8);
+  close(own.pWhite, .2);
 });

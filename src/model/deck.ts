@@ -16,7 +16,7 @@ export interface Ctx {
   trainee: Character | null;
   raceWins: RaceWins;            // win chance per agenda race, for the trainee's secret events
   lineage: Map<number, Lineage>; // target.id -> existing lineage sparks
-  priority: number[];            // skill ids of the listed prioritized skills in order (every form of a family); decides which option an event yields, and an event none of them is on yields nothing. Empty: every target counts as listed.
+  priority: number[];            // skill ids of the listed prioritized skills in order (every form of a family); decides which option an event yields, and unlisted choice rewards are not credited. Empty: every target counts as listed.
   fansBefore?: (slot: number) => number; // the agenda's expected fans before a slot, for fan-scaled unique effects
   sources?: PreparedRunSources; // shared only by candidates of the same plan
 }
@@ -166,11 +166,6 @@ type Entry = Pick<CardScore, 'card' | 'lb' | 'mine' | 'statPower' | 'borrowed'>;
 export function purchaseCoverage(entries: { card: Card; lb: number }[], targets: Target[], ctx: Ctx): Map<number, SkillSource[]> {
   const sources = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
   return resolveCoverage(stateOf(sources, targets, ctx), targets, ctx).map;
-}
-/** Coverage, spark chances and conflicts of a set of cards under the context's list, without per-card scores. */
-export function evaluateDeck(entries: { card: Card; lb: number }[], targets: Target[], ctx: Ctx): ReturnType<typeof evaluate> {
-  const sources = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
-  return evaluate(stateOf(sources, targets, ctx), targets, ctx);
 }
 /** Focus-weighted deck contribution without per-card coverage details. */
 export function deckStatPower(entries: { card: Card; lb: number }[], ctx: Ctx): number {

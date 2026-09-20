@@ -299,3 +299,24 @@ test('partial input still builds for new white targets when a full goal search c
   assert.deepEqual(partial.deckResult.deck.map((e) => e.card.id), expected.deckResult.deck.map((e) => e.card.id));
   assert.ok(partial.deckResult.sparks.get(target.id)! > 0, 'white target coverage remains useful without a trainee');
 });
+
+test('contested required targets use shared outcome probability instead of multiplied marginals', () => {
+  const a = 201601, b = 200432;
+  const selection = [30028, 30052, 20031, 20005, 30017, 30078].map((id, i) => ({ id, lb: 4, borrowed: i === 5 }));
+  const cards = selection.map(({ id }, i) => ({ ...data.cardById.get(id)!, hintSkills: [], eventSkills: i ? [] : [a, b],
+    chainEvents: [], recreationEvents: [], specialEvents: [], randomEvents: i ? [] : [{ kind: 'random' as const, index: 1, choices: [
+      { outcomes: [[{ t: 'sk', d: a }], [{ t: 'sk', d: b }]] },
+      { outcomes: [[{ t: 'sk', d: b }], [{ t: 'sk', d: b }], [{ t: 'sk', d: b }], [], []] },
+      { outcomes: [[]] },
+    ] }] }));
+  const trainee = { ...sw, innateSkills: [], awakeningSkills: [], eventSkills: [a], events: [
+    { kind: 'story' as const, index: 1, choices: [{ outcomes: [[{ t: 'sk', d: a }]] }] },
+  ] };
+  const fixture = { ...data, cards, cardById: new Map(cards.map((c) => [c.id, c])), scenarioEvents: [], charByCardId: new Map([[trainee.cardId, trainee]]) };
+  const p = planRun({ ...empty, traineeCardId: trainee.cardId, targets: [a, b].map((id) => ({ id, role: 'required', stars: 1, priority: 0 })) },
+    { ...settings, randomEventRate: 1, charStoryEventRate: .1 }, {}, fixture, { selection, search: false });
+  // A-first: P(A)=.55, P(B)=.5, but both require the independent .1 story and the .5 B reward.
+  // B-first: P(A)=.1, P(B)=.6, so both sparks occur with .1*.6*.2*.2 = .0024, above .002.
+  assert.equal(p.wl[0]!.targetId, b, 'B-first has the better true joint chance despite the smaller product of marginals');
+  assert.ok(Math.abs(p.goalEstimate.allAvailable - .06) < 1e-12);
+});

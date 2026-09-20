@@ -88,7 +88,7 @@ test('reported Fuji build counts 22 races and shares one probability basis', asy
   assert.equal(p.goalEstimate.pSS, p.rank.pSS);
   assert.ok(p.statChances[2]!.high > .45 && p.statChances[2]!.high < .6, 'the reported 1091 and 1083 outcomes are plausible');
   assert.ok(Math.abs(p.finalMean[2]! - 1101) < 1);
-  assert.equal(p.rank.skillPts, p.purchases.score + p.rank.uniquePts);
+  assert.equal(p.rank.skillPts, p.skillRating.score + p.rank.uniquePts);
   assert.ok(p.rawFinalSd.some((sd, i) => sd > p.pred.sd[i]!), 'inheritance uncertainty reaches the final distribution');
   // Keep the five owned cards and compare two real borrowed alternatives. Within the tie tolerance,
   // preferred sparks prefer Throne's Assemblage despite Biko's higher blue chance.
@@ -101,12 +101,16 @@ test('reported Fuji build counts 22 races and shares one probability basis', asy
   const biko = planRun(input, settings, inventory, limited, { selection: [...owned, { id: 30020, lb: 4, borrowed: true }], search: false });
   assert.equal(suggested.deckResult.deck.find((e) => e.borrowed)!.card.id, 30067);
   const prediction = predictRunDeck(suggested.deckResult.deck, input, suggested.ctx, suggested.apt, suggested.sum.expectedLosses);
-  for (const key of ['pred', 'parentGains', 'inherited', 'rawFinalMean', 'rawFinalSd', 'finalMean', 'finalSd', 'statChances', 'purchases', 'statCaps'] as const) {
+  for (const key of ['pred', 'parentGains', 'inherited', 'rawFinalMean', 'rawFinalSd', 'finalMean', 'finalSd', 'statChances', 'purchases', 'skillRating', 'statCaps'] as const) {
     assert.deepEqual(suggested[key], prediction[key], `the chosen deck retains its full ${key} summary`);
   }
   assert.deepEqual(suggested.rank, { ...prediction.rank, pSS: suggested.goalEstimate.pSS });
   assert.ok(suggested.goalEstimate.blue < biko.goalEstimate.blue);
   // Biko's chance is within the tie tolerance, so the preferred sparks decide for Throne's Assemblage.
   assert.ok(suggested.goalEstimate.probability! >= biko.goalEstimate.probability! * (1 - settings.goalTieTolerance));
-  assert.ok(Math.abs(suggested.search!.score.probability - suggested.goalEstimate.probability!) < 1e-12);
+  const derived = planRun({ ...input, wishlistOrder: [], wishlistExcluded: [] }, settings, inventory, limited,
+    { selection: suggested.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), search: false });
+  assert.ok(Math.abs(suggested.search!.score.probability - derived.goalEstimate.probability!) < 1e-12, 'search scores its derived list; the displayed estimate follows custom extras');
+  assert.equal(p.skillRating.score, p.pred.sp * p.skillRating.pointsPerSp);
+  assert.ok(p.skillRating.score > p.purchases.score, 'unlisted skills use SP beyond the target and prioritized skill cost');
 });

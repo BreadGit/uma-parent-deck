@@ -205,24 +205,35 @@ extraction date and extractor revision. After generating a full export with that
 run `node scripts/import-skill-ratings.mjs /path/to/gamewith_skills_enriched.json` to rebuild it.
 Unmatched purchased skills retain the older rarity estimate and the prediction discloses them.
 
-Purchases use the modeled trainee, deck, scenario and lineage sources, with the same shared
-event outcomes and prioritized choices as coverage. The run is assumed to buy every required
-and preferred target and every listed extra it gets a hint or event option for, at full price
-and whatever the SP budget; skills the deck hints but the list does not name are not bought.
-This is a worst case for SP, not a prediction of every player's purchases. The prediction
-reports that cost against the estimated SP and flags it when it is more than the run earns.
-Gold and circle upgrades pay prerequisite costs; only the highest owned form contributes
-rating. Innate and awakening skills are bought at full price like everything else.
+Rank assumes the entire estimated SP budget is spent. Its rating-per-SP estimate is the sum of
+expected skill ratings divided by the sum of expected full-price costs across all modeled obtainable
+families, including unlisted support hints, innate and awakening skills, and automatic rewards.
+Each family contributes its highest available form, weighted by source probability. Prerequisites
+contribute cost once; only the highest form contributes rating, adjusted for the trainee's aptitudes.
+Forms with unknown prices are omitted from both sums. If no obtainable form has a known positive
+price, released, priced white skills supply the reference ratio and the prediction discloses it.
+The ratio extrapolates spending efficiency even when modeled skills cannot exhaust the budget.
+It does not select an exact shopping list or imply optimal spending. The unique skill adds its
+level-based rating separately. Hint discounts and Fast Learner are not assumed.
 
-Hint discounts, Fast Learner and per-skill hint levels are not modeled. The unique skill adds
-its level-based rating separately. The skill-score spread setting describes unmeasured
-purchase error, in addition to modeled source variation.
+The full-price cost message is a separate calculation. It takes the union of required targets,
+preferred targets and the displayed prioritized list, deduplicated by family. Only forms with a
+positive-probability source after resolving event choices contribute. Each family costs the full
+price of its highest obtainable form plus prerequisites, without probability weighting or a budget
+cap. Unknown prices make this a lower bound. Unlisted hints outside those families affect Rank's
+spending efficiency but do not contribute to this cost.
+
+Both calculations use the same modeled trainee, deck, scenario and lineage sources. Unlisted
+choice rewards are not credited, but rewards that require no choice survive. Shared event outcomes
+stay correlated. Contested required-target orders use the same joint required-goal scorer as deck
+search, including required star thresholds and fallback subsets, with no near-tie tolerance.
 
 Small joint source distributions are enumerated exactly. Large ones use deterministic samples,
-and the UI notes that rare joint outcomes can be missed. Families that share no event stay
-independent; the SP budget does not couple them, since every owned form is assumed bought.
-Parent-goal estimates use the owned forms. Rank uses a normal approximation to the purchase
-rating and treats purchases independently of final stats and spark quality.
+and the UI notes that rare joint outcomes can be missed. Parent-goal estimates assume the obtainable
+target forms are bought, even if their full-price cost exceeds estimated SP. Rank treats that
+ownership independently of stat outcomes and spending efficiency. The skill-score spread setting
+represents uncertainty in spending efficiency; target-form rating variance is not added to it.
+
 Skill-point variation, unknown sources and correlations between hint pickup and training
 remain calibration limits. The old points-per-SP and innate-share settings no longer apply;
 state migration preserves other choices and clears cached recommendations.

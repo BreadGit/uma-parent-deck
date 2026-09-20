@@ -439,7 +439,7 @@ function bestOption(ss: EventSource[], settings: Settings, target?: Target): Eve
  * One event yields one option. For every event some target's sources come from, take the option the run would pick:
  * a non-target skill listed above every target on that event (a blocker) wins it, else the listed target whose skills
  * come first in `priority` (skill ids in prioritized order, every form of a family ranked together) takes the option
- * worth the most to it. An event no listed skill is offered by steers nothing: no target is credited with its options.
+ * worth the most to it. An event no listed skill is offered by steers nothing: only rewards that require no choice survive.
  * An empty `priority` means every target is listed, for contexts that have no list yet. Every target keeps only its
  * sources on the taken option, so a target offered by two options counts one of them, and an option that gives two
  * targets keeps both. `settings` gives the spark rates the options are valued by.
@@ -450,6 +450,7 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
   const everyoneListed = priority.length === 0;
   const rank = (skillId: number) => { const i = priority.indexOf(skillId); return i < 0 ? Infinity : i; };
   const taken = new Map<string, number>();
+  const unsteered = new Set<string>();
   const conflicts: Conflict[] = [];
   for (const [key, tids] of byEvent) {
     const sourcesFor = (tid: number) => (map.get(tid) ?? []).filter((s): s is EventSource => isEventSource(s) && s.event.key === key);
@@ -460,12 +461,18 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
     let chosen = -1, takenOption: ConflictOption | null = null;
     if (blocker) { chosen = blocker.event.optionIndex; takenOption = { skillId: blocker.skillId, option: blocker.event.option, target: null }; }
     else if (everyoneListed || rank(top) < Infinity) { const best = bestOption(sourcesFor(top), settings, targets.find((t) => t.id === top)); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: top }; }
+    if (chosen < 0) {
+      unsteered.add(key);
+      // A reward offered without a choice still happens. Retain one option so shared rolls stay correlated.
+      const automatic = ordered.flatMap(sourcesFor).filter((s) => !s.isChoice);
+      if (automatic.length) chosen = bestOption(automatic, settings).event.optionIndex;
+    }
     taken.set(key, chosen);
     const dropped = ordered.filter((tid) => !sourcesFor(tid).some((s) => s.event.optionIndex === chosen)).map((tid) => { const s = bestSource(sourcesFor(tid)); return { skillId: s.skillId, option: s.event.option, target: tid }; });
     if (takenOption && (blocker || dropped.length)) conflicts.push({ eventKey: key, label: blocker?.event.label || label, taken: takenOption, dropped });
   }
   const out = new Map<number, SkillSource[]>();
-  for (const [tid, sources] of map) out.set(tid, sources.filter((s) => !isEventSource(s) || taken.get(s.event.key) === s.event.optionIndex));
+  for (const [tid, sources] of map) out.set(tid, sources.filter((s) => !isEventSource(s) || (taken.get(s.event.key) === s.event.optionIndex && (!unsteered.has(s.event.key) || !s.isChoice))));
   return { map: out, conflicts };
 }
 

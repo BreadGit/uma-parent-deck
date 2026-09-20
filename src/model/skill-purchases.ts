@@ -1,14 +1,22 @@
 import type { Card, Skill } from '../types.ts';
 import { purchaseCoverage, type Ctx } from './deck.ts';
 import { jointSkillForms, type FormDistribution } from './goal-skills.ts';
-import { resolveTarget, type Target } from './sparks.ts';
+import { combineSources, purchasedOwnership, resolveTarget, type SkillSource, type Target } from './sparks.ts';
 import { skillScore } from './rank.ts';
 import type { Aptitudes } from './races.ts';
+import { SCENARIO_COMPLETION_SKILLS } from './rules.ts';
+
+export interface SkillRating {
+  score: number;
+  pointsPerSp: number;
+  fallback: boolean;       // no obtainable priced forms; use released white skills as the reference pool
+  unverified: number[];    // forms using the rarity-based rating fallback
+}
 
 export interface Purchases {
-  targets: Target[];        // every family the run buys: the goal's targets, then the listed extras it has a source for
+  targets: Target[];        // goal and listed families; unavailable goals retain zero forms for goal evaluation
   forms: FormDistribution;  // the forms the run ends up owning, from its sources
-  score: number;            // expected rating of the owned forms
+  score: number;            // rating of these target forms only; Rank uses SkillRating separately
   variance: number;
   spent: number;            // worst-case SP: the best obtainable form of every family with its prerequisites, at full price
   incomplete: boolean;      // a family's price is unknown, so `spent` is a lower bound
@@ -74,4 +82,46 @@ export function estimatePurchases(deck: { card: Card; lb: number }[], goalTarget
   const targets = all.filter((t) => goalIds.has(t.id) || (coverage.get(t.id)?.length ?? 0) > 0);
   const forms = jointSkillForms(targets, coverage, ctx.data);
   return { targets, forms, ...purchasesFromForms(targets, forms, apt) };
+}
+
+/**
+ * Spend the entire SP estimate at the pool's expected rating / expected full-price cost. Each family contributes
+ * only its highest obtainable form, weighted by source probability, with prerequisites included in cost.
+ * This extrapolates spending efficiency, not a literal shopping list or a budget for the goal's sparks.
+ */
+export function ratingFromCoverage(targets: Target[], coverage: Map<number, SkillSource[]>, sp: number, apt: Aptitudes, skills: Skill[]): SkillRating {
+  let points = 0, cost = 0;
+  const unverified = new Set<number>();
+  const add = (skill: Skill, probability: number, price: number) => {
+    points += probability * skillScore(skill, apt);
+    cost += probability * price;
+    if (skill.rating === undefined) unverified.add(skill.id);
+  };
+  for (const t of targets) {
+    const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
+    [own.pWhite, own.pCircle, own.pGold].forEach((probability, i) => {
+      const skill = formsOf(t)[i], price = costAt(t, i + 1);
+      if (probability > 0 && usable(skill) && price !== null && price > 0) add(skill, probability, price);
+    });
+  }
+  const fallback = cost === 0;
+  if (fallback) for (const skill of skills) {
+    if (usable(skill) && skill.rarity === 1 && !/[◎×]/.test(skill.name) && skill.cost != null && skill.cost > 0) add(skill, 1, skill.cost);
+  }
+  const pointsPerSp = cost > 0 ? points / cost : 0;
+  return { score: Math.max(0, sp) * pointsPerSp, pointsPerSp, fallback, unverified: [...unverified] };
+}
+
+/** All modeled sources can inform rank spending, including unlisted hints, innate skills and automatic rewards. */
+export function estimateSkillRating(deck: { card: Card; lb: number }[], ctx: Ctx, sp: number, apt: Aptitudes): SkillRating {
+  const completion = SCENARIO_COMPLETION_SKILLS[ctx.settings.scenarioId];
+  const ids = [...ctx.priority, ...ctx.lineage.keys(), ...deck.flatMap(({ card }) => [...card.hintSkills, ...card.eventSkills]),
+    ...(ctx.trainee ? [...ctx.trainee.innateSkills, ...ctx.trainee.awakeningSkills, ...ctx.trainee.eventSkills] : []),
+    ...ctx.data.scenarioEvents.filter((e) => e.scenarioId === ctx.settings.scenarioId).flatMap((e) => e.choices.flatMap((c) => [c.skill, c.whiteSkill, c.goldSkill])),
+    ...(completion ? [completion.white, completion.gold] : [])];
+  const targets = [...new Map(ids.flatMap((id) => {
+    const t = id === undefined ? null : ctx.sources ? ctx.sources.target(id) : resolveTarget(id, ctx.data);
+    return t ? [[t.id, t] as const] : [];
+  })).values()];
+  return ratingFromCoverage(targets, purchaseCoverage(deck, targets, ctx), sp, apt, ctx.data.skills);
 }

@@ -3,8 +3,8 @@ import type { Settings } from '../settings.ts';
 import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type ResolvedGoal, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
 import { evaluateParentGoal, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
-import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, evaluateDeck, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
-import { goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
+import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
+import { chooseGoal, goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { EXPLORATION_SAMPLES, SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
 import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
@@ -13,7 +13,7 @@ import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSumma
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
 import { rankEstimate, skillPointsOf, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { displayedStat, statMasses, statMoments } from './stat-outcomes.ts';
-import { estimatePurchases, type Purchases } from './skill-purchases.ts';
+import { estimatePurchases, estimateSkillRating, type Purchases, type SkillRating } from './skill-purchases.ts';
 import { projectForms } from './goal-skills.ts';
 import { gainsOfParentSparks, inheritedFromParents, type Inheritance, type ParentSparks } from './inherit.ts';
 import { clampStars, traineeAt } from './trainee.ts';
@@ -71,6 +71,7 @@ export interface RunPlan {
   finalSd: number[];
   statChances: { mid: number; high: number }[];
   purchases: Purchases;
+  skillRating: SkillRating;
   finalMean: number[];                     // expected displayed stats after conversion and caps
   statCaps: StatCaps | null;
   rank: RankEstimate;
@@ -266,7 +267,7 @@ export function targetSpCost(targets: Target[], coverage: Map<number, SkillSourc
   return { total, incomplete, items };
 }
 
-export type DeckPrediction = Pick<RunPlan, 'pred' | 'parentGains' | 'inherited' | 'rawFinalMean' | 'rawFinalSd' | 'finalMean' | 'finalSd' | 'statChances' | 'purchases' | 'statCaps' | 'rank'>;
+export type DeckPrediction = Pick<RunPlan, 'pred' | 'parentGains' | 'inherited' | 'rawFinalMean' | 'rawFinalSd' | 'finalMean' | 'finalSd' | 'statChances' | 'purchases' | 'skillRating' | 'statCaps' | 'rank'>;
 
 function preparePrediction(input: RunInput, ctx: Ctx) {
   const parentGains = input.parentSparks.map(gainsOfParentSparks);
@@ -286,22 +287,23 @@ function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, c
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => displayedStat(v) > caps[i]! + inherited[i]!.uncap) } : null;
   const rawFinalSd = pred.sd.map((sd, i) => Math.sqrt(sd ** 2 + inherited[i]!.variance));
   const purchases = estimatePurchases(deck, goalTargets, ctx, apt);
+  const skillRating = estimateSkillRating(deck, ctx, pred.sp, apt);
   // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
   const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
-  const skillPoints = skillPointsOf(purchases.score, trainee, stars, uniqueLevel);
-  return { pred, parentGains, inherited, rawFinalMean, rawFinalSd, purchases, statCaps, uniqueLevel, skillPoints };
+  const skillPoints = skillPointsOf(skillRating.score, trainee, stars, uniqueLevel);
+  return { pred, parentGains, inherited, rawFinalMean, rawFinalSd, purchases, skillRating, statCaps, uniqueLevel, skillPoints };
 }
 
 /** Display summaries are only needed after selecting a deck. */
 function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input: RunInput, ctx: Ctx): DeckPrediction {
   const { uniqueLevel, skillPoints: _skillPoints, ...base } = prediction;
-  const { rawFinalMean, rawFinalSd, statCaps, purchases } = base;
+  const { rawFinalMean, rawFinalSd, statCaps, skillRating } = base;
   const { data, settings, trainee } = ctx;
   const masses = rawFinalMean.map((mean, i) => statMasses(mean, rawFinalSd[i]!, statCaps?.cap[i], true));
   const moments = masses.map(statMoments);
   const finalMean = moments.map((m) => m.mean), finalSd = moments.map((m) => m.sd);
   const statChances = moments.map((m) => ({ mid: Math.min(1, m.above(600)), high: Math.min(1, m.above(1100)) }));
-  const rank = rankEstimate(finalMean, finalSd, purchases.score, trainee, clampStars(trainee, input.traineeStars), uniqueLevel, data, settings, purchases.variance, masses);
+  const rank = rankEstimate(finalMean, finalSd, skillRating.score, trainee, clampStars(trainee, input.traineeStars), uniqueLevel, data, settings, 0, masses);
   return { ...base, finalMean, finalSd, statChances, rank };
 }
 
@@ -338,22 +340,16 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
    * is evaluated with the user's extras (`display`), so the estimate matches what they will type. When required
    * targets share events, every order of them is tried and the one with the best joint required chance stands.
    */
-  const listFor = (entries: GoalDeckEntry[], ctx: Ctx, display: boolean) => {
+  const listsFor = (entries: GoalDeckEntry[], ctx: Ctx, display: boolean) => {
     const candidates = wishlistCandidates(entries, targets, ctx, required);
     const derived = deriveOrder(candidates, goal);
     const contested = contestedRequired(derived);
     const orders = contested.length >= 2 && contested.length <= CONTESTED_REQUIRED_MAX ? permutations(contested).map((p) => withRequiredOrder(derived, p)) : [derived];
-    let best: { ordered: WishlistEntry[]; layout: WishlistLayout; priority: number[]; joint: number } | null = null;
-    for (const base of orders) {
+    return orders.map((base) => {
       const ordered = display ? applyExtrasOrder(base, input.wishlistOrder, input.wishlistExcluded) : base;
       const layout = layoutWishlist(ordered);
-      const priority = derivePriority(layout.live, targets, data);
-      if (orders.length === 1) { best = { ordered, layout, priority, joint: 1 }; break; }
-      const sparks = evaluateDeck(entries, targets, { ...ctx, priority }).sparks;
-      const joint = goal.required.reduce((p, r) => p * (sparks.get(r.id) ?? 0), 1);
-      if (!best || joint > best.joint + 1e-12) best = { ordered, layout, priority, joint };
-    }
-    return { candidates, ...best! };
+      return { candidates, layout, priority: derivePriority(layout.live, targets, data) };
+    });
   };
   const pink = pinkGoalsEstimate(apt, goal.pink, input.pinkLineage, settings.affinity, settings.pinkInspirationRates);
   const previous = options.previous?.flatMap((e) => {
@@ -375,15 +371,19 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048, display = false) => {
     const fans = estimateFans(schedule, entries, settings);
     const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
-    const { candidates, layout, priority } = listFor(entries, candidateCtx, display);
-    const ctx: Ctx = { ...candidateCtx, priority };
-    const prediction = predictCandidate(entries, input, ctx, apt, sum.expectedLosses, preparedPrediction);
-    const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.skillPoints, skillSd: Math.sqrt(settings.skillScoreSd ** 2 + prediction.purchases.variance) };
-    const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
-    const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
-    const sources = goalSources(goal, forms, ctx);
-    const score = scoreGoal(goal, sources, basis, pink, settings);
-    return { score, statPower: deckStatPower(entries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
+    const evaluated = listsFor(entries, candidateCtx, display).map(({ candidates, layout, priority }, i) => {
+      const ctx: Ctx = { ...candidateCtx, priority };
+      const prediction = predictCandidate(entries, input, ctx, apt, sum.expectedLosses, preparedPrediction);
+      const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.skillPoints, skillSd: settings.skillScoreSd };
+      const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
+      const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
+      const sources = goalSources(goal, forms, ctx);
+      const score = scoreGoal(goal, sources, basis, pink, settings);
+      return { key: String(i), score, statPower: deckStatPower(entries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
+    });
+    // Shared outcomes, required star thresholds and fallback subsets use the same scorer as the deck search.
+    const { key: _order, ...chosen } = chooseGoal(evaluated, 0);
+    return chosen;
   };
   let chosen = evaluateCandidate(initial.deck, 2048, true);
   let search: GoalSearchSummary | null = options.summary ?? null;

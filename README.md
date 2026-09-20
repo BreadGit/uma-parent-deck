@@ -100,8 +100,8 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   and cheaper candidate screening can miss the best deck. Displayed probabilities use the full evaluator.
 - The predicted run shows expected stats (converted above 1,200 and clamped to the scenario caps plus the blue sparks' start
   uncaps), chance of ≥600 and ≥1100 per stat (blue spark star bands), chance of SS rank and the
-  estimated SP and the rating of every skill the run is assumed to buy. Target coverage compares SP with
-  the worst-case target cost. Prioritized skills shows up to ten entries for independent training, derived
+  estimated SP and skill rating assuming all that SP is spent at the obtainable skill pool's estimated
+  rating per SP. Target coverage compares SP with the worst-case target cost. Prioritized skills shows up to ten entries for independent training, derived
   from the parent goal: required targets first, then preferred targets by priority, then extras the deck's
   events offer. Only those ten entries steer event choices. Target rows follow the goal editor; the extras
   can be reordered, hidden and swapped, which re-evaluates the deck shown without a new search.
