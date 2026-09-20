@@ -1,7 +1,7 @@
 import { chooseGoal, type GoalScore } from './goal-objective.ts';
 import type { GoalDeckEntry } from './goal-deck.ts';
 
-export const SCREENED_DECKS = 1536;
+export const SCREENED_DECKS = 3072;
 export const SEARCH_RANK_SAMPLES = 32;
 export const EXPLORATION_SAMPLES = 128;
 export const SEARCH_FINALISTS = 16;

@@ -205,16 +205,28 @@ extraction date and extractor revision. After generating a full export with that
 run `node scripts/import-skill-ratings.mjs /path/to/gamewith_skills_enriched.json` to rebuild it.
 Unmatched purchased skills retain the older rarity estimate and the prediction discloses them.
 
-Rank assumes the entire estimated SP budget is spent. Its rating-per-SP estimate is the sum of
-expected skill ratings divided by the sum of expected full-price costs across all modeled obtainable
-families, including unlisted support hints, innate and awakening skills, and automatic rewards.
-Each family contributes its highest available form, weighted by source probability. Prerequisites
-contribute cost once; only the highest form contributes rating, adjusted for the trainee's aptitudes.
-Forms with unknown prices are omitted from both sums. If no obtainable form has a known positive
-price, released, priced white skills supply the reference ratio and the prediction discloses it.
-The ratio extrapolates spending efficiency even when modeled skills cannot exhaust the budget.
-It does not select an exact shopping list or imply optimal spending. The unique skill adds its
-level-based rating separately. Hint discounts and Fast Learner are not assumed.
+Rank assumes the entire estimated SP budget is spent. It values optional purchases from obtainable
+skills, including unlisted support hints, innate and awakening skills, and automatic rewards.
+Each family contributes a spending curve over its available forms, including buying nothing.
+Prices include prerequisites; ratings count only the final form and use the trainee's aptitudes.
+The upper concave envelope allows inefficient upgrades to be skipped and includes prerequisite
+costs when an upgrade is worth buying. Each availability outcome scales the curve's spending
+capacity by its probability. The estimator spends on the highest marginal rating per SP first.
+
+Remaining SP uses a reference rate: total rating divided by total cost across released, priced
+white skills, excluding ◎ and × forms and adjusted for the trainee's aptitudes. This reference
+is independent of the deck. Optional purchases below that rate are skipped, so adding an optional
+skill or upgrade cannot lower Rank when other inputs and source probabilities stay the same.
+Known skills have finite expected capacity and cannot be bought repeatedly to exhaust the budget.
+The prediction explains how much SP uses the reference rate, including when all of it does.
+Forms with unknown prices are omitted. The unique skill adds its level-based rating separately.
+Hint discounts and Fast Learner are not assumed.
+
+The curves use fractional expected capacities, not realized shopping lists. This approximation
+can overestimate feasible spending, especially with rare or mutually exclusive sources and tight
+budgets. The reference rate comes from the skill dataset, not measured player purchases; completed
+runs with recorded SP and bought skills are needed to calibrate it. Adding reference-rate spending
+preserves the full-SP assumption even when modeled skills cannot exhaust the budget.
 
 The full-price cost message is a separate calculation. It takes the union of required targets,
 preferred targets and the displayed prioritized list, deduplicated by family. Only forms with a
@@ -253,3 +265,17 @@ factor affects the displayed complete-goal probability but cancels when comparin
 decks for the same inputs. Preferred extras break near ties after required-goal success.
 The card-ranking table remains a separate view of each card's own sources at assumed SS;
 its standalone percentages are not the deck search objective.
+
+### Repeatable deck selection
+
+Completed searches depend on current run inputs, settings, inventory and game data. A previous
+recommendation can stay visible while a worker runs, but does not seed that worker's search.
+Default extra-skill ties use skill IDs; explicit user ordering is preserved. Candidate evaluation
+uses a canonical card order so reversing identical deck entries cannot change event choices,
+stat accumulation or sampling. Search evaluates its derived skill list; the displayed prediction
+uses the user's extra-skill choices, which can change the displayed estimate after selection.
+
+The default search explores up to 384 local candidates and screens a population of up to 3,072,
+then checks promising neighbors. Only finalists receive the full evaluation. These limits improve
+coverage without promising the global best. Required goals still come first; the configured
+relative tolerance allows preferred skills to decide among near-ties.

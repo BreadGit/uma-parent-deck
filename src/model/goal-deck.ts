@@ -68,7 +68,7 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
   const constraints = goalDeckConstraints(options);
   if (!constraints) return null;
   const { size, ownedSlots, owned, borrows, ownById, borrowById, pins, fill, legalSeeds, bestPins, legal } = constraints;
-  const budget = options.budget ?? 192;
+  const budget = options.budget ?? 384;
   const evaluated = new Map<string, GoalCandidate<T>>();
   const evaluate = (entries: GoalDeckEntry[], limit = budget) => {
     if (!legal(entries)) return;

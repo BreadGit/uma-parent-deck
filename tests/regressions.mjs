@@ -405,6 +405,7 @@ test('the deck stays mounted during search and edits update its estimates immedi
   await waitForPlan(page);
   assert.equal(await head.evaluate((el) => getComputedStyle(el, '::before').content), 'none');
   const finished = await chance();
+  const finishedSelection = (await state(page)).recommendation.selection;
   assert.ok(finished >= initial && finished >= reference - 0.05, `find the known better Fuji deck without a Maruzensky pin: ${finished}% shown against ${reference}%`);
   await page.evaluate(() => { window.retainedDeck = document.querySelector('.deck'); window.retainedList = document.querySelector('.wishlist'); });
   await page.selectOption('[data-goal-stars="pink"]', '3');
@@ -414,7 +415,8 @@ test('the deck stays mounted during search and edits update its estimates immedi
   assert.equal(await page.locator('[data-goal-result]').count(), 1, 'current estimates remain visible after an edit');
   assert.equal(await page.evaluate(() => window.retainedDeck === document.querySelector('.deck') && window.retainedList === document.querySelector('.wishlist')), true, 'deck and skill editor remain mounted');
   await waitForPlan(page);
-  assert.ok(await chance() >= finished, 'a previously discovered legal deck remains a candidate after edits');
+  assert.equal(await chance(), finished, 'undoing an edit reproduces the same estimate');
+  assert.deepEqual((await state(page)).recommendation.selection, finishedSelection, 'search history does not change the recommendation');
   await assertFieldsMatchState(page, 'after replacing a refinement in progress');
 });
 

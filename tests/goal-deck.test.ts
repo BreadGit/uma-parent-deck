@@ -407,17 +407,17 @@ test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin w
   assert.deepEqual(saved, before);
 });
 
-test('previous recommendations are rescored at current limit breaks and rejected when they break current ownership or pins', () => {
+test('retained recommendations are rescored at current limit breaks and rejected when they break current ownership or pins', () => {
   const saved = fujiState();
   const previous = FUJI_DECK;
-  const reused = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
-  assert.ok(reused.goalEstimate.probability! >= fujiReference(saved), 'a seeded search never falls below its seed');
+  const reused = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
+  assert.equal(reused.goalEstimate.probability, fujiReference(saved), 'the previous deck stays visible while a fresh search runs');
   saved.inventory['30107'] = 0;
-  const changed = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
+  const changed = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
   for (const e of changed.deckResult.deck) if (e.card.id === 30107 && !e.borrowed) assert.equal(e.lb, 0);
   saved.inventory['30107'] = null;
   saved.run.pinnedIds.push(30028);
-  const invalid = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
+  const invalid = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
   assert.ok(!invalid.deckResult.deck.some((e) => e.card.id === 30107 && !e.borrowed), 'a card marked not owned leaves the reused deck');
   assert.ok(invalid.deckResult.deck.some((e) => e.card.id === 30028), 'a new pin joins the reused deck');
 });

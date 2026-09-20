@@ -93,7 +93,7 @@ export type DeckSelection = { id: number; lb: number; borrowed?: boolean }[];
 export interface RunOptions {
   search?: boolean;
   selection?: DeckSelection;
-  previous?: DeckSelection;              // search seed, or a retained legal deck when search is disabled
+  previous?: DeckSelection;              // retain a legal displayed deck only when search is disabled
   onProgress?: (selection: DeckSelection, summary: GoalSearchSummary) => void;
   summary?: GoalSearchSummary;
   budget?: number;
@@ -138,7 +138,7 @@ export function deriveOrder(cands: WishlistEntry[], goal: ResolvedGoal): Wishlis
   const preferredPriority = new Map(goal.preferred.map((p) => [p.id, p.priority]));
   const key = (w: WishlistEntry): [number, number, number] => w.role === 'required' ? [0, requiredAt.get(w.targetId!) ?? 0, 0]
     : w.role === 'preferred' ? [1, preferredPriority.get(w.targetId!) ?? 0, preferredAt.get(w.targetId!) ?? 0] : [2, -w.weight, 0];
-  return cands.map((w, i) => ({ w, i, k: key(w) })).sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2] || a.i - b.i).map((x) => x.w);
+  return cands.map((w, i) => ({ w, i, k: key(w) })).sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2] || (a.w.role === 'extra' ? a.w.key - b.w.key : a.i - b.i)).map((x) => x.w);
 }
 
 /**
@@ -276,6 +276,8 @@ function preparePrediction(input: RunInput, ctx: Ctx) {
   return { parentGains, inherited, goalTargets: [...goal.required, ...goal.preferred].map((t) => resolveTarget(t.id, ctx.data)).filter((t): t is Target => !!t) };
 }
 
+const canonicalDeck = <T extends { card: Card; lb: number }>(deck: T[]): T[] => deck.slice().sort((a, b) => a.card.id - b.card.id || a.lb - b.lb);
+
 function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, prepared: ReturnType<typeof preparePrediction>) {
   const { data, settings, trainee } = ctx;
   const fansBefore = ctx.fansBefore ?? (() => 0);
@@ -309,7 +311,7 @@ function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input
 
 /** Predict a supplied deck without selecting cards. */
 export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, prepared = preparePrediction(input, ctx)): DeckPrediction {
-  return finishPrediction(predictCandidate(deck, input, ctx, apt, expectedLosses, prepared), input, ctx);
+  return finishPrediction(predictCandidate(canonicalDeck(deck), input, ctx, apt, expectedLosses, prepared), input, ctx);
 }
 
 /** Plan the whole run: schedule, deck, prediction, rank estimate and prioritized skills. Pure; the app memoizes it. */
@@ -369,17 +371,18 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
   }
   const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048, display = false) => {
-    const fans = estimateFans(schedule, entries, settings);
+    const scoringEntries = canonicalDeck(entries);
+    const fans = estimateFans(schedule, scoringEntries, settings);
     const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
-    const evaluated = listsFor(entries, candidateCtx, display).map(({ candidates, layout, priority }, i) => {
+    const evaluated = listsFor(scoringEntries, candidateCtx, display).map(({ candidates, layout, priority }, i) => {
       const ctx: Ctx = { ...candidateCtx, priority };
-      const prediction = predictCandidate(entries, input, ctx, apt, sum.expectedLosses, preparedPrediction);
+      const prediction = predictCandidate(scoringEntries, input, ctx, apt, sum.expectedLosses, preparedPrediction);
       const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.skillPoints, skillSd: settings.skillScoreSd };
       const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
       const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
       const sources = goalSources(goal, forms, ctx);
       const score = scoreGoal(goal, sources, basis, pink, settings);
-      return { key: String(i), score, statPower: deckStatPower(entries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
+      return { key: String(i), score, statPower: deckStatPower(scoringEntries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
     });
     // Shared outcomes, required star thresholds and fallback subsets use the same scorer as the deck search.
     const { key: _order, ...chosen } = chooseGoal(evaluated, 0);
@@ -405,7 +408,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const summarize = (found: GoalSearchResult<typeof chosen.value>): GoalSearchSummary =>
       ({ score: found.best.score, evaluated: found.evaluated, screened: found.screened, exhaustive: found.exhaustive, unavailableWhiteIds });
     const found = searchGoalDeck({ owned: deckPool, borrows: borrowPool, ownedOrders: orders(baseRanking), borrowOrders: orders(borrowRanking),
-      seeds: [initial.deck, ...(previous ? [previous] : [])], pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId,
+      seeds: [initial.deck], pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId,
       tolerance: settings.goalTieTolerance, budget: options.budget, evaluate: evaluateCandidate,
       explore: (entries) => { const { score, statPower } = evaluateCandidate(entries, EXPLORATION_SAMPLES); return { score, statPower }; },
       screen: (entries) => { const { score, statPower } = evaluateCandidate(entries, SEARCH_RANK_SAMPLES); return { score, statPower }; },

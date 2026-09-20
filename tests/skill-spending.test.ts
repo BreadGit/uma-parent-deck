@@ -14,19 +14,50 @@ const apt = data.characters[0]!.aptitudes;
 const focus = resolveTarget(200432, data)!;
 const hint = (skillId: number, pObtain: number): SkillSource => ({ kind: 'hint', skillId, pObtain, isChoice: false, gold: false, circle: false, detail: 'Test hint' });
 
-test('rank spends all SP at probability-weighted full-price efficiency, with prerequisites counted once', () => {
+const reference = { ...focus.white!, tags: [], cost: 100, rating: 100 };
+
+test('rank limits skill purchases by availability and spends the remaining SP at the reference rate', () => {
   const a = { ...focus, white: { ...focus.white!, tags: [], cost: 20, rating: 100 }, circle: null, gold: { ...focus.gold!, tags: [], cost: 80, rating: 260 } };
   const b = { ...focus, id: 2, white: { ...focus.white!, id: 2, tags: [], cost: 60, rating: 130 }, circle: null, gold: null };
   const coverage = new Map([[a.id, [hint(a.id, 1), { ...hint(a.gold!.id, .5), gold: true }]], [b.id, [hint(b.id, .5)]]]);
-  // A costs .5*20 + .5*100 = 60 and rates .5*100 + .5*260 = 180.
-  // B costs .5*60 = 30 and rates .5*130 = 65. The pool's efficiency is 245/90.
-  const rating = ratingFromCoverage([a, b], coverage, 900, apt, []);
-  assert.ok(Math.abs(rating.score - 2450) < 1e-9);
+  // A supplies 100 base points and .5*160 upgrade points for 20 + .5*80 SP.
+  // B supplies .5*130 points for .5*60 SP. The remaining 810 SP earns 810 points.
+  const rating = ratingFromCoverage([a, b], coverage, 900, apt, [reference]);
+  assert.equal(rating.score, 1055);
+  assert.equal(rating.referenceSp, 810);
   assert.equal(rating.fallback, false);
-  assert.equal(ratingFromCoverage([a, b], coverage, 1800, apt, []).score, 2 * rating.score);
-  assert.equal(ratingFromCoverage([a, b], coverage, 0, apt, []).score, 0);
+  assert.equal(ratingFromCoverage([a, b], coverage, 1800, apt, [reference]).score, 1955, 'extra SP cannot repeatedly buy the same skills');
+  assert.equal(ratingFromCoverage([a, b], coverage, 0, apt, [reference]).score, 0);
+  assert.equal(ratingFromCoverage([a, b], coverage, 10, apt, [reference]).score, 50, 'a tight budget takes the most efficient segment');
+  assert.equal(ratingFromCoverage([a, b], coverage, 35, apt, [reference]).score, 132.5, 'the other white skill precedes the less efficient upgrade');
   const missing = { ...b, white: { ...b.white, cost: null } };
-  assert.equal(ratingFromCoverage([a, missing], coverage, 900, apt, []).pointsPerSp, 3, 'unpriced forms do not contribute rating without cost');
+  assert.equal(ratingFromCoverage([a, missing], coverage, 900, apt, [reference]).score, 1020, 'unknown prices do not contribute purchase value');
+});
+
+test('optional low-value skills and upgrades cannot lower Rank', () => {
+  const a = { ...focus, white: { ...focus.white!, tags: [], cost: 100, rating: 200 }, circle: null, gold: null };
+  const b = { ...a, id: 2, white: { ...a.white, id: 2, rating: 50 } };
+  const coverage = new Map([[a.id, [hint(a.id, 1)]], [b.id, [hint(b.id, 1)]]]);
+  const base = ratingFromCoverage([a], coverage, 1000, apt, [reference]);
+  assert.equal(base.score, 1100);
+  assert.equal(ratingFromCoverage([a, b], coverage, 1000, apt, [reference]).score, base.score);
+  const upgraded = { ...a, circle: { ...a.white, id: 3, name: 'Optional ◎', cost: 100, rating: 210 } };
+  assert.equal(ratingFromCoverage([upgraded], coverage, 1000, apt, [reference]).score, base.score, 'an inefficient circle upgrade can be skipped');
+  const gold = { ...a, gold: { ...focus.gold!, tags: [], cost: 200, rating: 250 } };
+  coverage.set(a.id, [hint(a.id, 1), { ...hint(gold.gold.id, 1), gold: true }]);
+  assert.equal(ratingFromCoverage([gold], coverage, 1000, apt, [reference]).score, base.score, 'a gold hint does not force a purchase');
+});
+
+test('efficient upgrades include their prerequisite cost and uncertain access is capped', () => {
+  const a = { ...focus, white: { ...focus.white!, tags: [], cost: 100, rating: 50 }, circle: null,
+    gold: { ...focus.gold!, tags: [], cost: 100, rating: 400 } };
+  const coverage = new Map([[a.id, [{ ...hint(a.gold.id, .25), gold: true }]]]);
+  const rating = ratingFromCoverage([a], coverage, 1000, apt, [reference]);
+  assert.equal(rating.score, 1050, '.25 * 400 points for .25 * 200 SP, plus 950 reference points');
+  assert.equal(rating.referenceSp, 950);
+  coverage.set(a.id, [{ ...hint(a.gold.id, .5), gold: true }]);
+  assert.equal(ratingFromCoverage([a], coverage, 1000, apt, [reference]).score, 1100, 'better availability cannot lower the estimate');
+  assert.equal(ratingFromCoverage([a, a], coverage, 1000, apt, [reference]).score, 1100, 'a family is counted once');
 });
 
 test('rank includes unlisted hints while target cost includes only obtainable goal and listed families', () => {
@@ -38,8 +69,9 @@ test('rank includes unlisted hints while target cost includes only obtainable go
   const ctx = makeCtx({ data: fixture, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [a!.id] });
   const deck = [{ card, lb: 4 }];
   const rating = estimateSkillRating(deck, ctx, 1000, apt);
-  assert.equal(rating.pointsPerSp, 2, 'the two equally likely hints average 200 rating per 100 SP');
-  assert.equal(rating.score, 2000);
+  assert.equal(rating.referenceRate, 5 / 3, 'the reference uses the same released skill data regardless of deck');
+  assert.ok(rating.score > 1000 * rating.referenceRate, 'the high-value unlisted hint adds value');
+  assert.ok(rating.score < 1000 * rating.referenceRate + 300, 'a possible hint cannot be bought repeatedly');
   const cost = estimatePurchases(deck, [a!, absent!], ctx, apt);
   assert.equal(cost.spent, 100, 'listed A is not counted twice and the unavailable target contributes nothing');
   assert.equal(estimatePurchases(deck, [a!, b!, absent!], ctx, apt).spent, 200, 'an unlisted preferred target with a hint is included');
@@ -50,7 +82,7 @@ test('rank includes unlisted hints while target cost includes only obtainable go
 test('rank discloses its reference pool when no obtainable form has a known price', () => {
   const skill = { ...focus.white!, cost: 100, rating: 150, tags: [] };
   const rating = ratingFromCoverage([], new Map(), 1000, apt, [skill]);
-  assert.deepEqual(rating, { score: 1500, pointsPerSp: 1.5, fallback: true, unverified: [] });
+  assert.deepEqual(rating, { score: 1500, pointsPerSp: 1.5, referenceRate: 1.5, referenceSp: 1000, fallback: true, unverified: [] });
 });
 
 test('hiding every extra leaves an explicit empty list that cannot steer choice rewards', () => {

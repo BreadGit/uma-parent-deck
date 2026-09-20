@@ -162,7 +162,7 @@ export function plan(): RunPlan {
         };
         publish();
       };
-      worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory, previous } satisfies PlanWorkerRequest);
+      worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory } satisfies PlanWorkerRequest);
     } catch { fail(); }
   }, 400);
   return value;

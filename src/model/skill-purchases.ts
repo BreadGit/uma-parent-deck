@@ -9,7 +9,9 @@ import { SCENARIO_COMPLETION_SKILLS } from './rules.ts';
 export interface SkillRating {
   score: number;
   pointsPerSp: number;
-  fallback: boolean;       // no obtainable priced forms; use released white skills as the reference pool
+  referenceRate: number;
+  referenceSp: number;     // SP valued at the deck-independent reference rate
+  fallback: boolean;       // no obtainable priced forms
   unverified: number[];    // forms using the rarity-based rating fallback
 }
 
@@ -99,32 +101,68 @@ export function estimatePurchases(deck: { card: Card; lb: number }[], goalTarget
   return { targets, forms, ...purchasesFromForms(targets, forms, apt), ...costFromCoverage(targets, coverage) };
 }
 
+interface SpendingPoint { cost: number; points: number; unverified: number[] }
+interface SpendingSegment { cost: number; rate: number; unverified: number[] }
+
+/** Upper concave envelope of the optional forms, including buying nothing. Slopes decrease along the hull. */
+function spendingSegments(options: SpendingPoint[], probability: number): SpendingSegment[] {
+  const hull: SpendingPoint[] = [{ cost: 0, points: 0, unverified: [] }];
+  for (const next of options.slice().sort((a, b) => a.cost - b.cost || b.points - a.points)) {
+    const last = hull.at(-1)!;
+    if (next.cost === last.cost || next.points <= last.points) continue;
+    while (hull.length >= 2) {
+      const a = hull.at(-2)!, b = hull.at(-1)!;
+      if ((b.points - a.points) * (next.cost - b.cost) > (next.points - b.points) * (b.cost - a.cost)) break;
+      hull.pop();
+    }
+    hull.push(next);
+  }
+  return hull.slice(1).map((end, i) => {
+    const start = hull[i]!;
+    return { cost: probability * (end.cost - start.cost), rate: (end.points - start.points) / (end.cost - start.cost),
+      unverified: [...start.unverified, ...end.unverified] };
+  });
+}
+
 /**
- * Spend the entire SP estimate at the pool's expected rating / expected full-price cost. Each family contributes
- * only its highest obtainable form, weighted by source probability, with prerequisites included in cost.
- * This extrapolates spending efficiency, not a literal shopping list or a budget for the goal's sparks.
+ * Spend on optional forms above a deck-independent reference rate, then value the remaining SP at that rate.
+ * Each availability outcome supplies a fractional, probability-weighted spending envelope. This is an expected
+ * capacity approximation, not a literal shopping list: shared availability and realized budgets are not simulated.
  */
 export function ratingFromCoverage(targets: Target[], coverage: Map<number, SkillSource[]>, sp: number, apt: Aptitudes, skills: Skill[]): SkillRating {
-  let points = 0, cost = 0;
-  const unverified = new Set<number>();
-  const add = (skill: Skill, probability: number, price: number) => {
-    points += probability * skillScore(skill, apt);
-    cost += probability * price;
-    if (skill.rating === undefined) unverified.add(skill.id);
-  };
-  for (const t of targets) {
+  let referencePoints = 0, referenceCost = 0;
+  const referenceUnverified: number[] = [];
+  for (const skill of skills) {
+    if (!usable(skill) || skill.rarity !== 1 || /[◎×]/.test(skill.name) || skill.cost == null || skill.cost <= 0) continue;
+    referencePoints += skillScore(skill, apt); referenceCost += skill.cost;
+    if (skill.rating === undefined) referenceUnverified.push(skill.id);
+  }
+  const referenceRate = referenceCost > 0 ? referencePoints / referenceCost : 0;
+  const segments: SpendingSegment[] = [];
+  for (const t of [...new Map(targets.map((t) => [t.id, t])).values()].sort((a, b) => a.id - b.id)) {
     const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
+    const options: SpendingPoint[] = [];
     [own.pWhite, own.pCircle, own.pGold].forEach((probability, i) => {
-      const skill = formsOf(t)[i], price = costAt(t, i + 1);
-      if (probability > 0 && usable(skill) && price !== null && price > 0) add(skill, probability, price);
+      const skill = formsOf(t)[i], cost = costAt(t, i + 1);
+      if (usable(skill) && cost !== null && cost > 0) {
+        options.push({ cost, points: skillScore(skill, apt), unverified: skill.rating === undefined ? [skill.id] : [] });
+      }
+      if (probability > 0) segments.push(...spendingSegments(options, probability));
     });
   }
-  const fallback = cost === 0;
-  if (fallback) for (const skill of skills) {
-    if (usable(skill) && skill.rarity === 1 && !/[◎×]/.test(skill.name) && skill.cost != null && skill.cost > 0) add(skill, 1, skill.cost);
+  const budget = Math.max(0, sp);
+  let remaining = budget, score = budget * referenceRate;
+  const unverified = new Set<number>();
+  for (const segment of segments.sort((a, b) => b.rate - a.rate)) {
+    if (remaining <= 0 || segment.rate <= referenceRate) break;
+    const spent = Math.min(remaining, segment.cost);
+    score += spent * (segment.rate - referenceRate);
+    remaining -= spent;
+    segment.unverified.forEach((id) => unverified.add(id));
   }
-  const pointsPerSp = cost > 0 ? points / cost : 0;
-  return { score: Math.max(0, sp) * pointsPerSp, pointsPerSp, fallback, unverified: [...unverified] };
+  if (remaining > 0) referenceUnverified.forEach((id) => unverified.add(id));
+  return { score, pointsPerSp: budget > 0 ? score / budget : referenceRate, referenceRate, referenceSp: remaining,
+    fallback: segments.length === 0, unverified: [...unverified].sort((a, b) => a - b) };
 }
 
 /** All modeled sources can inform rank spending, including unlisted hints, innate skills and automatic rewards. */
