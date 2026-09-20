@@ -53,7 +53,7 @@ test('inspiration variance includes both roll variance and failed procs', () => 
   assert.equal(inheritedFromSparks([], DEFAULT_SETTINGS).variance, 0);
 });
 
-test('purchases: every owned form is bought at full price; only the highest form is rated, prerequisites are paid, and independent spreads add', () => {
+test('purchases: only the highest owned form is rated, and independent spreads add', () => {
   assert.equal(focus.white!.name, 'Focus');
   assert.equal(focus.white!.rating, 129);
   assert.equal(focus.gold!.rating, 394);
@@ -62,20 +62,16 @@ test('purchases: every owned form is bought at full price; only the highest form
   const one = purchasesFromForms([upgraded], { count: 1, components: [{ indices: [0], distribution: { states: new Map([['3', .5], ['1', .25], ['0', .25]]), approximate: false } }] }, apt);
   assert.equal(one.score, .5 * 260 + .25 * 100, 'the highest form owned is rated');
   assert.ok(Math.abs(one.variance - (.5 * 260 ** 2 + .25 * 100 ** 2 - one.score ** 2)) < 1e-9);
-  assert.equal(one.spent, 100, 'the gold form pays its white prerequisite, whatever the budget');
-  assert.equal(one.incomplete, false);
   const two = purchasesFromForms([upgraded, other], { count: 2, components: [
     { indices: [0], distribution: { states: new Map([['1', .5], ['0', .5]]), approximate: false } },
     { indices: [1], distribution: { states: new Map([['1', 1]]), approximate: false } },
   ] }, apt);
   assert.equal(two.score, .5 * 100 + 130);
   assert.equal(two.variance, .5 * 100 ** 2 - 50 ** 2, 'a certain purchase adds no spread');
-  assert.equal(two.spent, 20 + 60);
   const never = purchasesFromForms([upgraded], { count: 1, components: [{ indices: [0], distribution: { states: new Map([['0', 1]]), approximate: false } }] }, apt);
-  assert.deepEqual(never, { score: 0, variance: 0, spent: 0, incomplete: false, unverified: [] });
+  assert.deepEqual(never, { score: 0, variance: 0, unverified: [] });
   const unpriced = { ...other, white: { ...other.white, cost: null, rating: undefined } };
   const unknown = purchasesFromForms([unpriced], { count: 1, components: [{ indices: [0], distribution: { states: new Map([['1', .3], ['0', .7]]), approximate: false } }] }, apt);
-  assert.equal(unknown.incomplete, true);
   assert.deepEqual(unknown.unverified, [unpriced.white.id], 'an owned form without a rating is reported');
 });
 

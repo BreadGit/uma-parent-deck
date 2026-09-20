@@ -440,15 +440,15 @@ function bestOption(ss: EventSource[], settings: Settings, target?: Target): Eve
  * a non-target skill listed above every target on that event (a blocker) wins it, else the listed target whose skills
  * come first in `priority` (skill ids in prioritized order, every form of a family ranked together) takes the option
  * worth the most to it. An event no listed skill is offered by steers nothing: only rewards that require no choice survive.
- * An empty `priority` means every target is listed, for contexts that have no list yet. Every target keeps only its
- * sources on the taken option, so a target offered by two options counts one of them, and an option that gives two
- * targets keeps both. `settings` gives the spark rates the options are valued by.
+ * A null `priority` means every target is listed, for contexts that have no list yet. An empty list steers nothing.
+ * Every target keeps only its sources on the taken option, so a target offered by two options counts one of them,
+ * and an option that gives two targets keeps both. `settings` gives the spark rates the options are valued by.
  */
-export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[], blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS, targets: Target[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[] | null, blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS, targets: Target[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
   for (const [tid, sources] of map) for (const s of sources) if (isEventSource(s)) byEvent.set(s.event.key, new Set([...(byEvent.get(s.event.key) ?? []), tid]));
-  const everyoneListed = priority.length === 0;
-  const rank = (skillId: number) => { const i = priority.indexOf(skillId); return i < 0 ? Infinity : i; };
+  const everyoneListed = priority === null;
+  const rank = (skillId: number) => { const i = priority?.indexOf(skillId) ?? -1; return i < 0 ? Infinity : i; };
   const taken = new Map<string, number>();
   const unsteered = new Set<string>();
   const conflicts: Conflict[] = [];

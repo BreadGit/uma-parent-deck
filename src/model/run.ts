@@ -327,7 +327,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   for (const t of targets) { const l = input.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
   const baseFans = estimateFans(schedule, [], settings);
   const fansBefore = (slot: number) => fansBeforeSlot(baseFans, slot);
-  const baseCtx: Ctx = { data, settings, races: sum.count + (SCENARIO_FINALE_FANS[settings.scenarioId]?.length ?? 0), totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage, priority: [], fansBefore };
+  const baseCtx: Ctx = { data, settings, races: sum.count + (SCENARIO_FINALE_FANS[settings.scenarioId]?.length ?? 0), totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage, priority: null, fansBefore };
   baseCtx.sources = prepareRunSources(baseCtx);
   const preparedPrediction = preparePrediction(input, baseCtx);
   const { pool, unowned, ignoredIds, deckPool, borrowPool, pinnedIds } = selectablePools(input, settings, inventory, data);

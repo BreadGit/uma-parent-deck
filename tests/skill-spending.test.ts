@@ -2,9 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
-import { makeCtx } from '../src/model/deck.ts';
+import { makeCtx, purchaseCoverage } from '../src/model/deck.ts';
 import { estimatePurchases, estimateSkillRating, ratingFromCoverage } from '../src/model/skill-purchases.ts';
-import { resolveTarget, type SkillSource } from '../src/model/sparks.ts';
+import { resolveTarget, type SkillSource, type EventSource, type Target } from '../src/model/sparks.ts';
+import { prepareRunSources } from '../src/model/run-sources.ts';
+import { planRun } from '../src/model/run.ts';
+import { defaultState } from '../src/state.ts';
 
 const data = loadData();
 const apt = data.characters[0]!.aptitudes;
@@ -48,4 +51,74 @@ test('rank discloses its reference pool when no obtainable form has a known pric
   const skill = { ...focus.white!, cost: 100, rating: 150, tags: [] };
   const rating = ratingFromCoverage([], new Map(), 1000, apt, [skill]);
   assert.deepEqual(rating, { score: 1500, pointsPerSp: 1.5, fallback: true, unverified: [] });
+});
+
+test('hiding every extra leaves an explicit empty list that cannot steer choice rewards', () => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100501;
+  saved.run.targets = [];
+  const first = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
+  const selection = first.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
+  saved.run.wishlistExcluded = [...first.wlLayout.entries.keys()];
+  const hidden = planRun(saved.run, saved.settings, saved.inventory, data, { selection, search: false });
+  assert.deepEqual(hidden.wl, []);
+  assert.deepEqual(hidden.ctx.priority, []);
+  const coverage = purchaseCoverage(hidden.deckResult.deck, [focus], hidden.ctx).get(focus.id)!;
+  assert.equal(coverage.filter((s) => s.isChoice).length, 0, 'no hidden choice reward is credited');
+  assert.deepEqual(coverage, purchaseCoverage(hidden.deckResult.deck, [focus], { ...hidden.ctx, priority: [-1] }).get(focus.id));
+  assert.equal(hidden.purchases.spent, 0);
+  assert.ok(hidden.skillRating.score > 0, 'Rank still spends the full SP budget');
+});
+
+test('obtainable gold-only skills cost full price even though they cannot generate a white spark', () => {
+  const target = resolveTarget(202061, data)!;
+  const card = data.cards.find((c) => c.name === '[Passing the Dream On] Team Sirius')!;
+  assert.ok(card);
+  assert.equal(target.gold!.cost, 360);
+  const ctx = makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [...target.familyIds] });
+  const purchases = estimatePurchases([{ card, lb: 4 }], [target], ctx, apt);
+  assert.equal(purchases.spent, 360);
+  assert.equal(purchases.incomplete, false);
+  assert.deepEqual([...purchases.forms.components[0]!.distribution.states], [['0', 1]], 'gold-only skills still cannot generate white sparks');
+});
+
+test('full-price cost retains rare gold sources omitted by bounded joint sampling', () => {
+  const skills = Array.from({ length: 13 }, (_, i) => [0, 1].map((form) => ({
+    ...focus.white!, id: 900000 + i * 2 + form, name: `Test ${i} ${form}`, rarity: form ? 2 : 1,
+    cost: form ? 90 : 10, versions: [900000 + i * 2 + (1 - form)],
+  }))).flat();
+  const fixture = { ...data, skillById: new Map(skills.map((s) => [s.id, s])) };
+  const targets = Array.from({ length: 13 }, (_, i) => resolveTarget(900000 + i * 2, fixture)!);
+  const reward = (skillId: number, share: number) => ({ skillId, share, gold: fixture.skillById.get(skillId)!.rarity === 2, circle: false, rolled: false });
+  const rare = 1e-8;
+  const roll = { pFire: 1, outcomes: [targets.map((t, i) => i ? [reward(t.id, .5)] : [reward(t.id, 1 - rare), reward(t.gold!.id, rare)])] };
+  const coverage = new Map(targets.map((t, i) => [t.id, (i ? [{ id: t.id, p: .5 }] : [{ id: t.id, p: 1 - rare }, { id: t.gold!.id, p: rare }]).map(({ id, p }): EventSource => ({
+    kind: 'chain', skillId: id, gold: fixture.skillById.get(id)!.rarity === 2, circle: false, pObtain: p, isChoice: false,
+    detail: 'Shared reward', event: { key: 'shared', label: 'Shared reward', option: '', optionIndex: 0 }, roll,
+  }))]));
+  const ctx = makeCtx({ data: fixture, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [] });
+  ctx.sources = { ...prepareRunSources(ctx), trainee: (t) => coverage.get(t.id) ?? [] };
+  const purchases = estimatePurchases([], targets, ctx, apt);
+  assert.ok(purchases.forms.components[0]!.distribution.approximate, 'the fixture exceeds the joint state bound');
+  assert.ok(![...purchases.forms.components[0]!.distribution.states].some(([state]) => state[0] === '3'), 'sampling misses the rare gold outcome');
+  assert.equal(purchases.spent, 100 + 12 * 10, 'the first family costs white plus gold, the other twelve cost white');
+  assert.equal(purchases.incomplete, false);
+});
+
+test('source costs include circle upgrades and prerequisites, and disclose unknown prices', () => {
+  const white = { ...focus.white!, cost: 20 };
+  const circle = { ...white, id: 999001, name: 'Test ◎', cost: 30, unreleasedEn: false };
+  const gold = { ...focus.gold!, cost: 80 };
+  const target: Target = { ...focus, white, circle, gold };
+  const ctx = makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [] });
+  const sources = [hint(white.id, .5), { ...hint(gold.id, 0), gold: true }];
+  ctx.sources = { ...prepareRunSources(ctx), trainee: () => sources };
+  const buy = (t = target) => estimatePurchases([], [t], ctx, apt);
+  assert.equal(buy().spent, 50, 'a white hint permits the released circle upgrade, with its white prerequisite');
+  assert.equal(buy({ ...target, circle: { ...circle, unreleasedEn: true } }).spent, 20, 'unreleased circle upgrades cannot be bought');
+  sources[1]!.pObtain = .01;
+  assert.equal(buy().spent, 130, 'gold costs white plus circle plus gold regardless of probability');
+  const unknown = buy({ ...target, gold: { ...gold, cost: null } });
+  assert.equal(unknown.incomplete, true, 'the highest obtainable form has an unknown price');
+  assert.equal(unknown.spent, 0, 'the unknown family does not inflate the lower bound');
 });

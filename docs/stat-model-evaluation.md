@@ -220,13 +220,15 @@ The full-price cost message is a separate calculation. It takes the union of req
 preferred targets and the displayed prioritized list, deduplicated by family. Only forms with a
 positive-probability source after resolving event choices contribute. Each family costs the full
 price of its highest obtainable form plus prerequisites, without probability weighting or a budget
-cap. Unknown prices make this a lower bound. Unlisted hints outside those families affect Rank's
-spending efficiency but do not contribute to this cost.
+cap. This calculation reads resolved sources directly, so gold-only families and rare outcomes
+omitted by joint sampling still count. Unknown prices make this a lower bound. Unlisted hints
+outside those families affect Rank's spending efficiency but do not contribute to this cost.
 
 Both calculations use the same modeled trainee, deck, scenario and lineage sources. Unlisted
-choice rewards are not credited, but rewards that require no choice survive. Shared event outcomes
-stay correlated. Contested required-target orders use the same joint required-goal scorer as deck
-search, including required star thresholds and fallback subsets, with no near-tie tolerance.
+choice rewards are not credited, including when every extra is hidden and the list is empty.
+Rewards that require no choice survive. Shared event outcomes stay correlated. Contested
+required-target orders use the same joint required-goal scorer as deck search, including required
+star thresholds and fallback subsets, with no near-tie tolerance.
 
 Small joint source distributions are enumerated exactly. Large ones use deterministic samples,
 and the UI notes that rare joint outcomes can be missed. Parent-goal estimates assume the obtainable

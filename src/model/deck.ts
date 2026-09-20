@@ -16,13 +16,13 @@ export interface Ctx {
   trainee: Character | null;
   raceWins: RaceWins;            // win chance per agenda race, for the trainee's secret events
   lineage: Map<number, Lineage>; // target.id -> existing lineage sparks
-  priority: number[];            // skill ids of the listed prioritized skills in order (every form of a family); decides which option an event yields, and unlisted choice rewards are not credited. Empty: every target counts as listed.
+  priority: number[] | null;     // listed skill ids in order, including every family form. Null: no list calculated yet; []: no listed skills.
   fansBefore?: (slot: number) => number; // the agenda's expected fans before a slot, for fan-scaled unique effects
   sources?: PreparedRunSources; // shared only by candidates of the same plan
 }
 /** A Ctx with no agenda, lineage or priority unless given; for tests and scripts. */
 export function makeCtx(base: Pick<Ctx, 'data' | 'settings' | 'races' | 'totalTurns' | 'trainee'> & Partial<Ctx>): Ctx {
-  return { raceWins: new Map(), lineage: new Map(), priority: [], ...base };
+  return { raceWins: new Map(), lineage: new Map(), priority: null, ...base };
 }
 /** Everything already in play for the run: non-scenario sources per target, and which characters are present. */
 export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: Card[]; limitBreaks?: Map<number, number> }

@@ -36,12 +36,11 @@ function costAt(t: Target, form: number): number | null {
 }
 
 /**
- * Every owned form is bought: the expected rating and its spread over the form outcomes, and the worst-case price of
- * the best form each family can reach, whatever the SP budget. Components are independent, so their variances add.
+ * Expected rating and its spread over the target form outcomes. Components are independent, so their variances add.
+ * These spark distributions can omit gold-only families and rare outcomes; purchase costs use source coverage.
  */
-export function purchasesFromForms(targets: Target[], forms: FormDistribution, apt: Aptitudes): Omit<Purchases, 'targets' | 'forms'> {
-  let score = 0, variance = 0, spent = 0, incomplete = false;
-  const best = Array<number>(targets.length).fill(0);
+export function purchasesFromForms(targets: Target[], forms: FormDistribution, apt: Aptitudes): Pick<Purchases, 'score' | 'variance' | 'unverified'> {
+  let score = 0, variance = 0;
   const rated = new Set<number>();
   for (const { indices, distribution } of forms.components) {
     let mean = 0, second = 0;
@@ -51,7 +50,6 @@ export function purchasesFromForms(targets: Target[], forms: FormDistribution, a
       indices.forEach((index, i) => {
         const form = Number(state[i]), t = targets[index]!;
         points += pointsAt(t, form, apt);
-        if (form > best[index]!) best[index] = form;
         const s = form > 0 ? formsOf(t)[form - 1] : null;
         if (usable(s)) rated.add(s.id);
       });
@@ -59,9 +57,26 @@ export function purchasesFromForms(targets: Target[], forms: FormDistribution, a
     }
     score += mean; variance += Math.max(0, second - mean * mean);
   }
-  targets.forEach((t, i) => { if (!best[i]) return; const cost = costAt(t, best[i]!); if (cost == null) incomplete = true; else spent += cost; });
   const unverified = targets.flatMap((t) => formsOf(t).filter((s): s is Skill => usable(s) && rated.has(s.id) && s.rating === undefined).map((s) => s.id));
-  return { score, variance, spent, incomplete, unverified };
+  return { score, variance, unverified };
+}
+
+/** Full price of each family's highest obtainable form, independent of spark eligibility and joint sampling. */
+function costFromCoverage(targets: Target[], coverage: Map<number, SkillSource[]>): Pick<Purchases, 'spent' | 'incomplete'> {
+  let spent = 0, incomplete = false;
+  for (const t of targets) {
+    let best = 0;
+    for (const source of coverage.get(t.id) ?? []) {
+      if (source.pObtain <= 0) continue;
+      const form = source.gold ? 3 : source.circle || usable(t.circle) ? 2 : 1;
+      if (usable(formsOf(t)[form - 1])) best = Math.max(best, form);
+    }
+    if (!best) continue;
+    const cost = costAt(t, best);
+    if (cost == null) incomplete = true;
+    else spent += cost;
+  }
+  return { spent, incomplete };
 }
 
 /**
@@ -72,7 +87,7 @@ export function purchasesFromForms(targets: Target[], forms: FormDistribution, a
  */
 export function estimatePurchases(deck: { card: Card; lb: number }[], goalTargets: Target[], ctx: Ctx, apt: Aptitudes): Purchases {
   const families = new Map(goalTargets.map((t) => [t.id, t]));
-  for (const id of ctx.priority) {
+  for (const id of ctx.priority ?? []) {
     const t = ctx.sources ? ctx.sources.target(id) : resolveTarget(id, ctx.data);
     if (t && !families.has(t.id)) families.set(t.id, t);
   }
@@ -81,7 +96,7 @@ export function estimatePurchases(deck: { card: Card; lb: number }[], goalTarget
   const goalIds = new Set(goalTargets.map((t) => t.id));
   const targets = all.filter((t) => goalIds.has(t.id) || (coverage.get(t.id)?.length ?? 0) > 0);
   const forms = jointSkillForms(targets, coverage, ctx.data);
-  return { targets, forms, ...purchasesFromForms(targets, forms, apt) };
+  return { targets, forms, ...purchasesFromForms(targets, forms, apt), ...costFromCoverage(targets, coverage) };
 }
 
 /**
@@ -115,7 +130,7 @@ export function ratingFromCoverage(targets: Target[], coverage: Map<number, Skil
 /** All modeled sources can inform rank spending, including unlisted hints, innate skills and automatic rewards. */
 export function estimateSkillRating(deck: { card: Card; lb: number }[], ctx: Ctx, sp: number, apt: Aptitudes): SkillRating {
   const completion = SCENARIO_COMPLETION_SKILLS[ctx.settings.scenarioId];
-  const ids = [...ctx.priority, ...ctx.lineage.keys(), ...deck.flatMap(({ card }) => [...card.hintSkills, ...card.eventSkills]),
+  const ids = [...(ctx.priority ?? []), ...ctx.lineage.keys(), ...deck.flatMap(({ card }) => [...card.hintSkills, ...card.eventSkills]),
     ...(ctx.trainee ? [...ctx.trainee.innateSkills, ...ctx.trainee.awakeningSkills, ...ctx.trainee.eventSkills] : []),
     ...ctx.data.scenarioEvents.filter((e) => e.scenarioId === ctx.settings.scenarioId).flatMap((e) => e.choices.flatMap((c) => [c.skill, c.whiteSkill, c.goldSkill])),
     ...(completion ? [completion.white, completion.gold] : [])];

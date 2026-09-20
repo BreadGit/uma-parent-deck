@@ -17,8 +17,8 @@ const source = (skillId: number, roll: Parameters<typeof decodeEventRoll>[0], st
   event: { key: `test:chain:${stage}`, label: 'Shared choice', option: 'one', optionIndex: 0 },
   chain: { key: 'test:chain', stage, pReach: roll.pFire },
 });
-/** `priority` lists the target ids the prioritized list holds; empty lists every target. */
-function check(targets: Target[], sources: Map<number, SkillSource[]>, priority: number[]) {
+/** `priority` lists the target ids the prioritized list holds; null lists every target, while an empty list steers nothing. */
+function check(targets: Target[], sources: Map<number, SkillSource[]>, priority: number[] | null) {
   const ctx = makeCtx({ data, settings, trainee: null, races: 20, totalTurns: 72, priority });
   const coverage = evaluate({ cards: [], chars: new Set(), sources }, targets, ctx);
   const joint = whiteGenerationMoments(jointSkillForms(targets, coverage.map, data), [], settings);
@@ -49,7 +49,7 @@ test('a shared reward gives both families, and a later chain stage guarantees th
   later.pObtain = .2;
   const joint = check([a, b, c], new Map([
     [a.id, [source(a.id, roll), source(a.gold!.id, roll)]], [b.id, [bSource]], [c.id, [later]],
-  ]), []);
+  ]), null);
   close(joint.available[0]!, .6);
   close(joint.available[1]!, .6);
   close(joint.available[2]!, .2);
@@ -62,7 +62,7 @@ test('simultaneous forms in one outcome count once at the best form', () => {
   const target = resolveTarget(200352, data)!;
   const roll = { pFire: .6, outcomes: [[{ t: 'sk', d: target.id }, { t: 'sk', d: target.gold!.id }]] };
   const sources = [target.id, target.gold!.id].map((id) => ({ ...source(id, roll), pObtain: .6 }));
-  const joint = check([target], new Map([[target.id, sources]]), []);
+  const joint = check([target], new Map([[target.id, sources]]), null);
   close(joint.available[0]!, .6);
   close(joint.each[0]!, .6 * .4);
 });
@@ -70,9 +70,11 @@ test('simultaneous forms in one outcome count once at the best form', () => {
 test('unlisted automatic event rewards survive while unlisted choice rewards do not', () => {
   const target = resolveTarget(200352, data)!;
   const automatic = { ...source(target.id, { pFire: .6, outcomes: [[{ t: 'sk', d: target.id }]] }), pObtain: .6, isChoice: false };
-  const result = check([target], new Map([[target.id, [automatic]]]), [201601]);
-  close(result.available[0]!, .6);
-  close(result.each[0]!, .6 * settings.whiteSparkRate);
+  for (const priority of [[], [201601]]) {
+    const result = check([target], new Map([[target.id, [automatic]]]), priority);
+    close(result.available[0]!, .6);
+    close(result.each[0]!, .6 * settings.whiteSparkRate);
+  }
 });
 
 test('unsteered common rewards keep one option and do not credit its choice-gated sibling', () => {

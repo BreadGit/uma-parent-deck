@@ -185,7 +185,7 @@ test('ownership odds combine sources the way the game runs them: duplicates in o
   const date3 = cardSourcesForTarget(sasami, 4, risky, 20, T, data, settings).filter((s) => eventKeyOf(s) === `${sasami.id}:recreation:3`);
   assert.equal(date3.length, 3);
   assert.ok(date3.some((s) => s.gold && (s as EventSource).event.optionIndex === 0) && date3.some((s) => s.gold && (s as EventSource).event.optionIndex === 1), 'both options offer the gold');
-  const kept = pruneConflicts(new Map([[risky.id, date3]]), [], [], settings);
+  const kept = pruneConflicts(new Map([[risky.id, date3]]), null, [], settings);
   assert.deepEqual(kept.map.get(risky.id)!.map((s) => (s as EventSource).event.optionIndex), [1, 1], 'the second option gives the gold at the same chance plus the white form');
   assert.equal(kept.conflicts.length, 0, 'one target on the event: nothing was contested');
   assert.ok(Math.abs(combineSources(kept.map.get(risky.id)!).pAny - 2 * date3[0]!.pObtain) < 1e-9, 'the kept option is worth twice the single option chance');
@@ -279,11 +279,11 @@ test('one option per event: the prioritized order decides which target takes it,
   assert.equal(d.conflicts.find((x) => x.eventKey === ikey)?.dropped[0]?.target, standard.id);
 });
 
-test('a target absent from a non-empty list gets nothing from its choice events, and nothing is reported', () => {
+test('a target absent from the calculated list gets nothing from its choice events, and nothing is reported', () => {
   const focus = target('Focus'), lane = byName('Lane Legerdemain');
   const base = ctxOf();
   const listed = evaluate(traineeCoverage([focus], base), [focus], base);
-  assert.ok(listed.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'an empty list counts every target as listed');
+  assert.ok(listed.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'before calculating the list every target counts as listed');
   const unlisted = evaluate(traineeCoverage([focus], base), [focus], { ...base, priority: [lane.id] });
   assert.ok(!unlisted.map.get(focus.id)!.some((s) => s.kind === 'scenario'), 'the scenario option is not credited');
   assert.equal(unlisted.map.get(focus.id)!.length, listed.map.get(focus.id)!.filter((s) => !s.isChoice).length, 'sources that need no choice stay');
