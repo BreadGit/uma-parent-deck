@@ -100,26 +100,26 @@ function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
   return html`<li draggable="${extra && !locked ? 'true' : 'false'}" data-wl-key="${w.key}" data-wl-role="${w.role}" class="${extra ? 'wl-extra' : 'wl-target'} ${view.drag.key === w.key ? 'dragging' : ''} ${view.drag.over === w.key && view.drag.key !== w.key ? 'drop-target' : ''}">
     <span class="wl-num">${i + 1}.</span><span class="grip ${extra ? '' : 'grip-none'}" aria-hidden="true">⋮⋮</span>
     <span class="wl-body">${tags(c, w)}${name}</span>
-    ${extra ? html`<span class="wl-actions">
+    <span class="wl-actions ${extra ? '' : 'wl-fixed'}" tabindex=${extra ? nothing : 0} role=${extra ? nothing : 'group'} aria-label=${extra ? nothing : COPY.priorities.targetsFixed} data-tip=${extra ? nothing : COPY.priorities.targetsFixed}>
       <button class="small wl-move" data-action="wl-up" data-id="${w.key}" aria-label="Move ${w.name} up" data-tip="Move up" ?disabled=${!canMove(-1)} @click=${() => nudgeSkill(w.key, -1)}>▲</button>
       <button class="small wl-move" data-action="wl-down" data-id="${w.key}" aria-label="Move ${w.name} down" data-tip="Move down" ?disabled=${!canMove(1)} @click=${() => nudgeSkill(w.key, 1)}>▼</button>
-      <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Hide ${w.name}" data-tip="Hide from the list" ?disabled=${locked} @click=${() => hideSkill(w.key)}>✕</button>
-    </span>` : html`<span class="wl-actions wl-fixed" data-tip=${COPY.priorities.targetsFixed}></span>`}
+      <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Hide ${w.name}" data-tip="Hide from the list" ?disabled=${!extra || locked} @click=${() => { if (extra) hideSkill(w.key); }}>✕</button>
+    </span>
     ${sibs.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">${COPY.priorities.instead}</span>${sibs.map((s) => swapChip(c, s.entry, w, s.events, locked))}</div>` : nothing}</li>`;
 }
 
 /**
  * The candidates outside the list and the hidden ones, each with a button that brings it in. The row is clamped to
- * three lines; app.ts observes whether that hides any and the toggle appears only then (or while the row is expanded).
+ * three lines; app.ts observes whether that hides any and the toggle appears only when collapsing would hide a chip.
  */
 function candidates(c: RunPlan, locked: boolean) {
   if (!c.wlRest.length && !c.wlHidden.length) return nothing;
   const expanded = view.showAllCandidates;
-  return html`<div class="small muted wl-extra ${expanded ? '' : 'clamped'}" data-candidates>
+  return html`<div class="small muted wl-extra wl-candidates ${expanded ? '' : 'clamped'}" data-candidates>
       ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name}${isExtra(w) ? html` <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" ?disabled=${locked} @click=${() => addSkill(w.key)}>+</button>` : nothing}</span>`)}` : nothing}
       ${c.wlHidden.length ? html`<span>${COPY.priorities.hiddenRow}</span> ${c.wlHidden.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" ?disabled=${locked} @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
     </div>
-    ${view.candidatesOverflow || expanded ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; refresh(); }}>${expanded ? COPY.priorities.fewerCandidates : COPY.priorities.allCandidates}</button>` : nothing}`;
+    ${view.candidatesOverflow ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; refresh(); }}>${expanded ? COPY.priorities.fewerCandidates : COPY.priorities.allCandidates}</button>` : nothing}`;
 }
 
 export function renderPriorities(c: RunPlan) {

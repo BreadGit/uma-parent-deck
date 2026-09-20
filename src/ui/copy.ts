@@ -144,7 +144,7 @@ export const COPY = {
     ignoredTip: 'Cards this run never suggests for an owned slot, nor for the friend\'s slot unless allowed below. Ignore a card here or with the button beside it in the suggested deck or the card ranking.',
     ignorePlaceholder: 'Search a support card to ignore…',
     noIgnored: 'Nothing ignored.',
-    borrowIgnored: "Allow ignored cards in the friend's slot",
+    borrowIgnored: "Allow ignored cards in the friend borrow slot",
   },
   cards: {
     pin: (name: string) => `Pin ${name}`,
@@ -236,14 +236,14 @@ export const COPY = {
   priorities: {
     title: 'Prioritized skills',
     tip: `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices; a target outside them is not credited with its event options. Targets follow Parent goal: required first, then preferred by priority. The extras below them are yours to arrange; the deck search does not read that order. The run takes one option per event, so an option a higher entry already takes is not listed; the chips under that entry swap it in.`,
-    reset: 'Reset extras',
+    reset: 'Reset',
     empty: 'Nothing to prioritize yet.',
     notListed: 'Not listed:',
     hiddenRow: 'Hidden:',
     source: 'Source',
     allCandidates: 'Show all candidates',
     fewerCandidates: 'Show fewer',
-    targetsFixed: 'Targets keep the order of Parent goal: required first, then preferred by priority. Change it there.',
+    targetsFixed: 'Target skills cannot be removed from the prioritized skills list. Change targets and their order in Parent goal.',
     roles: {
       required: { label: 'required', tip: 'A required target of the parent goal.' },
       preferred: { label: 'preferred', tip: 'A preferred target of the parent goal.' },

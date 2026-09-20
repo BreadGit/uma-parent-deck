@@ -106,27 +106,29 @@ function page() {
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
 }
 
-/**
- * The skill candidates are clamped by CSS to three lines. Whether that clips anything is only known after layout, so a
- * ResizeObserver reads it whenever the row's box changes (its first layout, a window resize, more or fewer chips) and
- * the panel is drawn again only when the answer changed. The answer is left alone while the row is expanded, so the
- * toggle that opened it stays in place, and focused, when it closes the row again.
- */
+/** Recheck chip bounds after layout, including content edits and resizing an expanded list. */
 function watchCandidates(root: HTMLElement) {
-  let watched: Element | null = null;
-  const observer = new ResizeObserver(([entry]) => {
-    if (!entry || view.showAllCandidates) return;
-    const overflow = entry.target.scrollHeight > entry.target.clientHeight + 1;
-    if (overflow === view.candidatesOverflow) return;
+  let watched: HTMLElement | null = null;
+  let frame = 0;
+  const measure = () => {
+    frame = 0;
+    const bottom = watched ? watched.getBoundingClientRect().top + parseFloat(getComputedStyle(watched).getPropertyValue('--wl-candidates-height')) : 0;
+    const overflow = !!watched && [...watched.children].some((chip) => chip.getBoundingClientRect().bottom > bottom + 1);
+    if (overflow === view.candidatesOverflow && (overflow || !view.showAllCandidates)) return;
     view.candidatesOverflow = overflow;
+    if (!overflow) view.showAllCandidates = false;
     refresh();
-  });
+  };
+  const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+  const observer = new ResizeObserver(schedule);
   return () => {
-    const el = root.querySelector('[data-candidates]');
-    if (el === watched) return;
-    if (watched) observer.unobserve(watched);
-    watched = el;
-    if (el) observer.observe(el);
+    const el = root.querySelector<HTMLElement>('[data-candidates]');
+    if (el !== watched) {
+      if (watched) observer.unobserve(watched);
+      watched = el;
+      if (el) observer.observe(el);
+    }
+    schedule();
   };
 }
 

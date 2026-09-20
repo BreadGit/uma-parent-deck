@@ -543,7 +543,7 @@ test('editing waits for a pause, ignores intermediate and cancelled results, and
   await assertFieldsMatchState(page, 'after debounced search and skill reordering');
 });
 
-test('target rows follow the goal and carry no controls; only extras can be arranged or hidden', async (t) => {
+test('target rows show disabled controls with explanations; only extras can be arranged or hidden', async (t) => {
   const saved = defaultState(data);
   const focus = data.skills.find((s) => s.name === 'Focus');
   const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power');
@@ -557,7 +557,16 @@ test('target rows follow the goal and carry no controls; only extras can be arra
   assert.equal(await first.getAttribute('data-wl-key'), '201601', 'the required target is first whatever the saved order says');
   assert.match(await first.innerText(), /required/);
   assert.equal(await first.getAttribute('draggable'), 'false');
-  assert.equal(await page.locator('.wishlist li[data-wl-role="required"] button, .wishlist li[data-wl-role="preferred"] button').count(), 0, 'target rows have no arrows or hide button');
+  const targets = page.locator('.wishlist li.wl-target');
+  assert.ok(await targets.count() >= 2);
+  assert.equal(await targets.locator('.wl-actions button').count(), 3 * await targets.count(), 'targets show both arrows and the hide control');
+  assert.equal(await targets.locator('.wl-actions button:not([disabled])').count(), 0, 'target controls cannot change the list');
+  const controls = first.locator('.wl-actions');
+  await controls.hover();
+  await page.waitForSelector('#tooltip.show');
+  assert.match(await page.locator('#tooltip').innerText(), /target skills.*cannot be removed/i);
+  await controls.focus();
+  assert.match(await page.locator('#tooltip').innerText(), /Parent goal/);
   assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder, 'the saved order is kept even where it names targets');
   assert.equal(await page.locator('[data-action="wl-export"]').count(), 0, 'the list has no export button');
   const extra = page.locator('.wishlist li[data-wl-role="extra"]').first();
@@ -568,6 +577,45 @@ test('target rows follow the goal and carry no controls; only extras can be arra
   assert.equal(await page.locator('[data-priority-conflict]').count(), 0, 'hiding raises no warning');
   assert.equal(await first.getAttribute('data-wl-key'), '201601');
   await assertFieldsMatchState(page, 'after hiding an extra');
+});
+
+test('candidate toggle disappears when all chips fit, including after resizing an expanded list', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100501;
+  const page = await fresh(t, saved);
+  const hide = page.locator('[data-action="wl-exclude"]:not([disabled])');
+  for (let i = 0; await hide.count(); i++) {
+    assert.ok(i < 40, 'hiding extras terminates');
+    await hide.first().click();
+  }
+  const toggle = page.locator('[data-action="wl-candidates"]');
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await toggle.waitFor();
+  await toggle.click();
+  assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.waitForFunction(() => {
+    const el = document.querySelector('[data-candidates]');
+    return [...el.children].every((chip) => chip.getBoundingClientRect().bottom <= el.getBoundingClientRect().top + 84);
+  });
+  await toggle.waitFor({ state: 'detached' });
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await toggle.waitFor();
+  assert.equal(await toggle.getAttribute('aria-expanded'), 'false', 'the list collapses again when more rows need hiding');
+  await toggle.focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+  await page.keyboard.press('Enter');
+  assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'wl-candidates');
+  await toggle.click();
+  const restore = page.locator('[data-action="wl-restore"]');
+  for (let i = 0; await restore.count(); i++) {
+    assert.ok(i < 40, 'restoring extras terminates');
+    await restore.first().click();
+  }
+  await toggle.waitFor({ state: 'detached' });
+  await assertFieldsMatchState(page, 'after resizing, toggling and restoring candidates');
 });
 
 test('the first reset clears targets, trainee, pins and inheritance while preserving settings and inventory', async (t) => {

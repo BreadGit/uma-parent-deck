@@ -394,9 +394,9 @@ td.target-chances { min-width: 260px; }
 .wishlist { list-style: none; padding-left: 0; margin: 4px 0; }
 .wishlist li { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px; margin: 2px 0; padding: 3px 4px; border-radius: 4px; }
 .wishlist li.wl-extra[draggable="true"] { cursor: grab; }
-/* target rows follow the goal editor: no grip, no controls, but the same indent as the extras */
+/* Target rows follow the goal editor. Their disabled controls share a focusable tooltip. */
 .wishlist .grip-none { visibility: hidden; }
-.wishlist .wl-fixed { min-height: 18px; }
+.wishlist .wl-fixed button { pointer-events: none; }
 /* while a search runs the deck may change, so the extras are shown but not editable */
 .wishlist.wl-locked li.wl-extra, .wishlist.wl-locked ~ .wl-extra { opacity: .55; }
 .wishlist .wl-body { flex: 1; min-width: 0; }
@@ -414,12 +414,13 @@ td.target-chances { min-width: 260px; }
 .wl-swap:disabled { opacity: .5; cursor: default; }
 .wl-swap:disabled:hover { border-color: var(--line); }
 .wishlist .wl-move { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
-.wishlist .wl-move:disabled { opacity: .3; cursor: default; }
+.wishlist .wl-move:disabled, .wishlist .wl-x:disabled { opacity: .3; cursor: default; }
 .wl-kind { display: inline-block; margin-right: 6px; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
 .wl-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
 /* three rows of chips (21px chip, 2px margins, 4px row gap); the rest shows on request */
-.wl-extra.clamped { max-height: 83px; overflow: hidden; }
+.wl-candidates { --wl-candidates-height: 83px; }
+.wl-candidates.clamped { max-height: var(--wl-candidates-height); overflow: hidden; }
 .wl-candidates-toggle { margin-top: 6px; }
 
 /* advanced settings: each field shows its default and marks a changed value */
