@@ -235,7 +235,7 @@ export const COPY = {
   },
   priorities: {
     title: 'Prioritized skills',
-    tip: `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices. Required targets come first, then preferred and other skills; drag a row or use the arrows to reorder within each group. Excluded choices are not counted as available sources.`,
+    tip: `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices. Required targets come first, then preferred and other skills; drag a row or use the arrows to reorder within each group. The run takes one option per event, so an option a higher entry already takes is not listed; the chips under that entry swap it in. Excluded choices are not counted as available sources.`,
     reset: 'Reset',
     empty: 'Nothing to prioritize yet.',
     notListed: 'Not listed:',
@@ -247,15 +247,13 @@ export const COPY = {
       target: { label: 'target', tip: 'Leads to a target and needs the run to pick this option at an event.' },
       other: { label: 'not a target', tip: 'Not a target, but listing it steers the run to this option and its skill.' },
       given: { label: 'target, no choice', tip: 'A target the run gets without choosing anything. It is listed to fill the slot; the order does not matter for it.' },
-      taken: { label: 'target, option taken', tip: 'Every event option that gives this target goes to a skill listed higher. It stays listed as a target so the run can still chase its hints.' },
+      conflict: { label: 'target, conflict', tip: 'A skill listed higher takes every event option that gives this target, so this target gets nothing from those events. It stays listed for its hints. To take the option for this target instead, move it above that skill or use its chip under that skill.' },
     },
-    // PROTOTYPE copy for the event-group renderings
     instead: 'or instead:',
-    takenBy: (name: string) => `This option goes to ${name}, which is required.`,
+    keptByRequired: (name: string) => `This option goes to ${name}, which is required.`,
     swapTip: (name: string, event: string) => `Take ${name} at ${event} instead. The current pick moves behind it.`,
-    sharedEvents: 'Shared events',
-    sharedNote: 'Each of these events gives one option. The entry ranked first takes it; the others are not listed until you pick one of them instead.',
     listedAt: (n: number) => `#${n}`,
+    hidden: (n: number) => `${n} taken option${n === 1 ? '' : 's'} not listed`,
   },
   prediction: {
     title: 'Predicted run',

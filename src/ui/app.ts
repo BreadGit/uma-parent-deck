@@ -19,7 +19,7 @@ import { renderLegacy } from './panels/legacy.ts';
 import { renderRun } from './panels/run.ts';
 import { renderSettings } from './panels/settings.ts';
 import { renderDeck } from './panels/deck.ts';
-import { prototypeBar, renderPrioritiesPrototype } from './panels/priorities.prototype.ts';
+import { renderPriorities } from './panels/priorities.ts';
 import { renderPrediction } from './panels/prediction.ts';
 import { renderPredictionDetails } from './panels/details.ts';
 import { renderSchedule } from './panels/schedule.ts';
@@ -95,7 +95,7 @@ function page() {
             ${section('estimate', () => renderGoalResult(c))}
             ${section('prediction', () => renderPrediction(c))}
           </div>
-          <div class="results-col">${section('priorities', () => renderPrioritiesPrototype(c))}</div>
+          <div class="results-col">${section('priorities', () => renderPriorities(c))}</div>
         </div>
         ${section('schedule', () => renderSchedule(c))}` : section('estimate', () => renderGoalResult(c))}
         ${section('details', () => renderPredictionDetails(c))}
@@ -103,7 +103,6 @@ function page() {
       </div>
     </main>
     <div id="tooltip" role="tooltip"></div>
-    ${prototypeBar()}
     <div class="footer">Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
 }
 

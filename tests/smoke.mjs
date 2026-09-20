@@ -271,6 +271,18 @@ if (await candidatesClipped()) {
   assert.equal(await page.locator('[data-action="wl-candidates"]').getAttribute('aria-expanded'), 'false');
   assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'wl-candidates', 'the toggle keeps focus when the row closes');
 }
+// A row that takes a shared event lists the options it displaced; a chip puts that option in the row's place and back.
+const swapChip = page.locator('[data-action="wl-swap"]:not([disabled])').first();
+if (await swapChip.count()) {
+  const [sibling, winner] = await swapChip.evaluate((b) => [b.dataset.id, b.dataset.for]);
+  await swapChip.click();
+  await savedState(`st.run.wishlistOrder.indexOf(${sibling}) === st.run.wishlistOrder.indexOf(${winner}) - 1`);
+  await settled();
+  assert.equal(await page.locator(`.wishlist li[data-wl-key="${sibling}"] [data-action="wl-swap"][data-id="${winner}"]`).count(), 1, 'the displaced entry is a chip under the one that took its place');
+  await page.click(`[data-action="wl-swap"][data-id="${winner}"][data-for="${sibling}"]`);
+  await savedState(`st.run.wishlistOrder.indexOf(${winner}) === st.run.wishlistOrder.indexOf(${sibling}) - 1`);
+  await assertFieldsMatchState(page, 'after swapping an event option in and back');
+}
 const bodyText = await page.textContent('body');
 assert.ok(!bodyText.includes('blue spark 1★'), 'predicted run still shows blue spark odds');
 assert.ok(!bodyText.includes('Card / event / inherited stats'), 'predicted run still shows stat-source totals');

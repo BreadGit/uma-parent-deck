@@ -47,8 +47,12 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
 - **Prioritized skills**: the tool's suggested list of up to ten entries for independent training. Entry tags:
   **required** (leads to a Required target), **target** (choice-gated, leads to a Preferred target),
   **not a target** (choice-gated, doesn't), **target, no
-  choice** (given regardless, listed as filler). Only these ten steer event choices; the tool assumes their
-  order decides which option wins a conflict, which the game does not confirm. Each entry's info icon ends
+  choice** (given regardless, listed as filler), **target, conflict** (a target whose every event option a
+  higher entry takes; it stays listed for its hints). Only these ten steer event choices; the tool assumes their
+  order decides which option wins a conflict, which the game does not confirm. The run takes one option per
+  event, so a candidate that is not a target and whose every event a higher entry already takes is not
+  listed: it sits as a chip under the entry that took it, and the chip swaps it into that entry's place. A
+  candidate offered by another event the list does not take stays listed for that event. Each entry's info icon ends
   with its source, the card or event that gives the skill. Candidates outside the ten sit below the list
   with an add button; the row shows three lines and "Show all candidates" expands it.
 - **Choice conflict**: two or more targets (or a ranked non-target option) competing for one event's
