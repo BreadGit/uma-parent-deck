@@ -111,7 +111,7 @@ export const COPY = {
     resetTip: "Clear every gain to +0 and restore the trainee's own aptitudes",
     pinkSparks: 'Pink per parent',
     pinkSparksTip: 'Enter the pink spark of each parent and grandparent for mid-run aptitude estimates',
-    resetPink: 'Reset pink sparks',
+    resetPink: 'Reset',
     resetPinkTip: "Clear pink sparks and restore the trainee's base aptitudes",
     gainsLabel: 'start gain per stat',
     gainsTip: `The "+XX" above each stat on the legacy screen, per parent. Each value decodes to the blue sparks behind it. One parent side has ${UMAS_PER_PARENT_SIDE} umas (the parent and her two grandparents) with one blue spark each. Dimmed choices need sparks already assigned to other stats; selecting one takes those sparks, fewest stars first.`,

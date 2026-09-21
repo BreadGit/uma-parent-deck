@@ -63,7 +63,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   planning overrides, including below-base grades from older saves. Dimmed choices can reassign
   other sparks when slots are full. Manual edits update starting grades immediately. Partial
   lineage gives an estimate without a missing-entry warning; below-B increases give probability bounds. Buttons in Parent goal open
-  the pink editor directly. Reset pink sparks restores base grades and clears pink lineage.
+  the pink editor directly. Reset beside "Pink per parent" restores base grades and clears pink lineage.
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
   If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint.

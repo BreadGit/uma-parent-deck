@@ -87,7 +87,7 @@ function lineageTotals(id: number, l: Lineage) {
 }
 /** The stars on each parent and grandparent, one column per side, with the totals they add up to underneath. */
 function lineageParents(id: number, l: Lineage) {
-  return html`<div class="target-lineage-parents" id="target-lineage-parents" data-lineage-parents=${id}>
+  return html`<div class="per-parent white" id="target-lineage-parents" data-lineage-parents=${id}>
     ${SIDES.map((side) => html`<div class="side p${side + 1}"><span class="side-head">Parent ${side + 1}</span>
       ${UMAS.map((ui) => { const i = side * UMAS_PER_PARENT_SIDE + ui, v = String(l[i]); return html`<span class="who">${UMA_LABELS[ui]}</span>
         <select class=${l[i] ? 'set' : ''} data-lineage-uma="${id}-${i}" aria-label="Parent ${side + 1} ${UMA_LABELS[ui]} stars" .value=${live(v)} @change=${(e: Event) => { const next = [...l]; next[i] = Number(selectValue(e)); setLineage(id, next); }}>${options(UMA_STAR_CHOICES, v)}</select>`; })}
