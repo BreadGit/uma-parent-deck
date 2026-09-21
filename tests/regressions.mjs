@@ -1305,11 +1305,13 @@ test('six manual End sparks stay intact on an unrelated grade selection', async 
   await assertFieldsMatchState(page, 'after reloading six manual End sparks');
 });
 
-test('saved white siblings and gold-only targets stay visible and keep lineage', async (t) => {
+test('legacy saves retain negative choices as unavailable and keep gold-only targets editable', async (t) => {
   const gold = data.skills.find((s) => s.name === 'Runaway');
   const saved = { version: 6, run: { targets: [200433, 200432, gold.id], targetLineage: { 200433: { k1: 1, k2: 0, p1: 2, p2: 0 }, [gold.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } } } };
   const page = await editor(t, saved);
-  for (const id of saved.run.targets) assert.equal(await page.locator(`[data-action="select-target"][data-id="${id}"]`).count(), 1);
+  for (const id of [200432, gold.id]) assert.equal(await page.locator(`[data-action="select-target"][data-id="${id}"]`).count(), 1);
+  assert.equal(await page.locator('[data-action="select-target"][data-id="200433"]').count(), 0, 'Gatekept is not a white-spark target');
+  assert.match(await page.locator('[data-unavailable-choices]').innerText(), /200433/);
   await page.click(`[data-action="select-target"][data-id="${gold.id}"]`);
   assert.match(await page.locator('[data-target-unsupported]').innerText(), /no released white spark/);
   assert.equal(await page.inputValue(`[data-lineage-p="${gold.id}"][data-side="p1"]`), '3');
@@ -1318,6 +1320,7 @@ test('saved white siblings and gold-only targets stay visible and keep lineage',
   assert.deepEqual((await state(page)).run.targetLineage, saved.run.targetLineage);
   await page.reload();
   assert.deepEqual((await state(page)).run.targets.map((t) => t.id), saved.run.targets);
+  assert.match(await page.locator('[data-unavailable-choices]').innerText(), /200433/);
   await page.fill('#target-search-required', 'Runaway');
   await page.click(`[data-action="add-target"][data-id="${gold.id}"]`);
   assert.equal((await state(page)).run.targets.length, 3, 'search resolves the retained target without duplicating it');
