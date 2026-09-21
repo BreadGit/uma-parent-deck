@@ -3,6 +3,7 @@ import type { AppState } from './state.ts';
 import type { RunInput } from './model/run.ts';
 import type { Settings } from './settings.ts';
 import type { AptKey, Grade, Stat } from './types.ts';
+import { lineageFromSides, type Lineage } from './model/sparks.ts';
 
 export interface SharedChoices {
   // Older formats leave schedule overrides on the receiving device unchanged.
@@ -59,13 +60,17 @@ export function sharedChoices(state: AppState): SharedChoices {
   });
 }
 
-// Format 4 slots are documented in docs/sharing.md. Numeric IDs are always the game IDs, never data indexes.
-function pack({ run: r, settings: s }: SharedChoices): unknown[] {
+/** Formats up to 4 stored a lineage as copies and star totals per parent side; format 1 payloads still carry that shape. */
+interface SidedLineage { k1: number; k2: number; p1: number; p2: number }
+const packLineage = (l: Lineage | SidedLineage, version: number) => Array.isArray(l) ? (version >= 5 ? l : invalid()) : [l.k1, l.k2, l.p1, l.p2];
+
+// Format 5 slots are documented in docs/sharing.md. Numeric IDs are always the game IDs, never data indexes.
+function pack({ run: r, settings: s }: SharedChoices, version = 5): unknown[] {
   return [r.traineeCardId, r.traineeStars,
     [r.goal.blueStats.reduce((mask, stat) => mask | 1 << STATS.indexOf(stat), 0), r.goal.blueStars,
       r.goal.pink.map((p) => [p.aptitude === 'any' ? 0 : APTITUDES.indexOf(p.aptitude) + 1, p.stars])],
     r.targets.map((t) => [t.id, t.role === 'required' ? 0 : 1, t.stars, t.priority]),
-    sortedEntries(r.targetLineage).map(([key, l]) => [Number(key), l.k1, l.k2, l.p1, l.p2]),
+    sortedEntries(r.targetLineage).map(([key, l]) => [Number(key), ...packLineage(l, version)]),
     r.parentSparks.map((side) => side.map((p) => p === null ? 0 : STATS.indexOf(p.stat) * 3 + p.stars)),
     r.pinkLineage.map((p) => p === null ? 0 : [APTITUDES.indexOf(p.aptitude), p.stars, p.inferred ? 1 : 0]),
     APTITUDES.flatMap((apt, i) => r.aptOverrides[apt] === undefined ? [] : [[i, GRADES.indexOf(r.aptOverrides[apt]!)]]),
@@ -78,10 +83,10 @@ function pack({ run: r, settings: s }: SharedChoices): unknown[] {
     r.ignoredIds, r.borrowIgnored ? 1 : 0];
 }
 /** How many top-level slots each positional format has. */
-const SLOTS: Record<number, number> = { 2: 14, 3: 15, 4: 17 };
+const SLOTS: Record<number, number> = { 2: 14, 3: 15, 4: 17, 5: 17 };
 const PACKED_DEFAULTS = pack(DEFAULTS);
 
-function unpack(raw: unknown, version = 4): SharedChoices {
+function unpack(raw: unknown, version = 5): SharedChoices {
   const entries = list(raw);
   if (entries.length > (SLOTS[version] ?? invalid())) invalid();
   const a = PACKED_DEFAULTS.map((fallback, i) => entries[i] === undefined || entries[i] === null ? structuredClone(fallback) : entries[i]);
@@ -96,9 +101,10 @@ function unpack(raw: unknown, version = 4): SharedChoices {
     return { id: id(t[0]), role: choice(t[1], ['required', 'preferred'] as const), stars: stars(t[2]), priority: integer(t[3]) };
   }), (t) => t.id);
   const lineage = unique(list(a[4]).map((v) => {
-    const l = tuple(v, 5), k1 = integer(l[1], 0, 3), k2 = integer(l[2], 0, 3);
-    // Older partial saves can have copies with an unentered star total. Sharing preserves that input.
-    return { id: id(l[0]), value: { k1, k2, p1: integer(l[3], 0, 9), p2: integer(l[4], 0, 9) } };
+    if (version >= 5) { const l = tuple(v, 7); return { id: id(l[0]), value: l.slice(1).map((s) => integer(s, 0, 3)) }; }
+    // Older formats stored copies and a star total per parent side; a partial save could leave the total unentered.
+    const l = tuple(v, 5);
+    return { id: id(l[0]), value: lineageFromSides(integer(l[1], 0, 3), integer(l[3], 0, 9), integer(l[2], 0, 3), integer(l[4], 0, 9)) };
   }), (l) => l.id);
   const parentSparks = tuple(a[5], 2).map((v) => tuple(v, 3).map((v) => {
     const n = integer(v, 0, 15);
@@ -145,8 +151,9 @@ function decodePrototype(raw: unknown): SharedChoices {
   const run = { ...structuredClone(DEFAULTS.run), ...Object.fromEntries(fields.map((key, i) => [key, a[i + 1] ?? structuredClone(DEFAULTS.run[key])])) };
   delete run.raceOverrides;
   const original = { run, settings: { focus: a[13] ?? DEFAULTS.settings.focus, winThreshold: a[14] ?? DEFAULTS.settings.winThreshold } } as SharedChoices;
-  const decoded = unpack(pack(original).slice(0, 14), 2);
-  if (canonical(decoded) !== canonical(original)) invalid();
+  const decoded = unpack(pack(original, 2).slice(0, 14), 2);
+  const sided = { ...original, run: { ...original.run, targetLineage: Object.fromEntries(Object.entries(original.run.targetLineage as unknown as Record<string, SidedLineage>).map(([key, l]) => [key, lineageFromSides(l.k1, l.p1, l.k2, l.p2)])) } };
+  if (canonical(decoded) !== canonical(sided)) invalid();
   return decoded;
 }
 
@@ -161,7 +168,7 @@ export async function encodeShare(choices: SharedChoices): Promise<string> {
   const bytes = new TextEncoder().encode(JSON.stringify(entries));
   if (bytes.length > MAX_JSON_BYTES) throw new ShareCodeError('size');
   const compressed = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
-  const code = compressed.length < bytes.length ? `4d${base64(compressed)}` : `4j${base64(bytes)}`;
+  const code = compressed.length < bytes.length ? `5d${base64(compressed)}` : `5j${base64(bytes)}`;
   if (code.length > MAX_CODE_LENGTH) throw new ShareCodeError('size');
   return code;
 }
@@ -171,7 +178,7 @@ export async function decodeShare(code: string): Promise<SharedChoices> {
   try {
     if (code.length > MAX_CODE_LENGTH) throw new ShareCodeError('size');
     if (!/^[0-9][dj][A-Za-z0-9_-]+$/.test(code)) invalid();
-    if (!['1', '2', '3', '4'].includes(code[0]!)) throw new ShareCodeError('version');
+    if (!['1', '2', '3', '4', '5'].includes(code[0]!)) throw new ShareCodeError('version');
     const bytes = Uint8Array.from(atob(code.slice(2).replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0));
     if (base64(bytes) !== code.slice(2)) invalid();
     const source = new Blob([bytes]).stream();

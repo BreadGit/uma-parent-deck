@@ -25,7 +25,7 @@ const populated: SharedChoices = {
     traineeCardId: 100101, traineeStars: 4,
     goal: { blueStats: ['speed', 'power'], blueStars: 3, pink: [{ aptitude: 'mile', stars: 2 }] },
     targets: [{ id: 201601, role: 'required', stars: 3, priority: 0 }],
-    targetLineage: { 201601: { k1: 2, k2: 1, p1: 5, p2: 3 } },
+    targetLineage: { 201601: [3, 2, 0, 3, 0, 0] },
     parentSparks: [[{ stat: 'speed', stars: 3 }, null, { stat: 'power', stars: 2 }], [null, null, null]],
     pinkLineage: [{ aptitude: 'mile', stars: 3, inferred: true }, null, null, null, null, null],
     aptOverrides: { mile: 'A' }, pinnedIds: [30160], borrowFromAll: true,
@@ -77,8 +77,8 @@ test('partial inputs, boundaries, explicit empty choices and inactive lineage su
   input.run.traineeStars = 1;
   input.run.goal = { blueStats: [], blueStars: 1, pink: [{ aptitude: 'end', stars: 3 }, { aptitude: 'dirt', stars: 1 }] };
   input.run.targets = [{ id: 99999991, role: 'preferred', stars: 1, priority: Number.MAX_SAFE_INTEGER }];
-  input.run.targetLineage = { 99999992: { k1: 0, k2: 3, p1: 0, p2: 9 } };
-  input.run.targetLineage['99999993'] = { k1: 2, k2: 0, p1: 0, p2: 0 };
+  input.run.targetLineage = { 99999992: [0, 0, 0, 3, 3, 3] };
+  input.run.targetLineage['99999993'] = [0, 2, 0, 0, 0, 1];
   input.run.aptOverrides = { end: 'G', turf: 'A', mile: 'D' };
   input.run.parentSparks[1] = [{ stat: 'wit', stars: 3 }, { stat: 'stamina', stars: 1 }, { stat: 'guts', stars: 2 }];
   input.run.pinkLineage[5] = { aptitude: 'end', stars: 1 };
@@ -140,7 +140,7 @@ test('unavailable required targets are ignored by calculations without deleting 
   applySharedChoices(local, populated);
   local.run.targets.push({ id: 99999991, role: 'required', stars: 3, priority: 0 });
   local.run.wishlistOrder.push(99999991); local.run.wishlistExcluded.push(99999992);
-  local.run.targetLineage['99999991'] = { k1: 3, k2: 3, p1: 9, p2: 9 };
+  local.run.targetLineage['99999991'] = [3, 3, 3, 3, 3, 3];
   const before = structuredClone(local);
   const result = planRun(local.run, local.settings, local.inventory, data, { search: false });
   const available = structuredClone(local.run);
@@ -165,7 +165,7 @@ test('malformed codes fail before any choices can be applied', async () => {
   for (const code of ['', 'garbage', '2dinvalid', '2jW10=', '2jW11', prototype.slice(0, -3), ...badPayloads.map(plain)]) {
     await assert.rejects(decodeShare(code), ShareCodeError, code.slice(0, 80));
   }
-  await assert.rejects(decodeShare('5jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
+  await assert.rejects(decodeShare('6jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
   await assert.rejects(decodeShare(`1j${Buffer.from('[21]').toString('base64url')}`), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
 });
 
@@ -186,7 +186,7 @@ test('format 4 stores signed calendar IDs and replaces the whole override set', 
   const choices = structuredClone(populated);
   choices.run.raceOverrides = { 624: true, 623: false, 999999: false };
   const code = await encodeShare(choices);
-  assert.equal(code[0], '4');
+  assert.equal(code[0], '5');
   assert.deepEqual(await decodeShare(code), choices);
   const literal = '3j' + Buffer.from(JSON.stringify([...Array(14).fill(null), [-623, 624, -999999]])).toString('base64url');
   assert.deepEqual((await decodeShare(literal)).run.raceOverrides, choices.run.raceOverrides);
@@ -209,7 +209,7 @@ test('format 4 adds ignored cards in slot 15 and the borrow-ignored flag in slot
   choices.run.ignoredIds = [30028, 30001];
   choices.run.borrowIgnored = true;
   const code = await encodeShare(choices);
-  assert.equal(code[0], '4');
+  assert.equal(code[0], '5');
   assert.deepEqual(await decodeShare(code), choices);
   assert.equal(await encodeShare(populated), (await encodeShare(populated)).replace(/^3/, '4'), 'no ignores: the trailing slot is omitted');
   const literal = (version: string, slots: unknown[]) => `${version}j` + Buffer.from(JSON.stringify(slots)).toString('base64url');
@@ -227,6 +227,23 @@ test('format 4 adds ignored cards in slot 15 and the borrow-ignored flag in slot
   applySharedChoices(local, await decodeShare('3jW10'));
   assert.deepEqual(local.run.ignoredIds, [], 'an older link replaces the ignored cards like every other choice');
   assert.equal(local.run.borrowIgnored, false);
+});
+
+test('format 5 stores the stars on each of the six umas; older formats place per-side totals the way the form does', async () => {
+  const literal = (version: string, slots: unknown[]) => `${version}j` + Buffer.from(JSON.stringify(slots)).toString('base64url');
+  const choices = structuredClone(populated);
+  choices.run.targetLineage = { 201601: [0, 2, 0, 0, 0, 1] };
+  const code = await encodeShare(choices);
+  assert.equal(code[0], '5');
+  assert.deepEqual(await decodeShare(code), choices, 'a grandparent-only lineage survives the round trip');
+  assert.deepEqual((await decodeShare(literal('4', [null, null, null, null, [[201601, 2, 1, 5, 3]]]))).run.targetLineage, { 201601: [3, 2, 0, 3, 0, 0] });
+  assert.deepEqual((await decodeShare(literal('2', [null, null, null, null, [[201601, 2, 0, 0, 0]]]))).run.targetLineage, { 201601: [1, 1, 0, 0, 0, 0] }, 'an unentered total gives each copy one star');
+  assert.deepEqual((await decodeShare(literal('5', [null, null, null, null, [[201601, 0, 0, 0, 0, 0, 0]]]))).run.targetLineage, { 201601: [0, 0, 0, 0, 0, 0] });
+  await assert.rejects(decodeShare(literal('5', [null, null, null, null, [[201601, 2, 1, 5, 3]]])), ShareCodeError, 'format 5 has no per-side tuples');
+  await assert.rejects(decodeShare(literal('4', [null, null, null, null, [[201601, 0, 2, 0, 0, 0, 1]]])), ShareCodeError, 'format 4 has no per-uma tuples');
+  for (const bad of [[201601, 0, 2, 0, 0, 0, 4], [201601, 0, 2, 0, 0, 0, -1], [201601, 0, 2, 0, 0, 0, 1.5], [201601, 0, 2, 0, 0, 0, '1']]) {
+    await assert.rejects(decodeShare(literal('5', [null, null, null, null, [bad]])), ShareCodeError, JSON.stringify(bad));
+  }
 });
 
 test('schedule overrides reject ambiguous IDs and invalid flags', async () => {

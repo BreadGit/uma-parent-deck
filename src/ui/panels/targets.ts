@@ -7,9 +7,10 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import type { Skill } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { Target } from '../../model/sparks.ts';
-import { hasWhiteSpark, lineageCount, NO_LINEAGE, resolveTarget, type Lineage } from '../../model/sparks.ts';
+import { emptyLineage, hasWhiteSpark, lineageCount, lineageStars, resolveTarget, withLineageCopies, withLineageStars, type Lineage } from '../../model/sparks.ts';
 import { goalFamily, sanitizePriority } from '../../model/goal-input.ts';
-import { LINEAGE_MAX_PER_SIDE, STARS_PER_SPARK_MAX } from '../../model/rules.ts';
+import { UMA_LABELS } from '../../model/inherit.ts';
+import { LINEAGE_SLOTS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
 import { inputNumber, numbered, options, searchBox, selectValue } from '../fields.ts';
@@ -51,19 +52,12 @@ export function selectTarget(id: number) {
 }
 const entryOf = (id: number) => store.run.targets.find((t) => t.id === id);
 const editTarget = (id: number, fn: (t: NonNullable<ReturnType<typeof entryOf>>) => void) => update((s) => { const t = s.run.targets.find((r) => r.id === id); if (t) fn(t); });
-/** Change how many umas on one parent side carry the spark; the star total follows unless already set. */
-function setLineageCount(id: number, side: 'k1' | 'k2', k: number) {
-  update((s) => {
-    const cur = s.run.targetLineage[String(id)] ?? NO_LINEAGE;
-    const pSide = side === 'k1' ? 'p1' : 'p2';
-    const next: Lineage = { ...cur, [side]: k };
-    next[pSide] = k === 0 ? 0 : Math.min(STARS_PER_SPARK_MAX * k, Math.max(k, cur[pSide] || STARS_PER_SPARK_MAX * k));
-    if (lineageCount(next) === 0) delete s.run.targetLineage[String(id)]; else s.run.targetLineage[String(id)] = next;
-  });
+/** Replace one target's lineage; an entry with no copies is dropped. */
+function setLineage(id: number, next: Lineage) {
+  update((s) => { if (lineageCount(next) === 0) delete s.run.targetLineage[String(id)]; else s.run.targetLineage[String(id)] = next; });
 }
-function setLineageStars(id: number, side: 'p1' | 'p2', stars: number) {
-  update((s) => { const cur = s.run.targetLineage[String(id)]; if (cur) s.run.targetLineage[String(id)] = { ...cur, [side]: stars }; });
-}
+const lineageOf = (id: number): Lineage => store.run.targetLineage[String(id)] ?? emptyLineage();
+const toggleLineageParents = () => { view.showLineageParents = !view.showLineageParents; refresh(); };
 
 const STAR_CHOICES = numbered([1, 2, 3], (n) => `${n}★+`);
 const isSelected = (t: Target) => view.targetEditorId === t.id;
@@ -77,20 +71,35 @@ function nameButton(t: Target) {
     <img src=${skillIcon(t.white ?? t.gold ?? undefined)} alt="" />${t.name}${suffix}</button>`;
 }
 
-function lineageSide(id: number, side: 0 | 1, l: Lineage) {
-  const k = side === 0 ? 'k1' : 'k2', p = side === 0 ? 'p1' : 'p2';
-  const copies = numbered(Array.from({ length: LINEAGE_MAX_PER_SIDE + 1 }, (_, n) => n), (n) => `${n}×`);
-  const stars = numbered(Array.from({ length: STARS_PER_SPARK_MAX * l[k] + 1 }, (_, i) => i).filter((i) => i >= l[k]), (i) => `${i}★`);
-  return html`<div><span>Parent ${side + 1}</span>
-    <select aria-label="Parent ${side + 1} copies" data-lineage-k=${id} data-side=${k} .value=${live(String(l[k]))} @change=${(e: Event) => setLineageCount(id, k, Number(selectValue(e)))}>${options(copies, String(l[k]))}</select>
-    <select aria-label="Parent ${side + 1} total stars" data-lineage-p=${id} data-side=${p} ?disabled=${!l[k]} .value=${live(String(l[p]))} @change=${(e: Event) => setLineageStars(id, p, Number(selectValue(e)))}>${options(stars, String(l[p]))}</select>
+const SIDES = [0, 1] as const;
+const UMAS = Array.from({ length: UMAS_PER_PARENT_SIDE }, (_, i) => i);
+const COPY_CHOICES = numbered(Array.from({ length: LINEAGE_SLOTS + 1 }, (_, n) => n), (n) => `${n}×`);
+const UMA_STAR_CHOICES = [{ value: '0', label: '—' }, ...numbered([1, 2, 3], (n) => `${n}★`)];
+
+/** The copy count and star total; the total's choices run from one star per copy to the maximum, and it is disabled without copies. */
+function lineageTotals(id: number, l: Lineage) {
+  const n = lineageCount(l), stars = lineageStars(l);
+  const starChoices = numbered(Array.from({ length: STARS_PER_SPARK_MAX * n - n + 1 }, (_, i) => n + i), (i) => `${i}★`);
+  return html`<div class="target-lineage-totals">
+    <label>${COPY.targets.lineageCopies} <select data-lineage-copies=${id} aria-label="Copies in lineage" .value=${live(String(n))} @change=${(e: Event) => setLineage(id, withLineageCopies(l, Number(selectValue(e))))}>${options(COPY_CHOICES, String(n))}</select></label>
+    <label>${COPY.targets.lineageStars} <select data-lineage-stars=${id} aria-label="Total stars in lineage" ?disabled=${!n} .value=${live(String(stars))} @change=${(e: Event) => setLineage(id, withLineageStars(l, Number(selectValue(e))))}>${options(starChoices, String(stars))}</select></label>
   </div>`;
+}
+/** The stars on each parent and grandparent, one column per side, with the totals they add up to underneath. */
+function lineageParents(id: number, l: Lineage) {
+  return html`<div class="target-lineage-parents" id="target-lineage-parents" data-lineage-parents=${id}>
+    ${SIDES.map((side) => html`<div class="side p${side + 1}"><span class="side-head">Parent ${side + 1}</span>
+      ${UMAS.map((ui) => { const i = side * UMAS_PER_PARENT_SIDE + ui, v = String(l[i]); return html`<span class="who">${UMA_LABELS[ui]}</span>
+        <select class=${l[i] ? 'set' : ''} data-lineage-uma="${id}-${i}" aria-label="Parent ${side + 1} ${UMA_LABELS[ui]} stars" .value=${live(v)} @change=${(e: Event) => { const next = [...l]; next[i] = Number(selectValue(e)); setLineage(id, next); }}>${options(UMA_STAR_CHOICES, v)}</select>`; })}
+    </div>`)}
+  </div>
+  <p class="small muted target-lineage-summary" data-lineage-summary=${id}>${COPY.targets.lineageSummary(lineageCount(l), lineageStars(l))}</p>`;
 }
 
 function editor(c: RunPlan, t: Target) {
   const entry = entryOf(t.id)!;
   const required = entry.role === 'required';
-  const l = store.run.targetLineage[String(t.id)] ?? NO_LINEAGE;
+  const l = lineageOf(t.id), perParent = view.showLineageParents;
   const own = (c.existing.sources.get(t.id) ?? []).filter((s) => s.kind !== 'lineage');
   const goalControl = required
     ? html`<label class="target-stars">${COPY.goal.minimumStars} <select data-target-stars=${t.id} .value=${live(String(entry.stars))} @change=${(e: Event) => editTarget(t.id, (r) => { r.stars = Number(selectValue(e)); })}>${options(STAR_CHOICES, String(entry.stars))}</select></label>`
@@ -106,8 +115,10 @@ function editor(c: RunPlan, t: Target) {
         ${ROLES.map((role) => html`<button data-target-role=${role} data-id=${t.id} class=${entry.role === role ? 'active' : ''} aria-pressed=${entry.role === role} @click=${() => editTarget(t.id, (r) => { r.role = role; })}>${COPY.targets[role]}</button>`)}
       </div>${goalControl}</div>
     </div>
-    <div class="target-editor-lineage"><h3>${COPY.targets.lineageHeading}${tip(COPY.targets.lineageTip(store.settings.lineageSparkMultiplier))}</h3>
-      <div class="target-lineage-fields">${lineageSide(t.id, 0, l)}${lineageSide(t.id, 1, l)}</div>
+    <div class="target-editor-lineage">
+      <div class="target-lineage-head"><h3>${COPY.targets.lineageHeading}${tip(COPY.targets.lineageTip(store.settings.lineageSparkMultiplier))}</h3>
+        <button class="small ${perParent ? 'active' : ''}" data-action="toggle-lineage-parents" aria-pressed=${perParent} aria-expanded=${perParent} aria-controls="target-lineage-parents" data-tip=${COPY.targets.perParentTip} @click=${toggleLineageParents}>${COPY.targets.perParent}</button></div>
+      ${perParent ? lineageParents(t.id, l) : lineageTotals(t.id, l)}
     </div>
   </div>`;
 }

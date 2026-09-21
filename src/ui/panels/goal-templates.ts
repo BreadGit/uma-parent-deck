@@ -3,7 +3,7 @@ import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { GOAL_TEMPLATES, type GoalTemplate } from '../../model/goal-templates.ts';
 import { APTITUDE_LABELS } from '../../model/goal-input.ts';
-import { resolveTarget } from '../../model/sparks.ts';
+import { lineageCount, lineageSide, lineageStars, resolveTarget } from '../../model/sparks.ts';
 import { data, refresh, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
 import { confirmDialog } from '../dialog.ts';
@@ -32,7 +32,7 @@ function preview(template: GoalTemplate) {
     ${(['required', 'preferred'] as const).map((role) => html`<p><b>${role === 'required' ? 'Required' : 'Preferred'} white sparks</b></p>
       <ul class="template-targets">${template.targets.filter((t) => t.role === role).map((t) => html`<li>${targetName(t.id)} · ${role === 'required' ? `${t.stars}★+` : `priority ${t.priority}`}</li>`)}</ul>`)}
     ${template.targetLineage ? html`<p><b>Default white lineage</b> · ${COPY.templates.lineageKept}</p>
-      <ul class="template-targets">${Object.entries(template.targetLineage).map(([id, l]) => html`<li>${targetName(id)} · Parent 1: ${l.k1}× ${l.p1}★ · Parent 2: ${l.k2}× ${l.p2}★</li>`)}</ul>` : nothing}
+      <ul class="template-targets">${Object.entries(template.targetLineage).map(([id, l]) => html`<li>${targetName(id)} · ${([0, 1] as const).map((side) => `Parent ${side + 1}: ${lineageCount(lineageSide(l, side))}× ${lineageStars(lineageSide(l, side))}★`).join(' · ')}</li>`)}</ul>` : nothing}
   </div>`;
 }
 

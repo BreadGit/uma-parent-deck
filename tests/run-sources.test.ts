@@ -50,7 +50,7 @@ test('each preparation reads current settings, agenda and lineage without retain
   ctx.settings.hintScale = 0;
   ctx.settings.chainRatesSSR = [.9, .8, .7];
   ctx.races = 30;
-  ctx.lineage.set(target.id, { k1: 1, p1: 3, k2: 0, p2: 0 });
+  ctx.lineage.set(target.id, [3, 0, 0, 0, 0, 0]);
   const second = prepareRunSources(ctx);
   assert.deepEqual(second.card(card, 4, target), cardSourcesForTarget(card, 4, target, ctx.races, ctx.totalTurns, data, ctx.settings));
   assert.notDeepEqual(second.card(card, 4, target), original);

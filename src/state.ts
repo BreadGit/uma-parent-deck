@@ -6,8 +6,8 @@ import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts
 import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
 import type { SharedChoices } from './share.ts';
-import type { Lineage } from './model/sparks.ts';
-import { LINEAGE_MAX_PER_SIDE, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
+import { lineageFromSides, lineageFromTotals, sanitizeLineage, type Lineage } from './model/sparks.ts';
+import { LINEAGE_SLOTS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
 import { clampStars } from './model/trainee.ts';
 
@@ -15,7 +15,7 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean; /** The input column is hidden so the results take the full width. */ inputsHidden: boolean }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; recommendation?: SavedRecommendation }
 
-export const STATE_VERSION = 22;
+export const STATE_VERSION = 23;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -65,10 +65,10 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   // ignored cards: a card is pinned or ignored, never both; the pin wins
   if (Array.isArray(raw.ignoredIds)) run.ignoredIds = numList(raw.ignoredIds).filter((id) => !run.pinnedIds.includes(id));
   if (typeof raw.borrowIgnored === 'boolean') run.borrowIgnored = raw.borrowIgnored;
-  // lineage: {n, stars} (v1) became per-side counts and star totals {k1, k2, p1, p2} (v2)
+  // lineage: {n, stars} (v1) became per-side counts and star totals {k1, k2, p1, p2} (v2), then the stars on each
+  // of the six umas (v23). Older totals place their copies the way the form does.
   run.targetLineage = {};
   if (isPlainObject(raw.targetLineage)) for (const [k, v] of Object.entries(raw.targetLineage)) {
-    if (!isPlainObject(v)) continue;
     const l = migrateLineage(v);
     if (l) run.targetLineage[k] = l;
   }
@@ -101,13 +101,13 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   run.pinkLineage = sanitizePinkLineage(raw.pinkLineage);
   return run;
 }
-function migrateLineage(v: Json): Lineage | null {
-  if (typeof v.k1 === 'number' && typeof v.k2 === 'number') return { k1: v.k1, k2: v.k2, p1: typeof v.p1 === 'number' ? v.p1 : 0, p2: typeof v.p2 === 'number' ? v.p2 : 0 };
-  const n = typeof v.n === 'number' ? v.n : 0;
+function migrateLineage(v: unknown): Lineage | null {
+  if (Array.isArray(v)) return sanitizeLineage(v);
+  if (!isPlainObject(v)) return null;
+  if (typeof v.k1 === 'number' && typeof v.k2 === 'number') return lineageFromSides(v.k1, typeof v.p1 === 'number' ? v.p1 : 0, v.k2, typeof v.p2 === 'number' ? v.p2 : 0);
+  const n = typeof v.n === 'number' ? Math.min(LINEAGE_SLOTS, v.n) : 0;
   if (n <= 0) return null;
-  const stars = typeof v.stars === 'number' ? v.stars : STARS_PER_SPARK_MAX;
-  const k1 = Math.min(LINEAGE_MAX_PER_SIDE, Math.ceil(n / 2)), k2 = Math.min(LINEAGE_MAX_PER_SIDE, n - k1);
-  return { k1, k2, p1: Math.min(STARS_PER_SPARK_MAX * k1, typeof v.p1 === 'number' ? v.p1 : stars * k1), p2: Math.min(STARS_PER_SPARK_MAX * k2, typeof v.p2 === 'number' ? v.p2 : stars * k2) };
+  return lineageFromTotals(n, n * (typeof v.stars === 'number' ? v.stars : STARS_PER_SPARK_MAX));
 }
 
 /** Older settings blobs carried their own version number. */

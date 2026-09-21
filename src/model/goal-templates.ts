@@ -10,6 +10,8 @@ export interface GoalTemplate {
   targetLineage?: Record<string, Lineage>;
 }
 
+/** Every godly required white spark: three copies totaling 7★ on each parent side. */
+const GODLY_LINEAGE: Lineage = [3, 2, 2, 3, 2, 2];
 const GODLY_DESCRIPTION = 'A stretch goal, not a plan. It shows the odds of a parent that meets this many spark goals at once. More 3★ requirements or more required white sparks would push it from unlikely to outright impossible.';
 
 /** Curated from docs/spark-goal-templates.md. IDs identify templates independently of their display names. */
@@ -65,13 +67,13 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
     description: GODLY_DESCRIPTION,
     goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'any', stars: 2 }] },
     targetLineage: {
-      201601: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      210052: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      200452: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      201262: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      201611: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      202462: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201601: GODLY_LINEAGE,
+      210052: GODLY_LINEAGE,
+      210101: GODLY_LINEAGE,
+      200452: GODLY_LINEAGE,
+      201262: GODLY_LINEAGE,
+      201611: GODLY_LINEAGE,
+      202462: GODLY_LINEAGE,
     },
     targets: [
       { id: 201601, role: 'required', stars: 2, priority: 0 }, // Groundwork
@@ -154,13 +156,13 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
     description: GODLY_DESCRIPTION,
     goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'any', stars: 2 }] },
     targetLineage: {
-      201601: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      200492: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      201591: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      201611: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      201332: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201601: GODLY_LINEAGE,
+      200492: GODLY_LINEAGE,
+      210101: GODLY_LINEAGE,
+      210111: GODLY_LINEAGE,
+      201591: GODLY_LINEAGE,
+      201611: GODLY_LINEAGE,
+      201332: GODLY_LINEAGE,
     },
     targets: [
       { id: 201601, role: 'required', stars: 2, priority: 0 }, // Groundwork
@@ -224,14 +226,14 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
     description: GODLY_DESCRIPTION,
     goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'any', stars: 2 }] },
     targetLineage: {
-      201591: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      202161: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      202452: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      201611: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      200492: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      200602: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201591: GODLY_LINEAGE,
+      202161: GODLY_LINEAGE,
+      210101: GODLY_LINEAGE,
+      202452: GODLY_LINEAGE,
+      210111: GODLY_LINEAGE,
+      201611: GODLY_LINEAGE,
+      200492: GODLY_LINEAGE,
+      200602: GODLY_LINEAGE,
     },
     targets: [
       { id: 201591, role: 'required', stars: 2, priority: 0 }, // Uma Stan
@@ -287,13 +289,13 @@ export const GOAL_TEMPLATES: readonly GoalTemplate[] = [
     description: GODLY_DESCRIPTION,
     goal: { blueStats: ['speed', 'stamina', 'power'], blueStars: 3, pink: [{ aptitude: 'any', stars: 2 }] },
     targetLineage: {
-      201591: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      202161: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      210101: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      210111: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      201611: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      200492: { k1: 3, p1: 7, k2: 3, p2: 7 },
-      200642: { k1: 3, p1: 7, k2: 3, p2: 7 },
+      201591: GODLY_LINEAGE,
+      202161: GODLY_LINEAGE,
+      210101: GODLY_LINEAGE,
+      210111: GODLY_LINEAGE,
+      201611: GODLY_LINEAGE,
+      200492: GODLY_LINEAGE,
+      200642: GODLY_LINEAGE,
     },
     targets: [
       { id: 201591, role: 'required', stars: 2, priority: 0 }, // Uma Stan

@@ -17,6 +17,7 @@ export const STARS_PER_SPARK_MAX = 3;
 export const MAX_PARENT_STARS = UMAS_PER_PARENT_SIDE * STARS_PER_SPARK_MAX;   // 9 blue stars per side
 export const MAX_BLUE_STARS = PARENTS * MAX_PARENT_STARS;                     // 18 across the lineage
 export const LINEAGE_MAX_PER_SIDE = UMAS_PER_PARENT_SIDE;                     // copies of one white spark per side
+export const LINEAGE_SLOTS = PARENTS * UMAS_PER_PARENT_SIDE;                  // umas that can carry a white spark
 export const INSPIRATION_EVENTS = 2;         // early April of Classic and Senior year
 /** Stat given by one blue spark at career start, by its stars. Fixed values; the legacy screen shows their sum per side. */
 export const BLUE_SPARK_START_GAIN_BY_STARS = [0, 5, 12, 21];

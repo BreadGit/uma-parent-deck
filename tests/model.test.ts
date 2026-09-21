@@ -5,7 +5,7 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
 import { STATS, type Card, type Race } from '../src/types.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, pruneConflicts, sparkChance, type EventSource, type SkillSource } from '../src/model/sparks.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
@@ -232,13 +232,32 @@ test('Pal and Group outings are skill sources at their own rates', () => {
 
 test('lineage sparks: each copy rolls twice at the assumed affinity to hand over the hint, and each copy multiplies the spark chance', () => {
   const t = resolveTarget(200352, data)!;
-  const ctx = ctxOf({ trainee: sw, lineage: new Map([[t.id, { k1: 1, k2: 1, p1: 3, p2: 3 }]]) });
+  const ctx = ctxOf({ trainee: sw, lineage: new Map([[t.id, [3, 0, 0, 3, 0, 0]]]) });
   const lin = must((traineeCoverage([t], ctx).sources.get(t.id) ?? []).find((s) => s.kind === 'lineage'), `(traineeCoverage([t], ctx).sources.get(t.id) ?? []).find((s) => s.kind === 'lineage')`);
   const perEvent = Math.min(1, settings.whiteSparkInheritRates[2]! * affinityMultiplier(settings));
   assert.ok(Math.abs(lin.pObtain - (1 - Math.pow(1 - perEvent, 4))) < 1e-9, 'two sparks, two inspiration events each');
   const weak = { ...settings, affinity: 0 };
   const lin0 = must((traineeCoverage([t], { ...ctx, settings: weak }).sources.get(t.id) ?? []).find((s) => s.kind === 'lineage'), `(traineeCoverage([t], { ...ctx, settings: weak }).sources.get(t.id) ?? []).find((s) => ...`);
   assert.ok(lin0.pObtain < lin.pObtain, 'a lower affinity lowers the hint chance');
+});
+
+test('lineage totals: copies fill the parents first at 3★, alternating sides, and stars move one at a time on the copies already entered', () => {
+  assert.deepEqual(lineageFromTotals(3, 9), [3, 3, 0, 3, 0, 0], 'the third copy lands on parent 1\'s grandparent');
+  assert.deepEqual(lineageFromTotals(3, 7), [3, 2, 0, 2, 0, 0], 'a lower total takes stars from the last-filled copies first');
+  assert.deepEqual(lineageFromTotals(3, 1), [1, 1, 0, 1, 0, 0], 'every copy keeps at least one star');
+  assert.deepEqual(lineageFromTotals(9, 99), [3, 3, 3, 3, 3, 3], 'out-of-range totals clamp to the six umas');
+  const entered = [0, 2, 0, 0, 0, 1];  // a grandparent on each side, entered per parent
+  assert.deepEqual(withLineageCopies(entered, 3), [3, 2, 0, 0, 0, 1], 'a new copy starts at 3★ on the first empty slot without moving the others');
+  assert.deepEqual(withLineageCopies(entered, 1), [0, 2, 0, 0, 0, 0], 'removing a copy clears the last-filled slot');
+  assert.deepEqual(withLineageCopies(entered, 0), [0, 0, 0, 0, 0, 0]);
+  assert.deepEqual(withLineageStars(entered, 5), [0, 3, 0, 0, 0, 2], 'extra stars raise the lowest copy first');
+  assert.deepEqual(withLineageStars(entered, 2), [0, 1, 0, 0, 0, 1], 'fewer stars lower the highest copy first');
+  assert.deepEqual(withLineageStars([3, 2, 2, 3, 2, 2], 15), [3, 3, 2, 3, 2, 2]);
+  assert.deepEqual(lineageSparks([0, 2, 0, 3, 0, 1]), [2, 3, 1]);
+  assert.deepEqual(lineageFromSides(2, 5, 1, 3), [3, 2, 0, 3, 0, 0], 'older per-side totals place their copies the same way');
+  assert.deepEqual(lineageFromSides(2, 0, 0, 0), [1, 1, 0, 0, 0, 0], 'an unentered total gives each copy one star');
+  assert.deepEqual(sanitizeLineage([0, 2, 0, 3, 0, 1]), [0, 2, 0, 3, 0, 1]);
+  for (const bad of [[1, 2, 3], [0, 0, 0, 0, 0, 4], [0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0, 1.5], [0, 0, 0, 0, 0, '1'], { k1: 1 }, null]) assert.equal(sanitizeLineage(bad), null, JSON.stringify(bad));
 });
 
 // ----- scenario and event choices -----

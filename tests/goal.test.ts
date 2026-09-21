@@ -58,7 +58,7 @@ test('negative skills cannot generate or inherit white sparks, and saved targets
   const saved = defaultState(data);
   saved.run.traineeCardId = 100701;
   saved.run.targets = [{ id: gatekept.id, role: 'required', stars: 1, priority: 0 }];
-  saved.run.targetLineage[String(gatekept.id)] = { k1: 1, k2: 0, p1: 3, p2: 0 };
+  saved.run.targetLineage[String(gatekept.id)] = [3, 0, 0, 0, 0, 0];
   assert.deepEqual(lineageSources(gatekept, saved.run.targetLineage[String(gatekept.id)], settings), []);
   const migrated = migrate({ current: saved }, data);
   assert.deepEqual(migrated.run, saved.run, 'saved choices survive unchanged');

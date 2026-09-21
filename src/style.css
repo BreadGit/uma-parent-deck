@@ -321,9 +321,23 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .target-stars select { font-size: var(--fs-sm); }
 .target-stars input { width: 100px; max-width: 100%; }
 .target-editor-lineage { border-top: 1px solid var(--line); margin-top: 16px; }
-.target-lineage-fields { display: grid; gap: 7px; }
-.target-lineage-fields > div { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); }
-.target-lineage-fields select { min-width: 0; max-width: 105px; }
+.target-lineage-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 9px; }
+.panel .target-editor .target-lineage-head h3 { margin: 0; }
+.target-lineage-totals { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--fs-sm); }
+.target-lineage-totals label { display: inline-flex; align-items: center; gap: 6px; }
+.target-lineage-totals select { min-width: 0; }
+/* one column per parent side, her parent and grandparents as label and stars; a filled select takes the side's colour */
+.target-lineage-parents { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px 16px; font-size: var(--fs-sm); }
+.target-lineage-parents .side { display: grid; grid-template-columns: auto auto; justify-content: start; align-items: center; gap: 4px 10px; }
+.target-lineage-parents .side-head { grid-column: 1 / -1; font-weight: 600; }
+.target-lineage-parents .p1 .side-head { color: var(--parent1); }
+.target-lineage-parents .p2 .side-head { color: var(--parent2); }
+.target-lineage-parents .who { color: var(--muted); }
+.target-lineage-parents select { width: 4.4em; padding: 2px 4px; text-align: center; }
+.target-lineage-parents .p1 select.set { border-color: var(--parent1); color: var(--parent1); font-weight: 600; }
+.target-lineage-parents .p2 select.set { border-color: var(--parent2); color: var(--parent2); font-weight: 600; }
+.target-lineage-parents select option { color: var(--text); font-weight: 400; }
+.target-lineage-summary { margin: 8px 0 0; }
 .target-editor select:disabled { opacity: .45; cursor: not-allowed; }
 
 /* parent goal estimate */
@@ -512,3 +526,4 @@ details[data-agenda] { margin-top: 8px; }
   .wl-candidates { --wl-candidates-height: 101px; }
   input[type=range] { height: 28px; }
 }
+

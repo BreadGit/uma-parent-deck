@@ -125,7 +125,7 @@ test('inherited hints use only real upgrades for spark predictions and purchase 
   for (const row of cases) {
     const target = resolveTarget(row.id, data)!;
     const ctx = makeCtx({ data, settings: settings(), trainee: null, races: 20, totalTurns: data.model.races.totalTurns,
-      lineage: new Map([[target.id, { k1: 1, p1: 3, k2: 0, p2: 0 }]]) });
+      lineage: new Map([[target.id, [3, 0, 0, 0, 0, 0]]]) });
     const result = evaluate(traineeCoverage([target], ctx), [target], ctx);
     const sources = result.map.get(target.id)!;
     assert.deepEqual(sources.map((s) => [s.kind, s.skillId]), [['lineage', target.id]]);
