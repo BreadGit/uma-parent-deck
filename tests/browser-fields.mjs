@@ -111,9 +111,16 @@ export async function assertFieldsMatchState(page, where) {
       const required = st.run.targets.some((r) => r.id === Number(el.dataset.id) && r.role === 'required');
       if (el.getAttribute('aria-pressed') !== String(required === (el.dataset.targetRole === 'required'))) out.push('target role differs from state');
     }
-    for (const el of document.querySelectorAll('[data-lineage-k], [data-lineage-p]')) {
-      const id = el.dataset.lineageK ?? el.dataset.lineageP;
-      check(el, st.run.targetLineage[id]?.[el.dataset.side] ?? 0);
+    const lineageOf = (id) => st.run.targetLineage[id] ?? [0, 0, 0, 0, 0, 0];
+    for (const el of document.querySelectorAll('[data-lineage-copies]')) check(el, lineageOf(el.dataset.lineageCopies).filter((s) => s > 0).length);
+    for (const el of document.querySelectorAll('[data-lineage-stars]')) {
+      const l = lineageOf(el.dataset.lineageStars);
+      check(el, l.reduce((a, s) => a + s, 0));
+      if (el.disabled !== !l.some((s) => s > 0)) out.push(`lineage stars ${el.dataset.lineageStars} disabled differs from state`);
+    }
+    for (const el of document.querySelectorAll('[data-lineage-uma]')) {
+      const [id, slot] = el.dataset.lineageUma.split('-');
+      check(el, lineageOf(id)[Number(slot)]);
     }
     for (const el of document.querySelectorAll('[data-pink-lineage], [data-pink-lineage-stars]')) {
       const index = el.dataset.pinkLineage ?? el.dataset.pinkLineageStars;

@@ -1,6 +1,6 @@
 // The legacy screen: what the game shows before a run. Per stat, each parent's "+XX" start gain from her side's
 // blue sparks, the trainee's start value, and the aptitude table with the surface, distance, and style overrides. The
-// "By stars" form enters the same sparks per uma, for a parent read off a database instead of the screen, and the
+// "Blue per parent" form enters the same sparks per uma, for a parent read off a database instead of the screen, and the
 // pink form enters the ancestors' pink sparks behind the aptitude grades.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
@@ -78,7 +78,7 @@ function gainSelect(c: RunPlan, pi: number, si: number) {
 }
 
 /**
- * One uma's row in the "By stars" form: who she is, the stat her blue spark raises, and its stars. An empty slot
+ * One uma's row in the "Blue per parent" form: who she is, the stat her blue spark raises, and its stars. An empty slot
  * (its stat was set to +0 above) shows "—" in both selects, offers no "—" once a stat is picked, and keeps the stars
  * select disabled until then.
  */
@@ -89,7 +89,7 @@ function sparkRow(pi: number, ui: number) {
     <select data-spark-stat="${pi}-${ui}" aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} stat" .value=${live(stat)} @change=${(e: Event) => setSpark(pi, ui, { stat: selectValue(e) as Stat })}>${options(spark ? STAT_CHOICES : [EMPTY, ...STAT_CHOICES], stat)}</select>
     <select data-spark-stars="${pi}-${ui}" aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} stars" ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => setSpark(pi, ui, { stars: Number(selectValue(e)) })}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>`;
 }
-const sparksForm = () => html`<div class="legacy-sparks" data-sparks-form>
+const sparksForm = () => html`<div class="legacy-sparks per-parent blue" data-sparks-form>
   ${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><div class="side-head">Parent ${pi + 1}${pi === 0 ? tip(COPY.legacy.sparksTip) : nothing}</div>${UMAS.map((ui) => sparkRow(pi, ui))}</div>`)}
 </div>`;
 
@@ -97,13 +97,12 @@ function pinkRow(pi: number, ui: number) {
   const index = pi * 3 + ui, spark = store.run.pinkLineage[index];
   const aptitude = spark?.aptitude ?? '', stars = spark ? String(spark.stars) : '';
   const aptitudes = [EMPTY, ...APTITUDE_KEYS.map((k) => ({ value: k, label: APTITUDE_LABELS[k] }))];
-  return html`<div class="goal-pink-row"><span>${UMA_LABELS[ui]}${spark?.inferred ? html`<small class="pink-inferred" data-pink-inferred=${index}>Estimated</small>` : nothing}</span>
+  return html`<span class="who">${UMA_LABELS[ui]}${spark?.inferred ? html`<small class="pink-inferred" data-pink-inferred=${index}>Estimated</small>` : nothing}</span>
     <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink aptitude" data-pink-lineage=${index} .value=${live(aptitude)} @change=${(e: Event) => { const key = selectValue(e) as AptKey | ''; setPinkSpark(index, key ? { aptitude: key, stars: spark?.stars ?? NEW_SPARK_STARS } : null); }}>${options(aptitudes, aptitude)}</select>
-    <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink stars" data-pink-lineage-stars=${index} ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => { if (spark) setPinkSpark(index, { aptitude: spark.aptitude, stars: Number(selectValue(e)) }); }}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>
-  </div>`;
+    <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink stars" data-pink-lineage-stars=${index} ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => { if (spark) setPinkSpark(index, { aptitude: spark.aptitude, stars: Number(selectValue(e)) }); }}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>`;
 }
-const pinkForm = () => html`<div id="legacy-pink-sparks" data-pink-sparks-form><h3>${COPY.legacy.pinkHeading}${tip(COPY.legacy.pinkTip)}</h3>
-  ${PARENTS.map((pi) => html`<div class="goal-pink-side"><b>Parent ${pi + 1} side</b>${UMAS.map((ui) => pinkRow(pi, ui))}</div>`)}
+const pinkForm = () => html`<div id="legacy-pink-sparks" data-pink-sparks-form>
+  <div class="per-parent pink">${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><span class="side-head">Parent ${pi + 1}</span>${UMAS.map((ui) => pinkRow(pi, ui))}</div>`)}</div>
 </div>`;
 
 function statColumn(c: RunPlan, i: number) {

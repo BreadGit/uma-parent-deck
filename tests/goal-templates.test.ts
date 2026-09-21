@@ -51,7 +51,7 @@ test('template catalog preserves supplied names, order, spark requirements, and 
 test('template copies stay editable and saved lineage survives targets disappearing and returning', () => {
   const original = structuredClone(GOAL_TEMPLATES);
   const saved = defaultState(data);
-  saved.run.targetLineage = { 210052: { k1: 1, p1: 2, k2: 0, p2: 0 } };
+  saved.run.targetLineage = { 210052: [2, 0, 0, 0, 0, 0] };
   for (const index of [2, 0, 2]) {
     const copy = structuredClone(GOAL_TEMPLATES[index]!);
     saved.run.goal = copy.goal;
@@ -92,7 +92,7 @@ test('godly defaults give every required white spark inherited hints and accept 
     assert.deepEqual(Object.keys(template.targetLineage!).map(Number).sort(), required.map((g) => g.id).sort(), template.name);
     for (const goal of required) {
       const lineage = template.targetLineage![goal.id]!;
-      assert.deepEqual(lineage, { k1: 3, p1: 7, k2: 3, p2: 7 });
+      assert.deepEqual(lineage, [3, 2, 2, 3, 2, 2], 'three copies totaling 7★ on each side');
       const target = resolveTarget(goal.id, data)!;
       assert.deepEqual(lineageSources(target, undefined, DEFAULT_SETTINGS), []);
       const inherited = lineageSources(target, lineage, DEFAULT_SETTINGS);

@@ -31,8 +31,9 @@ DEFLATE of that JSON. The remaining characters are unpadded base64url. The encod
 byte representation is smaller. Both incoming codes and decompressed JSON have size limits to bound
 loading work.
 
-Format 3 extends format 2 with slot 14, and format 4 extends format 3 with slots 15 and 16. Formats 2, 3 and 4
-use these positional slots; a format's decoder rejects slots past its last.
+Format 3 extends format 2 with slot 14, and format 4 extends format 3 with slots 15 and 16. Format 5 keeps
+format 4's slots and changes the white lineage entry in slot 4 from per-side totals to the stars on each uma.
+Formats 2 to 5 use these positional slots; a format's decoder rejects slots past its last.
 A null or omitted top-level slot has the fixed format default;
 trailing default slots are omitted. Nested tuples have fixed lengths. Empty lists differ from default
 values wherever a default is nonempty.
@@ -43,7 +44,7 @@ values wherever a default is nonempty.
 | 1 | Trainee stars | Integer 1–5 |
 | 2 | Parent goal | `[blue mask, blue stars, pink goals]`; pink goal is `[aptitude, stars]` |
 | 3 | Target white sparks | `[game skill ID, role, stars, priority]` per target, in user order |
-| 4 | White lineage | `[game skill ID, copies 1, copies 2, stars 1, stars 2]` per entry |
+| 4 | White lineage | Format 5: `[game skill ID, stars on each of the six umas]` per entry, 0 for none, parent 1's parent and two grandparents then parent 2's; formats 2 to 4: `[game skill ID, copies 1, copies 2, stars 1, stars 2]` per parent side |
 | 5 | Blue legacy sparks | Two sides of three numbers; 0 is unentered, otherwise `stat index * 3 + stars` |
 | 6 | Pink legacy sparks | Six slots; 0 is unentered, otherwise `[aptitude index, stars, inferred flag]` |
 | 7 | Aptitude overrides | `[aptitude index, grade index]` per override |
@@ -66,7 +67,11 @@ The flag values are 0 for false and 1 for true. These indexes must never come fr
 The literal defaults in `src/share.ts` are part of the format contract. They must not follow changes
 to application defaults. Format 1 is the original prototype's named-object payload with a leading
 saved-state version of 20. Its decoder retains that payload's defaults and does not check the current
-saved-state version. New shares always use format 4.
+saved-state version. New shares always use format 5.
+
+Older per-side lineage totals decode by placing their copies the way the lineage form does: each side's
+parent first at 3★, then her grandparents, and the star total taken from the last-filled copies. A total
+below the copy count gives each copy one star. Format 5 rejects stars outside 0 to 3 and tuples of any other length.
 
 Format 4 defaults ignored cards to an empty list and the borrow-ignored flag to 0, as every older format does
 on decode: a share replaces the ignored cards like the pinned cards. Format 3 defaults schedule overrides to an empty list, which restores automatic scheduling.

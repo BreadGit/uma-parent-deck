@@ -41,7 +41,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 - Parent goal groups the blue, pink, and white goals. Target white sparks lists the Required and Preferred
   targets as two collapsible groups, each with its own search box that adds to that group. Names sit
   inline with their star minimum or priority. Select a name to edit its goal and lineage under that line;
-  select it again to close, or close the group. Remove a target from its editor. Any number of targets,
+  select it again to close, or close the group. The lineage takes the copies of that spark already in the
+  lineage and their star total, or with "Per parent" the stars on each parent and grandparent. Remove a
+  target from its editor. Any number of targets,
   including zero, can be Required. Preferred targets are optional extras at any star level. Their
   ranking weights halve with each priority step, starting at priority 0 with weight 1. Required targets have
   individual minimum stars. Separate headers distinguish target goals from existing lineage.
@@ -53,15 +55,15 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   preferred sparks on successful parents distinguish decks within a tight, adjustable relative
   window. Search runs in the background with a loading state. When a requirement is impossible,
   the result explains it and separately estimates the best remaining goal found.
-  Copy starting aptitude grades from the game after selecting both parents. Open Pink sparks
+  Copy starting aptitude grades from the game after selecting both parents. Open "Pink per parent"
   below the stat gains in Legacy to enter the ancestors you know and include mid-run B-to-A increases.
-  Empty rows count as zero sparks for the estimate, with the same blank placeholders as By stars.
+  Empty rows count as zero sparks for the estimate, with the same blank placeholders as "Blue per parent".
   Raising a grade above the trainee's base fills an estimated minimum-star set in that editor.
   Known lineage determines starting grades. Grades outside starting inheritance remain available as
   planning overrides, including below-base grades from older saves. Dimmed choices can reassign
   other sparks when slots are full. Manual edits update starting grades immediately. Partial
   lineage gives an estimate without a missing-entry warning; below-B increases give probability bounds. Buttons in Parent goal open
-  the pink editor directly. Reset pink sparks restores base grades and clears pink lineage.
+  the pink editor directly. Reset beside "Pink per parent" restores base grades and clears pink lineage.
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
   If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint.
@@ -113,7 +115,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   one borrowed card fit the deck, the page explains what is missing and hides the run predictions.
 - Legacy: a copy of the game's pre-run screen. Above each stat you pick the "+XX" each
   parent side adds at the start, as the game shows it; the 20 possible values each decode to one
-  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). "By stars" opens a second way in:
+  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). "Blue per parent" opens a second way in:
   the blue spark (stat and stars) of each parent and her two grandparents, as a database such as
   uma.moe lists them. Both edit the same sparks, and a fresh side starts as 1★ Speed, Stamina and Power. Each spark then procs at the two
   inspiration events (70/80/90% by stars, times 1 + affinity/100 of the uma carrying it) for a

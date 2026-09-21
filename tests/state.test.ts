@@ -52,14 +52,16 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   const s1 = migrate({ state: v1 }, data);
   assert.deepEqual(s1.run.pinnedIds, [30028]);
   assert.deepEqual(s1.run.parentSparks, [Array(3).fill({ stat: 'speed', stars: 1 + 2 }), defaultParentSparks()], 'parent 1 fills first with three 3★ Speed sparks; the rest would need four umas on parent 2, so that side is the default');
-  assert.deepEqual(s1.run.targetLineage['200352'], { k1: 2, k2: 1, p1: 6, p2: 3 });
+  assert.deepEqual(s1.run.targetLineage['200352'], [3, 3, 0, 3, 0, 0], 'three 3★ copies: both parents and a grandparent on parent 1\'s side');
   assert.equal(s1.ui.sortKey, 'stats');
   const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { a: true, b: 'no' }, traineeStars: 'five' };
   const s2 = migrate({ state: v2 }, data);
   assert.deepEqual(s2.run.targets, [{ id: 200352, role: 'preferred', stars: 2, priority: 0 }]);
   assert.deepEqual(s2.run.pinnedIds, [30052, 30028]);
   assert.deepEqual(s2.run.parentSparks, [[{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 2 }, { stat: 'power', stars: 3 }], defaultParentSparks()], 'v2 stars per stat become one uma each; 4★ Guts and 5★ Wit pack into four sparks, so that side is the default');
-  assert.deepEqual(s2.run.targetLineage, { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } });
+  assert.deepEqual(s2.run.targetLineage, { '200352': [3, 0, 0, 0, 0, 0] });
+  const v22 = { targets: [200352], targetLineage: { '200352': { k1: 2, k2: 1, p1: 5, p2: 3 }, '201601': [0, 2, 0, 0, 0, 1], '200012': [1, 2, 3], '200022': [0, 0, 0, 0, 0, 4] } };
+  assert.deepEqual(migrate({ state: v22 }, data).run.targetLineage, { '200352': [3, 2, 0, 3, 0, 0], '201601': [0, 2, 0, 0, 0, 1] }, 'per-side totals place their copies; six-uma entries are kept and malformed ones dropped');
   assert.deepEqual(s2.run.raceOverrides, { a: true });
   assert.equal(s2.run.traineeStars, 3);
   const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);

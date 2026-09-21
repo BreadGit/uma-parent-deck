@@ -35,7 +35,7 @@ test('card chances exclude scenario rewards, retain lineage generation bonuses a
   const goals = [{ id: groundwork.id, role: 'required' as const, stars: 2, priority: 0 }];
   close(cardTargetChances(fixture([source, scenario]), goals, ctx).required, 0.08);
   close(cardTargetChances(fixture([scenario]), goals, ctx).required, 0);
-  const lineageCtx = { ...ctx, lineage: new Map([[groundwork.id, { k1: 1, p1: 1, k2: 0, p2: 0 }]]) };
+  const lineageCtx = { ...ctx, lineage: new Map([[groundwork.id, [1, 0, 0, 0, 0, 0]]]) };
   close(cardTargetChances(fixture([source]), goals, lineageCtx).required, 0.088);
   const missing = cardTargetChances(fixture([]), goals, ctx);
   assert.equal(missing.targets.length, 1);

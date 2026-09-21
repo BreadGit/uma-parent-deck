@@ -268,14 +268,23 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .legacy-apts .cell select { font-size: var(--fs-xs); padding: 1px 0; width: 36px; }
 .legacy-apts .cell.over select { border-color: var(--warn); }
 /* "By stars" form: each side's three umas with the stat and stars of her blue spark */
-.legacy-sparks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 12px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: var(--fs-xs); }
-.legacy-sparks .side { display: grid; grid-template-columns: auto auto auto; justify-content: start; gap: 3px 5px; align-items: center; min-width: 0; }
-.legacy-sparks .side-head { grid-column: 1 / -1; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-.legacy-sparks .side.p1 .side-head { color: var(--parent1); }
-.legacy-sparks .side.p2 .side-head { color: var(--parent2); }
-.legacy-sparks .who { color: var(--muted); white-space: nowrap; }
-.legacy-sparks select { font-size: var(--fs-xs); padding: 1px 2px; min-width: 0; max-width: 100%; }
-.legacy-sparks select[data-spark-stat] { width: 92px; }
+/* the three per-parent forms (blue, pink, white sparks) share one layout: a block per parent side, side by side when
+   they fit, each a grid of uma label and selects under a bold head. Blue keeps the parent colours because its
+   "+XX" selects above the stats carry them; the pink and white forms are plain. */
+.per-parent { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--side-min, 230px), 1fr)); gap: 8px 14px; font-size: var(--fs-sm); }
+.per-parent .side { display: grid; grid-template-columns: var(--side-cols, auto auto auto); justify-content: start; align-items: center; gap: 4px 8px; min-width: 0; }
+.per-parent .side-head { grid-column: 1 / -1; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.per-parent .who { color: var(--muted); white-space: nowrap; }
+.per-parent select { min-width: 0; max-width: 100%; padding: 2px 4px; }
+.per-parent .side > select:nth-of-type(odd) { width: var(--main-width, 160px); }
+.per-parent .set { font-weight: 600; }
+.per-parent select option { font-weight: 400; }
+.per-parent.blue { --main-width: 104px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.per-parent.blue .side.p1 .side-head { color: var(--parent1); }
+.per-parent.blue .side.p2 .side-head { color: var(--parent2); }
+.per-parent.pink { --side-min: 270px; --side-cols: auto minmax(0, 160px) max-content; }
+.per-parent.white { --side-min: 130px; --side-cols: auto minmax(0, 1fr); }
+.per-parent.white .side > select { width: 100%; max-width: 4.4em; text-align: center; padding: 2px 2px; }
 
 /* parent goal */
 .goal-group { min-width: 0; margin: 12px 0; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius); }
@@ -285,10 +294,7 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .pink-goal-fields { margin-bottom: 10px; display: grid; grid-template-columns: minmax(0, 1fr) 145px 28px; align-items: center; gap: 8px; }
 .goal-group legend.goal-group-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
 .goal-stats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
-.pink-inferred { display: block; color: var(--muted); font-size: var(--fs-xs); }
-.goal-pink-side { margin: 10px 0; }
-.goal-pink-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 55px; align-items: center; gap: 6px; margin: 5px 0; font-size: var(--fs-sm); }
-.goal-pink-row select { min-width: 0; width: 100%; max-width: 100%; }
+.pink-inferred { display: block; color: var(--muted); font-size: var(--fs-xs); font-weight: 400; }
 .template-picker { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; margin: 10px 0; }
 .template-targets { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0; margin: 0 0 12px; list-style: none; }
 
@@ -321,9 +327,13 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .target-stars select { font-size: var(--fs-sm); }
 .target-stars input { width: 100px; max-width: 100%; }
 .target-editor-lineage { border-top: 1px solid var(--line); margin-top: 16px; }
-.target-lineage-fields { display: grid; gap: 7px; }
-.target-lineage-fields > div { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); }
-.target-lineage-fields select { min-width: 0; max-width: 105px; }
+.target-lineage-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 9px; }
+.panel .target-editor .target-lineage-head h3 { margin: 0; }
+.target-lineage-totals { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--fs-sm); }
+.target-lineage-totals label { display: inline-flex; align-items: center; gap: 6px; }
+.target-lineage-totals select { min-width: 0; }
+/* the two parent sides side by side, each her parent and grandparents as label and stars */
+.target-lineage-summary { margin: 8px 0 0; }
 .target-editor select:disabled { opacity: .45; cursor: not-allowed; }
 
 /* parent goal estimate */
@@ -490,7 +500,7 @@ details[data-agenda] { margin-top: 8px; }
   table.coverage td.src-list { width: 62%; font-size: var(--fs-xs); }
   #tooltip { max-width: calc(100vw - 16px); }
   input[type=range] { width: 120px; }
-  .goal-field select, .goal-pink-row select, .target-editor select { font-size: var(--fs-lg); }
+  .goal-field select, .per-parent select, .target-editor select { font-size: var(--fs-lg); }
   .goal-attempts { font-size: var(--fs-sm); }
 }
 /* touch: larger targets, no drag handle (the arrow buttons reorder), and 16px fields so iOS does not zoom on focus */
@@ -500,9 +510,9 @@ details[data-agenda] { margin-top: 8px; }
   button.small { padding: 4px 10px; font-size: var(--fs-sm); }
   .chip button { padding: 2px 6px; font-size: var(--fs-lg); }
   input[type=search], input[type=text], input[type=number], select { font-size: var(--fs-lg); }
-  .legacy-stat select.gain, .legacy-apts .cell select, .legacy-sparks select, .agenda-pick select { font-size: var(--fs-lg); }
+  .legacy-stat select.gain, .legacy-apts .cell select, .per-parent select, .agenda-pick select { font-size: var(--fs-lg); }
   .legacy-apts .cell select { width: 46px; }
-  .legacy-sparks select[data-spark-stat] { width: 112px; }
+  .per-parent.blue { --main-width: 124px; }
   .wishlist { --wl-grip: 0px; }
   .wishlist .grip { display: none; }
   .wl-swap { padding: 3px 10px; }

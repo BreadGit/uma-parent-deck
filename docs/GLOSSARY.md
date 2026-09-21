@@ -78,8 +78,9 @@ Terms for this project. See the [game glossary](umamusume/GLOSSARY.md) for Umamu
   with each family counted once and no hint discounts. For example, Swinging Maestro costs 170 SP plus
   Corner Recovery ○ at 170 SP, for 340 SP total. Right-Handed ◎ costs 110 SP plus ○ at 90 SP, for 200 SP total.
   This total is compared with the estimated SP; the run itself buys nothing.
-- **Lineage** (per target): copies of that white spark already on each parent side (count and star
-  total), which raise both hint and generation chances.
+- **Lineage** (per target): the stars of that white spark on each of the six umas (each parent and her
+  two grandparents), which raise both hint and generation chances. The editor takes a copy count and star
+  total, placing copies on the parents first, or with "Per parent" the stars on each uma.
 - **Pinned card**: a card requested for the deck. Search maximizes the number of compatible pins
   within five owned slots and one borrowed slot. Owned pins take priority for owned slots when pin
   counts tie. A pin not in the inventory asks for the borrowed slot at LB4. Borrow from all controls

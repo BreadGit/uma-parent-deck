@@ -723,7 +723,7 @@ test('a fresh visit shows a general starting deck without prototype controls or 
 test('inherited Corner Recovery and Lucky Seven hints do not gain fictitious circle upgrades', async (t) => {
   const saved = defaultState(data);
   saved.run.targets = [200352, 201562, 200012, 201032];
-  saved.run.targetLineage = Object.fromEntries(saved.run.targets.map((id) => [id, { k1: 1, p1: 3, k2: 0, p2: 0 }]));
+  saved.run.targetLineage = Object.fromEntries(saved.run.targets.map((id) => [id, [3, 0, 0, 0, 0, 0]]));
   // Isolate inherited hints while still building a complete deck through the regular UI.
   Object.assign(saved.settings, { hintBase: 0, chainRatesSSR: [0, 0, 0], chainRatesSR: [0, 0], randomEventRate: 0,
     palChainRate: 0, groupOutingRate: 0, groupFinaleRate: 0, specialEventRate: 0 });
@@ -790,7 +790,7 @@ test('negative skills are absent from target search and saved negative targets r
   const saved = defaultState(data);
   saved.run.traineeCardId = 100701;
   saved.run.targets = [{ id: 200433, role: 'required', stars: 1, priority: 0 }];
-  saved.run.targetLineage['200433'] = { k1: 1, k2: 0, p1: 3, p2: 0 };
+  saved.run.targetLineage['200433'] = [3, 0, 0, 0, 0, 0];
   const page = await editor(t, saved);
   assert.match(await page.locator('[data-unavailable-choices]').innerText(), /200433/);
   assert.equal(await page.locator('.wishlist [data-wl-key="200433"]').count(), 0);
@@ -974,15 +974,15 @@ test('selecting a target name toggles its editor and removal updates goals witho
   assert.equal(await page.locator('[data-target-editor]').getAttribute('data-target-editor'), '201601');
   await page.click('[data-target-role="required"]');
   await page.selectOption('[data-target-stars="201601"]', '3');
-  await page.selectOption('[data-lineage-k="201601"][data-side="k1"]', '2');
-  await page.selectOption('[data-lineage-p="201601"][data-side="p1"]', '4');
+  await page.selectOption('[data-lineage-copies="201601"]', '2');
+  await page.selectOption('[data-lineage-stars="201601"]', '4');
   assert.equal(await page.locator('[data-target-editor] h3').first().innerText(), 'Goals for target white spark');
   assert.match(await page.locator('[data-target-editor] h3').last().innerText(), /^White sparks in lineage/);
   assert.equal(await page.locator('[data-target-editor] [data-action="remove-target"]').count(), 1);
   await target(page, 'Lucky Seven');
   await page.click('[data-action="select-target"][data-id="201601"]');
   assert.equal(await page.inputValue('[data-target-stars="201601"]'), '3');
-  assert.equal(await page.inputValue('[data-lineage-p="201601"][data-side="p1"]'), '4');
+  assert.equal(await page.inputValue('[data-lineage-stars="201601"]'), '4');
   await page.locator('[data-action="select-target"][data-id="201601"]').press('Enter');
   assert.equal(await page.locator('[data-target-editor]').count(), 0);
   await page.locator('[data-action="select-target"][data-id="201601"]').press('Enter');
@@ -1305,6 +1305,46 @@ test('six manual End sparks stay intact on an unrelated grade selection', async 
   await assertFieldsMatchState(page, 'after reloading six manual End sparks');
 });
 
+test('the per-parent lineage form keeps grandparent placement through totals edits and follows the editor between targets', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100101;
+  saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: 200012, role: 'preferred', stars: 2, priority: 0 }];
+  saved.run.targetLineage = { 201601: [0, 2, 0, 0, 0, 1] };
+  const page = await editor(t, saved);
+  await page.click('[data-action="select-target"][data-id="201601"]');
+  assert.equal(await page.inputValue('[data-lineage-copies="201601"]'), '2');
+  assert.equal(await page.inputValue('[data-lineage-stars="201601"]'), '3');
+  await page.selectOption('[data-lineage-stars="201601"]', '5');
+  assert.deepEqual((await state(page)).run.targetLineage[201601], [0, 3, 0, 0, 0, 2], 'more stars raise the entered grandparents rather than moving them');
+  await page.selectOption('[data-lineage-copies="201601"]', '3');
+  assert.deepEqual((await state(page)).run.targetLineage[201601], [3, 3, 0, 0, 0, 2], 'a new copy starts at 3★ on parent 1');
+  await page.click('[data-action="toggle-lineage-parents"]');
+  await page.waitForSelector('[data-lineage-parents="201601"]');
+  assert.equal(await page.getAttribute('[data-action="toggle-lineage-parents"]', 'aria-pressed'), 'true');
+  assert.deepEqual(await page.$$eval('[data-lineage-uma]', (els) => els.map((s) => [s.value, s.classList.contains('set')])), [['3', true], ['3', true], ['0', false], ['0', false], ['0', false], ['2', true]]);
+  await page.selectOption('[data-lineage-uma="201601-0"]', '0');
+  assert.deepEqual((await state(page)).run.targetLineage[201601], [0, 3, 0, 0, 0, 2]);
+  assert.equal(await page.locator('[data-lineage-summary="201601"]').innerText(), '2 copies · 5★ total');
+  await assertFieldsMatchState(page, 'after clearing a parent in the per-parent form');
+  await page.click('[data-action="select-target"][data-id="200012"]');
+  assert.equal(await page.locator('[data-lineage-parents="200012"]').count(), 1, 'the form stays open for the next target');
+  assert.deepEqual(await page.$$eval('[data-lineage-uma]', (els) => els.map((s) => s.value)), ['0', '0', '0', '0', '0', '0']);
+  for (const slot of [0, 1, 2, 3, 4, 5]) await page.selectOption(`[data-lineage-uma="200012-${slot}"]`, '0');
+  assert.equal((await state(page)).run.targetLineage[200012], undefined, 'six empty umas store no entry');
+  await page.selectOption('[data-lineage-uma="200012-5"]', '1');
+  await page.selectOption('[data-lineage-uma="200012-5"]', '0');
+  assert.equal((await state(page)).run.targetLineage[200012], undefined, 'clearing the last copy drops the entry');
+  await page.click('[data-action="toggle-lineage-parents"]');
+  await page.waitForSelector('[data-lineage-parents]', { state: 'detached' });
+  assert.equal(await page.inputValue('[data-lineage-copies="200012"]'), '0');
+  assert.equal(await page.isDisabled('[data-lineage-stars="200012"]'), true, 'no copies: the star total is disabled');
+  await assertFieldsMatchState(page, 'after returning to lineage totals');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.click('[data-action="toggle-lineage-parents"]');
+  await page.waitForSelector('[data-lineage-parents="200012"]');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'the per-parent form fits a phone');
+});
+
 test('legacy saves retain negative choices as unavailable and keep gold-only targets editable', async (t) => {
   const gold = data.skills.find((s) => s.name === 'Runaway');
   const saved = { version: 6, run: { targets: [200433, 200432, gold.id], targetLineage: { 200433: { k1: 1, k2: 0, p1: 2, p2: 0 }, [gold.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } } } };
@@ -1314,10 +1354,10 @@ test('legacy saves retain negative choices as unavailable and keep gold-only tar
   assert.match(await page.locator('[data-unavailable-choices]').innerText(), /200433/);
   await page.click(`[data-action="select-target"][data-id="${gold.id}"]`);
   assert.match(await page.locator('[data-target-unsupported]').innerText(), /no released white spark/);
-  assert.equal(await page.inputValue(`[data-lineage-p="${gold.id}"][data-side="p1"]`), '3');
+  assert.equal(await page.inputValue(`[data-lineage-stars="${gold.id}"]`), '3');
   await page.click('[data-target-role="required"]');
   await assertFieldsMatchState(page, 'after editing a preserved gold-only target');
-  assert.deepEqual((await state(page)).run.targetLineage, saved.run.targetLineage);
+  assert.deepEqual((await state(page)).run.targetLineage, { 200433: [2, 0, 0, 0, 0, 0], [gold.id]: [3, 0, 0, 0, 0, 0] }, 'per-side totals from an older save place their copies on the parents');
   await page.reload();
   assert.deepEqual((await state(page)).run.targets.map((t) => t.id), saved.run.targets);
   assert.match(await page.locator('[data-unavailable-choices]').innerText(), /200433/);
@@ -1382,7 +1422,7 @@ test('pink probability ranges remain visible and disabled and dimmed fields have
     await page.click(`[data-theme-pick="${theme}"]`);
     const colors = await page.locator('[data-apt="end"]').evaluate((s) => ({ normal: getComputedStyle(s.querySelector('option[value="C"]')).color, dim: getComputedStyle(s.querySelector('option[value="B"]')).color }));
     assert.notEqual(colors.normal, colors.dim, theme);
-    const disabled = page.locator('[data-lineage-p="201601"][data-side="p1"]');
+    const disabled = page.locator('[data-lineage-stars="201601"]');
     assert.equal(await disabled.isDisabled(), true);
     assert.ok(await disabled.evaluate((el) => Number(getComputedStyle(el).opacity) < 1), theme);
     await assertFieldsMatchState(page, `after checking field cues in ${theme}`);
@@ -1583,7 +1623,7 @@ test('templates preview without edits, confirm replacement, and preserve unrelat
   const saved = defaultState(data);
   saved.run.traineeCardId = 100101;
   saved.run.targets = [{ id: 210052, role: 'required', stars: 3, priority: 0 }];
-  saved.run.targetLineage = { 210052: { k1: 1, p1: 2, k2: 0, p2: 0 } };
+  saved.run.targetLineage = { 210052: [2, 0, 0, 0, 0, 0] };
   saved.run.wishlistOrder = [201601, 200452];
   saved.run.wishlistExcluded = [200012];
   saved.settings.affinity = 175;
@@ -1633,8 +1673,8 @@ test('templates preview without edits, confirm replacement, and preserve unrelat
   assert.deepEqual((await state(page)).run.targetLineage, { ...godly.targetLineage, ...saved.run.targetLineage });
   assert.equal(await details.getAttribute('open'), null);
   await target(page, 'ignited spirit wit');
-  assert.equal(await page.inputValue('[data-lineage-k="210052"][data-side="k1"]'), '1');
-  assert.equal(await page.inputValue('[data-lineage-p="210052"][data-side="p1"]'), '2');
+  assert.equal(await page.inputValue('[data-lineage-copies="210052"]'), '1');
+  assert.equal(await page.inputValue('[data-lineage-stars="210052"]'), '2');
   await assertFieldsMatchState(page, 'after re-adding a target with preserved lineage');
   await details.locator('summary').click();
   await load(godly);
@@ -1661,15 +1701,15 @@ test('template Load and pink controls share rows at phone and desktop widths', a
   await assertFieldsMatchState(page, 'after applying missing godly lineage');
   assert.deepEqual((await state(page)).run.targetLineage, godly.targetLineage);
   await page.click('[data-action="select-target"][data-id="210052"]');
-  for (const side of ['k1', 'k2']) assert.equal(await page.inputValue(`[data-lineage-k="210052"][data-side="${side}"]`), '3');
-  for (const side of ['p1', 'p2']) assert.equal(await page.inputValue(`[data-lineage-p="210052"][data-side="${side}"]`), '7');
-  await page.selectOption('[data-lineage-p="210052"][data-side="p1"]', '8');
+  assert.equal(await page.inputValue('[data-lineage-copies="210052"]'), '6');
+  assert.equal(await page.inputValue('[data-lineage-stars="210052"]'), '14');
+  await page.selectOption('[data-lineage-stars="210052"]', '15');
   await page.click('[data-action="load-goal-template"]');
   await confirmDialog(page);
-  assert.equal((await state(page)).run.targetLineage[210052].p1, 8);
+  assert.deepEqual((await state(page)).run.targetLineage[210052], [3, 3, 2, 3, 2, 2], 'the extra star goes to the first grandparent and a reload of the template keeps it');
   await page.reload();
   await assertFieldsMatchState(page, 'after reloading edited template lineage');
-  assert.equal((await state(page)).run.targetLineage[210052].p1, 8);
+  assert.deepEqual((await state(page)).run.targetLineage[210052], [3, 3, 2, 3, 2, 2]);
   await page.locator('[data-goal-templates] summary').click();
   await page.selectOption('[data-goal-template]', godly.id);
   assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
@@ -1710,7 +1750,7 @@ function shareFixture() {
   saved.run.traineeCardId = 100101;
   saved.run.traineeStars = 4;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 3, priority: 0 }];
-  saved.run.targetLineage = { 201601: { k1: 2, k2: 1, p1: 5, p2: 3 } };
+  saved.run.targetLineage = { 201601: [3, 2, 0, 3, 0, 0] };
   saved.run.parentSparks = [[{ stat: 'speed', stars: 3 }, null, null], [null, null, null]];
   saved.run.wishlistOrder = [201601, 200472];
   saved.run.wishlistExcluded = [200012];
@@ -1900,7 +1940,7 @@ test('share URL navigation rejects bad input atomically without sharing controls
   assert.equal(await page.locator('[data-share-controls], [data-share], [data-section="share"]').count(), 0);
   assert.equal(await page.getByText('Share run', { exact: true }).count(), 0);
   const before = await state(page);
-  for (const code of ['2dinvalid', '5jW10']) {
+  for (const code of ['2dinvalid', '6jW10']) {
     await navigateShare(page, shareUrl(url, code));
     await page.waitForSelector('[data-dialog]');
     assert.deepEqual(await state(page), before);
@@ -1924,7 +1964,7 @@ test('share URL navigation rejects bad input atomically without sharing controls
 test('unavailable shared IDs stay visible and survive edits, reloads, and re-sharing', async (t) => {
   const saved = shareFixture();
   saved.run.targets.push({ id: 99999991, role: 'required', stars: 3, priority: 0 });
-  saved.run.targetLineage['99999991'] = { k1: 3, k2: 3, p1: 9, p2: 9 };
+  saved.run.targetLineage['99999991'] = [3, 3, 3, 3, 3, 3];
   saved.run.pinnedIds.push(99999992);
   saved.run.wishlistOrder.push(99999993);
   const page = await editor(t, saved);
@@ -1973,11 +2013,11 @@ test('slow share compression cannot overwrite a newer edit', async (t) => {
 test('invalid startup shares keep the saved run and a valid URL recovers', async (t) => {
   const page = await editor(t, shareFixture());
   const before = await state(page);
-  await page.goto(shareUrl(url, '5jW10'));
+  await page.goto(shareUrl(url, '6jW10'));
   await page.waitForSelector('#target-search-required');
   await page.waitForSelector('[data-dialog]');
   assert.deepEqual(await state(page), before);
-  assert.equal(new URL(page.url()).searchParams.get('run'), '5jW10');
+  assert.equal(new URL(page.url()).searchParams.get('run'), '6jW10');
   await page.click('[data-dialog-confirm]');
   await page.goto(shareUrl(url, '2jW10'));
   await page.waitForSelector('#trainee-search');

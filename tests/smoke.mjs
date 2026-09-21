@@ -510,10 +510,23 @@ await page.click('[data-action="select-target"][data-id="201601"]');
 await assertFieldsMatchState(page, 'after switching target editor');
 await page.selectOption('[data-target-stars="201601"]', '3');
 await assertFieldsMatchState(page, 'after required star edit');
-await page.selectOption('[data-lineage-k="201601"][data-side="k1"]', '2');
+await page.selectOption('[data-lineage-copies="201601"]', '2');
 await assertFieldsMatchState(page, 'after white lineage copies');
-await page.selectOption('[data-lineage-p="201601"][data-side="p1"]', '5');
+await page.selectOption('[data-lineage-stars="201601"]', '5');
 await assertFieldsMatchState(page, 'after white lineage stars');
+// "Per parent" swaps the totals for one star select per parent and grandparent; both edit the same six umas
+assert.equal(await page.$('[data-lineage-parents]'), null, 'the per-parent form starts closed');
+await page.click('[data-action="toggle-lineage-parents"]');
+await page.waitForSelector('[data-lineage-parents="201601"]');
+assert.deepEqual(await page.$$eval('[data-lineage-uma]', (els) => els.map((s) => s.value)), ['3', '0', '0', '2', '0', '0'], 'two copies totaling 5★ sit on the two parents');
+await assertFieldsMatchState(page, 'after opening the per-parent lineage form');
+await page.selectOption('[data-lineage-uma="201601-4"]', '2');
+await assertFieldsMatchState(page, 'after a grandparent lineage edit');
+assert.equal(await page.locator('[data-lineage-summary="201601"]').innerText(), '3 copies · 7★ total');
+await page.click('[data-action="toggle-lineage-parents"]');
+await page.waitForSelector('[data-lineage-parents]', { state: 'detached' });
+await fieldValue('[data-lineage-copies="201601"]', '3');
+await assertFieldsMatchState(page, 'after closing the per-parent lineage form');
 await page.click('[data-action="select-target"][data-id="201601"]');
 assert.equal(await page.locator('[data-target-editor]').count(), 0, 'clicking the selected name closes the editor');
 await assertFieldsMatchState(page, 'after closing target editor');
@@ -562,7 +575,7 @@ for (const id of [200352, 201601, 200472]) {
   await assertFieldsMatchState(page, `after restoring editor ${id}`);
   if (id === 201601) {
     assert.equal(await page.inputValue('[data-target-stars="201601"]'), '3');
-    assert.equal(await page.inputValue('[data-lineage-p="201601"][data-side="p1"]'), '5');
+    assert.equal(await page.inputValue('[data-lineage-stars="201601"]'), '7');
   }
   await page.click(`[data-target-role="preferred"][data-id="${id}"]`);
   await assertFieldsMatchState(page, `after making ${id} preferred`);

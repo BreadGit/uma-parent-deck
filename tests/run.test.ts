@@ -219,7 +219,7 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.equal(plan.ranking.length, data.cards.length);
   assert.ok(plan.rank.pSS >= 0 && plan.rank.pSS <= 1, 'P(SS) is a probability');
   const corner = resolveTarget(200352, data)!;
-  const input: RunInput = { ...empty, traineeCardId: sw.cardId, traineeStars: 3, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: { [corner.id]: { k1: 1, k2: 0, p1: 3, p2: 0 } }, pinnedIds: [30052] };
+  const input: RunInput = { ...empty, traineeCardId: sw.cardId, traineeStars: 3, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: { [corner.id]: [3, 0, 0, 0, 0, 0] }, pinnedIds: [30052] };
   const withTrainee = planRun(input, settings, {}, data, { budget: 8 });
   assert.equal(withTrainee.trainee?.name, 'Special Week');
   assert.ok(withTrainee.deckResult.deck.some((d) => d.card.id === 30052), 'pinned Light Hello is in the deck');

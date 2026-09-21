@@ -14,12 +14,13 @@ import { planRun } from '../src/model/run.ts';
 const data = loadData();
 const goldNames = ['Runaway', 'Best in Japan', 'Risk-Maker', 'Unchanging', 'Blatant Fear', 'Dream Run', 'Cheers of a Fellow Dreamer', 'For the Team'];
 const goldIds = goldNames.map((name) => must(data.skills.find((s) => s.name === name), `skill ${name}`).id);
-const lineage = { k1: 1, k2: 2, p1: 2, p2: 5 };
+const sided = { k1: 1, k2: 2, p1: 2, p2: 5 };
+const lineage = [2, 0, 0, 3, 2, 0];
 const close = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < 1e-10, `${actual} != ${expected}`);
 
 test('migration preserves positive, negative and gold-only skill identities with their lineage', () => {
   const ids = [200432, 200433, ...goldIds.map((id) => resolveTarget(id, data)!.id)];
-  const saved = migrate({ current: { version: 6, run: { targets: ids, targetLineage: Object.fromEntries(ids.map((id) => [id, lineage])) } } }, data);
+  const saved = migrate({ current: { version: 6, run: { targets: ids, targetLineage: Object.fromEntries(ids.map((id) => [id, sided])) } } }, data);
   assert.equal(saved.version, STATE_VERSION);
   assert.deepEqual(saved.run.targets.map((t) => t.id), ids);
   assert.deepEqual(saved.run.targetLineage, Object.fromEntries(ids.map((id) => [id, lineage])));
@@ -30,11 +31,11 @@ test('migration preserves positive, negative and gold-only skill identities with
 
 test('legacy migration normalizes lineage aliases and retains inactive and unavailable IDs', () => {
   const target = resolveTarget(200352, data)!;
-  const raw = { targets: [target.gold!.id], targetLineage: { [target.gold!.id]: lineage, 999999: lineage, 201601: lineage } };
+  const raw = { targets: [target.gold!.id], targetLineage: { [target.gold!.id]: sided, 999999: sided, 201601: lineage } };
   const saved = migrate({ state: raw }, data);
   assert.deepEqual(saved.run.targetLineage, { [target.id]: lineage, 201601: lineage, 999999: lineage });
   const exact = { k1: 0, k2: 1, p1: 0, p2: 3 };
-  assert.deepEqual(migrate({ state: { ...raw, targetLineage: { ...raw.targetLineage, [target.id]: exact } } }, data).run.targetLineage, { [target.id]: exact, 201601: lineage, 999999: lineage });
+  assert.deepEqual(migrate({ state: { ...raw, targetLineage: { ...raw.targetLineage, [target.id]: exact } } }, data).run.targetLineage, { [target.id]: [0, 0, 0, 3, 0, 0], 201601: lineage, 999999: lineage });
 });
 
 test('required roles and stars migrate into the sole target list without changing its order', () => {

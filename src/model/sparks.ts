@@ -2,7 +2,7 @@ import type { Card, CardEvent, Character, Data, EventCondition, RaceRef, Reward,
 import { DEFAULT_SETTINGS, type Settings } from '../settings.ts';
 import { EFFECT, passives } from './stats.ts';
 import type { RaceWins } from './races.ts';
-import { GOLD_ROLL_BY_STAT, INSPIRATION_EVENTS, LINEAGE_MAX_PER_SIDE, SCENARIO_COMPLETION_SKILLS, STARS_PER_SPARK_MAX } from './rules.ts';
+import { GOLD_ROLL_BY_STAT, INSPIRATION_EVENTS, LINEAGE_MAX_PER_SIDE, LINEAGE_SLOTS, PARENTS, SCENARIO_COMPLETION_SKILLS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from './rules.ts';
 import { affinityMultiplier } from './inherit.ts';
 
 /** A target as the user picked it, resolved to its skill family. */
@@ -317,23 +317,55 @@ export function traineeSources(trainee: Character, target: Target, data: Data, s
   return out;
 }
 
-/** Existing copies of a target white spark in the lineage: per parent side, how many umas carry it and the star total. */
-export interface Lineage { k1: number; p1: number; k2: number; p2: number }
-export const NO_LINEAGE: Lineage = { k1: 0, k2: 0, p1: 0, p2: 0 };
-export const lineageCount = (l: Lineage) => l.k1 + l.k2;
-
-/** Split a parent side's stars over its copies of the spark as evenly as possible, at most STARS_PER_SPARK_MAX each. */
-function spread(stars: number, k: number): number[] {
-  const n = Math.max(0, Math.min(LINEAGE_MAX_PER_SIDE, k));
-  if (n <= 0) return [];
-  const out = Array<number>(n).fill(0);
-  let left = Math.max(0, Math.min(STARS_PER_SPARK_MAX * n, Math.round(stars)));
-  for (let i = 0; left > 0; i = (i + 1) % n) { out[i]! += 1; left -= 1; }
-  return out.map((v) => Math.max(1, v));
+/**
+ * Existing copies of a target white spark in the lineage: the stars each of the six umas carries, 0 for none. Slots
+ * 0 to 2 are parent 1 and her two grandparents, slots 3 to 5 parent 2's side. Only the star values of the copies
+ * matter to the estimate; the form also takes a copy count and star total and places them with the rules below.
+ */
+export type Lineage = number[];
+export const emptyLineage = (): Lineage => Array<number>(LINEAGE_SLOTS).fill(0);
+export const lineageCount = (l: Lineage) => l.filter((s) => s > 0).length;
+export const lineageStars = (l: Lineage) => l.reduce((a, s) => a + s, 0);
+/** The stars of each copy, in slot order. */
+export const lineageSparks = (l: Lineage): number[] => l.filter((s) => s > 0);
+export const lineageSide = (l: Lineage, side: 0 | 1): Lineage => l.slice(side * UMAS_PER_PARENT_SIDE, (side + 1) * UMAS_PER_PARENT_SIDE);
+/** Totals fill the two parents first, then the grandparents, alternating sides, so an odd count leans on parent 1. */
+const FILL_ORDER = Array.from({ length: LINEAGE_SLOTS }, (_, i) => (i % PARENTS) * UMAS_PER_PARENT_SIDE + Math.floor(i / PARENTS));
+/** A copy count applied to entered umas: new copies start at 3★ in fill order, and only the last-filled ones leave. */
+export function withLineageCopies(l: Lineage, copies: number): Lineage {
+  const out = [...l];
+  const n = Math.max(0, Math.min(LINEAGE_SLOTS, Math.round(copies)));
+  for (const i of FILL_ORDER) if (lineageCount(out) < n && !out[i]) out[i] = STARS_PER_SPARK_MAX;
+  for (const i of [...FILL_ORDER].reverse()) if (lineageCount(out) > n && out[i]) out[i] = 0;
+  return out;
 }
-/** The sparks on each parent side, by stars. */
-export const lineageSparksBySide = (l: Lineage): [number[], number[]] => [spread(l.p1, l.k1), spread(l.p2, l.k2)];
-export const lineageSparks = (l: Lineage): number[] => lineageSparksBySide(l).flat();
+/** A star total applied to entered umas: one star at a time, raising the lowest copy or lowering the highest. */
+export function withLineageStars(l: Lineage, stars: number): Lineage {
+  const out = [...l];
+  const n = lineageCount(out);
+  const target = Math.max(n, Math.min(STARS_PER_SPARK_MAX * n, Math.round(stars)));
+  const filled = FILL_ORDER.filter((i) => out[i]! > 0);
+  while (lineageStars(out) < target) out[filled.filter((i) => out[i]! < STARS_PER_SPARK_MAX).reduce((a, i) => (out[i]! < out[a]! ? i : a))]! += 1;
+  while (lineageStars(out) > target) out[[...filled].reverse().filter((i) => out[i]! > 1).reduce((a, i) => (out[i]! > out[a]! ? i : a))]! -= 1;
+  return out;
+}
+export const lineageFromTotals = (copies: number, stars: number): Lineage => withLineageStars(withLineageCopies(emptyLineage(), copies), stars);
+/** The older per-side shape: copies and a star total on each parent side. */
+export function lineageFromSides(k1: number, p1: number, k2: number, p2: number): Lineage {
+  const fill = (k: number, p: number): Lineage => {
+    const n = Math.max(0, Math.min(LINEAGE_MAX_PER_SIDE, Math.round(k)));
+    const out = Array<number>(LINEAGE_SLOTS).fill(0);
+    for (let i = 0; i < n; i++) out[i] = STARS_PER_SPARK_MAX;
+    return lineageSide(withLineageStars(out, p), 0);
+  };
+  return [...fill(k1, p1), ...fill(k2, p2)];
+}
+/** A saved or shared lineage: six integers from 0 to the star maximum. */
+export function sanitizeLineage(v: unknown): Lineage | null {
+  if (!Array.isArray(v) || v.length !== LINEAGE_SLOTS) return null;
+  const out = v.map((s) => (typeof s === 'number' && Number.isInteger(s) && s >= 0 && s <= STARS_PER_SPARK_MAX ? s : null));
+  return out.every((s): s is number => s !== null) ? out : null;
+}
 
 /** Inherited white sparks roll at each of the two inspiration events, at the assumed affinity, and hand over the white hint. */
 export function lineageSources(target: Target, lineage: Lineage | undefined, settings: Settings): SkillSource[] {

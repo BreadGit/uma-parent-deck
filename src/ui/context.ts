@@ -46,6 +46,8 @@ const viewState = {
   showAllCandidates: false,
   /** Observed after layout by app.ts: whether the clamped candidates hide any. */
   candidatesOverflow: false,
+  /** The white lineage editor takes each parent and grandparent instead of totals. */
+  showLineageParents: false,
 };
 export type View = typeof viewState;
 
