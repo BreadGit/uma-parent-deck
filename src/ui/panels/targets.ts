@@ -22,7 +22,7 @@ const QUERY_FIELD = { required: 'requiredQuery', preferred: 'preferredQuery' } a
 /** How many names a closed group previews in its summary. */
 const PEEK = 4;
 
-const targetable = data.skills.filter((s) => !s.unreleasedEn && (s.rarity === 1 || s.rarity === 2) && !s.name.includes('×') && goalFamily(s.id, data) === resolveTarget(s.id, data)?.id);
+const targetable = data.skills.filter((s) => !s.unreleasedEn && (s.rarity === 1 || s.rarity === 2) && goalFamily(s.id, data) === resolveTarget(s.id, data)?.id);
 
 export function matchTargets(query: string): Skill[] {
   const q = query.trim().toLowerCase();

@@ -265,7 +265,10 @@ which GameTora marks with an icon id ending in 4 and which the game never sells.
 trainee event gives the run is neither bought nor rated; the negative rating it carries until removed
 (UmaTools converts the removal cost to −129, −174 or −262) is not modeled. GameTora lists a debuff among
 the versions of its positive counterpart, so the tool treats each debuff as its own one-member family
-rather than letting Gatekept borrow Concentration as an upgrade. This reference is independent of the deck. Optional purchases below that rate are skipped, so adding an optional
+rather than letting Gatekept borrow Concentration as an upgrade. Negative skills are excluded from
+white-spark goals, inheritance and prioritized extras. Previously saved negative targets and lineage
+stay in the save as unavailable choices, without contributing to estimates.
+This reference is independent of the deck. Optional purchases below that rate are skipped, so adding an optional
 skill or upgrade cannot lower Rank when other inputs and source probabilities stay the same.
 Known skills have finite expected capacity and cannot be bought repeatedly to exhaust the budget.
 The prediction explains how much SP uses the reference rate, including when all of it does.

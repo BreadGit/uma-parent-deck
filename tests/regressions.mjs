@@ -786,6 +786,25 @@ test('a malformed saved side becomes the default side without a warning, and the
   assert.deepEqual((await state(page)).run.parentSparks, [defaultParentSparks(), [{ stat: 'wit', stars: 3 }, { stat: 'wit', stars: 3 }, { stat: 'guts', stars: 1 }]], 'the next edit saves the repaired side 1 along with the change on side 2');
 });
 
+test('negative skills are absent from target search and saved negative targets remain visible as unavailable', async (t) => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100701;
+  saved.run.targets = [{ id: 200433, role: 'required', stars: 1, priority: 0 }];
+  saved.run.targetLineage['200433'] = { k1: 1, k2: 0, p1: 3, p2: 0 };
+  const page = await editor(t, saved);
+  assert.match(await page.locator('[data-unavailable-choices]').innerText(), /200433/);
+  assert.equal(await page.locator('.wishlist [data-wl-key="200433"]').count(), 0);
+  for (const name of ['Gatekept', 'Wallflower', 'Right-Handed ×']) {
+    await page.fill('#target-search-required', name);
+    assert.equal(await page.locator('[data-action="add-target"]').count(), 0, name);
+  }
+  await page.fill('#target-search-required', 'Focus');
+  assert.equal(await page.locator('[data-action="add-target"][data-id="200432"]').count(), 1, 'positive counterpart remains selectable');
+  assert.deepEqual((await state(page)).run.targets, saved.run.targets);
+  assert.deepEqual((await state(page)).run.targetLineage, saved.run.targetLineage);
+  await assertFieldsMatchState(page, 'after searching negative skills');
+});
+
 test('invalid inventory imports preserve inventory, while valid export and import round-trip', async (t) => {
   const page = await editor(t);
   await page.setInputFiles('#import-file', inventoryFile({ 30052: null, 30028: 2, 20009: 0 }));

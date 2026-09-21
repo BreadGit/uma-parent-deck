@@ -1,5 +1,5 @@
 import { STATS, APTITUDE_KEYS, isPlainObject, type AptKey, type Data, type Stat } from '../types.ts';
-import { resolveTarget } from './sparks.ts';
+import { isDebuff, resolveTarget } from './sparks.ts';
 
 export const APTITUDE_LABELS: Record<AptKey, string> = { turf: 'Turf', dirt: 'Dirt', sprint: 'Sprint', mile: 'Mile', medium: 'Medium', long: 'Long', front: 'Front Runner', pace: 'Pace Chaser', late: 'Late Surger', end: 'End Closer' };
 export interface WhiteGoal { id: number; stars: number }
@@ -28,7 +28,7 @@ export const goalFamily = (id: unknown, data: Data): number | null => {
   if (typeof id !== 'number') return null;
   const t = resolveTarget(id, data);
   const skill = t?.white && !t.white.unreleasedEn ? t.white : t?.gold;
-  return skill && !skill.unreleasedEn && !skill.name.includes('×') ? t!.id : null;
+  return skill && !skill.unreleasedEn && !isDebuff(skill) ? t!.id : null;
 };
 export function sanitizeGoal(raw: unknown): ParentGoal {
   const v = object(raw);

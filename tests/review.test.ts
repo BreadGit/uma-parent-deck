@@ -17,14 +17,15 @@ const goldIds = goldNames.map((name) => must(data.skills.find((s) => s.name === 
 const lineage = { k1: 1, k2: 2, p1: 2, p2: 5 };
 const close = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < 1e-10, `${actual} != ${expected}`);
 
-test('migration preserves both white identities and all eight gold-only targets with their lineage', () => {
+test('migration preserves positive, negative and gold-only skill identities with their lineage', () => {
   const ids = [200432, 200433, ...goldIds.map((id) => resolveTarget(id, data)!.id)];
   const saved = migrate({ current: { version: 6, run: { targets: ids, targetLineage: Object.fromEntries(ids.map((id) => [id, lineage])) } } }, data);
   assert.equal(saved.version, STATE_VERSION);
   assert.deepEqual(saved.run.targets.map((t) => t.id), ids);
   assert.deepEqual(saved.run.targetLineage, Object.fromEntries(ids.map((id) => [id, lineage])));
   assert.deepEqual(migrate({ current: saved }, data), saved);
-  for (const id of ids) assert.equal(goalFamily(id, data), id);
+  for (const id of ids.filter((id) => id !== 200433)) assert.equal(goalFamily(id, data), id);
+  assert.equal(goalFamily(200433, data), null, 'Gatekept stays saved but is not an eligible spark goal');
 });
 
 test('legacy migration normalizes lineage aliases and retains inactive and unavailable IDs', () => {
@@ -53,7 +54,7 @@ test('saved planning overrides preserve the agenda', () => {
   assert.equal(plan.schedule.filter((r) => r.selected && r.race.surface === 'dirt' && !r.goal).length, 0);
 });
 
-test('distinct whites sharing a gold upgrade do not supply each other', () => {
+test('a positive skill cannot supply its negative counterpart', () => {
   const focus = resolveTarget(200432, data)!, gatekept = resolveTarget(200433, data)!;
   assert.equal(focus.familyIds.has(gatekept.id), false);
   assert.equal(gatekept.familyIds.has(focus.id), false);

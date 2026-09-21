@@ -14,7 +14,7 @@ export interface Target {
   gold: Skill | null;    // gold upgrade
   familyIds: Set<number>;
 }
-export const hasWhiteSpark = (target: Target): boolean => !!target.white && !target.white.unreleasedEn;
+export const hasWhiteSpark = (target: Target): boolean => !!target.white && !target.white.unreleasedEn && !isDebuff(target.white);
 
 const isGold = (s: Skill) => s.rarity === 2;
 const isCircle = (s: Skill) => s.rarity === 1 && s.name.includes('◎');

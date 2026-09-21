@@ -10,6 +10,17 @@ const data = loadData();
 const ctx = makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null });
 const target = (name: string) => resolveTarget(data.skills.find((s) => s.name === name && !s.unreleasedEn)!.id, data)!;
 
+test('negative event skills are not offered as prioritized extras', () => {
+  const card = {
+    ...data.cardById.get(30028)!, hintSkills: [], eventSkills: [200433, 200432],
+    chainEvents: [], recreationEvents: [], specialEvents: [],
+    randomEvents: [{ kind: 'random' as const, index: 1, choices: [200433, 200432].map((id) => ({ outcomes: [[{ t: 'sk', d: id }]] })) }],
+  };
+  const entries = wishlistCandidates([{ card, lb: 4 }], [], ctx);
+  assert.ok(entries.some((w) => w.skillId === 200432), 'Focus is a valid extra');
+  assert.ok(!entries.some((w) => w.skillId === 200433), 'Gatekept is not a prioritized purchase');
+});
+
 test('automatic outing rewards identify the card and event for the displayed form', () => {
   const skill = target('See Ya Later!');
   const card = data.cards.find((c) => c.name === '[From the Ground Up] Light Hello')!;
