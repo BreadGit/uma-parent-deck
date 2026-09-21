@@ -805,6 +805,28 @@ test('negative skills are absent from target search and saved negative targets r
   await assertFieldsMatchState(page, 'after searching negative skills');
 });
 
+test('settings export captures current advanced values without changing the saved run', async (t) => {
+  const saved = defaultState(data);
+  saved.settings.hintScale = 1.5;
+  saved.settings.chainRatesSSR = [.8, .5, .2];
+  const page = await editor(t, saved);
+  await page.click('[data-details="advanced"] > summary');
+  await page.fill('[data-setting="hintScale"]', '2');
+  await page.locator('[data-setting="hintScale"]').press('Tab');
+  const before = await state(page);
+  const downloaded = page.waitForEvent('download');
+  await page.click('[data-action="export-settings"]');
+  const download = await downloaded;
+  assert.equal(download.suggestedFilename(), 'settings.json');
+  let text = '';
+  for await (const chunk of await download.createReadStream()) text += chunk;
+  const settings = JSON.parse(text);
+  assert.equal(settings.hintScale, 2);
+  assert.deepEqual(settings, before.settings);
+  assert.deepEqual(await state(page), before);
+  await assertFieldsMatchState(page, 'after exporting settings');
+});
+
 test('invalid inventory imports preserve inventory, while valid export and import round-trip', async (t) => {
   const page = await editor(t);
   await page.setInputFiles('#import-file', inventoryFile({ 30052: null, 30028: 2, 20009: 0 }));

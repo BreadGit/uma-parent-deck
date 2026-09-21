@@ -213,14 +213,22 @@ rewards in place of skills, and whether priorities affect training-hint pickup n
 Hint availability affects target acquisition and Rank; it does not change a fixed deck's earned
 SP prediction. Hint-level discounts remain unmodeled, and the displayed cost stays full price.
 
-To check how those assumptions affect a recommendation, use the same share code and exported
-inventory that the app uses:
+To check how those assumptions affect a recommendation, use the same share code, exported
+inventory and settings that the app uses. In Inventory & settings, open Advanced settings and
+choose **Export settings** to download the complete `settings.json` snapshot:
 
 ```sh
-node scripts/hint-sensitivity.mjs --run '<share URL or code>' --inventory /path/to/inventory.json
+node scripts/hint-sensitivity.mjs --run '<share URL or code>' --inventory /path/to/inventory.json --settings /path/to/settings.json
 ```
 
-The default multipliers are `0.5,1,2` relative to the saved hint scale. They are stress-test
+Share codes include training focus and win threshold, but no advanced settings. The script requires
+either `--settings` or an explicit `--default-settings`; it never silently assumes defaults. A settings
+file must contain every current setting with a valid value; missing, unknown or invalid fields are
+rejected. Export it again after settings change. The share's focus and win threshold override those
+two fields in the snapshot, matching a share import in the app. The JSON report includes the effective
+`baselineSettings` and whether they came from a file or defaults.
+
+The default multipliers are `0.5,1,2` relative to that baseline's hint scale. They are stress-test
 scenarios, not measured confidence bounds. The JSON compares fresh recommendations and also
 rescores the unchanged baseline deck, separating changed card selection from changed estimates.
 It reports the search objective separately from the displayed chance, which follows saved extras.

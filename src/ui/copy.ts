@@ -163,6 +163,7 @@ export const COPY = {
     importFailed: (reason: string) => `Import failed: ${reason}`,
     advanced: 'Advanced settings',
     advancedTip: 'Rates and scales the model needs that the game does not publish. Each field shows its default; changed values are marked.',
+    exportSettings: 'Export settings',
     resetAdvanced: 'Reset advanced settings',
     defaultLabel: 'default',
   },
