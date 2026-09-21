@@ -1,6 +1,6 @@
 // The legacy screen: what the game shows before a run. Per stat, each parent's "+XX" start gain from her side's
 // blue sparks, the trainee's start value, and the aptitude table with the surface, distance, and style overrides. The
-// "By stars" form enters the same sparks per uma, for a parent read off a database instead of the screen, and the
+// "Blue per parent" form enters the same sparks per uma, for a parent read off a database instead of the screen, and the
 // pink form enters the ancestors' pink sparks behind the aptitude grades.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
@@ -78,7 +78,7 @@ function gainSelect(c: RunPlan, pi: number, si: number) {
 }
 
 /**
- * One uma's row in the "By stars" form: who she is, the stat her blue spark raises, and its stars. An empty slot
+ * One uma's row in the "Blue per parent" form: who she is, the stat her blue spark raises, and its stars. An empty slot
  * (its stat was set to +0 above) shows "—" in both selects, offers no "—" once a stat is picked, and keeps the stars
  * select disabled until then.
  */

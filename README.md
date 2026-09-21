@@ -55,9 +55,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   preferred sparks on successful parents distinguish decks within a tight, adjustable relative
   window. Search runs in the background with a loading state. When a requirement is impossible,
   the result explains it and separately estimates the best remaining goal found.
-  Copy starting aptitude grades from the game after selecting both parents. Open Pink sparks
+  Copy starting aptitude grades from the game after selecting both parents. Open "Pink per parent"
   below the stat gains in Legacy to enter the ancestors you know and include mid-run B-to-A increases.
-  Empty rows count as zero sparks for the estimate, with the same blank placeholders as By stars.
+  Empty rows count as zero sparks for the estimate, with the same blank placeholders as "Blue per parent".
   Raising a grade above the trainee's base fills an estimated minimum-star set in that editor.
   Known lineage determines starting grades. Grades outside starting inheritance remain available as
   planning overrides, including below-base grades from older saves. Dimmed choices can reassign
@@ -115,7 +115,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   one borrowed card fit the deck, the page explains what is missing and hides the run predictions.
 - Legacy: a copy of the game's pre-run screen. Above each stat you pick the "+XX" each
   parent side adds at the start, as the game shows it; the 20 possible values each decode to one
-  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). "By stars" opens a second way in:
+  set of sparks (a 3★ gives +21, 2★ +12, 1★ +5 at the start). "Blue per parent" opens a second way in:
   the blue spark (stat and stars) of each parent and her two grandparents, as a database such as
   uma.moe lists them. Both edit the same sparks, and a fresh side starts as 1★ Speed, Stamina and Power. Each spark then procs at the two
   inspiration events (70/80/90% by stars, times 1 + affinity/100 of the uma carrying it) for a
