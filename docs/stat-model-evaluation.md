@@ -258,9 +258,14 @@ The upper concave envelope allows inefficient upgrades to be skipped and include
 costs when an upgrade is worth buying. Each availability outcome scales the curve's spending
 capacity by its probability. The estimator spends on the highest marginal rating per SP first.
 
-Remaining SP uses a reference rate: total rating divided by total cost across released, priced
-white skills, excluding ◎ and × forms and adjusted for the trainee's aptitudes. This reference
-is independent of the deck. Optional purchases below that rate are skipped, so adding an optional
+Remaining SP uses a reference rate: total rating divided by total cost across released, priced,
+purchasable white skills, adjusted for the trainee's aptitudes. ◎ forms are excluded, and so are
+debuffs: × forms and the negative event skills (Gatekept, Wallflower, Running Idle and the like),
+which GameTora marks with an icon id ending in 4 and which the game never sells. A debuff a card or
+trainee event gives the run is neither bought nor rated; the negative rating it carries until removed
+(UmaTools converts the removal cost to −129, −174 or −262) is not modeled. GameTora lists a debuff among
+the versions of its positive counterpart, so the tool treats each debuff as its own one-member family
+rather than letting Gatekept borrow Concentration as an upgrade. This reference is independent of the deck. Optional purchases below that rate are skipped, so adding an optional
 skill or upgrade cannot lower Rank when other inputs and source probabilities stay the same.
 Known skills have finite expected capacity and cannot be bought repeatedly to exhaust the budget.
 The prediction explains how much SP uses the reference rate, including when all of it does.
@@ -273,19 +278,22 @@ budgets. The reference rate comes from the skill dataset, not measured player pu
 runs with recorded SP and bought skills are needed to calibrate it. Adding reference-rate spending
 preserves the full-SP assumption even when modeled skills cannot exhaust the budget.
 
-The full-price cost message is a separate calculation. It takes the union of required targets,
-preferred targets and the displayed prioritized list, deduplicated by family. Only forms with a
-positive-probability source after resolving event choices contribute. Each family costs the full
-price of its highest obtainable form plus prerequisites, without probability weighting or a budget
-cap. This calculation reads resolved sources directly, so gold-only families and rare outcomes
-omitted by joint sampling still count. Unknown prices make this a lower bound. Unlisted hints
-outside those families affect Rank's spending efficiency but do not contribute to this cost.
+The full-price cost lines share one rule. Each family costs the full price of its highest obtainable
+form plus prerequisites, without probability weighting or a budget cap, read from the resolved sources
+directly so gold-only families and rare outcomes omitted by joint sampling still count. Target coverage
+applies it to every target (a target without a source still costs its white form) and warns when the
+total exceeds estimated SP. Prediction details repeats that target figure with the same warning and
+adds, separately, what the displayed extras would cost at full price. Extras are optional purchases,
+so they never trigger the warning. Unknown prices make both figures lower bounds. Unlisted hints
+outside those families affect Rank's spending efficiency but do not contribute to either cost.
 
 Both calculations use the same modeled trainee, deck, scenario and lineage sources. Unlisted
 choice rewards are not credited, including when every extra is hidden and the list is empty.
 Rewards that require no choice survive. Shared event outcomes stay correlated. Contested
 required-target orders use the same joint required-goal scorer as deck search, including required
-star thresholds and fallback subsets, with no near-tie tolerance.
+star thresholds and fallback subsets, with no near-tie tolerance. Only the contested targets change
+places; an uncontested required target keeps the position the goal gives it. Stats and SP are
+predicted once per deck and reused for every order tried, since the list changes only skill sources.
 
 Small joint source distributions are enumerated exactly. Large ones use deterministic samples,
 and the UI notes that rare joint outcomes can be missed. Parent-goal estimates assume the obtainable

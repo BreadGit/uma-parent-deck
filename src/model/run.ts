@@ -1,4 +1,4 @@
-import { STATS, type Card, type Character, type Data, type Inventory, type Skill } from '../types.ts';
+import { STATS, type Card, type Character, type Data, type Inventory } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type ResolvedGoal, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
@@ -7,13 +7,13 @@ import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, ra
 import { chooseGoal, goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { EXPLORATION_SAMPLES, SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
-import { combineSources, lineageCount, purchasedOwnership, resolveTarget, type Lineage, type SkillSource, type Target } from './sparks.ts';
+import { lineageCount, resolveTarget, type Lineage, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
 import { rankEstimate, skillPointsOf, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { displayedStat, statMasses, statMoments } from './stat-outcomes.ts';
-import { estimatePurchases, estimateSkillRating, type Purchases, type SkillRating } from './skill-purchases.ts';
+import { estimatePurchases, estimateSkillRating, targetSpCost, type Purchases, type SkillRating, type SpCost } from './skill-purchases.ts';
 import { projectForms } from './goal-skills.ts';
 import { gainsOfParentSparks, inheritedFromParents, type Inheritance, type ParentSparks } from './inherit.ts';
 import { clampStars, traineeAt } from './trainee.ts';
@@ -39,8 +39,8 @@ export interface RunInput {
   parentSparks: ParentSparks[];            // [parent 1, parent 2], the blue spark each of the side's three umas carries
 }
 
-/** The full base cost of every selected target family, including prerequisites for its best purchasable form. */
-export interface SpCost { total: number; incomplete: boolean; items: { target: Target; skill: Skill | null; cost: number | null; purchases: Skill[] }[] }
+/** The worst-case target cost lives with the purchase estimate; panels and tests still reach it from here. */
+export { targetSpCost, type SpCost } from './skill-purchases.ts';
 /** Scenario stat caps after the blue sparks' start-of-run uncaps, and whether the prediction hit them. */
 export interface StatCaps { cap: number[]; uncap: number[]; capped: boolean[] }
 
@@ -165,10 +165,24 @@ export function permutations<T>(items: T[]): T[][] {
   if (items.length <= 1) return [items];
   return items.flatMap((x, i) => permutations([...items.slice(0, i), ...items.slice(i + 1)]).map((rest) => [x, ...rest]));
 }
-/** The order with the named required targets first, in that order; the other required targets and the rest keep their places after them. */
+/**
+ * The order with the named required targets rearranged into that order. They take the places those targets held, so
+ * every other entry, including an uncontested required target listed above them, stays where the goal put it.
+ */
 export function withRequiredOrder(ordered: WishlistEntry[], first: number[]): WishlistEntry[] {
-  const at = (w: WishlistEntry) => w.role !== 'required' ? first.length + 1 : first.includes(w.targetId!) ? first.indexOf(w.targetId!) : first.length;
-  return ordered.map((w, i) => ({ w, i })).sort((a, b) => at(a.w) - at(b.w) || a.i - b.i).map((x) => x.w);
+  const named = (w: WishlistEntry) => w.role === 'required' && first.includes(w.targetId!);
+  const groups = new Map<number, WishlistEntry[]>();
+  for (const w of ordered) if (named(w)) groups.set(w.targetId!, [...(groups.get(w.targetId!) ?? []), w]);
+  const queue = first.filter((id) => groups.has(id));
+  const out: WishlistEntry[] = [];
+  const placed = new Set<number>();
+  for (const w of ordered) {
+    if (!named(w)) { out.push(w); continue; }
+    if (placed.has(w.targetId!)) continue;
+    placed.add(w.targetId!);
+    out.push(...groups.get(queue.shift()!)!);
+  }
+  return out;
 }
 
 /** The cards search may choose: owned cards at their LB, any card at the borrowed LB, and the pins among them. Ignored cards
@@ -248,25 +262,6 @@ export function derivePriority(ordered: WishlistEntry[], targets: Target[], data
   return priority;
 }
 
-/**
- * Worst-case SP for the best purchasable form of each target, including every prerequisite. Each family is bought
- * once, with no hint discounts or probability weighting. Gold needs a hint; a released ◎ upgrade does not.
- */
-export function targetSpCost(targets: Target[], coverage: Map<number, SkillSource[]>): SpCost {
-  const items: SpCost['items'] = [];
-  let total = 0, incomplete = false;
-  for (const t of new Map(targets.map((t) => [t.id, t])).values()) {
-    const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
-    const circle = t.circle && !t.circle.unreleasedEn ? t.circle : null;
-    const skill = own.pGold > 1e-9 && t.gold ? t.gold : circle ?? t.white ?? t.gold;
-    const purchases = [...new Map([t.white, circle, skill].filter((s): s is Skill => !!s).map((s) => [s.id, s])).values()];
-    const cost = !purchases.length || purchases.some((s) => s.cost == null) ? null : purchases.reduce((a, s) => a + s.cost!, 0);
-    if (cost == null) incomplete = true; else total += cost;
-    items.push({ target: t, skill, cost, purchases });
-  }
-  return { total, incomplete, items };
-}
-
 export type DeckPrediction = Pick<RunPlan, 'pred' | 'parentGains' | 'inherited' | 'rawFinalMean' | 'rawFinalSd' | 'finalMean' | 'finalSd' | 'statChances' | 'purchases' | 'skillRating' | 'statCaps' | 'rank'>;
 
 function preparePrediction(input: RunInput, ctx: Ctx) {
@@ -278,17 +273,21 @@ function preparePrediction(input: RunInput, ctx: Ctx) {
 
 const canonicalDeck = <T extends { card: Card; lb: number }>(deck: T[]): T[] => deck.slice().sort((a, b) => a.card.id - b.card.id || a.lb - b.lb);
 
-function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, prepared: ReturnType<typeof preparePrediction>) {
-  const { data, settings, trainee } = ctx;
+/** The stat and SP prediction of a deck. It does not depend on the prioritized list, so one serves every list order tried. */
+function predictCandidateStats(deck: { card: Card; lb: number }[], ctx: Ctx, expectedLosses: number) {
+  return predictDeck(deck, ctx.trainee, ctx.races, ctx.settings.focus, expectedLosses, ctx.data.model, ctx.settings, ctx.fansBefore ?? (() => 0));
+}
+
+function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, pred: Prediction, prepared: ReturnType<typeof preparePrediction>) {
+  const { settings, trainee } = ctx;
   const fansBefore = ctx.fansBefore ?? (() => 0);
   const stars = clampStars(trainee, input.traineeStars);
-  const pred = predictDeck(deck, trainee, ctx.races, settings.focus, expectedLosses, data.model, settings, fansBefore);
   const { parentGains, inherited, goalTargets } = prepared;
   const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
   const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => displayedStat(v) > caps[i]! + inherited[i]!.uncap) } : null;
   const rawFinalSd = pred.sd.map((sd, i) => Math.sqrt(sd ** 2 + inherited[i]!.variance));
-  const purchases = estimatePurchases(deck, goalTargets, ctx, apt);
+  const purchases = estimatePurchases(deck, goalTargets, ctx);
   const skillRating = estimateSkillRating(deck, ctx, pred.sp, apt);
   // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
   const uniqueLevel = trainee ? uniqueSkillLevel(stars, trainee.aptitudes, fansBefore, settings) : 0;
@@ -311,7 +310,8 @@ function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input
 
 /** Predict a supplied deck without selecting cards. */
 export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, prepared = preparePrediction(input, ctx)): DeckPrediction {
-  return finishPrediction(predictCandidate(canonicalDeck(deck), input, ctx, apt, expectedLosses, prepared), input, ctx);
+  const canonical = canonicalDeck(deck);
+  return finishPrediction(predictCandidate(canonical, input, ctx, apt, predictCandidateStats(canonical, ctx, expectedLosses), prepared), input, ctx);
 }
 
 /** Plan the whole run: schedule, deck, prediction, rank estimate and prioritized skills. Pure; the app memoizes it. */
@@ -374,15 +374,18 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const scoringEntries = canonicalDeck(entries);
     const fans = estimateFans(schedule, scoringEntries, settings);
     const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
+    // Stats, SP and stat power do not depend on the list; only the skill sources do.
+    const pred = predictCandidateStats(scoringEntries, candidateCtx, sum.expectedLosses);
+    const statPower = deckStatPower(scoringEntries, candidateCtx);
     const evaluated = listsFor(scoringEntries, candidateCtx, display).map(({ candidates, layout, priority }, i) => {
       const ctx: Ctx = { ...candidateCtx, priority };
-      const prediction = predictCandidate(scoringEntries, input, ctx, apt, sum.expectedLosses, preparedPrediction);
+      const prediction = predictCandidate(scoringEntries, input, ctx, apt, pred, preparedPrediction);
       const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.skillPoints, skillSd: settings.skillScoreSd };
       const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
       const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
       const sources = goalSources(goal, forms, ctx);
       const score = scoreGoal(goal, sources, basis, pink, settings);
-      return { key: String(i), score, statPower: deckStatPower(scoringEntries, ctx), value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
+      return { key: String(i), score, statPower, value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
     });
     // Shared outcomes, required star thresholds and fallback subsets use the same scorer as the deck search.
     const { key: _order, ...chosen } = chooseGoal(evaluated, 0);

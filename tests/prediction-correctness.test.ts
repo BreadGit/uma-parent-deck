@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { statMasses, statMoments, displayedStat } from '../src/model/stat-outcomes.ts';
-import { purchasesFromForms } from '../src/model/skill-purchases.ts';
-import { resolveTarget } from '../src/model/sparks.ts';
 import { inheritedFromSparks } from '../src/model/inherit.ts';
 import { decodeShare } from '../src/share.ts';
 import { planRun, predictRunDeck } from '../src/model/run.ts';
@@ -12,8 +10,6 @@ import { phi } from '../src/model/stats.ts';
 import { MAX_STAT_VALUE } from '../src/model/rules.ts';
 
 const data = loadData();
-const apt = data.characters[0]!.aptitudes;
-const focus = resolveTarget(200432, data)!;
 
 test('raw totals convert once including base and inheritance, then cap', () => {
   // Independently recorded workbook rows, rather than expected values from the model.
@@ -53,28 +49,6 @@ test('inspiration variance includes both roll variance and failed procs', () => 
   assert.equal(inheritedFromSparks([], DEFAULT_SETTINGS).variance, 0);
 });
 
-test('purchases: only the highest owned form is rated, and independent spreads add', () => {
-  assert.equal(focus.white!.name, 'Focus');
-  assert.equal(focus.white!.rating, 129);
-  assert.equal(focus.gold!.rating, 394);
-  const upgraded = { ...focus, white: { ...focus.white!, tags: [], cost: 20, rating: 100 }, circle: null, gold: { ...focus.gold!, tags: [], cost: 80, rating: 260 } };
-  const other = { ...focus, id: 2, circle: null, gold: null, white: { ...focus.white!, id: 3, tags: [], cost: 60, rating: 130 } };
-  const one = purchasesFromForms([upgraded], { count: 1, components: [{ indices: [0], distribution: { states: new Map([['3', .5], ['1', .25], ['0', .25]]), approximate: false } }] }, apt);
-  assert.equal(one.score, .5 * 260 + .25 * 100, 'the highest form owned is rated');
-  assert.ok(Math.abs(one.variance - (.5 * 260 ** 2 + .25 * 100 ** 2 - one.score ** 2)) < 1e-9);
-  const two = purchasesFromForms([upgraded, other], { count: 2, components: [
-    { indices: [0], distribution: { states: new Map([['1', .5], ['0', .5]]), approximate: false } },
-    { indices: [1], distribution: { states: new Map([['1', 1]]), approximate: false } },
-  ] }, apt);
-  assert.equal(two.score, .5 * 100 + 130);
-  assert.equal(two.variance, .5 * 100 ** 2 - 50 ** 2, 'a certain purchase adds no spread');
-  const never = purchasesFromForms([upgraded], { count: 1, components: [{ indices: [0], distribution: { states: new Map([['0', 1]]), approximate: false } }] }, apt);
-  assert.deepEqual(never, { score: 0, variance: 0, unverified: [] });
-  const unpriced = { ...other, white: { ...other.white, cost: null, rating: undefined } };
-  const unknown = purchasesFromForms([unpriced], { count: 1, components: [{ indices: [0], distribution: { states: new Map([['1', .3], ['0', .7]]), approximate: false } }] }, apt);
-  assert.deepEqual(unknown.unverified, [unpriced.white.id], 'an owned form without a rating is reported');
-});
-
 test('reported Fuji build counts 22 races and shares one probability basis', async () => {
   const shared = await decodeShare('3dXZHJbUMxDEQbIoKZ0fZdi6AOjNzSf0BKtj99GjzuyyTQQPv9ez5tqphsThjXWjanwA4aTIZlUx6sDwK1yfhGqt8RYEal4E7eUDXlUl-Va8J2SnFX5iOhkL0jY8vYM5aMpy_v9yhWrFn_XETH4DHNmtGzqz2MNWy-qJv60Xr02opYa9Jq-Bz6y-_5xZus14_2DGfycwt_RQlj8XGcQlrR3sN_LEhXmAcjcyBIw0W6PIQlCLUF-RvO-b1VVCV2iLx4DIWfsf4B');
   const selection = [[30052, 2], [20031, 4], [20005, 4], [30107, 4], [30017, 0], [30078, 4]].map(([id, lb], i) => ({ id: id!, lb: lb!, borrowed: i === 5 }));
@@ -108,5 +82,5 @@ test('reported Fuji build counts 22 races and shares one probability basis', asy
     { selection: suggested.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), search: false });
   assert.ok(Math.abs(suggested.search!.score.probability - derived.goalEstimate.probability!) < 1e-12, 'search scores its derived list; the displayed estimate follows custom extras');
   assert.equal(p.skillRating.score, p.pred.sp * p.skillRating.pointsPerSp);
-  assert.ok(p.skillRating.score > p.purchases.score, 'unlisted skills use SP beyond the target and prioritized skill cost');
+  assert.ok(p.skillRating.score > p.pred.sp * p.skillRating.referenceRate, 'obtainable skills add rating above the reference rate');
 });

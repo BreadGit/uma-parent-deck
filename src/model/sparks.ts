@@ -18,18 +18,25 @@ export const hasWhiteSpark = (target: Target): boolean => !!target.white && !tar
 
 const isGold = (s: Skill) => s.rarity === 2;
 const isCircle = (s: Skill) => s.rarity === 1 && s.name.includes('◎');
-const isCross = (s: Skill) => s.rarity === 1 && s.name.includes('×');
+/**
+ * A debuff: a × form or a negative event skill (Gatekept, Wallflower, …). GameTora's icon ids end in 4 for both.
+ * The game gives them at events and never sells them, so one is neither a target form nor a purchase.
+ */
+export const isDebuff = (s: Skill) => s.rarity === 1 && (s.name.includes('×') || (s.iconId ?? 0) % 10 === 4);
 
 /** Build the family (white, ◎, gold) for any member skill id. */
 export function resolveTarget(id: number, data: Data): Target | null {
   const s = data.skillById.get(id);
   if (!s) return null;
+  // GameTora lists a debuff among the versions of its positive counterpart (Gatekept with Focus and Concentration).
+  // It is its own family: nothing upgrades it, and it cannot supply or be supplied by the counterpart.
+  if (isDebuff(s)) return { id: s.id, name: s.name, white: s, circle: null, gold: null, familyIds: new Set([s.id]) };
   const members = [s, ...s.versions.map((v) => data.skillById.get(v)).filter((x): x is Skill => !!x)];
   const gold = members.find(isGold) ?? null;
   const circle = members.find(isCircle) ?? null;
-  const white = members.find((m) => m.rarity === 1 && !isCircle(m) && !isCross(m)) ?? (s.rarity === 1 ? s : null);
+  const white = members.find((m) => m.rarity === 1 && !isCircle(m) && !isDebuff(m)) ?? (s.rarity === 1 ? s : null);
   const base = white ?? circle ?? gold ?? s;
-  const familyIds = new Set(members.filter((m) => !isCross(m) && (m.rarity !== 1 || m.id === white?.id || m.id === circle?.id)).map((m) => m.id));
+  const familyIds = new Set(members.filter((m) => !isDebuff(m) && (m.rarity !== 1 || m.id === white?.id || m.id === circle?.id)).map((m) => m.id));
   const name = base.unreleasedEn && gold && !gold.unreleasedEn ? gold.name : base.name;
   return { id: base.id, name: name.replace(/ ○$/, ''), white, circle, gold, familyIds };
 }

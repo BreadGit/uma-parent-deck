@@ -1,7 +1,7 @@
 import type { Card, Skill } from '../types.ts';
 import { purchaseCoverage, type Ctx } from './deck.ts';
 import { jointSkillForms, type FormDistribution } from './goal-skills.ts';
-import { combineSources, purchasedOwnership, resolveTarget, type SkillSource, type Target } from './sparks.ts';
+import { combineSources, isDebuff, purchasedOwnership, resolveTarget, type SkillSource, type Target } from './sparks.ts';
 import { skillScore } from './rank.ts';
 import type { Aptitudes } from './races.ts';
 import { SCENARIO_COMPLETION_SKILLS } from './rules.ts';
@@ -15,21 +15,20 @@ export interface SkillRating {
   unverified: number[];    // forms using the rarity-based rating fallback
 }
 
+export interface SpCost { total: number; incomplete: boolean; items: { target: Target; skill: Skill | null; cost: number | null; purchases: Skill[] }[] }
+
 export interface Purchases {
   targets: Target[];        // goal and listed families; unavailable goals retain zero forms for goal evaluation
-  forms: FormDistribution;  // the forms the run ends up owning, from its sources
-  score: number;            // rating of these target forms only; Rank uses SkillRating separately
-  variance: number;
+  forms: FormDistribution;  // the forms the run ends up owning, from its sources. Rank spends SP separately (SkillRating).
   spent: number;            // worst-case SP: the best obtainable form of every family with its prerequisites, at full price
+  extrasSpent: number;      // the listed extras' share of `spent`; the rest is the goal's targets
   incomplete: boolean;      // a family's price is unknown, so `spent` is a lower bound
-  unverified: number[];     // owned forms without a verified rating
 }
 
-/** A family's forms in purchase order; form n of a state string is the nth of these. An unreleased form cannot be bought. */
+/** A form the run can buy: released and not a debuff. */
+const usable = (s: Skill | null | undefined): s is Skill => !!s && !s.unreleasedEn && !isDebuff(s);
+/** A family's forms in purchase order; form n of a state string is the nth of these. */
 const formsOf = (t: Target) => [t.white, t.circle, t.gold] as const;
-const usable = (s: Skill | null | undefined): s is Skill => !!s && !s.unreleasedEn;
-/** Rating of a family owned at a form: only the highest form counts. */
-const pointsAt = (t: Target, form: number, apt: Aptitudes) => { const s = form > 0 ? formsOf(t)[form - 1] : null; return usable(s) ? skillScore(s, apt) : 0; };
 /** Full price of a form with its prerequisites, or null when a price is unknown. */
 function costAt(t: Target, form: number): number | null {
   const needed = formsOf(t).slice(0, form).filter(usable);
@@ -38,56 +37,32 @@ function costAt(t: Target, form: number): number | null {
 }
 
 /**
- * Expected rating and its spread over the target form outcomes. Components are independent, so their variances add.
- * These spark distributions can omit gold-only families and rare outcomes; purchase costs use source coverage.
+ * Worst-case SP for the best purchasable form of each target, including every prerequisite. Each family is bought
+ * once, with no hint discounts or probability weighting. Gold needs a hint; a released ◎ upgrade does not.
  */
-export function purchasesFromForms(targets: Target[], forms: FormDistribution, apt: Aptitudes): Pick<Purchases, 'score' | 'variance' | 'unverified'> {
-  let score = 0, variance = 0;
-  const rated = new Set<number>();
-  for (const { indices, distribution } of forms.components) {
-    let mean = 0, second = 0;
-    for (const [state, p] of distribution.states) {
-      if (p <= 0) continue;
-      let points = 0;
-      indices.forEach((index, i) => {
-        const form = Number(state[i]), t = targets[index]!;
-        points += pointsAt(t, form, apt);
-        const s = form > 0 ? formsOf(t)[form - 1] : null;
-        if (usable(s)) rated.add(s.id);
-      });
-      mean += p * points; second += p * points * points;
-    }
-    score += mean; variance += Math.max(0, second - mean * mean);
+export function targetSpCost(targets: Target[], coverage: Map<number, SkillSource[]>): SpCost {
+  const items: SpCost['items'] = [];
+  let total = 0, incomplete = false;
+  for (const t of new Map(targets.map((t) => [t.id, t])).values()) {
+    const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
+    const circle = usable(t.circle) ? t.circle : null;
+    const skill = own.pGold > 1e-9 && usable(t.gold) ? t.gold : circle ?? t.white ?? t.gold;
+    const purchases = [...new Map([t.white, circle, skill].filter(usable).map((s) => [s.id, s])).values()];
+    if (!purchases.length) continue; // nothing of this family can be bought (a debuff, or only unreleased forms)
+    const cost = purchases.some((s) => s.cost == null) ? null : purchases.reduce((a, s) => a + s.cost!, 0);
+    if (cost == null) incomplete = true; else total += cost;
+    items.push({ target: t, skill, cost, purchases });
   }
-  const unverified = targets.flatMap((t) => formsOf(t).filter((s): s is Skill => usable(s) && rated.has(s.id) && s.rating === undefined).map((s) => s.id));
-  return { score, variance, unverified };
-}
-
-/** Full price of each family's highest obtainable form, independent of spark eligibility and joint sampling. */
-function costFromCoverage(targets: Target[], coverage: Map<number, SkillSource[]>): Pick<Purchases, 'spent' | 'incomplete'> {
-  let spent = 0, incomplete = false;
-  for (const t of targets) {
-    let best = 0;
-    for (const source of coverage.get(t.id) ?? []) {
-      if (source.pObtain <= 0) continue;
-      const form = source.gold ? 3 : source.circle || usable(t.circle) ? 2 : 1;
-      if (usable(formsOf(t)[form - 1])) best = Math.max(best, form);
-    }
-    if (!best) continue;
-    const cost = costAt(t, best);
-    if (cost == null) incomplete = true;
-    else spent += cost;
-  }
-  return { spent, incomplete };
+  return { total, incomplete, items };
 }
 
 /**
  * What the run buys: every required and preferred target, and every listed extra the run has a source for. A skill
  * can only be bought once the run has it (a hint or an event option), so the forms come from the sources under the
- * context's list; every form owned is then bought at full price. `spent` is that worst case, to check against the
- * estimated SP.
+ * context's list. The cost is the worst case, every obtainable family at full price, to check against the estimated
+ * SP; it reads the resolved sources directly, so rare outcomes the joint form sampling misses still count.
  */
-export function estimatePurchases(deck: { card: Card; lb: number }[], goalTargets: Target[], ctx: Ctx, apt: Aptitudes): Purchases {
+export function estimatePurchases(deck: { card: Card; lb: number }[], goalTargets: Target[], ctx: Ctx): Purchases {
   const families = new Map(goalTargets.map((t) => [t.id, t]));
   for (const id of ctx.priority ?? []) {
     const t = ctx.sources ? ctx.sources.target(id) : resolveTarget(id, ctx.data);
@@ -96,9 +71,12 @@ export function estimatePurchases(deck: { card: Card; lb: number }[], goalTarget
   const all = [...families.values()];
   const coverage = purchaseCoverage(deck, all, ctx);
   const goalIds = new Set(goalTargets.map((t) => t.id));
-  const targets = all.filter((t) => goalIds.has(t.id) || (coverage.get(t.id)?.length ?? 0) > 0);
+  const obtainable = (t: Target) => (coverage.get(t.id) ?? []).some((s) => s.pObtain > 0);
+  const targets = all.filter((t) => goalIds.has(t.id) || obtainable(t));
   const forms = jointSkillForms(targets, coverage, ctx.data);
-  return { targets, forms, ...purchasesFromForms(targets, forms, apt), ...costFromCoverage(targets, coverage) };
+  const goalCost = targetSpCost(targets.filter((t) => goalIds.has(t.id) && obtainable(t)), coverage);
+  const extrasCost = targetSpCost(targets.filter((t) => !goalIds.has(t.id)), coverage);
+  return { targets, forms, spent: goalCost.total + extrasCost.total, extrasSpent: extrasCost.total, incomplete: goalCost.incomplete || extrasCost.incomplete };
 }
 
 interface SpendingPoint { cost: number; points: number; unverified: number[] }
@@ -124,20 +102,38 @@ function spendingSegments(options: SpendingPoint[], probability: number): Spendi
   });
 }
 
+interface Reference { rate: number; unverified: number[] }
+const referenceCache = new WeakMap<Skill[], Map<string, Reference>>();
+/**
+ * Rating per SP over every released, priced, purchasable white skill (no ◎ form, no debuff), at the trainee's
+ * aptitudes. Independent of the deck, so it is computed once per skill list and aptitude set: the deck search
+ * evaluates thousands of candidates against it.
+ */
+function referenceRate(skills: Skill[], apt: Aptitudes): Reference {
+  const key = JSON.stringify(apt);
+  const byApt = referenceCache.get(skills) ?? new Map<string, Reference>();
+  referenceCache.set(skills, byApt);
+  const cached = byApt.get(key);
+  if (cached) return cached;
+  let points = 0, cost = 0;
+  const unverified: number[] = [];
+  for (const skill of skills) {
+    if (!usable(skill) || skill.rarity !== 1 || skill.name.includes('◎') || skill.cost == null || skill.cost <= 0) continue;
+    points += skillScore(skill, apt); cost += skill.cost;
+    if (skill.rating === undefined) unverified.push(skill.id);
+  }
+  const reference = { rate: cost > 0 ? points / cost : 0, unverified };
+  byApt.set(key, reference);
+  return reference;
+}
+
 /**
  * Spend on optional forms above a deck-independent reference rate, then value the remaining SP at that rate.
  * Each availability outcome supplies a fractional, probability-weighted spending envelope. This is an expected
  * capacity approximation, not a literal shopping list: shared availability and realized budgets are not simulated.
  */
 export function ratingFromCoverage(targets: Target[], coverage: Map<number, SkillSource[]>, sp: number, apt: Aptitudes, skills: Skill[]): SkillRating {
-  let referencePoints = 0, referenceCost = 0;
-  const referenceUnverified: number[] = [];
-  for (const skill of skills) {
-    if (!usable(skill) || skill.rarity !== 1 || /[◎×]/.test(skill.name) || skill.cost == null || skill.cost <= 0) continue;
-    referencePoints += skillScore(skill, apt); referenceCost += skill.cost;
-    if (skill.rating === undefined) referenceUnverified.push(skill.id);
-  }
-  const referenceRate = referenceCost > 0 ? referencePoints / referenceCost : 0;
+  const reference = referenceRate(skills, apt);
   const segments: SpendingSegment[] = [];
   for (const t of [...new Map(targets.map((t) => [t.id, t])).values()].sort((a, b) => a.id - b.id)) {
     const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
@@ -151,17 +147,17 @@ export function ratingFromCoverage(targets: Target[], coverage: Map<number, Skil
     });
   }
   const budget = Math.max(0, sp);
-  let remaining = budget, score = budget * referenceRate;
+  let remaining = budget, score = budget * reference.rate;
   const unverified = new Set<number>();
   for (const segment of segments.sort((a, b) => b.rate - a.rate)) {
-    if (remaining <= 0 || segment.rate <= referenceRate) break;
+    if (remaining <= 0 || segment.rate <= reference.rate) break;
     const spent = Math.min(remaining, segment.cost);
-    score += spent * (segment.rate - referenceRate);
+    score += spent * (segment.rate - reference.rate);
     remaining -= spent;
     segment.unverified.forEach((id) => unverified.add(id));
   }
-  if (remaining > 0) referenceUnverified.forEach((id) => unverified.add(id));
-  return { score, pointsPerSp: budget > 0 ? score / budget : referenceRate, referenceRate, referenceSp: remaining,
+  if (remaining > 0) reference.unverified.forEach((id) => unverified.add(id));
+  return { score, pointsPerSp: budget > 0 ? score / budget : reference.rate, referenceRate: reference.rate, referenceSp: remaining,
     fallback: segments.length === 0, unverified: [...unverified].sort((a, b) => a - b) };
 }
 

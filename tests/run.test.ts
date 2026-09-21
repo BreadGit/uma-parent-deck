@@ -157,7 +157,10 @@ test('prioritized skills: required targets sharing an event are the contested on
   const on = (w: WishlistEntry, ...keys: string[]) => ({ ...w, events: keys.map(ev) });
   const ordered = [on(targetEntry(groundwork, 'required', 1), 'a'), on(targetEntry(focus, 'required', 1), 'a', 'b'), on(targetEntry(corner, 'required', 1), 'c'), on(entry(byName('Lane Legerdemain').id, 3), 'a')];
   assert.deepEqual(contestedRequired(ordered).sort(), [groundwork.id, focus.id].sort(), 'an extra on the event does not make the target contested');
-  assert.deepEqual(withRequiredOrder(ordered, [focus.id, groundwork.id]).map((w) => w.targetId ?? 0), [focus.id, groundwork.id, corner.id, 0], 'the named targets lead, the others follow in place');
+  assert.deepEqual(withRequiredOrder(ordered, [focus.id, groundwork.id]).map((w) => w.targetId ?? 0), [focus.id, groundwork.id, corner.id, 0], 'the named targets swap places, the others stay in place');
+  const uncontestedFirst = [on(targetEntry(corner, 'required', 1), 'c'), on(targetEntry(groundwork, 'required', 1, groundwork.gold!.id), 'a'), on(targetEntry(groundwork, 'required', 1), 'a'), on(targetEntry(focus, 'required', 1), 'a')];
+  assert.deepEqual(withRequiredOrder(uncontestedFirst, [focus.id, groundwork.id]).map((w) => w.key), [corner.id, focus.id, groundwork.gold!.id, groundwork.id],
+    'an uncontested required target listed first keeps its place above the contested ones, and a family moves with every form');
   assert.equal(permutations([1, 2, 3]).length, 6);
   assert.deepEqual(permutations<number>([]), [[]]);
 });

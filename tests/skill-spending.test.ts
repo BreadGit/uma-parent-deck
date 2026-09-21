@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { makeCtx, purchaseCoverage } from '../src/model/deck.ts';
-import { estimatePurchases, estimateSkillRating, ratingFromCoverage } from '../src/model/skill-purchases.ts';
-import { resolveTarget, type SkillSource, type EventSource, type Target } from '../src/model/sparks.ts';
+import { estimatePurchases, estimateSkillRating, ratingFromCoverage, targetSpCost } from '../src/model/skill-purchases.ts';
+import { isDebuff, resolveTarget, type SkillSource, type EventSource, type Target } from '../src/model/sparks.ts';
 import { prepareRunSources } from '../src/model/run-sources.ts';
 import { planRun } from '../src/model/run.ts';
 import { defaultState } from '../src/state.ts';
@@ -72,11 +72,11 @@ test('rank includes unlisted hints while target cost includes only obtainable go
   assert.equal(rating.referenceRate, 5 / 3, 'the reference uses the same released skill data regardless of deck');
   assert.ok(rating.score > 1000 * rating.referenceRate, 'the high-value unlisted hint adds value');
   assert.ok(rating.score < 1000 * rating.referenceRate + 300, 'a possible hint cannot be bought repeatedly');
-  const cost = estimatePurchases(deck, [a!, absent!], ctx, apt);
+  const cost = estimatePurchases(deck, [a!, absent!], ctx);
   assert.equal(cost.spent, 100, 'listed A is not counted twice and the unavailable target contributes nothing');
-  assert.equal(estimatePurchases(deck, [a!, b!, absent!], ctx, apt).spent, 200, 'an unlisted preferred target with a hint is included');
-  assert.equal(estimatePurchases(deck, [a!, absent!], { ...ctx, priority: [a!.id, b!.id] }, apt).spent, 200, 'a listed extra is included');
-  assert.equal(estimatePurchases(deck, [a!], { ...ctx, settings: { ...DEFAULT_SETTINGS, hintScale: 0 } }, apt).spent, 0, 'zero-probability sources cost nothing');
+  assert.equal(estimatePurchases(deck, [a!, b!, absent!], ctx).spent, 200, 'an unlisted preferred target with a hint is included');
+  assert.equal(estimatePurchases(deck, [a!, absent!], { ...ctx, priority: [a!.id, b!.id] }).spent, 200, 'a listed extra is included');
+  assert.equal(estimatePurchases(deck, [a!], { ...ctx, settings: { ...DEFAULT_SETTINGS, hintScale: 0 } }).spent, 0, 'zero-probability sources cost nothing');
 });
 
 test('rank discloses its reference pool when no obtainable form has a known price', () => {
@@ -108,7 +108,7 @@ test('obtainable gold-only skills cost full price even though they cannot genera
   assert.ok(card);
   assert.equal(target.gold!.cost, 360);
   const ctx = makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [...target.familyIds] });
-  const purchases = estimatePurchases([{ card, lb: 4 }], [target], ctx, apt);
+  const purchases = estimatePurchases([{ card, lb: 4 }], [target], ctx);
   assert.equal(purchases.spent, 360);
   assert.equal(purchases.incomplete, false);
   assert.deepEqual([...purchases.forms.components[0]!.distribution.states], [['0', 1]], 'gold-only skills still cannot generate white sparks');
@@ -130,7 +130,7 @@ test('full-price cost retains rare gold sources omitted by bounded joint samplin
   }))]));
   const ctx = makeCtx({ data: fixture, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [] });
   ctx.sources = { ...prepareRunSources(ctx), trainee: (t) => coverage.get(t.id) ?? [] };
-  const purchases = estimatePurchases([], targets, ctx, apt);
+  const purchases = estimatePurchases([], targets, ctx);
   assert.ok(purchases.forms.components[0]!.distribution.approximate, 'the fixture exceeds the joint state bound');
   assert.ok(![...purchases.forms.components[0]!.distribution.states].some(([state]) => state[0] === '3'), 'sampling misses the rare gold outcome');
   assert.equal(purchases.spent, 100 + 12 * 10, 'the first family costs white plus gold, the other twelve cost white');
@@ -145,7 +145,7 @@ test('source costs include circle upgrades and prerequisites, and disclose unkno
   const ctx = makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [] });
   const sources = [hint(white.id, .5), { ...hint(gold.id, 0), gold: true }];
   ctx.sources = { ...prepareRunSources(ctx), trainee: () => sources };
-  const buy = (t = target) => estimatePurchases([], [t], ctx, apt);
+  const buy = (t = target) => estimatePurchases([], [t], ctx);
   assert.equal(buy().spent, 50, 'a white hint permits the released circle upgrade, with its white prerequisite');
   assert.equal(buy({ ...target, circle: { ...circle, unreleasedEn: true } }).spent, 20, 'unreleased circle upgrades cannot be bought');
   sources[1]!.pObtain = .01;
@@ -153,4 +153,30 @@ test('source costs include circle upgrades and prerequisites, and disclose unkno
   const unknown = buy({ ...target, gold: { ...gold, cost: null } });
   assert.equal(unknown.incomplete, true, 'the highest obtainable form has an unknown price');
   assert.equal(unknown.spent, 0, 'the unknown family does not inflate the lower bound');
+});
+
+test('debuff skills are neither purchases nor part of the reference pool', () => {
+  const gatekept = data.skills.find((s) => s.name === 'Gatekept')!;
+  assert.ok(isDebuff(gatekept) && isDebuff(data.skills.find((s) => s.name === 'Right-Handed ×')!) && !isDebuff(focus.white!));
+  const clean = ratingFromCoverage([], new Map(), 1000, apt, [reference]);
+  assert.deepEqual(ratingFromCoverage([], new Map(), 1000, apt, [reference, { ...gatekept, cost: 10 }]), clean, 'an unbuyable debuff does not raise the reference rate');
+  const debuffTarget = resolveTarget(gatekept.id, data)!;
+  const coverage = new Map([[debuffTarget.id, [hint(gatekept.id, 1)]]]);
+  assert.equal(ratingFromCoverage([debuffTarget], coverage, 1000, apt, [reference]).score, clean.score, 'a debuff the run is given cannot be bought for rating');
+  assert.equal(targetSpCost([debuffTarget], coverage).total, 0);
+  const real = estimateSkillRating([], makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null }), 1000, apt);
+  assert.ok(!real.unverified.some((id) => isDebuff(data.skillById.get(id)!)), 'the released pool reports no debuff as an unverified rating');
+});
+
+test('purchases separate the goal targets from the listed extras and share the worst-case cost rule', () => {
+  const ids = [201601, 200432];
+  const skills = ids.map((id) => ({ ...data.skillById.get(id)!, versions: [], tags: [], rating: 100, cost: 100 }));
+  const fixture = { ...data, skills, skillById: new Map(skills.map((s) => [s.id, s])), scenarioEvents: [] };
+  const [a, b] = ids.map((id) => resolveTarget(id, fixture)!);
+  const card = { ...data.cardById.get(30028)!, hintSkills: ids, eventSkills: [], chainEvents: [], randomEvents: [], recreationEvents: [], specialEvents: [] };
+  const ctx = makeCtx({ data: fixture, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [b!.id] });
+  const purchases = estimatePurchases([{ card, lb: 4 }], [a!], ctx);
+  assert.equal(purchases.spent, 200);
+  assert.equal(purchases.extrasSpent, 100, 'the listed extra is the part the run does not need');
+  assert.equal(purchases.spent - purchases.extrasSpent, targetSpCost([a!], purchaseCoverage([{ card, lb: 4 }], [a!], ctx)).total, 'the target part is the Target coverage rule');
 });
