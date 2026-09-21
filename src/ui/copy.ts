@@ -118,8 +118,6 @@ export const COPY = {
     sparksTip: `Each parent and her two grandparents carry one blue spark: a stat and 1 to ${STARS_PER_SPARK_MAX} stars, as a database lists them. A slot shows — after its stat was set to +0 above; pick her stat to fill it.`,
     laterTip: `Expected extra stat from the two inspiration events. A 3★ spark procs at 90%, 2★ at 80%, 1★ at 70%, times (1 + affinity/100). Each proc rolls 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[1]![1]} for 1★, 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[2]![1]} for 2★, 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[3]![1]} for 3★; the assumed mean per star is an advanced setting. Each spark also raises the stat's starting cap by +${BLUE_SPARK_START_UNCAP_BY_STARS[1]} / +${BLUE_SPARK_START_UNCAP_BY_STARS[2]} / +${BLUE_SPARK_START_UNCAP_BY_STARS[3]} by stars.`,
     aptTip: "Copy all grades from the legacy screen after selecting both parents. Raising a grade above the trainee's base estimates the minimum pink stars behind it.",
-    pinkHeading: 'Pink sparks in the six-uma lineage',
-    pinkTip: 'Enter the pink sparks you know. Empty slots count as zero sparks. Pick an aptitude to start at 3★, or clear it to return to zero. Estimated entries come from the grades you set and can be edited. Dimmed aptitude choices reassign other sparks to make room.',
     planningOverride: 'Some grades are planning overrides outside starting inheritance. They still control the agenda. Pink sparks remain unchanged.',
     aboutTitle: 'How grades and pink sparks relate',
     about: [

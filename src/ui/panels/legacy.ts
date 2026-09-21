@@ -101,7 +101,7 @@ function pinkRow(pi: number, ui: number) {
     <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink aptitude" data-pink-lineage=${index} .value=${live(aptitude)} @change=${(e: Event) => { const key = selectValue(e) as AptKey | ''; setPinkSpark(index, key ? { aptitude: key, stars: spark?.stars ?? NEW_SPARK_STARS } : null); }}>${options(aptitudes, aptitude)}</select>
     <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink stars" data-pink-lineage-stars=${index} ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => { if (spark) setPinkSpark(index, { aptitude: spark.aptitude, stars: Number(selectValue(e)) }); }}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>`;
 }
-const pinkForm = () => html`<div id="legacy-pink-sparks" data-pink-sparks-form><h3>${COPY.legacy.pinkHeading}${tip(COPY.legacy.pinkTip)}</h3>
+const pinkForm = () => html`<div id="legacy-pink-sparks" data-pink-sparks-form>
   <div class="per-parent pink">${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><span class="side-head">Parent ${pi + 1}</span>${UMAS.map((ui) => pinkRow(pi, ui))}</div>`)}</div>
 </div>`;
 
