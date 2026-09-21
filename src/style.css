@@ -282,6 +282,7 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .per-parent.blue { --main-width: 104px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
 .per-parent.blue .side.p1 .side-head { color: var(--parent1); }
 .per-parent.blue .side.p2 .side-head { color: var(--parent2); }
+.per-parent.pink { --side-min: 270px; --side-cols: auto minmax(0, 160px) max-content; }
 .per-parent.white { --side-min: 130px; --side-cols: auto minmax(0, 1fr); }
 .per-parent.white .side > select { width: 100%; max-width: 4.4em; text-align: center; padding: 2px 2px; }
 
