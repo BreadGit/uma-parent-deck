@@ -147,8 +147,6 @@ export function plan(): RunPlan {
           if (event.data.error) { fail(); return; }
           // Publish once, after both search stages, so intermediate results do not move the editor.
           if (!event.data.complete || !event.data.selection) return;
-          // Never replace the list under a row the user is dragging.
-          if (view.drag.key != null) { setTimeout(publish, 150); return; }
           cache.value = planRun(store.run, store.settings, store.inventory, data,
             { selection: event.data.selection, summary: event.data.summary, search: false });
           cache.displayKey = displayKey();

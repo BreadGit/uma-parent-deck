@@ -598,7 +598,8 @@ test('candidate toggle disappears when all chips fit, including after resizing a
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.waitForFunction(() => {
     const el = document.querySelector('[data-candidates]');
-    return [...el.children].every((chip) => chip.getBoundingClientRect().bottom <= el.getBoundingClientRect().top + 84);
+    const height = parseFloat(getComputedStyle(el).getPropertyValue('--wl-candidates-height'));
+    return [...el.children].every((chip) => chip.getBoundingClientRect().bottom <= el.getBoundingClientRect().top + height + 1);
   });
   await toggle.waitFor({ state: 'detached' });
   await page.setViewportSize({ width: 390, height: 1000 });

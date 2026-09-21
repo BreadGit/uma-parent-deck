@@ -398,7 +398,7 @@ td.target-chances { min-width: 260px; }
 .wishlist .grip-disabled { opacity: .3; cursor: default; }
 .wishlist .wl-fixed button { pointer-events: none; }
 /* while a search runs the deck may change, so the extras are shown but not editable */
-.wishlist.wl-locked li.wl-extra, .wishlist.wl-locked ~ .wl-extra { opacity: .55; }
+.wishlist.wl-locked li.wl-extra, .wishlist.wl-locked ~ .wl-candidates { opacity: .55; }
 .wishlist .wl-body { flex: 1; min-width: 0; }
 .wishlist .wl-actions { display: inline-flex; flex: none; align-items: center; gap: 2px; }
 .wishlist li:hover { background: var(--soft2); }
@@ -417,9 +417,8 @@ td.target-chances { min-width: 260px; }
 .wishlist .wl-move:disabled, .wishlist .wl-x:disabled { opacity: .3; cursor: default; }
 .wl-kind { display: inline-block; margin-right: 6px; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
-.wl-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
-/* three rows of chips (21px chip, 2px margins, 4px row gap); the rest shows on request */
-.wl-candidates { --wl-candidates-height: 83px; }
+/* the candidates outside the list: three rows of chips (21px chip, 2px margins, 4px row gap); the rest shows on request */
+.wl-candidates { --wl-candidates-height: 83px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
 .wl-candidates.clamped { max-height: var(--wl-candidates-height); overflow: hidden; }
 .wl-candidates-toggle { margin-top: 6px; }
 
@@ -509,7 +508,7 @@ details[data-agenda] { margin-top: 8px; }
   .wl-swap { padding: 3px 10px; }
   .wishlist li { padding: 5px 4px; }
   .wishlist .wl-move, .wishlist .wl-x { font-size: var(--fs-sm); line-height: 22px; padding: 0 8px; }
-  /* taller chips on touch screens: 27px chip, 2px margins, 4px row gap */
-  .wl-extra.clamped { max-height: 101px; }
+  /* taller chips on touch screens: 27px chip, 2px margins, 4px row gap. app.ts measures overflow against this variable. */
+  .wl-candidates { --wl-candidates-height: 101px; }
   input[type=range] { height: 28px; }
 }

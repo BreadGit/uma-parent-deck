@@ -119,7 +119,7 @@ function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
 function candidates(c: RunPlan, locked: boolean) {
   if (!c.wlRest.length && !c.wlHidden.length) return nothing;
   const expanded = view.showAllCandidates;
-  return html`<div class="small muted wl-extra wl-candidates ${expanded ? '' : 'clamped'}" data-candidates>
+  return html`<div class="small muted wl-candidates ${expanded ? '' : 'clamped'}" data-candidates>
       ${c.wlRest.length ? html`<span>${COPY.priorities.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name}${isExtra(w) ? html` <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" ?disabled=${locked} @click=${() => addSkill(w.key)}>+</button>` : nothing}</span>`)}` : nothing}
       ${c.wlHidden.length ? html`<span>${COPY.priorities.hiddenRow}</span> ${c.wlHidden.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" ?disabled=${locked} @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
     </div>
