@@ -39,7 +39,6 @@ export interface Settings {
   blueInspirationGainMean: number[]; // assumed mean stat roll when a 1/2/3★ blue spark procs at an inspiration event
   uniqueAprilBondRate: number;   // the April unique-skill level-up's chairperson bond check passes
   lossPenalty: number;           // total stat points lost per expected race loss
-  purchaseHintLevel: number;     // assumed hint level for discounted purchases
   skillScoreSd: number;          // uncertainty of the skill part of the rank score
   totalTurnsOverride: number | null;
 }
@@ -80,7 +79,6 @@ export const DEFAULT_SETTINGS: Settings = {
   blueInspirationGainMean: [5.5, 8.5, 14.5],
   uniqueAprilBondRate: 0.5,
   lossPenalty: 0,
-  purchaseHintLevel: 1,
   skillScoreSd: 400,
   totalTurnsOverride: null,
 };
@@ -138,7 +136,6 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   blueInspirationGainMean: { kind: 'list', length: 3, min: 0, max: 30 },
   uniqueAprilBondRate: rate,
   lossPenalty: { kind: 'number', min: 0, max: 10000 },
-  purchaseHintLevel: { kind: 'enum', values: [0, 1, 2, 3, 4, 5] },
   skillScoreSd: { kind: 'number', min: 0, max: 100000 },
   totalTurnsOverride: { kind: 'number-or-null', min: RACES_REFERENCE + 1, max: 200 },
 };
@@ -192,8 +189,8 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   concertGreatSuccessRate: 'Assumed chance of great success for each promotional concert and an ordinary final concert. Default 1 assumes great success; independent-training rates are unmeasured. Fan rewards use mee1080/umasim manual JP observations, without a deck Fan Bonus on concerts. The 18-song setting approximates the chance of the special final concert (9,000 fans); the source also requires two new songs in the final period.',
   goalTieTolerance: 'How much required-goal chance you will trade for more preferred sparks on successful parents. A fraction, not percentage points: the default 0.02 allows a 2% relative difference. If the best chance found is 10%, decks at 9.8% or above can win on preferred extras. Zero allows only exact ties. Larger values give preferred sparks more influence. This is a preference, not a measure of model accuracy.',
   affinity: "Individual affinity score assumed for each of the six umas in the lineage (two parents, four grandparents). A blue or white spark procs at an inspiration event at its base chance times (1 + score/100), so 150 makes every blue spark proc. The game never shows individual scores, only their sum as ◎ (over 150), ○ (over 50) or △, and a ◎ made of six weak links procs far less than 150 each would; a compatibility calculator (GameTora, umaishow) gives the individual values. Default 150 is the optimistic assumption this tool has always used.",
-  hintBase: 'Chance per turn that a card standing on a facility shows a hint, before Hint Frequency. Default 0.07 from a 1,024-turn manual-play sample (GameWith measured 6 to 9%). Nobody has measured hint pickup in independent training, so the whole hint model is an estimate.',
-  hintScale: 'Multiplier on the whole hint model for independent training, where hint pickup is unmeasured. Default 0.75 so a 0% Hint Frequency card lands near 0.9 hints per run, in line with the 8 hints per deck fujikiseki measured in manual runs. Prioritized skills are assumed not to change which hints the run takes: that is documented for Auto-Train, not for independent training.',
+  hintBase: 'Chance per turn that a card standing on a facility shows a hint, before Hint Frequency. Default 0.07 from a 1,024-turn manual-play sample (GameWith measured 6 to 9%). Nobody has measured hint pickup in independent training, so the whole hint model is an estimate. Availability allows zero or repeated pickups using a Poisson count model, with each pickup choosing uniformly from the card\'s hint skills.',
+  hintScale: 'Multiplier on the whole hint model for independent training, where hint pickup is unmeasured. Default 0.75 so a 0% Hint Frequency card lands near 0.9 hints per run, in line with the 8 hints per deck fujikiseki measured in manual runs. Prioritized skills are assumed not to change which training hints the run takes. uma.guide says the game "targets those Skill Hints", but the game and its guides also call event rewards and card effects hints, no other reference repeats the claim, and nobody has measured it.',
   hintTurnsShare: 'Fraction of training turns a given card is on the facility being trained. Default 0.4 as a rough blend of the ~18% appearance rate with the AI favouring facilities where cards are. Unmeasured in independent training.',
   chainRatesSSR: 'Chance that an SSR card reaches chain event 1, 2 and 3 in an independent-training run. Each stage needs the one before it, so a skill offered by two stages is counted once. Defaults 0.69 / 0.36 / 0.12 summarize 102 Loopacord runs with one 23-race deck. Applying those rates to other decks and schedules is an assumption.',
   chainRatesSR: 'Chance that an SR card reaches chain event 1 and 2. Defaults 0.74 / 0.35 summarize 102 Loopacord runs with one 23-race deck. The second-stage rate averages two cards without a separate success roll. Applying those rates to other decks and schedules is an assumption.',
@@ -220,7 +217,6 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   blueInspirationGainMean: 'Assumed average stat gain when a 1★ / 2★ / 3★ blue spark procs at an inspiration event. The game rolls a random value between 1 and 10, 1 and 16, and 1 and 28 respectively, and higher stars are said to roll near the top more often, but the distribution has not been measured. Defaults are the midpoints of those ranges; they are an assumption, not a game rule.',
   uniqueAprilBondRate: "The unique skill gains a level at three fan checks: Senior early February (60,000 fans), early April (70,000 fans and a green bond with the chairperson) and late December (120,000 fans); dirt-oriented trainees need 40,000 / 60,000 / 80,000. Fans include earlier calendar placing rewards with the deck Fan Bonus and earlier concerts. Finales arrive too late for these checks. The April bond check is not predicted, so this is the chance it passes. 0.5 is a placeholder.",
   lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. Default 0 because the effect of losses and conditions like Skin Outbreak has not been measured.',
-  purchaseHintLevel: 'Assumed hint level for purchases whose actual discounts are unknown. Levels 0/1/2/3/4/5 reduce cost by 0/10/20/30/35/40%. Default 1 is an estimate, not a measured average. Innate and awakening skills use full cost unless their hint levels are modeled. Fast Learner is not assumed.',
   skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. Default 400, roughly two skills either way.',
   totalTurnsOverride: `Total career turns used to scale card stats and SP by races run, as (T - races) / (T - ${RACES_REFERENCE}). Blank uses the value fitted from the 28-race and 23-race measurements. Values of ${RACES_REFERENCE} or less are rejected because they would divide by zero or flip the sign.`,
 };
@@ -242,7 +238,7 @@ export const ADVANCED_SETTING_GROUPS: SettingGroup[] = [
   { title: 'Trainee events', fields: [n('charStoryEventRate', 'Story and choice events play'), n('charOutingRate', 'Outing event happens'), n('charUndecodedEventRate', 'Undecoded event skill obtained'), n('charConditionFallbackRate', 'Secret-event condition not scorable')] },
   { title: 'Scenario', fields: [n('scenarioPickRate', 'Skill event option taken'), n('scenarioSongsRate', '18 or more songs learned'), n('concertGreatSuccessRate', 'Concert great success'), n('uniqueAprilBondRate', 'April bond check passes')] },
   { title: 'Spark chance at run end', fields: [n('goldSparkRate', 'Gold skill owned'), n('circleSparkRate', '◎ form owned'), n('whiteSparkRate', 'White skill owned'), list('whiteStarsBelowB', 'White stars below B, 1/2/3★'), list('whiteStarsUE', 'White stars at UE+, 1/2/3★')] },
-  { title: 'Rank score', fields: [n('purchaseHintLevel', 'Assumed hint level', 1), n('skillScoreSd', 'Skill score spread', 10)] },
+  { title: 'Rank score', fields: [n('skillScoreSd', 'Skill score spread', 10)] },
   { title: 'Stat model', fields: [n('lossPenalty', 'Stat lost per expected race loss', 1), n('totalTurnsOverride', 'Total career turns', 1)] },
 ];
 

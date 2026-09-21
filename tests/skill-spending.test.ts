@@ -1,0 +1,182 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { loadData } from '../src/data.ts';
+import { DEFAULT_SETTINGS } from '../src/settings.ts';
+import { makeCtx, purchaseCoverage } from '../src/model/deck.ts';
+import { estimatePurchases, estimateSkillRating, ratingFromCoverage, targetSpCost } from '../src/model/skill-purchases.ts';
+import { isDebuff, resolveTarget, type SkillSource, type EventSource, type Target } from '../src/model/sparks.ts';
+import { prepareRunSources } from '../src/model/run-sources.ts';
+import { planRun } from '../src/model/run.ts';
+import { defaultState } from '../src/state.ts';
+
+const data = loadData();
+const apt = data.characters[0]!.aptitudes;
+const focus = resolveTarget(200432, data)!;
+const hint = (skillId: number, pObtain: number): SkillSource => ({ kind: 'hint', skillId, pObtain, isChoice: false, gold: false, circle: false, detail: 'Test hint' });
+
+const reference = { ...focus.white!, tags: [], cost: 100, rating: 100 };
+
+test('rank limits skill purchases by availability and spends the remaining SP at the reference rate', () => {
+  const a = { ...focus, white: { ...focus.white!, tags: [], cost: 20, rating: 100 }, circle: null, gold: { ...focus.gold!, tags: [], cost: 80, rating: 260 } };
+  const b = { ...focus, id: 2, white: { ...focus.white!, id: 2, tags: [], cost: 60, rating: 130 }, circle: null, gold: null };
+  const coverage = new Map([[a.id, [hint(a.id, 1), { ...hint(a.gold!.id, .5), gold: true }]], [b.id, [hint(b.id, .5)]]]);
+  // A supplies 100 base points and .5*160 upgrade points for 20 + .5*80 SP.
+  // B supplies .5*130 points for .5*60 SP. The remaining 810 SP earns 810 points.
+  const rating = ratingFromCoverage([a, b], coverage, 900, apt, [reference]);
+  assert.equal(rating.score, 1055);
+  assert.equal(rating.referenceSp, 810);
+  assert.equal(rating.fallback, false);
+  assert.equal(ratingFromCoverage([a, b], coverage, 1800, apt, [reference]).score, 1955, 'extra SP cannot repeatedly buy the same skills');
+  assert.equal(ratingFromCoverage([a, b], coverage, 0, apt, [reference]).score, 0);
+  assert.equal(ratingFromCoverage([a, b], coverage, 10, apt, [reference]).score, 50, 'a tight budget takes the most efficient segment');
+  assert.equal(ratingFromCoverage([a, b], coverage, 35, apt, [reference]).score, 132.5, 'the other white skill precedes the less efficient upgrade');
+  const missing = { ...b, white: { ...b.white, cost: null } };
+  assert.equal(ratingFromCoverage([a, missing], coverage, 900, apt, [reference]).score, 1020, 'unknown prices do not contribute purchase value');
+});
+
+test('optional low-value skills and upgrades cannot lower Rank', () => {
+  const a = { ...focus, white: { ...focus.white!, tags: [], cost: 100, rating: 200 }, circle: null, gold: null };
+  const b = { ...a, id: 2, white: { ...a.white, id: 2, rating: 50 } };
+  const coverage = new Map([[a.id, [hint(a.id, 1)]], [b.id, [hint(b.id, 1)]]]);
+  const base = ratingFromCoverage([a], coverage, 1000, apt, [reference]);
+  assert.equal(base.score, 1100);
+  assert.equal(ratingFromCoverage([a, b], coverage, 1000, apt, [reference]).score, base.score);
+  const upgraded = { ...a, circle: { ...a.white, id: 3, name: 'Optional ◎', cost: 100, rating: 210 } };
+  assert.equal(ratingFromCoverage([upgraded], coverage, 1000, apt, [reference]).score, base.score, 'an inefficient circle upgrade can be skipped');
+  const gold = { ...a, gold: { ...focus.gold!, tags: [], cost: 200, rating: 250 } };
+  coverage.set(a.id, [hint(a.id, 1), { ...hint(gold.gold.id, 1), gold: true }]);
+  assert.equal(ratingFromCoverage([gold], coverage, 1000, apt, [reference]).score, base.score, 'a gold hint does not force a purchase');
+});
+
+test('efficient upgrades include their prerequisite cost and uncertain access is capped', () => {
+  const a = { ...focus, white: { ...focus.white!, tags: [], cost: 100, rating: 50 }, circle: null,
+    gold: { ...focus.gold!, tags: [], cost: 100, rating: 400 } };
+  const coverage = new Map([[a.id, [{ ...hint(a.gold.id, .25), gold: true }]]]);
+  const rating = ratingFromCoverage([a], coverage, 1000, apt, [reference]);
+  assert.equal(rating.score, 1050, '.25 * 400 points for .25 * 200 SP, plus 950 reference points');
+  assert.equal(rating.referenceSp, 950);
+  coverage.set(a.id, [{ ...hint(a.gold.id, .5), gold: true }]);
+  assert.equal(ratingFromCoverage([a], coverage, 1000, apt, [reference]).score, 1100, 'better availability cannot lower the estimate');
+  assert.equal(ratingFromCoverage([a, a], coverage, 1000, apt, [reference]).score, 1100, 'a family is counted once');
+});
+
+test('rank includes unlisted hints while target cost includes only obtainable goal and listed families', () => {
+  const ids = [201601, 200432, 200352];
+  const skills = ids.map((id, i) => ({ ...data.skillById.get(id)!, versions: [], tags: [], rating: [100, 300, 100][i], cost: 100 }));
+  const fixture = { ...data, skills, skillById: new Map(skills.map((s) => [s.id, s])), scenarioEvents: [] };
+  const [a, b, absent] = ids.map((id) => resolveTarget(id, fixture)!);
+  const card = { ...data.cardById.get(30028)!, hintSkills: ids.slice(0, 2), eventSkills: [], chainEvents: [], randomEvents: [], recreationEvents: [], specialEvents: [] };
+  const ctx = makeCtx({ data: fixture, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [a!.id] });
+  const deck = [{ card, lb: 4 }];
+  const rating = estimateSkillRating(deck, ctx, 1000, apt);
+  assert.equal(rating.referenceRate, 5 / 3, 'the reference uses the same released skill data regardless of deck');
+  assert.ok(rating.score > 1000 * rating.referenceRate, 'the high-value unlisted hint adds value');
+  assert.ok(rating.score < 1000 * rating.referenceRate + 300, 'a possible hint cannot be bought repeatedly');
+  const cost = estimatePurchases(deck, [a!, absent!], ctx);
+  assert.equal(cost.spent, 100, 'listed A is not counted twice and the unavailable target contributes nothing');
+  assert.equal(estimatePurchases(deck, [a!, b!, absent!], ctx).spent, 200, 'an unlisted preferred target with a hint is included');
+  assert.equal(estimatePurchases(deck, [a!, absent!], { ...ctx, priority: [a!.id, b!.id] }).spent, 200, 'a listed extra is included');
+  assert.equal(estimatePurchases(deck, [a!], { ...ctx, settings: { ...DEFAULT_SETTINGS, hintScale: 0 } }).spent, 0, 'zero-probability sources cost nothing');
+});
+
+test('rank discloses its reference pool when no obtainable form has a known price', () => {
+  const skill = { ...focus.white!, cost: 100, rating: 150, tags: [] };
+  const rating = ratingFromCoverage([], new Map(), 1000, apt, [skill]);
+  assert.deepEqual(rating, { score: 1500, pointsPerSp: 1.5, referenceRate: 1.5, referenceSp: 1000, fallback: true, unverified: [] });
+});
+
+test('hiding every extra leaves an explicit empty list that cannot steer choice rewards', () => {
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100501;
+  saved.run.targets = [];
+  const first = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
+  const selection = first.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
+  saved.run.wishlistExcluded = [...first.wlLayout.entries.keys()];
+  const hidden = planRun(saved.run, saved.settings, saved.inventory, data, { selection, search: false });
+  assert.deepEqual(hidden.wl, []);
+  assert.deepEqual(hidden.ctx.priority, []);
+  const coverage = purchaseCoverage(hidden.deckResult.deck, [focus], hidden.ctx).get(focus.id)!;
+  assert.equal(coverage.filter((s) => s.isChoice).length, 0, 'no hidden choice reward is credited');
+  assert.deepEqual(coverage, purchaseCoverage(hidden.deckResult.deck, [focus], { ...hidden.ctx, priority: [-1] }).get(focus.id));
+  assert.equal(hidden.purchases.spent, 0);
+  assert.ok(hidden.skillRating.score > 0, 'Rank still spends the full SP budget');
+});
+
+test('obtainable gold-only skills cost full price even though they cannot generate a white spark', () => {
+  const target = resolveTarget(202061, data)!;
+  const card = data.cards.find((c) => c.name === '[Passing the Dream On] Team Sirius')!;
+  assert.ok(card);
+  assert.equal(target.gold!.cost, 360);
+  const ctx = makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [...target.familyIds] });
+  const purchases = estimatePurchases([{ card, lb: 4 }], [target], ctx);
+  assert.equal(purchases.spent, 360);
+  assert.equal(purchases.incomplete, false);
+  assert.deepEqual([...purchases.forms.components[0]!.distribution.states], [['0', 1]], 'gold-only skills still cannot generate white sparks');
+});
+
+test('full-price cost retains rare gold sources omitted by bounded joint sampling', () => {
+  const skills = Array.from({ length: 13 }, (_, i) => [0, 1].map((form) => ({
+    ...focus.white!, id: 900000 + i * 2 + form, name: `Test ${i} ${form}`, rarity: form ? 2 : 1,
+    cost: form ? 90 : 10, versions: [900000 + i * 2 + (1 - form)],
+  }))).flat();
+  const fixture = { ...data, skillById: new Map(skills.map((s) => [s.id, s])) };
+  const targets = Array.from({ length: 13 }, (_, i) => resolveTarget(900000 + i * 2, fixture)!);
+  const reward = (skillId: number, share: number) => ({ skillId, share, gold: fixture.skillById.get(skillId)!.rarity === 2, circle: false, rolled: false });
+  const rare = 1e-8;
+  const roll = { pFire: 1, outcomes: [targets.map((t, i) => i ? [reward(t.id, .5)] : [reward(t.id, 1 - rare), reward(t.gold!.id, rare)])] };
+  const coverage = new Map(targets.map((t, i) => [t.id, (i ? [{ id: t.id, p: .5 }] : [{ id: t.id, p: 1 - rare }, { id: t.gold!.id, p: rare }]).map(({ id, p }): EventSource => ({
+    kind: 'chain', skillId: id, gold: fixture.skillById.get(id)!.rarity === 2, circle: false, pObtain: p, isChoice: false,
+    detail: 'Shared reward', event: { key: 'shared', label: 'Shared reward', option: '', optionIndex: 0 }, roll,
+  }))]));
+  const ctx = makeCtx({ data: fixture, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [] });
+  ctx.sources = { ...prepareRunSources(ctx), trainee: (t) => coverage.get(t.id) ?? [] };
+  const purchases = estimatePurchases([], targets, ctx);
+  assert.ok(purchases.forms.components[0]!.distribution.approximate, 'the fixture exceeds the joint state bound');
+  assert.ok(![...purchases.forms.components[0]!.distribution.states].some(([state]) => state[0] === '3'), 'sampling misses the rare gold outcome');
+  assert.equal(purchases.spent, 100 + 12 * 10, 'the first family costs white plus gold, the other twelve cost white');
+  assert.equal(purchases.incomplete, false);
+});
+
+test('source costs include circle upgrades and prerequisites, and disclose unknown prices', () => {
+  const white = { ...focus.white!, cost: 20 };
+  const circle = { ...white, id: 999001, name: 'Test ◎', cost: 30, unreleasedEn: false };
+  const gold = { ...focus.gold!, cost: 80 };
+  const target: Target = { ...focus, white, circle, gold };
+  const ctx = makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [] });
+  const sources = [hint(white.id, .5), { ...hint(gold.id, 0), gold: true }];
+  ctx.sources = { ...prepareRunSources(ctx), trainee: () => sources };
+  const buy = (t = target) => estimatePurchases([], [t], ctx);
+  assert.equal(buy().spent, 50, 'a white hint permits the released circle upgrade, with its white prerequisite');
+  assert.equal(buy({ ...target, circle: { ...circle, unreleasedEn: true } }).spent, 20, 'unreleased circle upgrades cannot be bought');
+  sources[1]!.pObtain = .01;
+  assert.equal(buy().spent, 130, 'gold costs white plus circle plus gold regardless of probability');
+  const unknown = buy({ ...target, gold: { ...gold, cost: null } });
+  assert.equal(unknown.incomplete, true, 'the highest obtainable form has an unknown price');
+  assert.equal(unknown.spent, 0, 'the unknown family does not inflate the lower bound');
+});
+
+test('debuff skills are neither purchases nor part of the reference pool', () => {
+  const gatekept = data.skills.find((s) => s.name === 'Gatekept')!;
+  assert.ok(isDebuff(gatekept) && isDebuff(data.skills.find((s) => s.name === 'Right-Handed ×')!) && !isDebuff(focus.white!));
+  const clean = ratingFromCoverage([], new Map(), 1000, apt, [reference]);
+  assert.deepEqual(ratingFromCoverage([], new Map(), 1000, apt, [reference, { ...gatekept, cost: 10 }]), clean, 'an unbuyable debuff does not raise the reference rate');
+  const debuffTarget = resolveTarget(gatekept.id, data)!;
+  const coverage = new Map([[debuffTarget.id, [hint(gatekept.id, 1)]]]);
+  assert.equal(ratingFromCoverage([debuffTarget], coverage, 1000, apt, [reference]).score, clean.score, 'a debuff the run is given cannot be bought for rating');
+  assert.equal(targetSpCost([debuffTarget], coverage).total, 0);
+  const real = estimateSkillRating([], makeCtx({ data, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null }), 1000, apt);
+  assert.ok(!real.unverified.some((id) => isDebuff(data.skillById.get(id)!)), 'the released pool reports no debuff as an unverified rating');
+});
+
+test('purchases separate the goal targets from the listed extras and share the worst-case cost rule', () => {
+  const ids = [201601, 200432];
+  const skills = ids.map((id) => ({ ...data.skillById.get(id)!, versions: [], tags: [], rating: 100, cost: 100 }));
+  const fixture = { ...data, skills, skillById: new Map(skills.map((s) => [s.id, s])), scenarioEvents: [] };
+  const [a, b] = ids.map((id) => resolveTarget(id, fixture)!);
+  const card = { ...data.cardById.get(30028)!, hintSkills: ids, eventSkills: [], chainEvents: [], randomEvents: [], recreationEvents: [], specialEvents: [] };
+  const ctx = makeCtx({ data: fixture, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [b!.id] });
+  const purchases = estimatePurchases([{ card, lb: 4 }], [a!], ctx);
+  assert.equal(purchases.spent, 200);
+  assert.equal(purchases.extrasSpent, 100, 'the listed extra is the part the run does not need');
+  assert.equal(purchases.spent - purchases.extrasSpent, targetSpCost([a!], purchaseCoverage([{ card, lb: 4 }], [a!], ctx)).total, 'the target part is the Target coverage rule');
+});

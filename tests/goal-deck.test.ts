@@ -228,17 +228,18 @@ test('required targets outrank custom preferred ordering and excluded choices re
   saved.run.traineeCardId = 100101;
   saved.run.pinnedIds.push(falcon.id);
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }];
+  // arranging or hiding targets in the list changes nothing: the goal orders them
   saved.run.wishlistOrder = [focus.id, 201601];
-  const preferredFirst = structuredClone(saved.run.wishlistOrder);
+  const arranged = structuredClone(saved.run.wishlistOrder);
   const plan = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 8 });
-  assert.equal(plan.wl[0]!.skillId, 201601);
+  assert.equal(plan.wl[0]!.skillId, 201601, 'the required target is listed first');
   assert.equal(plan.deckResult.conflicts.find((c) => c.eventKey.startsWith(`${falcon.id}:chain`))?.taken.target, 201601);
-  assert.deepEqual(saved.run.wishlistOrder, preferredFirst);
+  assert.deepEqual(saved.run.wishlistOrder, arranged);
   saved.run.wishlistExcluded = [201601];
-  const excluded = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 8 });
-  assert.ok(excluded.priorityIssues.some((s) => s.includes('Groundwork')), 'the excluded required skill is reported');
-  assert.ok(!excluded.wl.some((w) => w.skillId === 201601), 'the excluded skill leaves the prioritized list');
-  assert.ok(!excluded.deckResult.coverage.get(201601)!.some((s) => s.isChoice && s.skillId === 201601), 'no choice source for the excluded skill survives');
+  const hidden = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 8 });
+  assert.ok(hidden.wl.some((w) => w.skillId === 201601), 'a target cannot be hidden from the list');
+  assert.deepEqual(hidden.wlHidden, []);
+  assert.ok(hidden.deckResult.coverage.get(201601)!.some((s) => s.isChoice && s.skillId === 201601), 'its choice source still counts');
 });
 
 test('complete search and displayed goal agree; fallback preserves the original requirements', () => {
@@ -260,15 +261,15 @@ test('complete search and displayed goal agree; fallback preserves the original 
   assert.deepEqual(saved.run, before);
 });
 
-test('an excluded required skill keeps its warning when the deck has no source for it', () => {
+test('hidden ids that are not extras of this deck are kept in the input and change nothing', () => {
   const saved = defaultState(data);
   const id = must(data.skills.find((s) => s.name === 'Runaway'), `data.skills.find((s) => s.name === 'Runaway')`).id;
   saved.run.traineeCardId = 100101;
   saved.run.targets = [{ id, role: 'required', stars: 2, priority: 0 }];
-  saved.run.wishlistExcluded = [id];
+  saved.run.wishlistExcluded = [id, 999];
   const result = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
-  assert.deepEqual(result.wlExcluded, [], 'this deck does not offer the excluded skill');
-  assert.ok(result.priorityIssues.some((s) => s.includes('Runaway is required but excluded')), 'the excluded requirement stays reported without a deck source');
+  assert.deepEqual(result.wlHidden, [], 'neither id is an extra this deck offers');
+  assert.deepEqual(saved.run.wishlistExcluded, [id, 999]);
 });
 
 test('screening scores never replace fully evaluated scores or discard a stronger incumbent', () => {
@@ -406,17 +407,17 @@ test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin w
   assert.deepEqual(saved, before);
 });
 
-test('previous recommendations are rescored at current limit breaks and rejected when they break current ownership or pins', () => {
+test('retained recommendations are rescored at current limit breaks and rejected when they break current ownership or pins', () => {
   const saved = fujiState();
   const previous = FUJI_DECK;
-  const reused = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
-  assert.ok(reused.goalEstimate.probability! >= fujiReference(saved), 'a seeded search never falls below its seed');
+  const reused = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
+  assert.equal(reused.goalEstimate.probability, fujiReference(saved), 'the previous deck stays visible while a fresh search runs');
   saved.inventory['30107'] = 0;
-  const changed = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
+  const changed = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
   for (const e of changed.deckResult.deck) if (e.card.id === 30107 && !e.borrowed) assert.equal(e.lb, 0);
   saved.inventory['30107'] = null;
   saved.run.pinnedIds.push(30028);
-  const invalid = planRun(saved.run, saved.settings, saved.inventory, data, { previous, budget: 8 });
+  const invalid = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
   assert.ok(!invalid.deckResult.deck.some((e) => e.card.id === 30107 && !e.borrowed), 'a card marked not owned leaves the reused deck');
   assert.ok(invalid.deckResult.deck.some((e) => e.card.id === 30028), 'a new pin joins the reused deck');
 });

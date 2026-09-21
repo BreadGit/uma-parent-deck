@@ -392,7 +392,13 @@ td.target-chances { min-width: 260px; }
 /* prioritized skills */
 /* numbers are rendered in the template: Chromium leaves ::marker counters stale after lit's repeat() moves items, so an <ol> showed 1, 3, 4… after a reorder */
 .wishlist { list-style: none; padding-left: 0; margin: 4px 0; }
-.wishlist li { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px; margin: 2px 0; padding: 3px 4px; border-radius: 4px; cursor: grab; }
+.wishlist li { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px; margin: 2px 0; padding: 3px 4px; border-radius: 4px; }
+.wishlist li.wl-extra[draggable="true"] { cursor: grab; }
+/* Target rows follow the goal editor. Their disabled controls share a focusable tooltip. */
+.wishlist .grip-disabled { opacity: .3; cursor: default; }
+.wishlist .wl-fixed button { pointer-events: none; }
+/* while a search runs the deck may change, so the extras are shown but not editable */
+.wishlist.wl-locked li.wl-extra, .wishlist.wl-locked ~ .wl-candidates { opacity: .55; }
 .wishlist .wl-body { flex: 1; min-width: 0; }
 .wishlist .wl-actions { display: inline-flex; flex: none; align-items: center; gap: 2px; }
 .wishlist li:hover { background: var(--soft2); }
@@ -408,12 +414,12 @@ td.target-chances { min-width: 260px; }
 .wl-swap:disabled { opacity: .5; cursor: default; }
 .wl-swap:disabled:hover { border-color: var(--line); }
 .wishlist .wl-move { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
-.wishlist .wl-move:disabled { opacity: .3; cursor: default; }
+.wishlist .wl-move:disabled, .wishlist .wl-x:disabled { opacity: .3; cursor: default; }
 .wl-kind { display: inline-block; margin-right: 6px; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
-.wl-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
-/* three rows of chips (21px chip, 2px margins, 4px row gap); the rest shows on request */
-.wl-extra.clamped { max-height: 83px; overflow: hidden; }
+/* the candidates outside the list: three rows of chips (21px chip, 2px margins, 4px row gap); the rest shows on request */
+.wl-candidates { --wl-candidates-height: 83px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.wl-candidates.clamped { max-height: var(--wl-candidates-height); overflow: hidden; }
 .wl-candidates-toggle { margin-top: 6px; }
 
 /* advanced settings: each field shows its default and marks a changed value */
@@ -502,7 +508,7 @@ details[data-agenda] { margin-top: 8px; }
   .wl-swap { padding: 3px 10px; }
   .wishlist li { padding: 5px 4px; }
   .wishlist .wl-move, .wishlist .wl-x { font-size: var(--fs-sm); line-height: 22px; padding: 0 8px; }
-  /* taller chips on touch screens: 27px chip, 2px margins, 4px row gap */
-  .wl-extra.clamped { max-height: 101px; }
+  /* taller chips on touch screens: 27px chip, 2px margins, 4px row gap. app.ts measures overflow against this variable. */
+  .wl-candidates { --wl-candidates-height: 101px; }
   input[type=range] { height: 28px; }
 }

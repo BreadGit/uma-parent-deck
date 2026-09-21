@@ -4,6 +4,7 @@ import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, SETTING_HELP, type SettingField, type Settings } from '../../settings.ts';
 import { exportInventory, importInventory } from '../../inventory.ts';
+import { downloadText } from '../../download.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { setSetting } from '../actions.ts';
 import { COPY } from '../copy.ts';
@@ -59,6 +60,7 @@ export function renderSettings() {
     </div>
     <details ?open=${view.showAdvanced} data-details="advanced" @toggle=${(e: Event) => { view.showAdvanced = (e.target as HTMLDetailsElement).open; refresh(); }}>
       <summary>${COPY.settings.advanced}${tip(COPY.settings.advancedTip)}</summary>
+      <button class="small gap-top" data-action="export-settings" @click=${() => downloadText('settings.json', JSON.stringify(store.settings, null, 2) + '\n', 'application/json')}>${COPY.settings.exportSettings}</button>
       ${ADVANCED_SETTING_GROUPS.map((g) => html`<h3>${g.title}</h3><div class="settings-grid">${g.fields.map(field)}</div>`)}
       <button class="small gap-top" data-action="reset-settings" @click=${resetAdvanced}>${COPY.settings.resetAdvanced}</button>
     </details>`);

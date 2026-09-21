@@ -7,11 +7,11 @@ import { DEFAULT_RUN, migrate, defaultState, STATE_VERSION } from '../src/state.
 import { DEFAULT_GOAL as BASE_GOAL, emptyPinkLineage, sanitizePinkLineage, sanitizeGoal, goalFamily, goalWithTargets, type ResolvedGoal } from '../src/model/goal-input.ts';
 import { goalRankBands, attemptsFor, blueChance, pinkEstimate, pinkGoalsEstimate, starChance, statGoalMoments as integrateStats, evaluateParentGoal as evaluateGoal, type GoalStats } from '../src/model/goal.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
-import { decodeEventRoll, resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
+import { decodeEventRoll, hasWhiteSpark, isDebuff, lineageSources, resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES } from '../src/model/rules.ts';
 import { statScore, thresholdFor } from '../src/model/rank.ts';
 import { phi } from '../src/model/stats.ts';
-import { planRun, predictRunDeck } from '../src/model/run.ts';
+import { planRun, predictRunDeck, unavailableRunChoices } from '../src/model/run.ts';
 import { makeCtx, evaluate, traineeCoverage, type Ctx } from '../src/model/deck.ts';
 import { APTITUDE_KEYS, type AptKey, type Grade } from '../src/types.ts';
 
@@ -35,6 +35,38 @@ const apt = (): Record<AptKey, Grade> => Object.fromEntries(APTITUDE_KEYS.map((k
 const lineage = () => Array.from({ length: 6 }, () => ({ aptitude: 'turf' as const, stars: 3 }));
 const plain = (skillId: number, pObtain = 1): SkillSource => ({ kind: 'hint', skillId, pObtain, gold: false, circle: false, isChoice: false, detail: 'Test hint' });
 const event = (skillId: number, { roll, ...overrides }: Omit<Partial<EventSource>, 'roll'> & { roll?: Parameters<typeof decodeEventRoll>[0] } = {}): EventSource => ({ kind: 'random', skillId, pObtain: 0.5, gold: false, circle: false, isChoice: false, detail: 'Test event', event: { key: 'event', label: 'Event', option: 'one', optionIndex: 0 }, ...overrides, ...(roll ? { roll: decodeEventRoll(roll, data, settings) } : {}) });
+
+test('negative skills cannot generate or inherit white sparks, and saved targets remain available for review', () => {
+  for (const skill of data.skills.filter(isDebuff)) {
+    const t = resolveTarget(skill.id, data)!;
+    assert.equal(goalFamily(skill.id, data), null, `${skill.name} cannot be selected as a goal`);
+    assert.equal(hasWhiteSpark(t), false, `${skill.name} cannot generate a spark`);
+    assert.deepEqual(t.familyIds, new Set([skill.id]), 'negative skills stay separate from positive counterparts');
+  }
+  assert.equal(goalFamily(200431, data), 200432, 'Concentration still resolves to Focus');
+  assert.ok(hasWhiteSpark(resolveTarget(200432, data)!));
+
+  const gatekept = resolveTarget(200433, data)!;
+  const ctx = makeCtx({ data, settings, trainee: data.charByCardId.get(100701)!, races: 20, totalTurns: 72 });
+  const coverage = evaluate(traineeCoverage([gatekept], ctx), [gatekept], ctx);
+  assert.ok(coverage.map.get(gatekept.id)!.some((s) => s.pObtain > 0), 'Gold Ship can receive the negative skill');
+  assert.equal(coverage.sparks.get(gatekept.id), 0);
+  const moments = whiteGenerationMoments(jointSkillForms([gatekept], coverage.map, data), [], settings);
+  assert.deepEqual(moments.available, [0]);
+  assert.deepEqual(moments.each, [0]);
+
+  const saved = defaultState(data);
+  saved.run.traineeCardId = 100701;
+  saved.run.targets = [{ id: gatekept.id, role: 'required', stars: 1, priority: 0 }];
+  saved.run.targetLineage[String(gatekept.id)] = { k1: 1, k2: 0, p1: 3, p2: 0 };
+  assert.deepEqual(lineageSources(gatekept, saved.run.targetLineage[String(gatekept.id)], settings), []);
+  const migrated = migrate({ current: saved }, data);
+  assert.deepEqual(migrated.run, saved.run, 'saved choices survive unchanged');
+  assert.deepEqual(unavailableRunChoices(migrated.run, data).skills, [gatekept.id]);
+  const plan = planRun(migrated.run, settings, migrated.inventory, data, { search: false });
+  assert.deepEqual(plan.goalEstimate.required, []);
+  assert.ok(!plan.wl.some((w) => w.skillId === gatekept.id), 'a negative skill does not consume a prioritized slot');
+});
 
 test('generation defaults use audited star tables and inclusive blue boundaries', () => {
   assert.deepEqual(BLUE_GENERATION_BANDS.map((b) => b.rates), [[.9, .1, 0], [.5, .45, .05], [.2, .7, .1]]);

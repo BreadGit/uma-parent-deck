@@ -14,22 +14,29 @@ export interface Target {
   gold: Skill | null;    // gold upgrade
   familyIds: Set<number>;
 }
-export const hasWhiteSpark = (target: Target): boolean => !!target.white && !target.white.unreleasedEn;
+export const hasWhiteSpark = (target: Target): boolean => !!target.white && !target.white.unreleasedEn && !isDebuff(target.white);
 
 const isGold = (s: Skill) => s.rarity === 2;
 const isCircle = (s: Skill) => s.rarity === 1 && s.name.includes('◎');
-const isCross = (s: Skill) => s.rarity === 1 && s.name.includes('×');
+/**
+ * A debuff: a × form or a negative event skill (Gatekept, Wallflower, …). GameTora's icon ids end in 4 for both.
+ * The game gives them at events and never sells them, so one is neither a target form nor a purchase.
+ */
+export const isDebuff = (s: Skill) => s.rarity === 1 && (s.name.includes('×') || (s.iconId ?? 0) % 10 === 4);
 
 /** Build the family (white, ◎, gold) for any member skill id. */
 export function resolveTarget(id: number, data: Data): Target | null {
   const s = data.skillById.get(id);
   if (!s) return null;
+  // GameTora lists a debuff among the versions of its positive counterpart (Gatekept with Focus and Concentration).
+  // It is its own family: nothing upgrades it, and it cannot supply or be supplied by the counterpart.
+  if (isDebuff(s)) return { id: s.id, name: s.name, white: s, circle: null, gold: null, familyIds: new Set([s.id]) };
   const members = [s, ...s.versions.map((v) => data.skillById.get(v)).filter((x): x is Skill => !!x)];
   const gold = members.find(isGold) ?? null;
   const circle = members.find(isCircle) ?? null;
-  const white = members.find((m) => m.rarity === 1 && !isCircle(m) && !isCross(m)) ?? (s.rarity === 1 ? s : null);
+  const white = members.find((m) => m.rarity === 1 && !isCircle(m) && !isDebuff(m)) ?? (s.rarity === 1 ? s : null);
   const base = white ?? circle ?? gold ?? s;
-  const familyIds = new Set(members.filter((m) => !isCross(m) && (m.rarity !== 1 || m.id === white?.id || m.id === circle?.id)).map((m) => m.id));
+  const familyIds = new Set(members.filter((m) => !isDebuff(m) && (m.rarity !== 1 || m.id === white?.id || m.id === circle?.id)).map((m) => m.id));
   const name = base.unreleasedEn && gold && !gold.unreleasedEn ? gold.name : base.name;
   return { id: base.id, name: name.replace(/ ○$/, ''), white, circle, gold, familyIds };
 }
@@ -234,8 +241,8 @@ export function cardSourcesForTarget(card: Card, lb: number, target: Target, rac
   if (hintsInFamily.length) {
     const eh = expectedHints(card, lb, races, totalTurns, settings);
     const pool = Math.max(1, card.hintSkills.length);
-    // P(at least one hint for this skill) with hints drawn uniformly from the pool
-    const pEach = 1 - Math.pow(1 - 1 / pool, eh);
+    // Poisson pickup counts split uniformly across skills. The mean is not a fixed number of draws.
+    const pEach = -Math.expm1(-eh / pool);
     for (const id of hintsInFamily) out.push({ kind: 'hint', skillId: id, ...formOf(id, data), pObtain: pEach, isChoice: false, detail: `Hint (${eh.toFixed(1)} hints/run over ${pool} skills)`, cardName: card.name });
   }
   for (const src of eventSources(card, settings, data)) {
@@ -437,32 +444,42 @@ function bestOption(ss: EventSource[], settings: Settings, target?: Target): Eve
 
 /**
  * One event yields one option. For every event some target's sources come from, take the option the run would pick:
- * a non-target skill ranked above every target on that event (a blocker) wins it, else the target whose skills come
- * first in `priority` (skill ids in prioritized order, every form of a family ranked together) takes the option
- * worth the most to it. Every target keeps only its sources on the taken option, so a target offered by two options
- * counts one of them, and an option that gives two targets keeps both. `settings` gives the spark rates the options
- * are valued by.
+ * a non-target skill listed above every target on that event (a blocker) wins it, else the listed target whose skills
+ * come first in `priority` (skill ids in prioritized order, every form of a family ranked together) takes the option
+ * worth the most to it. An event no listed skill is offered by steers nothing: only rewards that require no choice survive.
+ * A null `priority` means every target is listed, for contexts that have no list yet. An empty list steers nothing.
+ * Every target keeps only its sources on the taken option, so a target offered by two options counts one of them,
+ * and an option that gives two targets keeps both. `settings` gives the spark rates the options are valued by.
  */
-export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[], blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS, targets: Target[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[] | null, blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS, targets: Target[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
   for (const [tid, sources] of map) for (const s of sources) if (isEventSource(s)) byEvent.set(s.event.key, new Set([...(byEvent.get(s.event.key) ?? []), tid]));
-  const rank = (skillId: number) => { const i = priority.indexOf(skillId); return i < 0 ? Infinity : i; };
+  const everyoneListed = priority === null;
+  const rank = (skillId: number) => { const i = priority?.indexOf(skillId) ?? -1; return i < 0 ? Infinity : i; };
   const taken = new Map<string, number>();
+  const unsteered = new Set<string>();
   const conflicts: Conflict[] = [];
   for (const [key, tids] of byEvent) {
     const sourcesFor = (tid: number) => (map.get(tid) ?? []).filter((s): s is EventSource => isEventSource(s) && s.event.key === key);
     const ordered = [...tids].sort((a, b) => rank(a) - rank(b) || a - b);
-    const label = sourcesFor(ordered[0]!)[0]?.event.label ?? key;
-    const blocker = blockers.filter((b) => b.event.key === key && rank(b.skillId) < rank(ordered[0]!)).sort((a, b) => rank(a.skillId) - rank(b.skillId))[0];
-    let chosen: number, takenOption: ConflictOption;
+    const top = ordered[0]!;
+    const label = sourcesFor(top)[0]?.event.label ?? key;
+    const blocker = blockers.filter((b) => b.event.key === key && rank(b.skillId) < rank(top)).sort((a, b) => rank(a.skillId) - rank(b.skillId))[0];
+    let chosen = -1, takenOption: ConflictOption | null = null;
     if (blocker) { chosen = blocker.event.optionIndex; takenOption = { skillId: blocker.skillId, option: blocker.event.option, target: null }; }
-    else { const best = bestOption(sourcesFor(ordered[0]!), settings, targets.find((t) => t.id === ordered[0])); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: ordered[0]! }; }
+    else if (everyoneListed || rank(top) < Infinity) { const best = bestOption(sourcesFor(top), settings, targets.find((t) => t.id === top)); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: top }; }
+    if (chosen < 0) {
+      unsteered.add(key);
+      // A reward offered without a choice still happens. Retain one option so shared rolls stay correlated.
+      const automatic = ordered.flatMap(sourcesFor).filter((s) => !s.isChoice);
+      if (automatic.length) chosen = bestOption(automatic, settings).event.optionIndex;
+    }
     taken.set(key, chosen);
     const dropped = ordered.filter((tid) => !sourcesFor(tid).some((s) => s.event.optionIndex === chosen)).map((tid) => { const s = bestSource(sourcesFor(tid)); return { skillId: s.skillId, option: s.event.option, target: tid }; });
-    if (blocker || dropped.length) conflicts.push({ eventKey: key, label: blocker?.event.label || label, taken: takenOption, dropped });
+    if (takenOption && (blocker || dropped.length)) conflicts.push({ eventKey: key, label: blocker?.event.label || label, taken: takenOption, dropped });
   }
   const out = new Map<number, SkillSource[]>();
-  for (const [tid, sources] of map) out.set(tid, sources.filter((s) => !isEventSource(s) || taken.get(s.event.key) === s.event.optionIndex));
+  for (const [tid, sources] of map) out.set(tid, sources.filter((s) => !isEventSource(s) || (taken.get(s.event.key) === s.event.optionIndex && (!unsteered.has(s.event.key) || !s.isChoice))));
   return { map: out, conflicts };
 }
 

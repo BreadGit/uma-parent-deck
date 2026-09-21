@@ -1,166 +1,176 @@
 import type { Card, Skill } from '../types.ts';
 import { purchaseCoverage, type Ctx } from './deck.ts';
 import { jointSkillForms, type FormDistribution } from './goal-skills.ts';
-import { resolveTarget, type Target } from './sparks.ts';
+import { combineSources, isDebuff, purchasedOwnership, resolveTarget, type SkillSource, type Target } from './sparks.ts';
 import { skillScore } from './rank.ts';
 import type { Aptitudes } from './races.ts';
 import { SCENARIO_COMPLETION_SKILLS } from './rules.ts';
 
-export const HINT_DISCOUNT_PERCENT = [0, 10, 20, 30, 35, 40] as const;
-export const purchaseCost = (skill: Skill, hintLevel: number) => skill.cost === null ? Infinity : Math.floor(skill.cost * (100 - HINT_DISCOUNT_PERCENT[hintLevel]!) / 100);
+export interface SkillRating {
+  score: number;
+  pointsPerSp: number;
+  referenceRate: number;
+  referenceSp: number;     // SP valued at the deck-independent reference rate
+  fallback: boolean;       // no obtainable priced forms
+  unverified: number[];    // forms using the rarity-based rating fallback
+}
+
+export interface SpCost { total: number; incomplete: boolean; items: { target: Target; skill: Skill | null; cost: number | null; purchases: Skill[] }[] }
 
 export interface Purchases {
-  targets: Target[];
-  forms: FormDistribution;
-  score: number;
-  variance: number;
-  spent: number;
-  unverified: number[];
+  targets: Target[];        // goal and listed families; unavailable goals retain zero forms for goal evaluation
+  forms: FormDistribution;  // the forms the run ends up owning, from its sources. Rank spends SP separately (SkillRating).
+  spent: number;            // worst-case SP: the best obtainable form of every family with its prerequisites, at full price
+  extrasSpent: number;      // the listed extras' share of `spent`; the rest is the goal's targets
+  incomplete: boolean;      // a family's price is unknown, so `spent` is a lower bound
 }
 
-/** Required base skills first, then preferred bases, their upgrades, then rating per SP. */
-export function buySkills(targets: Target[], available: string, budget: number, priority: number[], apt: Aptitudes, hintLevel: number, fullCost: ReadonlySet<number> = new Set()) {
-  return purchasePolicy(targets, budget, priority, apt, hintLevel, fullCost)(available);
+/** A form the run can buy: released and not a debuff. */
+const usable = (s: Skill | null | undefined): s is Skill => !!s && !s.unreleasedEn && !isDebuff(s);
+/** A family's forms in purchase order; form n of a state string is the nth of these. */
+const formsOf = (t: Target) => [t.white, t.circle, t.gold] as const;
+/** Full price of a form with its prerequisites, or null when a price is unknown. */
+function costAt(t: Target, form: number): number | null {
+  const needed = formsOf(t).slice(0, form).filter(usable);
+  if (!needed.length || needed.some((s) => s.cost == null)) return null;
+  return needed.reduce((a, s) => a + s.cost!, 0);
 }
 
-function purchasePolicy(targets: Target[], budget: number, priority: number[], apt: Aptitudes, hintLevel: number, fullCost: ReadonlySet<number>) {
-  // Costs and ratings do not change between source outcomes. Precompute them once per deck.
-  const options = targets.flatMap((t, i) => {
-    const forms = [t.white, t.circle, t.gold];
-    const family = forms.flatMap((skill, j) => {
-      if (!skill || skill.unreleasedEn) return [];
-      const total = forms.slice(0, j + 1).filter((s): s is Skill => !!s && !s.unreleasedEn)
-        .reduce((sum, s) => sum + purchaseCost(s, fullCost.has(s.id) ? 0 : hintLevel), 0);
-      return [{ i, form: j + 1, total, points: skillScore(skill, apt) }];
-    });
-    // Every sampled outcome uses the same marginal cost and rating for a given upgrade.
-    return family.map((o) => {
-      const costs = [0, 1, 2, 3].map((form) => o.total - (family.find((f) => f.form === form)?.total ?? 0));
-      const ratios = costs.map((cost, form) => (o.points - (family.find((f) => f.form === form)?.points ?? 0)) / Math.max(1, cost));
-      return { ...o, costs, ratios };
-    });
+/**
+ * Worst-case SP for the best purchasable form of each target, including every prerequisite. Each family is bought
+ * once, with no hint discounts or probability weighting. Gold needs a hint; a released ◎ upgrade does not.
+ */
+export function targetSpCost(targets: Target[], coverage: Map<number, SkillSource[]>): SpCost {
+  const items: SpCost['items'] = [];
+  let total = 0, incomplete = false;
+  for (const t of new Map(targets.map((t) => [t.id, t])).values()) {
+    const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
+    const circle = usable(t.circle) ? t.circle : null;
+    const skill = own.pGold > 1e-9 && usable(t.gold) ? t.gold : circle ?? t.white ?? t.gold;
+    const purchases = [...new Map([t.white, circle, skill].filter(usable).map((s) => [s.id, s])).values()];
+    if (!purchases.length) continue; // nothing of this family can be bought (a debuff, or only unreleased forms)
+    const cost = purchases.some((s) => s.cost == null) ? null : purchases.reduce((a, s) => a + s.cost!, 0);
+    if (cost == null) incomplete = true; else total += cost;
+    items.push({ target: t, skill, cost, purchases });
+  }
+  return { total, incomplete, items };
+}
+
+/**
+ * What the run buys: every required and preferred target, and every listed extra the run has a source for. A skill
+ * can only be bought once the run has it (a hint or an event option), so the forms come from the sources under the
+ * context's list. The cost is the worst case, every obtainable family at full price, to check against the estimated
+ * SP; it reads the resolved sources directly, so rare outcomes the joint form sampling misses still count.
+ */
+export function estimatePurchases(deck: { card: Card; lb: number }[], goalTargets: Target[], ctx: Ctx): Purchases {
+  const families = new Map(goalTargets.map((t) => [t.id, t]));
+  for (const id of ctx.priority ?? []) {
+    const t = ctx.sources ? ctx.sources.target(id) : resolveTarget(id, ctx.data);
+    if (t && !families.has(t.id)) families.set(t.id, t);
+  }
+  const all = [...families.values()];
+  const coverage = purchaseCoverage(deck, all, ctx);
+  const goalIds = new Set(goalTargets.map((t) => t.id));
+  const obtainable = (t: Target) => (coverage.get(t.id) ?? []).some((s) => s.pObtain > 0);
+  const targets = all.filter((t) => goalIds.has(t.id) || obtainable(t));
+  const forms = jointSkillForms(targets, coverage, ctx.data);
+  const goalCost = targetSpCost(targets.filter((t) => goalIds.has(t.id) && obtainable(t)), coverage);
+  const extrasCost = targetSpCost(targets.filter((t) => !goalIds.has(t.id)), coverage);
+  return { targets, forms, spent: goalCost.total + extrasCost.total, extrasSpent: extrasCost.total, incomplete: goalCost.incomplete || extrasCost.incomplete };
+}
+
+interface SpendingPoint { cost: number; points: number; unverified: number[] }
+interface SpendingSegment { cost: number; rate: number; unverified: number[] }
+
+/** Upper concave envelope of the optional forms, including buying nothing. Slopes decrease along the hull. */
+function spendingSegments(options: SpendingPoint[], probability: number): SpendingSegment[] {
+  const hull: SpendingPoint[] = [{ cost: 0, points: 0, unverified: [] }];
+  for (const next of options.slice().sort((a, b) => a.cost - b.cost || b.points - a.points)) {
+    const last = hull.at(-1)!;
+    if (next.cost === last.cost || next.points <= last.points) continue;
+    while (hull.length >= 2) {
+      const a = hull.at(-2)!, b = hull.at(-1)!;
+      if ((b.points - a.points) * (next.cost - b.cost) > (next.points - b.points) * (b.cost - a.cost)) break;
+      hull.pop();
+    }
+    hull.push(next);
+  }
+  return hull.slice(1).map((end, i) => {
+    const start = hull[i]!;
+    return { cost: probability * (end.cost - start.cost), rate: (end.points - start.points) / (end.cost - start.cost),
+      unverified: [...start.unverified, ...end.unverified] };
   });
-  const ordered = [...new Set(priority)].map((id) => targets.findIndex((t) => t.id === id)).filter((i) => i >= 0);
-  const bases = ordered.map((i) => options.find((o) => o.i === i && o.form === 1));
-  const upgrades = ordered.map((i) => options.filter((o) => o.i === i && o.form > 1).reverse());
-  // Each outcome runs synchronously. Reuse scratch arrays without retaining its state.
-  const availableForms = Array<number>(targets.length).fill(0);
-  const bought = availableForms.slice(), points = availableForms.slice();
-  const allowed: typeof options = [];
-  const initialBudget = Math.max(0, Math.floor(budget));
-  let remaining = initialBudget;
-  const canBuy = (o: typeof options[number]) => o.form <= availableForms[o.i]! && o.form > bought[o.i]! && o.costs[bought[o.i]!]! <= remaining;
-  const buy = (o: typeof options[number]) => {
-    remaining -= o.costs[bought[o.i]!]!; points[o.i] = o.points; bought[o.i] = o.form;
-  };
-  return (available: string) => {
-    for (let i = 0; i < targets.length; i++) availableForms[i] = available.charCodeAt(i) - 48;
-    bought.fill(0); points.fill(0); allowed.length = 0;
-    remaining = initialBudget;
-    for (const o of bases) if (o && canBuy(o)) buy(o);
-    for (const family of upgrades) for (const o of family) if (canBuy(o)) { buy(o); break; }
-    for (const o of options) if (canBuy(o)) allowed.push(o);
-    // Greedy fill is a stated purchase policy, not a globally optimal score.
-    while (true) {
-      let best: typeof options[number] | undefined, bestRatio = 0;
-      let retained = 0;
-      for (const o of allowed) {
-        const form = bought[o.i]!;
-        // Buying a prerequisite lowers its upgrade cost and the budget by the same amount.
-        // An unaffordable option cannot become affordable after another purchase.
-        if (o.form <= form || !(o.costs[form]! <= remaining)) continue;
-        allowed[retained++] = o;
-        const ratio = o.ratios[form]!;
-        if (ratio > bestRatio) { best = o; bestRatio = ratio; }
-      }
-      allowed.length = retained;
-      if (!best) break;
-      buy(best);
-    }
-    return { state: bought.join(''), score: points.reduce((sum, p) => sum + p, 0), spent: initialBudget - remaining };
-  };
 }
 
-const quantileCache = new Map<string, number[]>();
-/** Stratify every component, then shuffle independently so late dimensions stay balanced too. */
-function quantiles(count: number, ids: number[]): number[] {
-  let seed = 2166136261;
-  for (const id of [...ids].sort((a, b) => a - b)) seed = Math.imul(seed ^ id, 16777619);
-  const key = `${count}:${seed}`;
-  const cached = quantileCache.get(key);
+interface Reference { rate: number; unverified: number[] }
+const referenceCache = new WeakMap<Skill[], Map<string, Reference>>();
+/**
+ * Rating per SP over every released, priced, purchasable white skill (no ◎ form, no debuff), at the trainee's
+ * aptitudes. Independent of the deck, so it is computed once per skill list and aptitude set: the deck search
+ * evaluates thousands of candidates against it.
+ */
+function referenceRate(skills: Skill[], apt: Aptitudes): Reference {
+  const key = JSON.stringify(apt);
+  const byApt = referenceCache.get(skills) ?? new Map<string, Reference>();
+  referenceCache.set(skills, byApt);
+  const cached = byApt.get(key);
   if (cached) return cached;
-  const random = () => {
-    seed = (seed + 0x6D2B79F5) | 0;
-    let value = Math.imul(seed ^ seed >>> 15, 1 | seed);
-    value = value + Math.imul(value ^ value >>> 7, 61 | value) ^ value;
-    return ((value ^ value >>> 14) >>> 0) / 4294967296;
-  };
-  const out = Array.from({ length: count }, (_, i) => (i + .5) / count);
-  for (let i = count - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
+  let points = 0, cost = 0;
+  const unverified: number[] = [];
+  for (const skill of skills) {
+    if (!usable(skill) || skill.rarity !== 1 || skill.name.includes('◎') || skill.cost == null || skill.cost <= 0) continue;
+    points += skillScore(skill, apt); cost += skill.cost;
+    if (skill.rating === undefined) unverified.push(skill.id);
   }
-  quantileCache.set(key, out);
-  if (quantileCache.size > 256) quantileCache.delete(quantileCache.keys().next().value!);
-  return out;
+  const reference = { rate: cost > 0 ? points / cost : 0, unverified };
+  byApt.set(key, reference);
+  return reference;
 }
 
-/** Preserve shared event outcomes before the SP budget couples otherwise independent families. */
-export function budgetForms(targets: Target[], available: FormDistribution, budget: number, priority: number[], apt: Aptitudes, hintLevel: number, samples = 512, fullCost: ReadonlySet<number> = new Set()): Purchases {
-  let outcomes = new Map<string, number>([['0'.repeat(targets.length), 1]]);
-  let approximate = available.components.some((c) => c.distribution.approximate);
-  const combinations = available.components.reduce((n, c) => n * c.distribution.states.size, 1);
-  const merge = (state: string, part: string, indices: number[]) => { const out = [...state]; indices.forEach((i, j) => { out[i] = part[j]!; }); return out.join(''); };
-  if (combinations <= Math.min(4096, samples)) {
-    for (const component of available.components) {
-      const next = new Map<string, number>();
-      for (const [state, p] of outcomes) for (const [part, q] of component.distribution.states) next.set(merge(state, part, component.indices), p * q);
-      outcomes = next;
-    }
-  } else {
-    approximate = true;
-    outcomes = new Map();
-    const fixed = Array<string>(targets.length).fill('0');
-    const components = available.components.flatMap((c) => {
-      const states = [...c.distribution.states];
-      if (states.length === 1) {
-        c.indices.forEach((i, j) => { fixed[i] = states[0]![0][j]!; });
-        return [];
+/**
+ * Spend on optional forms above a deck-independent reference rate, then value the remaining SP at that rate.
+ * Each availability outcome supplies a fractional, probability-weighted spending envelope. This is an expected
+ * capacity approximation, not a literal shopping list: shared availability and realized budgets are not simulated.
+ */
+export function ratingFromCoverage(targets: Target[], coverage: Map<number, SkillSource[]>, sp: number, apt: Aptitudes, skills: Skill[]): SkillRating {
+  const reference = referenceRate(skills, apt);
+  const segments: SpendingSegment[] = [];
+  for (const t of [...new Map(targets.map((t) => [t.id, t])).values()].sort((a, b) => a.id - b.id)) {
+    const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
+    const options: SpendingPoint[] = [];
+    [own.pWhite, own.pCircle, own.pGold].forEach((probability, i) => {
+      const skill = formsOf(t)[i], cost = costAt(t, i + 1);
+      if (usable(skill) && cost !== null && cost > 0) {
+        options.push({ cost, points: skillScore(skill, apt), unverified: skill.rating === undefined ? [skill.id] : [] });
       }
-      return [{ indices: c.indices, states, quantiles: quantiles(samples, c.indices.map((i) => targets[i]!.id)) }];
+      if (probability > 0) segments.push(...spendingSegments(options, probability));
     });
-    for (let n = 1; n <= samples; n++) {
-      const sampled = fixed.slice();
-      for (const c of components) {
-        const q = c.quantiles[n - 1]!;
-        let cumulative = 0, selected = c.states[c.states.length - 1]![0];
-        for (const [part, mass] of c.states) { cumulative += mass; if (q < cumulative) { selected = part; break; } }
-        c.indices.forEach((i, j) => { sampled[i] = selected[j]!; });
-      }
-      const state = sampled.join('');
-      outcomes.set(state, (outcomes.get(state) ?? 0) + 1 / samples);
-    }
   }
-  const states = new Map<string, number>();
-  const buy = purchasePolicy(targets, budget, priority, apt, hintLevel, fullCost);
-  let score = 0, second = 0, spent = 0;
-  for (const [state, p] of outcomes) {
-    const purchase = buy(state);
-    states.set(purchase.state, (states.get(purchase.state) ?? 0) + p);
-    score += purchase.score * p; second += purchase.score ** 2 * p; spent += purchase.spent * p;
+  const budget = Math.max(0, sp);
+  let remaining = budget, score = budget * reference.rate;
+  const unverified = new Set<number>();
+  for (const segment of segments.sort((a, b) => b.rate - a.rate)) {
+    if (remaining <= 0 || segment.rate <= reference.rate) break;
+    const spent = Math.min(remaining, segment.cost);
+    score += spent * (segment.rate - reference.rate);
+    remaining -= spent;
+    segment.unverified.forEach((id) => unverified.add(id));
   }
-  return { targets, forms: { count: targets.length, components: [{ indices: targets.map((_, i) => i), distribution: { states, approximate } }] },
-    score, variance: Math.max(0, second - score ** 2), spent,
-    unverified: targets.flatMap((t, i) => [t.white, t.circle, t.gold].filter((s, form) => s && !s.unreleasedEn && s.rating === undefined && [...states].some(([state, p]) => p > 0 && Number(state[i]) === form + 1)).map((s) => s!.id)) };
+  if (remaining > 0) reference.unverified.forEach((id) => unverified.add(id));
+  return { score, pointsPerSp: budget > 0 ? score / budget : reference.rate, referenceRate: reference.rate, referenceSp: remaining,
+    fallback: segments.length === 0, unverified: [...unverified].sort((a, b) => a - b) };
 }
 
-export function estimatePurchases(deck: { card: Card; lb: number }[], ctx: Ctx, budget: number, priority: number[], apt: Aptitudes, samples = 512): Purchases {
+/** All modeled sources can inform rank spending, including unlisted hints, innate skills and automatic rewards. */
+export function estimateSkillRating(deck: { card: Card; lb: number }[], ctx: Ctx, sp: number, apt: Aptitudes): SkillRating {
   const completion = SCENARIO_COMPLETION_SKILLS[ctx.settings.scenarioId];
-  const ids = [...priority, ...ctx.lineage.keys(), ...deck.flatMap(({ card }) => [...card.hintSkills, ...card.eventSkills]),
+  const ids = [...(ctx.priority ?? []), ...ctx.lineage.keys(), ...deck.flatMap(({ card }) => [...card.hintSkills, ...card.eventSkills]),
     ...(ctx.trainee ? [...ctx.trainee.innateSkills, ...ctx.trainee.awakeningSkills, ...ctx.trainee.eventSkills] : []),
     ...ctx.data.scenarioEvents.filter((e) => e.scenarioId === ctx.settings.scenarioId).flatMap((e) => e.choices.flatMap((c) => [c.skill, c.whiteSkill, c.goldSkill])),
     ...(completion ? [completion.white, completion.gold] : [])];
-  const targets = [...new Map(ids.flatMap((id) => { const t = id === undefined ? null : ctx.sources ? ctx.sources.target(id) : resolveTarget(id, ctx.data); return t ? [[t.id, t] as const] : []; })).values()];
-  const coverage = purchaseCoverage(deck, targets, ctx);
-  return budgetForms(targets, jointSkillForms(targets, coverage, ctx.data), budget, priority, apt, ctx.settings.purchaseHintLevel, samples, new Set([...(ctx.trainee?.innateSkills ?? []), ...(ctx.trainee?.awakeningSkills ?? [])]));
+  const targets = [...new Map(ids.flatMap((id) => {
+    const t = id === undefined ? null : ctx.sources ? ctx.sources.target(id) : resolveTarget(id, ctx.data);
+    return t ? [[t.id, t] as const] : [];
+  })).values()];
+  return ratingFromCoverage(targets, purchaseCoverage(deck, targets, ctx), sp, apt, ctx.data.skills);
 }

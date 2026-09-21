@@ -99,12 +99,12 @@ export function thresholdFor(name: string, ranks: Data['ranks']): number {
 
 export interface RankEstimate { score: number; sd: number; pSS: number; ssMin: number; uniqueLevel: number; uniquePts: number; statPts: number; skillPts: number }
 
-/** Skill points in the rank score: budgeted purchases plus the trainee's unique skill at its level. */
+/** Skill points in the rank score: estimated SP spending plus the trainee's unique skill at its level. */
 export function skillPointsOf(purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number): number {
   return purchasedScore + (trainee ? uniqueSkillScore(stars, uniqueLevel) : 0);
 }
 
-/** Rank moments from displayed stats and an already budgeted purchase rating. */
+/** Rank moments from displayed stats and an estimated skill-spending rating. */
 export function rankEstimate(finalMean: number[], sd: number[], purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number, data: Data, settings: Settings, purchaseVariance = 0, masses: readonly (readonly StatMass[])[] = finalMean.map((mean, i) => statMasses(mean, sd[i] ?? 0))): RankEstimate {
   const ratingMeans = masses.map((xs) => xs.reduce((sum, x) => sum + statScore(x.value) * x.probability, 0));
   const statPts = ratingMeans.reduce((sum, v) => sum + v, 0);

@@ -4,6 +4,8 @@
 
 Source: https://uma.guide/guides/independent-training
 
+> Project editorial note, 2026-09-20. "Prioritized Skills. The game will target those Skill Hints." below is broad wording: the game and this guide call event skill rewards, the training "!" icon and card effects "hints" alike, and this page's own log section lists every acquired skill as a Skill Hint. No other reference in this collection repeats the claim, and whether the list changes training-hint pickup is unmeasured. The tool credits the list with steering event choices only.
+
 > Project editorial update, 2026-09-18. The race tables below replace the original uma.guide tables with [Shoppo_ura's corrected July 2026 estimates](shoppo-independent-training-race-odds.md). These are fitted independent-training odds, not manual-racing rules. Source-era deck examples and Global/JP feature notes remain dated to the 2026-09-05 snapshot.
 
 # Independent Training ​

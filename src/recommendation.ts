@@ -10,9 +10,14 @@ export interface SavedRecommendation {
   summary: GoalSearchSummary;
 }
 
-/** Object ordering can change during migration; array ordering remains part of the input. */
+/**
+ * Everything the deck search depends on. The user's arrangement of the extra prioritized skills is left out: it only
+ * changes how the deck found is displayed and estimated, never which deck is best. Object ordering can change during
+ * migration; array ordering remains part of the input.
+ */
 export function planningKey(run: RunInput, settings: Settings, inventory: Inventory): string {
-  return JSON.stringify([run, settings, inventory], (_, value: unknown) => isPlainObject(value)
+  const { wishlistOrder: _order, wishlistExcluded: _hidden, ...searched } = run;
+  return JSON.stringify([searched, settings, inventory], (_, value: unknown) => isPlainObject(value)
     ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, value[key]])) : value);
 }
 

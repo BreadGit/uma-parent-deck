@@ -196,6 +196,59 @@ for Speed and 543/501 for Stamina; Sprint focus uses 545/519 for Guts. Averaging
 of totals and their component subtotals would count the same measurements more than once.
 These remain small-sample calibration estimates, not exact game formulas.
 
+## Hint availability and calibration
+
+The expected number of training-hint pickups still uses non-racing turns, the assumed facility
+share, base hint rate, Hint Frequency and hint scale. Pickups follow a Poisson count approximation
+with that mean, and each pickup selects uniformly from the card's hint pool. For mean `lambda`
+and pool size `n`, a skill's availability is `1 - exp(-lambda / n)`. The implementation uses
+`expm1` to retain very small positive probabilities. A one-skill pool can still yield no hints.
+This replaces treating the mean pickup count as a fixed number of draws, which overstated
+availability when pickup counts vary. It also makes independent per-skill hint counts consistent
+with the uniform-pool Poisson assumption.
+
+This is a probability-model correction, not a fit to new independent-training measurements.
+The existing rates remain assumptions. Facility selection, competition between cards, stat
+rewards in place of skills, and whether priorities affect training-hint pickup need measurement.
+Hint availability affects target acquisition and Rank; it does not change a fixed deck's earned
+SP prediction. Hint-level discounts remain unmodeled, and the displayed cost stays full price.
+
+To check how those assumptions affect a recommendation, use the same share code, exported
+inventory and settings that the app uses. In Inventory & settings, open Advanced settings and
+choose **Export settings** to download the complete `settings.json` snapshot:
+
+```sh
+node scripts/hint-sensitivity.mjs --run '<share URL or code>' --inventory /path/to/inventory.json --settings /path/to/settings.json
+```
+
+Share codes include training focus and win threshold, but no advanced settings. The script requires
+either `--settings` or an explicit `--default-settings`; it never silently assumes defaults. A settings
+file must contain every current setting with a valid value; missing, unknown or invalid fields are
+rejected. Export it again after settings change. The share's focus and win threshold override those
+two fields in the snapshot, matching a share import in the app. The JSON report includes the effective
+`baselineSettings` and whether they came from a file or defaults.
+
+The default multipliers are `0.5,1,2` relative to that baseline's hint scale. They are stress-test
+scenarios, not measured confidence bounds. The JSON compares fresh recommendations and also
+rescores the unchanged baseline deck, separating changed card selection from changed estimates.
+It reports the search objective separately from the displayed chance, which follows saved extras.
+Use `--multipliers 0.75,1,1.25` for a narrower comparison. A changed winner indicates sensitivity;
+an unchanged winner over these scenarios does not prove robustness to every source of uncertainty.
+
+For calibration, record every completed run in a batch, including runs with no desired hints.
+Keep the shared setup and inventory, scenario, card limit breaks, training focus, agenda and
+prioritized list with the batch. Per run, retain the acquired-hint log, final hint levels, earned
+SP before purchases, bought skills and final Rank. Record a source only when the log identifies
+it; event, training and inheritance hints must not be attributed to a card by guesswork.
+Mark missing logs explicitly rather than treating them as zero pickups.
+
+First repeat an unchanged setup to measure variability. To test whether priorities change
+pickup, alternate matched setups that differ only in the priority of the skill being measured.
+Compare observed acquisition frequencies and hint-level distributions with predictions, reserving
+separate runs to validate fitted rates. Add source-specific discounts after retaining and checking
+hint-level rewards, repeated pickups and inheritance; a single assumed discount for every skill
+would hide those differences. No completed-run hint dataset is currently used to fit these rates.
+
 ## Skill purchases and rating
 
 `data/skill-ratings.json` contains individually sourced evaluation values for released skills.
@@ -205,25 +258,60 @@ extraction date and extractor revision. After generating a full export with that
 run `node scripts/import-skill-ratings.mjs /path/to/gamewith_skills_enriched.json` to rebuild it.
 Unmatched purchased skills retain the older rarity estimate and the prediction discloses them.
 
-Purchases use the modeled trainee, deck, scenario and lineage sources, with the same shared
-event outcomes and prioritized choices as coverage. Required base skills come first, then
-preferred base skills, then their best affordable upgrades. Remaining SP buys available
-upgrades or skills greedily by incremental rating per SP. This is an explicit purchase policy,
-not an optimal knapsack solution or a prediction of every player's purchases. Gold and circle
-upgrades pay prerequisite costs; only the highest purchased form contributes rating.
-Innate and awakening skills consume this same budget. There is no extra innate rating allowance.
+Rank assumes the entire estimated SP budget is spent. It values optional purchases from obtainable
+skills, including unlisted support hints, innate and awakening skills, and automatic rewards.
+Each family contributes a spending curve over its available forms, including buying nothing.
+Prices include prerequisites; ratings count only the final form and use the trainee's aptitudes.
+The upper concave envelope allows inefficient upgrades to be skipped and includes prerequisite
+costs when an upgrade is worth buying. Each availability outcome scales the curve's spending
+capacity by its probability. The estimator spends on the highest marginal rating per SP first.
 
-The hint-level setting defaults to level 1, an unmeasured assumption. Innate and awakening
-skills use full cost because their availability does not establish a hint discount. Fast Learner
-and actual per-skill hint levels are not inferred. Unspent SP gives no rating. The unique skill
-adds its level-based rating separately. The remaining skill-score spread setting describes
-unmeasured purchase-policy error, in addition to modeled source variation.
+Remaining SP uses a reference rate: total rating divided by total cost across released, priced,
+purchasable white skills, adjusted for the trainee's aptitudes. ◎ forms are excluded, and so are
+debuffs: × forms and the negative event skills (Gatekept, Wallflower, Running Idle and the like),
+which GameTora marks with an icon id ending in 4 and which the game never sells. A debuff a card or
+trainee event gives the run is neither bought nor rated; the negative rating it carries until removed
+(UmaTools converts the removal cost to −129, −174 or −262) is not modeled. GameTora lists a debuff among
+the versions of its positive counterpart, so the tool treats each debuff as its own one-member family
+rather than letting Gatekept borrow Concentration as an upgrade. Negative skills are excluded from
+white-spark goals, inheritance and prioritized extras. Previously saved negative targets and lineage
+stay in the save as unavailable choices, without contributing to estimates.
+This reference is independent of the deck. Optional purchases below that rate are skipped, so adding an optional
+skill or upgrade cannot lower Rank when other inputs and source probabilities stay the same.
+Known skills have finite expected capacity and cannot be bought repeatedly to exhaust the budget.
+The prediction explains how much SP uses the reference rate, including when all of it does.
+Forms with unknown prices are omitted. The unique skill adds its level-based rating separately.
+Hint discounts and Fast Learner are not assumed.
+
+The curves use fractional expected capacities, not realized shopping lists. This approximation
+can overestimate feasible spending, especially with rare or mutually exclusive sources and tight
+budgets. The reference rate comes from the skill dataset, not measured player purchases; completed
+runs with recorded SP and bought skills are needed to calibrate it. Adding reference-rate spending
+preserves the full-SP assumption even when modeled skills cannot exhaust the budget.
+
+The full-price cost lines share one rule. Each family costs the full price of its highest obtainable
+form plus prerequisites, without probability weighting or a budget cap, read from the resolved sources
+directly so gold-only families and rare outcomes omitted by joint sampling still count. Target coverage
+applies it to every target (a target without a source still costs its white form) and warns when the
+total exceeds estimated SP. Prediction details repeats that target figure with the same warning and
+adds, separately, what the displayed extras would cost at full price. Extras are optional purchases,
+so they never trigger the warning. Unknown prices make both figures lower bounds. Unlisted hints
+outside those families affect Rank's spending efficiency but do not contribute to either cost.
+
+Both calculations use the same modeled trainee, deck, scenario and lineage sources. Unlisted
+choice rewards are not credited, including when every extra is hidden and the list is empty.
+Rewards that require no choice survive. Shared event outcomes stay correlated. Contested
+required-target orders use the same joint required-goal scorer as deck search, including required
+star thresholds and fallback subsets, with no near-tie tolerance. Only the contested targets change
+places; an uncontested required target keeps the position the goal gives it. Stats and SP are
+predicted once per deck and reused for every order tried, since the list changes only skill sources.
 
 Small joint source distributions are enumerated exactly. Large ones use deterministic samples,
-and the UI notes that rare joint outcomes can be missed. The purchase budget couples families
-that would otherwise be independent. Parent-goal estimates now use purchased forms, so they
-cannot assume all hinted upgrades are affordable. Rank still uses a normal approximation to
-the purchase rating and treats purchases independently of final stats and spark quality.
+and the UI notes that rare joint outcomes can be missed. Parent-goal estimates assume the obtainable
+target forms are bought, even if their full-price cost exceeds estimated SP. Rank treats that
+ownership independently of stat outcomes and spending efficiency. The skill-score spread setting
+represents uncertainty in spending efficiency; target-form rating variance is not added to it.
+
 Skill-point variation, unknown sources and correlations between hint pickup and training
 remain calibration limits. The old points-per-SP and innate-share settings no longer apply;
 state migration preserves other choices and clears cached recommendations.
@@ -241,3 +329,20 @@ factor affects the displayed complete-goal probability but cancels when comparin
 decks for the same inputs. Preferred extras break near ties after required-goal success.
 The card-ranking table remains a separate view of each card's own sources at assumed SS;
 its standalone percentages are not the deck search objective.
+
+### Repeatable deck selection
+
+Completed searches depend on current run inputs, settings, inventory and game data. A previous
+recommendation can stay visible while a worker runs, but does not seed that worker's search.
+Default extra-skill ties use skill IDs; explicit user ordering is preserved. Candidate evaluation
+uses a canonical card order so reversing identical deck entries cannot change event choices,
+stat accumulation or sampling. Search evaluates its derived skill list; the displayed prediction
+uses the user's extra-skill choices, which can change the displayed estimate after selection.
+
+The default search explores up to 384 local candidates and screens a population of up to 3,072,
+then checks promising neighbors. Only finalists receive the full evaluation. These limits improve
+coverage without promising the global best. Required goals still come first; the configured
+relative tolerance allows preferred skills to decide among near-ties.
+Exploration retains its strongest required-goal candidate alongside candidates favored by the
+preferred-skill tradeoff, so preferred skills do not steer every path away from a promising deck.
+The final comparison still uses the configured tolerance.
