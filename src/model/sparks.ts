@@ -234,8 +234,8 @@ export function cardSourcesForTarget(card: Card, lb: number, target: Target, rac
   if (hintsInFamily.length) {
     const eh = expectedHints(card, lb, races, totalTurns, settings);
     const pool = Math.max(1, card.hintSkills.length);
-    // P(at least one hint for this skill) with hints drawn uniformly from the pool
-    const pEach = 1 - Math.pow(1 - 1 / pool, eh);
+    // Poisson pickup counts split uniformly across skills. The mean is not a fixed number of draws.
+    const pEach = -Math.expm1(-eh / pool);
     for (const id of hintsInFamily) out.push({ kind: 'hint', skillId: id, ...formOf(id, data), pObtain: pEach, isChoice: false, detail: `Hint (${eh.toFixed(1)} hints/run over ${pool} skills)`, cardName: card.name });
   }
   for (const src of eventSources(card, settings, data)) {

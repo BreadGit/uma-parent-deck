@@ -137,7 +137,8 @@ export function searchGoalDeck<T>(options: GoalSearchOptions<T>) {
       const remaining = [...visited.values()].filter((c) => !expanded.has(c.key));
       const beam: ExploredDeck[] = [];
       for (let i = 0; i < 2 && remaining.length; i++) {
-        const best = chooseGoal(remaining, options.tolerance); beam.push(best); remaining.splice(remaining.indexOf(best), 1);
+        // Explore both required-goal strength and the user's preferred-skill tradeoff.
+        const best = chooseGoal(remaining, i === 0 ? 0 : options.tolerance); beam.push(best); remaining.splice(remaining.indexOf(best), 1);
       }
       if (!beam.length) break;
       // Interleave slots and alternatives so a budget cannot spend every evaluation on the first slot.

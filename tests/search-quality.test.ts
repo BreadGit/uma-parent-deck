@@ -89,6 +89,10 @@ test('the shared run is independent of previous recommendations and card order',
   };
   const before = structuredClone(saved);
   const fresh = planRun(saved.run, saved.settings, saved.inventory, data);
+  const reference = [30078, 30052, 30057, 20005, 30045, 30074].map((id, i) => ({ id, borrowed: i === 0, lb: i === 0 ? 4 : saved.inventory[String(id)]! }));
+  const referencePlan = planRun({ ...saved.run, wishlistOrder: [], wishlistExcluded: [] }, saved.settings, saved.inventory, data, { selection: reference });
+  assert.ok(fresh.search!.score.probability >= referencePlan.goalEstimate.probability! * (1 - saved.settings.goalTieTolerance),
+    'the search retains the known Gold Ship alternative within the required-goal tolerance');
   const previous = [30078, 30052, 30045, 20005, 30101, 30074].map((id, i) => ({ id, borrowed: i === 0, lb: i === 0 ? 4 : saved.inventory[String(id)]! }));
   // An intervening edit must not affect a search after that edit is undone.
   planRun({ ...saved.run, goal: { ...saved.run.goal, blueStars: 1 } }, saved.settings, saved.inventory, data, { previous, budget: 8 });

@@ -85,7 +85,8 @@ export function screenGoalDecks(options: PopulationOptions) {
     const remaining = [...population, result];
     population = [];
     while (remaining.length && population.length < POPULATION_SIZE) {
-      const best = chooseGoal(remaining, options.tolerance);
+      // Keep the strongest required-goal path as well as candidates favored by preferred skills.
+      const best = chooseGoal(remaining, population.length === 0 ? 0 : options.tolerance);
       population.push(best);
       remaining.splice(remaining.indexOf(best), 1);
     }

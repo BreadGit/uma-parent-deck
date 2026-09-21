@@ -196,6 +196,51 @@ for Speed and 543/501 for Stamina; Sprint focus uses 545/519 for Guts. Averaging
 of totals and their component subtotals would count the same measurements more than once.
 These remain small-sample calibration estimates, not exact game formulas.
 
+## Hint availability and calibration
+
+The expected number of training-hint pickups still uses non-racing turns, the assumed facility
+share, base hint rate, Hint Frequency and hint scale. Pickups follow a Poisson count approximation
+with that mean, and each pickup selects uniformly from the card's hint pool. For mean `lambda`
+and pool size `n`, a skill's availability is `1 - exp(-lambda / n)`. The implementation uses
+`expm1` to retain very small positive probabilities. A one-skill pool can still yield no hints.
+This replaces treating the mean pickup count as a fixed number of draws, which overstated
+availability when pickup counts vary. It also makes independent per-skill hint counts consistent
+with the uniform-pool Poisson assumption.
+
+This is a probability-model correction, not a fit to new independent-training measurements.
+The existing rates remain assumptions. Facility selection, competition between cards, stat
+rewards in place of skills, and whether priorities affect training-hint pickup need measurement.
+Hint availability affects target acquisition and Rank; it does not change a fixed deck's earned
+SP prediction. Hint-level discounts remain unmodeled, and the displayed cost stays full price.
+
+To check how those assumptions affect a recommendation, use the same share code and exported
+inventory that the app uses:
+
+```sh
+node scripts/hint-sensitivity.mjs --run '<share URL or code>' --inventory /path/to/inventory.json
+```
+
+The default multipliers are `0.5,1,2` relative to the saved hint scale. They are stress-test
+scenarios, not measured confidence bounds. The JSON compares fresh recommendations and also
+rescores the unchanged baseline deck, separating changed card selection from changed estimates.
+It reports the search objective separately from the displayed chance, which follows saved extras.
+Use `--multipliers 0.75,1,1.25` for a narrower comparison. A changed winner indicates sensitivity;
+an unchanged winner over these scenarios does not prove robustness to every source of uncertainty.
+
+For calibration, record every completed run in a batch, including runs with no desired hints.
+Keep the shared setup and inventory, scenario, card limit breaks, training focus, agenda and
+prioritized list with the batch. Per run, retain the acquired-hint log, final hint levels, earned
+SP before purchases, bought skills and final Rank. Record a source only when the log identifies
+it; event, training and inheritance hints must not be attributed to a card by guesswork.
+Mark missing logs explicitly rather than treating them as zero pickups.
+
+First repeat an unchanged setup to measure variability. To test whether priorities change
+pickup, alternate matched setups that differ only in the priority of the skill being measured.
+Compare observed acquisition frequencies and hint-level distributions with predictions, reserving
+separate runs to validate fitted rates. Add source-specific discounts after retaining and checking
+hint-level rewards, repeated pickups and inheritance; a single assumed discount for every skill
+would hide those differences. No completed-run hint dataset is currently used to fit these rates.
+
 ## Skill purchases and rating
 
 `data/skill-ratings.json` contains individually sourced evaluation values for released skills.
@@ -279,3 +324,6 @@ The default search explores up to 384 local candidates and screens a population 
 then checks promising neighbors. Only finalists receive the full evaluation. These limits improve
 coverage without promising the global best. Required goals still come first; the configured
 relative tolerance allows preferred skills to decide among near-ties.
+Exploration retains its strongest required-goal candidate alongside candidates favored by the
+preferred-skill tradeoff, so preferred skills do not steer every path away from a promising deck.
+The final comparison still uses the configured tolerance.

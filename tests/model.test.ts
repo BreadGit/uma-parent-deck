@@ -116,7 +116,13 @@ test('hints: a card is a hint source for its hint skills, with hints per run fro
   const hint = must(cardSourcesForTarget(kitasan, 4, corner, 28, T, data, settings).find((s) => s.kind === 'hint' && s.skillId === 200352), `cardSourcesForTarget(kitasan, 4, corner, 28, T, data, settings).find((s) => s.kind === ...`);
   const eh = expectedHints(kitasan, 4, 28, T, settings);
   assert.ok(hint.pObtain > 0 && hint.pObtain < 1, `hint chance ${hint.pObtain} is strictly between 0 and 1`);
-  assert.ok(Math.abs(hint.pObtain - (1 - Math.pow(1 - 1 / kitasan.hintSkills.length, eh))) < 1e-9, 'P(at least one hint) over a uniform pool');
+  // Enumerate pickup counts and average the fixed-count draw probabilities independently of the closed form.
+  let countProbability = Math.exp(-eh), expected = 0;
+  for (let count = 1; count <= 40; count++) {
+    countProbability *= eh / count;
+    expected += countProbability * (1 - (1 - 1 / kitasan.hintSkills.length) ** count);
+  }
+  assert.ok(Math.abs(hint.pObtain - expected) < 1e-12, 'availability integrates zero and repeated hint pickups');
   const hf = (c: Card) => passives(c, 4)[EFFECT.hintFreq] ?? 0;
   const noHf = must(cards.find((c) => c.rarity === 'SSR' && hf(c) === 0), `cards.find((c) => c.rarity === 'SSR' && hf(c) === 0)`);
   const withHf = must(cards.find((c) => hf(c) >= 30), `cards.find((c) => hf(c) >= 30)`);
@@ -124,6 +130,22 @@ test('hints: a card is a hint source for its hint skills, with hints per run fro
   assert.ok(Math.abs(base - (T - 20) * settings.hintTurnsShare * settings.hintBase * settings.hintScale) < 1e-9, `${base} expected hints from turns off the track`);
   assert.ok(expectedHints(noHf, 4, 28, T, settings) < base, 'more races, fewer training turns, fewer hints');
   assert.ok(Math.abs(expectedHints(withHf, 4, 20, T, settings) / base - (1 + hf(withHf) / 100)) < 1e-9);
+});
+
+test('hint availability retains zero-pickup outcomes in a one-skill pool and responds to pool size', () => {
+  const corner = resolveTarget(200352, data)!;
+  const card = { ...kitasan, hintSkills: [corner.id], effectsByLb: Array.from({ length: 5 }, () => ({})) };
+  const config = { ...settings, hintBase: .1, hintScale: 1, hintTurnsShare: 1 };
+  const chance = (hints: number[], races = 5, scale = 1) => cardSourcesForTarget({ ...card, hintSkills: hints }, 4, corner, races, 10,
+    data, { ...config, hintScale: scale }).find((s) => s.kind === 'hint')!.pObtain;
+  assert.equal(expectedHints(card, 4, 5, 10, config), .5);
+  assert.ok(Math.abs(chance([corner.id]) - .3934693402873666) < 1e-12, 'a mean of half a pickup does not guarantee the only skill');
+  assert.equal(chance([corner.id], 10), 0, 'no training turns means no hints');
+  assert.equal(chance([corner.id], 5, 0), 0, 'a disabled hint model contributes no availability');
+  assert.ok(chance([corner.id, 201601]) < chance([corner.id]), 'a larger pool dilutes each skill');
+  assert.ok(chance([corner.id], 0) > chance([corner.id]), 'more training turns increase availability');
+  assert.ok(chance([corner.id], 5, 2) > chance([corner.id]), 'the scale changes pickup counts');
+  assert.ok(chance([corner.id], 5, 1e-20) > 0, 'rare positive hints survive numerical cancellation');
 });
 
 test('event outcomes: outcomes of one option are equally likely, a gold/white random pair is the stat-gated gold roll, a skill in every option is not gated, many random events scale', () => {
