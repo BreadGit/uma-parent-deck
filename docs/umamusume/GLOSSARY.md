@@ -24,6 +24,9 @@ For application behavior, see the [tool glossary](../GLOSSARY.md).
   a cap, and lower its SP purchase cost. **Hint Frequency** and **Hint Levels** are card effects.
   If the skill's family has a ◎ version, buying ○ also permits buying ◎ without a separate ◎ hint.
   A ○ suffix alone does not mean a ◎ version exists. Gold upgrades require their own hint or an innate/awakening source.
+  The game and its guides use the word loosely: an event option "increases the skill hint", the training "!" icon
+  is "going for a card's hint", and cards list hint effects. In this collection a **training hint** is the pickup
+  from a card on a training facility; event rewards are named as such.
 - **Skill Point (SP)**: the points used to purchase skills during a manual career or at its end.
   Independent training leaves purchases to the player after the run.
 - **Chain events**: a support card's scripted event sequence. Ordinary stat-type supports typically
