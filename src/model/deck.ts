@@ -28,19 +28,20 @@ export function makeCtx(base: Pick<Ctx, 'data' | 'settings' | 'races' | 'totalTu
 export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: Card[]; limitBreaks?: Map<number, number> }
 const lineageN = (ctx: Ctx, t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
 const cloneExisting = (e: Existing): Existing => ({ sources: new Map([...e.sources].map(([k, v]) => [k, v.slice()])), chars: new Set(e.chars), cards: e.cards.slice(), limitBreaks: new Map(e.limitBreaks) });
-function addTo(e: Existing, add: Map<number, SkillSource[]>, card: Card, lb: number): Existing {
-  const out = cloneExisting(e);
-  for (const [t, ss] of add) out.sources.set(t, [...(out.sources.get(t) ?? []), ...ss]);
-  out.chars.add(card.charId);
-  out.cards.push(card);
-  out.limitBreaks!.set(card.id, lb);
-  return out;
+/** Mutates `e`, which must own its source arrays. */
+function addInPlace(e: Existing, add: Map<number, SkillSource[]>, card: Card, lb: number): Existing {
+  for (const [t, ss] of add) e.sources.set(t, [...(e.sources.get(t) ?? []), ...ss]);
+  e.chars.add(card.charId);
+  e.cards.push(card);
+  e.limitBreaks!.set(card.id, lb);
+  return e;
 }
+const addTo = (e: Existing, add: Map<number, SkillSource[]>, card: Card, lb: number): Existing => addInPlace(cloneExisting(e), add, card, lb);
 /** Non-target choice-gated options in the run (scenario options and card event options) that could outrank a target in the prioritized list. */
-function blockersOf(e: Existing, targets: Target[], ctx: Ctx): Blocker[] {
+function blockersOf(e: Existing, targets: Target[], ctx: Ctx, options = scenarioOptions(ctx.data, ctx.settings, e.chars)): Blocker[] {
   const { families, traineeBlockers } = memoOf(ctx, targets);
   const out: Blocker[] = [];
-  for (const o of scenarioOptions(ctx.data, ctx.settings, e.chars)) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
+  for (const o of options) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
   for (const card of e.cards) for (const s of eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
   out.push(...traineeBlockers);
   return out;
@@ -57,8 +58,9 @@ export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<
 }
 function resolveCoverage(e: Existing, targets: Target[], ctx: Ctx) {
   const full = new Map<number, SkillSource[]>();
-  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars), ...(ctx.sources?.completion(t) ?? scenarioCompletionSources(t, ctx.data, ctx.settings))]);
-  const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx), ctx.settings, targets);
+  const options = scenarioOptions(ctx.data, ctx.settings, e.chars);
+  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars, options), ...(ctx.sources?.completion(t) ?? scenarioCompletionSources(t, ctx.data, ctx.settings))]);
+  const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx, options), ctx.settings, targets);
   return { full, map, conflicts };
 }
 const total = (m: Map<number, number>) => [...m.values()].reduce((a, b) => a + b, 0);
@@ -180,8 +182,8 @@ export function describeDeck(entries: { card: Card; lb: number; borrowed?: boole
 }
 /** Run state for a set of cards on top of the trainee. */
 function stateOf(entries: Entry[], targets: Target[], ctx: Ctx): Existing {
-  let e = traineeCoverage(targets, ctx);
-  for (const x of entries) e = addTo(e, x.mine, x.card, x.lb);
+  const e = traineeCoverage(targets, ctx);
+  for (const x of entries) addInPlace(e, x.mine, x.card, x.lb);
   return e;
 }
 /** Total expected sparks over the targets for a set of cards, plus their focus-weighted stat power. */
