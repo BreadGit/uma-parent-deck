@@ -7,7 +7,7 @@ import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES, INSPIRATION_EVENTS } from
 import { hasWhiteSpark, lineageCount, resolveTarget, type Target } from './sparks.ts';
 import { jointSkillForms, projectForms, whiteGenerationMoments, type FormDistribution } from './goal-skills.ts';
 import { phi } from './stats.ts';
-import { statMasses, type StatMass, type StatDistribution } from './stat-outcomes.ts';
+import { statMasses, type StatMass } from './stat-outcomes.ts';
 import { statScore, thresholdFor } from './rank.ts';
 
 export const starChance = (rates: readonly number[], stars: number, exact = false) => exact ? rates[stars - 1] ?? 0 : rates.slice(stars - 1).reduce((a, p) => a + p, 0);
@@ -82,20 +82,8 @@ function statSamples(count: number): number[][] {
   return samples.get(count)!;
 }
 
-function statDistribution(outcomes: readonly StatMass[]): StatDistribution {
-  let mass = 0;
-  return { outcomes: outcomes.map(({ value, probability }) => ({ value, cumulative: mass += probability })), mass };
-}
-function sampleStat(distribution: StatDistribution, quantile: number): number {
-  const q = quantile * distribution.mass;
-  let low = 0, high = distribution.outcomes.length - 1;
-  while (low < high) {
-    const mid = Math.floor((low + high) / 2);
-    if (distribution.outcomes[mid]!.cumulative < q) low = mid + 1; else high = mid;
-  }
-  return distribution.outcomes[low]!.value;
-}
-
+/** Scratch space for one distribution's running totals, reused because deck search samples thousands of them. */
+let cumulative = new Float64Array(0);
 const sampledRatings = new WeakMap<readonly StatMass[], Map<string, { mass: number; ratings: number[] }>>();
 /** Neighboring decks often share stat distributions. Reuse their deterministic draws across skill budgets. */
 function ratingSamples(outcomes: readonly StatMass[], dimension: number, count: number, band = -1) {
@@ -104,10 +92,23 @@ function ratingSamples(outcomes: readonly StatMass[], dimension: number, count: 
   const key = `${dimension}:${count}:${band}`;
   const hit = cached.get(key);
   if (hit) return hit;
-  const distribution = statDistribution(band < 0 ? outcomes : outcomes.filter(({ value }) =>
-    value >= BLUE_GENERATION_BANDS[band]!.min && value < (BLUE_GENERATION_BANDS[band + 1]?.min ?? Infinity)));
+  // Outcomes ascend by value, so a blue band is one contiguous run of them.
+  const min = band < 0 ? -Infinity : BLUE_GENERATION_BANDS[band]!.min, limit = band < 0 ? Infinity : BLUE_GENERATION_BANDS[band + 1]?.min ?? Infinity;
+  if (cumulative.length < outcomes.length) cumulative = new Float64Array(outcomes.length);
+  let start = 0, n = 0, mass = 0;
+  while (start < outcomes.length && outcomes[start]!.value < min) start++;
+  for (let i = start; i < outcomes.length && outcomes[i]!.value < limit; i++) cumulative[n++] = mass += outcomes[i]!.probability;
+  const sample = (quantile: number) => {
+    const q = quantile * mass;
+    let low = 0, high = n - 1;
+    while (low < high) {
+      const mid = (low + high) >> 1;
+      if (cumulative[mid]! < q) low = mid + 1; else high = mid;
+    }
+    return outcomes[start + low]!.value;
+  };
   const draws = count === 0 ? [[.5, .5, .5, .5, .5]] : statSamples(count);
-  const result = { mass: distribution.mass, ratings: distribution.mass === 0 ? [] : draws.map((draw) => statScore(sampleStat(distribution, draw[dimension]!))) };
+  const result = { mass, ratings: mass === 0 ? [] : draws.map((draw) => statScore(sample(draw[dimension]!))) };
   cached.set(key, result);
   return result;
 }

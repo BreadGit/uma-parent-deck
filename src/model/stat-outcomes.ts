@@ -6,7 +6,6 @@ export const displayedStat = (raw: number) => Math.floor(raw > 1200 ? 1200 + (Ma
 export const rawStat = (displayed: number) => displayed > 1200 ? 1200 + 2 * (displayed - 1200) : displayed;
 
 export interface StatMass { readonly value: number; readonly probability: number }
-export interface StatDistribution { outcomes: { value: number; cumulative: number }[]; mass: number }
 /** Rounded normal outcomes, with the tails folded into zero and the cap. */
 const massCache = new Map<string, readonly StatMass[]>();
 let cachedOutcomes = 0;
@@ -32,6 +31,8 @@ export function statMasses(mean: number, sd: number, cap = Infinity, rawUnits = 
   return value;
 }
 
+/** exp(-z²/2) is below the smallest double beyond this many standard deviations. */
+const UNDERFLOW_Z = 39;
 function computeStatMasses(mean: number, sd: number, cap: number, rawUnits: boolean): readonly StatMass[] {
   // Higher values have the same rating and blue band, so they can share one outcome.
   const maximum = Math.max(0, Math.min(Math.round(cap), MAX_STAT_VALUE));
@@ -40,11 +41,15 @@ function computeStatMasses(mean: number, sd: number, cap: number, rawUnits: bool
   let lower = -Infinity, lowerTail = 0;
   for (let value = 0; value <= maximum; value++) {
     const upper = value === maximum ? Infinity : ((rawUnits ? rawStat(value + 1) : value + 1) - .5 - mean) / sd;
+    // The normal tail underflows to exactly zero this far out, so these outcomes have no mass.
+    if (upper < -UNDERFLOW_Z) { lower = upper; continue; }
     // Adjacent outcomes share a boundary. Calculate its tail once and reuse it.
     const upperTail = phi(upper > 0 ? -upper : upper);
     // Use the survival function in the upper tail to avoid subtracting two CDFs rounded to one.
     const probability = lower > 0 ? lowerTail - upperTail : (upper > 0 ? phi(upper) : upperTail) - lowerTail;
     if (probability > 0) outcomes.push({ value, probability });
+    // Every later outcome lies between two boundaries whose tails are both zero.
+    if (upper > 0 && upperTail === 0) break;
     lower = upper;
     lowerTail = upperTail;
   }
