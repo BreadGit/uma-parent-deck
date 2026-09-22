@@ -429,8 +429,9 @@ function computeScenarioOptions(data: Data, settings: Settings, present: Set<num
   return out;
 }
 
-export function scenarioSources(target: Target, data: Data, settings: Settings, present: Set<number>): SkillSource[] {
-  return scenarioOptions(data, settings, present).filter((o) => target.familyIds.has(o.skillId))
+/** `options` lets a caller resolving many targets for one set of characters look the options up once. */
+export function scenarioSources(target: Target, data: Data, settings: Settings, present: Set<number>, options = scenarioOptions(data, settings, present)): SkillSource[] {
+  return options.filter((o) => target.familyIds.has(o.skillId))
     .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...formOf(o.skillId, data), pObtain: settings.scenarioPickRate, isChoice: true, event: o.event, detail: o.detail, roll: decodeEventRoll({ pFire: settings.scenarioPickRate, outcomes: [[{ t: 'sk', d: o.skillId }]] }, data, settings), ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
 }
 
@@ -485,7 +486,10 @@ function bestOption(ss: EventSource[], settings: Settings, target?: Target): Eve
  */
 export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[] | null, blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS, targets: Target[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
-  for (const [tid, sources] of map) for (const s of sources) if (isEventSource(s)) byEvent.set(s.event.key, new Set([...(byEvent.get(s.event.key) ?? []), tid]));
+  for (const [tid, sources] of map) for (const s of sources) if (isEventSource(s)) {
+    const tids = byEvent.get(s.event.key);
+    if (tids) tids.add(tid); else byEvent.set(s.event.key, new Set([tid]));
+  }
   const everyoneListed = priority === null;
   const rank = (skillId: number) => { const i = priority?.indexOf(skillId) ?? -1; return i < 0 ? Infinity : i; };
   const taken = new Map<string, number>();

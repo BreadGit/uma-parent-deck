@@ -29,7 +29,13 @@ const add = (d: Map<string, number>, state: string, p: number) => { if (p > 0) d
 const fixed = (state: string): Distribution => ({ states: new Map([[state, 1]]), approximate: false });
 const empty = (count: number) => fixed('0'.repeat(count));
 const clamp = (p: number) => Math.max(0, Math.min(1, p));
-const merge = (a: string, b: string) => Array.from(a, (form, i) => form > b[i]! ? form : b[i]!).join('');
+/** Each family's better form. Joint distributions merge millions of state pairs, so this avoids an array per pair. */
+function merge(a: string, b: string): string {
+  if (a === b) return a;
+  let out = '';
+  for (let i = 0; i < a.length; i++) out += a[i]! > b[i]! ? a[i]! : b[i]!;
+  return out;
+}
 function stateHash(state: string): number {
   let hash = 2166136261;
   for (let i = 0; i < state.length; i++) hash = Math.imul(hash ^ state.charCodeAt(i), 16777619);
