@@ -48,8 +48,10 @@ appropriate to each case.
 Preserve valid user-entered data across unrelated edits and saved-state migrations. Do not require
 additional input or discard saved choices merely to simplify implementation.
 
-Follow these principles across the project. Keep feature-specific defaults and calculation rules
-with the relevant implementation and domain documentation.
+Follow these principles across the project. Keep implemented defaults and calculations in their
+defining code. Keep external game evidence, provenance, and uncertainty in `docs/umamusume/`, and
+link the implementation to the relevant evidence. Distinguish observations from modeling assumptions;
+a dated source record remains evidence even when the implementation uses a different value.
 
 ## Development server
 

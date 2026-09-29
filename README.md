@@ -48,9 +48,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   ranking weights halve with each priority step, starting at priority 0 with weight 1. Required targets have
   individual minimum stars. Separate headers distinguish target goals from existing lineage.
 - Parent goal always evaluates your choices. Choose acceptable blue stats and pink aptitudes, with a
-  minimum star count for each pink alternative. Defaults accept any blue stat at 2★+ and any pink
-  aptitude at 1★+. The evaluator combines those with every required white spark and shows estimated attempts for 50%, 75%, and
-  95% chance of success. With no required whites, success depends only on blue and pink. Changing
+  minimum star count for each pink alternative. The evaluator combines those with every required
+  white spark and shows estimated attempts for 50%, 75%, and 95% chance of success.
+  With no required whites, success depends only on blue and pink. Changing
   a target's role or minimum stars changes the deck search. Required-goal chance comes first;
   preferred sparks on successful parents distinguish decks within a tight, adjustable relative
   window. Search runs in the background with a loading state. When a requirement is impossible,
@@ -67,8 +67,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 - You pick the white skills you want to spark. Cards that hint the skill or its gold upgrade count.
   If that skill's family has a released ◎ version, you can buy it after ○ without a separate hint.
-  Target coverage assumes you buy the best available form: gold (40% spark chance), otherwise ◎ (25%),
-  otherwise white (20%). It shows the full worst-case SP cost, including every prerequisite purchase.
+  Target coverage assumes you buy the best available form: gold, otherwise ◎, otherwise white.
+  Spark rates are adjustable in advanced settings. It shows the full worst-case SP cost, including
+  every prerequisite purchase.
   Parent goal and Predicted run instead estimate purchases within the predicted SP budget. Required
   base skills come first, then preferred bases and upgrades, then remaining skills by rating per SP.
   Independent training itself buys nothing; these estimates model purchases after the run.
@@ -89,7 +90,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   parent-goal probability. Each row shows four targets initially. Select "+N more" to expand the rest
   in the row, with a source tooltip for each target, or "Show fewer" to collapse them.
 - The deck search compares complete required-goal probabilities, then preferred sparks on successful
-  parents within a configurable 2% relative window by default. Saved tolerance settings are preserved.
+  parents within a configurable relative window. Saved tolerance settings are preserved.
   Preferred scores equal within floating-point roundoff favor the higher required-goal chance.
   It shows an initial checked recommendation, then screens a broader set of decks in the background
   and fully evaluates promising alternatives.
@@ -107,7 +108,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   from the parent goal: required targets first, then preferred targets by priority, then extras the deck's
   events offer. Only those ten entries steer event choices. Target rows follow the goal editor; the extras
   can be reordered, hidden and swapped, which re-evaluates the deck shown without a new search.
-- Every card counts as owned at a default limit break (4 for every rarity, editable) until you
+- Every card counts as owned at the configured default limit break until you
   change it in the card table: pick an LB or "not owned". Adjustments live in localStorage and
   export to `inventory.json` (every card listed, `null` = not owned). Drop that file in the
   repo root to make it the default.
@@ -121,9 +122,9 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
   inspiration events (70/80/90% by stars, times 1 + affinity/100 of the uma carrying it) for a
   random roll of 1 to 10, 1 to 16 or 1 to 28; the tool uses an assumed mean per star, set in the
   advanced settings, because the distribution is unmeasured. The affinity is one advanced setting,
-  the individual score assumed for every uma in the lineage (150 by default, so every blue spark
-  procs); the game only shows the six scores' sum as ◎/○/△, so per-uma entry is not offered. The
-  aptitude overrides sit under the stats like the game's table; S is not offered because only an
+  the individual score assumed for every uma in the lineage; the game only shows the six scores' sum
+  as ◎/○/△, so per-uma entry is not offered. The aptitude overrides sit under the stats like the
+  game's table; S is not offered because only an
   inspiration event reaches it.
   Each parent side has three blue sparks total across all stats, one per uma. A "+XX" that needs more umas
   than its stat already has takes them from the other stats, fewest stars first, so those drop. A saved side
@@ -270,18 +271,16 @@ The importer preserves unknown effect IDs and text-only uniques. It validates su
 structures before writing normalized data, including unexpected mechanic-bearing fields.
 This catches structural changes that could otherwise drop an effect before the UI sees it.
 
-Pal and Group cards (type "pal" and "group" in the data) get their outings (five dates, or member outings plus a finale) from the
-per-card page data, since the static feed does not carry them. In independent training the
-Pal date chain completes almost every run (97% assumed default; the recorded sample had
-102 completions in 102 runs), Group member outings default to 90% and the Group finale to 85% (unverified), and the
-unlock and New Year events use a 0% default. The source observed no early special events
-before Classic year; it does not separately establish a New Year rate.
+Pal and Group cards get their outing events from per-card page data, since the static feed
+does not carry them. See the advanced settings for current event rates and their source notes
+in [src/settings.ts](src/settings.ts). Those notes distinguish Loopacord observations from
+unmeasured Group, unlock, and New Year assumptions.
 
 Our Grand Concert's Senior November event offers one option per linked character (Smart
 Falcon, Mihono Bourbon, Silence Suzuka, Agnes Tachyon) plus an unaffiliated one. Picking a linked
 option while training that character or carrying one of her cards hints the gold skill (for
 example Concentration instead of Focus). The tool treats every option as a choice-gated source
-that fires at the scenario pick rate (100% by default, per Loopacord), so a card of the linked
+that fires at the configured scenario pick rate, so a card of the linked
 character is credited with the gold form. Data: `data/scenario-events.json`, decoded from
 GameTora's scenario events for every scenario.
 
@@ -300,8 +299,9 @@ loss penalty) are defaults in the advanced settings panel.
 
 Skill rating uses individually sourced evaluation points from `data/skill-ratings.json` and applies
 the [UmaTools aptitude multipliers](docs/umamusume/refs/umatools-rating-tables.md) using GameTora's skill tags.
-Skills without a verified rating fall back to 217 (white), 262 (◎), or 508 (gold); the prediction
-discloses those purchases. Negative skills are excluded. The trainee's potential level is assumed
+Skills without a verified rating use the rarity-based fallback in
+[src/model/rules.ts](src/model/rules.ts); the prediction discloses those purchases.
+Negative skills are excluded. The trainee's potential level is assumed
 maxed, so all awakening skills are available, but buying them consumes the same SP budget.
 
 ### Conditional unique effects
