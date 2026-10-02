@@ -9,12 +9,15 @@ export function pageCacheMatches(revision: PageRevision | undefined, input: unkn
   return !!revision && payload != null && revision.input === fingerprint(input) && revision.payload === fingerprint(payload);
 }
 
+/** The line GameTora prints above the effect for a card whose unique unlocks above the base level. */
+export const UNLOCK_LINE = /^Unlocked at level \d+$/;
+
 /** Inline formatting must not split an effect before its value or activation condition. */
 export function uniqueEffectText(page: string): string {
   const text = page.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, '')
     .replace(/<\/?(?:div|p|h[1-6]|br)\b[^>]*>/gi, '\n').replace(/<[^>]+>/g, '');
   const after = text.split(/Unique Effect\s*\n/)[1] ?? '';
-  const line = after.split('\n').map(l => l.trim()).find(l => l && !/^Unlocked at level \d+$/.test(l));
+  const line = after.split('\n').map(l => l.trim()).find(l => l && !UNLOCK_LINE.test(l));
   if (!line) throw new Error('No unique effect description');
   return line.replace(/&amp;/g, '&').replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"');
 }

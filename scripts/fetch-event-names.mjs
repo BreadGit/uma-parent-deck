@@ -5,7 +5,7 @@
 // data/raw/char-events.json. Source revisions invalidate stale page caches.
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, uniqueEffectText } from './page-cache.ts';
+import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, uniqueEffectText, UNLOCK_LINE } from './page-cache.ts';
 
 const BASE = 'https://gametora.com';
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -132,9 +132,7 @@ console.log('outfits done', Object.keys(byCard).length);
 // on the card page from the same payload. Keep that rendered text per card so the tool can show and decode it.
 const UNIQUE_OUT = path.join(RAW, 'unique-effect-texts.json');
 const uniqueTexts = (await exists(UNIQUE_OUT)) ? await readJson(UNIQUE_OUT) : {};
-// the line GameTora prints above the effect for a card whose unique unlocks above the base level; an earlier
-// version of this script kept it as the text, so a cached entry that is only that line is refetched
-const UNLOCK_LINE = /^Unlocked at level \d+$/;
+// an earlier version of this script kept the UNLOCK_LINE as the text, so a cached entry that is only that line is refetched
 const compound = cards.filter((c) => c.release_en && c.unique?.effects.some((u) => u.type >= 100)
   && (!uniqueTexts[c.support_id] || UNLOCK_LINE.test(uniqueTexts[c.support_id]) || !current(`unique:${c.support_id}`, c, uniqueTexts[c.support_id])));
 console.log(`${compound.length} compound unique effects to fetch (${Object.keys(uniqueTexts).length} cached)`);
