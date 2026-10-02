@@ -461,6 +461,7 @@ async function normalize() {
 async function fetchImages({ cards, skills, characters }) {
   const jobs = [];
   for (const c of cards) jobs.push([`/images/umamusume/supports/support_card_s_${c.id}.png`, `supports/${c.id}.png`]);
+  for (const c of cards.filter(c => c.rarity !== 'R')) jobs.push([`https://media.gametora.com/umamusume/supports/full/small/${c.id}.png`, `supports/full/${c.id}.png`]);
   for (const c of characters) jobs.push([`/images/umamusume/characters/thumb/chara_stand_${c.charId}_${c.cardId}.png`, `characters/${c.cardId}.png`]);
   for (const r of [1, 2, 3]) jobs.push([`/images/umamusume/icons/utx_txt_rarity_0${r}.png`, `icons/rarity_${r}.png`]);
   jobs.push(['/images/umamusume/icons/hint.png', 'icons/hint.png']);
@@ -479,7 +480,7 @@ async function fetchImages({ cards, skills, characters }) {
   for (const [src, dst] of jobs) {
     const file = path.join(ASSETS, dst);
     if (!FORCE && (await exists(file))) { skipped++; continue; }
-    const st = await fetchTo(BASE + src, file);
+    const st = await fetchTo(src.startsWith('https://') ? src : BASE + src, file);
     if (st === 200) done++; else { missing++; console.warn('missing', src, st); }
   }
   console.log(`images: downloaded ${done}, already present ${skipped}, missing ${missing}`);

@@ -39,12 +39,12 @@ test('uncertainty, missing LB, invalid IDs and invalid LB cannot silently become
 });
 
 // Diamond positions measured from the supplied game screenshots at an 80 px card width.
-function diamonds(on: boolean[]): Pixels {
+function diamonds(on: boolean[], offsetY = 0): Pixels {
   const image: Pixels = { width: 80, height: 109, data: new Uint8ClampedArray(80 * 109 * 4).fill(245) };
   for (const [i, x] of [7, 17, 26, 36].entries()) {
     for (let y = 94; y <= 104; y++) for (let dx = -4; dx <= 4; dx++) {
       if (Math.abs(dx) + Math.abs(y - 99) > 6) continue;
-      image.data.set(on[i] ? [20, 205, 225, 255] : [155, 157, 156, 255], (y * 80 + x + dx) * 4);
+      image.data.set(on[i] ? [20, 205, 225, 255] : [155, 157, 156, 255], ((y + offsetY) * 80 + x + dx) * 4);
     }
   }
   return image;
@@ -53,4 +53,13 @@ test('LB comes from the four cyan diamonds, including unlevelled MLB cards', () 
   for (const lb of [0, 1, 2, 3, 4]) assert.equal(readLimitBreak(diamonds([0, 1, 2, 3].map(i => i < lb))), lb);
   assert.equal(readLimitBreak(diamonds([true, false, true, false])), null);
   assert.equal(readLimitBreak({ width: 80, height: 109, data: new Uint8ClampedArray(80 * 109 * 4) }), null);
+});
+test('LB samples the diamond interior when the lower tips overlap colorful artwork', () => {
+  for (const lb of [0, 1, 2, 3, 4]) {
+    const tile = diamonds([0, 1, 2, 3].map(i => i < lb), -4);
+    for (let y = 99; y < 109; y++) for (let x = 0; x < 45; x++) {
+      tile.data.set([230, 95, 40, 255], (y * tile.width + x) * 4);
+    }
+    assert.equal(readLimitBreak(tile), lb);
+  }
 });

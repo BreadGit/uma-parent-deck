@@ -2,7 +2,7 @@ import type { CardType, Rarity } from '../types.ts';
 
 export interface Pixels { width: number; height: number; data: Uint8ClampedArray }
 export interface ScanCard { id: number; name: string; charName: string; rarity: Rarity; type: CardType }
-export interface Reference extends ScanCard { image: Pixels }
+export interface Reference extends ScanCard { image: Pixels; artwork: Pixels | null }
 export interface Box { x: number; y: number; width: number; height: number }
 export interface Match { id: number; error: number }
 export interface Detection { box: Box; candidates: Match[]; lb: number | null; confident: boolean }
@@ -135,7 +135,8 @@ function cardType(tile: Pixels): CardType | null {
 export function readLimitBreak(tile: Pixels): number | null {
   const lit: boolean[] = [];
   for (let i = 0; i < 4; i++) {
-    const rgb = sample(tile, 5 + i * 9.5, 97, 4, 4);
+    // Sample the interior above the lower tip, where the transparent edge picks up the artwork.
+    const rgb = sample(tile, 5 + i * 9.5, 94, 3, 3);
     const [r, g, b] = rgb as [number, number, number];
     if (g > r + 30 && b > r + 30 && g > 125) lit.push(true);
     else if (Math.max(...rgb) - Math.min(...rgb) < 38 && r > 85 && r < 220) lit.push(false);
@@ -145,17 +146,21 @@ export function readLimitBreak(tile: Pixels): number | null {
   return lit.every((on, i) => on === (i < lb)) ? lb : null;
 }
 
+function artworkPatch(artwork: Pixels, width: number): Pixels {
+  // Keep the full composition, excluding the frame, rarity/type badges and level/diamond strip.
+  const box = { x: artwork.width * .07, y: artwork.height * .2,
+    width: artwork.width * .86, height: artwork.height * .64 };
+  return resizeCrop(artwork, box, width, Math.round(width * box.height / box.width));
+}
+
 export function recognize(image: Pixels, references: Reference[], progress?: (done: number, total: number) => void): ScanResult {
   const slots = badges(image, references);
   const detections: Detection[] = [];
   let ignoredR = 0;
   const patches = new Map<number, Pixels[]>();
   for (const ref of references) {
-    if (ref.rarity === 'R') continue;
-    patches.set(ref.id, Array.from({ length: 28 }, (_, i) => {
-      const width = 7 + i;
-      return resizeCrop(ref.image, { x: 12, y: 38, width: 104, height: 80 }, width, Math.round(width * 80 / 104));
-    }));
+    if (!ref.artwork) continue;
+    patches.set(ref.id, Array.from({ length: 7 }, (_, i) => artworkPatch(ref.artwork!, 31 + i)));
   }
   for (const [index, slot] of slots.entries()) {
     progress?.(index, slots.length);
@@ -168,7 +173,7 @@ export function recognize(image: Pixels, references: Reference[], progress?: (do
     const matches: (Match & { width: number })[] = [];
     for (const ref of references) {
       const compatibleType = !type || ref.type === type || (['pal', 'power'].includes(type) && ['pal', 'power', 'group'].includes(ref.type));
-      if (ref.rarity === 'R' || (slot.rarity && ref.rarity !== slot.rarity) || !compatibleType) continue;
+      if (!ref.artwork || (slot.rarity && ref.rarity !== slot.rarity) || !compatibleType) continue;
       let error = Infinity;
       let width = 0;
       for (const patch of patches.get(ref.id)!) {
@@ -178,11 +183,11 @@ export function recognize(image: Pixels, references: Reference[], progress?: (do
       matches.push({ id: ref.id, error, width });
     }
     matches.sort((a, b) => a.error - b.error);
-    const candidates = matches.slice(0, 6).map(match => {
+    const candidates = matches.slice(0, 4).map(match => {
       const ref = references.find(r => r.id === match.id)!;
       let error = Infinity;
-      for (let width = Math.max(10, match.width * 2 - 3); width <= match.width * 2 + 3; width++) {
-        const patch = resizeCrop(ref.image, { x: 12, y: 38, width: 104, height: 80 }, width, Math.round(width * 80 / 104));
+      for (let width = match.width * 2 - 1; width <= match.width * 2 + 1; width++) {
+        const patch = artworkPatch(ref.artwork!, width);
         error = Math.min(error, search(tile, patch, 1, 1, error).error);
       }
       return { id: match.id, error };

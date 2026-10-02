@@ -1,6 +1,7 @@
 import type { Box, Pixels, Reference, ScanCard } from './recognize.ts';
 
 export const artworkUrl = (id: number) => `${import.meta.env.BASE_URL}assets/supports/${id}.png`;
+const fullArtworkUrl = (id: number) => `${import.meta.env.BASE_URL}assets/supports/full/${id}.png`;
 
 async function imageCanvas(source: string, maxWidth?: number): Promise<HTMLCanvasElement> {
   const image = new Image();
@@ -34,7 +35,10 @@ export async function loadReferences(cards: ScanCard[]): Promise<Reference[]> {
   const references: Reference[] = [];
   // Limit parallel image decoding on phones.
   await Promise.all(Array.from({ length: 6 }, async () => {
-    for (let card = queue.shift(); card; card = queue.shift()) references.push({ ...card, image: pixels(await imageCanvas(artworkUrl(card.id))) });
+    for (let card = queue.shift(); card; card = queue.shift()) references.push({ ...card,
+      image: pixels(await imageCanvas(artworkUrl(card.id))),
+      artwork: card.rarity === 'R' ? null : pixels(await imageCanvas(fullArtworkUrl(card.id), 128)),
+    });
   }));
   return references.sort((a, b) => a.id - b.id);
 }

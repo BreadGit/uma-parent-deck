@@ -25,6 +25,10 @@ export function scannerCatalog(bundleArtwork = false): Plugin {
       for (const card of catalog.filter(c => c.rarity !== 'R' || c.id === rBadge)) {
         const fileName = `assets/supports/${card.id}.png`;
         this.emitFile({ type: 'asset', fileName, source: readFileSync(resolve(root, 'public', fileName)) });
+        if (card.rarity !== 'R') {
+          const artwork = `assets/supports/full/${card.id}.png`;
+          this.emitFile({ type: 'asset', fileName: artwork, source: readFileSync(resolve(root, 'public', artwork)) });
+        }
       }
     },
   };
