@@ -89,9 +89,10 @@ function badges(image: Pixels, references: Reference[]): Slot[] {
       if (error < .025) found.push({ box: { x: x - 5 * scale, y: y - 5 * scale, width: 128 * scale, height: 174 * scale }, rarity, error });
     }
   }
+  const near = (a: Box, b: Box) => Math.abs(a.x - b.x) < 50 * scale && Math.abs(a.y - b.y) < 85 * scale;
   const kept: typeof found = [];
   for (const f of found.sort((a, b) => a.error - b.error)) {
-    if (kept.some(k => Math.abs(k.box.x - f.box.x) < 50 * scale && Math.abs(k.box.y - f.box.y) < 85 * scale)) continue;
+    if (kept.some(k => near(k.box, f.box))) continue;
     if (f.box.x < 0 || f.box.x + f.box.width > image.width || f.box.y < 0 || f.box.y + f.box.height > image.height) continue;
     kept.push(f);
   }
@@ -110,12 +111,16 @@ function badges(image: Pixels, references: Reference[]): Slot[] {
       continue;
     }
     const y = row.map(b => b.box.y).sort((a, b) => a - b)[Math.floor(row.length / 2)]!;
+    // Where both the SR and R badge templates matched, an SR row settles it. A clear R badge stays R: the SR/R
+    // boundary row of a rarity-sorted list holds real R cards beside SR cards.
     const srRow = row.filter(b => b.rarity === 'SR').length >= 3;
+    const rarity = (badge: (typeof row)[number]): Rarity => srRow && badge.rarity === 'R'
+      && found.some(f => f.rarity === 'SR' && near(f.box, badge.box)) ? 'SR' : badge.rarity;
     for (let column = 0; column < 5; column++) {
       const x = image.width * (.039 + column * .1895);
       const badge = row.find(b => Math.abs(b.box.x - x) < 10);
       result.push({ box: badge?.box ?? { x, y, width: 128 * scale, height: 174 * scale },
-        rarity: badge ? (srRow && badge.rarity === 'R' ? 'SR' : badge.rarity) : null, needsArtworkMatch: !badge });
+        rarity: badge ? rarity(badge) : null, needsArtworkMatch: !badge });
     }
   }
   // A scrolled first row can lose its badges while keeping the art and diamonds visible.

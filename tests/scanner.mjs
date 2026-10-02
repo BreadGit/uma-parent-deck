@@ -34,13 +34,19 @@ async function chooseCard(key, id) {
 }
 async function alteredScreenshot(name, changes) {
   const source = await readFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url));
-  const encoded = await page.evaluate(async ({ encoded, width, dx = 0, dy = 0, covers = [] }) => {
+  const encoded = await page.evaluate(async ({ encoded, width, dx = 0, dy = 0, covers = [], copies = [] }) => {
     const image = new Image(); image.src = `data:image/jpeg;base64,${encoded}`; await image.decode();
     const canvas = document.createElement('canvas');
     canvas.width = width ?? image.width; canvas.height = Math.round(image.height * canvas.width / image.width);
     const ctx = canvas.getContext('2d'); ctx.fillStyle = '#777'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, dx, dy, canvas.width, canvas.height);
     for (const cover of covers) ctx.fillRect(...cover.map(value => value * canvas.width / 600));
+    // Copies are [x, y, width, height, toX, toY] in the same 600 px coordinates as covers.
+    const before = ctx.getImageData(0, 0, canvas.width, canvas.height), scratch = document.createElement('canvas');
+    scratch.width = canvas.width; scratch.height = canvas.height; scratch.getContext('2d').putImageData(before, 0, 0);
+    for (const [x, y, w, h, toX, toY] of copies.map(copy => copy.map(value => value * canvas.width / 600))) {
+      ctx.drawImage(scratch, x, y, w, h, toX, toY, w, h);
+    }
     return canvas.toDataURL('image/png').split(',')[1];
   }, { encoded: source.toString('base64'), ...changes });
   return { name: `${name}.png`, mimeType: 'image/png', buffer: Buffer.from(encoded, 'base64') };
@@ -172,6 +178,11 @@ try {
   const rareOnly = JSON.parse(await page.locator('[data-json]').textContent());
   assert.equal(rareOnly[20021], null);
   for (const card of loadData().cards) if (card.rarity === 'R') assert.equal(rareOnly[card.id], 4);
+  await newInventory();
+  // Move two SR cards into the SR/R boundary row, leaving three SR and two R badges side by side.
+  await scanFile(await alteredScreenshot('inventory-b-4440', { copies: [[130, 410, 230, 150, 130, 563]] }));
+  assert.equal(await page.locator('[data-row]').count(), 14, 'R cards beside three SR cards stay R');
+  assert.match(await page.locator('.scan-sources figcaption').textContent(), /18 R cards ignored/);
   // User-labeled failures from a second inventory: clear artwork should not need confirmation.
   // The screenshots retain the obstructing game toolbar; only visible cards are expected here.
   const examples = [
