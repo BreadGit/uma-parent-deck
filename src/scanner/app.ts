@@ -8,7 +8,7 @@ import { confirmDialog } from '../ui/dialog.ts';
 import { downloadText } from '../download.ts';
 import { createCardPicker } from './card-picker.ts';
 import { artworkUrl, cropUrl, loadReferences, pixels, screenshotCanvas } from './images.ts';
-import { inventoryFromReview, summarize, type ReviewRow } from './results.ts';
+import { inventoryFromReview, summarize, type ReviewRow, type Summary } from './results.ts';
 import type { Reference, ScanResult } from './recognize.ts';
 import type { WorkerRequest } from './worker.ts';
 import '../style.css';
@@ -21,7 +21,7 @@ const cardPicker = createCardPicker(catalog, change);
 const lbOptions = [{ value: '', label: C.unknownLb }, ...[0, 1, 2, 3, 4].map(lb => ({ value: String(lb), label: lb === 4 ? '4LB / MLB' : `${lb}LB` }))];
 interface Source { id: string; name: string; image: string; count: number; rare: number; error: string }
 let sources: Source[] = [], rows: ReviewRow[] = [];
-let busy = false, status = '', error = '', query = '', reviewOnly = false;
+let busy = false, status = '', error = '', query = '', reviewOnly = false, previewOpen = false;
 let nextKey = 1, generation = 0;
 let worker: Worker | null = null;
 let workerError: Error | null = null;
@@ -155,6 +155,7 @@ function reviewRow(row: ReviewRow, conflicts: Set<number>, pending: Set<number>)
     </div>
   </article>`;
 }
+const inventoryJson = (result: Summary) => JSON.stringify(inventoryFromReview(rows, cards, result), null, 1);
 function paint() {
   const result = summarize(rows, cards);
   const canExport = !busy && (rows.length > 0 || sources.some(source => source.rare > 0)) && result.pending.size === 0;
@@ -191,9 +192,10 @@ function paint() {
       </section>
       <section class="panel scan-export"><h2>${C.download}</h2><p>${C.missing}</p><p>${C.import}</p>
         <button class="primary" data-download ?disabled=${!canExport}
-          @click=${() => downloadText('inventory.json', JSON.stringify(inventoryFromReview(rows, cards), null, 1) + '\n', 'application/json')}>${C.download}</button>
+          @click=${() => downloadText('inventory.json', inventoryJson(result) + '\n', 'application/json')}>${C.download}</button>
         ${result.pending.size ? html`<p class="scan-result-label">${C.exportBlocked}</p>` : nothing}
-        ${canExport ? html`<details><summary>${C.preview}</summary><pre data-json>${JSON.stringify(inventoryFromReview(rows, cards), null, 1)}</pre></details>` : nothing}
+        ${canExport ? html`<details data-preview ?open=${previewOpen} @toggle=${(e: Event) => { previewOpen = (e.target as HTMLDetailsElement).open; change(); }}>
+          <summary>${C.preview}</summary>${previewOpen ? html`<pre data-json>${inventoryJson(result)}</pre>` : nothing}</details>` : nothing}
       </section>
     </main>`, root);
 }

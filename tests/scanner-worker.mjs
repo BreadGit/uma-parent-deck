@@ -26,6 +26,12 @@ async function holdScreenshot() {
     window.releaseScreenshot = () => { Image.prototype.decode = decode; release(); };
   });
 }
+/** The JSON is built only while the preview is open, so open it before reading. */
+async function previewJson() {
+  const preview = page.locator('[data-preview]');
+  if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
+  return JSON.parse(await page.locator('[data-json]').textContent());
+}
 async function start() {
   await page.locator('[data-files]').setInputFiles(file);
   await page.locator('[data-stop]').waitFor({ state: 'visible' });
@@ -36,7 +42,7 @@ async function scan(count) {
   assert.deepEqual(await page.locator('[role="alert"]').allTextContents(), []);
   assert.equal(await page.locator('[data-row]').count(), count);
   assert.equal(await page.locator('[data-download]').isEnabled(), true);
-  assert.equal(JSON.parse(await page.locator('[data-json]').textContent())[30001], 1);
+  assert.equal((await previewJson())[30001], 1);
 }
 async function failed(count) {
   await page.getByRole('alert').waitFor({ timeout: 10000 });

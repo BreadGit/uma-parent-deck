@@ -21,6 +21,12 @@ async function scanFile(file, expectedError) {
   else assert.deepEqual(alerts, []);
 }
 const scan = name => scanFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url).pathname);
+/** The JSON is built only while the preview is open, so open it before reading. */
+async function previewJson() {
+  const preview = page.locator('[data-preview]');
+  if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
+  return JSON.parse(await page.locator('[data-json]').textContent());
+}
 async function newInventory() {
   await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
   // The dialog's close event is queued; wait for reset before choosing the next file.
@@ -88,7 +94,7 @@ try {
   await picker.press('Enter');
   assert.equal(await picker.getAttribute('data-card-id'), '30062');
   assert.equal(await manual.locator('[data-lb]').inputValue(), '2', 'changing artwork preserves LB');
-  assert.equal(JSON.parse(await page.locator('[data-json]').textContent())[30062], 2);
+  assert.equal((await previewJson())[30062], 2);
   await picker.click();
   await picker.press('ArrowUp');
   assert.equal(await page.locator('[role="option"]').last().getAttribute('aria-selected'), 'true', 'up wraps to the final result');
@@ -158,7 +164,7 @@ try {
     ]));
     assert.deepEqual(cards, expectedCards, 'a complete lone card survives without adjacent cards');
     assert.equal(await page.locator('[data-confirm]').count(), 0, 'clear isolated artwork needs no confirmation');
-    const exported = JSON.parse(await page.locator('[data-json]').textContent());
+    const exported = await previewJson();
     for (const [id, lb] of expectedCards) assert.equal(exported[id], lb, `isolated artwork ${id} stays owned`);
     await newInventory();
   }
@@ -180,7 +186,7 @@ try {
   assert.equal(await page.locator('[data-lb]').inputValue(), '4', 'level-35 SR Aoi still has four diamonds');
   await page.locator('[data-exclude]').click();
   assert.equal(await page.locator('[data-download]').isEnabled(), true, 'an inventory containing only default R cards is usable');
-  const rareOnly = JSON.parse(await page.locator('[data-json]').textContent());
+  const rareOnly = await previewJson();
   assert.equal(rareOnly[20021], null);
   for (const card of loadData().cards) if (card.rarity === 'R') assert.equal(rareOnly[card.id], 4);
   await newInventory();
