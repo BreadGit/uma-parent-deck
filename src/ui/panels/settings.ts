@@ -56,7 +56,7 @@ export function renderSettings() {
       <span class="kv-k">${COPY.settings.inventory}${tip(COPY.settings.inventoryTip)}</span>
       <button data-action="export" @click=${() => exportInventory(store.inventory, data.cards, store.settings.defaultLb)}>${COPY.settings.export}</button>
       <button data-action="import-click" @click=${() => document.getElementById('import-file')?.click()}>${COPY.settings.import}</button><input type="file" id="import-file" accept="application/json" class="hidden" aria-label="Import inventory file" @change=${onImport} />
-      <a href="./scanner.html" target="_blank" rel="noopener">${COPY.settings.scan}</a>
+      <a class="button" data-action="open-scanner" href="./scanner.html" target="_blank" rel="noopener">${COPY.settings.scan}</a>
       ${Object.keys(store.inventory).length ? html`<button data-action="reset-inventory" @click=${resetInventory}>${COPY.settings.reset}</button>` : nothing}
     </div>
     <details ?open=${view.showAdvanced} data-details="advanced" @toggle=${(e: Event) => { view.showAdvanced = (e.target as HTMLDetailsElement).open; refresh(); }}>

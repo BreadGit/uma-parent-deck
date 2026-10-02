@@ -84,16 +84,21 @@ section.panel h3 { font-size: var(--fs-sm); margin: 14px 0 6px; color: var(--mut
 label.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0; }
 .row-k, .fact-k, .kv-k { color: var(--muted); }
 select, input[type=text], input[type=number], input[type=search] { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--input); color: var(--text); max-width: 200px; }
-select:focus-visible, input:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+select:focus-visible, input:focus-visible, button:focus-visible, a.button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 input[aria-invalid="true"] { border-color: var(--danger); }
 input[type=range] { width: 140px; accent-color: var(--accent); }
 input[type=checkbox] { accent-color: var(--accent); }
-button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--input); color: var(--text); cursor: pointer; }
-button:hover { border-color: var(--line-strong); }
+/* a.button is a link that sits among buttons and looks like one */
+button, a.button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--input); color: var(--text); cursor: pointer; }
+a.button { display: inline-block; text-decoration: none; }
+/* :where keeps these hover rules at their base specificity, so component hover rules still win */
+button:hover:where(:not(:disabled)), a.button:hover { border-color: var(--line-strong); }
+/* the general disabled look; component rules such as .wl-swap:disabled are more specific and win */
+button:disabled { opacity: .5; cursor: not-allowed; }
 button.small { padding: 2px 8px; font-size: var(--fs-sm); }
 button.active, button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 button.danger { background: var(--danger); border-color: var(--danger); color: var(--on-accent); font-weight: 600; padding: 6px 14px; }
-button.danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
+button.danger:hover:where(:not(:disabled)) { background: var(--danger-hover); border-color: var(--danger-hover); }
 details > summary { cursor: pointer; color: var(--accent); }
 details.about { margin-top: 10px; }
 /* the prediction details open on request; the summary reads as the panel's one call to action */
