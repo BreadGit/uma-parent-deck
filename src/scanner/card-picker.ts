@@ -6,7 +6,8 @@ import { inputValue } from '../ui/form.ts';
 import { artworkUrl } from './images.ts';
 import type { ScanCard } from './recognize.ts';
 
-const title = (card: ScanCard) => card.name.endsWith(card.charName) ? card.name.slice(0, -card.charName.length).trim() : card.name;
+const title = (card: ScanCard) =>
+  card.name.endsWith(card.charName) ? card.name.slice(0, -card.charName.length).trim() : card.name;
 const label = (card: ScanCard) => `${card.charName} · ${card.rarity} · ${title(card)} · ${card.type}`;
 
 // Search is temporary: only choosing a result changes the reviewed inventory.
@@ -41,7 +42,8 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
         }
       } else if (event.key === 'Enter' && open) {
         event.preventDefault();
-        const card = matches[index] ?? matches[0];
+        // Enter confirms a highlighted result, or a typed query that leaves only one card.
+        const card = index >= 0 ? matches[index] : words.length && matches.length === 1 ? matches[0] : undefined;
         if (card) choose(card);
       }
     };
@@ -52,14 +54,18 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
         .value=${live(open ? query : selected ? label(selected) : '')}
         aria-autocomplete="list" aria-expanded=${open} aria-controls=${listId}
         aria-activedescendant=${open && index >= 0 ? `${listId}-${matches[index]?.id}` : ''}
-        @focus=${show} @click=${show} @input=${(event: Event) => { active = key; query = inputValue(event); index = -1; change(); }} @keydown=${onKey} />
+        @focus=${show} @click=${show} @keydown=${onKey}
+        @input=${(event: Event) => { active = key; query = inputValue(event); index = -1; change(); }} />
       ${open ? html`<ul id=${listId} role="listbox" aria-label=${C.card}>
-        ${repeat(matches, card => card.id, (card, i) => html`<li id=${`${listId}-${card.id}`} role="option" aria-selected=${i === index}
-          class=${i === index ? 'active' : ''} data-id=${card.id} @mousedown=${(event: Event) => event.preventDefault()} @click=${() => choose(card)}>
+        ${repeat(matches, card => card.id, (card, i) => html`<li id=${`${listId}-${card.id}`} role="option"
+          aria-selected=${i === index} class=${i === index ? 'active' : ''} data-id=${card.id}
+          @mousedown=${(event: Event) => event.preventDefault()} @click=${() => choose(card)}>
           <img src=${artworkUrl(card.id)} alt="" loading="lazy" />
-          <span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${card.type})</span></span><span class="muted small">${title(card)}</span></span>
+          <span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${card.type})</span></span>
+            <span class="muted small">${title(card)}</span></span>
         </li>`)}
-        ${matches.length ? nothing : html`<li role="presentation" class="scan-no-matches"><span role="status">${C.noCardMatches}</span></li>`}
+        ${matches.length ? nothing
+          : html`<li role="presentation" class="scan-no-matches"><span role="status">${C.noCardMatches}</span></li>`}
       </ul>` : nothing}
     </div>`;
   }

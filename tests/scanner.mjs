@@ -59,6 +59,11 @@ try {
   const manual = page.locator('[data-row]').first(), picker = manual.locator('[data-card]');
   assert.equal(await picker.evaluate(el => el === document.activeElement), true, 'manual cards focus the search');
   assert.equal(await picker.getAttribute('role'), 'combobox');
+  await picker.press('Enter');
+  assert.equal(await picker.getAttribute('data-card-id'), '', 'Enter without a query or highlight chooses nothing');
+  await picker.fill('special');
+  await picker.press('Enter');
+  assert.equal(await picker.getAttribute('data-card-id'), '', 'Enter does not guess among several matches');
   await picker.fill('  SSR   LAUREL stop stamina ');
   assert.equal(await page.locator('[role="option"]').count(), 1, 'search combines name, title, rarity and type words');
   assert.equal(await page.locator('[role="option"]').getAttribute('data-id'), '30125');
