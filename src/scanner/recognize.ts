@@ -7,7 +7,7 @@ export interface Box { x: number; y: number; width: number; height: number }
 export interface Match { id: number; error: number }
 export interface Detection { box: Box; candidates: Match[]; lb: number | null; confident: boolean }
 export interface ScanResult { detections: Detection[]; ignoredR: number }
-interface Slot { box: Box; rarity: Rarity | null; inferred: boolean }
+interface Slot { box: Box; rarity: Rarity | null; needsArtworkMatch: boolean }
 interface Samples { from: Uint32Array; to: Uint32Array }
 interface Template extends Pixels { samples: Samples }
 interface PreparedReference { reference: Reference; coarse: Template[]; fine: { width: number; patches: Template[] } | null }
@@ -102,21 +102,31 @@ function badges(image: Pixels, references: Reference[]): Slot[] {
   }
   const gridRows = rows.filter(r => r.length >= 2);
   const result: Slot[] = [];
-  for (const row of gridRows) {
+  for (const row of rows) {
+    if (row.length === 1) {
+      // A lone badge needs artwork and diamond evidence before it can establish a card.
+      const badge = row[0]!;
+      result.push({ box: badge.box, rarity: badge.rarity, needsArtworkMatch: true });
+      continue;
+    }
     const y = row.map(b => b.box.y).sort((a, b) => a - b)[Math.floor(row.length / 2)]!;
     const srRow = row.filter(b => b.rarity === 'SR').length >= 3;
     for (let column = 0; column < 5; column++) {
       const x = image.width * (.039 + column * .1895);
       const badge = row.find(b => Math.abs(b.box.x - x) < 10);
       result.push({ box: badge?.box ?? { x, y, width: 128 * scale, height: 174 * scale },
-        rarity: badge ? (srRow && badge.rarity === 'R' ? 'SR' : badge.rarity) : null, inferred: !badge });
+        rarity: badge ? (srRow && badge.rarity === 'R' ? 'SR' : badge.rarity) : null, needsArtworkMatch: !badge });
     }
   }
   // A scrolled first row can lose its badges while keeping the art and diamonds visible.
   const first = gridRows[0]?.[0]?.box;
   if (first) {
     const y = first.y - image.width * .254;
-    if (y >= 0) for (let column = 0; column < 5; column++) result.unshift({ box: { ...first, x: image.width * (.039 + column * .1895), y }, rarity: null, inferred: true });
+    if (y >= 0) for (let column = 0; column < 5; column++) {
+      const x = image.width * (.039 + column * .1895);
+      if (result.some(slot => Math.abs(slot.box.x - x) < 10 && Math.abs(slot.box.y - y) < 8)) continue;
+      result.unshift({ box: { ...first, x, y }, rarity: null, needsArtworkMatch: true });
+    }
   }
   return result.sort((a, b) => Math.abs(a.box.y - b.box.y) < 10 ? a.box.x - b.box.x : a.box.y - b.box.y);
 }
@@ -186,10 +196,10 @@ export function createRecognizer(references: Reference[]) {
     let ignoredR = 0;
     for (const [index, slot] of slots.entries()) {
       progress?.(index, slots.length);
-      if (slot.rarity === 'R') { ignoredR++; continue; }
       const tile = resizeCrop(image, slot.box, 80, 109);
       const lb = readLimitBreak(tile);
-      if (slot.inferred && lb === null) continue;
+      if (slot.needsArtworkMatch && lb === null) continue;
+      if (slot.rarity === 'R') { ignoredR++; continue; }
       const coarse = resizeCrop(image, slot.box, 40, 55);
       const type = cardType(tile);
       const matches: (Match & { width: number; prepared: PreparedReference })[] = [];
@@ -218,7 +228,7 @@ export function createRecognizer(references: Reference[]) {
       }).sort((a, b) => a.error - b.error);
       const first = candidates[0], second = candidates[1];
       const confident = !!first && first.error < .018 && (!second || first.error < second.error * .6);
-      if (slot.inferred && (!confident || first!.error > .012)) continue;
+      if (slot.needsArtworkMatch && (!confident || first!.error > .012)) continue;
       detections.push({ box: slot.box, candidates, lb, confident });
     }
     progress?.(slots.length, slots.length);

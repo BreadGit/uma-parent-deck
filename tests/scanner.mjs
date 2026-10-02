@@ -12,17 +12,19 @@ const errors = [], uploads = [], referenceRequests = [];
 page.on('pageerror', error => errors.push(String(error)));
 page.on('request', request => { if (request.method() !== 'GET') uploads.push(request.url()); });
 page.on('request', request => { if (request.url().includes('/assets/supports/')) referenceRequests.push(request.url()); });
-async function scanFile(file) {
+async function scanFile(file, expectedError) {
   await page.locator('[data-files]').setInputFiles(file);
   await page.locator('[data-stop]').waitFor({ state: 'visible' });
   await page.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
-  assert.equal(await page.locator('[role="alert"]').count(), 0, String(await page.locator('[role="alert"]').allTextContents()));
+  const alerts = await page.locator('[role="alert"]').allTextContents();
+  if (expectedError) { assert.equal(alerts.length, 1); assert.match(alerts[0], expectedError); }
+  else assert.deepEqual(alerts, []);
 }
 const scan = name => scanFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url).pathname);
 async function newInventory() {
   await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
   // The dialog's close event is queued; wait for reset before choosing the next file.
-  await page.locator('[data-row]').first().waitFor({ state: 'detached' });
+  await page.locator('[data-new]').waitFor({ state: 'detached' });
 }
 async function chooseCard(key, id) {
   const input = page.locator(`[data-card="${key}"]`);
@@ -32,13 +34,13 @@ async function chooseCard(key, id) {
 }
 async function alteredScreenshot(name, changes) {
   const source = await readFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url));
-  const encoded = await page.evaluate(async ({ encoded, width, dx = 0, dy = 0, cover }) => {
+  const encoded = await page.evaluate(async ({ encoded, width, dx = 0, dy = 0, covers = [] }) => {
     const image = new Image(); image.src = `data:image/jpeg;base64,${encoded}`; await image.decode();
     const canvas = document.createElement('canvas');
     canvas.width = width ?? image.width; canvas.height = Math.round(image.height * canvas.width / image.width);
     const ctx = canvas.getContext('2d'); ctx.fillStyle = '#777'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, dx, dy, canvas.width, canvas.height);
-    if (cover) ctx.fillRect(...cover.map(value => value * canvas.width / 600));
+    for (const cover of covers) ctx.fillRect(...cover.map(value => value * canvas.width / 600));
     return canvas.toDataURL('image/png').split(',')[1];
   }, { encoded: source.toString('base64'), ...changes });
   return { name: `${name}.png`, mimeType: 'image/png', buffer: Buffer.from(encoded, 'base64') };
@@ -134,6 +136,24 @@ try {
     await picker.press('Escape');
   }
   await newInventory();
+  for (const [covers, expectedCards] of [
+    [[[130, 150, 470, 151]], expected.slice(0, 6)],
+    [[[130, 0, 470, 301], [0, 150, 130, 151]], expected.slice(0, 1)],
+    [[[130, 0, 470, 150]], [expected[0], ...expected.slice(5)]],
+  ]) {
+    await scanFile(await alteredScreenshot('android', { covers }));
+    const cards = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => [
+      Number(row.querySelector('[data-card]').dataset.cardId), Number(row.querySelector('[data-lb]').value),
+    ]));
+    assert.deepEqual(cards, expectedCards, 'a complete lone card survives without adjacent cards');
+    assert.equal(await page.locator('[data-confirm]').count(), 0, 'clear isolated artwork needs no confirmation');
+    const exported = JSON.parse(await page.locator('[data-json]').textContent());
+    for (const [id, lb] of expectedCards) assert.equal(exported[id], lb, `isolated artwork ${id} stays owned`);
+    await newInventory();
+  }
+  await scanFile(await alteredScreenshot('android', { covers: [[130, 0, 470, 301], [0, 35, 130, 266]] }), /No complete card badges found/);
+  assert.equal(await page.locator('[data-row]').count(), 0, 'a lone badge without matching artwork is not a card');
+  await newInventory();
   await scan('iphone');
   assert.equal(await page.locator('[data-row]').count(), 10);
   const iphone = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => ({ id: Number(row.querySelector('[data-card]').dataset.cardId), lb: Number(row.querySelector('[data-lb]').value) })));
@@ -182,7 +202,7 @@ try {
     assert.equal(await row.locator('[data-confirm]').count(), 0, `shifted grid confidence ${id}`);
   }
   await newInventory();
-  await scanFile(await alteredScreenshot('inventory-b-4438', { cover: [140, 504, 98, 87] }));
+  await scanFile(await alteredScreenshot('inventory-b-4438', { covers: [[140, 504, 98, 87]] }));
   assert.equal(await page.locator('[data-row]').nth(11).locator('[data-confirm]').count(), 1, 'covered artwork still requires review');
   const covered = page.locator('[data-row]').nth(11), coveredPicker = covered.locator('[data-card]');
   const originalId = await coveredPicker.getAttribute('data-card-id');
