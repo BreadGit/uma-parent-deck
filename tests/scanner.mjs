@@ -24,6 +24,12 @@ async function newInventory() {
   // The dialog's close event is queued; wait for reset before choosing the next file.
   await page.locator('[data-row]').first().waitFor({ state: 'detached' });
 }
+async function chooseCard(key, id) {
+  const input = page.locator(`[data-card="${key}"]`);
+  await input.fill(loadData().cards.find(card => card.id === id).name);
+  await page.locator(`[role="option"][data-id="${id}"]`).click();
+  assert.equal(await input.getAttribute('data-card-id'), String(id));
+}
 async function alteredScreenshot(name, changes) {
   const source = await readFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url));
   const encoded = await page.evaluate(async ({ encoded, width, dx = 0, dy = 0, cover }) => {
@@ -41,6 +47,51 @@ try {
   await page.goto(new URL('scanner.html', base).href);
   await assertServesThisTree(base);
   assert.equal(await page.title(), 'Uma inventory scanner');
+  await page.locator('[data-add]').click();
+  const manual = page.locator('[data-row]').first(), picker = manual.locator('[data-card]');
+  assert.equal(await picker.evaluate(el => el === document.activeElement), true, 'manual cards focus the search');
+  assert.equal(await picker.getAttribute('role'), 'combobox');
+  await picker.fill('  SSR   LAUREL stop stamina ');
+  assert.equal(await page.locator('[role="option"]').count(), 1, 'search combines name, title, rarity and type words');
+  assert.equal(await page.locator('[role="option"]').getAttribute('data-id'), '30125');
+  assert.equal(await picker.getAttribute('data-card-id'), '', 'typing does not select a card');
+  await picker.press('Enter');
+  assert.match(await picker.inputValue(), /Sakura Laurel/);
+  assert.equal(await picker.getAttribute('data-card-id'), '30125');
+  await manual.locator('[data-lb]').selectOption('2');
+  await picker.fill('no-such-card');
+  assert.match(await page.getByRole('status').textContent(), /No cards match/);
+  await picker.press('Enter');
+  assert.equal(await picker.getAttribute('data-card-id'), '30125', 'no results cannot change the selection');
+  await picker.press('Escape');
+  assert.equal(await picker.getAttribute('aria-expanded'), 'false');
+  assert.match(await picker.inputValue(), /Sakura Laurel/, 'Escape restores the selected label');
+  await picker.click();
+  assert.equal(await picker.getAttribute('aria-expanded'), 'true', 'click reopens a focused picker');
+  await picker.fill('winning dream');
+  await picker.press('ArrowDown');
+  const active = await picker.getAttribute('aria-activedescendant');
+  assert.equal(await page.locator(`#${active}`).getAttribute('data-id'), '30062');
+  await picker.press('Enter');
+  assert.equal(await picker.getAttribute('data-card-id'), '30062');
+  assert.equal(await manual.locator('[data-lb]').inputValue(), '2', 'changing artwork preserves LB');
+  assert.equal(JSON.parse(await page.locator('[data-json]').textContent())[30062], 2);
+  await picker.click();
+  await picker.press('ArrowUp');
+  assert.equal(await page.locator('[role="option"]').last().getAttribute('aria-selected'), 'true', 'up wraps to the final result');
+  assert.equal(await page.locator('[role="listbox"]').evaluate(list => {
+    const active = list.querySelector('[aria-selected="true"]').getBoundingClientRect(), bounds = list.getBoundingClientRect();
+    return active.top >= bounds.top && active.bottom <= bounds.bottom;
+  }), true, 'keyboard selection scrolls into view');
+  await picker.press('Tab');
+  assert.equal(await picker.getAttribute('aria-expanded'), 'false', 'tab dismisses without choosing');
+  assert.equal(await picker.getAttribute('data-card-id'), '30062');
+  await picker.fill('laurel');
+  await page.locator('[data-add]').click();
+  assert.equal(await page.getByRole('listbox').count(), 1, 'only the new row has an open picker');
+  assert.equal(await page.locator('[data-card]').first().inputValue(), '', 'new rows do not inherit search text');
+  assert.equal(await page.locator('[data-card]').nth(1).getAttribute('data-card-id'), '30062');
+  await newInventory();
   await scan('android');
   assert.equal(await page.locator('[data-row]').count(), 10);
   // Independently read from the Android example: SSR Special Week 1LB, event Special Week 4LB,
@@ -48,18 +99,18 @@ try {
   // Daiwa Scarlet 3LB, Grass Wonder 2LB.
   const expected = [[30001,1],[30025,4],[30002,0],[30062,4],[30003,0],[30107,4],[30024,0],[30057,3],[30047,3],[30006,2]];
   const readings = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => ({
-    key: row.dataset.row, id: Number(row.querySelector('[data-card]').value), lb: Number(row.querySelector('[data-lb]').value),
+    key: row.dataset.row, id: Number(row.querySelector('[data-card]').dataset.cardId), lb: Number(row.querySelector('[data-lb]').value),
   })));
   for (const [i, [id, lb]] of expected.entries()) {
     assert.equal(readings[i].lb, lb, `Android diamond count for ${id}`);
     assert.equal(readings[i].id, id, `Android artwork ${id}`);
   }
-  for (const [i, [id]] of expected.entries()) await page.locator(`[data-card="${readings[i].key}"]`).selectOption(String(id));
+  for (const [i, [id]] of expected.entries()) await chooseCard(readings[i].key, id);
   await page.locator('[data-download]').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-download]').isEnabled(), true);
   await scan('android');
   const added = await page.locator('[data-row]').evaluateAll(rows => rows.slice(10).map(row => row.dataset.row));
-  for (const [i, [id]] of expected.entries()) await page.locator(`[data-card="${added[i]}"]`).selectOption(String(id));
+  for (const [i, [id]] of expected.entries()) await chooseCard(added[i], id);
   assert.match(await page.locator('[data-summary]').textContent(), /10 unique cards.*10 overlapping readings/);
   await page.locator(`[data-lb="${added[0]}"]`).selectOption('4');
   assert.equal(await page.locator('[data-download]').isEnabled(), false);
@@ -76,12 +127,16 @@ try {
   for (const theme of ['light', 'dark']) for (const width of [390, 768, 1280]) {
     await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
     await page.setViewportSize({ width, height: 900 });
+    const picker = page.locator('[data-card]').first();
+    await picker.fill('special');
+    assert.ok(await page.locator('[role="option"]').count() > 0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${theme} ${width} overflow`);
+    await picker.press('Escape');
   }
   await newInventory();
   await scan('iphone');
   assert.equal(await page.locator('[data-row]').count(), 10);
-  const iphone = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => ({ id: Number(row.querySelector('[data-card]').value), lb: Number(row.querySelector('[data-lb]').value) })));
+  const iphone = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => ({ id: Number(row.querySelector('[data-card]').dataset.cardId), lb: Number(row.querySelector('[data-lb]').value) })));
   assert.deepEqual(iphone.map(r => r.lb), [3,4,0,4,2,3,0,1,4,3]);
   assert.equal(iphone[7].id, 30004);
   assert.equal(iphone[9].id, 30022);
@@ -90,7 +145,7 @@ try {
   await newInventory();
   await scan('sr-and-r');
   assert.equal(await page.locator('[data-row]').count(), 1, 'R artwork never becomes an SR/SSR reading');
-  assert.equal(await page.locator('[data-card]').inputValue(), '20021');
+  assert.equal(await page.locator('[data-card]').getAttribute('data-card-id'), '20021');
   assert.equal(await page.locator('[data-lb]').inputValue(), '4', 'level-35 SR Aoi still has four diamonds');
   await page.locator('[data-exclude]').click();
   assert.equal(await page.locator('[data-download]').isEnabled(), true, 'an inventory containing only default R cards is usable');
@@ -112,7 +167,7 @@ try {
     await scan(name);
     for (const [index, id, lb] of expected) {
       const row = page.locator('[data-row]').nth(index < 0 ? index : offset + index);
-      assert.equal(await row.locator('[data-card]').inputValue(), String(id), `${name} artwork ${id}`);
+      assert.equal(await row.locator('[data-card]').getAttribute('data-card-id'), String(id), `${name} artwork ${id}`);
       assert.equal(await row.locator('[data-lb]').inputValue(), String(lb), `${name} diamonds ${id}`);
       assert.equal(await row.locator('[data-confirm]').count(), 0, `${name} clear artwork ${id} needs no confirmation`);
     }
@@ -122,13 +177,21 @@ try {
   await scanFile(await alteredScreenshot('inventory-b-4436', { width: 480, dx: 2, dy: 3 }));
   for (const [index, id, lb] of [[3, 30062, 4], [12, 30106, 0]]) {
     const row = page.locator('[data-row]').nth(offset + index);
-    assert.equal(await row.locator('[data-card]').inputValue(), String(id), `shifted grid artwork ${id}`);
+    assert.equal(await row.locator('[data-card]').getAttribute('data-card-id'), String(id), `shifted grid artwork ${id}`);
     assert.equal(await row.locator('[data-lb]').inputValue(), String(lb), `shifted grid diamonds ${id}`);
     assert.equal(await row.locator('[data-confirm]').count(), 0, `shifted grid confidence ${id}`);
   }
   await newInventory();
   await scanFile(await alteredScreenshot('inventory-b-4438', { cover: [140, 504, 98, 87] }));
   assert.equal(await page.locator('[data-row]').nth(11).locator('[data-confirm]').count(), 1, 'covered artwork still requires review');
+  const covered = page.locator('[data-row]').nth(11), coveredPicker = covered.locator('[data-card]');
+  const originalId = await coveredPicker.getAttribute('data-card-id');
+  await coveredPicker.fill('laurel');
+  await coveredPicker.press('Escape');
+  assert.equal(await coveredPicker.getAttribute('data-card-id'), originalId);
+  assert.equal(await covered.locator('[data-confirm]').count(), 1, 'canceling a search does not confirm an uncertain match');
+  await chooseCard(await covered.getAttribute('data-row'), 30125);
+  assert.equal(await covered.locator('[data-confirm]').count(), 0, 'choosing a search result confirms the correction');
   assert.deepEqual(uploads, []);
   assert.ok(referenceRequests.some(url => url.includes('/scanner/') && url.endsWith('.webp')), 'use compact generated references');
   assert.equal(referenceRequests.some(url => url.includes('/full/') || url.includes('/raw/')), false, 'original artwork stays out of the browser');

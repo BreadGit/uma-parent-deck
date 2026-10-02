@@ -352,6 +352,8 @@ export const SCANNER_COPY = {
   lb: 'Limit break',
   unknownLb: 'Read diamonds',
   selectCard: 'Choose a card',
+  searchCards: 'Search name, title, or type',
+  noCardMatches: 'No cards match. Try another name or title.',
   confirm: 'Confirm',
   exclude: 'Exclude',
   restore: 'Restore',

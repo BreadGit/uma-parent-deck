@@ -6,6 +6,7 @@ import { SCANNER_COPY as C } from '../ui/copy.ts';
 import { inputValue, options, selectValue } from '../ui/form.ts';
 import { confirmDialog } from '../ui/dialog.ts';
 import { downloadText } from '../download.ts';
+import { createCardPicker } from './card-picker.ts';
 import { artworkUrl, cropUrl, loadReferences, pixels, screenshotCanvas } from './images.ts';
 import { inventoryFromReview, summarize, type ReviewRow } from './results.ts';
 import type { Reference, ScanResult } from './recognize.ts';
@@ -16,8 +17,7 @@ import './style.css';
 const root = document.getElementById('scanner')!;
 const catalog = cards.filter(c => c.rarity !== 'R').sort((a, b) => a.charName.localeCompare(b.charName) || a.id - b.id);
 const cardById = new Map(cards.map(c => [c.id, c]));
-const cardOptions = [{ value: '', label: C.selectCard }, ...catalog.map(c => ({ value: String(c.id),
-  label: `${c.charName} · ${c.rarity} · ${c.name.endsWith(c.charName) ? c.name.slice(0, -c.charName.length).trim() : c.name} · ${c.type}` }))];
+const cardPicker = createCardPicker(catalog, change);
 const lbOptions = [{ value: '', label: C.unknownLb }, ...[0, 1, 2, 3, 4].map(lb => ({ value: String(lb), label: lb === 4 ? '4LB / MLB' : `${lb}LB` }))];
 interface Source { id: string; name: string; image: string; count: number; rare: number; error: string }
 let sources: Source[] = [], rows: ReviewRow[] = [];
@@ -93,6 +93,7 @@ function stop() {
   busy = false; status = C.stopped; change();
 }
 function reset() {
+  cardPicker.close();
   for (const source of sources) if (source.image) URL.revokeObjectURL(source.image);
   stop(); sources = []; rows = []; query = ''; reviewOnly = false; status = ''; error = ''; change();
 }
@@ -100,7 +101,7 @@ async function newInventory() { if (await confirmDialog(C.newBatchConfirm, C.new
 function addManual() {
   const row: ReviewRow = { key: nextKey++, source: '', crop: '', detection: null, cardId: null, lb: null, reviewed: false, excluded: false };
   rows.unshift(row); query = ''; change();
-  root.querySelector<HTMLSelectElement>(`[data-card="${row.key}"]`)?.focus();
+  root.querySelector<HTMLInputElement>(`[data-card="${row.key}"]`)?.focus();
 }
 function label(row: ReviewRow, conflicts: Set<number>) {
   if (row.excluded) return C.excluded;
@@ -119,9 +120,7 @@ function reviewRow(row: ReviewRow, conflicts: Set<number>, pending: Set<number>)
     </div>
     <div class="scan-card-fields">
       <p class="scan-source">${source?.name ?? C.manual}</p>
-      <label>${C.card}<select data-card=${row.key} title=${card?.name ?? C.selectCard} .value=${live(row.cardId === null ? '' : String(row.cardId))}
-        @change=${(e: Event) => edit(row, { cardId: selectValue(e) ? Number(selectValue(e)) : null, reviewed: true })}>
-        ${options(cardOptions, row.cardId === null ? '' : String(row.cardId))}</select></label>
+      ${cardPicker.render(row.key, card, id => edit(row, { cardId: id, reviewed: true }))}
       <div class="scan-row-actions"><label>${C.lb}<select data-lb=${row.key} .value=${live(row.lb === null ? '' : String(row.lb))}
         @change=${(e: Event) => edit(row, { lb: selectValue(e) ? Number(selectValue(e)) : null })}>
         ${options(lbOptions, row.lb === null ? '' : String(row.lb))}</select></label>
