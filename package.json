@@ -17,6 +17,7 @@
     "inspect": "node tests/inspect.ts",
     "scratch": "node tests/scratch.mjs",
     "build:scanner": "tsc --noEmit && vite build --config vite.scanner.config.ts",
+    "build:scanner-artwork": "node scripts/scanner-artwork.mjs",
     "test:scanner": "node tests/scanner.mjs"
   },
   "dependencies": {

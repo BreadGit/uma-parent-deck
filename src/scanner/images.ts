@@ -1,7 +1,7 @@
 import type { Box, Pixels, Reference, ScanCard } from './recognize.ts';
 
 export const artworkUrl = (id: number) => `${import.meta.env.BASE_URL}assets/supports/${id}.png`;
-const fullArtworkUrl = (id: number) => `${import.meta.env.BASE_URL}assets/supports/full/${id}.png`;
+const referenceUrl = (id: number) => `${import.meta.env.BASE_URL}assets/supports/scanner/${id}.webp`;
 
 async function imageCanvas(source: string, maxWidth?: number): Promise<HTMLCanvasElement> {
   const image = new Image();
@@ -32,12 +32,13 @@ export function cropUrl(canvas: HTMLCanvasElement, box: Box): string {
 export async function loadReferences(cards: ScanCard[]): Promise<Reference[]> {
   const rBadge = cards.find(c => c.rarity === 'R')?.id;
   const queue = cards.filter(c => c.rarity !== 'R' || c.id === rBadge);
+  const badges = new Set(['R', 'SR', 'SSR'].map(rarity => cards.find(c => c.rarity === rarity)?.id));
   const references: Reference[] = [];
   // Limit parallel image decoding on phones.
   await Promise.all(Array.from({ length: 6 }, async () => {
     for (let card = queue.shift(); card; card = queue.shift()) references.push({ ...card,
-      image: pixels(await imageCanvas(artworkUrl(card.id))),
-      artwork: card.rarity === 'R' ? null : pixels(await imageCanvas(fullArtworkUrl(card.id), 128)),
+      image: badges.has(card.id) ? pixels(await imageCanvas(artworkUrl(card.id))) : null,
+      artwork: card.rarity === 'R' ? null : pixels(await imageCanvas(referenceUrl(card.id))),
     });
   }));
   return references.sort((a, b) => a.id - b.id);

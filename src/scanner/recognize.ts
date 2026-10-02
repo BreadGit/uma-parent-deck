@@ -2,12 +2,16 @@ import type { CardType, Rarity } from '../types.ts';
 
 export interface Pixels { width: number; height: number; data: Uint8ClampedArray }
 export interface ScanCard { id: number; name: string; charName: string; rarity: Rarity; type: CardType }
-export interface Reference extends ScanCard { image: Pixels; artwork: Pixels | null }
+export interface Reference extends ScanCard { image: Pixels | null; artwork: Pixels | null }
 export interface Box { x: number; y: number; width: number; height: number }
 export interface Match { id: number; error: number }
 export interface Detection { box: Box; candidates: Match[]; lb: number | null; confident: boolean }
 export interface ScanResult { detections: Detection[]; ignoredR: number }
 interface Slot { box: Box; rarity: Rarity | null; inferred: boolean }
+interface Samples { from: Uint32Array; to: Uint32Array }
+interface Template extends Pixels { samples: Samples }
+interface PreparedReference { reference: Reference; coarse: Template[]; fine: { width: number; patches: Template[] } | null }
+const ARTWORK_REGION = { x: .07, y: .2, width: .86, height: .64 };
 
 /** Area sampling makes matching insensitive to JPEG noise and small differences in screenshot scale. */
 export function sample(image: Pixels, x: number, y: number, width = 1, height = 1): number[] {
@@ -34,15 +38,16 @@ export function resizeCrop(image: Pixels, box: Box, width: number, height: numbe
 
 function pixelError(a: number, b: number) { const d = a - b; return d * d; }
 
-/** Match a template with early rejection. The sample order reaches across the patch before filling it in. */
-function search(image: Pixels, patch: Pixels, stride: number, sampleStep: number, limit = .06): { error: number; x: number; y: number } {
-  const offsets: [number, number][] = [];
-  for (let y = 1; y < patch.height - 1; y += sampleStep) for (let x = 1; x < patch.width - 1; x += sampleStep) offsets.push([x, y]);
-  offsets.sort((a, b) => ((a[0] * 13 + a[1] * 7) % 31) - ((b[0] * 13 + b[1] * 7) % 31));
-  const from = offsets.map(([x, y]) => (y * patch.width + x) * 4);
-  const to = offsets.map(([x, y]) => (y * image.width + x) * 4);
-  let best = limit * offsets.length * 3 * 255 * 255, bestX = 0, bestY = 0, found = false;
-  for (let y = 0; y <= image.height - patch.height; y += stride) for (let x = 0; x <= image.width - patch.width; x += stride) {
+/** Grid slots fix the composition's position; allow small errors in the frame, scale and scroll offset. */
+function search(image: Pixels, patch: Template, limit: number): number {
+  const { from, to } = patch.samples;
+  const centerX = image.width / 2 + (ARTWORK_REGION.x - .5) * patch.width / ARTWORK_REGION.width;
+  const centerY = image.height / 2 + (ARTWORK_REGION.y - .5) * patch.height / ARTWORK_REGION.height;
+  const marginX = image.width * .05, marginY = image.height * .06;
+  const left = Math.max(0, Math.floor(centerX - marginX)), right = Math.min(image.width - patch.width, Math.ceil(centerX + marginX));
+  const top = Math.max(0, Math.floor(centerY - marginY)), bottom = Math.min(image.height - patch.height, Math.ceil(centerY + marginY));
+  let best = limit * from.length * 3 * 255 * 255, found = false;
+  for (let y = top; y <= bottom; y++) for (let x = left; x <= right; x++) {
     let error = 0;
     const base = (y * image.width + x) * 4;
     for (let i = 0; i < from.length; i++) {
@@ -50,9 +55,9 @@ function search(image: Pixels, patch: Pixels, stride: number, sampleStep: number
       error += pixelError(image.data[q]!, patch.data[p]!) + pixelError(image.data[q + 1]!, patch.data[p + 1]!) + pixelError(image.data[q + 2]!, patch.data[p + 2]!);
       if (error >= best) break;
     }
-    if (error < best) { best = error; bestX = x; bestY = y; found = true; }
+    if (error < best) { best = error; found = true; }
   }
-  return { error: found ? best / (offsets.length * 3 * 255 * 255) : Infinity, x: bestX, y: bestY };
+  return found ? best / (from.length * 3 * 255 * 255) : Infinity;
 }
 
 function badges(image: Pixels, references: Reference[]): Slot[] {
@@ -61,8 +66,8 @@ function badges(image: Pixels, references: Reference[]): Slot[] {
   const scale = image.width * .17 / 128;
   const found: { box: Box; rarity: Rarity; error: number }[] = [];
   for (const rarity of ['SSR', 'SR', 'R'] as const) {
-    const ref = references.find(r => r.rarity === rarity);
-    if (!ref) continue;
+    const ref = references.find(r => r.rarity === rarity && r.image);
+    if (!ref?.image) continue;
     const patch = resizeCrop(ref.image, { x: 5, y: 5, width: 30, height: 27 }, Math.round(30 * scale), Math.round(27 * scale));
     // A cheap sparse pass leaves only a small number of locations for full template comparison.
     const columns = Array.from({ length: 5 }, (_, i) => image.width * (.039 + i * .1895) + 5 * scale);
@@ -148,62 +153,82 @@ export function readLimitBreak(tile: Pixels): number | null {
 
 function artworkPatch(artwork: Pixels, width: number): Pixels {
   // Keep the full composition, excluding the frame, rarity/type badges and level/diamond strip.
-  const box = { x: artwork.width * .07, y: artwork.height * .2,
-    width: artwork.width * .86, height: artwork.height * .64 };
+  const box = { x: artwork.width * ARTWORK_REGION.x, y: artwork.height * ARTWORK_REGION.y,
+    width: artwork.width * ARTWORK_REGION.width, height: artwork.height * ARTWORK_REGION.height };
   return resizeCrop(artwork, box, width, Math.round(width * box.height / box.width));
 }
 
-export function recognize(image: Pixels, references: Reference[], progress?: (done: number, total: number) => void): ScanResult {
-  const slots = badges(image, references);
-  const detections: Detection[] = [];
-  let ignoredR = 0;
-  const patches = new Map<number, Pixels[]>();
-  for (const ref of references) {
-    if (!ref.artwork) continue;
-    patches.set(ref.id, Array.from({ length: 7 }, (_, i) => artworkPatch(ref.artwork!, 31 + i)));
-  }
-  for (const [index, slot] of slots.entries()) {
-    progress?.(index, slots.length);
-    if (slot.rarity === 'R') { ignoredR++; continue; }
-    const tile = resizeCrop(image, slot.box, 80, 109);
-    const lb = readLimitBreak(tile);
-    if (slot.inferred && lb === null) continue;
-    const coarse = resizeCrop(image, slot.box, 40, 55);
-    const type = cardType(tile);
-    const matches: (Match & { width: number })[] = [];
-    for (const ref of references) {
-      const compatibleType = !type || ref.type === type || (['pal', 'power'].includes(type) && ['pal', 'power', 'group'].includes(ref.type));
-      if (!ref.artwork || (slot.rarity && ref.rarity !== slot.rarity) || !compatibleType) continue;
-      let error = Infinity;
-      let width = 0;
-      for (const patch of patches.get(ref.id)!) {
-        const match = search(coarse, patch, 1, Math.max(1, Math.floor(patch.width / 10)), error);
-        if (match.error < error) { error = match.error; width = patch.width; }
-      }
-      matches.push({ id: ref.id, error, width });
+/** Templates belong to one loaded catalog and are reused for every screenshot in its worker. */
+export function createRecognizer(references: Reference[]) {
+  const samples = new Map<string, Samples>();
+  function template(artwork: Pixels, width: number, tileWidth: number): Template {
+    const patch = artworkPatch(artwork, width);
+    const step = tileWidth === 40 ? Math.max(1, Math.floor(width / 10)) : 1;
+    const key = `${patch.width}:${patch.height}:${tileWidth}:${step}`;
+    let offsets = samples.get(key);
+    if (!offsets) {
+      const points: [number, number][] = [];
+      for (let y = 1; y < patch.height - 1; y += step) for (let x = 1; x < patch.width - 1; x += step) points.push([x, y]);
+      // Reach across the artwork before filling in nearby pixels, for early rejection of poor matches.
+      points.sort((a, b) => ((a[0] * 13 + a[1] * 7) % 31) - ((b[0] * 13 + b[1] * 7) % 31));
+      offsets = { from: Uint32Array.from(points, ([x, y]) => (y * patch.width + x) * 4),
+        to: Uint32Array.from(points, ([x, y]) => (y * tileWidth + x) * 4) };
+      samples.set(key, offsets);
     }
-    matches.sort((a, b) => a.error - b.error);
-    const candidates = matches.slice(0, 4).map(match => {
-      const ref = references.find(r => r.id === match.id)!;
-      let error = Infinity;
-      for (let width = match.width * 2 - 1; width <= match.width * 2 + 1; width++) {
-        const patch = artworkPatch(ref.artwork!, width);
-        error = Math.min(error, search(tile, patch, 1, 1, error).error);
-      }
-      return { id: match.id, error };
-    }).sort((a, b) => a.error - b.error).slice(0, 4);
-    const first = candidates[0], second = candidates[1];
-    const confident = !!first && first.error < .018 && (!second || first.error < second.error * .6);
-    if (slot.inferred && (!confident || first!.error > .012)) continue;
-    detections.push({ box: slot.box, candidates, lb, confident });
+    return { ...patch, samples: offsets };
   }
-  progress?.(slots.length, slots.length);
-  // The fixed game toolbar can cover the entire bottom row. Keep isolated uncertain readings, but
-  // leave an unreadable row to an overlapping screenshot rather than suggesting cards from toolbar art.
-  const visible = detections.filter(d => {
-    const row = detections.filter(other => Math.abs(other.box.y - d.box.y) < 8);
-    return !(row.length >= 3 && row.filter(other => other.lb === null).length >= 2
-      && !row.some(other => other.confident && other.lb !== null));
-  });
-  return { detections: visible, ignoredR };
+  const prepared: PreparedReference[] = references.filter(ref => ref.artwork).map(reference => ({ reference,
+    coarse: Array.from({ length: 7 }, (_, i) => template(reference.artwork!, 31 + i, 40)), fine: null,
+  }));
+  return (image: Pixels, progress?: (done: number, total: number) => void): ScanResult => {
+    const slots = badges(image, references);
+    const detections: Detection[] = [];
+    let ignoredR = 0;
+    for (const [index, slot] of slots.entries()) {
+      progress?.(index, slots.length);
+      if (slot.rarity === 'R') { ignoredR++; continue; }
+      const tile = resizeCrop(image, slot.box, 80, 109);
+      const lb = readLimitBreak(tile);
+      if (slot.inferred && lb === null) continue;
+      const coarse = resizeCrop(image, slot.box, 40, 55);
+      const type = cardType(tile);
+      const matches: (Match & { width: number; prepared: PreparedReference })[] = [];
+      for (const entry of prepared) {
+        const ref = entry.reference;
+        const compatibleType = !type || ref.type === type || (['pal', 'power'].includes(type) && ['pal', 'power', 'group'].includes(ref.type));
+        if (!ref.artwork || (slot.rarity && ref.rarity !== slot.rarity) || !compatibleType) continue;
+        let error = Infinity;
+        let width = 0;
+        for (const patch of entry.coarse) {
+          const score = search(coarse, patch, error);
+          if (score < error) { error = score; width = patch.width; }
+        }
+        matches.push({ id: ref.id, error, width, prepared: entry });
+      }
+      matches.sort((a, b) => a.error - b.error);
+      const candidates = matches.slice(0, 4).map(match => {
+        const entry = match.prepared;
+        // Keep only the most recent scale per card, bounding memory across differently sized uploads.
+        if (!entry.fine || entry.fine.width !== match.width) entry.fine = { width: match.width,
+          patches: [-1, 0, 1].map(offset => template(entry.reference.artwork!, match.width * 2 + offset, 80)),
+        };
+        let error = Infinity;
+        for (const patch of entry.fine.patches) error = Math.min(error, search(tile, patch, error));
+        return { id: match.id, error };
+      }).sort((a, b) => a.error - b.error);
+      const first = candidates[0], second = candidates[1];
+      const confident = !!first && first.error < .018 && (!second || first.error < second.error * .6);
+      if (slot.inferred && (!confident || first!.error > .012)) continue;
+      detections.push({ box: slot.box, candidates, lb, confident });
+    }
+    progress?.(slots.length, slots.length);
+    // The fixed game toolbar can cover the entire bottom row. Keep isolated uncertain readings, but
+    // leave an unreadable row to an overlapping screenshot rather than suggesting cards from toolbar art.
+    const visible = detections.filter(d => {
+      const row = detections.filter(other => Math.abs(other.box.y - d.box.y) < 8);
+      return !(row.length >= 3 && row.filter(other => other.lb === null).length >= 2
+        && !row.some(other => other.confident && other.lb !== null));
+    });
+    return { detections: visible, ignoredR };
+  };
 }

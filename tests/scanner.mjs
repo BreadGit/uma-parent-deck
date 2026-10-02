@@ -8,14 +8,34 @@ import { assertServesThisTree } from './browser-fields.mjs';
 const base = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage();
-const errors = [], uploads = [];
+const errors = [], uploads = [], referenceRequests = [];
 page.on('pageerror', error => errors.push(String(error)));
 page.on('request', request => { if (request.method() !== 'GET') uploads.push(request.url()); });
-async function scan(name) {
-  await page.locator('[data-files]').setInputFiles(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url).pathname);
+page.on('request', request => { if (request.url().includes('/assets/supports/')) referenceRequests.push(request.url()); });
+async function scanFile(file) {
+  await page.locator('[data-files]').setInputFiles(file);
   await page.locator('[data-stop]').waitFor({ state: 'visible' });
   await page.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
-  assert.equal(await page.locator('[role="alert"]').count(), 0, `${name}: ${await page.locator('[role="alert"]').allTextContents()}`);
+  assert.equal(await page.locator('[role="alert"]').count(), 0, String(await page.locator('[role="alert"]').allTextContents()));
+}
+const scan = name => scanFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url).pathname);
+async function newInventory() {
+  await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
+  // The dialog's close event is queued; wait for reset before choosing the next file.
+  await page.locator('[data-row]').first().waitFor({ state: 'detached' });
+}
+async function alteredScreenshot(name, changes) {
+  const source = await readFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url));
+  const encoded = await page.evaluate(async ({ encoded, width, dx = 0, dy = 0, cover }) => {
+    const image = new Image(); image.src = `data:image/jpeg;base64,${encoded}`; await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = width ?? image.width; canvas.height = Math.round(image.height * canvas.width / image.width);
+    const ctx = canvas.getContext('2d'); ctx.fillStyle = '#777'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, dx, dy, canvas.width, canvas.height);
+    if (cover) ctx.fillRect(...cover.map(value => value * canvas.width / 600));
+    return canvas.toDataURL('image/png').split(',')[1];
+  }, { encoded: source.toString('base64'), ...changes });
+  return { name: `${name}.png`, mimeType: 'image/png', buffer: Buffer.from(encoded, 'base64') };
 }
 try {
   await page.goto(new URL('scanner.html', base).href);
@@ -58,7 +78,7 @@ try {
     await page.setViewportSize({ width, height: 900 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${theme} ${width} overflow`);
   }
-  await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
+  await newInventory();
   await scan('iphone');
   assert.equal(await page.locator('[data-row]').count(), 10);
   const iphone = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => ({ id: Number(row.querySelector('[data-card]').value), lb: Number(row.querySelector('[data-lb]').value) })));
@@ -67,7 +87,7 @@ try {
   assert.equal(iphone[9].id, 30022);
   // A fresh batch must not retain the first person's Gold Ship variant.
   assert.equal(iphone.some(r => r.id === 30057), false);
-  await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
+  await newInventory();
   await scan('sr-and-r');
   assert.equal(await page.locator('[data-row]').count(), 1, 'R artwork never becomes an SR/SSR reading');
   assert.equal(await page.locator('[data-card]').inputValue(), '20021');
@@ -86,30 +106,32 @@ try {
     ['inventory-b-4439', [[5, 20006, 4]]],
     ['inventory-b-4440', [[-1, 20021, 4]]],
   ];
+  await newInventory();
   for (const [name, expected] of examples) {
-    await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
+    const offset = await page.locator('[data-row]').count();
     await scan(name);
     for (const [index, id, lb] of expected) {
-      const row = page.locator('[data-row]').nth(index);
+      const row = page.locator('[data-row]').nth(index < 0 ? index : offset + index);
       assert.equal(await row.locator('[data-card]').inputValue(), String(id), `${name} artwork ${id}`);
       assert.equal(await row.locator('[data-lb]').inputValue(), String(lb), `${name} diamonds ${id}`);
       assert.equal(await row.locator('[data-confirm]').count(), 0, `${name} clear artwork ${id} needs no confirmation`);
     }
   }
-  await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
-  const screenshot = await readFile(new URL('fixtures/scanner/inventory-b-4438.jpg', import.meta.url));
-  const covered = await page.evaluate(async encoded => {
-    const image = new Image(); image.src = `data:image/jpeg;base64,${encoded}`; await image.decode();
-    const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
-    const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
-    const scale = image.width / 600;
-    ctx.fillStyle = '#777'; ctx.fillRect(140 * scale, 504 * scale, 98 * scale, 87 * scale);
-    return canvas.toDataURL('image/png').split(',')[1];
-  }, screenshot.toString('base64'));
-  await page.locator('[data-files]').setInputFiles({ name: 'covered.png', mimeType: 'image/png', buffer: Buffer.from(covered, 'base64') });
-  await page.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
+  // Reuse the worker with a smaller, slightly shifted grid after the original-size batch.
+  const offset = await page.locator('[data-row]').count();
+  await scanFile(await alteredScreenshot('inventory-b-4436', { width: 480, dx: 2, dy: 3 }));
+  for (const [index, id, lb] of [[3, 30062, 4], [12, 30106, 0]]) {
+    const row = page.locator('[data-row]').nth(offset + index);
+    assert.equal(await row.locator('[data-card]').inputValue(), String(id), `shifted grid artwork ${id}`);
+    assert.equal(await row.locator('[data-lb]').inputValue(), String(lb), `shifted grid diamonds ${id}`);
+    assert.equal(await row.locator('[data-confirm]').count(), 0, `shifted grid confidence ${id}`);
+  }
+  await newInventory();
+  await scanFile(await alteredScreenshot('inventory-b-4438', { cover: [140, 504, 98, 87] }));
   assert.equal(await page.locator('[data-row]').nth(11).locator('[data-confirm]').count(), 1, 'covered artwork still requires review');
   assert.deepEqual(uploads, []);
+  assert.ok(referenceRequests.some(url => url.includes('/scanner/') && url.endsWith('.webp')), 'use compact generated references');
+  assert.equal(referenceRequests.some(url => url.includes('/full/') || url.includes('/raw/')), false, 'original artwork stays out of the browser');
   assert.deepEqual(errors, []);
   console.log('Scanner: screenshot recognition, review, overlap/conflicts, export/import, new inventory, both phone sizes and themes passed.');
 } finally { await browser.close(); }

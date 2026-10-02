@@ -26,7 +26,7 @@ export function scannerCatalog(bundleArtwork = false): Plugin {
         const fileName = `assets/supports/${card.id}.png`;
         this.emitFile({ type: 'asset', fileName, source: readFileSync(resolve(root, 'public', fileName)) });
         if (card.rarity !== 'R') {
-          const artwork = `assets/supports/full/${card.id}.png`;
+          const artwork = `assets/supports/scanner/${card.id}.webp`;
           this.emitFile({ type: 'asset', fileName: artwork, source: readFileSync(resolve(root, 'public', artwork)) });
         }
       }
