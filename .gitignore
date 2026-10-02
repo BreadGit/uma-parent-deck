@@ -7,3 +7,4 @@ docs/screenshot.png
 *.tmp.mjs
 _*.mjs
 __pycache__/
+dist-scanner/

@@ -15,7 +15,9 @@
     "smoke": "node tests/smoke.mjs",
     "test:e2e": "node tests/smoke.mjs && node tests/regressions.mjs && node --test tests/scroll-anchor.mjs",
     "inspect": "node tests/inspect.ts",
-    "scratch": "node tests/scratch.mjs"
+    "scratch": "node tests/scratch.mjs",
+    "build:scanner": "tsc --noEmit && vite build --config vite.scanner.config.ts",
+    "test:scanner": "node tests/scanner.mjs"
   },
   "dependencies": {
     "lit-html": "^3.3.3"

@@ -2,29 +2,15 @@
 // box with its suggestion list, and the limit-break select the deck and the ranking share.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
-import { repeat } from 'lit-html/directives/repeat.js';
 import type { Card } from '../types.ts';
 import type { RunPlan } from '../model/run.ts';
 import { COPY } from './copy.ts';
 import { refresh, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
 
-export interface Option { value: string; label: string; cls?: string }
-
-/**
- * Options for a <select> whose value is bound with `.value=${live(...)}`. The property binding is committed before
- * the options exist, so `selected` picks the initial option; the live binding keeps later renders in step. Options
- * are keyed by value: when a blank placeholder disappears, the remaining option elements must stay put, or the
- * browser keeps the old index and shows the wrong entry.
- */
-export const options = (items: readonly Option[], current: string) =>
-  repeat(items, (o) => o.value, (o) => html`<option value=${o.value} ?selected=${o.value === current} class=${o.cls ?? ''}>${o.label}</option>`);
-export const numbered = (values: readonly number[], label: (n: number) => string): Option[] => values.map((n) => ({ value: String(n), label: label(n) }));
-
-export const selectValue = (e: Event) => (e.target as HTMLSelectElement).value;
-export const inputValue = (e: Event) => (e.target as HTMLInputElement).value;
-export const inputNumber = (e: Event) => (e.target as HTMLInputElement).valueAsNumber;
-export const isChecked = (e: Event) => (e.target as HTMLInputElement).checked;
+export { options, numbered, selectValue, inputValue, inputNumber, isChecked } from './form.ts';
+export type { Option } from './form.ts';
+import { options, selectValue, inputValue, type Option } from './form.ts';
 
 export interface SearchBox<T> {
   id: string;
