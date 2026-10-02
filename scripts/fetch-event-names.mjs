@@ -5,7 +5,7 @@
 // data/raw/char-events.json. Source revisions invalidate stale page caches.
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fingerprint, pageCacheMatches, pageRevision, pageEvents } from './page-cache.ts';
+import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, uniqueEffectText } from './page-cache.ts';
 
 const BASE = 'https://gametora.com';
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -21,9 +21,9 @@ const revisions = (await exists(REVISION_OUT)) ? await readJson(REVISION_OUT) : 
 const sourceFiles = ['training_events__ssr', 'training_events__sr', 'training_events__friend', 'training_events__group',
   'training_events__shared', 'training_events__char', 'training_events__char_card', 'dict__evrew'];
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async (key) => [key, fingerprint(await readJson(path.join(RAW, `${key}.json`)))])));
-const inputFor = (card) => ({ card, sources: sourceHashes });
-const current = (key, card, payload) => !FORCE && pageCacheMatches(revisions[key], inputFor(card), payload);
-const remember = (key, card, payload) => { revisions[key] = pageRevision(inputFor(card), payload); };
+const inputFor = (key, card) => pageInput(key, card, sourceHashes);
+const current = (key, card, payload) => !FORCE && pageCacheMatches(revisions[key], inputFor(key, card), payload);
+const remember = (key, card, payload) => { revisions[key] = pageRevision(inputFor(key, card), payload); };
 async function save(file, value) {
   const temp = `${file}.tmp`;
   await fs.writeFile(temp, JSON.stringify(value, null, 1) + '\n');
@@ -140,12 +140,7 @@ const compound = cards.filter((c) => c.release_en && c.unique?.effects.some((u) 
 console.log(`${compound.length} compound unique effects to fetch (${Object.keys(uniqueTexts).length} cached)`);
 for (const c of compound) {
   const page = await getText(`${BASE}/umamusume/supports/${c.url_name}`);
-  const text = page.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, '\n');
-  // the effect is the first non-empty line after the heading that is not the unlock-level line
-  const after = text.split(/Unique Effect\s*\n/)[1] ?? '';
-  const line = after.split('\n').map((l) => l.trim()).find((l) => l && !UNLOCK_LINE.test(l));
-  if (!line) throw new Error(`No unique effect description for support ${c.support_id}`);
-  uniqueTexts[c.support_id] = line.replace(/&amp;/g, '&').replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"').trim();
+  uniqueTexts[c.support_id] = uniqueEffectText(page);
   remember(`unique:${c.support_id}`, c, uniqueTexts[c.support_id]);
 }
 await save(UNIQUE_OUT, uniqueTexts);

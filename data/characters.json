@@ -16256,6 +16256,1274 @@
   ]
  },
  {
+  "cardId": 100802,
+  "charId": 1008,
+  "name": "Vodka",
+  "title": "[Fiery Aqua Vitae]",
+  "rarity": 3,
+  "releaseEn": "2026-09-28",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "E",
+   "front": "C",
+   "pace": "B",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   98,
+   82,
+   99,
+   81,
+   90
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   109,
+   91,
+   111,
+   91,
+   98
+  ],
+  "fiveStarStats": [
+   120,
+   100,
+   122,
+   100,
+   108
+  ],
+  "innateSkills": [
+   202452,
+   200492,
+   201112
+  ],
+  "awakeningSkills": [
+   202152,
+   200491,
+   201382,
+   202451
+  ],
+  "eventSkills": [
+   201052,
+   200352,
+   201392,
+   200202,
+   201702,
+   200602,
+   202452,
+   200492
+  ],
+  "uniqueSkills": [
+   110081
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "Crossroads",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "Dream Junction",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "Can't All Be Sunshine",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "An Outlaw Again",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "Road of Stardust",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "This is a Nightmare!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "in",
+         "v": "-5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "Unending Challenge",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "Manners Are Important!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "Beware of Sudden Downpours",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "Fire Up Your Engines!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "Hot Ride",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "Like a Kid",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "Challenging Fate",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "Showdown by the River!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201052
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "The Ultimate Choice",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "st",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Awkward Honesty",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "The Standards of Coolness",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "Ring Out, Passionate Sound!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "The Way of Cool",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "Let's Take a Little Detour",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "Sugar and Spice",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5/+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "The Coolest and Number One",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+25"
+        },
+        {
+         "t": "po",
+         "v": "+25"
+        },
+        {
+         "t": "pt",
+         "v": "+20"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201702
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200602
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "win",
+       301801
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1004
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1014
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1017,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1003
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1016
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1023,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1023,
+        "year": 3
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 2,
+    "name": "After the Queen Elizabeth II Cup: Tyrannical Queen!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-15"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 1
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "beat_rival",
+       "101701|2",
+       1009
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 3,
+    "name": "After the Queen Elizabeth II Cup: Tsundere Queen",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-20"
+        },
+        {
+         "t": "rs",
+         "v": "+8",
+         "d": 1
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "lose_to_rival",
+       "101701|2",
+       1009
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 4,
+    "name": "After the Yasuda Kinen: Pedal to the Metal!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rr"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200492
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1011,
+        "year": 3
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 5,
+    "name": "After the Yasuda Kinen: Consecutive Celebration",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+3"
+        },
+        {
+         "t": "po",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+65"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200492
+        },
+        {
+         "t": "se",
+         "d": 10
+        },
+        {
+         "t": "bo",
+         "v": "+4",
+         "d": 9002
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "race_w2",
+       101101
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "Too Soon for Vodka",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+20"
+        },
+        {
+         "t": "brf",
+         "d": 2
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "brf",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 13,
+    "name": "The Holidays Hit You Fast",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "brp",
+         "v": 1,
+         "d": 1
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "po",
+         "v": "+20"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200352
+        },
+        {
+         "t": "di_s"
+        },
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "brp",
+         "v": 2,
+         "d": 1
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "in",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201392
+        },
+        {
+         "t": "di_s"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 7,
+    "name": "What Bein' Cool Means",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 9,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200202
+        },
+        {
+         "t": "se",
+         "d": 9,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9390,
+      "name": "Junior Make Debut",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 22,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1021,
+      "name": "Hanshin Juvenile Fillies",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 1000,
+      "fansGain": 6500
+     }
+    ]
+   },
+   {
+    "slot": 28,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 3018,
+      "name": "Tulip Sho",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 200,
+      "fansNeeded": 1750,
+      "fansGain": 5200
+     }
+    ]
+   },
+   {
+    "slot": 30,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1004,
+      "name": "Oka Sho",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 4500,
+      "fansGain": 10500
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1010,
+      "name": "Tokyo Yushun (Japanese Derby)",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 6000,
+      "fansGain": 20000
+     }
+    ]
+   },
+   {
+    "slot": 43,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1014,
+      "name": "Shuka Sho",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 7500,
+      "fansGain": 10000
+     }
+    ]
+   },
+   {
+    "slot": 47,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 56,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1008,
+      "name": "Victoria Mile",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 10000,
+      "fansGain": 10500
+     }
+    ]
+   },
+   {
+    "slot": 58,
+    "required": 2,
+    "races": [
+     {
+      "raceId": 1011,
+      "name": "Yasuda Kinen",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 15000,
+      "fansGain": 13000
+     }
+    ]
+   },
+   {
+    "slot": 67,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1016,
+      "name": "Tenno Sho (Autumn)",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   }
+  ]
+ },
+ {
   "cardId": 100901,
   "charId": 1009,
   "name": "Daiwa Scarlet",
@@ -17302,6 +18570,1264 @@
         {
          "t": "se",
          "d": 9,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9391,
+      "name": "Junior Make Debut",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 28,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 3018,
+      "name": "Tulip Sho",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 200,
+      "fansNeeded": 1750,
+      "fansGain": 5200
+     }
+    ]
+   },
+   {
+    "slot": 30,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1004,
+      "name": "Oka Sho",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 4500,
+      "fansGain": 10500
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1009,
+      "name": "Japanese Oaks",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 6000,
+      "fansGain": 11000
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1010,
+      "name": "Tokyo Yushun (Japanese Derby)",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 6000,
+      "fansGain": 20000
+     }
+    ]
+   },
+   {
+    "slot": 43,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1014,
+      "name": "Shuka Sho",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 7500,
+      "fansGain": 10000
+     }
+    ]
+   },
+   {
+    "slot": 44,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1017,
+      "name": "Queen Elizabeth II Cup",
+      "distance": 2200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 10000,
+      "fansGain": 10500
+     }
+    ]
+   },
+   {
+    "slot": 53,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1003,
+      "name": "Osaka Hai",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 13500
+     }
+    ]
+   },
+   {
+    "slot": 67,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1016,
+      "name": "Tenno Sho (Autumn)",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "cardId": 100902,
+  "charId": 1009,
+  "name": "Daiwa Scarlet",
+  "title": "[Nuit Étoilée de Scarlet]",
+  "rarity": 3,
+  "releaseEn": "2026-09-28",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "B",
+   "medium": "A",
+   "long": "A",
+   "front": "A",
+   "pace": "A",
+   "late": "E",
+   "end": "G"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   88,
+   82,
+   100,
+   98,
+   82
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   98,
+   91,
+   111,
+   109,
+   91
+  ],
+  "fiveStarStats": [
+   108,
+   100,
+   122,
+   120,
+   100
+  ],
+  "innateSkills": [
+   202462,
+   201282,
+   202012
+  ],
+  "awakeningSkills": [
+   201172,
+   201281,
+   201182,
+   202461
+  ],
+  "eventSkills": [
+   201072,
+   201052,
+   200352,
+   201252,
+   200202,
+   201902,
+   200492,
+   200732
+  ],
+  "uniqueSkills": [
+   110091
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "There Can Only Be One",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "My Number One",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "Empty Room",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "Number-One Rival",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "A Curious Rumor",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "Run, Run, Futsal Time!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201052
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "A Primo Connection",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "Twintail Troubles",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "My Perch",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "A Dream? A Spell? Or a Revelation?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "Enthusiastic Reading",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "Her",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "rc",
+         "d": 100901
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "rc",
+         "d": 101001
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "Recommended Restaurant",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "Advice from an Older Student",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "Enjoying Number One",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201072
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Can't Lose Sight of Number One!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "As a Model Student...",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "Just a Little More",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "Under the Evening Star",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "pt",
+         "v": "+30"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "Rained On",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "How to Spend a Day Off",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "Number One and the Coolest",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+50"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201072
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201902
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "win_all_g1_rival",
+       "1008"
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1021
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1004
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1010
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1012,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1014
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1017,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1019,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1003
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1016
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1019,
+        "year": 3
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 2,
+    "name": "The Japanese Derby",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rr"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "participate",
+      "race": {
+       "raceId": 1009
+      }
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 3,
+    "name": "After the Shuka Sho: Obviously!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rr"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "beat_rival",
+       101401,
+       1008
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 4,
+    "name": "After the Shuka Sho: Aching Legs",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rr"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "lose_to_rival",
+       101401,
+       1008
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 5,
+    "name": "After the Tenno Sho (Autumn): They Haven't Changed",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rr"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200732
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1016,
+        "year": 3
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "Planning the Perfect Party",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "brf",
+         "d": 2
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+20"
+        },
+        {
+         "t": "brf",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 13,
+    "name": "Jingle Bells for Two",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "brp",
+         "v": 1,
+         "d": 1
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200352
+        },
+        {
+         "t": "di_s"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "brp",
+         "v": 2,
+         "d": 1
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "in",
+         "v": "+20"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201252
+        },
+        {
+         "t": "di_s"
+        },
+        {
+         "t": "in",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 7,
+    "name": "The Sun Keeps Rising",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200202
+        },
+        {
+         "t": "se",
+         "d": 8,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "se",
+         "d": 8,
          "r": true
         }
        ]
@@ -63057,8 +65583,11 @@
       "outcomes": [
        [
         {
-         "t": "ct",
-         "d": "※ 7+"
+         "t": "w_e",
+         "d": [
+          7,
+          9
+         ]
         },
         {
          "t": "sp",
@@ -63081,8 +65610,11 @@
          "t": "nl"
         },
         {
-         "t": "ct",
-         "d": "※ 4-6"
+         "t": "w_e",
+         "d": [
+          4,
+          6
+         ]
         },
         {
          "t": "sp",
@@ -63096,8 +65628,11 @@
          "t": "nl"
         },
         {
-         "t": "ct",
-         "d": "※ 1-3"
+         "t": "w_e",
+         "d": [
+          1,
+          3
+         ]
         },
         {
          "t": "sp",
@@ -63109,11 +65644,49 @@
     ],
     "conditions": [
      {
-      "type": "unknown",
-      "raw": [
-       "ct",
-       "Win races where Biwa Hayahide or Narita Taishin run"
+      "type": "win_n_of",
+      "n": 1,
+      "races": [
+       {
+        "raceId": 1022,
+        "year": 1
+       },
+       {
+        "raceId": 1005,
+        "year": 2
+       },
+       {
+        "raceId": 1010,
+        "year": 2
+       },
+       {
+        "raceId": 1015,
+        "year": 2
+       },
+       {
+        "raceId": 1023,
+        "year": 2
+       },
+       {
+        "raceId": 1003,
+        "year": 3
+       },
+       {
+        "raceId": 1006,
+        "year": 3
+       },
+       {
+        "raceId": 1012,
+        "year": 3
+       },
+       {
+        "raceId": 1023,
+        "year": 3
+       }
       ]
+     },
+     {
+      "type": "date"
      }
     ]
    },
@@ -64104,8 +66677,11 @@
       "outcomes": [
        [
         {
-         "t": "ct",
-         "d": "※ 7+"
+         "t": "w_e",
+         "d": [
+          7,
+          9
+         ]
         },
         {
          "t": "sp",
@@ -64128,8 +66704,11 @@
          "t": "nl"
         },
         {
-         "t": "ct",
-         "d": "※ 4-6"
+         "t": "w_e",
+         "d": [
+          4,
+          6
+         ]
         },
         {
          "t": "sp",
@@ -64143,8 +66722,11 @@
          "t": "nl"
         },
         {
-         "t": "ct",
-         "d": "※ 1-3"
+         "t": "w_e",
+         "d": [
+          1,
+          3
+         ]
         },
         {
          "t": "sp",
@@ -64156,11 +66738,49 @@
     ],
     "conditions": [
      {
-      "type": "unknown",
-      "raw": [
-       "ct",
-       "Win races where Biwa Hayahide or Narita Taishin run"
+      "type": "win_n_of",
+      "n": 1,
+      "races": [
+       {
+        "raceId": 1022,
+        "year": 1
+       },
+       {
+        "raceId": 1005,
+        "year": 2
+       },
+       {
+        "raceId": 1010,
+        "year": 2
+       },
+       {
+        "raceId": 1015,
+        "year": 2
+       },
+       {
+        "raceId": 1023,
+        "year": 2
+       },
+       {
+        "raceId": 1003,
+        "year": 3
+       },
+       {
+        "raceId": 1006,
+        "year": 3
+       },
+       {
+        "raceId": 1012,
+        "year": 3
+       },
+       {
+        "raceId": 1023,
+        "year": 3
+       }
       ]
+     },
+     {
+      "type": "date"
      }
     ]
    },
@@ -112284,6 +114904,959 @@
       "grade": 100,
       "fansNeeded": 12000,
       "fansGain": 8000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1106,
+      "name": "Tokyo Daishoten",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "cardId": 110001,
+  "charId": 1100,
+  "name": "Wonder Acute",
+  "title": "[Butterfly Sting]",
+  "rarity": 3,
+  "releaseEn": "2026-09-24",
+  "aptitudes": {
+   "turf": "G",
+   "dirt": "A",
+   "sprint": "D",
+   "mile": "A",
+   "medium": "A",
+   "long": "E",
+   "front": "C",
+   "pace": "A",
+   "late": "C",
+   "end": "E"
+  },
+  "growth": [
+   0,
+   0,
+   0,
+   15,
+   15
+  ],
+  "baseStats": [
+   84,
+   82,
+   84,
+   101,
+   99
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   93,
+   91,
+   94,
+   112,
+   110
+  ],
+  "fiveStarStats": [
+   102,
+   100,
+   103,
+   123,
+   122
+  ],
+  "innateSkills": [
+   202302,
+   201532,
+   201072
+  ],
+  "awakeningSkills": [
+   201032,
+   201071,
+   202332,
+   202301
+  ],
+  "eventSkills": [
+   202343
+  ],
+  "uniqueSkills": [
+   101001
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "A Surprise Diagnosis",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "Take a Gander at the Sky",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "Polishing the Silver",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "The Setting Sun",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "One Final Run Along the Beach",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "A Torn Stitch",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "The Everlasting Wonder Acute",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "Favorite Thing",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "Today's Period Drama Is...",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "Switching Things Up",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "A Grassroots Battle!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "Efficient Meets Easygoing",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "Mellow and Comforting",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "Adorable Little Fans",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202343
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "Standing My Ground",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rs",
+         "v": "+30",
+         "d": 1
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-15"
+        },
+        {
+         "t": "rs",
+         "v": "+25",
+         "d": 1
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Table-ette Troubles!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "A Nostalgic Taste",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "What a Good Li'l Phone!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "The Warmth of Shared Food",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "Let It Have It!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "Wonderland Rush",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "One Such Answer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 7,
+    "name": "Slow, Steady, Steadfast",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 8,
+    "name": "Built on Experience",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 8,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 8,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9406,
+      "name": "Junior Make Debut",
+      "distance": 1800,
+      "surface": "dirt",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 36,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1102,
+      "name": "Japan Dirt Derby",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 4000,
+      "fansGain": 4500
+     }
+    ]
+   },
+   {
+    "slot": 41,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 3056,
+      "name": "Sirius Stakes",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 300,
+      "fansNeeded": 1000,
+      "fansGain": 3600
+     }
+    ]
+   },
+   {
+    "slot": 47,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1106,
+      "name": "Tokyo Daishoten",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     }
+    ]
+   },
+   {
+    "slot": 50,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1107,
+      "name": "Kawasaki Kinen",
+      "distance": 2100,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 6000
+     }
+    ]
+   },
+   {
+    "slot": 56,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1109,
+      "name": "Kashiwa Kinen",
+      "distance": 1600,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     }
+    ]
+   },
+   {
+    "slot": 59,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1101,
+      "name": "Teio Sho",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 6000
+     }
+    ]
+   },
+   {
+    "slot": 68,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1105,
+      "name": "JBC Classic",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     },
+     {
+      "raceId": 1113,
+      "name": "JBC Classic",
+      "distance": 2100,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     },
+     {
+      "raceId": 1116,
+      "name": "JBC Classic",
+      "distance": 1800,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     },
+     {
+      "raceId": 1119,
+      "name": "JBC Classic",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     }
+    ]
+   },
+   {
+    "slot": 70,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1020,
+      "name": "Champions Cup",
+      "distance": 1800,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 10000
      }
     ]
    },

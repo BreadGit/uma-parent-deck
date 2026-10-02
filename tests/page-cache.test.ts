@@ -1,7 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { pageCacheMatches, pageRevision, pageEvents } from '../scripts/page-cache.ts';
+import { pageCacheMatches, pageRevision, pageInput, pageEvents, uniqueEffectText } from '../scripts/page-cache.ts';
+
+test('unique effect descriptions retain inline values and conditions after an unlock line', () => {
+  const page = '<h3>Unique Effect</h3><div>Unlocked at level 40</div><div>Gain <span>Training Effectiveness</span> <b>(10)</b> when the bond gauge is at least <span>80</span></div><div>Next effect</div>';
+  assert.equal(uniqueEffectText(page), 'Gain Training Effectiveness (10) when the bond gauge is at least 80');
+  assert.throws(() => uniqueEffectText('<h3>Unique Effect</h3>'));
+  const card = { support_id: 30081 }, sources = {}, payload = 'Gain Training Effectiveness';
+  assert.equal(pageCacheMatches(pageRevision({ card, sources }, payload), pageInput('unique:30081', card, sources), payload), false,
+    'descriptions cached by the truncating parser must be fetched again');
+});
 
 test('page caches expire after source changes or payload corruption', () => {
   const input = { card: { id: 1, unique: { value: 5 } }, events: 'first-revision' };

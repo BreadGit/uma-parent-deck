@@ -800,6 +800,15 @@
   "special": [],
   "dates": []
  },
+ "10082": {
+  "chain": [],
+  "random": [
+   "A Professional's Feelings",
+   "A Professional's Creed"
+  ],
+  "special": [],
+  "dates": []
+ },
  "10083": {
   "chain": [
    "Light Hello, the Event Planner",
@@ -832,6 +841,15 @@
   "random": [
    "The Euphoria of Destruction!",
    "An Electrifying Present!"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "10085": {
+  "chain": [],
+  "random": [
+   "Stay Positive at All Times!",
+   "Stay Positive in All Situations!"
   ],
   "special": [],
   "dates": []
@@ -1459,6 +1477,18 @@
   "random": [
    "Preparing to the MAX!",
    "Helping Out to the MAX!"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "20053": {
+  "chain": [
+   "Don't Go Overboard!",
+   "Going Overboard for You!"
+  ],
+  "random": [
+   "A Thorough Inspection",
+   "A Diligent Effort"
   ],
   "special": [],
   "dates": []
@@ -3005,6 +3035,58 @@
   "random": [
    "Do No Harm",
    "Orders Must Be Followed"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "30122": {
+  "chain": [
+   "One Should Give Gals Their Care",
+   "One Should Show Umadols Their Utmost",
+   "One Should Share Friends' Hometown Love"
+  ],
+  "random": [
+   "Unforeseen Lunch",
+   "Responding to the Unforeseen"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "30123": {
+  "chain": [
+   "The Blazing Chaos of the Morning Star",
+   "A Yet Unnoticed Light",
+   "Clumsy Pair"
+  ],
+  "random": [
+   "Student Council Member!",
+   "Lone Wolf"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "30124": {
+  "chain": [
+   "Great, Another Headache",
+   "A Use for the Blaze",
+   "Twinkles of One Wintry Eve"
+  ],
+  "random": [
+   "Strict but Gracious",
+   "Agile but Strong"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "30125": {
+  "chain": [
+   "Marvelously Grown-Up",
+   "The Secret to Staying Positive",
+   "Guess We're Trapped"
+  ],
+  "random": [
+   "Stay Positive at All Times!",
+   "Stay Positive in All Situations!"
   ],
   "special": [],
   "dates": []

@@ -2,7 +2,7 @@
  "10021": {
   "special": [
    {
-    "i": 1336,
+    "i": 1353,
     "n": "Tazuna, the Director's Secretary",
     "c": [
      {
@@ -27,7 +27,7 @@
     "type": "ft"
    },
    {
-    "i": 1338,
+    "i": 1355,
     "n": "Good Job! ♪",
     "c": [
      {
@@ -54,7 +54,7 @@
     "type": "at"
    },
    {
-    "i": 1342,
+    "i": 1359,
     "n": "From Just a Little Closer",
     "c": [
      {
@@ -74,7 +74,7 @@
     "type": "fs"
    },
    {
-    "i": 1344,
+    "i": 1361,
     "n": "The Usual, Please!",
     "c": [
      {
@@ -94,7 +94,7 @@
     "type": "ff"
    },
    {
-    "i": 1345,
+    "i": 1362,
     "n": "A Bond with Tazuna: Aspirations Entrusted",
     "c": [
      {
@@ -130,7 +130,7 @@
   ],
   "random": [
    {
-    "i": 1347,
+    "i": 1364,
     "n": "My Chosen Way of Life",
     "c": [
      {
@@ -172,7 +172,7 @@
     ]
    },
    {
-    "i": 1340,
+    "i": 1357,
     "n": "Enthusiastic Pair",
     "c": [
      {
@@ -228,7 +228,7 @@
   ],
   "dates": [
    {
-    "i": 1348,
+    "i": 1365,
     "n": "Milk with a Chance of Apples",
     "c": [
      {
@@ -256,7 +256,7 @@
     ]
    },
    {
-    "i": 1350,
+    "i": 1367,
     "n": "Inexplicable Speed",
     "c": [
      {
@@ -279,7 +279,7 @@
     ]
    },
    {
-    "i": 1352,
+    "i": 1369,
     "n": "Memories of Cinema",
     "c": [
      {
@@ -329,7 +329,7 @@
     ]
    },
    {
-    "i": 1354,
+    "i": 1371,
     "n": "A Sigh and a Bandage",
     "c": [
      {
@@ -360,7 +360,7 @@
     ]
    },
    {
-    "i": 1356,
+    "i": 1373,
     "n": "A Surprise Breather",
     "c": [
      {
@@ -397,7 +397,7 @@
  "10022": {
   "special": [
    {
-    "i": 1358,
+    "i": 1375,
     "n": "Fellow Trainer Aoi Kiryuin",
     "c": [
      {
@@ -425,7 +425,7 @@
     "type": "ft"
    },
    {
-    "i": 1359,
+    "i": 1376,
     "n": "Good Job!",
     "c": [
      {
@@ -455,7 +455,7 @@
     "type": "at"
    },
    {
-    "i": 1361,
+    "i": 1378,
     "n": "Gift of Words",
     "c": [
      {
@@ -484,7 +484,7 @@
     "type": "fs"
    },
    {
-    "i": 1362,
+    "i": 1379,
     "n": "The Perfect Place for a Party",
     "c": [
      {
@@ -504,7 +504,7 @@
     "type": "ff"
    },
    {
-    "i": 1363,
+    "i": 1380,
     "n": "A Bond with Aoi: Being a Good Mentor",
     "c": [
      {
@@ -543,7 +543,7 @@
   ],
   "random": [
    {
-    "i": 1364,
+    "i": 1381,
     "n": "Trainer Tip: Always Improve Your Coaching",
     "c": [
      {
@@ -585,7 +585,7 @@
     ]
    },
    {
-    "i": 1360,
+    "i": 1377,
     "n": "The Search for a Hobby",
     "c": [
      {
@@ -641,7 +641,7 @@
   ],
   "dates": [
    {
-    "i": 1365,
+    "i": 1382,
     "n": "Studying with Your Body!",
     "c": [
      {
@@ -669,7 +669,7 @@
     ]
    },
    {
-    "i": 1366,
+    "i": 1383,
     "n": "How I Play at the Park",
     "c": [
      {
@@ -733,7 +733,7 @@
     ]
    },
    {
-    "i": 1367,
+    "i": 1384,
     "n": "Reckless Training",
     "c": [
      {
@@ -761,7 +761,7 @@
     ]
    },
    {
-    "i": 1368,
+    "i": 1385,
     "n": "The Joy of Respect",
     "c": [
      {
@@ -789,7 +789,7 @@
     ]
    },
    {
-    "i": 1369,
+    "i": 1386,
     "n": "Chasing Dreams",
     "c": [
      {
@@ -850,7 +850,7 @@
  "10060": {
   "special": [
    {
-    "i": 1370,
+    "i": 1387,
     "n": "Riko Kashimoto, the Hard Worker",
     "c": [
      {
@@ -882,7 +882,7 @@
     "type": "ft"
    },
    {
-    "i": 1371,
+    "i": 1388,
     "n": "Good Work",
     "c": [
      {
@@ -912,7 +912,7 @@
     "type": "at"
    },
    {
-    "i": 1373,
+    "i": 1390,
     "n": "A Priceless Connection",
     "c": [
      {
@@ -939,7 +939,7 @@
     "type": "fs"
    },
    {
-    "i": 1374,
+    "i": 1391,
     "n": "We Need This Sometimes",
     "c": [
      {
@@ -966,7 +966,7 @@
     "type": "ff"
    },
    {
-    "i": 1375,
+    "i": 1392,
     "n": "Bonding with Riko: No More Regrets",
     "c": [
      {
@@ -1005,7 +1005,7 @@
   ],
   "random": [
    {
-    "i": 1376,
+    "i": 1393,
     "n": "The Kashimoto Art of Tidying Up",
     "c": [
      {
@@ -1039,7 +1039,7 @@
     ]
    },
    {
-    "i": 1372,
+    "i": 1389,
     "n": "Unexpected Side",
     "c": [
      {
@@ -1133,7 +1133,7 @@
   ],
   "dates": [
    {
-    "i": 1377,
+    "i": 1394,
     "n": "Sing from the Heart",
     "c": [
      {
@@ -1161,7 +1161,7 @@
     ]
    },
    {
-    "i": 1378,
+    "i": 1395,
     "n": "A Change of Pace",
     "c": [
      {
@@ -1193,7 +1193,7 @@
     ]
    },
    {
-    "i": 1379,
+    "i": 1396,
     "n": "Picture Their Joy",
     "c": [
      {
@@ -1243,7 +1243,7 @@
     ]
    },
    {
-    "i": 1380,
+    "i": 1397,
     "n": "Confused by Kindness",
     "c": [
      {
@@ -1279,7 +1279,7 @@
     ]
    },
    {
-    "i": 1381,
+    "i": 1398,
     "n": "A Peek at Her Heart",
     "c": [
      {
@@ -1341,7 +1341,7 @@
  "10074": {
   "special": [
    {
-    "i": 1389,
+    "i": 1406,
     "n": "Just a Poke ☆",
     "c": [
      {
@@ -1384,7 +1384,7 @@
     "type": "tf"
    },
    {
-    "i": 1382,
+    "i": 1399,
     "n": "Suspicious, But Safe?!",
     "c": [
      {
@@ -1406,7 +1406,7 @@
     "type": "ft"
    },
    {
-    "i": 1383,
+    "i": 1400,
     "n": "An Accurate Acupuncturist ☆",
     "c": [
      {
@@ -1444,7 +1444,7 @@
     "type": "at"
    },
    {
-    "i": 1385,
+    "i": 1402,
     "n": "Healing Hot Spring Holiday ☆",
     "c": [
      {
@@ -1465,7 +1465,7 @@
     "type": "fs"
    },
    {
-    "i": 1386,
+    "i": 1403,
     "n": "An Encouraging Entrustment?!",
     "c": [
      {
@@ -1486,7 +1486,7 @@
     "type": "ff"
    },
    {
-    "i": 1387,
+    "i": 1404,
     "n": "A Bond Bolstered by Booze?",
     "c": [
      {
@@ -1520,7 +1520,7 @@
   ],
   "random": [
    {
-    "i": 1388,
+    "i": 1405,
     "n": "The Applications of Acupuncture",
     "c": [
      {
@@ -1564,7 +1564,7 @@
     ]
    },
    {
-    "i": 1384,
+    "i": 1401,
     "n": "A Pleasant Practice Partner?",
     "c": [
      {
@@ -1670,7 +1670,7 @@
   ],
   "dates": [
    {
-    "i": 1390,
+    "i": 1407,
     "n": "Trusty Teamwork?!",
     "c": [
      {
@@ -1715,7 +1715,7 @@
     ]
    },
    {
-    "i": 1391,
+    "i": 1408,
     "n": "Storied ☆ Sunglasses",
     "c": [
      {
@@ -1760,7 +1760,7 @@
     ]
    },
    {
-    "i": 1392,
+    "i": 1409,
     "n": "The Final Race ☆ For a Worry-Free Future!",
     "c": [
      {
@@ -1853,7 +1853,7 @@
  "10083": {
   "special": [
    {
-    "i": 1393,
+    "i": 1410,
     "n": "Light Hello, the Event Planner",
     "c": [
      {
@@ -1882,7 +1882,7 @@
     "type": "ft"
    },
    {
-    "i": 1394,
+    "i": 1411,
     "n": "Another Day's Hard Work!",
     "c": [
      {
@@ -1935,7 +1935,7 @@
     "type": "at"
    },
    {
-    "i": 1396,
+    "i": 1413,
     "n": "Dawn Under the Waning Moon",
     "c": [
      {
@@ -1959,7 +1959,7 @@
     "type": "fs"
    },
    {
-    "i": 1397,
+    "i": 1414,
     "n": "Until It Shines in Full",
     "c": [
      {
@@ -1983,7 +1983,7 @@
     "type": "ff"
    },
    {
-    "i": 1398,
+    "i": 1415,
     "n": "Bonding with Light Hello: Letting Loose",
     "c": [
      {
@@ -2038,7 +2038,7 @@
   ],
   "random": [
    {
-    "i": 1399,
+    "i": 1416,
     "n": "Some Crafty Research ♪",
     "c": [
      {
@@ -2080,7 +2080,7 @@
     ]
    },
    {
-    "i": 1395,
+    "i": 1412,
     "n": "Embrace Those Emotions!",
     "c": [
      {
@@ -2144,7 +2144,7 @@
   ],
   "dates": [
    {
-    "i": 1400,
+    "i": 1417,
     "n": "Repose in the Lunar Mare",
     "c": [
      {
@@ -2172,7 +2172,7 @@
     ]
    },
    {
-    "i": 1401,
+    "i": 1418,
     "n": "Tycho's Radiance",
     "c": [
      {
@@ -2200,7 +2200,7 @@
     ]
    },
    {
-    "i": 1402,
+    "i": 1419,
     "n": "Hidden Beneath the Regolith",
     "c": [
      {
@@ -2246,7 +2246,7 @@
     ]
    },
    {
-    "i": 1403,
+    "i": 1420,
     "n": "Scaling Mons Huygens",
     "c": [
      {
@@ -2274,7 +2274,7 @@
     ]
    },
    {
-    "i": 1404,
+    "i": 1421,
     "n": "At Rainbow Cove",
     "c": [
      {
@@ -2336,7 +2336,7 @@
  "20021": {
   "special": [
    {
-    "i": 1358,
+    "i": 1375,
     "n": "Fellow Trainer Aoi Kiryuin",
     "c": [
      {
@@ -2364,7 +2364,7 @@
     "type": "ft"
    },
    {
-    "i": 1359,
+    "i": 1376,
     "n": "Good Job!",
     "c": [
      {
@@ -2394,7 +2394,7 @@
     "type": "at"
    },
    {
-    "i": 1361,
+    "i": 1378,
     "n": "Gift of Words",
     "c": [
      {
@@ -2423,7 +2423,7 @@
     "type": "fs"
    },
    {
-    "i": 1362,
+    "i": 1379,
     "n": "The Perfect Place for a Party",
     "c": [
      {
@@ -2443,7 +2443,7 @@
     "type": "ff"
    },
    {
-    "i": 1363,
+    "i": 1380,
     "n": "A Bond with Aoi: Being a Good Mentor",
     "c": [
      {
@@ -2482,7 +2482,7 @@
   ],
   "random": [
    {
-    "i": 1364,
+    "i": 1381,
     "n": "Trainer Tip: Always Improve Your Coaching",
     "c": [
      {
@@ -2524,7 +2524,7 @@
     ]
    },
    {
-    "i": 1360,
+    "i": 1377,
     "n": "The Search for a Hobby",
     "c": [
      {
@@ -2580,7 +2580,7 @@
   ],
   "dates": [
    {
-    "i": 1365,
+    "i": 1382,
     "n": "Studying with Your Body!",
     "c": [
      {
@@ -2608,7 +2608,7 @@
     ]
    },
    {
-    "i": 1366,
+    "i": 1383,
     "n": "How I Play at the Park",
     "c": [
      {
@@ -2672,7 +2672,7 @@
     ]
    },
    {
-    "i": 1367,
+    "i": 1384,
     "n": "Reckless Training",
     "c": [
      {
@@ -2700,7 +2700,7 @@
     ]
    },
    {
-    "i": 1368,
+    "i": 1385,
     "n": "The Joy of Respect",
     "c": [
      {
@@ -2728,7 +2728,7 @@
     ]
    },
    {
-    "i": 1369,
+    "i": 1386,
     "n": "Chasing Dreams",
     "c": [
      {
@@ -2795,7 +2795,7 @@
  "30021": {
   "special": [
    {
-    "i": 1336,
+    "i": 1353,
     "n": "Tazuna, the Director's Secretary",
     "c": [
      {
@@ -2820,7 +2820,7 @@
     "type": "ft"
    },
    {
-    "i": 1338,
+    "i": 1355,
     "n": "Good Job! ♪",
     "c": [
      {
@@ -2847,7 +2847,7 @@
     "type": "at"
    },
    {
-    "i": 1342,
+    "i": 1359,
     "n": "From Just a Little Closer",
     "c": [
      {
@@ -2867,7 +2867,7 @@
     "type": "fs"
    },
    {
-    "i": 1344,
+    "i": 1361,
     "n": "The Usual, Please!",
     "c": [
      {
@@ -2887,7 +2887,7 @@
     "type": "ff"
    },
    {
-    "i": 1345,
+    "i": 1362,
     "n": "A Bond with Tazuna: Aspirations Entrusted",
     "c": [
      {
@@ -2923,7 +2923,7 @@
   ],
   "random": [
    {
-    "i": 1347,
+    "i": 1364,
     "n": "My Chosen Way of Life",
     "c": [
      {
@@ -2965,7 +2965,7 @@
     ]
    },
    {
-    "i": 1340,
+    "i": 1357,
     "n": "Enthusiastic Pair",
     "c": [
      {
@@ -3021,7 +3021,7 @@
   ],
   "dates": [
    {
-    "i": 1348,
+    "i": 1365,
     "n": "Milk with a Chance of Apples",
     "c": [
      {
@@ -3049,7 +3049,7 @@
     ]
    },
    {
-    "i": 1350,
+    "i": 1367,
     "n": "Inexplicable Speed",
     "c": [
      {
@@ -3072,7 +3072,7 @@
     ]
    },
    {
-    "i": 1352,
+    "i": 1369,
     "n": "Memories of Cinema",
     "c": [
      {
@@ -3122,7 +3122,7 @@
     ]
    },
    {
-    "i": 1354,
+    "i": 1371,
     "n": "A Sigh and a Bandage",
     "c": [
      {
@@ -3153,7 +3153,7 @@
     ]
    },
    {
-    "i": 1356,
+    "i": 1373,
     "n": "A Surprise Breather",
     "c": [
      {
@@ -3215,7 +3215,7 @@
  "30036": {
   "special": [
    {
-    "i": 1370,
+    "i": 1387,
     "n": "Riko Kashimoto, the Hard Worker",
     "c": [
      {
@@ -3247,7 +3247,7 @@
     "type": "ft"
    },
    {
-    "i": 1371,
+    "i": 1388,
     "n": "Good Work",
     "c": [
      {
@@ -3277,7 +3277,7 @@
     "type": "at"
    },
    {
-    "i": 1373,
+    "i": 1390,
     "n": "A Priceless Connection",
     "c": [
      {
@@ -3304,7 +3304,7 @@
     "type": "fs"
    },
    {
-    "i": 1374,
+    "i": 1391,
     "n": "We Need This Sometimes",
     "c": [
      {
@@ -3331,7 +3331,7 @@
     "type": "ff"
    },
    {
-    "i": 1375,
+    "i": 1392,
     "n": "Bonding with Riko: No More Regrets",
     "c": [
      {
@@ -3370,7 +3370,7 @@
   ],
   "random": [
    {
-    "i": 1376,
+    "i": 1393,
     "n": "The Kashimoto Art of Tidying Up",
     "c": [
      {
@@ -3404,7 +3404,7 @@
     ]
    },
    {
-    "i": 1372,
+    "i": 1389,
     "n": "Unexpected Side",
     "c": [
      {
@@ -3498,7 +3498,7 @@
   ],
   "dates": [
    {
-    "i": 1377,
+    "i": 1394,
     "n": "Sing from the Heart",
     "c": [
      {
@@ -3526,7 +3526,7 @@
     ]
    },
    {
-    "i": 1378,
+    "i": 1395,
     "n": "A Change of Pace",
     "c": [
      {
@@ -3558,7 +3558,7 @@
     ]
    },
    {
-    "i": 1379,
+    "i": 1396,
     "n": "Picture Their Joy",
     "c": [
      {
@@ -3608,7 +3608,7 @@
     ]
    },
    {
-    "i": 1380,
+    "i": 1397,
     "n": "Confused by Kindness",
     "c": [
      {
@@ -3644,7 +3644,7 @@
     ]
    },
    {
-    "i": 1381,
+    "i": 1398,
     "n": "A Peek at Her Heart",
     "c": [
      {
@@ -3714,7 +3714,7 @@
  "30052": {
   "special": [
    {
-    "i": 1393,
+    "i": 1410,
     "n": "Light Hello, the Event Planner",
     "c": [
      {
@@ -3743,7 +3743,7 @@
     "type": "ft"
    },
    {
-    "i": 1394,
+    "i": 1411,
     "n": "Another Day's Hard Work!",
     "c": [
      {
@@ -3796,7 +3796,7 @@
     "type": "at"
    },
    {
-    "i": 1396,
+    "i": 1413,
     "n": "Dawn Under the Waning Moon",
     "c": [
      {
@@ -3820,7 +3820,7 @@
     "type": "fs"
    },
    {
-    "i": 1397,
+    "i": 1414,
     "n": "Until It Shines in Full",
     "c": [
      {
@@ -3844,7 +3844,7 @@
     "type": "ff"
    },
    {
-    "i": 1398,
+    "i": 1415,
     "n": "Bonding with Light Hello: Letting Loose",
     "c": [
      {
@@ -3899,7 +3899,7 @@
   ],
   "random": [
    {
-    "i": 1399,
+    "i": 1416,
     "n": "Some Crafty Research ♪",
     "c": [
      {
@@ -3941,7 +3941,7 @@
     ]
    },
    {
-    "i": 1395,
+    "i": 1412,
     "n": "Embrace Those Emotions!",
     "c": [
      {
@@ -4005,7 +4005,7 @@
   ],
   "dates": [
    {
-    "i": 1400,
+    "i": 1417,
     "n": "Repose in the Lunar Mare",
     "c": [
      {
@@ -4033,7 +4033,7 @@
     ]
    },
    {
-    "i": 1401,
+    "i": 1418,
     "n": "Tycho's Radiance",
     "c": [
      {
@@ -4061,7 +4061,7 @@
     ]
    },
    {
-    "i": 1402,
+    "i": 1419,
     "n": "Hidden Beneath the Regolith",
     "c": [
      {
@@ -4107,7 +4107,7 @@
     ]
    },
    {
-    "i": 1403,
+    "i": 1420,
     "n": "Scaling Mons Huygens",
     "c": [
      {
@@ -4135,7 +4135,7 @@
     ]
    },
    {
-    "i": 1404,
+    "i": 1421,
     "n": "At Rainbow Cove",
     "c": [
      {
@@ -4491,7 +4491,7 @@
     ]
    },
    {
-    "i": 1486,
+    "i": 1503,
     "n": "Emulation Is the Sincerest Form of Flattery",
     "c": [
      {
@@ -4527,7 +4527,7 @@
     "type": "pd"
    },
    {
-    "i": 1488,
+    "i": 1505,
     "n": "The Bright Future Ahead",
     "c": [
      {
@@ -4561,7 +4561,7 @@
   ],
   "special": [
    {
-    "i": 1485,
+    "i": 1502,
     "n": "Diamonds in the Rough",
     "c": [
      {
@@ -4581,7 +4581,7 @@
     "type": "ft"
    },
    {
-    "i": 1487,
+    "i": 1504,
     "n": "We'll Get Stronger, Together",
     "c": [
      {
@@ -4707,7 +4707,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 1487,
+       "i": 1504,
        "n": "We'll Get Stronger, Together",
        "c": [
         {
@@ -4815,7 +4815,7 @@
     ]
    },
    {
-    "i": 1489,
+    "i": 1506,
     "n": "The Heroic Trio Running Side by Side",
     "c": [
      {
@@ -4839,7 +4839,7 @@
     "type": "fs"
    },
    {
-    "i": 1490,
+    "i": 1507,
     "n": "With Our Powers Combined",
     "c": [
      {
@@ -4863,7 +4863,7 @@
     "type": "ff"
    },
    {
-    "i": 1491,
+    "i": 1508,
     "n": "Dreaming the Same Dream",
     "c": [
      {
@@ -4898,7 +4898,7 @@
   ],
   "dates_random": [
    {
-    "i": 1492,
+    "i": 1509,
     "n": "#Studenting",
     "c": [
      {
@@ -4927,7 +4927,7 @@
     "relevant_char": 1017
    },
    {
-    "i": 1493,
+    "i": 1510,
     "n": "The Monarch's Pride",
     "c": [
      {
@@ -4960,7 +4960,7 @@
     "relevant_char": 1003
    },
    {
-    "i": 1494,
+    "i": 1511,
     "n": "A Leisurely Stroll for Two",
     "c": [
      {
@@ -4989,7 +4989,7 @@
     "relevant_char": 1073
    },
    {
-    "i": 1495,
+    "i": 1512,
     "n": "I Wanna Be Just Like Prez!",
     "c": [
      {
@@ -5035,7 +5035,7 @@
     ]
    },
    {
-    "i": 1496,
+    "i": 1513,
     "n": "I Want to Be Just Like President Rudolf!",
     "c": [
      {
@@ -5084,7 +5084,7 @@
  "30080": {
   "special": [
    {
-    "i": 1389,
+    "i": 1406,
     "n": "Just a Poke ☆",
     "c": [
      {
@@ -5127,7 +5127,7 @@
     "type": "tf"
    },
    {
-    "i": 1382,
+    "i": 1399,
     "n": "Suspicious, But Safe?!",
     "c": [
      {
@@ -5149,7 +5149,7 @@
     "type": "ft"
    },
    {
-    "i": 1383,
+    "i": 1400,
     "n": "An Accurate Acupuncturist ☆",
     "c": [
      {
@@ -5187,7 +5187,7 @@
     "type": "at"
    },
    {
-    "i": 1385,
+    "i": 1402,
     "n": "Healing Hot Spring Holiday ☆",
     "c": [
      {
@@ -5208,7 +5208,7 @@
     "type": "fs"
    },
    {
-    "i": 1386,
+    "i": 1403,
     "n": "An Encouraging Entrustment?!",
     "c": [
      {
@@ -5229,7 +5229,7 @@
     "type": "ff"
    },
    {
-    "i": 1387,
+    "i": 1404,
     "n": "A Bond Bolstered by Booze?",
     "c": [
      {
@@ -5263,7 +5263,7 @@
   ],
   "random": [
    {
-    "i": 1388,
+    "i": 1405,
     "n": "The Applications of Acupuncture",
     "c": [
      {
@@ -5307,7 +5307,7 @@
     ]
    },
    {
-    "i": 1384,
+    "i": 1401,
     "n": "A Pleasant Practice Partner?",
     "c": [
      {
@@ -5413,7 +5413,7 @@
   ],
   "dates": [
    {
-    "i": 1390,
+    "i": 1407,
     "n": "Trusty Teamwork?!",
     "c": [
      {
@@ -5458,7 +5458,7 @@
     ]
    },
    {
-    "i": 1391,
+    "i": 1408,
     "n": "Storied ☆ Sunglasses",
     "c": [
      {
@@ -5503,7 +5503,7 @@
     ]
    },
    {
-    "i": 1392,
+    "i": 1409,
     "n": "The Final Race ☆ For a Worry-Free Future!",
     "c": [
      {
@@ -6045,7 +6045,7 @@
     ]
    },
    {
-    "i": 1472,
+    "i": 1489,
     "n": "We're All Shining Stars",
     "c": [
      {
@@ -6081,7 +6081,7 @@
     "type": "pd"
    },
    {
-    "i": 1474,
+    "i": 1491,
     "n": "Teamwork Makes the Dream Work!",
     "c": [
      {
@@ -6119,7 +6119,7 @@
   ],
   "special": [
    {
-    "i": 1471,
+    "i": 1488,
     "n": "Every One of Us Has a Dream",
     "c": [
      {
@@ -6143,7 +6143,7 @@
     "type": "ft"
    },
    {
-    "i": 1473,
+    "i": 1490,
     "n": "A Second Serving of Training",
     "c": [
      {
@@ -6207,7 +6207,7 @@
     "type": "at"
    },
    {
-    "i": 1475,
+    "i": 1492,
     "n": "Beyond the Horizon of Our Dreams",
     "c": [
      {
@@ -6227,7 +6227,7 @@
     "type": "fs"
    },
    {
-    "i": 1476,
+    "i": 1493,
     "n": "Another Day, Another Step Towards Our Dream",
     "c": [
      {
@@ -6247,7 +6247,7 @@
     "type": "ff"
    },
    {
-    "i": 1477,
+    "i": 1494,
     "n": "The Luckiest Racer in Japan",
     "c": [
      {
@@ -6282,7 +6282,7 @@
   ],
   "dates_random": [
    {
-    "i": 1478,
+    "i": 1495,
     "n": "I Shall Have the Last Laugh",
     "c": [
      {
@@ -6319,7 +6319,7 @@
     "relevant_char": 1013
    },
    {
-    "i": 1479,
+    "i": 1496,
     "n": "The Secret to Her Success",
     "c": [
      {
@@ -6348,7 +6348,7 @@
     "relevant_char": 1030
    },
    {
-    "i": 1480,
+    "i": 1497,
     "n": "Common Threads, Dreams Entwined",
     "c": [
      {
@@ -6376,7 +6376,7 @@
     "relevant_char": 1035
    },
    {
-    "i": 1481,
+    "i": 1498,
     "n": "It's Tough Being a Little Sister",
     "c": [
      {
@@ -6410,7 +6410,7 @@
     "relevant_char": 1016
    },
    {
-    "i": 1482,
+    "i": 1499,
     "n": "The Scenery that Lies Beyond",
     "c": [
      {
@@ -6442,7 +6442,7 @@
     "relevant_char": 1002
    },
    {
-    "i": 1483,
+    "i": 1500,
     "n": "I Want to Share My Dream",
     "c": [
      {
@@ -6462,7 +6462,7 @@
     "relevant_char": 1001
    },
    {
-    "i": 1484,
+    "i": 1501,
     "n": "The Meaning of Support",
     "c": [
      {

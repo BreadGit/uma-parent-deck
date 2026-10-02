@@ -1,10 +1,22 @@
 import { createHash } from 'node:crypto';
 
 export type PageRevision = { input: string; payload: string };
+export const pageInput = (key: string, card: unknown, sources: Record<string, string>) =>
+  ({ card, sources, ...(key.startsWith('unique:') ? { textParser: 1 } : {}) });
 export const fingerprint = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export const pageRevision = (input: unknown, payload: unknown): PageRevision => ({ input: fingerprint(input), payload: fingerprint(payload) });
 export function pageCacheMatches(revision: PageRevision | undefined, input: unknown, payload: unknown): boolean {
   return !!revision && payload != null && revision.input === fingerprint(input) && revision.payload === fingerprint(payload);
+}
+
+/** Inline formatting must not split an effect before its value or activation condition. */
+export function uniqueEffectText(page: string): string {
+  const text = page.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<\/?(?:div|p|h[1-6]|br)\b[^>]*>/gi, '\n').replace(/<[^>]+>/g, '');
+  const after = text.split(/Unique Effect\s*\n/)[1] ?? '';
+  const line = after.split('\n').map(l => l.trim()).find(l => l && !/^Unlocked at level \d+$/.test(l));
+  if (!line) throw new Error('No unique effect description');
+  return line.replace(/&amp;/g, '&').replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"');
 }
 
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);

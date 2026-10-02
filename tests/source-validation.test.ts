@@ -4,7 +4,7 @@ import { must } from './helpers.ts';
 import { readFileSync } from 'node:fs';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from '../scripts/event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables, type NormalizedTables, type PageSources, type SourceTables } from '../scripts/source-validation.ts';
-import { fingerprint, pageRevision, type PageRevision } from '../scripts/page-cache.ts';
+import { fingerprint, pageRevision, pageInput, type PageRevision } from '../scripts/page-cache.ts';
 
 const read = (name: string) => JSON.parse(readFileSync(new URL(`../data/${name}.json`, import.meta.url), 'utf8'));
 const keys = ['support-cards', 'support_effects', 'skills', 'character-cards', 'characters', 'races', 'ura-races', 'ura-objectives', 'scenarios', 'en/db-files/single_mode_rank',
@@ -94,7 +94,7 @@ test('recorded page revisions reject interrupted refreshes and stale page payloa
   for (const card of raw['support-cards']!.filter((card) => card.release_en)) {
     const payload = { names: pages.eventNames[card.support_id], ...(['friend', 'group'].includes(card.type) ? { full: pages.palGroupEvents[card.support_id] } : {}) };
     revisions[`support:${card.support_id}`] = pageRevision({ card, sources }, payload);
-    if (card.unique?.effects.some((effect: { type: number }) => effect.type >= 100)) revisions[`unique:${card.support_id}`] = pageRevision({ card, sources }, uniqueTexts[card.support_id]);
+    if (card.unique?.effects.some((effect: { type: number }) => effect.type >= 100)) revisions[`unique:${card.support_id}`] = pageRevision(pageInput(`unique:${card.support_id}`, card, sources), uniqueTexts[card.support_id]);
   }
   const seen = new Set();
   for (const card of raw['character-cards']!.filter((card) => card.release_en).sort((a, b) => a.card_id - b.card_id)) {

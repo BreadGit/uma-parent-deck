@@ -17,7 +17,7 @@
  "30094": "The less energy you have, the more Friendship Bonus you'll gain",
  "30095": "Gain Training Effectiveness (5%); gain additional 3% Training Effectiveness for every 4 points of maximum Energy above 100, up to (20%) at 120",
  "30097": "Gain Wit Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
- "30098": "Increases skill point gain when training together",
+ "30098": "Increases skill point gain when training together (1)",
  "30099": "Gain Training Effectiveness (1%) for every 30 combined support bond, up to (20%) at 600",
  "30100": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
  "30101": "Gain Friendship Bonus (20) when the bond gauge is full",
@@ -40,6 +40,10 @@
  "30119": "Gain Power Bonus (2) when the bond gauge is at least 80",
  "30120": "Gain Guts Bonus (3) when the bond gauge is full",
  "30121": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
+ "30122": "Gain Power Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
+ "30123": "Gain Training Effectiveness (5) per every level of the current training facility",
+ "30124": "Gain Speed Bonus (1) and Skill Point Bonus (1) when the bond gauge is at least 80",
+ "30125": "Gain Stamina Bonus (2) when the bond gauge is at least 80",
  "30145": "Gain Power Bonus (2) when the bond gauge is at least 80",
  "30146": "All support cards gain Initial Friendship Gauge (5)"
 }

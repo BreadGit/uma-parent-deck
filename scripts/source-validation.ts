@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal } from './event-import.ts';
-import { fingerprint, pageCacheMatches, type PageRevision } from './page-cache.ts';
+import { fingerprint, pageCacheMatches, pageInput, type PageRevision } from './page-cache.ts';
 
 // Source JSON has several unrelated schemas. Checks below validate values before normalization or comparison.
 type Row = Record<string, any>;
@@ -78,7 +78,7 @@ export function validatePageRevisions(raw: SourceTables, pages: PageSources, uni
   const files = ['training_events__ssr', 'training_events__sr', 'training_events__friend', 'training_events__group',
     'training_events__shared', 'training_events__char', 'training_events__char_card', 'dict__evrew'];
   const sources = Object.fromEntries(files.map((key) => [key, fingerprint(raw[key.replace('__', '/')])]));
-  const current = (key: string, card: Row, payload: unknown) => check(pageCacheMatches(revisions[key], { card, sources }, payload), `${key} page cache does not match its source revision; finish npm run fetch before normalizing`);
+  const current = (key: string, card: Row, payload: unknown) => check(pageCacheMatches(revisions[key], pageInput(key, card, sources), payload), `${key} page cache does not match its source revision; finish npm run fetch before normalizing`);
   for (const card of global(raw['support-cards']!)) {
     current(`support:${card.support_id}`, card, { names: pages.eventNames[card.support_id], ...(['friend', 'group'].includes(card.type) ? { full: pages.palGroupEvents[card.support_id] } : {}) });
     if (card.unique?.effects.some((effect: Row) => effect.type >= 100)) current(`unique:${card.support_id}`, card, uniqueTexts[card.support_id]);
