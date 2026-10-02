@@ -24,20 +24,41 @@ let sources: Source[] = [], rows: ReviewRow[] = [];
 let busy = false, status = '', error = '', query = '', reviewOnly = false;
 let nextKey = 1, generation = 0;
 let worker: Worker | null = null;
+let workerError: Error | null = null;
 let references: Promise<Reference[]> | null = null;
 let rejectScan: ((reason: Error) => void) | null = null;
 
 function change() { paint(); }
 function edit(row: ReviewRow, values: Partial<ReviewRow>) { Object.assign(row, values); change(); }
 function post(message: WorkerRequest) { worker!.postMessage(message); }
-async function scan(canvas: HTMLCanvasElement, name: string): Promise<ScanResult> {
+function failWorker() {
+  workerError = new Error('worker');
+  rejectScan?.(workerError); rejectScan = null;
+}
+function startWorker(loaded: Reference[]): Promise<void> {
+  const current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+  worker = current; workerError = null;
   return new Promise((resolve, reject) => {
     rejectScan = reject;
-    worker!.onerror = () => reject(new Error('worker'));
-    worker!.onmessage = ({ data }) => {
+    current.onerror = current.onmessageerror = () => { if (worker === current) failWorker(); };
+    current.onmessage = ({ data }) => {
+      if (worker !== current) return;
+      if (data.kind === 'ready') { rejectScan = null; resolve(); }
+      else failWorker();
+    };
+    post({ kind: 'references', references: loaded });
+  });
+}
+async function scan(canvas: HTMLCanvasElement, name: string): Promise<ScanResult> {
+  if (workerError) throw workerError;
+  const current = worker!;
+  return new Promise((resolve, reject) => {
+    rejectScan = reject;
+    current.onmessage = ({ data }) => {
+      if (worker !== current) return;
       if (data.kind === 'progress') { status = C.scanning(name, data.done, data.total); change(); }
       else if (data.kind === 'result') { rejectScan = null; resolve(data.result); }
-      else { rejectScan = null; reject(new Error('worker')); }
+      else failWorker();
     };
     post({ kind: 'scan', image: pixels(canvas) });
   });
@@ -52,8 +73,7 @@ async function addFiles(files: File[]) {
       references ??= loadReferences(cards).catch(e => { references = null; throw e; });
       const loaded = await references;
       if (token !== generation) return;
-      worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
-      post({ kind: 'references', references: loaded });
+      await startWorker(loaded);
     }
     for (const file of files) {
       if (token !== generation) break;
@@ -81,7 +101,7 @@ async function addFiles(files: File[]) {
   } catch {
     if (token === generation) {
       error = worker ? C.scannerFailed : C.referencesFailed;
-      worker?.terminate(); worker = null;
+      worker?.terminate(); worker = null; rejectScan = null;
     }
   } finally {
     if (token === generation) { busy = false; status = ''; change(); }

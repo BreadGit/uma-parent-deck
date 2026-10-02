@@ -4,7 +4,11 @@ export type WorkerRequest = { kind: 'references'; references: Reference[] } | { 
 let recognize: ReturnType<typeof createRecognizer> | null = null;
 self.onmessage = ({ data }: MessageEvent<WorkerRequest>) => {
   try {
-    if (data.kind === 'references') { recognize = createRecognizer(data.references); return; }
+    if (data.kind === 'references') {
+      recognize = createRecognizer(data.references);
+      self.postMessage({ kind: 'ready' });
+      return;
+    }
     if (!recognize) throw new Error('Scanner references have not loaded');
     const result = recognize(data.image, (done, total) => self.postMessage({ kind: 'progress', done, total }));
     self.postMessage({ kind: 'result', result });
