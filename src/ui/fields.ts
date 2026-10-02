@@ -7,10 +7,8 @@ import type { RunPlan } from '../model/run.ts';
 import { COPY } from './copy.ts';
 import { refresh, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
-
-export { options, numbered, selectValue, inputValue, inputNumber, isChecked } from './form.ts';
-export type { Option } from './form.ts';
-import { options, selectValue, inputValue, type Option } from './form.ts';
+import { options, numbered, selectValue, inputValue, inputNumber, isChecked, type Option } from './form.ts';
+export { options, numbered, selectValue, inputValue, inputNumber, isChecked, type Option };
 
 export interface SearchBox<T> {
   id: string;
