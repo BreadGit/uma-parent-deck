@@ -147,7 +147,7 @@ try {
   let editor = await openTile(30125);
   let picker = editor.locator('[data-card]');
   await picker.fill('no-such-card');
-  assert.match(await page.getByRole('status').textContent(), /No cards match/);
+  assert.match(await page.locator('.scan-no-matches [role="status"]').textContent(), /No cards match/);
   await picker.press('Enter');
   assert.equal(await picker.getAttribute('data-card-id'), '30125', 'no results cannot change the selection');
   await picker.press('Escape');

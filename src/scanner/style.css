@@ -92,7 +92,6 @@
 .scan-mode input { margin-top: 3px; }
 .scan-change-list p { overflow-wrap: anywhere; }
 .scan-bar { position: sticky; bottom: 12px; z-index: 6; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; margin: 0; padding: 10px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: 0 6px 18px var(--shadow); }
-.scan-bar-status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; min-width: 0; flex: 1 1 240px; }
 .scan-bar .primary { flex: none; }
 body.scanner-open { overflow: hidden; }
 @media (max-width: 500px) {
@@ -134,5 +133,5 @@ body.scanner-open { overflow: hidden; }
 /* The bar floats over content, so it keeps its background and dims only what it holds. */
 .scan-bar.scan-waiting { opacity: 1; }
 .scan-bar.scan-waiting > * { opacity: .5; }
-.scan-reading { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+.scan-reading { display: inline-flex; align-items: center; gap: 8px; }
 .scan-summary-note { margin: 0 0 10px; }

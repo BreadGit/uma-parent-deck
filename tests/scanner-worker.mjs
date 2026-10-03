@@ -63,7 +63,7 @@ async function crash() {
 }
 async function stop(count) {
   await page.locator('[data-stop]').click();
-  assert.equal(await page.getByRole('status').textContent(), 'Stopped');
+  assert.equal(await page.locator('[data-reading]').count(), 0, 'stopping removes the reading indicator');
   assert.deepEqual(await page.locator('[role="alert"]').allTextContents(), []);
   assert.equal(await readings(), count, 'cancellation retains completed readings');
 }
@@ -93,7 +93,8 @@ try {
   await holdScreenshot();
   await start();
   await page.waitForFunction(() => window.screenshotPending);
-  assert.equal(await page.locator('[data-bar] .scan-spinner').count(), 1, 'reading shows a spinner in the action bar');
+  assert.equal(await page.locator('[data-reading] .scan-spinner').count(), 1, 'reading shows a spinner in step 2');
+  assert.equal(await page.locator('[data-bar] .scan-spinner').count(), 0, 'the action bar keeps one shape');
   await crash();
   await page.evaluate(() => window.releaseScreenshot());
   await failed(20);

@@ -229,11 +229,11 @@ export function createScanner(host: ScannerHost): Scanner {
   function uploadStep() {
     const failed = sources.filter(s => s.error), stopped = sources.filter(s => s.stopped);
     const readings = sources.reduce((n, s) => n + s.count, 0), rare = sources.reduce((n, s) => n + s.rare, 0);
-    const started = sources.length > 0;
+    const started = sources.length > 0 || busy;
     return html`<section class="panel scan-upload ${dragging ? 'scan-dragging' : ''}" data-dropzone
       @dragenter=${onDragOver} @dragover=${onDragOver} @dragleave=${onDragLeave} @drop=${onDrop}>
       ${stepHead(1, C.stepScreenshots, started ? html`<span data-batch>${C.batchSummary(sources.length, readings, rare)}</span>` : nothing,
-        started ? fileButton(C.addMore, 'small') : nothing)}
+        busy ? html`<button data-stop class="small" @click=${stop}>${C.cancel}</button>` : started ? fileButton(C.addMore, 'small') : nothing)}
       ${started ? html`<details ?open=${sourcesOpen} @toggle=${toggled(v => { sourcesOpen = v; })}>
           <summary>${C.showScreenshots}</summary>${gallery()}</details>`
         : html`<div class="scan-dropzone">${fileButton(C.choose)}<p class="muted">${C.drop}</p><p class="scan-privacy">${C.privacy}</p></div>`}
@@ -340,18 +340,18 @@ export function createScanner(host: ScannerHost): Scanner {
     const excluded = t.excluded.filter(row => matches(rowText(row)));
     const unseen = t.unseen.filter(c => matches(c.name));
     const decide = t.attention.length + t.conflicts.length;
+    const note = busy ? html`<span class="scan-reading" data-reading><span class="scan-spinner" aria-hidden="true"></span><span role="status">${status}</span></span>`
+      : html`<span data-summary role="status">${rows.length ? C.summary(result.owned, decide, result.duplicates, t.excluded.length) : status}</span>`;
     const toolbar = html`<div class="scan-toolbar">
       <button data-add @click=${addManual} ?disabled=${busy}>${C.add}</button>
       ${rows.length || sources.length ? html`<button data-new @click=${newInventory} ?disabled=${busy}>${C.newBatch}</button>` : nothing}
     </div>`;
     // Steps after the first stay dimmed until a batch has finished reading.
     const waiting = busy || !rows.length ? 'scan-waiting' : '';
-    const reading = busy ? html`<p class="scan-reading" data-reading><span class="scan-spinner" aria-hidden="true"></span><span>${status}</span></p>` : nothing;
-    if (!rows.length) return html`<section class="panel scan-review ${waiting}">${stepHead(2, C.stepReview, nothing, toolbar)}${busy ? reading : html`<p class="muted">${C.noExport}</p>`}</section>`;
+    if (!rows.length) return html`<section class="panel scan-review ${waiting}">${stepHead(2, C.stepReview, note, toolbar)}<p class="muted">${C.noExport}</p></section>`;
     const editor = (key: string, target: ReviewRow[]) => openKey === key ? reviewCard(target, result, sourceById, 'scan-tile-editor') : nothing;
     return html`<section class="panel scan-review ${waiting}">
-      ${reading}
-      ${stepHead(2, C.stepReview, html`<span data-summary>${C.summary(result.owned, decide, result.duplicates, t.excluded.length)}</span>`, toolbar)}
+      ${stepHead(2, C.stepReview, note, toolbar)}
       <div class="scan-filters">
         <input type="search" aria-label=${C.search} placeholder=${C.filter} .value=${live(query)}
           @input=${(e: Event) => { query = inputValue(e); paint(); }} />
@@ -430,14 +430,8 @@ export function createScanner(host: ScannerHost): Scanner {
   function actionBar(result: Summary, t: Triage) {
     const decide = t.attention.length + t.conflicts.length;
     const ready = canFinish(result);
-    const summary = busy ? html`<span class="scan-spinner" aria-hidden="true"></span><span role="status">${status}</span>
-        <button data-stop class="small" @click=${stop}>${C.cancel}</button>`
-      : html`<span data-bar-summary>${rows.length ? C.barSummary(t.ready.length, decide) : C.barEmpty}</span>
-        ${status ? html`<span class="muted" role="status">${status}</span>` : nothing}
-        ${decide ? html`<a class="button small" href="#scan-decide" data-jump
-          @click=${(e: Event) => { e.preventDefault(); document.querySelector('[data-decide]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>${C.decide}</a>` : nothing}`;
-    return html`<div class="scan-bar ${ready || busy ? '' : 'scan-waiting'}" data-bar>
-      <div class="scan-bar-status">${summary}</div>
+    return html`<div class="scan-bar ${ready ? '' : 'scan-waiting'}" data-bar>
+      <span data-bar-summary>${rows.length ? C.barSummary(t.ready.length, decide) : C.barEmpty}</span>
       ${host.apply
         ? html`<button class="primary" data-apply ?disabled=${!ready} title=${ready ? '' : C.applyBlocked} @click=${() => apply(result)}>${C.apply}</button>`
         : html`<button class="primary" data-download ?disabled=${!ready} title=${ready ? '' : C.applyBlocked} @click=${() => download(result)}>${C.download}</button>`}
