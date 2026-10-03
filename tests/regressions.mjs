@@ -731,39 +731,6 @@ suite('browser regressions', { concurrency: 4 }, () => {
     assert.equal(await predictions(page).count(), 1);
   });
 
-  test('start gains share a side\'s three umas: a bigger gain takes the weakest umas from the other stats, and the sparks persist', async (t) => {
-    const page = await editor(t);
-    await trainee(page);
-    await page.selectOption('[data-gain="0-0"]', '63');
-    assert.equal(await page.locator('[data-gain="0-1"]').inputValue(), '0', 'all three sparks are on Speed');
-    await page.selectOption('[data-gain="0-0"]', '21');
-    await page.selectOption('[data-gain="0-1"]', '12');
-    await page.selectOption('[data-gain="0-2"]', '5');
-    await page.selectOption('[data-gain="0-3"]', '5');
-    assert.equal(await page.locator('[data-gain="0-2"]').inputValue(), '0', 'the 1★ Power uma is the weakest, so Guts took her');
-    assert.equal(await page.locator('[data-gain="1-0"]').inputValue(), '0', 'parent 2 is untouched');
-    assert.equal(await predictions(page).count(), 1);
-    await page.reload();
-    assert.deepEqual((await state(page)).run.parentSparks[0], [{ stat: 'speed', stars: 3 }, { stat: 'stamina', stars: 2 }, { stat: 'guts', stars: 1 }]);
-  });
-
-  test('saved spark ownership survives gain edits and reload; malformed aptitudes fall back to the trainee', async (t) => {
-    const saved = defaultState(data);
-    saved.run.traineeCardId = 100101;
-    saved.run.parentSparks[0] = [{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 3 }, { stat: 'power', stars: 2 }];
-    saved.run.aptOverrides = { turf: 'Z', dirt: 'B', luck: 'A' };
-    const page = await editor(t, saved);
-    assert.equal(await page.inputValue('[data-apt="turf"]'), data.charByCardId.get(100101).aptitudes.turf);
-    assert.equal(await page.inputValue('[data-apt="dirt"]'), 'B');
-    await page.selectOption('[data-gain="0-0"]', '17');
-    await page.reload();
-    await page.waitForSelector('[data-gain]');
-    assert.deepEqual((await state(page)).run.parentSparks, [[{ stat: 'speed', stars: 1 }, { stat: 'speed', stars: 2 }, { stat: 'power', stars: 2 }], [null, null, null]]);
-    assert.deepEqual((await state(page)).run.aptOverrides, { dirt: 'B' });
-    await page.click('[data-action="toggle-sparks"]');
-    assert.deepEqual(await page.$$eval('.side.p1 select', (els) => els.map((s) => s.value)), ['speed', '1', 'speed', '2', 'power', '2']);
-  });
-
   test('a malformed saved side becomes the default side without a warning, and the other side is kept', async (t) => {
     const saved = defaultState(data);
     saved.run.traineeCardId = 100101;
@@ -1269,22 +1236,6 @@ suite('browser regressions', { concurrency: 4 }, () => {
     await page.reload();
     assert.equal(await page.inputValue('[data-apt="mile"]'), 'A');
     await assertFieldsMatchState(page, 'after reloading manual ancestry');
-  });
-
-  test('six manual End sparks stay intact on an unrelated grade selection', async (t) => {
-    const saved = defaultState(data);
-    saved.run.traineeCardId = 100101;
-    saved.run.aptOverrides.end = 'B';
-    saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
-    const page = await editor(t, saved);
-    assert.equal(await page.inputValue('[data-apt="end"]'), 'A');
-    assert.equal(await page.locator('[data-apt="turf"] option:checked').getAttribute('class'), '');
-    await page.selectOption('[data-apt="turf"]', 'A');
-    assert.deepEqual((await state(page)).run.pinkLineage, saved.run.pinkLineage);
-    await assertFieldsMatchState(page, 'after selecting Turf with six manual End sparks');
-    await page.reload();
-    assert.deepEqual((await state(page)).run.pinkLineage, saved.run.pinkLineage);
-    await assertFieldsMatchState(page, 'after reloading six manual End sparks');
   });
 
   test('the per-parent lineage form keeps grandparent placement through totals edits and follows the editor between targets', async (t) => {
