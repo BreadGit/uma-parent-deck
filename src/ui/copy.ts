@@ -321,6 +321,9 @@ export const COPY = {
   },
 } as const;
 
+/** A limit break as the game's card list shows it. */
+const lbBadge = (lb: number) => lb === 4 ? 'MLB' : `${lb}LB`;
+
 export const SCANNER_COPY = {
   title: 'Import using screenshots',
   subtitle: 'Read support cards and limit breaks from screenshots, review the results, then download your inventory.',
@@ -331,9 +334,11 @@ export const SCANNER_COPY = {
   drop: 'or drop them anywhere on this panel',
   guidance: 'Use full-width, five-column Support Card List screenshots. Include all your SR and SSR cards, with some overlap between screenshots. Keep each person’s inventory in a separate batch.',
   rare: 'R cards are ignored in screenshots and exported at 4LB (MLB).',
+  rareEmbedded: 'R cards are ignored in screenshots and keep their current limit break in your inventory.',
   missing: 'SR and SSR cards missing from the reviewed results will be exported as not owned. Check coverage before downloading.',
   partial: 'Cropped or covered rows may be missed. Include them fully in another screenshot, or add the card manually.',
-  import: 'In Uma parent deck, open Inventory → Import and select the downloaded inventory.json.',
+  // Built from the labels of the planner's own controls, so renaming them updates the instructions.
+  import: `In Uma parent deck, choose ${COPY.settings.import} in the ${COPY.settings.inventoryTitle} panel and select the downloaded inventory.json.`,
   loading: 'Loading card artwork…',
   scanning: (name: string, done: number, total: number) => `Reading ${name}${total ? ` · ${done} / ${total} cards` : '…'}`,
   reading: 'Reading…',
@@ -401,7 +406,8 @@ export const SCANNER_COPY = {
   unseen: 'Not seen in screenshots',
   unseenHint: 'Tap a card you own to add it.',
   seenIn: (count: number) => `Seen in ${count} screenshots`,
-  useReading: (lb: number) => `Use ${lb === 4 ? 'MLB' : `${lb}LB`}`,
+  lbBadge,
+  useReading: (lb: number) => `Use ${lbBadge(lb)}`,
   setLb: 'Set limit break',
   barEmpty: 'No readings yet',
   barSummary: (ready: number, decide: number) => decide

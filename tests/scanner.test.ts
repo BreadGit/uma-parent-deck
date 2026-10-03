@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readLimitBreak, type Pixels, type ScanCard } from '../src/scanner/recognize.ts';
 import { applyReadings, inventoryFromReview, summarize, triage, type ReviewRow } from '../src/scanner/results.ts';
 import { importInventory } from '../src/inventory.ts';
+import type { Inventory } from '../src/types.ts';
 
 const cards: ScanCard[] = [
   { id: 10001, rarity: 'R', type: 'guts', name: 'Rare', charName: 'Rare' },
@@ -88,4 +89,16 @@ test('applying readings replaces or updates the planner inventory and reports th
   assert.deepEqual(updated.inventory, { 20001: 3, 30001: 2, 30002: 1 });
   assert.deepEqual([updated.owned.map(c => c.id), updated.changed.map(c => c.id), updated.unowned, updated.unchanged], [[30001], [20001], [], 1]);
   assert.equal('10001' in updated.inventory, false, 'R cards are never written');
+});
+test('applying readings leaves R cards at their current value in both modes', () => {
+  const result = summarize([row(1)], cards);
+  for (const mode of ['replace', 'update'] as const) {
+    for (const current of [{ 10001: 2 }, { 10001: null }, {}] as Inventory[]) {
+      const applied = applyReadings(current, cards, c => c.rarity === 'R' ? 3 : null, result, mode);
+      assert.equal('10001' in applied.inventory, '10001' in current, `${mode} neither adds nor removes the R card`);
+      assert.equal(applied.inventory['10001'], current['10001'], `${mode} keeps the R card's value`);
+      assert.equal([...applied.owned, ...applied.unowned, ...applied.changed].some(c => c.rarity === 'R'), false,
+        `${mode} reports no R change`);
+    }
+  }
 });

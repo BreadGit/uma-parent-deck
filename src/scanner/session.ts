@@ -237,7 +237,7 @@ export function createScanner(host: ScannerHost): Scanner {
       ${started ? html`<details ?open=${sourcesOpen} @toggle=${toggled(v => { sourcesOpen = v; })}>
           <summary>${C.showScreenshots}</summary>${gallery()}</details>`
         : html`<div class="scan-dropzone">${fileButton(C.choose)}<p class="muted">${C.drop}</p><p class="scan-privacy">${C.privacy}</p></div>`}
-      <details class="scan-howto about"><summary>${C.howTo}</summary><p class="small">${C.guidance}</p><p class="small">${C.rare}</p>
+      <details class="scan-howto about"><summary>${C.howTo}</summary><p class="small">${C.guidance}</p><p class="small">${host.apply ? C.rareEmbedded : C.rare}</p>
         ${started ? html`<p class="small scan-privacy">${C.privacy}</p>` : nothing}</details>
       ${notice ? html`<p class="scan-notice" data-notice>${notice}</p>` : nothing}
       ${error || failed.length ? html`<div role="alert" class="field-error scan-messages">
@@ -316,7 +316,7 @@ export function createScanner(host: ScannerHost): Scanner {
     return html`<button class="scan-tile ${cls}" data-tile=${key} data-card-id=${card.id} data-lb=${lb ?? ''} data-box=${boxAttr(box)}
       aria-pressed=${openKey === key} aria-expanded=${openKey === key} title=${card.name} @click=${() => toggle(key)}>
       <span class="scan-tile-art"><img src=${artworkUrl(card.id)} alt="" loading="lazy" />
-        ${lb !== null ? html`<span class="scan-lb">${lb === 4 ? 'MLB' : `${lb}LB`}</span>` : nothing}</span>
+        ${lb !== null ? html`<span class="scan-lb">${C.lbBadge(lb)}</span>` : nothing}</span>
       <span class="scan-tile-name">${card.charName}</span>
     </button>`;
   }
