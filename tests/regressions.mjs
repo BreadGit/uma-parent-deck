@@ -17,7 +17,8 @@ const browser = await chromium.launch();
 const url = process.env.URL ?? 'http://localhost:5173/';
 after(() => browser.close());
 
-async function fresh(t, saved, { held = false, settle = !held, touch = false } = {}) {
+/** `init` runs in the page before the app, as the held search does, so a test can replace browser APIs from the first load. */
+async function fresh(t, saved, { held = false, settle = !held, touch = false, init } = {}) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, hasTouch: touch, isMobile: touch });
   t.after(() => context.close());
   if (saved) await context.addInitScript(({ key, saved }) => {
@@ -28,6 +29,7 @@ async function fresh(t, saved, { held = false, settle = !held, touch = false } =
   }, { key: STATE_KEY, saved });
   const page = await context.newPage();
   if (held) await holdSearch(page);
+  if (init) await page.addInitScript(init);
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (e) => { if (e.type() === 'error') errors.push(e.text()); });
@@ -39,14 +41,6 @@ async function fresh(t, saved, { held = false, settle = !held, touch = false } =
 }
 const editor = (t, saved) => fresh(t, saved, { held: true });
 const state = (page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
-async function discardRecommendation(page) {
-  await page.evaluate((key) => {
-    const saved = JSON.parse(localStorage.getItem(key));
-    delete saved.recommendation;
-    localStorage.setItem(key, JSON.stringify(saved));
-  }, STATE_KEY);
-}
-
 async function pick(page, selector, query, action) {
   await page.fill(selector, query);
   await page.locator(`[data-action="${action}"]`).first().click();
@@ -426,8 +420,7 @@ suite('browser regressions', { concurrency: 4 }, () => {
   test('a failed refinement preserves the checked deck and can be retried', async (t) => {
     const saved = fujiState();
     const reference = fujiReferencePercent(saved);
-    const page = await fresh(t, saved);
-    await page.addInitScript(() => {
+    const page = await fresh(t, saved, { settle: false, init: () => {
       const NativeWorker = window.Worker;
       let failed = false;
       window.Worker = class extends NativeWorker {
@@ -443,9 +436,7 @@ suite('browser regressions', { concurrency: 4 }, () => {
           });
         }
       };
-    });
-    await discardRecommendation(page);
-    await page.reload();
+    } });
     await page.waitForSelector('[data-action="retry-search"]');
     assert.match(await page.locator('[role="alert"]').innerText(), /displayed deck's estimates match your current inputs/);
     assert.equal(await page.locator('.deck .slot').count(), 6);
@@ -490,9 +481,7 @@ suite('browser regressions', { concurrency: 4 }, () => {
     saved.run.traineeCardId = 100501;
     saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
     saved.inventory['30017'] = null;
-    const page = await fresh(t, saved, { settle: false });
-    await waitForPlan(page);
-    await page.addInitScript(() => {
+    const page = await fresh(t, saved, { settle: false, init: () => {
       window.searchWorkers = [];
       window.Worker = class {
         constructor() { window.searchWorkers.push(this); }
@@ -500,8 +489,7 @@ suite('browser regressions', { concurrency: 4 }, () => {
         terminate() { this.terminated = true; }
         deliver(selection, complete = true) { this.onmessage({ data: { id: this.request.id, selection, complete } }); }
       };
-    });
-    await discardRecommendation(page);
+    } });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
     await page.waitForFunction(() => window.searchWorkers.length === 1);
@@ -557,7 +545,6 @@ suite('browser regressions', { concurrency: 4 }, () => {
     saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }];
     saved.run.wishlistOrder = [focus.id, 201601];
     const page = await fresh(t, saved);
-    await waitForPlan(page);
     const first = page.locator('.wishlist li').first();
     assert.equal(await first.getAttribute('data-wl-key'), '201601', 'the required target is first whatever the saved order says');
     assert.match(await first.innerText(), /required/);
@@ -935,7 +922,7 @@ suite('browser regressions', { concurrency: 4 }, () => {
     saved.run.goal = { ...saved.run.goal, pink: 'end', required: [{ id: null, stars: 2 }, { id: 200352, stars: 3 }], preferred: [201601, 200472] };
     saved.run.aptOverrides.end = 'B';
     saved.run.pinkLineage = Array.from({ length: 6 }, () => ({ aptitude: 'end', stars: 3 }));
-    const page = await fresh(t, saved);
+    const page = await editor(t, saved);
     assert.equal(await page.locator('[data-target-count="required"]').innerText(), '1');
     assert.equal(await page.locator('[data-action="select-target"]').count(), 4);
     assert.equal(await page.locator('[data-goal-required]').count(), 0);
@@ -961,7 +948,6 @@ suite('browser regressions', { concurrency: 4 }, () => {
     assert.equal(await page.locator('[data-goal-zero]').count(), 0);
     await openDetails(page);
     assert.match(await page.locator('[data-goal-details]').innerText(), /No required white sparks/);
-    await waitForPlan(page);
     const probability = await page.locator('[data-goal-probability]').innerText();
     await page.reload();
     await page.waitForSelector('[data-goal-result]');
@@ -1075,14 +1061,13 @@ suite('browser regressions', { concurrency: 4 }, () => {
   });
 
   test('pink reset clears manual and inferred sparks and starting increases while preserving other inputs', async (t) => {
-    const page = await fresh(t);
+    const page = await editor(t);
     await trainee(page);
     await target(page, 'Groundwork');
     await page.selectOption('[data-gain="0-0"]', '63');
     await page.selectOption('[data-apt="end"]', 'A');
     await page.click('[data-action="toggle-pink-sparks"]');
     await page.selectOption('[data-pink-lineage="5"]', 'turf');
-    await waitForPlan(page);
     const before = await state(page);
     assert.ok(before.run.pinkLineage.some((p) => p?.inferred));
     assert.ok(before.run.pinkLineage.some((p) => p && !p.inferred));
@@ -1090,13 +1075,7 @@ suite('browser regressions', { concurrency: 4 }, () => {
     const expected = structuredClone(before);
     expected.run.pinkLineage = Array(6).fill(null);
     expected.run.aptOverrides = {};
-    await waitForPlan(page);
-    const reset = await state(page);
-    assert.ok(reset.recommendation);
-    const { wishlistOrder: _order, wishlistExcluded: _hidden, ...searched } = reset.run;
-    assert.deepEqual(JSON.parse(reset.recommendation.key), [searched, reset.settings, reset.inventory], 'the key leaves the extras arrangement out');
-    expected.recommendation = reset.recommendation;
-    assert.deepEqual(reset, expected);
+    assert.deepEqual(await state(page), expected);
     assert.equal(await page.inputValue('[data-apt="end"]'), data.charByCardId.get(100101).aptitudes.end);
     assert.equal(await page.locator('[data-pink-sparks-form]').count(), 1);
     assert.deepEqual(await page.locator('[data-pink-lineage]').evaluateAll((els) => els.map((el) => el.value)), Array(6).fill(''));
@@ -1441,6 +1420,8 @@ suite('browser regressions', { concurrency: 4 }, () => {
     const page = await fresh(t, saved);
     const finished = await state(page);
     assert.ok(finished.recommendation?.summary.evaluated > 0);
+    const { wishlistOrder: _order, wishlistExcluded: _hidden, ...searched } = finished.run;
+    assert.deepEqual(JSON.parse(finished.recommendation.key), [searched, finished.settings, finished.inventory], 'the key leaves the extras arrangement out');
     const deck = () => page.locator('.deck .card-link').evaluateAll((els) => els.map((e) => e.getAttribute('href')));
     const original = await deck();
     const originalChance = await page.locator('[data-goal-probability]').innerText();
