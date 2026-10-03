@@ -370,7 +370,8 @@ export function createScanner(host: ScannerHost): Scanner {
         <summary>${C.excludedGroup} <span class="pill">${t.excluded.length}</span></summary>
         <div class="scan-tiles">${repeat(excluded, r => r.key, r => {
           const card = r.cardId !== null ? cardById.get(r.cardId) : undefined;
-          return card ? html`${tile(card, r.lb, `r${r.key}`, r.detection?.box, 'scan-dim')}${editor(`r${r.key}`, [r])}` : nothing;
+          return card ? html`${tile(card, r.lb, `r${r.key}`, r.detection?.box, 'scan-dim')}${editor(`r${r.key}`, [r])}`
+            : reviewCard([r], result, sourceById, 'scan-tile-editor');
         })}</div>
       </details>` : nothing}
       <details data-unseen>

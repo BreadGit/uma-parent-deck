@@ -340,6 +340,7 @@ export const SCANNER_COPY = {
   busyDrop: 'Still reading. Add more screenshots when this batch finishes, or stop reading first.',
   unreadableFile: 'Could not read this image. Use a PNG, JPEG, or WebP image and try again.',
   referencesFailed: 'Could not load the card artwork. Check the connection and try again.',
+  scannerLoadFailed: 'Could not open screenshot import. Check your connection and try again. If it keeps failing, reload the page.',
   scannerFailed: (detail: string) => `Recognition stopped. Completed results are kept. Try adding the remaining screenshots again.${detail ? ` Details: ${detail}` : ''}`,
   failedMidway: 'Not read because recognition stopped. Add this screenshot again.',
   stoppedMidway: 'Not read because reading was stopped. Add this screenshot again.',
