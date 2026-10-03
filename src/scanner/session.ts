@@ -37,8 +37,14 @@ export interface Scanner {
   dispose(): void;
 }
 
-/** One chosen screenshot. `done` stays false while it is read; one left unfinished records why in `error` or `stopped`. */
-interface Source { id: string; name: string; image: string; count: number; rare: number; done: boolean; error: string; stopped: boolean }
+/**
+ * One chosen screenshot, listed as soon as its batch starts so an interrupted batch can name every file it did not read.
+ * `reading` marks the file in progress and `done` a finished one; one left unfinished records why in `error` or `stopped`.
+ */
+interface Source {
+  id: string; name: string; image: string; count: number; rare: number;
+  reading: boolean; done: boolean; error: string; stopped: boolean;
+}
 class WorkerFailure extends Error {}
 const boxAttr = (box: Box | undefined) => box ? [box.x, box.y, box.width, box.height].map(Math.round).join(',') : nothing;
 
@@ -113,6 +119,10 @@ export function createScanner(host: ScannerHost): Scanner {
     if (!files.length) return;
     if (busy) { notice = C.busyDrop; paint(); return; }
     const token = ++generation, current = () => token === generation;
+    for (const file of files) replaceAttempts(file.name);
+    const batch = files.map((file): { file: File; source: Source } => ({ file, source: { id: String(nextKey++), name: file.name,
+      image: '', count: 0, rare: 0, reading: false, done: false, error: '', stopped: false } }));
+    sources.push(...batch.map(b => b.source));
     busy = true; error = ''; notice = ''; status = C.loading; paint();
     let scanner = worker, loading = !scanner;
     try {
@@ -122,12 +132,9 @@ export function createScanner(host: ScannerHost): Scanner {
         loading = false;
         scanner = await startWorker(loaded);
       }
-      for (const file of files) {
+      for (const { file, source } of batch) {
         if (!current()) break;
-        replaceAttempts(file.name);
-        const source: Source = { id: String(nextKey++), name: file.name, image: '', count: 0, rare: 0,
-          done: false, error: '', stopped: false };
-        sources.push(source);
+        source.reading = true;
         status = C.scanning(file.name, 0, 0); paint();
         const canvas = await screenshotCanvas(file).catch(() => null);
         if (!current()) break;
@@ -221,7 +228,7 @@ export function createScanner(host: ScannerHost): Scanner {
       multiple ?disabled=${busy} @change=${onChoose} /></label>`;
   }
   const sourceCaption = (s: Source) =>
-    s.error || (s.stopped ? C.stoppedMidway : s.done ? C.fileSummary(s.count, s.rare) : C.reading);
+    s.error || (s.stopped ? C.stoppedMidway : s.done ? C.fileSummary(s.count, s.rare) : s.reading ? C.reading : C.queued);
   function gallery() {
     return html`<div class="scan-sources">${repeat(sources, s => s.id, s => html`<figure>
       ${s.image ? html`<a href=${s.image} target="_blank" rel="noopener"><img src=${s.image} alt=${s.name} /></a>` : nothing}

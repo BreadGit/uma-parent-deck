@@ -342,6 +342,7 @@ export const SCANNER_COPY = {
   loading: 'Loading card artwork…',
   scanning: (name: string, done: number, total: number) => `Reading ${name}${total ? ` · ${done} / ${total} cards` : '…'}`,
   reading: 'Reading…',
+  queued: 'Waiting to be read',
   busyDrop: 'Still reading. Add more screenshots when this batch finishes, or stop reading first.',
   unreadableFile: 'Could not read this image. Use a PNG, JPEG, or WebP image and try again.',
   referencesFailed: 'Could not load the card artwork. Check the connection and try again.',

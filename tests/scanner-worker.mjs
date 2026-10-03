@@ -6,6 +6,7 @@ const base = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
 const page = await browser.newPage();
 const file = new URL('fixtures/scanner/android.jpg', import.meta.url).pathname;
+const iphone = new URL('fixtures/scanner/iphone.jpg', import.meta.url).pathname;
 const workers = [], errors = [], referenceRequests = [];
 page.on('worker', worker => workers.push(worker));
 page.on('pageerror', error => errors.push(String(error)));
@@ -32,8 +33,8 @@ async function previewJson() {
   if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
   return JSON.parse(await page.locator('[data-json]').textContent());
 }
-async function start() {
-  await page.locator('[data-files]').setInputFiles(file);
+async function start(files = file) {
+  await page.locator('[data-files]').setInputFiles(files);
   await page.locator('[data-stop]').waitFor({ state: 'visible' });
 }
 /** Readings counted by the batch line: every screenshot read so far, including overlapping ones. */
@@ -51,7 +52,7 @@ async function failed(count) {
   assert.match(await page.getByRole('alert').textContent(), /Recognition stopped.*Details: .*Simulated scanner worker failure/s,
     'the worker error message reaches the page');
   await page.locator('[data-stop]').waitFor({ state: 'hidden' });
-  assert.equal(count ? await readings() : await page.locator('[data-batch]').count(), count, 'worker errors retain completed readings');
+  assert.equal(await readings(), count, 'worker errors retain completed readings');
   assert.equal(await page.locator('[data-files]').isEnabled(), true, 'worker errors allow retry');
 }
 async function crash() {
@@ -89,6 +90,8 @@ try {
   await holdScreenshot();
   await start();
   await failed(0);
+  assert.match(await page.getByRole('alert').textContent(), /android\.jpg: Not read because recognition stopped/,
+    'a screenshot chosen before the worker failed to start says it was not read');
   mode = 'normal';
   await page.evaluate(() => window.releaseScreenshot());
   await scan(10);
@@ -162,6 +165,27 @@ try {
   await page.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
   assert.equal(await readings(), 50, 'a dropped screenshot is read');
   assert.equal(await page.locator('.scan-messages').count(), 0, 'reading a screenshot again clears its earlier failure');
+
+  // Every file of a batch is listed from the start, so one stopped or failed before its turn says it was not read.
+  const notRead = async (reason) => assert.deepEqual(
+    (await page.locator('.scan-messages p').allTextContents()).filter(text => text.includes('Not read')),
+    [`android.jpg: Not read because ${reason}. Add this screenshot again.`, `iphone.jpg: Not read because ${reason}. Add this screenshot again.`]);
+  await holdScreenshot();
+  await start([file, iphone]);
+  await page.waitForFunction(() => window.screenshotPending);
+  assert.match(await page.locator('.scan-sources').textContent(), /iphone\.jpg\s*Waiting to be read/, 'a later file waits its turn');
+  await crash();
+  await page.evaluate(() => window.releaseScreenshot());
+  await failed(50);
+  await notRead('recognition stopped');
+  await holdScreenshot();
+  await start([file, iphone]);
+  await page.waitForFunction(() => window.screenshotPending);
+  await stop(50);
+  await notRead('reading was stopped');
+  await page.evaluate(() => window.releaseScreenshot());
+  await page.waitForFunction(() => window.screenshotFinished);
+  assert.equal(await readings(), 50, 'a stopped batch adds no late results');
   assert.ok(errors.every(error => error.includes('Simulated scanner worker failure')), String(errors));
 
   // A card whose reference is missing is left out with a warning and the rest still read; when no reference loads,
@@ -181,5 +205,5 @@ try {
   await partial.locator('[data-files]').setInputFiles(file);
   await partial.getByRole('alert').waitFor({ timeout: 90000 });
   assert.match(await partial.getByRole('alert').textContent(), /Could not load the card artwork/);
-  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, and missing references passed.');
+  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, unread files of an interrupted batch, and missing references passed.');
 } finally { await browser.close(); }
