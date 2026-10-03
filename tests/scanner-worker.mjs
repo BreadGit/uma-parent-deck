@@ -149,5 +149,23 @@ try {
   assert.equal(await readings(), 50, 'a dropped screenshot is read');
   assert.equal(await page.locator('.scan-messages').count(), 0, 'reading a screenshot again clears its earlier failure');
   assert.ok(errors.every(error => error.includes('Simulated scanner worker failure')), String(errors));
-  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops and cancellation during startup and decoding passed.');
+
+  // A card whose reference is missing is left out with a warning and the rest still read; when no reference loads,
+  // the page says the artwork could not load.
+  const partial = await browser.newPage(), warnings = [];
+  partial.on('console', message => { if (message.type() === 'warning') warnings.push(message.text()); });
+  let missingReferences = /\/assets\/supports\/scanner\/30125\.webp(?:\?|$)/;
+  await partial.route(url => missingReferences.test(url.href), route => route.fulfill({ status: 404, body: '' }));
+  await partial.goto(new URL('scanner.html', base).href);
+  await partial.locator('[data-files]').setInputFiles(file);
+  await partial.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
+  assert.deepEqual(await partial.locator('[role="alert"]').allTextContents(), [], 'one missing reference does not stop the scanner');
+  assert.match(await partial.locator('[data-batch]').textContent(), /10 readings/);
+  assert.ok(warnings.some(text => text.includes('scanner/30125.webp')), `the missing reference is named: ${warnings}`);
+  missingReferences = /\/assets\/supports\/scanner\//;
+  await partial.reload();
+  await partial.locator('[data-files]').setInputFiles(file);
+  await partial.getByRole('alert').waitFor({ timeout: 90000 });
+  assert.match(await partial.getByRole('alert').textContent(), /Could not load the card artwork/);
+  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, and missing references passed.');
 } finally { await browser.close(); }
