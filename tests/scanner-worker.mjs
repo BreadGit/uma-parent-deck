@@ -70,6 +70,15 @@ async function stop(count) {
 try {
   await page.goto(new URL('scanner.html', base).href);
   await assertServesThisTree(base);
+  // Record how many buffers each message transfers instead of copying.
+  await page.evaluate(() => {
+    const post = Worker.prototype.postMessage;
+    window.transfers = [];
+    Worker.prototype.postMessage = function (message, transfer) {
+      window.transfers.push([message.kind, transfer?.length ?? 0]);
+      return post.call(this, message, transfer);
+    };
+  });
   let mode = 'fail';
   await page.route(/\/(?:src\/scanner\/worker\.ts|assets\/worker-[^/]+\.js)(?:\?|$)/, route => {
     if (mode === 'fail') return route.fulfill({ contentType: 'text/javascript', body: "throw new Error('Simulated scanner worker failure')" });
@@ -82,12 +91,17 @@ try {
   await failed(0);
   mode = 'normal';
   await page.evaluate(() => window.releaseScreenshot());
-  const loadedReferences = referenceRequests.length;
   await scan(10);
-  const initializedWorkers = workers.length;
+  const loadedReferences = referenceRequests.length, initializedWorkers = workers.length;
   await scan(20);
   assert.equal(workers.length, initializedWorkers, 'completed scans reuse the initialized worker and its templates');
-  assert.equal(referenceRequests.length, loadedReferences, 'retry and later scans reuse loaded references');
+  assert.equal(referenceRequests.length, loadedReferences, 'later scans reuse the worker\'s references');
+  const transfers = await page.evaluate(() => window.transfers);
+  // A transferred buffer cannot be sent twice, so the retry after the failed worker decoded its own references.
+  const references = transfers.filter(([kind]) => kind === 'references');
+  assert.equal(references.length, 2, 'the failed worker and its replacement each received references');
+  assert.ok(references.every(([, buffers]) => buffers > 100), 'references move to the worker');
+  assert.deepEqual(transfers.filter(([kind]) => kind === 'scan'), [['scan', 1], ['scan', 1]], 'screenshot pixels move to the worker');
 
   // A worker can also fail after readiness while the next screenshot is being prepared.
   await holdScreenshot();

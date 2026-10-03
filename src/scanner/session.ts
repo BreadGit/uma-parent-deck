@@ -14,7 +14,7 @@ import {
   applyReadings, cardIndex, inventoryFromReview, summarize, triage,
   type ApplyMode, type Group, type ReviewRow, type Summary, type Triage,
 } from './results.ts';
-import type { Box, Reference, ScanCard, ScanResult } from './recognize.ts';
+import type { Box, Pixels, Reference, ScanCard, ScanResult } from './recognize.ts';
 import type { WorkerRequest } from './worker.ts';
 import './style.css';
 
@@ -58,11 +58,10 @@ export function createScanner(host: ScannerHost): Scanner {
   let openKey: string | null = null;
   let nextKey = 1, generation = 0;
 
-  // One worker keeps the loaded references and matching templates between batches. A failed worker is dropped and
-  // the next batch starts another.
+  // One worker keeps the loaded references and matching templates between batches. The decoded references move to
+  // it rather than staying on this thread, so a failed worker is dropped and the next batch loads them again.
   let worker: Worker | null = null;
   let failure = '';
-  let references: Promise<Reference[]> | null = null;
   let rejectScan: ((reason: Error) => void) | null = null;
 
   function failWorker(current: Worker, detail: string) {
@@ -71,7 +70,10 @@ export function createScanner(host: ScannerHost): Scanner {
     current.terminate(); worker = null; failure = detail;
     rejectScan?.(new WorkerFailure(detail)); rejectScan = null;
   }
-  function post(current: Worker, message: WorkerRequest) { current.postMessage(message); }
+  /** Pixel buffers are transferred, not copied: the worker becomes their only owner. */
+  function post(current: Worker, message: WorkerRequest, images: (Pixels | null)[]) {
+    current.postMessage(message, [...new Set(images.flatMap(image => image ? [image.data.buffer] : []))]);
+  }
   function startWorker(loaded: Reference[]): Promise<Worker> {
     const current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     worker = current;
@@ -84,7 +86,7 @@ export function createScanner(host: ScannerHost): Scanner {
         if (data.kind === 'ready') { rejectScan = null; resolve(current); }
         else failWorker(current, data.message ?? '');
       };
-      post(current, { kind: 'references', references: loaded });
+      post(current, { kind: 'references', references: loaded }, loaded.flatMap(r => [r.image, r.artwork]));
     });
   }
   async function scan(current: Worker, canvas: HTMLCanvasElement, name: string): Promise<ScanResult> {
@@ -97,7 +99,8 @@ export function createScanner(host: ScannerHost): Scanner {
         else if (data.kind === 'result') { rejectScan = null; resolve(data.result); }
         else failWorker(current, data.message ?? '');
       };
-      post(current, { kind: 'scan', image: pixels(canvas) });
+      const image = pixels(canvas);
+      post(current, { kind: 'scan', image }, [image]);
     });
   }
 
@@ -114,8 +117,7 @@ export function createScanner(host: ScannerHost): Scanner {
     let scanner = worker, loading = !scanner;
     try {
       if (!scanner) {
-        references ??= loadReferences(cards).catch(e => { references = null; throw e; });
-        const loaded = await references;
+        const loaded = await loadReferences(cards);
         if (!current()) return;
         loading = false;
         scanner = await startWorker(loaded);
