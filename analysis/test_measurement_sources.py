@@ -3,10 +3,33 @@ import json
 import unittest
 import collections
 import math
-import openpyxl
+from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
 from card_effects import unique_extras
-from measurement_sources import (ROOT, WORKBOOK, HTML, extract_sources, extract_loopacord,
+from measurement_sources import (ROOT, HTML, load_workbooks, extract_sources, extract_loopacord,
                                  extract_fujikiseki, parse_race_card_blocks, parse_race_runs, parse_focus)
+
+
+class PatchedWorkbook:
+    """A workbook whose sheets read as the original with one cell replaced, so read-only sources can be corrupted."""
+    def __init__(self, wb, sheet, coordinate, value):
+        self.wb, self.sheet, self.value = wb, sheet, value
+        column, row = coordinate_from_string(coordinate)
+        self.row, self.column = row - 1, column_index_from_string(column) - 1
+
+    def __getitem__(self, name):
+        rows = [list(row) for row in self.wb[name].iter_rows(values_only=True)]
+        if name == self.sheet:
+            rows[self.row][self.column] = self.value
+        return PatchedSheet(rows)
+
+
+class PatchedSheet:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def iter_rows(self, values_only):
+        assert values_only
+        return iter(self.rows)
 
 
 class MeasurementSourceTests(unittest.TestCase):
@@ -14,8 +37,7 @@ class MeasurementSourceTests(unittest.TestCase):
     def setUpClass(cls):
         cls.cards = json.loads((ROOT / 'data/cards.json').read_text())
         cls.characters = json.loads((ROOT / 'data/characters.json').read_text())
-        cls.formulas = openpyxl.load_workbook(WORKBOOK, data_only=False)
-        cls.values = openpyxl.load_workbook(WORKBOOK, data_only=True)
+        cls.formulas, cls.values = load_workbooks()
 
     @classmethod
     def tearDownClass(cls):
@@ -59,14 +81,9 @@ class MeasurementSourceTests(unittest.TestCase):
         extract_sources(self.cards, check=True)
 
     def test_changed_card_source_shape_fails_instead_of_dropping_rows(self):
-        ws = self.formulas['Grand Live Card Data']
-        before = ws['R9'].value
-        try:
-            ws['R9'] = None
-            with self.assertRaisesRegex(ValueError, 'missing source support-card ID'):
-                extract_loopacord(self.formulas, self.values, self.cards)
-        finally:
-            ws['R9'] = before
+        formulas = PatchedWorkbook(self.formulas, 'Grand Live Card Data', 'R9', None)
+        with self.assertRaisesRegex(ValueError, 'missing source support-card ID'):
+            extract_loopacord(formulas, self.values, self.cards)
         before, marker, after = HTML.read_text().partition('<tr data-lb=all data-card=30052 ')
         self.assertTrue(marker)
         self.assertIn('data-v=371', after)
@@ -93,22 +110,11 @@ class MeasurementSourceTests(unittest.TestCase):
         self.assertEqual(focus['sprint'][4], round(613 / 593, 4))
 
     def test_misaligned_runs_and_unmapped_trainees_fail(self):
-        ws = self.values['Race Schedule Data']
-        before = ws['N4'].value
-        try:
-            ws['N4'] = 99
-            with self.assertRaisesRegex(ValueError, 'run IDs differ'):
-                parse_race_card_blocks(self.values)
-        finally:
-            ws['N4'] = before
-        ws = self.values['Race Schedule']
-        before = ws['AD35'].value
-        try:
-            ws['AD35'] = 'unmapped outfit'
-            with self.assertRaisesRegex(ValueError, 'unmatched trainee'):
-                parse_race_runs(self.values, parse_race_card_blocks(self.values), self.characters)
-        finally:
-            ws['AD35'] = before
+        with self.assertRaisesRegex(ValueError, 'run IDs differ'):
+            parse_race_card_blocks(PatchedWorkbook(self.values, 'Race Schedule Data', 'N4', 99))
+        values = PatchedWorkbook(self.values, 'Race Schedule', 'AD35', 'unmapped outfit')
+        with self.assertRaisesRegex(ValueError, 'unmatched trainee'):
+            parse_race_runs(values, parse_race_card_blocks(self.values), self.characters)
 
     def test_raw_stat_units_final_conversion_and_sample_variance(self):
         runs = parse_race_runs(self.values, parse_race_card_blocks(self.values), self.characters)
