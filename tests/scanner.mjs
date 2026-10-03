@@ -282,21 +282,11 @@ try {
   // Move two SR cards into the SR/R boundary row, leaving three SR and two R badges side by side.
   await scanFile(await alteredScreenshot('inventory-b-4440', { copies: [[130, 410, 230, 150, 130, 563]] }));
   assert.match(await page.locator('[data-batch]').textContent(), /14 readings · 18 R cards ignored/, 'R cards beside three SR cards stay R');
-  // User-labeled failures from a second inventory: clear artwork should not need confirmation.
-  // The screenshots retain the obstructing game toolbar; only visible cards are expected here.
-  const examples = [
-    ['inventory-b-4436', [[30062, 4], [30106, 0]]],
-    ['inventory-b-4437', [[30054, 0]]],
-    ['inventory-b-4438', [[30125, 0], [30145, 2]]],
-    ['inventory-b-4439', [[20006, 4]]],
-    ['inventory-b-4440', [[20021, 4]]],
-  ];
+  // scanner-snapshot.mjs checks the user-labelled cards of every inventory-b screenshot without the page.
   await newInventory();
-  for (const [name, expected] of examples) {
-    await scan(name);
-    await expectConfident(expected, name);
-  }
-  // Reuse the worker with a smaller, slightly shifted grid after the original-size batch.
+  await scan('inventory-b-4436');
+  await expectConfident([[30062, 4], [30106, 0]], 'inventory-b-4436');
+  // Reuse the worker with a smaller, slightly shifted grid after an original-size screenshot.
   await scanFile(await alteredScreenshot('inventory-b-4436', { width: 480, dx: 2, dy: 3 }));
   await expectConfident([[30062, 4], [30106, 0]], 'shifted grid');
   await newInventory();

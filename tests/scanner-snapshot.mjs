@@ -11,6 +11,16 @@ const base = process.env.URL ?? 'http://localhost:5173/';
 const fixtures = new URL('fixtures/scanner/', import.meta.url);
 const snapshotFile = new URL('detections.json', fixtures);
 const names = (await readdir(fixtures)).filter(name => name.endsWith('.jpg')).sort();
+// User-labelled failures from a second inventory: clear artwork should not need confirmation. These are independent of
+// the snapshot, so regenerating it cannot accept a misreading. The screenshots retain the obstructing game toolbar; only
+// visible cards are listed.
+const labelled = {
+  'inventory-b-4436.jpg': [[30062, 4], [30106, 0]],
+  'inventory-b-4437.jpg': [[30054, 0]],
+  'inventory-b-4438.jpg': [[30125, 0], [30145, 2]],
+  'inventory-b-4439.jpg': [[20006, 4]],
+  'inventory-b-4440.jpg': [[20021, 4]],
+};
 const browser = await chromium.launch();
 try {
   const page = await browser.newPage();
@@ -35,6 +45,9 @@ try {
     }
     return result;
   }, names);
+  for (const [name, cards] of Object.entries(labelled)) for (const [id, lb] of cards) {
+    assert.ok(actual[name].detections.some(d => d.cardId === id && d.lb === lb && d.confident), `${name}: ${id} at ${lb}LB is read with confidence`);
+  }
   if (process.env.UPDATE_SNAPSHOT) {
     // One detection per line keeps the snapshot's diff readable slot by slot.
     const fixture = ({ ignoredR, detections }) => `{ "ignoredR": ${ignoredR}, "detections": [\n${detections.map(d => `  ${JSON.stringify(d)}`).join(',\n')}\n ] }`;
