@@ -3,7 +3,7 @@
 import { html, nothing } from 'lit-html';
 import { effectiveLb } from '../../model/run.ts';
 import type { Scanner } from '../../scanner/session.ts';
-import { data, refresh, store, update, view } from '../context.ts';
+import { refresh, store, update, view } from '../context.ts';
 import { SCANNER_COPY as C } from '../copy.ts';
 import { notice } from '../dialog.ts';
 
@@ -21,7 +21,7 @@ export async function openScanner() {
         onChange: refresh,
         apply: {
           current: () => store.inventory,
-          effective: (card) => effectiveLb(store.inventory, data.cardById.get(card.id)!, store.settings.defaultLb),
+          effective: (card) => effectiveLb(store.inventory, card, store.settings.defaultLb),
           onApply: (inventory) => { update((s) => { s.inventory = inventory; }); closeScanner(); },
         },
       });

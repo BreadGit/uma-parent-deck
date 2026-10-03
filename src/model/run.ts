@@ -108,7 +108,7 @@ export function racePopularityMap(data: Data): Map<number, number> {
 }
 
 /** Effective limit break for a card, or null when marked not owned. Absent from the inventory = owned at the rarity's default. */
-export function effectiveLb(inv: Inventory, card: Card, defaults: { R: number; SR: number; SSR: number }): number | null {
+export function effectiveLb(inv: Inventory, card: Pick<Card, 'id' | 'rarity'>, defaults: { R: number; SR: number; SSR: number }): number | null {
   const v = inv[String(card.id)];
   if (v === null) return null;
   if (typeof v === 'number') return v;
