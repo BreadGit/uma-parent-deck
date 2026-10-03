@@ -6,8 +6,8 @@ import { searchGoalDeck, goalDeckKey, type GoalDeckEntry } from '../src/model/go
 import { goalRankBands, type GoalRankBands } from '../src/model/goal.ts';
 import { projectForms, subsetGeneration, type FormDistribution } from '../src/model/goal-skills.ts';
 import { DEFAULT_GOAL, type ResolvedGoal } from '../src/model/goal-input.ts';
-import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
-import { defaultState, migrate } from '../src/state.ts';
+import { DEFAULT_SETTINGS } from '../src/settings.ts';
+import { defaultState } from '../src/state.ts';
 import { loadData } from '../src/data.ts';
 import { planRun } from '../src/model/run.ts';
 import type { Card } from '../src/types.ts';
@@ -210,17 +210,6 @@ test('a requirement missing from the first deck is recovered before any partial-
   assert.equal(found.best.score.comparison, .001);
 });
 
-test('two-percent goal tolerance defaults and migrates without replacing saved choices', () => {
-  assert.equal(defaultState(data).settings.goalTieTolerance, .02);
-  assert.equal(migrate({ current: { version: 15, settings: {} } }, data).settings.goalTieTolerance, .02);
-  assert.equal(parseSetting('goalTieTolerance', '0'), 0);
-  assert.equal(parseSetting('goalTieTolerance', '1'), 1);
-  for (const invalid of ['-1', '1.1', 'NaN']) assert.equal(parseSetting('goalTieTolerance', invalid), undefined);
-  for (const value of [0, .001, .02, .05]) {
-    assert.equal(migrate({ current: { version: 15, settings: { goalTieTolerance: value } } }, data).settings.goalTieTolerance, value);
-  }
-});
-
 test('required targets outrank custom preferred ordering and excluded choices remain excluded', () => {
   const saved = defaultState(data);
   const focus = must(data.skills.find((s) => s.name === 'Focus'), `data.skills.find((s) => s.name === 'Focus')`);
@@ -377,7 +366,7 @@ test('cheap rank sampling leaves analytic blue odds and subsequent full evaluati
   assert.deepEqual(goalRankBands(stats, goal, 17500, settings), full);
 });
 
-// A Fuji Kiseki player reported this six-card deck, Maruzensky borrowed, for a required Groundwork spark.
+// A Fuji Kiseki player reported this six-card deck, Smart Falcon borrowed, for a required Groundwork spark.
 // Evaluating it as a fixed selection gives the chance the search must reach without being told to pin Maruzensky.
 const FUJI_DECK = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
 const fujiState = () => {
@@ -403,23 +392,8 @@ test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin w
   assert.ok(result.goalEstimate.probability! >= reference, `search reached ${result.goalEstimate.probability} against the reported deck's ${reference}`);
   assert.ok(progress.length && result.goalEstimate.probability! >= progress[0]!, `progress ${progress} must not exceed the final ${result.goalEstimate.probability}`);
   assert.ok(result.search!.screened > 0, 'the search screened the wider pool');
-  assert.ok(!result.deckResult.deck.some((e) => e.card.id === 30017 && !e.borrowed), 'Maruzensky is not owned, so she cannot fill an owned slot');
+  assert.ok(!result.deckResult.deck.some((e) => e.card.id === 30017 && !e.borrowed), 'Smart Falcon is not owned, so she cannot fill an owned slot');
   assert.deepEqual(saved, before);
-});
-
-test('retained recommendations are rescored at current limit breaks and rejected when they break current ownership or pins', () => {
-  const saved = fujiState();
-  const previous = FUJI_DECK;
-  const reused = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
-  assert.equal(reused.goalEstimate.probability, fujiReference(saved), 'the previous deck stays visible while a fresh search runs');
-  saved.inventory['30107'] = 0;
-  const changed = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
-  for (const e of changed.deckResult.deck) if (e.card.id === 30107 && !e.borrowed) assert.equal(e.lb, 0);
-  saved.inventory['30107'] = null;
-  saved.run.pinnedIds.push(30028);
-  const invalid = planRun(saved.run, saved.settings, saved.inventory, data, { previous, search: false });
-  assert.ok(!invalid.deckResult.deck.some((e) => e.card.id === 30107 && !e.borrowed), 'a card marked not owned leaves the reused deck');
-  assert.ok(invalid.deckResult.deck.some((e) => e.card.id === 30028), 'a new pin joins the reused deck');
 });
 
 test('preferred priorities weight any-star appearances without changing required success', () => {

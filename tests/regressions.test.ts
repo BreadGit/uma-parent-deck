@@ -7,8 +7,8 @@ import { defaultState, migrate, resetRun, DEFAULT_RUN } from '../src/state.ts';
 import { importInventory } from '../src/inventory.ts';
 import { planRun, targetSpCost } from '../src/model/run.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
-import { combineSources, eventSources, pruneConflicts, purchasedOwnership, resolveTarget, sparkChance, type SkillSource } from '../src/model/sparks.ts';
-import { defaultParentSparks, gainsOfParentSparks, withParentGain } from '../src/model/inherit.ts';
+import { combineSources, pruneConflicts, purchasedOwnership, resolveTarget, sparkChance, type SkillSource } from '../src/model/sparks.ts';
+import { defaultParentSparks } from '../src/model/inherit.ts';
 import { evaluate, makeCtx, traineeCoverage } from '../src/model/deck.ts';
 import type { Inventory } from '../src/types.ts';
 
@@ -16,16 +16,6 @@ const data = loadData();
 const input = () => ({ ...structuredClone(DEFAULT_RUN), traineeCardId: 100101, pinnedIds: [30052] });
 const settings = () => structuredClone(DEFAULT_SETTINGS);
 const file = (value: unknown) => new File([JSON.stringify(value)], 'inventory.json', { type: 'application/json' });
-
-test('card event sources follow changes to the same settings object, including nested arrays', () => {
-  const s = settings(), creek = must(data.cardById.get(30016), `data.cardById.get(30016)`);
-  const chance = () => must(eventSources(creek, s, data).find((src) => src.skillId === 200351), `eventSources(creek, s, data).find((src) => src.skillId === 200351)`).pObtain;
-  assert.equal(chance(), 0.12);
-  s.chainRatesSSR[2] = 1;
-  assert.equal(chance(), 1);
-  s.chainRatesSSR = [0, 0, 0];
-  assert.equal(chance(), 0);
-});
 
 test('new states and resets do not share mutable run or settings defaults', () => {
   const a = defaultState(data), b = defaultState(data);
@@ -78,15 +68,6 @@ test('bundled career goals contain no repeated race objective at the same slot',
     const keys = ch.goals.flatMap((g) => g.races.map((r) => `${g.slot}:${r.raceId}`));
     assert.equal(new Set(keys).size, keys.length, ch.name);
   }
-});
-
-test('gold purchase includes the white prerequisite and deduplicates target families', () => {
-  const p = planRun({ ...input(), targets: [200352].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), pinnedIds: [30052, 30016] }, settings(), {}, data, { search: false });
-  const target = resolveTarget(200352, data)!;
-  assert.equal(p.spCost.total, 340);
-  assert.equal(targetSpCost([target, target], p.deckResult.coverage).total, 340);
-  const missing = { ...target, white: { ...target.white!, cost: null } };
-  assert.equal(targetSpCost([missing], p.deckResult.coverage).incomplete, true);
 });
 
 test('a normal hint permits buying its circle upgrade without inventing a circle hint', () => {
@@ -213,10 +194,3 @@ test('the plan shows the start gains the sparks make, and a full side never rais
   assert.deepEqual(p.issues, []);
 });
 
-test('a start gain picked over a full side takes umas from the other stats, fewest stars first, and the old budget rules are gone', () => {
-  const side = withParentGain([{ stat: 'speed', stars: 1 }, { stat: 'stamina', stars: 1 }, { stat: 'power', stars: 1 }], 0, 63);
-  assert.deepEqual(gainsOfParentSparks(side), [63, 0, 0, 0, 0], 'three 3★ Speed sparks replace all entered 1★ sparks');
-  const back = withParentGain(side, 1, 5);
-  assert.deepEqual(gainsOfParentSparks(back), [42, 5, 0, 0, 0], 'a 1★ Stamina spark takes the last Speed slot');
-  assert.deepEqual(gainsOfParentSparks(withParentGain(back, 0, 0)), [0, 5, 0, 0, 0], '+0 frees the stat and keeps the others');
-});

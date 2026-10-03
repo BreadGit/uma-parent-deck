@@ -163,23 +163,11 @@ test('scenario events reference known skills and characters', () => {
   }
 });
 
-test('stat model has every field the predictor reads', () => {
+test('model coefficients, reference conditions and observed provenance are usable and unambiguous', () => {
   const m = data.model;
   assert.deepEqual(m.stats, STATS);
   for (const k of ['fr', 'mo', 'te', 'sb'] as const) assert.ok(isNum(m.slopes[k]), `slope ${k}`);
-  assert.ok(isNum(m.floor) && isNum(m.growthEffect) && isNum(m.races.totalTurns) && isNum(m.races.reference), 'model scalars are finite');
-  assert.equal(m.sigma.length, 5);
-  for (const f of ['balanced', 'stamina', 'sprint'] as const) assert.equal(m.focus[f].length, 5, `focus ${f}`);
-  assert.equal(m.eventBase['28']?.length, 5);
-  assert.ok(isNum(m.eventSp['28']), 'event SP at 28 races is finite');
-  for (const o of m.observed) {
-    assert.ok(data.cardById.has(o.cardId), `observed row for unknown card ${o.cardId}`);
-    assert.equal(o.stats.length, 5);
-  }
-});
-
-test('model coefficients, reference conditions and observed provenance are usable and unambiguous', () => {
-  const m = data.model;
+  assert.ok(isNum(m.floor) && isNum(m.growthEffect), 'model scalars are finite');
   const vector = (values: number[], name: string, positive = false) => {
     assert.equal(values.length, STATS.length, name);
     assert.ok(values.every((v) => isNum(v) && (positive ? v > 0 : v >= 0)), name);
@@ -202,6 +190,7 @@ test('model coefficients, reference conditions and observed provenance are usabl
   for (const observation of m.observed) {
     const key = `${observation.cardId}:${observation.lb}`;
     assert.ok(!seen.has(key), `multiple observed references for ${key}`);
+    assert.ok(data.cardById.has(observation.cardId), `observed row for unknown card ${observation.cardId}`);
     seen.add(key);
     assert.ok(Number.isInteger(observation.lb) && observation.lb >= 0 && observation.lb <= 4, key);
     assert.ok(Number.isInteger(observation.runs) && observation.runs >= 10 && observation.wellTested, key);

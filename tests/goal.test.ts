@@ -341,25 +341,6 @@ test('goal editing drives selection while supplied-deck prediction stays consist
   assert.deepEqual(predictRunDeck(after.deckResult.deck, input, after.ctx, after.apt, after.sum.expectedLosses).finalMean, after.finalMean);
 });
 
-test('complete goal uses both required sparks while preferred extras do not constrain success', () => {
-  const goal = { ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
-  const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id], awakeningSkills: [], eventSkills: [], events: [] };
-  const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
-  const grades = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
-  const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
-  const result = evaluateTraineeGoal(goal, emptyPinkLineage(), grades, ctx, stats, []);
-  close(result.probability!, .2 ** 2 * .8 * .8 ** 2 * .08);
-  close(result.allAvailable, 1);
-  result.required.forEach((r) => close(r.probability, .2 * .8));
-  const partial = evaluateTraineeGoal({ ...goal, required: [{ id: b.id, stars: 3 }] }, emptyPinkLineage(), grades, ctx, stats, []);
-  close(partial.probability!, .8 * .08 * .2 * .1);
-  close(partial.required[0]!.probability, .2 * .1);
-  const preferred = evaluateTraineeGoal({ ...goal, preferred: [{ id: target('Lucky Seven').id, priority: 0 }] }, emptyPinkLineage(), grades, ctx, stats, []);
-  close(preferred.probability!, result.probability!);
-  close(preferred.preferred[0]!.probability, 0);
-  assert.equal(evaluateTraineeGoal(goal, emptyPinkLineage(), grades, ctx, stats, ['Incomplete deck']).probability, null);
-});
-
 test('unavailable required skills give zero; incomplete inputs give no complete estimate', () => {
   const goal = { ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
   const trainee = { ...data.characters[0]!, innateSkills: [], awakeningSkills: [], eventSkills: [], events: [] };
@@ -371,19 +352,27 @@ test('unavailable required skills give zero; incomplete inputs give no complete 
 });
 type ParentGoalRequired = typeof DEFAULT_GOAL.required;
 
-test('zero, one, and many required whites use a product within each shared rank outcome', () => {
+test('zero, one, and many required whites use a product within each shared rank outcome; preferred extras do not constrain success', () => {
   const c = target('Right-Handed ○');
   const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id, c.id], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
   const grades = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
   const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
   const requirements = [{ id: a.id, stars: 2 }, { id: b.id, stars: 3 }, { id: c.id, stars: 1 }];
+  const each = [.2 * .8, .2 * .1, .25];
+  const goal = (n: number) => ({ ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: requirements.slice(0, n), preferred: [] });
   for (const n of [0, 1, 2, 3]) {
-    const result = evaluateTraineeGoal({ ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf', stars: 2 }], required: requirements.slice(0, n), preferred: [] }, emptyPinkLineage(), grades, ctx, stats, []);
-    close(result.probability!, .8 * .08 * [.2 * .8, .2 * .1, .25].slice(0, n).reduce((all, p) => all * p, 1));
+    const result = evaluateTraineeGoal(goal(n), emptyPinkLineage(), grades, ctx, stats, []);
+    close(result.probability!, .8 * .08 * each.slice(0, n).reduce((all, p) => all * p, 1));
     close(result.allAvailable, 1);
     assert.equal(result.required.length, n);
+    result.required.forEach((r, i) => close(r.probability, each[i]!));
   }
+  const full = evaluateTraineeGoal(goal(3), emptyPinkLineage(), grades, ctx, stats, []);
+  const preferred = evaluateTraineeGoal({ ...goal(3), preferred: [{ id: target('Lucky Seven').id, priority: 0 }] }, emptyPinkLineage(), grades, ctx, stats, []);
+  close(preferred.probability!, full.probability!);
+  close(preferred.preferred[0]!.probability, 0);
+  assert.equal(evaluateTraineeGoal(goal(3), emptyPinkLineage(), grades, ctx, stats, ['Incomplete deck']).probability, null);
 });
 
 test('three families connected through overlapping events keep their joint availability', () => {

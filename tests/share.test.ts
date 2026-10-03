@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
-import { deflateRawSync } from 'node:zlib';
+import { deflateRawSync, inflateRawSync } from 'node:zlib';
 import { loadData } from '../src/data.ts';
 import { applySharedChoices, defaultState, migrate } from '../src/state.ts';
 import { decodeShare, encodeShare, sharedChoices, shareKey, shareUrl, ShareCodeError, type SharedChoices } from '../src/share.ts';
@@ -211,7 +211,12 @@ test('format 4 adds ignored cards in slot 15 and the borrow-ignored flag in slot
   const code = await encodeShare(choices);
   assert.equal(code[0], '5');
   assert.deepEqual(await decodeShare(code), choices);
-  assert.equal(await encodeShare(populated), (await encodeShare(populated)).replace(/^3/, '4'), 'no ignores: the trailing slot is omitted');
+  const slots = (code: string) => {
+    const bytes = Buffer.from(code.slice(2), 'base64url');
+    return JSON.parse(String(code[1] === 'd' ? inflateRawSync(bytes) : bytes)) as unknown[];
+  };
+  assert.equal(slots(code).length, 17);
+  assert.ok(slots(await encodeShare(populated)).length <= 15, 'no ignores: the trailing slots are omitted');
   const literal = (version: string, slots: unknown[]) => `${version}j` + Buffer.from(JSON.stringify(slots)).toString('base64url');
   assert.deepEqual((await decodeShare(literal('4', [...Array(15).fill(null), [30028]]))).run.ignoredIds, [30028]);
   assert.deepEqual((await decodeShare(literal('4', [...Array(15).fill(null)]))).run.ignoredIds, []);

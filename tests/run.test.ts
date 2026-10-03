@@ -129,6 +129,7 @@ test('worst-case target SP cost: each family once with prerequisite costs, missi
   const cost = targetSpCost([corner], new Map([[corner.id, plan.deckResult.coverage.get(corner.id)!]]));
   const goldCost = corner.gold!.cost!, whiteCost = corner.white!.cost!;
   assert.equal(cost.total, goldCost + whiteCost, 'buying the gold also requires buying the white form');
+  assert.equal(targetSpCost([corner, corner], plan.deckResult.coverage).total, cost.total, 'a repeated target is bought once');
   assert.equal(cost.incomplete, false);
   assert.equal(plan.spCost.total, cost.total);
   assert.equal(targetSpCost([corner], new Map()).total, whiteCost, 'no source at all still buys the white form');
