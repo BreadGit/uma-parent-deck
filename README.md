@@ -5,7 +5,7 @@ A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards a
 
 ## Import using screenshots
 
-The Inventory panel's "Import using screenshots" button opens the scanner over the planner and applies the
+The Card inventory panel's "Import using screenshots" button opens the scanner over the planner and applies the
 readings to the inventory directly. [The standalone page](scanner.html) runs the same flow and ends in a download.
 It reads support-card screenshots locally and exports the planner’s inventory format.
 Review uncertain matches and overlapping readings before exporting; the page explains its coverage limits.
