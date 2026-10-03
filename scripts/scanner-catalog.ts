@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import type { Plugin } from 'vite';
 import type { ScanCard } from '../src/scanner/recognize.ts';
 
-/** Keep the standalone converter independent of the planner's calculation data. */
+/** Keep the standalone scanner independent of the planner's calculation data. */
 export function scannerCatalog(bundleArtwork = false): Plugin {
   const id = '\0virtual:scanner-catalog';
   let root: string;
@@ -20,6 +20,8 @@ export function scannerCatalog(bundleArtwork = false): Plugin {
     },
     generateBundle() {
       if (!bundleArtwork) return;
+      // The standalone build has no public directory, so emit the page's icon with the artwork.
+      this.emitFile({ type: 'asset', fileName: 'favicon.svg', source: readFileSync(resolve(root, 'public/favicon.svg')) });
       const catalog = cards();
       const rBadge = catalog.find(c => c.rarity === 'R')?.id;
       for (const card of catalog.filter(c => c.rarity !== 'R' || c.id === rBadge)) {
