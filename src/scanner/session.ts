@@ -38,14 +38,25 @@ export interface Scanner {
 }
 
 /**
- * One chosen screenshot, listed as soon as its batch starts so an interrupted batch can name every file it did not read.
- * `reading` marks the file in progress and `done` a finished one; one left unfinished records why in `error` or `stopped`.
+ * One chosen screenshot, listed as soon as its batch starts so an interrupted batch names every file it did not read.
+ * Its caption comes from `status` (`SCANNER_COPY.sourceStatus`); `count` and `rare` are its readings once `read`.
  */
-interface Source {
-  id: string; name: string; image: string; count: number; rare: number;
-  reading: boolean; done: boolean; error: string; stopped: boolean;
-}
+interface Source { id: string; name: string; image: string; count: number; rare: number; status: SourceStatus }
+type SourceStatus = keyof typeof C.sourceStatus | 'read';
+/** Statuses of a file that was not read, which adding it again replaces. */
+const NOT_READ: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed', 'stopped']);
+const PROBLEMS: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed']);
+const unfinished = (s: Source) => s.status === 'queued' || s.status === 'reading';
 class WorkerFailure extends Error {}
+/** Settles as `promise` does, or rejects as soon as `signal` aborts, so an abandoned step never resumes its batch. */
+function unlessAborted<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  signal.throwIfAborted();
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(signal.reason);
+    signal.addEventListener('abort', abort, { once: true });
+    promise.then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
+  });
+}
 const boxAttr = (box: Box | undefined) => box ? [box.x, box.y, box.width, box.height].map(Math.round).join(',') : nothing;
 
 export function createScanner(host: ScannerHost): Scanner {
@@ -62,7 +73,9 @@ export function createScanner(host: ScannerHost): Scanner {
   let mode: ApplyMode = 'replace';
   /** The one tile expanded into an editor: `c<cardId>` for a read card, `r<rowKey>` for an excluded row, `u<cardId>` for an unseen card. */
   let openKey: string | null = null;
-  let nextKey = 1, generation = 0;
+  let nextKey = 1;
+  /** Aborted by Stop, New inventory and disposal: the batch being read stops where it is. */
+  let batch: AbortController | null = null;
 
   // One worker keeps the loaded references and matching templates between batches. The decoded references move to
   // it rather than staying on this thread, so a failed worker is dropped and the next batch loads them again.
@@ -110,42 +123,42 @@ export function createScanner(host: ScannerHost): Scanner {
     });
   }
 
-  /** A screenshot added again replaces its earlier failed or unfinished attempt. */
+  /** A screenshot added again replaces its earlier attempt that was not read. */
   function replaceAttempts(name: string) {
-    for (const s of sources) if (s.name === name && (s.error || s.stopped) && s.image) URL.revokeObjectURL(s.image);
-    sources = sources.filter(s => s.name !== name || !(s.error || s.stopped));
+    const replaced = (s: Source) => s.name === name && NOT_READ.has(s.status);
+    for (const s of sources) if (replaced(s) && s.image) URL.revokeObjectURL(s.image);
+    sources = sources.filter(s => !replaced(s));
   }
+  /** Ends every file of the interrupted batch that was not read yet with the reason. */
+  function interrupt(reason: 'failed' | 'stopped') { for (const s of sources) if (unfinished(s)) s.status = reason; }
   async function addFiles(files: File[]) {
     if (!files.length) return;
     if (busy) { notice = C.busyDrop; paint(); return; }
-    const token = ++generation, current = () => token === generation;
+    const { signal } = batch = new AbortController();
+    const step = <T>(promise: Promise<T>) => unlessAborted(promise, signal);
     for (const file of files) replaceAttempts(file.name);
-    const batch = files.map((file): { file: File; source: Source } => ({ file, source: { id: String(nextKey++), name: file.name,
-      image: '', count: 0, rare: 0, reading: false, done: false, error: '', stopped: false } }));
-    sources.push(...batch.map(b => b.source));
+    const queue = files.map((file): { file: File; source: Source } =>
+      ({ file, source: { id: String(nextKey++), name: file.name, image: '', count: 0, rare: 0, status: 'queued' } }));
+    sources.push(...queue.map(q => q.source));
     busy = true; error = ''; notice = ''; status = C.loading; paint();
-    let scanner = worker, loading = !scanner;
+    let loading = !worker;
     try {
+      let scanner = worker;
       if (!scanner) {
-        const loaded = await loadReferences(cards);
-        if (!current()) return;
+        const loaded = await step(loadReferences(cards));
         loading = false;
-        scanner = await startWorker(loaded);
+        scanner = await step(startWorker(loaded));
       }
-      for (const { file, source } of batch) {
-        if (!current()) break;
-        source.reading = true;
+      for (const { file, source } of queue) {
+        source.status = 'reading';
         status = C.scanning(file.name, 0, 0); paint();
-        const canvas = await screenshotCanvas(file).catch(() => null);
-        if (!current()) break;
-        if (!canvas) { Object.assign(source, { done: true, error: C.unreadableFile }); paint(); continue; }
-        const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .8));
-        if (!current()) break;
+        const canvas = await step(screenshotCanvas(file).catch(() => null));
+        if (!canvas) { source.status = 'unreadable'; paint(); continue; }
+        const blob = await step(new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .8)));
         if (blob) source.image = URL.createObjectURL(blob);
-        const result = await scan(scanner, canvas, file.name);
-        if (!current()) break;
-        Object.assign(source, { done: true, count: result.detections.length, rare: result.ignoredR,
-          error: result.detections.length || result.ignoredR ? '' : C.noCards });
+        const result = await step(scan(scanner, canvas, file.name));
+        Object.assign(source, { count: result.detections.length, rare: result.ignoredR,
+          status: result.detections.length || result.ignoredR ? 'read' : 'noCards' });
         for (const detection of result.detections) {
           rows.push({ key: nextKey++, source: source.id, crop: cropUrl(canvas, detection.box), detection,
             cardId: detection.candidates[0]?.id ?? null, lb: detection.lb,
@@ -154,19 +167,19 @@ export function createScanner(host: ScannerHost): Scanner {
         paint();
       }
     } catch (e) {
-      if (current()) {
-        if (!(e instanceof WorkerFailure)) console.error(e);
-        error = loading ? C.referencesFailed : C.scannerFailed(e instanceof Error ? e.message : String(e));
-        for (const s of sources) if (!s.done) Object.assign(s, { done: true, error: C.failedMidway });
-      }
+      // Stop, New inventory and disposal settle the batch themselves.
+      if (signal.aborted) return;
+      if (!(e instanceof WorkerFailure)) console.error(e);
+      error = loading ? C.referencesFailed : C.scannerFailed(e instanceof Error ? e.message : String(e));
+      interrupt('failed');
     } finally {
-      if (current()) { busy = false; status = ''; paint(); }
+      if (!signal.aborted) { busy = false; status = ''; paint(); }
     }
   }
   function stop() {
-    generation++; worker?.terminate(); worker = null;
-    rejectScan?.(new Error('cancelled')); rejectScan = null;
-    for (const s of sources) if (!s.done) Object.assign(s, { done: true, stopped: true });
+    batch?.abort(); worker?.terminate(); worker = null;
+    rejectScan = null;
+    interrupt('stopped');
     busy = false; status = C.stopped; paint();
   }
   function reset() {
@@ -227,8 +240,7 @@ export function createScanner(host: ScannerHost): Scanner {
     return html`<label class="scan-file-button ${cls}">${label}<input data-files type="file" accept="image/png,image/jpeg,image/webp"
       multiple ?disabled=${busy} @change=${onChoose} /></label>`;
   }
-  const sourceCaption = (s: Source) =>
-    s.error || (s.stopped ? C.stoppedMidway : s.done ? C.fileSummary(s.count, s.rare) : s.reading ? C.reading : C.queued);
+  const sourceCaption = (s: Source) => s.status === 'read' ? C.fileSummary(s.count, s.rare) : C.sourceStatus[s.status];
   function gallery() {
     return html`<div class="scan-sources">${repeat(sources, s => s.id, s => html`<figure>
       ${s.image ? html`<a href=${s.image} target="_blank" rel="noopener"><img src=${s.image} alt=${s.name} /></a>` : nothing}
@@ -236,7 +248,7 @@ export function createScanner(host: ScannerHost): Scanner {
     </figure>`)}</div><p class="muted">${C.partial}</p>`;
   }
   function uploadStep() {
-    const failed = sources.filter(s => s.error), stopped = sources.filter(s => s.stopped);
+    const failed = sources.filter(s => PROBLEMS.has(s.status)), stopped = sources.filter(s => s.status === 'stopped');
     const readings = sources.reduce((n, s) => n + s.count, 0), rare = sources.reduce((n, s) => n + s.rare, 0);
     const started = sources.length > 0 || busy;
     return html`<section class="panel scan-upload ${dragging ? 'scan-dragging' : ''}" data-dropzone
@@ -250,8 +262,8 @@ export function createScanner(host: ScannerHost): Scanner {
         ${started ? html`<p class="small scan-privacy">${C.privacy}</p>` : nothing}</details>
       ${notice ? html`<p class="scan-notice" data-notice>${notice}</p>` : nothing}
       ${error || failed.length ? html`<div role="alert" class="field-error scan-messages">
-        ${error ? html`<p>${error}</p>` : nothing}${failed.map(s => html`<p>${s.name}: ${s.error}</p>`)}</div>` : nothing}
-      ${stopped.length ? html`<div class="scan-messages">${stopped.map(s => html`<p>${s.name}: ${C.stoppedMidway}</p>`)}</div>` : nothing}
+        ${error ? html`<p>${error}</p>` : nothing}${failed.map(s => html`<p>${s.name}: ${sourceCaption(s)}</p>`)}</div>` : nothing}
+      ${stopped.length ? html`<div class="scan-messages">${stopped.map(s => html`<p>${s.name}: ${sourceCaption(s)}</p>`)}</div>` : nothing}
     </section>`;
   }
 
@@ -454,8 +466,8 @@ export function createScanner(host: ScannerHost): Scanner {
     return html`<div class="scan-flow">${uploadStep()}${reviewStep(result, t)}${finishStep(result, t)}${actionBar(result, t)}</div>`;
   }
   function dispose() {
-    generation++; worker?.terminate(); worker = null;
-    rejectScan?.(new Error('cancelled')); rejectScan = null;
+    batch?.abort(); worker?.terminate(); worker = null;
+    rejectScan = null;
     for (const source of sources) if (source.image) URL.revokeObjectURL(source.image);
   }
   return { render, dispose };

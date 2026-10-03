@@ -7,25 +7,27 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 const file = new URL('fixtures/scanner/android.jpg', import.meta.url).pathname;
 const iphone = new URL('fixtures/scanner/iphone.jpg', import.meta.url).pathname;
+const srAndR = new URL('fixtures/scanner/sr-and-r.jpg', import.meta.url).pathname;
 const workers = [], errors = [], referenceRequests = [];
 page.on('worker', worker => workers.push(worker));
 page.on('pageerror', error => errors.push(String(error)));
 page.on('request', request => { if (request.url().includes('/assets/supports/scanner/')) referenceRequests.push(request.url()); });
-async function holdScreenshot() {
-  await page.evaluate(() => {
+/** Holds screenshot decoding, after letting the first `skip` screenshots through. */
+async function holdScreenshot(skip = 0) {
+  await page.evaluate(skip => {
     const decode = Image.prototype.decode;
     let release;
     const gate = new Promise(resolve => { release = resolve; });
     window.screenshotPending = window.screenshotFinished = false;
     Image.prototype.decode = async function () {
-      if (!this.src.startsWith('blob:')) return decode.call(this);
+      if (!this.src.startsWith('blob:') || skip-- > 0) return decode.call(this);
       window.screenshotPending = true;
       await gate;
       await decode.call(this);
       window.screenshotFinished = true;
     };
     window.releaseScreenshot = () => { Image.prototype.decode = decode; release(); };
-  });
+  }, skip);
 }
 /** The JSON is built only while the preview is open, so open it before reading. */
 async function previewJson() {
@@ -167,25 +169,27 @@ try {
   assert.equal(await page.locator('.scan-messages').count(), 0, 'reading a screenshot again clears its earlier failure');
 
   // Every file of a batch is listed from the start, so one stopped or failed before its turn says it was not read.
-  const notRead = async (reason) => assert.deepEqual(
+  const notRead = async (reason, names) => assert.deepEqual(
     (await page.locator('.scan-messages p').allTextContents()).filter(text => text.includes('Not read')),
-    [`android.jpg: Not read because ${reason}. Add this screenshot again.`, `iphone.jpg: Not read because ${reason}. Add this screenshot again.`]);
-  await holdScreenshot();
-  await start([file, iphone]);
+    names.map(name => `${name}: Not read because ${reason}. Add this screenshot again.`));
+  // The worker fails while the second of three screenshots is prepared: the first keeps its readings.
+  await holdScreenshot(1);
+  await start([file, iphone, srAndR]);
   await page.waitForFunction(() => window.screenshotPending);
-  assert.match(await page.locator('.scan-sources').textContent(), /iphone\.jpg\s*Waiting to be read/, 'a later file waits its turn');
+  assert.match(await page.locator('.scan-sources').textContent(), /sr-and-r\.jpg\s*Waiting to be read/, 'a later file waits its turn');
   await crash();
   await page.evaluate(() => window.releaseScreenshot());
-  await failed(50);
-  await notRead('recognition stopped');
+  await failed(60);
+  await notRead('recognition stopped', ['iphone.jpg', 'sr-and-r.jpg']);
+  // Adding them again replaces those attempts; stopping during the first leaves both unread again.
   await holdScreenshot();
-  await start([file, iphone]);
+  await start([iphone, srAndR]);
   await page.waitForFunction(() => window.screenshotPending);
-  await stop(50);
-  await notRead('reading was stopped');
+  await stop(60);
+  await notRead('reading was stopped', ['iphone.jpg', 'sr-and-r.jpg']);
   await page.evaluate(() => window.releaseScreenshot());
   await page.waitForFunction(() => window.screenshotFinished);
-  assert.equal(await readings(), 50, 'a stopped batch adds no late results');
+  assert.equal(await readings(), 60, 'a stopped batch adds no late results');
   assert.ok(errors.every(error => error.includes('Simulated scanner worker failure')), String(errors));
 
   // A card whose reference is missing is left out with a warning and the rest still read; when no reference loads,

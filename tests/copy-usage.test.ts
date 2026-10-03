@@ -46,22 +46,24 @@ function reads(exported: string): Read[] {
       .map(m => ({ file, path: [base, m[1]!.slice(1)].filter(Boolean).join('.'), computed: !!m[2] }))));
 }
 /**
- * A path counts as used when some file reads it, or reads an enclosing object whole below the top level: by a
+ * A path counts as used when some file reads it, or reads an enclosing object whole below the section level: by a
  * computed key into a lookup table (`COPY.priorities.roles[w.role]`), or as a value whose fields are read later
- * (`COPY.priorities.marks.hintsOnly`). A whole section (`COPY.settings`) never counts, so it cannot hide its entries.
+ * (`COPY.priorities.marks.hintsOnly`). A whole section never counts, so it cannot hide its entries. COPY is split into
+ * sections (`COPY.settings`); SCANNER_COPY is one section, so its nested objects such as `sourceStatus` are tables.
  */
-function unused(copy: object, exported: string): string[] {
-  const all = reads(exported), read = new Set(all.map(r => r.path));
-  const nested = [...read].filter(path => path.includes('.'));
-  return leaves(copy).filter(leaf => !read.has(leaf) && !nested.some(path => leaf.startsWith(`${path}.`)));
+function unused(copy: object, exported: string, sectionDepth: number): string[] {
+  const read = new Set(reads(exported).map(r => r.path));
+  const tables = [...read].filter(path => depth(path) > sectionDepth);
+  return leaves(copy).filter(leaf => !read.has(leaf) && !tables.some(path => leaf.startsWith(`${path}.`)));
 }
+const depth = (path: string) => path ? path.split('.').length : 0;
 /** A computed key into a whole section would reach every entry in it; index a nested table such as `roles` instead. */
-const sectionLookups = (exported: string) => reads(exported)
-  .filter(read => read.computed && !read.path.includes('.')).map(read => `${read.file}: ${read.path || exported}[…]`);
+const sectionLookups = (exported: string, sectionDepth: number) => reads(exported)
+  .filter(read => read.computed && depth(read.path) <= sectionDepth).map(read => `${read.file}: ${[exported, read.path].filter(Boolean).join('.')}[…]`);
 
-for (const [exported, copy] of [['COPY', COPY], ['SCANNER_COPY', SCANNER_COPY]] as const) {
-  test(`every ${exported} entry is used`, () => assert.deepEqual(unused(copy, exported), []));
-  test(`${exported} sections are not indexed by a computed key`, () => assert.deepEqual(sectionLookups(exported), []));
+for (const [exported, copy, sectionDepth] of [['COPY', COPY, 1], ['SCANNER_COPY', SCANNER_COPY, 0]] as const) {
+  test(`every ${exported} entry is used`, () => assert.deepEqual(unused(copy, exported, sectionDepth), []));
+  test(`${exported} sections are not indexed by a computed key`, () => assert.deepEqual(sectionLookups(exported, sectionDepth), []));
 }
 
 /** Class names in a stylesheet's selectors, including those inside at-rule blocks; declarations are skipped. */
