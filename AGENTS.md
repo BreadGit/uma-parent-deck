@@ -63,8 +63,10 @@ the task finishes, unless the user asks otherwise.
 A server on port 5173 may belong to another checkout: find its directory with `readlink /proc/<pid>/cwd`
 (the pid is in `ss -ltnp`) before reusing it. In a git worktree, run `npm ci` first (a fresh worktree has
 no `node_modules`), start `npm run dev -- --port <n> --strictPort` on a free port, and pass
-`URL=http://localhost:<n>/` to the browser checks. Start a server as a background task and poll it with
-`curl`; do not `pkill` vite, since the running server is the one the user reviews from.
+`URL=http://localhost:<n>/` to the browser checks. Start the server detached from the agent session, as in
+`setsid nohup npm run dev > /tmp/uma-dev.log 2>&1 < /dev/null &`, and poll it with `curl`: agent harnesses
+stop their own background tasks after a time limit, which took the server down mid-session. Do not `pkill`
+vite, since the running server is the one the user reviews from.
 
 The preview browser tools (`preview_open`, `preview_navigate`) cannot reach `localhost`. Navigate with
 `{kind: 'environment-port', port: <n>}`, which resolves to the LAN address, and confirm the returned
