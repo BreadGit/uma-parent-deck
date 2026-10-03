@@ -3,13 +3,14 @@
 // one-line run summary keeping the context. The right column is every result, most useful first.
 import { html, nothing, render } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
-import { resetRun, saveState, type Theme } from '../state.ts';
+import { resetRun, saveState } from '../state.ts';
 import { data, endPanelTracking, onRender, plan, refresh, searchState, stateRevision, store, trackedPanel, update, view } from './context.ts';
 import { COPY } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
 import { installSuggestDismiss } from './fields.ts';
 import { panel } from './panel.ts';
 import { installTooltips } from './tooltip.ts';
+import { followTheme, themeToggle } from './theme.ts';
 import { installScrollAnchor } from './scroll-anchor.ts';
 import { runSummary } from './summary.ts';
 import { renderGoalEditor } from './panels/goal.ts';
@@ -27,13 +28,6 @@ import { renderRanking } from './panels/ranking.ts';
 import { hasWarnings, renderWarnings } from './panels/warnings.ts';
 import { clearSharedUrl } from './share.ts';
 import { unavailableRunChoices } from '../model/run.ts';
-
-const THEMES: { id: Theme; label: string }[] = [{ id: 'system', label: 'Auto' }, { id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
-const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
-function applyTheme() {
-  const dark = store.ui.theme === 'dark' || (store.ui.theme === 'system' && systemDark.matches);
-  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-}
 
 async function resetAll() {
   if (!await confirmDialog(COPY.app.resetAllConfirm, COPY.app.resetAll)) return;
@@ -71,7 +65,7 @@ function page() {
       <h1>Uma parent deck</h1>
       <span class="meta">${COPY.app.tagline}</span>
       <span class="header-actions">
-        <span class="theme-toggle" role="group" aria-label="Theme">${THEMES.map((t) => html`<button class="${store.ui.theme === t.id ? 'active' : ''}" data-theme-pick="${t.id}" @click=${() => { update((s) => { s.ui.theme = t.id; }); applyTheme(); }}>${t.label}</button>`)}</span>
+        ${themeToggle(store.ui.theme, (theme) => update((s) => { s.ui.theme = theme; }))}
         <button class="danger" data-action="reset-all" data-tip=${COPY.app.resetAllTip} @click=${resetAll}>${COPY.app.resetAll}</button>
       </span>
     </header>
@@ -137,10 +131,9 @@ export function mount(root: HTMLElement) {
   const watch = watchCandidates(root);
   const draw = () => { preserveScroll(() => render(page(), root)); endPanelTracking(); watch(); };
   onRender(draw);
-  systemDark.addEventListener('change', applyTheme);
+  followTheme(() => store.ui.theme);
   installTooltips(root);
   installSuggestDismiss(root);
-  applyTheme();
   draw();
   // lit keeps the same <header> across renders; its height sizes the pinned input column below it
   const header = root.querySelector('header')!;
