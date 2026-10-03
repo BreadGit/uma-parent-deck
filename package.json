@@ -11,7 +11,7 @@
     "fit": "python3 analysis/fit_stat_model.py",
     "test": "node --test tests/*.test.ts",
     "test:quick": "SKIP_ANALYSIS=1 node --test tests/*.test.ts",
-    "check:data": "node --test tests/data.test.ts tests/source-validation.test.ts tests/support-import.test.ts tests/page-cache.test.ts tests/measurement-sources.test.ts tests/stat-inputs.test.ts tests/support-effects.test.ts tests/model-evaluation.test.ts",
+    "check:data": "node --test tests/data.test.ts tests/scanner-catalog.test.ts tests/source-validation.test.ts tests/support-import.test.ts tests/page-cache.test.ts tests/measurement-sources.test.ts tests/stat-inputs.test.ts tests/support-effects.test.ts tests/model-evaluation.test.ts",
     "smoke": "node tests/smoke.mjs",
     "test:e2e": "node tests/smoke.mjs && node tests/regressions.mjs && node --test tests/scroll-anchor.mjs && npm run test:scanner",
     "inspect": "node tests/inspect.ts",

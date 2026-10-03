@@ -2,7 +2,6 @@
 // store's inventory. The session outlives the sheet, so closing and reopening keeps the screenshots and the review.
 import { html, nothing } from 'lit-html';
 import { effectiveLb } from '../../model/run.ts';
-import type { Card } from '../../types.ts';
 import type { Scanner } from '../../scanner/session.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { SCANNER_COPY as C } from '../copy.ts';
@@ -15,13 +14,14 @@ export async function openScanner() {
     if (view.scannerLoading) return;
     view.scannerLoading = true; refresh();
     try {
-      const { createScanner } = await import('../../scanner/session.ts');
+      // The scanner's own catalog, as on the standalone page: it knows which cards have a matching reference.
+      const [{ createScanner }, { cards }] = await Promise.all([import('../../scanner/session.ts'), import('virtual:scanner-catalog')]);
       scanner = createScanner({
-        cards: data.cards,
+        cards,
         onChange: refresh,
         apply: {
           current: () => store.inventory,
-          effective: (card) => effectiveLb(store.inventory, card as Card, store.settings.defaultLb),
+          effective: (card) => effectiveLb(store.inventory, data.cardById.get(card.id)!, store.settings.defaultLb),
           onApply: (inventory) => { update((s) => { s.inventory = inventory; }); closeScanner(); },
         },
       });

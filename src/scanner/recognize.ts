@@ -1,7 +1,8 @@
 import type { CardType, Rarity } from '../types.ts';
 
 export interface Pixels { width: number; height: number; data: Uint8ClampedArray }
-export interface ScanCard { id: number; name: string; charName: string; rarity: Rarity; type: CardType }
+/** A catalog card; `hasReference` is set when its matching reference exists, so the scanner can match it. */
+export interface ScanCard { id: number; name: string; charName: string; rarity: Rarity; type: CardType; hasReference: boolean }
 export interface Reference extends ScanCard { image: Pixels | null; artwork: Pixels | null }
 export interface Box { x: number; y: number; width: number; height: number }
 export interface Match { id: number; error: number }

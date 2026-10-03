@@ -6,10 +6,10 @@ import { importInventory } from '../src/inventory.ts';
 import type { Inventory } from '../src/types.ts';
 
 const cards: ScanCard[] = [
-  { id: 10001, rarity: 'R', type: 'guts', name: 'Rare', charName: 'Rare' },
-  { id: 20001, rarity: 'SR', type: 'wit', name: 'Super rare', charName: 'Super rare' },
-  { id: 30001, rarity: 'SSR', type: 'guts', name: 'SSR', charName: 'SSR' },
-  { id: 30002, rarity: 'SSR', type: 'speed', name: 'Missing', charName: 'Missing' },
+  { id: 10001, rarity: 'R', type: 'guts', name: 'Rare', charName: 'Rare', hasReference: false },
+  { id: 20001, rarity: 'SR', type: 'wit', name: 'Super rare', charName: 'Super rare', hasReference: true },
+  { id: 30001, rarity: 'SSR', type: 'guts', name: 'SSR', charName: 'SSR', hasReference: true },
+  { id: 30002, rarity: 'SSR', type: 'speed', name: 'Missing', charName: 'Missing', hasReference: true },
 ];
 const row = (key: number, cardId = 30001, lb: number | null = 2): ReviewRow =>
   ({ key, cardId, lb, source: String(key), crop: '', detection: null, reviewed: true, excluded: false });
