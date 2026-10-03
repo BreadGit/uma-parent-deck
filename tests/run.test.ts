@@ -203,7 +203,8 @@ test("planRun: the goal's priorities decide a shared event; arranging the list d
   // Lane Legerdemain shares the scenario event with Focus; placed first among the extras it still sits below the target
   const lane = byName('Lane Legerdemain');
   const fixed: RunInput = { ...empty, targets: [{ id: focus.id, role: 'preferred', stars: 2, priority: 0 }], traineeCardId: sw.cardId, wishlistOrder: [lane.id] };
-  const plan = planRun(fixed, settings, {}, data);
+  // A small budget: the scenario event and the list order do not depend on the best deck.
+  const plan = planRun(fixed, settings, {}, data, { budget: 8 });
   assert.ok(plan.wl[0]!.targetId === focus.id, 'the target is first');
   assert.ok(!plan.deckResult.conflicts.some((e) => e.eventKey.startsWith('scenario:') && e.taken.skillId === lane.id), 'Lane Legerdemain cannot take the scenario event');
   assert.ok(plan.deckResult.coverage.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Focus keeps the scenario event');
