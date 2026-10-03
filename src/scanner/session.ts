@@ -316,7 +316,7 @@ export function createScanner(host: ScannerHost): Scanner {
           <span class="scan-result-label" data-row-status>${label(row, result.conflicts)}</span></div>
         ${cardPicker.render(row.key, card, id => edit(target, { cardId: id, reviewed: true }))}
         <div class="scan-row-actions">
-          <label>${C.lb}<select data-lb=${row.key} .value=${live(lb)}
+          <label>${C.lb}<select data-row-lb=${row.key} .value=${live(lb)}
             @change=${(e: Event) => edit(target, { lb: selectValue(e) ? Number(selectValue(e)) : null })}>
             ${options(lbOptions, lb)}</select></label>
           ${!row.excluded && !row.reviewed ? html`<button class="primary" data-confirm=${row.key}

@@ -26,7 +26,7 @@ const scan = name => scanFile(new URL(`fixtures/scanner/${name}.jpg`, import.met
 async function readings() {
   const tiles = await page.locator('[data-ready] [data-tile]').evaluateAll(els => els.map(e => [Number(e.dataset.cardId), { lb: Number(e.dataset.lb), confident: true }]));
   const decide = await page.locator('[data-decide] [data-row]').evaluateAll(els => els.map(e => {
-    const picker = e.querySelector('[data-card]'), lb = e.querySelector('[data-lb]');
+    const picker = e.querySelector('[data-card]'), lb = e.querySelector('[data-row-lb]');
     return [Number(e.dataset.conflict ?? picker.dataset.cardId), { lb: lb && lb.value !== '' ? Number(lb.value) : null, confident: false, key: e.dataset.row }];
   }));
   return new Map([...tiles, ...decide]);
@@ -132,15 +132,15 @@ try {
   await manualPicker.press('Enter');
   assert.equal(await manualPicker.getAttribute('data-card-id'), '', 'Enter without a query or highlight chooses nothing');
   await manualPicker.press('Escape');
-  await manual.locator('[data-lb]').selectOption('3');
+  await manual.locator('[data-row-lb]').selectOption('3');
   await manual.locator('[data-exclude]').click();
   await page.locator('[data-excluded] > summary').click();
   const excludedManual = page.locator('[data-excluded] [data-row]');
   assert.equal(await excludedManual.count(), 1, 'an excluded entry without a selected card keeps its editor');
-  assert.equal(await excludedManual.locator('[data-lb]').inputValue(), '3', 'exclusion preserves the entered limit break');
+  assert.equal(await excludedManual.locator('[data-row-lb]').inputValue(), '3', 'exclusion preserves the entered limit break');
   await excludedManual.locator('[data-exclude]').click();
-  assert.equal(await manual.locator('[data-lb]').inputValue(), '3', 'restoring the entry preserves its limit break');
-  await manual.locator('[data-lb]').selectOption('');
+  assert.equal(await manual.locator('[data-row-lb]').inputValue(), '3', 'restoring the entry preserves its limit break');
+  await manual.locator('[data-row-lb]').selectOption('');
   await manualPicker.fill('special');
   await manualPicker.press('Enter');
   assert.equal(await manualPicker.getAttribute('data-card-id'), '', 'Enter does not guess among several matches');
@@ -151,7 +151,7 @@ try {
   await manualPicker.press('Enter');
   assert.match(await manualPicker.inputValue(), /Sakura Laurel/);
   assert.equal(await manualPicker.getAttribute('data-card-id'), '30125');
-  await manual.locator('[data-lb]').selectOption('2');
+  await manual.locator('[data-row-lb]').selectOption('2');
   assert.equal(await page.locator('[data-decide]').count(), 0, 'a manual card with a limit break is complete');
   assert.equal(await page.locator('[data-tile="c30125"]').getAttribute('data-lb'), '2');
   let editor = await openTile(30125);
