@@ -585,6 +585,7 @@ suite('browser regressions', { concurrency: 4 }, () => {
     await toggle.waitFor();
     await toggle.click();
     assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+    assert.equal(await page.locator('[data-candidates]').evaluate((el) => el.scrollHeight > el.clientHeight + 1), false, 'expanding shows every candidate');
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.waitForFunction(() => {
       const el = document.querySelector('[data-candidates]');

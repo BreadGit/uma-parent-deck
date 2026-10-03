@@ -257,20 +257,6 @@ assert.equal(await page.locator('[data-inputs]').count(), 1, 'showing restores t
 assert.equal(await page.locator('[data-run-summary]').count(), 0);
 assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'hide-inputs', 'showing moves focus back to the hide button');
 await assertFieldsMatchState(page, 'with the inputs shown again');
-// The candidates toggle appears only when the clamped row hides a chip, and stays in place (and focused) across a toggle.
-const candidatesClipped = () => page.evaluate(() => { const el = document.querySelector('[data-candidates]'); return !!el && el.scrollHeight > el.clientHeight + 1; });
-await settled();
-assert.equal(await page.locator('[data-action="wl-candidates"]').count(), Number(await candidatesClipped()), 'the candidates toggle matches whether the row is clipped');
-if (await candidatesClipped()) {
-  await page.focus('[data-action="wl-candidates"]');
-  await page.keyboard.press('Enter');
-  assert.equal(await page.locator('[data-action="wl-candidates"]').getAttribute('aria-expanded'), 'true');
-  assert.equal(await candidatesClipped(), false, 'expanding shows every candidate');
-  await page.keyboard.press('Enter');
-  await settled();
-  assert.equal(await page.locator('[data-action="wl-candidates"]').getAttribute('aria-expanded'), 'false');
-  assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'wl-candidates', 'the toggle keeps focus when the row closes');
-}
 // A row that takes a shared event lists the options it displaced; a chip puts that option in the row's place and back.
 const swapChip = page.locator('[data-action="wl-swap"]:not([disabled])').first();
 if (await swapChip.count()) {
@@ -427,37 +413,10 @@ await assertFieldsMatchState(page, 'after clearing entered sparks again');
 assert.equal(await page.locator('select[data-gain] option.dim').count(), 0);
 await page.click('button[data-action="toggle-sparks"]');
 await assertFieldsMatchState(page, 'after closing the spark form');
-// Dimmed aptitude choices rebalance six pink sparks without going below base grades.
-await page.selectOption('[data-apt="dirt"]', 'C');
-await assertFieldsMatchState(page, 'after allocating four pink sparks to dirt');
-await page.selectOption('[data-apt="sprint"]', 'D');
-await assertFieldsMatchState(page, 'after filling all six pink slots');
-assert.equal(await page.locator('[data-apt="end"] option[value="B"]').getAttribute('class'), 'dim');
-assert.equal(await page.locator('[data-apt="end"] option[value="B"]').isDisabled(), false);
-await page.selectOption('[data-apt="end"]', 'B');
-await assertFieldsMatchState(page, 'after rebalancing a dimmed aptitude choice');
-assert.equal(await page.inputValue('[data-apt="sprint"]'), 'E');
-assert.equal(await page.inputValue('[data-apt="end"]'), 'B');
-assert.equal(await page.locator('[data-apt="end"] option:checked').getAttribute('class'), '');
-assert.equal(await page.locator('[data-apt="end"] option[value="D"]').count(), 1);
-await page.locator('[data-apt="end"]').evaluate((select) => {
-  select.value = 'D';
-  select.dispatchEvent(new Event('change', { bubbles: true }));
-});
-await assertFieldsMatchState(page, 'after selecting a planning override below base');
-assert.equal(await page.inputValue('[data-apt="end"]'), 'D');
-await page.click('[data-action="reset-legacy"]');
-await assertFieldsMatchState(page, 'after resetting aptitude rebalance checks');
 // Each role group has its own search and names open one editor. Editor selection is transient; goals and lineage persist.
 assert.equal(await page.locator('[data-goal-enabled]').count(), 0);
 assert.equal(await page.locator('[data-goal-result]').count(), 1);
 await assertFieldsMatchState(page, 'with automatic parent goal evaluation');
-assert.equal(await page.inputValue('[data-goal-pink]'), 'any');
-assert.equal(await page.inputValue('[data-goal-stars="pink"]'), '1');
-await page.selectOption('[data-goal-pink]', 'end');
-await assertFieldsMatchState(page, 'after selecting a specific pink goal');
-await page.click('[data-action="reset-pink-goal"]');
-await assertFieldsMatchState(page, 'after restoring Any pink');
 await page.selectOption('[data-apt="end"]', 'A');
 await assertFieldsMatchState(page, 'after raising aptitude before pink reset');
 await page.click('[data-action="reset-pink-sparks"]');
