@@ -13,7 +13,7 @@ const TITLE = {
 } as const;
 const LABEL = {
   resetAll: 'Reset all', perParent: 'Per parent', blueByStars: 'Blue per parent', scenario: 'Scenario',
-  exportFile: 'Export to file', importFile: 'Import from file', agendaReset: 'Reset',
+  exportFile: 'Export to file', importFile: 'Import from file', agendaReset: 'Reset', basisColumn: 'Basis',
   observedOmitted: 'Not separately modelled', scoringAbout: 'How cards are scored',
 } as const;
 
@@ -207,7 +207,7 @@ export const COPY = {
     observedOmitted: LABEL.observedOmitted,
     affects: (outcomes: string[]) => `Affects ${outcomes.join(', ')}.`,
     limitations: (cards: number) => `Estimate limitations · ${cards} ${cards === 1 ? 'card' : 'cards'}`,
-    limitationsDetail: `These notes describe limits of the formula. Recorded results can already include the effects listed here. Open a card's Basis detail in ${TITLE.ranking} for its source and full formula coverage.`,
+    limitationsDetail: `These notes describe limits of the formula. Recorded results can already include the effects listed here. Open a card's ${LABEL.basisColumn} detail in ${TITLE.ranking} for its source and full formula coverage.`,
     outcomes: { stats: 'stats', sp: 'SP', fans: 'fans', skills: 'skills', unknown: 'an outcome not yet evaluated' },
     reasons: {
       direct: 'Applied directly to its related estimate.',
@@ -296,7 +296,7 @@ export const COPY = {
     open: 'Show the race grid',
     reset: LABEL.agendaReset,
     resetTip: 'Return every slot to the automatic rule',
-    manualTip: `Picked by hand. ${LABEL.agendaReset} returns this slot to the automatic rule.`,
+    manualTip: `Picked by hand. ${LABEL.agendaReset} returns every slot to the automatic rule.`,
     skip: '— skip —',
     careerGoal: 'career goal',
     streakTip: (n: number) => `${n} races in consecutive half-month slots: the streak penalty applies`,
@@ -312,6 +312,7 @@ export const COPY = {
     title: TITLE.ranking,
     tip: 'Every Global support card scored against your targets. Set the limit break of the cards you own here (or mark them not owned); the deck and the predictions follow. Pinned cards and the suggested deck stay on top whatever the sort; each row\'s buttons pin the card or ignore it for this run.',
     showUnowned: 'Show not owned',
+    columns: { card: 'Card', lb: 'LB', targets: 'Target spark chances', total: 'Total', sp: 'SP', basis: LABEL.basisColumn },
     sortHint: 'pins and the suggested deck first, then click a header to sort',
     targetTip: `Sorted by the sum of Required target chances, then priority-weighted Preferred target chances, then Total stat gain. Each percentage is this card's own chance at rank SS. See "${LABEL.scoringAbout}" below.`,
     basisTip: (reference: number, selected: number) => `Where each card's stat and SP estimates come from: community results at the shown limit break, an observation adjusted from a nearby limit break, or the formula alone. Each label's info icon gives the source and the effects the formula leaves out. The model uses ${reference} races as its reference, then scales card stats and SP to your ${selected}-race schedule; the training focus adjusts stats only.`,

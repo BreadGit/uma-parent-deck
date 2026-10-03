@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 import { artworkPath, badgeCards, referencePath } from '../src/scanner/assets.ts';
 import type { ScanCard } from '../src/scanner/recognize.ts';
@@ -26,6 +26,17 @@ export function scannerCatalog(bundleArtwork = false): Plugin {
       if (source !== id) return;
       this.addWatchFile(resolve(root, 'data/cards.json'));
       return `export const cards = ${JSON.stringify(scannerCards(root))};`;
+    },
+    /** A reference generated or removed while the dev server runs changes `hasReference`, so the catalog reloads. */
+    configureServer(server) {
+      const references = resolve(root, 'public', dirname(referencePath(0)));
+      server.watcher.add(references);
+      const changed = (file: string) => {
+        if (dirname(file) !== references) return;
+        const catalog = server.moduleGraph.getModuleById(id);
+        if (catalog) { server.moduleGraph.invalidateModule(catalog); server.hot.send({ type: 'full-reload' }); }
+      };
+      server.watcher.on('add', changed).on('unlink', changed);
     },
     generateBundle() {
       if (!bundleArtwork) return;
