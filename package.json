@@ -13,7 +13,7 @@
     "test:quick": "SKIP_ANALYSIS=1 node --test tests/*.test.ts",
     "check:data": "node --test tests/data.test.ts tests/source-validation.test.ts tests/support-import.test.ts tests/page-cache.test.ts tests/measurement-sources.test.ts tests/stat-inputs.test.ts tests/support-effects.test.ts tests/model-evaluation.test.ts",
     "smoke": "node tests/smoke.mjs",
-    "test:e2e": "node tests/smoke.mjs && node tests/regressions.mjs && node --test tests/scroll-anchor.mjs",
+    "test:e2e": "node tests/smoke.mjs && node tests/regressions.mjs && node --test tests/scroll-anchor.mjs && npm run test:scanner",
     "inspect": "node tests/inspect.ts",
     "scratch": "node tests/scratch.mjs",
     "build:scanner": "tsc --noEmit && vite build --config vite.scanner.config.ts",

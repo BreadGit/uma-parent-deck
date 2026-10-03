@@ -8,6 +8,7 @@ browser checks. For changes to calculations, state, data loading, or shared appl
 The analysis tests inside `npm test` run Python unittest modules and need `python3` with numpy and openpyxl.
 Without them those tests skip with a notice in the summary rather than failing; treat a skip as untested, not passing.
 `npm run test:quick` skips them on purpose for the inner loop; run `npm test` before reporting work complete.
+Changes to the inventory scanner also run `npm run test:scanner`.
 
 The smoke test drives headless Chromium through the main flows and checks for horizontal overflow at
 390, 768, 1280, 1440, 1680 and 1920 px in both themes. Reserve the browser regression suite for large
@@ -16,10 +17,9 @@ flows or substantial changes to shared planning, persistence, or worker behavior
 changes use the checks above and direct verification of the affected behavior; changing a browser
 interaction alone does not require the regression suite.
 
-`npm run test:e2e` runs smoke followed by browser regressions and scroll-anchor checks. When those
+`npm run test:e2e` runs smoke followed by browser regressions, scroll-anchor and scanner checks. When those
 regressions are warranted, run it once instead of also running smoke separately. If smoke already
-passed on the same code and server, run `node tests/regressions.mjs && node --test tests/scroll-anchor.mjs`
-to avoid repeating it.
+passed on the same code and server, run the rest of its steps from `package.json` to avoid repeating it.
 
 Browser checks need a running dev or preview server. They default to port 5173; set `URL` for another
 address. Set `SCREENSHOT_PATH=''` to skip the smoke screenshot or set a temporary path to inspect it.
@@ -89,6 +89,8 @@ Game information is curated and vendored in `docs/umamusume/`. This directory is
   else touches localStorage.
 - `src/ui/`: lit-html templates. `context.ts` holds the data, the store, view state and the memoized plan;
   panels change persisted state only through `update()`. One module per panel under `panels/`.
+- `src/scanner/`: the standalone inventory scanner (`scanner.html`), which reads support-card screenshots in a worker
+  and exports `inventory.json`. It shares styles, copy and form helpers with `src/ui/` but not the planner's data or state.
 - `tests/`: `model.test.ts` has a test per rule, `run.test.ts` covers the pipeline and the family-aware
   ordering, `state.test.ts` covers migration and setting specs, `data.test.ts` checks `data/*.json` shape
   and references (run it after a fetch or a refit). Tests are type-checked with the app.
