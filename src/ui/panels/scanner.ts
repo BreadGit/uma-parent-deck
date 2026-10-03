@@ -37,8 +37,15 @@ export async function openScanner() {
   document.querySelector<HTMLDialogElement>('[data-scanner]')?.showModal();
   document.querySelector<HTMLElement>('[data-action="close-scanner"]')?.focus();
 }
+/** Closes the sheet; its `close` event then releases the page, as it does for Escape and the system back gesture. */
 export function closeScanner() {
-  document.querySelector<HTMLDialogElement>('[data-scanner]')?.close();
+  const sheet = document.querySelector<HTMLDialogElement>('[data-scanner]');
+  if (sheet?.open) sheet.close();
+  else onClosed();
+}
+/** Every way the sheet closes ends here, including those the browser starts without a cancelable `cancel` event. */
+function onClosed() {
+  if (!view.scannerOpen) return;
   view.scannerOpen = false;
   document.body.classList.remove('scanner-open');
   refresh();
@@ -61,7 +68,7 @@ export function renderScannerOverlay() {
   if (!view.scannerOpen || !scanner) return nothing;
   return html`<dialog class="scanner-sheet" aria-label=${C.title} data-scanner
     @keydown=${onKeyDown}
-    @cancel=${(e: Event) => { e.preventDefault(); closeScanner(); }}
+    @close=${onClosed}
     @click=${(e: MouseEvent) => {
       if (e.target !== e.currentTarget) return;
       const bounds = (e.currentTarget as HTMLDialogElement).getBoundingClientRect();

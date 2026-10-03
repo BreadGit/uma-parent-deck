@@ -356,6 +356,11 @@ try {
   await page.mouse.click(8, 8);
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'open-scanner', 'clicking the backdrop returns to the opener');
+  // The system back gesture and the close watcher close the sheet without a cancelable cancel event.
+  await page.locator('[data-action="open-scanner"]').click();
+  await sheet.evaluate(el => el.close());
+  await sheet.waitFor({ state: 'detached' });
+  assert.equal(await page.evaluate(() => document.body.classList.contains('scanner-open')), false, 'a browser close releases the page scroll');
   await page.locator('[data-action="open-scanner"]').click();
   await scan('android');
   assert.equal(await page.locator('[data-apply]').count(), 1, 'the apply button lives in the action bar only');
