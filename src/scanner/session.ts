@@ -14,8 +14,8 @@ import {
   applyReadings, cardIndex, inventoryFromReview, summarize, triage,
   type ApplyMode, type Group, type ReviewRow, type Summary, type Triage,
 } from './results.ts';
-import type { Box, Pixels, Reference, ScanCard, ScanResult } from './recognize.ts';
-import type { WorkerRequest } from './worker.ts';
+import type { Box, Reference, ScanCard, ScanResult } from './recognize.ts';
+import type { WorkerRequest, WorkerResponse } from './worker.ts';
 import './style.css';
 
 export interface ScannerHost {
@@ -48,6 +48,13 @@ const NOT_READ: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'f
 const PROBLEMS: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed']);
 const unfinished = (s: Source) => s.status === 'queued' || s.status === 'reading';
 class WorkerFailure extends Error {}
+/** The answer each worker request settles with. */
+interface Answer { references: void; scan: ScanResult }
+/** The pixel buffers a request hands over to the worker instead of copying. */
+function transferables(request: WorkerRequest): Transferable[] {
+  const images = request.kind === 'references' ? request.references.flatMap(r => [r.image, r.artwork]) : [request.image];
+  return [...new Set(images.flatMap(image => image ? [image.data.buffer] : []))];
+}
 /** Settles as `promise` does, or rejects as soon as `signal` aborts, so an abandoned step never resumes its batch. */
 function unlessAborted<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   signal.throwIfAborted();
@@ -81,46 +88,51 @@ export function createScanner(host: ScannerHost): Scanner {
   // it rather than staying on this thread, so a failed worker is dropped and the next batch loads them again.
   let worker: Worker | null = null;
   let failure = '';
-  let rejectScan: ((reason: Error) => void) | null = null;
 
   function failWorker(current: Worker, detail: string) {
     if (worker !== current) return;
     console.error('Scanner worker failed:', detail);
     current.terminate(); worker = null; failure = detail;
-    rejectScan?.(new WorkerFailure(detail)); rejectScan = null;
   }
-  /** Pixel buffers are transferred, not copied: the worker becomes their only owner. */
-  function post(current: Worker, message: WorkerRequest, images: (Pixels | null)[]) {
-    current.postMessage(message, [...new Set(images.flatMap(image => image ? [image.data.buffer] : []))]);
+  /**
+   * Sends one request and settles with its answer: nothing for references, the readings for a scan. The promise
+   * rejects when the worker fails or replies with an error (and the worker is dropped), or when `signal` aborts.
+   */
+  function call<K extends WorkerRequest['kind']>(current: Worker, request: Extract<WorkerRequest, { kind: K }>,
+    { progress, signal }: { progress?: (done: number, total: number) => void; signal?: AbortSignal } = {}): Promise<Answer[K]> {
+    return new Promise((resolve, reject) => {
+      if (signal?.aborted) return reject(signal.reason);
+      if (worker !== current) return reject(new WorkerFailure(failure));
+      const settle = () => {
+        current.removeEventListener('message', onMessage);
+        current.removeEventListener('error', onError);
+        current.removeEventListener('messageerror', onMessageError);
+        signal?.removeEventListener('abort', onAbort);
+      };
+      const fail = (detail: string) => { settle(); failWorker(current, detail); reject(new WorkerFailure(detail)); };
+      const onMessage = ({ data }: MessageEvent<WorkerResponse>) => {
+        if (data.kind === 'progress') progress?.(data.done, data.total);
+        else if (data.kind === 'error') fail(data.message);
+        else { settle(); resolve((data.kind === 'result' ? data.result : undefined) as Answer[K]); }
+      };
+      const onError = (event: ErrorEvent) => fail(event.message ?? '');
+      const onMessageError = () => fail('unreadable worker message');
+      const onAbort = () => { settle(); reject(signal!.reason); };
+      current.addEventListener('message', onMessage);
+      current.addEventListener('error', onError);
+      current.addEventListener('messageerror', onMessageError);
+      signal?.addEventListener('abort', onAbort, { once: true });
+      current.postMessage(request, transferables(request));
+    });
   }
-  function startWorker(loaded: Reference[]): Promise<Worker> {
+  async function startWorker(loaded: Reference[], signal: AbortSignal): Promise<Worker> {
     const current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     worker = current;
-    current.onerror = event => failWorker(current, event.message ?? '');
-    current.onmessageerror = () => failWorker(current, 'unreadable worker message');
-    return new Promise((resolve, reject) => {
-      rejectScan = reject;
-      current.onmessage = ({ data }) => {
-        if (worker !== current) return;
-        if (data.kind === 'ready') { rejectScan = null; resolve(current); }
-        else failWorker(current, data.message ?? '');
-      };
-      post(current, { kind: 'references', references: loaded }, loaded.flatMap(r => [r.image, r.artwork]));
-    });
-  }
-  async function scan(current: Worker, canvas: HTMLCanvasElement, name: string): Promise<ScanResult> {
-    if (worker !== current) throw new WorkerFailure(failure);
-    return new Promise((resolve, reject) => {
-      rejectScan = reject;
-      current.onmessage = ({ data }) => {
-        if (worker !== current) return;
-        if (data.kind === 'progress') { status = C.scanning(name, data.done, data.total); paint(); }
-        else if (data.kind === 'result') { rejectScan = null; resolve(data.result); }
-        else failWorker(current, data.message ?? '');
-      };
-      const image = pixels(canvas);
-      post(current, { kind: 'scan', image }, [image]);
-    });
+    // A worker that fails between requests is dropped too, so the next batch starts another.
+    current.addEventListener('error', event => failWorker(current, event.message ?? ''));
+    current.addEventListener('messageerror', () => failWorker(current, 'unreadable worker message'));
+    await call(current, { kind: 'references', references: loaded }, { signal });
+    return current;
   }
 
   /** A screenshot added again replaces its earlier attempt that was not read. */
@@ -147,7 +159,7 @@ export function createScanner(host: ScannerHost): Scanner {
       if (!scanner) {
         const loaded = await step(loadReferences(cards));
         loading = false;
-        scanner = await step(startWorker(loaded));
+        scanner = await startWorker(loaded, signal);
       }
       for (const { file, source } of queue) {
         source.status = 'reading';
@@ -156,7 +168,8 @@ export function createScanner(host: ScannerHost): Scanner {
         if (!canvas) { source.status = 'unreadable'; paint(); continue; }
         const blob = await step(new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .8)));
         if (blob) source.image = URL.createObjectURL(blob);
-        const result = await step(scan(scanner, canvas, file.name));
+        const result = await call(scanner, { kind: 'scan', image: pixels(canvas) }, { signal,
+          progress: (done, total) => { status = C.scanning(file.name, done, total); paint(); } });
         Object.assign(source, { count: result.detections.length, rare: result.ignoredR,
           status: result.detections.length || result.ignoredR ? 'read' : 'noCards' });
         for (const detection of result.detections) {
@@ -178,7 +191,6 @@ export function createScanner(host: ScannerHost): Scanner {
   }
   function stop() {
     batch?.abort(); worker?.terminate(); worker = null;
-    rejectScan = null;
     interrupt('stopped');
     busy = false; status = C.stopped; paint();
   }
@@ -467,7 +479,6 @@ export function createScanner(host: ScannerHost): Scanner {
   }
   function dispose() {
     batch?.abort(); worker?.terminate(); worker = null;
-    rejectScan = null;
     for (const source of sources) if (source.image) URL.revokeObjectURL(source.image);
   }
   return { render, dispose };
