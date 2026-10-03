@@ -125,7 +125,7 @@ test('removed, renamed and reclassified game data cannot change stored share cho
   assert.deepEqual(sharedChoices(restored), choices);
   assert.deepEqual(unavailableRunChoices(restored.run, changed), { trainee: 100101, cards: [30052], skills: [201601] });
   assert.deepEqual(await decodeShare(await encodeShare(sharedChoices(restored))), choices);
-  const original = must(data.skillById.get(201601), `data.skillById.get(201601)`);
+  const original = must(data.skillById.get(201601));
   changed.skillById.set(original.id, { ...original, name: 'Renamed skill' });
   restored = migrate({ current: restored }, changed);
   assert.deepEqual(sharedChoices(restored), choices);

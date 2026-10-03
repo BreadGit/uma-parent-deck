@@ -9,7 +9,7 @@ import type { Card, StatModel } from '../src/types.ts';
 test('deck selection and borrow gains include starting bond supplied to teammates', () => {
   const data = loadData();
   const support = (id: number, passives: Record<string, number> = {}): Card => ({
-    ...structuredClone(must(data.cardById.get(10001), `data.cardById.get(10001)`)), id, charId: id, type: 'speed', unique: null,
+    ...structuredClone(must(data.cardById.get(10001))), id, charId: id, type: 'speed', unique: null,
     effectsByLb: Array.from({ length: 5 }, () => ({ ...passives })),
   });
   const recipient = support(99001);

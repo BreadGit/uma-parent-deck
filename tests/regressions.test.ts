@@ -55,7 +55,7 @@ test('every trainee agenda has at most one selected race per slot', () => {
 });
 
 test('duplicate objective input cannot count race rewards twice', () => {
-  const brian = must(data.charByCardId.get(101601), `data.charByCardId.get(101601)`);
+  const brian = must(data.charByCardId.get(101601));
   const goals = goalRaces(brian);
   const baseline = buildSchedule(data.races, brian.aptitudes, 0.8, new Map(), new Map(), goals);
   const duplicated = buildSchedule(data.races, brian.aptitudes, 0.8, new Map(), new Map(), [...goals, goals[0]!]);

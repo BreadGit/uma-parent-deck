@@ -212,8 +212,8 @@ test('a requirement missing from the first deck is recovered before any partial-
 
 test('required targets outrank custom preferred ordering and excluded choices remain excluded', () => {
   const saved = defaultState(data);
-  const focus = must(data.skills.find((s) => s.name === 'Focus'), `data.skills.find((s) => s.name === 'Focus')`);
-  const falcon = must(data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power'), `data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type ==...`);
+  const focus = must(data.skills.find((s) => s.name === 'Focus'));
+  const falcon = must(data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power'));
   saved.run.traineeCardId = 100101;
   saved.run.pinnedIds.push(falcon.id);
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }];
@@ -241,7 +241,7 @@ test('complete search and displayed goal agree; fallback preserves the original 
   const restored = planRun(saved.run, saved.settings, saved.inventory, data, { selection, summary: full.search! });
   assert.equal(goalDeckKey(restored.deckResult.deck), goalDeckKey(full.deckResult.deck));
   assert.equal(restored.goalEstimate.probability, full.goalEstimate.probability);
-  saved.run.targets.push({ id: must(data.skills.find((s) => s.name === 'Runaway'), `data.skills.find((s) => s.name === 'Runaway')`).id, role: 'required', stars: 2, priority: 0 });
+  saved.run.targets.push({ id: must(data.skills.find((s) => s.name === 'Runaway')).id, role: 'required', stars: 2, priority: 0 });
   const before = structuredClone(saved.run);
   const fallback = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 16 });
   assert.equal(fallback.goalEstimate.probability, 0);
@@ -252,7 +252,7 @@ test('complete search and displayed goal agree; fallback preserves the original 
 
 test('hidden ids that are not extras of this deck are kept in the input and change nothing', () => {
   const saved = defaultState(data);
-  const id = must(data.skills.find((s) => s.name === 'Runaway'), `data.skills.find((s) => s.name === 'Runaway')`).id;
+  const id = must(data.skills.find((s) => s.name === 'Runaway')).id;
   saved.run.traineeCardId = 100101;
   saved.run.targets = [{ id, role: 'required', stars: 2, priority: 0 }];
   saved.run.wishlistExcluded = [id, 999];
@@ -335,7 +335,7 @@ test('many owned cards with five fixed pins still use exhaustive search when onl
   const owned = Array.from({ length: 30 }, (_, i) => card(i + 1)), borrows = [card(31), card(32)];
   const found = searchGoalDeck({ owned, borrows, ownedOrders: [owned], borrowOrders: [borrows],
     pinnedIds: [1, 2, 3, 4, 5], borrowFromAll: false, traineeId: null, tolerance: 0,
-    evaluate: (entries) => ({ score: score(must(entries.find((e) => e.borrowed), `entries.find((e) => e.borrowed)`).card.id / 100), statPower: 0, value: null }),
+    evaluate: (entries) => ({ score: score(must(entries.find((e) => e.borrowed)).card.id / 100), statPower: 0, value: null }),
     explore: () => { throw new Error('Small legal spaces must fully evaluate every deck'); },
     screen: () => { throw new Error('Small legal spaces do not need screening'); },
   })!;

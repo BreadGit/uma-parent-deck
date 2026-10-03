@@ -30,7 +30,7 @@ function check(targets: Target[], sources: Map<number, SkillSource[]>, priority:
 }
 
 test("Twin Turbo's chain reward counts only while the target is listed", () => {
-  const card = must(data.cardById.get(30026), `data.cardById.get(30026)`), target = resolveTarget(200532, data)!;
+  const card = must(data.cardById.get(30026)), target = resolveTarget(200532, data)!;
   const sources = cardSourcesForTarget(card, 4, target, 20, 72, data, settings);
   const listed = check([target], new Map([[target.id, sources]]), [target.id]);
   // Chain 3 fires in 12% of runs; half its outcomes give gold (40%), half white (20%).

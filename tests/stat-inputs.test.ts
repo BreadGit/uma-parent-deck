@@ -9,7 +9,7 @@ import modelJson from '../data/stat-model.json' with { type: 'json' };
 const data = loadData();
 
 test('limit-break adjustments preserve measurements below the fitted floor and cannot become negative', () => {
-  const card = structuredClone(must(data.cards.find((c) => c.type === 'pal'), `data.cards.find((c) => c.type === 'pal')`));
+  const card = structuredClone(must(data.cards.find((c) => c.type === 'pal')));
   card.unique = null;
   card.effectsByLb = [{}, { 9: 30, 30: 2 }, {}, {}, {}];
   const model: StatModel = { ...data.model, floor: 23, sp: { base: 30, wit: 0, friend: 0, skillPointBonus: 10 },
@@ -21,7 +21,7 @@ test('limit-break adjustments preserve measurements below the fitted floor and c
 });
 
 test('additional card inputs affect their fitted outcomes and preserve observed references', () => {
-  const card = structuredClone(must(data.cards.find((c) => c.type === 'speed'), `data.cards.find((c) => c.type === 'speed')`));
+  const card = structuredClone(must(data.cards.find((c) => c.type === 'speed')));
   card.effectsByLb = [{ 14: 20, 25: 10 }, {}, {}, {}, {}];
   const model: StatModel = { ...data.model, floor: 0, roleConstants: { 'speed.primary': 100, 'speed.secondary': 50 },
     slopes: { fr: 0, mo: 0, te: 0, sb: 0 }, effectSlopes: { 14: 2 },
@@ -60,7 +60,7 @@ test('expanded model remains finite and nonnegative for every imported card and 
 });
 
 test('pal/group SP uses the previous formula despite expanded coefficients', () => {
-  const card = structuredClone(must(data.cards.find((c) => c.type === 'pal'), `data.cards.find((c) => c.type === 'pal')`));
+  const card = structuredClone(must(data.cards.find((c) => c.type === 'pal')));
   card.effectsByLb = [{ 14: 20, 25: 10, 30: 2 }, {}, {}, {}, {}];
   const model: StatModel = { ...data.model, sp: {
     base: 100, wit: 0, friend: 100, skillPointBonus: 10, effectSlopes: { 14: 3, 25: 4 },

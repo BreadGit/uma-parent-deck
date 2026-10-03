@@ -58,7 +58,7 @@ test('only well-formed recommendations survive current-state migration, and rese
 test('restored decks obey current ownership, limit breaks, pins, borrowed slots and trainee exclusion', () => {
   const legal = (entries = selection, current = state) => isLegalRunSelection(entries, current.run, current.settings, current.inventory, data);
   assert.equal(legal(), true);
-  const owned = must(selection.find((e) => !e.borrowed), `selection.find((e) => !e.borrowed)`);
+  const owned = must(selection.find((e) => !e.borrowed));
   for (const value of [null, 0]) {
     const changed = structuredClone(state); changed.inventory[String(owned.id)] = value;
     assert.equal(legal(selection, changed), false);
@@ -68,11 +68,11 @@ test('restored decks obey current ownership, limit breaks, pins, borrowed slots 
   assert.equal(legal(selection.map((e) => ({ ...e, borrowed: true }))), false);
   assert.equal(legal(selection.map((e, i) => i ? e : { ...e, id: -1 })), false);
   assert.equal(legal(selection.map((e, i) => i === 1 ? selection[0]! : e)), false);
-  const pin = must(data.cards.find((card) => !selection.some((e) => must(data.cardById.get(e.id), `data.cardById.get(${e.id})`).charId === card.charId) && card.charId !== plan.trainee!.charId), `data.cards.find((card) => !selection.some((e) => data.cardById.get(e.id).charId === car...`);
+  const pin = must(data.cards.find((card) => !selection.some((e) => must(data.cardById.get(e.id)).charId === card.charId) && card.charId !== plan.trainee!.charId));
   const pinned = structuredClone(state); pinned.run.pinnedIds.push(pin.id);
   assert.equal(legal(selection, pinned), false);
   const changedTrainee = structuredClone(state);
-  changedTrainee.run.traineeCardId = must(data.characters.find((c) => selection.some((e) => must(data.cardById.get(e.id), `data.cardById.get(${e.id})`).charId === c.charId)), `data.characters.find((c) => selection.some((e) => data.cardById.get(e.id).charId === c....`).cardId;
+  changedTrainee.run.traineeCardId = must(data.characters.find((c) => selection.some((e) => must(data.cardById.get(e.id)).charId === c.charId))).cardId;
   assert.equal(legal(selection, changedTrainee), false);
 });
 

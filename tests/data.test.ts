@@ -92,7 +92,7 @@ test('the fit script and the app add the same compound unique passives: the fixt
   assert.ok(fixture.rows.length >= 5 * 30, `${fixture.rows.length} rows`);
   const seen = new Set<number>();
   for (const row of fixture.rows) {
-    const card = must(data.cardById.get(row.cardId), `data.cardById.get(${row.cardId})`);
+    const card = must(data.cardById.get(row.cardId));
     assert.ok(card, `fixture card ${row.cardId}`);
     seen.add(card.id);
     const mine = uniqueExtras(card, row.lb, data.model);

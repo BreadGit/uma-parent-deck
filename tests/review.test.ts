@@ -47,7 +47,7 @@ test('required roles and stars migrate into the sole target list without changin
 });
 
 test('saved planning overrides preserve the agenda', () => {
-  const trainee = must(data.characters.find((c) => c.name === 'Oguri Cap'), `data.characters.find((c) => c.name === 'Oguri Cap')`);
+  const trainee = must(data.characters.find((c) => c.name === 'Oguri Cap'));
   const saved = migrate({ current: { version: 6, run: { traineeCardId: trainee.cardId, aptOverrides: { dirt: 'G' } } } }, data);
   assert.equal(saved.run.aptOverrides.dirt, 'G');
   const plan = planRun(saved.run, saved.settings, {}, data, { search: false });

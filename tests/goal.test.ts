@@ -325,7 +325,7 @@ test('goal migration keeps old targets as preferred and normalizes family identi
 
 test('goal editing drives selection while supplied-deck prediction stays consistent', () => {
   const input = structuredClone(DEFAULT_RUN);
-  input.traineeCardId = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`).cardId;
+  input.traineeCardId = must(data.characters.find((c) => c.name === 'Special Week')).cardId;
   input.targets = [a.id, b.id].map((id) => ({ id, role: 'preferred', stars: 2, priority: 0 }));
   // A small budget: the assertions compare the two searches, not their best decks.
   const before = planRun(input, settings, {}, data, { budget: 8 });

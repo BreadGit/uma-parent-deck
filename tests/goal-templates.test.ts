@@ -22,7 +22,7 @@ test('template catalog preserves supplied names, order, spark requirements, and 
     assert.equal(template.name, entries[i * 2]);
     assert.ok(template.id, `${template.name} has an id`);
     const body = entries[i * 2 + 1]!;
-    const field = (name: string) => must(body.split('\n').find((line) => line.trim().startsWith(`- ${name}: `)), `body.split('\\n').find((line) => line.trim().startsWith(\`- \${name}: \`))`).trim().slice(name.length + 4);
+    const field = (name: string) => must(body.split('\n').find((line) => line.trim().startsWith(`- ${name}: `))).trim().slice(name.length + 4);
     const blue = field('blue sparks').match(/^(.*) ([123])\*$/)!;
     assert.deepEqual(template.goal.blueStats, blue[1] === 'any' ? ['speed', 'stamina', 'power', 'guts', 'wit'] : blue[1]!.split(', '));
     assert.equal(template.goal.blueStars, Number(blue[2]));

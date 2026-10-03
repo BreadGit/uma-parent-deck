@@ -10,7 +10,7 @@ import { eventSources } from '../src/model/sparks.ts';
 import type { Card, StatModel } from '../src/types.ts';
 
 const data = loadData();
-const card = (id: number) => structuredClone(must(data.cardById.get(id), `data.cardById.get(${id})`));
+const card = (id: number) => structuredClone(must(data.cardById.get(id)));
 const plainModel: StatModel = { ...data.model, effectSlopes: {}, sp: { ...data.model.sp, effectSlopes: {} }, evaluation: undefined };
 
 test('unverified skill reward flags survive into coverage and source explanations', () => {
@@ -19,7 +19,7 @@ test('unverified skill reward flags survive into coverage and source explanation
   const effect = cardEffectCoverage(support, 4, data.model).find((entry) => entry.key === 'events:rewardFlag');
   assert.equal(effect?.status, 'unrecognized');
   assert.deepEqual(effect?.outcomes, ['skills']);
-  const source = must(eventSources(support, DEFAULT_SETTINGS, data).find((entry) => entry.skillId === 200352), `eventSources(support, DEFAULT_SETTINGS, data).find((entry) => entry.skillId === 200352)`);
+  const source = must(eventSources(support, DEFAULT_SETTINGS, data).find((entry) => entry.skillId === 200352));
   assert.match(source.detail, /source reward flag not evaluated/);
   assert.equal(source.pObtain, DEFAULT_SETTINGS.randomEventRate, 'no probability is invented for an unverified flag');
 });
@@ -153,7 +153,7 @@ test('team starting bond reaches each formula recipient once, respects the donor
   assert.deepEqual(extra, { 14: 5 });
   assert.deepEqual(modelContribution(recipient, 0, model, extra), { stats: [130, 0, 80, 0, 0], sp: 75 });
   const ctx = makeCtx({ data: { ...data, model }, settings: DEFAULT_SETTINGS, races: model.races.reference, totalTurns: model.races.totalTurns, trainee: null });
-  const described = must(describeDeck(deck, [], ctx).deck.find((entry) => entry.card.id === recipient.id), `describeDeck(deck, [], ctx).deck.find((entry) => entry.card.id === recipient.id)`);
+  const described = must(describeDeck(deck, [], ctx).deck.find((entry) => entry.card.id === recipient.id));
   assert.deepEqual(described.stats, [130, 0, 80, 0, 0]);
   assert.equal(described.sp, 75);
   model.observed = [{ cardId: recipient.id, lb: 0, source: 'test', runs: 10, wellTested: true, stats: [90, 1, 40, 2, 3], sp: 60 }];

@@ -64,7 +64,7 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.deepEqual(migrate({ state: v22 }, data).run.targetLineage, { '200352': [3, 2, 0, 3, 0, 0], '201601': [0, 2, 0, 0, 0, 1] }, 'per-side totals place their copies; six-uma entries are kept and malformed ones dropped');
   assert.deepEqual(s2.run.raceOverrides, { a: true });
   assert.equal(s2.run.traineeStars, 3);
-  const sw = must(data.characters.find((c) => c.name === 'Special Week'), `data.characters.find((c) => c.name === 'Special Week')`);
+  const sw = must(data.characters.find((c) => c.name === 'Special Week'));
   assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 1 } }, data).run.traineeStars, 3, 'a star count below the trainee\'s rarity is raised to it');
   assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 7 } }, data).run.traineeStars, 5);
 });
