@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { importInventory } from '../src/inventory.ts';
 import { loadData } from '../src/data.ts';
+import { STATE_KEY } from '../src/state.ts';
 import { assertServesThisTree } from './browser-fields.mjs';
 
 const base = process.env.URL ?? 'http://localhost:5173/';
@@ -21,6 +22,24 @@ async function scanFile(file, expectedError) {
   else assert.deepEqual(alerts, []);
 }
 const scan = name => scanFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url).pathname);
+/** Every card in the review by id: confident readings are tiles, the rest are cards under "Needs a decision". */
+async function readings() {
+  const tiles = await page.locator('[data-ready] [data-tile]').evaluateAll(els => els.map(e => [Number(e.dataset.cardId), { lb: Number(e.dataset.lb), confident: true }]));
+  const decide = await page.locator('[data-decide] [data-row]').evaluateAll(els => els.map(e => {
+    const picker = e.querySelector('[data-card]'), lb = e.querySelector('[data-lb]');
+    return [Number(e.dataset.conflict ?? picker.dataset.cardId), { lb: lb && lb.value !== '' ? Number(lb.value) : null, confident: false, key: e.dataset.row }];
+  }));
+  return new Map([...tiles, ...decide]);
+}
+async function expectConfident(expected, label) {
+  const read = await readings();
+  for (const [id, lb] of expected) {
+    assert.ok(read.has(id), `${label}: ${id} was read`);
+    assert.equal(read.get(id).lb, lb, `${label}: diamonds for ${id}`);
+    assert.equal(read.get(id).confident, true, `${label}: ${id} needs no confirmation`);
+  }
+  return read;
+}
 /** The JSON is built only while the preview is open, so open it before reading. */
 async function previewJson() {
   const preview = page.locator('[data-preview]');
@@ -36,7 +55,16 @@ async function chooseCard(key, id) {
   const input = page.locator(`[data-card="${key}"]`);
   await input.fill(loadData().cards.find(card => card.id === id).name);
   await page.locator(`[role="option"][data-id="${id}"]`).click();
-  assert.equal(await input.getAttribute('data-card-id'), String(id));
+  // A row that becomes complete moves out of the decisions, so only check a row that is still there.
+  if (await input.count()) assert.equal(await input.getAttribute('data-card-id'), String(id));
+}
+/** Expands a read card's editor, which opens in the grid right under its tile. */
+async function openTile(id) {
+  const tile = page.locator(`[data-tile="c${id}"]`);
+  if (!await page.locator('[data-ready]').evaluate(details => details.open)) await page.locator('[data-ready] > summary').click();
+  if (await tile.getAttribute('aria-pressed') !== 'true') await tile.click();
+  assert.equal(await tile.evaluate(el => el.nextElementSibling?.matches('[data-row]')), true, 'the editor opens under the clicked tile');
+  return tile.locator('xpath=following-sibling::*[1]');
 }
 async function alteredScreenshot(name, changes) {
   const source = await readFile(new URL(`fixtures/scanner/${name}.jpg`, import.meta.url));
@@ -59,23 +87,30 @@ async function alteredScreenshot(name, changes) {
 }
 const theme = () => page.evaluate(() => document.documentElement.dataset.theme);
 /** Every width the main smoke test checks, in both themes, chosen through the page's own theme control. */
-async function assertNoOverflow(state, open = async () => {}, close = async () => {}) {
+const pickTheme = name => page.locator(`[data-theme-pick="${name}"]`).click();
+async function assertNoOverflow(state, open = async () => {}, close = async () => {}, pick = pickTheme) {
   for (const name of ['light', 'dark']) {
-    await page.locator(`[data-theme-pick="${name}"]`).click();
+    await pick(name);
     for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       await open();
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${state} ${name} ${width} overflow`);
+      const sheet = page.locator('[data-scanner]');
+      if (await sheet.count()) assert.equal(await sheet.evaluate(el => el.scrollWidth > el.clientWidth), false, `${state} ${name} ${width} sheet overflow`);
       await close();
     }
   }
   await page.setViewportSize({ width: 1280, height: 900 });
 }
+// Independently read from the Android example: SSR Special Week 1LB, event Special Week 4LB,
+// Suzuka 0LB, Winning Dream Suzuka 4LB, Teio 0LB, Maruzensky 4LB, Oguri 0LB, Gold Ship 3LB,
+// Daiwa Scarlet 3LB, Grass Wonder 2LB.
+const android = [[30001,1],[30025,4],[30002,0],[30062,4],[30003,0],[30107,4],[30024,0],[30057,3],[30047,3],[30006,2]];
 try {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto(new URL('scanner.html', base).href);
   await assertServesThisTree(base);
-  assert.equal(await page.title(), 'Inventory scanner');
+  assert.equal(await page.title(), 'Import using screenshots');
   assert.equal(await page.locator('.scan-planner-link').getAttribute('href'), './index.html');
   await page.locator('[data-theme-pick="dark"]').click();
   assert.equal(await theme(), 'dark');
@@ -87,23 +122,29 @@ try {
   await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark', null, { timeout: 5000 });
   await page.emulateMedia({ colorScheme: 'light' });
   await assertNoOverflow('empty');
+  assert.equal(await page.locator('[data-download]').count(), 1, 'the download button lives in the action bar only');
+  assert.equal(await page.locator('[data-download]').isEnabled(), false);
   await page.locator('[data-add]').click();
-  const manual = page.locator('[data-row]').first(), picker = manual.locator('[data-card]');
-  assert.equal(await picker.evaluate(el => el === document.activeElement), true, 'manual cards focus the search');
-  assert.equal(await picker.getAttribute('role'), 'combobox');
-  await picker.press('Enter');
-  assert.equal(await picker.getAttribute('data-card-id'), '', 'Enter without a query or highlight chooses nothing');
-  await picker.fill('special');
-  await picker.press('Enter');
-  assert.equal(await picker.getAttribute('data-card-id'), '', 'Enter does not guess among several matches');
-  await picker.fill('  SSR   LAUREL stop stamina ');
+  const manual = page.locator('[data-decide] [data-row]').first(), manualPicker = manual.locator('[data-card]');
+  assert.equal(await manualPicker.evaluate(el => el === document.activeElement), true, 'manual cards focus the search');
+  assert.equal(await manualPicker.getAttribute('role'), 'combobox');
+  await manualPicker.press('Enter');
+  assert.equal(await manualPicker.getAttribute('data-card-id'), '', 'Enter without a query or highlight chooses nothing');
+  await manualPicker.fill('special');
+  await manualPicker.press('Enter');
+  assert.equal(await manualPicker.getAttribute('data-card-id'), '', 'Enter does not guess among several matches');
+  await manualPicker.fill('  SSR   LAUREL stop stamina ');
   assert.equal(await page.locator('[role="option"]').count(), 1, 'search combines name, title, rarity and type words');
   assert.equal(await page.locator('[role="option"]').getAttribute('data-id'), '30125');
-  assert.equal(await picker.getAttribute('data-card-id'), '', 'typing does not select a card');
-  await picker.press('Enter');
-  assert.match(await picker.inputValue(), /Sakura Laurel/);
-  assert.equal(await picker.getAttribute('data-card-id'), '30125');
+  assert.equal(await manualPicker.getAttribute('data-card-id'), '', 'typing does not select a card');
+  await manualPicker.press('Enter');
+  assert.match(await manualPicker.inputValue(), /Sakura Laurel/);
+  assert.equal(await manualPicker.getAttribute('data-card-id'), '30125');
   await manual.locator('[data-lb]').selectOption('2');
+  assert.equal(await page.locator('[data-decide]').count(), 0, 'a manual card with a limit break is complete');
+  assert.equal(await page.locator('[data-tile="c30125"]').getAttribute('data-lb'), '2');
+  let editor = await openTile(30125);
+  let picker = editor.locator('[data-card]');
   await picker.fill('no-such-card');
   assert.match(await page.getByRole('status').textContent(), /No cards match/);
   await picker.press('Enter');
@@ -118,9 +159,11 @@ try {
   const active = await picker.getAttribute('aria-activedescendant');
   assert.equal(await page.locator(`#${active}`).getAttribute('data-id'), '30062');
   await picker.press('Enter');
-  assert.equal(await picker.getAttribute('data-card-id'), '30062');
-  assert.equal(await manual.locator('[data-lb]').inputValue(), '2', 'changing artwork preserves LB');
+  assert.equal(await page.locator('[data-tile="c30125"]').count(), 0, 'the reading now belongs to the chosen card');
+  assert.equal(await page.locator('[data-tile="c30062"]').getAttribute('data-lb'), '2', 'changing artwork preserves LB');
   assert.equal((await previewJson())[30062], 2);
+  editor = await openTile(30062);
+  picker = editor.locator('[data-card]');
   await picker.click();
   await picker.press('ArrowUp');
   assert.equal(await page.locator('[role="option"]').last().getAttribute('aria-selected'), 'true', 'up wraps to the final result');
@@ -134,80 +177,85 @@ try {
   await picker.fill('laurel');
   await page.locator('[data-add]').click();
   assert.equal(await page.getByRole('listbox').count(), 1, 'only the new row has an open picker');
-  assert.equal(await page.locator('[data-card]').first().inputValue(), '', 'new rows do not inherit search text');
-  assert.equal(await page.locator('[data-card]').nth(1).getAttribute('data-card-id'), '30062');
+  assert.equal(await page.locator('[data-decide] [data-card]').first().inputValue(), '', 'new rows do not inherit search text');
+  assert.equal(await page.locator('[data-tile="c30062"]').count(), 1);
   await newInventory();
+
   await scan('android');
-  assert.equal(await page.locator('[data-row]').count(), 10);
-  // Independently read from the Android example: SSR Special Week 1LB, event Special Week 4LB,
-  // Suzuka 0LB, Winning Dream Suzuka 4LB, Teio 0LB, Maruzensky 4LB, Oguri 0LB, Gold Ship 3LB,
-  // Daiwa Scarlet 3LB, Grass Wonder 2LB.
-  const expected = [[30001,1],[30025,4],[30002,0],[30062,4],[30003,0],[30107,4],[30024,0],[30057,3],[30047,3],[30006,2]];
-  const readings = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => ({
-    key: row.dataset.row, id: Number(row.querySelector('[data-card]').dataset.cardId), lb: Number(row.querySelector('[data-lb]').value),
-  })));
-  for (const [i, [id, lb]] of expected.entries()) {
-    assert.equal(readings[i].lb, lb, `Android diamond count for ${id}`);
-    assert.equal(readings[i].id, id, `Android artwork ${id}`);
-  }
-  for (const [i, [id]] of expected.entries()) await chooseCard(readings[i].key, id);
-  await page.locator('[data-download]').waitFor({ state: 'visible' });
+  assert.equal((await expectConfident(android, 'Android')).size, 10);
+  assert.equal(await page.locator('[data-decide]').count(), 0, 'clear readings need no decision');
+  assert.match(await page.locator('[data-all-ready]').textContent(), /All 10 cards read with confidence/);
   assert.equal(await page.locator('[data-download]').isEnabled(), true);
+  editor = await openTile(30001);
+  await chooseCard(await editor.getAttribute('data-row'), 30001);
   await scan('android');
-  const added = await page.locator('[data-row]').evaluateAll(rows => rows.slice(10).map(row => row.dataset.row));
-  for (const [i, [id]] of expected.entries()) await chooseCard(added[i], id);
-  assert.match(await page.locator('[data-summary]').textContent(), /10 unique cards.*10 duplicate readings from overlap/);
-  await page.locator(`[data-lb="${added[0]}"]`).selectOption('4');
+  assert.match(await page.locator('[data-summary]').textContent(), /10 unique cards · 0 to review · 10 duplicate readings from overlap/);
+  assert.match(await (await openTile(30001)).textContent(), /Seen in 2 screenshots/, 'identical overlapping readings merge');
+  // Grey out the fourth diamond of the event Special Week, so a third reading of it says 3LB instead of MLB.
+  await scanFile(await alteredScreenshot('android', { covers: [[176, 121, 9, 12]] }));
+  const conflict = page.locator('[data-conflict="30025"]');
+  assert.equal(await conflict.count(), 1, 'screenshots that disagree become one decision');
+  assert.equal(await conflict.locator('[data-use]').count(), 3, 'every reading of the card is offered');
   assert.equal(await page.locator('[data-download]').isEnabled(), false);
-  assert.match(await page.locator('[data-row]').first().textContent(), /Different LB readings/);
-  await page.locator(`[data-lb="${added[0]}"]`).selectOption('1');
+  assert.match(await page.locator('[data-bar-summary]').textContent(), /9 ready · 1 to decide/);
+  await conflict.locator('[data-use]', { hasText: 'Use MLB' }).first().click();
+  assert.equal(await page.locator('[data-conflict]').count(), 0, 'one tap settles the card');
+  assert.equal(await page.locator('[data-download]').isEnabled(), true);
   const downloadEvent = page.waitForEvent('download');
   await page.locator('[data-download]').click();
   const download = await downloadEvent;
   assert.equal(download.suggestedFilename(), 'inventory.json');
   const exported = await importInventory(new File([await readFile(await download.path())], 'inventory.json'));
-  for (const [id, lb] of expected) assert.equal(exported[id], lb);
+  for (const [id, lb] of android) assert.equal(exported[id], lb);
   for (const card of loadData().cards) if (card.rarity === 'R') assert.equal(exported[card.id], 4);
   assert.equal(exported[20001], null);
-  const firstPicker = page.locator('[data-card]').first();
+  await page.locator('[data-add]').click();
+  const firstPicker = page.locator('[data-decide] [data-card]').first();
   await assertNoOverflow('scanned', async () => {
     await firstPicker.fill('special');
     assert.ok(await page.locator('[role="option"]').count() > 0);
   }, () => firstPicker.press('Escape'));
+  // An unseen card is added from its tile with just a limit break.
+  await page.locator('[data-unseen] > summary').click();
+  const unseenBefore = await page.locator('[data-tile^="u"]').count();
+  await page.locator('[data-tile="u30125"]').click();
+  assert.equal(await page.locator('[data-tile="u30125"]').evaluate(el => el.nextElementSibling?.matches('[data-add-card="30125"]')), true);
+  await page.locator('[data-add-lb="30125"]').selectOption('1');
+  assert.equal(await page.locator('[data-tile^="u"]').count(), unseenBefore - 1);
+  assert.equal(await page.locator('[data-tile="c30125"]').getAttribute('data-lb'), '1', 'the added card is read at once');
   await newInventory();
+
   for (const [covers, expectedCards] of [
-    [[[130, 150, 470, 151]], expected.slice(0, 6)],
-    [[[130, 0, 470, 301], [0, 150, 130, 151]], expected.slice(0, 1)],
-    [[[130, 0, 470, 150]], [expected[0], ...expected.slice(5)]],
+    [[[130, 150, 470, 151]], android.slice(0, 6)],
+    [[[130, 0, 470, 301], [0, 150, 130, 151]], android.slice(0, 1)],
+    [[[130, 0, 470, 150]], [android[0], ...android.slice(5)]],
   ]) {
     await scanFile(await alteredScreenshot('android', { covers }));
-    const cards = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => [
-      Number(row.querySelector('[data-card]').dataset.cardId), Number(row.querySelector('[data-lb]').value),
-    ]));
-    assert.deepEqual(cards, expectedCards, 'a complete lone card survives without adjacent cards');
-    assert.equal(await page.locator('[data-confirm]').count(), 0, 'clear isolated artwork needs no confirmation');
+    const read = await expectConfident(expectedCards, 'isolated artwork');
+    assert.equal(read.size, expectedCards.length, 'a complete lone card survives without adjacent cards');
     const exported = await previewJson();
     for (const [id, lb] of expectedCards) assert.equal(exported[id], lb, `isolated artwork ${id} stays owned`);
     await newInventory();
   }
   await scanFile(await alteredScreenshot('android', { covers: [[130, 0, 470, 301], [0, 35, 130, 266]] }), /No complete card badges found/);
-  assert.equal(await page.locator('[data-row]').count(), 0, 'a lone badge without matching artwork is not a card');
+  assert.equal((await readings()).size, 0, 'a lone badge without matching artwork is not a card');
   await newInventory();
   await scan('iphone');
-  assert.equal(await page.locator('[data-row]').count(), 10);
-  const iphone = await page.locator('[data-row]').evaluateAll(rows => rows.map(row => ({ id: Number(row.querySelector('[data-card]').dataset.cardId), lb: Number(row.querySelector('[data-lb]').value) })));
-  assert.deepEqual(iphone.map(r => r.lb), [3,4,0,4,2,3,0,1,4,3]);
-  assert.equal(iphone[7].id, 30004);
-  assert.equal(iphone[9].id, 30022);
+  const iphone = await readings();
+  assert.equal(iphone.size, 10);
+  assert.deepEqual([...iphone.values()].map(r => r.lb).sort(), [3,4,0,4,2,3,0,1,4,3].sort());
+  assert.equal(iphone.get(30004).lb, 1);
+  assert.equal(iphone.get(30022).lb, 3);
   // A fresh batch must not retain the first person's Gold Ship variant.
-  assert.equal(iphone.some(r => r.id === 30057), false);
+  assert.equal(iphone.has(30057), false);
   await newInventory();
   await scan('sr-and-r');
-  assert.equal(await page.locator('[data-row]').count(), 1, 'R artwork never becomes an SR/SSR reading');
-  assert.equal(await page.locator('[data-card]').getAttribute('data-card-id'), '20021');
-  assert.equal(await page.locator('[data-lb]').inputValue(), '4', 'level-35 SR Aoi still has four diamonds');
-  await page.locator('[data-exclude]').click();
+  const srAndR = await expectConfident([[20021, 4]], 'level-35 SR Aoi still has four diamonds');
+  assert.equal(srAndR.size, 1, 'R artwork never becomes an SR/SSR reading');
+  await (await openTile(20021)).locator('[data-exclude]').click();
   assert.match(await page.locator('[data-summary]').textContent(), /1 excluded/);
+  assert.equal(await page.locator('[data-excluded] [data-tile="r"]').count(), 0);
+  assert.equal(await page.locator('[data-excluded] [data-tile]').count(), 1, 'excluded readings keep a tile of their own');
   assert.equal(await page.locator('[data-download]').isEnabled(), true, 'an inventory containing only default R cards is usable');
   const rareOnly = await previewJson();
   assert.equal(rareOnly[20021], null);
@@ -215,41 +263,30 @@ try {
   await newInventory();
   // Move two SR cards into the SR/R boundary row, leaving three SR and two R badges side by side.
   await scanFile(await alteredScreenshot('inventory-b-4440', { copies: [[130, 410, 230, 150, 130, 563]] }));
-  assert.equal(await page.locator('[data-row]').count(), 14, 'R cards beside three SR cards stay R');
-  assert.match(await page.locator('.scan-sources figcaption').textContent(), /18 R cards ignored/);
+  assert.match(await page.locator('[data-batch]').textContent(), /14 readings · 18 R cards ignored/, 'R cards beside three SR cards stay R');
   // User-labeled failures from a second inventory: clear artwork should not need confirmation.
   // The screenshots retain the obstructing game toolbar; only visible cards are expected here.
   const examples = [
-    ['inventory-b-4436', [[3, 30062, 4], [12, 30106, 0]]],
-    ['inventory-b-4437', [[14, 30054, 0]]],
-    ['inventory-b-4438', [[11, 30125, 0], [13, 30145, 2]]],
-    ['inventory-b-4439', [[5, 20006, 4]]],
-    ['inventory-b-4440', [[-1, 20021, 4]]],
+    ['inventory-b-4436', [[30062, 4], [30106, 0]]],
+    ['inventory-b-4437', [[30054, 0]]],
+    ['inventory-b-4438', [[30125, 0], [30145, 2]]],
+    ['inventory-b-4439', [[20006, 4]]],
+    ['inventory-b-4440', [[20021, 4]]],
   ];
   await newInventory();
   for (const [name, expected] of examples) {
-    const offset = await page.locator('[data-row]').count();
     await scan(name);
-    for (const [index, id, lb] of expected) {
-      const row = page.locator('[data-row]').nth(index < 0 ? index : offset + index);
-      assert.equal(await row.locator('[data-card]').getAttribute('data-card-id'), String(id), `${name} artwork ${id}`);
-      assert.equal(await row.locator('[data-lb]').inputValue(), String(lb), `${name} diamonds ${id}`);
-      assert.equal(await row.locator('[data-confirm]').count(), 0, `${name} clear artwork ${id} needs no confirmation`);
-    }
+    await expectConfident(expected, name);
   }
   // Reuse the worker with a smaller, slightly shifted grid after the original-size batch.
-  const offset = await page.locator('[data-row]').count();
   await scanFile(await alteredScreenshot('inventory-b-4436', { width: 480, dx: 2, dy: 3 }));
-  for (const [index, id, lb] of [[3, 30062, 4], [12, 30106, 0]]) {
-    const row = page.locator('[data-row]').nth(offset + index);
-    assert.equal(await row.locator('[data-card]').getAttribute('data-card-id'), String(id), `shifted grid artwork ${id}`);
-    assert.equal(await row.locator('[data-lb]').inputValue(), String(lb), `shifted grid diamonds ${id}`);
-    assert.equal(await row.locator('[data-confirm]').count(), 0, `shifted grid confidence ${id}`);
-  }
+  await expectConfident([[30062, 4], [30106, 0]], 'shifted grid');
   await newInventory();
   await scanFile(await alteredScreenshot('inventory-b-4438', { covers: [[140, 504, 98, 87]] }));
-  assert.equal(await page.locator('[data-row]').nth(11).locator('[data-confirm]').count(), 1, 'covered artwork still requires review');
-  const covered = page.locator('[data-row]').nth(11), coveredPicker = covered.locator('[data-card]');
+  const covered = page.locator('[data-decide] [data-row]');
+  assert.equal(await covered.count(), 1, 'covered artwork still requires review');
+  assert.equal(await covered.locator('[data-confirm]').count(), 1);
+  const coveredPicker = covered.locator('[data-card]');
   const candidate = covered.locator('.scan-candidate').first();
   assert.ok(await candidate.getAttribute('aria-label'), 'suggested matches are named');
   assert.ok((await candidate.locator('span').textContent()).trim(), 'suggested matches show a caption');
@@ -259,10 +296,42 @@ try {
   assert.equal(await coveredPicker.getAttribute('data-card-id'), originalId);
   assert.equal(await covered.locator('[data-confirm]').count(), 1, 'canceling a search does not confirm an uncertain match');
   await chooseCard(await covered.getAttribute('data-row'), 30125);
-  assert.equal(await covered.locator('[data-confirm]').count(), 0, 'choosing a search result confirms the correction');
+  assert.equal(await page.locator('[data-decide]').count(), 0, 'choosing a search result confirms the correction');
   assert.deepEqual(uploads, []);
   assert.ok(referenceRequests.some(url => url.includes('/scanner/') && url.endsWith('.webp')), 'use compact generated references');
   assert.equal(referenceRequests.some(url => url.includes('/full/') || url.includes('/raw/')), false, 'original artwork stays out of the browser');
+
+  // Inside the planner the same flow ends in the saved inventory instead of a file.
+  await page.goto(base);
+  await page.waitForSelector('[data-action="open-scanner"]');
+  await page.locator('[data-action="open-scanner"]').click();
+  const sheet = page.locator('[data-scanner]');
+  await sheet.locator('[data-files]').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'close-scanner', 'the sheet opens on its back button');
+  assert.equal(await page.locator('[data-apply]').count(), 1, 'the apply button lives in the action bar only');
+  await page.keyboard.press('Escape');
+  await sheet.waitFor({ state: 'detached' });
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'open-scanner', 'closing returns focus to the opener');
+  await page.locator('[data-action="open-scanner"]').click();
+  await scan('android');
+  assert.match(await page.locator('[data-change-summary]').textContent(), /\d+ marked not owned · 7 limit breaks changed/, 'replace marks unseen cards not owned');
+  await page.locator('[data-mode="update"]').check();
+  assert.match(await page.locator('[data-change-summary]').textContent(), /^0 newly owned · 0 marked not owned · 7 limit breaks changed/);
+  // The planner's theme control is behind the sheet; set the theme the way it would.
+  await assertNoOverflow('sheet', undefined, undefined, name => page.evaluate(n => { document.documentElement.dataset.theme = n; }, name));
+  await page.locator('[data-apply]').click();
+  await sheet.waitFor({ state: 'detached' });
+  const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).inventory, STATE_KEY);
+  for (const [id, lb] of android) assert.equal(saved[id], lb, `applied ${id}`);
+  assert.equal(Object.keys(saved).length, 10, 'update mode leaves other cards alone');
+  await page.locator('[data-action="open-scanner"]').click();
+  assert.match(await sheet.locator('[data-bar-summary]').textContent(), /10 ready/, 'reopening keeps the session');
+  await sheet.locator('[data-mode="replace"]').check();
+  await sheet.locator('[data-apply]').click();
+  await sheet.waitFor({ state: 'detached' });
+  const replaced = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).inventory, STATE_KEY);
+  assert.equal(replaced[20001], null, 'replace mode marks unseen SR cards not owned');
+  assert.equal(replaced[30001], 1);
   assert.deepEqual(errors, []);
-  console.log('Scanner: screenshot recognition, review, overlap/conflicts, export/import, new inventory, both phone sizes, theme control and overflow at six widths in both themes passed.');
+  console.log('Scanner: screenshot recognition, decision-first review, overlap/conflicts, unseen cards, export/import, new inventory, both phone sizes, theme control, the planner sheet and overflow at six widths in both themes passed.');
 } finally { await browser.close(); }

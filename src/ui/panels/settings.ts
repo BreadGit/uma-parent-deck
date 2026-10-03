@@ -7,7 +7,8 @@ import { exportInventory, importInventory } from '../../inventory.ts';
 import { downloadText } from '../../download.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { setSetting } from '../actions.ts';
-import { COPY } from '../copy.ts';
+import { COPY, SCANNER_COPY } from '../copy.ts';
+import { openScanner } from './scanner.ts';
 import { confirmDialog, notice } from '../dialog.ts';
 import { inputValue } from '../fields.ts';
 import { panel } from '../panel.ts';
@@ -48,17 +49,23 @@ function resetAdvanced() {
   update((s) => { const keep = Object.fromEntries(MAIN_PAGE_SETTINGS.map((k) => [k, s.settings[k]])); s.settings = { ...structuredClone(DEFAULT_SETTINGS), ...keep }; });
 }
 
-// The export is the file format of the repo's inventory.json; dropping an export there makes it the default for a
-// fresh browser (README, "What it does").
+// The inventory sits above the numbered steps: screenshots are the main way to set it up, and the file buttons keep
+// the export format of the repo's inventory.json; dropping an export there makes it the default for a fresh browser
+// (README, "What it does").
+export function renderInventory() {
+  return panel({ title: COPY.settings.inventoryTitle, tip: COPY.settings.inventoryTip }, html`
+    <button class="primary inventory-scan" data-action="open-scanner" ?disabled=${view.scannerLoading} @click=${() => void openScanner()}>${view.scannerLoading ? SCANNER_COPY.loadingScanner : COPY.settings.scan}</button>
+    <p class="small muted inventory-scan-intro">${COPY.settings.scanIntro}</p>
+    <div class="kv kv-center">
+      <span class="kv-k">${COPY.settings.inventory}</span>
+      <button class="small" data-action="export" @click=${() => exportInventory(store.inventory, data.cards, store.settings.defaultLb)}>${COPY.settings.export}</button>
+      <button class="small" data-action="import-click" @click=${() => document.getElementById('import-file')?.click()}>${COPY.settings.import}</button><input type="file" id="import-file" accept="application/json" class="hidden" aria-label="Import inventory file" @change=${onImport} />
+      ${Object.keys(store.inventory).length ? html`<button class="small" data-action="reset-inventory" @click=${resetInventory}>${COPY.settings.reset}</button>` : nothing}
+    </div>`);
+}
+
 export function renderSettings() {
   return panel({ title: COPY.settings.title }, html`
-    <div class="kv kv-center">
-      <span class="kv-k">${COPY.settings.inventory}${tip(COPY.settings.inventoryTip)}</span>
-      <button data-action="export" @click=${() => exportInventory(store.inventory, data.cards, store.settings.defaultLb)}>${COPY.settings.export}</button>
-      <button data-action="import-click" @click=${() => document.getElementById('import-file')?.click()}>${COPY.settings.import}</button><input type="file" id="import-file" accept="application/json" class="hidden" aria-label="Import inventory file" @change=${onImport} />
-      <a class="button" data-action="open-scanner" href="./scanner.html" target="_blank" rel="noopener">${COPY.settings.scan}</a>
-      ${Object.keys(store.inventory).length ? html`<button data-action="reset-inventory" @click=${resetInventory}>${COPY.settings.reset}</button>` : nothing}
-    </div>
     <details ?open=${view.showAdvanced} data-details="advanced" @toggle=${(e: Event) => { view.showAdvanced = (e.target as HTMLDetailsElement).open; refresh(); }}>
       <summary>${COPY.settings.advanced}${tip(COPY.settings.advancedTip)}</summary>
       <button class="small gap-top" data-action="export-settings" @click=${() => downloadText('settings.json', JSON.stringify(store.settings, null, 2) + '\n', 'application/json')}>${COPY.settings.exportSettings}</button>

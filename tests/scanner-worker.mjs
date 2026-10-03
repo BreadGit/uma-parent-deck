@@ -36,11 +36,13 @@ async function start() {
   await page.locator('[data-files]').setInputFiles(file);
   await page.locator('[data-stop]').waitFor({ state: 'visible' });
 }
+/** Readings counted by the batch line: every screenshot read so far, including overlapping ones. */
+const readings = async () => Number((await page.locator('[data-batch]').textContent()).match(/(\d+) readings?/)[1]);
 async function scan(count) {
   await start();
   await page.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
   assert.deepEqual(await page.locator('[role="alert"]').allTextContents(), []);
-  assert.equal(await page.locator('[data-row]').count(), count);
+  assert.equal(await readings(), count);
   assert.equal(await page.locator('[data-download]').isEnabled(), true);
   assert.equal((await previewJson())[30001], 1);
 }
@@ -49,7 +51,7 @@ async function failed(count) {
   assert.match(await page.getByRole('alert').textContent(), /Recognition stopped.*Details: .*Simulated scanner worker failure/s,
     'the worker error message reaches the page');
   await page.locator('[data-stop]').waitFor({ state: 'hidden' });
-  assert.equal(await page.locator('[data-row]').count(), count, 'worker errors retain completed readings');
+  assert.equal(count ? await readings() : await page.locator('[data-batch]').count(), count, 'worker errors retain completed readings');
   assert.equal(await page.locator('[data-files]').isEnabled(), true, 'worker errors allow retry');
 }
 async function crash() {
@@ -63,7 +65,7 @@ async function stop(count) {
   await page.locator('[data-stop]').click();
   assert.equal(await page.getByRole('status').textContent(), 'Stopped');
   assert.deepEqual(await page.locator('[role="alert"]').allTextContents(), []);
-  assert.equal(await page.locator('[data-row]').count(), count, 'cancellation retains completed readings');
+  assert.equal(await readings(), count, 'cancellation retains completed readings');
 }
 try {
   await page.goto(new URL('scanner.html', base).href);
@@ -91,7 +93,7 @@ try {
   await holdScreenshot();
   await start();
   await page.waitForFunction(() => window.screenshotPending);
-  assert.equal(await page.locator('.scan-status progress').count(), 1, 'reading shows a progress bar');
+  assert.equal(await page.locator('[data-bar] .scan-spinner').count(), 1, 'reading shows a spinner in the action bar');
   await crash();
   await page.evaluate(() => window.releaseScreenshot());
   await failed(20);
@@ -122,7 +124,7 @@ try {
   assert.match(await page.locator('.scan-messages').textContent(), /android\.jpg: Not read because reading was stopped/);
   await page.evaluate(() => window.releaseScreenshot());
   await page.waitForFunction(() => window.screenshotFinished);
-  assert.equal(await page.locator('[data-row]').count(), 40, 'a cancelled decode cannot add late results');
+  assert.equal(await readings(), 40, 'a cancelled decode cannot add late results');
   assert.equal(await page.locator('[data-files]').isEnabled(), true);
 
   mode = 'hold';
@@ -143,7 +145,7 @@ try {
   });
   await page.dispatchEvent('[data-dropzone]', 'drop', { dataTransfer: android });
   await page.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
-  assert.equal(await page.locator('[data-row]').count(), 50, 'a dropped screenshot is read');
+  assert.equal(await readings(), 50, 'a dropped screenshot is read');
   assert.equal(await page.locator('.scan-messages').count(), 0, 'reading a screenshot again clears its earlier failure');
   assert.ok(errors.every(error => error.includes('Simulated scanner worker failure')), String(errors));
   console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops and cancellation during startup and decoding passed.');

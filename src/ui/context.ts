@@ -48,6 +48,9 @@ const viewState = {
   candidatesOverflow: false,
   /** The white lineage editor takes each parent and grandparent instead of totals. */
   showLineageParents: false,
+  /** The screenshot scanner is shown over the page; its module loads on first use. */
+  scannerOpen: false,
+  scannerLoading: false,
 };
 export type View = typeof viewState;
 

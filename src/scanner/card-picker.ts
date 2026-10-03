@@ -15,7 +15,9 @@ const label = (card: ScanCard) => `${card.charName} · ${card.rarity} · ${title
 export function createCardPicker(catalog: ScanCard[], change: () => void) {
   let active: number | null = null, query = '', index = -1;
   const close = () => { active = null; query = ''; index = -1; };
-  const dismiss = () => { close(); change(); };
+  // Losing focus can be the render removing this picker's row (a completed card leaves the decisions), and that
+  // render is still committing; repaint after it, never inside it.
+  const dismiss = () => { if (active === null) return; close(); queueMicrotask(change); };
   function picker(key: number, selected: ScanCard | null | undefined, pick: (id: number) => void) {
     const open = active === key;
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);

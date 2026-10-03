@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readLimitBreak, type Pixels, type ScanCard } from '../src/scanner/recognize.ts';
-import { inventoryFromReview, summarize, type ReviewRow } from '../src/scanner/results.ts';
+import { applyReadings, inventoryFromReview, summarize, triage, type ReviewRow } from '../src/scanner/results.ts';
 import { importInventory } from '../src/inventory.ts';
 
 const cards: ScanCard[] = [
@@ -62,4 +62,30 @@ test('LB samples the diamond interior when the lower tips overlap colorful artwo
     }
     assert.equal(readLimitBreak(tile), lb);
   }
+});
+
+test('triage separates decisions from confident readings and merges overlapping ones', () => {
+  const rows = [row(1), row(2), row(3, 20001, 4), { ...row(4, 20001, 1), excluded: true }, { ...row(5, 30002, 3), reviewed: false }];
+  const t = triage(rows, cards);
+  assert.deepEqual(t.ready.map(g => [g.cardId, g.lbs, g.rows.length]), [[30001, [2], 2], [20001, [4], 1]]);
+  assert.deepEqual(t.attention.map(r => r.key), [5]);
+  assert.deepEqual(t.excluded.map(r => r.key), [4]);
+  assert.deepEqual(t.unseen, [], 'an unconfirmed reading still counts as seen');
+  rows[1]!.lb = 3;
+  const conflicted = triage(rows, cards);
+  assert.deepEqual(conflicted.conflicts.map(g => [g.cardId, g.lbs]), [[30001, [2, 3]]]);
+  assert.deepEqual(conflicted.ready.map(g => g.cardId), [20001]);
+  assert.deepEqual(triage([row(1)], cards).unseen.map(c => c.id), [30002, 20001], 'unseen SR and SSR cards, SSR first');
+});
+test('applying readings replaces or updates the planner inventory and reports the difference', () => {
+  const current = { 20001: 0, 30002: null };
+  const effective = (card: ScanCard) => current[card.id as keyof typeof current] === undefined ? 4 : current[card.id as keyof typeof current];
+  const result = summarize([row(1), row(2, 20001, 3)], cards);
+  const replaced = applyReadings(current, cards, effective, result, 'replace');
+  assert.deepEqual(replaced.inventory, { 20001: 3, 30001: 2, 30002: null });
+  assert.deepEqual([replaced.owned, replaced.changed.map(c => c.id), replaced.unowned, replaced.unchanged], [[], [20001, 30001], [], 1]);
+  const updated = applyReadings({ 30001: null, 30002: 1 }, cards, c => c.id === 30001 ? null : c.id === 30002 ? 1 : 4, result, 'update');
+  assert.deepEqual(updated.inventory, { 20001: 3, 30001: 2, 30002: 1 });
+  assert.deepEqual([updated.owned.map(c => c.id), updated.changed.map(c => c.id), updated.unowned, updated.unchanged], [[30001], [20001], [], 1]);
+  assert.equal('10001' in updated.inventory, false, 'R cards are never written');
 });

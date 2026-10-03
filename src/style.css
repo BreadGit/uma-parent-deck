@@ -130,6 +130,8 @@ dialog.dialog p { margin: 0 0 14px; }
 .gap-top { margin-top: 8px; }
 .kv-center { align-items: center; }
 .kv { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0; }
+.inventory-scan { width: 100%; padding: 9px 14px; font-weight: 600; }
+.inventory-scan-intro { margin: 6px 0 10px; }
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin-top: 8px; align-items: baseline; }
 .stat-strip { display: inline-flex; flex-wrap: wrap; gap: 2px 10px; font-variant-numeric: tabular-nums; }
 .stat-strip > span { display: inline-flex; align-items: center; gap: 3px; }

@@ -3,9 +3,10 @@
 A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards and builds a
 6-card deck for independent-training parent farming, aimed at sparking specific white skills.
 
-## Inventory scanner
+## Import using screenshots
 
-Open [the standalone inventory scanner](scanner.html), also linked from Inventory & settings.
+The Inventory panel's "Import using screenshots" button opens the scanner over the planner and applies the
+readings to the inventory directly. [The standalone page](scanner.html) runs the same flow and ends in a download.
 It reads support-card screenshots locally and exports the planner’s inventory format.
 Review uncertain matches and overlapping readings before exporting; the page explains its coverage limits.
 
@@ -16,8 +17,8 @@ The card catalog and artwork come from the existing vendored data; no recognitio
 
 ## What it does
 
-- The page is two columns. The left column is the input flow, numbered in order: Trainee, Parent goal,
-  Legacy, Run, then Inventory & settings. It scrolls on its own, pinned to the viewport, and "Hide inputs"
+- The page is two columns. The left column is the input flow: Inventory first, then the numbered steps
+  Trainee, Parent goal, Legacy and Run, then Settings. It scrolls on its own, pinned to the viewport, and "Hide inputs"
   at its top gives the results the full width; the choice is remembered. While it is hidden, a summary line
   above the results names the trainee, the blue and pink goal and the target sparks, so a screenshot still
   says what it estimates. The right column is every result, most useful first: Warnings when there are any,

@@ -89,7 +89,7 @@ Game information is curated and vendored in `docs/umamusume/`. This directory is
   else touches localStorage.
 - `src/ui/`: lit-html templates. `context.ts` holds the data, the store, view state and the memoized plan;
   panels change persisted state only through `update()`. One module per panel under `panels/`.
-- `src/scanner/`: the standalone inventory scanner (`scanner.html`), which reads support-card screenshots in a worker
+- `src/scanner/`: the screenshot inventory scanner, embedded in the planner from the Inventory panel and standalone in `scanner.html`; `session.ts` is the shared flow, which reads support-card screenshots in a worker
   and exports `inventory.json`. It shares styles, copy and form helpers with `src/ui/` but not the planner's data or state.
 - `tests/`: `model.test.ts` has a test per rule, `run.test.ts` covers the pipeline and the family-aware
   ordering, `state.test.ts` covers migration and setting specs, `data.test.ts` checks `data/*.json` shape
