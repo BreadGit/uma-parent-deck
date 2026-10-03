@@ -112,7 +112,7 @@ function editor(c: RunPlan, t: Target) {
     ${!hasWhiteSpark(t) ? html`<p class="small warn" data-target-unsupported>${COPY.targets.unsupported}</p>` : nothing}
     <div class="target-editor-goals"><h3>${COPY.targets.goalsHeading}</h3>
       <div class="target-editor-controls"><div class="target-roles" role="group" aria-label="Goal for ${t.name}">
-        ${ROLES.map((role) => html`<button data-target-role=${role} data-id=${t.id} class=${entry.role === role ? 'active' : ''} aria-pressed=${entry.role === role} @click=${() => editTarget(t.id, (r) => { r.role = role; })}>${COPY.targets[role]}</button>`)}
+        ${ROLES.map((role) => html`<button data-target-role=${role} data-id=${t.id} class=${entry.role === role ? 'active' : ''} aria-pressed=${entry.role === role} @click=${() => editTarget(t.id, (r) => { r.role = role; })}>${COPY.targets.roles[role]}</button>`)}
       </div>${goalControl}</div>
     </div>
     <div class="target-editor-lineage">
@@ -150,7 +150,7 @@ function group(c: RunPlan, role: Role) {
     refresh();
   };
   return html`<details class="target-group" data-target-group=${role} ?open=${stored || holdsSelected} @toggle=${onToggle}>
-    <summary><span class="sub-note" data-target-count=${role}>${targets.length}</span>${COPY.targets[role]}
+    <summary><span class="sub-note" data-target-count=${role}>${targets.length}</span>${COPY.targets.roles[role]}
       <span class="target-peek">${targets.slice(0, PEEK).map((t) => t.name).join(', ')}${targets.length > PEEK ? ', …' : ''}</span></summary>
     <div class="target-search">${search(role)}</div>
     ${targets.length ? html`<div class="target-list">${repeat(targets, (t) => t.id, (t) => html`${nameButton(t)}${isSelected(t) ? editor(c, t) : nothing}`)}</div>` : nothing}

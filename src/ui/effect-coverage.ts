@@ -19,7 +19,7 @@ export function basisLabel(card: Card, lb: number, source: Contribution['source'
 /** The status shown next to an effect. A recorded contribution already includes an omitted effect, so it is "not
  * separately modelled" there rather than "not in formula". */
 function statusLabel(effect: EffectCoverage, source: Contribution['source']) {
-  return source !== 'model' && effect.status === 'omitted' && affectsContribution(effect) ? copy.observedOmitted : copy[effect.status];
+  return source !== 'model' && effect.status === 'omitted' && affectsContribution(effect) ? copy.observedOmitted : copy.statuses[effect.status];
 }
 
 /** The per-card facts behind a Basis label, as tooltip text: the source of the estimate, then one line per status
@@ -55,8 +55,8 @@ export function observedCaveat(source: Contribution['source'], effects: EffectCo
 /** A warning worth a tag in the ranking row: an effect the model has not evaluated at all, or a card whose every
  * effect is outside the formula. Nearly every card has some effect the formula leaves out, so that alone is not flagged. */
 export function coverageFlag(effects: EffectCoverage[]) {
-  if (effects.some((effect) => effect.status === 'unrecognized')) return copy.unrecognized;
-  if (effects.length && effects.every(missingEffect)) return copy.omitted;
+  if (effects.some((effect) => effect.status === 'unrecognized')) return copy.statuses.unrecognized;
+  if (effects.length && effects.every(missingEffect)) return copy.statuses.omitted;
   return undefined;
 }
 
