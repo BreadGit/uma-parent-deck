@@ -203,8 +203,8 @@ test("planRun: the goal's priorities decide a shared event; arranging the list d
   // Lane Legerdemain shares the scenario event with Focus; placed first among the extras it still sits below the target
   const lane = byName('Lane Legerdemain');
   const fixed: RunInput = { ...empty, targets: [{ id: focus.id, role: 'preferred', stars: 2, priority: 0 }], traineeCardId: sw.cardId, wishlistOrder: [lane.id] };
-  // A small budget: the scenario event and the list order do not depend on the best deck.
-  const plan = planRun(fixed, settings, {}, data, { budget: 8 });
+  // No search: the scenario event and the list order do not depend on the best deck.
+  const plan = planRun(fixed, settings, {}, data, { search: false });
   assert.ok(plan.wl[0]!.targetId === focus.id, 'the target is first');
   assert.ok(!plan.deckResult.conflicts.some((e) => e.eventKey.startsWith('scenario:') && e.taken.skillId === lane.id), 'Lane Legerdemain cannot take the scenario event');
   assert.ok(plan.deckResult.coverage.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Focus keeps the scenario event');
@@ -212,8 +212,8 @@ test("planRun: the goal's priorities decide a shared event; arranging the list d
 });
 
 test('planRun: an empty input still builds a full deck with scenario options; the trainee, her lineage and the inventory shape the result', () => {
-  // A small budget: the shape of the plan, not the best deck, is under test.
-  const plan = planRun(empty, settings, {}, data, { budget: 8 });
+  // No search: the shape of the plan, not the best deck, is under test.
+  const plan = planRun(empty, settings, {}, data, { search: false });
   assert.equal(plan.trainee, null);
   assert.equal(plan.deckResult.deck.length, 6);
   assert.equal(plan.deckResult.deck.filter((d) => d.borrowed).length, 1);
@@ -222,7 +222,7 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.ok(plan.rank.pSS >= 0 && plan.rank.pSS <= 1, 'P(SS) is a probability');
   const corner = resolveTarget(200352, data)!;
   const input: RunInput = { ...empty, traineeCardId: sw.cardId, traineeStars: 3, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: { [corner.id]: [3, 0, 0, 0, 0, 0] }, pinnedIds: [30052] };
-  const withTrainee = planRun(input, settings, {}, data, { budget: 8 });
+  const withTrainee = planRun(input, settings, {}, data, { search: false });
   assert.equal(withTrainee.trainee?.name, 'Special Week');
   assert.ok(withTrainee.deckResult.deck.some((d) => d.card.id === 30052), 'pinned Light Hello is in the deck');
   assert.ok(!withTrainee.deckResult.deck.some((d) => d.card.charId === sw.charId), "the trainee's own cards are excluded");
@@ -232,7 +232,7 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   const withoutLineage = planRun({ ...input, targetLineage: {} }, settings, {}, data, { selection });
   assert.deepEqual(withoutLineage.deckResult.deck.map((d) => d.card.id), selection.map((d) => d.id));
   assert.ok((withTrainee.deckResult.sparks.get(corner.id) ?? 0) > (withoutLineage.deckResult.sparks.get(corner.id) ?? 0), 'lineage raises the spark chance for the same deck');
-  const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data, { budget: 8 });
+  const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data, { search: false });
   assert.ok(!unowned.deckResult.deck.some((d) => d.card.id === 30052 && !d.borrowed), 'an unowned pin is skipped');
   assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking: the model retains unowned cards for the UI visibility filter');
 });

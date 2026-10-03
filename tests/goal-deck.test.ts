@@ -220,12 +220,12 @@ test('required targets outrank custom preferred ordering and excluded choices re
   // arranging or hiding targets in the list changes nothing: the goal orders them
   saved.run.wishlistOrder = [focus.id, 201601];
   const arranged = structuredClone(saved.run.wishlistOrder);
-  const plan = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 8 });
+  const plan = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
   assert.equal(plan.wl[0]!.skillId, 201601, 'the required target is listed first');
   assert.equal(plan.deckResult.conflicts.find((c) => c.eventKey.startsWith(`${falcon.id}:chain`))?.taken.target, 201601);
   assert.deepEqual(saved.run.wishlistOrder, arranged);
   saved.run.wishlistExcluded = [201601];
-  const hidden = planRun(saved.run, saved.settings, saved.inventory, data, { budget: 8 });
+  const hidden = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
   assert.ok(hidden.wl.some((w) => w.skillId === 201601), 'a target cannot be hidden from the list');
   assert.deepEqual(hidden.wlHidden, []);
   assert.ok(hidden.deckResult.coverage.get(201601)!.some((s) => s.isChoice && s.skillId === 201601), 'its choice source still counts');
