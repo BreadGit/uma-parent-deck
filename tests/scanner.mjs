@@ -57,10 +57,36 @@ async function alteredScreenshot(name, changes) {
   }, { encoded: source.toString('base64'), ...changes });
   return { name: `${name}.png`, mimeType: 'image/png', buffer: Buffer.from(encoded, 'base64') };
 }
+const theme = () => page.evaluate(() => document.documentElement.dataset.theme);
+/** Every width the main smoke test checks, in both themes, chosen through the page's own theme control. */
+async function assertNoOverflow(state, open = async () => {}, close = async () => {}) {
+  for (const name of ['light', 'dark']) {
+    await page.locator(`[data-theme-pick="${name}"]`).click();
+    for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
+      await page.setViewportSize({ width, height: 900 });
+      await open();
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${state} ${name} ${width} overflow`);
+      await close();
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+}
 try {
+  await page.emulateMedia({ colorScheme: 'light' });
   await page.goto(new URL('scanner.html', base).href);
   await assertServesThisTree(base);
-  assert.equal(await page.title(), 'Uma inventory scanner');
+  assert.equal(await page.title(), 'Inventory scanner');
+  assert.equal(await page.locator('.scan-planner-link').getAttribute('href'), './index.html');
+  await page.locator('[data-theme-pick="dark"]').click();
+  assert.equal(await theme(), 'dark');
+  assert.equal(await page.locator('[data-theme-pick="dark"]').getAttribute('aria-pressed'), 'true');
+  await page.locator('[data-theme-pick="system"]').click();
+  assert.equal(await theme(), 'light', 'Auto follows the system theme');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  // The media query's change event arrives asynchronously.
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark', null, { timeout: 5000 });
+  await page.emulateMedia({ colorScheme: 'light' });
+  await assertNoOverflow('empty');
   await page.locator('[data-add]').click();
   const manual = page.locator('[data-row]').first(), picker = manual.locator('[data-card]');
   assert.equal(await picker.evaluate(el => el === document.activeElement), true, 'manual cards focus the search');
@@ -130,7 +156,7 @@ try {
   await scan('android');
   const added = await page.locator('[data-row]').evaluateAll(rows => rows.slice(10).map(row => row.dataset.row));
   for (const [i, [id]] of expected.entries()) await chooseCard(added[i], id);
-  assert.match(await page.locator('[data-summary]').textContent(), /10 unique cards.*10 overlapping readings/);
+  assert.match(await page.locator('[data-summary]').textContent(), /10 unique cards.*10 duplicate readings from overlap/);
   await page.locator(`[data-lb="${added[0]}"]`).selectOption('4');
   assert.equal(await page.locator('[data-download]').isEnabled(), false);
   assert.match(await page.locator('[data-row]').first().textContent(), /Different LB readings/);
@@ -143,15 +169,11 @@ try {
   for (const [id, lb] of expected) assert.equal(exported[id], lb);
   for (const card of loadData().cards) if (card.rarity === 'R') assert.equal(exported[card.id], 4);
   assert.equal(exported[20001], null);
-  for (const theme of ['light', 'dark']) for (const width of [390, 768, 1280]) {
-    await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
-    await page.setViewportSize({ width, height: 900 });
-    const picker = page.locator('[data-card]').first();
-    await picker.fill('special');
+  const firstPicker = page.locator('[data-card]').first();
+  await assertNoOverflow('scanned', async () => {
+    await firstPicker.fill('special');
     assert.ok(await page.locator('[role="option"]').count() > 0);
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${theme} ${width} overflow`);
-    await picker.press('Escape');
-  }
+  }, () => firstPicker.press('Escape'));
   await newInventory();
   for (const [covers, expectedCards] of [
     [[[130, 150, 470, 151]], expected.slice(0, 6)],
@@ -185,6 +207,7 @@ try {
   assert.equal(await page.locator('[data-card]').getAttribute('data-card-id'), '20021');
   assert.equal(await page.locator('[data-lb]').inputValue(), '4', 'level-35 SR Aoi still has four diamonds');
   await page.locator('[data-exclude]').click();
+  assert.match(await page.locator('[data-summary]').textContent(), /1 excluded/);
   assert.equal(await page.locator('[data-download]').isEnabled(), true, 'an inventory containing only default R cards is usable');
   const rareOnly = await previewJson();
   assert.equal(rareOnly[20021], null);
@@ -227,6 +250,9 @@ try {
   await scanFile(await alteredScreenshot('inventory-b-4438', { covers: [[140, 504, 98, 87]] }));
   assert.equal(await page.locator('[data-row]').nth(11).locator('[data-confirm]').count(), 1, 'covered artwork still requires review');
   const covered = page.locator('[data-row]').nth(11), coveredPicker = covered.locator('[data-card]');
+  const candidate = covered.locator('.scan-candidate').first();
+  assert.ok(await candidate.getAttribute('aria-label'), 'suggested matches are named');
+  assert.ok((await candidate.locator('span').textContent()).trim(), 'suggested matches show a caption');
   const originalId = await coveredPicker.getAttribute('data-card-id');
   await coveredPicker.fill('laurel');
   await coveredPicker.press('Escape');
@@ -238,5 +264,5 @@ try {
   assert.ok(referenceRequests.some(url => url.includes('/scanner/') && url.endsWith('.webp')), 'use compact generated references');
   assert.equal(referenceRequests.some(url => url.includes('/full/') || url.includes('/raw/')), false, 'original artwork stays out of the browser');
   assert.deepEqual(errors, []);
-  console.log('Scanner: screenshot recognition, review, overlap/conflicts, export/import, new inventory, both phone sizes and themes passed.');
+  console.log('Scanner: screenshot recognition, review, overlap/conflicts, export/import, new inventory, both phone sizes, theme control and overflow at six widths in both themes passed.');
 } finally { await browser.close(); }

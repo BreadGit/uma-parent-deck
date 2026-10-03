@@ -46,10 +46,18 @@ async function scan(count) {
 }
 async function failed(count) {
   await page.getByRole('alert').waitFor({ timeout: 10000 });
-  assert.match(await page.getByRole('alert').textContent(), /Recognition stopped/);
+  assert.match(await page.getByRole('alert').textContent(), /Recognition stopped.*Details: .*Simulated scanner worker failure/s,
+    'the worker error message reaches the page');
   await page.locator('[data-stop]').waitFor({ state: 'hidden' });
   assert.equal(await page.locator('[data-row]').count(), count, 'worker errors retain completed readings');
   assert.equal(await page.locator('[data-files]').isEnabled(), true, 'worker errors allow retry');
+}
+async function crash() {
+  // The page logs the worker's own message when it drops the worker.
+  const workerError = page.waitForEvent('console', { predicate: message => message.type() === 'error'
+    && message.text().includes('Scanner worker failed') && message.text().includes('Simulated scanner worker failure') });
+  await workers.at(-1).evaluate(() => setTimeout(() => { throw new Error('Simulated scanner worker failure'); }, 0));
+  await workerError;
 }
 async function stop(count) {
   await page.locator('[data-stop]').click();
@@ -83,28 +91,60 @@ try {
   await holdScreenshot();
   await start();
   await page.waitForFunction(() => window.screenshotPending);
-  const workerError = page.waitForEvent('pageerror', { predicate: error => error.message.includes('Simulated scanner worker failure') });
-  await workers.at(-1).evaluate(() => setTimeout(() => { throw new Error('Simulated scanner worker failure'); }, 0));
-  await workerError;
+  assert.equal(await page.locator('.scan-status progress').count(), 1, 'reading shows a progress bar');
+  await crash();
   await page.evaluate(() => window.releaseScreenshot());
   await failed(20);
+  assert.match(await page.getByRole('alert').textContent(), /android\.jpg: Not read because recognition stopped/,
+    'an interrupted screenshot says it was not read');
   await scan(30);
 
+  // An idle crash drops the worker; the next batch starts another instead of failing.
+  const beforeIdleCrash = workers.length;
+  await crash();
+  await scan(40);
+  assert.equal(workers.length, beforeIdleCrash + 1, 'a crashed idle worker is replaced');
+
+  // Files dropped while a batch is read are refused with a notice, as the disabled file input refuses them.
   await holdScreenshot();
   await start();
   await page.waitForFunction(() => window.screenshotPending);
-  await stop(30);
+  const dropped = await page.evaluateHandle(() => {
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['x'], 'late.png', { type: 'image/png' }));
+    return transfer;
+  });
+  await page.dispatchEvent('[data-dropzone]', 'dragover', { dataTransfer: dropped });
+  await page.dispatchEvent('[data-dropzone]', 'drop', { dataTransfer: dropped });
+  assert.match(await page.locator('[data-notice]').textContent(), /Still reading/);
+  assert.equal(await page.locator('[data-dropzone].scan-dragging').count(), 0, 'a refused drop is not highlighted');
+  await stop(40);
+  assert.match(await page.locator('.scan-messages').textContent(), /android\.jpg: Not read because reading was stopped/);
   await page.evaluate(() => window.releaseScreenshot());
   await page.waitForFunction(() => window.screenshotFinished);
-  assert.equal(await page.locator('[data-row]').count(), 30, 'a cancelled decode cannot add late results');
+  assert.equal(await page.locator('[data-row]').count(), 40, 'a cancelled decode cannot add late results');
+  assert.equal(await page.locator('[data-files]').isEnabled(), true);
 
   mode = 'hold';
   const initializing = page.waitForEvent('worker');
   await start();
   await (await initializing).evaluate(() => self.initializing);
-  await stop(30);
+  await stop(40);
   mode = 'normal';
-  await scan(40);
+  // An idle drop highlights the zone and reads the file.
+  await page.dispatchEvent('[data-dropzone]', 'dragenter', { dataTransfer: dropped });
+  assert.equal(await page.locator('[data-dropzone].scan-dragging').count(), 1, 'dragging over the zone highlights it');
+  await page.dispatchEvent('[data-dropzone]', 'dragleave', { dataTransfer: dropped });
+  assert.equal(await page.locator('[data-dropzone].scan-dragging').count(), 0);
+  const android = await page.evaluateHandle(async () => {
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([await (await fetch('/tests/fixtures/scanner/android.jpg')).blob()], 'android.jpg', { type: 'image/jpeg' }));
+    return transfer;
+  });
+  await page.dispatchEvent('[data-dropzone]', 'drop', { dataTransfer: android });
+  await page.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
+  assert.equal(await page.locator('[data-row]').count(), 50, 'a dropped screenshot is read');
+  assert.equal(await page.locator('.scan-messages').count(), 0, 'reading a screenshot again clears its earlier failure');
   assert.ok(errors.every(error => error.includes('Simulated scanner worker failure')), String(errors));
-  console.log('Scanner worker: early and idle failures, retry, reuse and cancellation during startup and decoding passed.');
+  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops and cancellation during startup and decoding passed.');
 } finally { await browser.close(); }

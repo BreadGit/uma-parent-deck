@@ -3,16 +3,16 @@
 A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards and builds a
 6-card deck for independent-training parent farming, aimed at sparking specific white skills.
 
-## Screenshot inventory converter
+## Inventory scanner
 
-Open [the standalone converter](scanner.html), also linked from Inventory & settings.
+Open [the standalone inventory scanner](scanner.html), also linked from Inventory & settings.
 It reads support-card screenshots locally and exports the planner’s inventory format.
 Review uncertain matches and overlapping readings before exporting; the page explains its coverage limits.
 
 `npm run build:scanner` produces an independent static app in `dist-scanner/`.
 Serve that directory with any static web server and open `scanner.html`.
 The card catalog and artwork come from the existing vendored data; no recognition service is required.
-`npm run test:scanner` checks the converter against cropped examples from both supplied phone formats.
+`npm run test:scanner` checks the scanner against cropped examples from both supplied phone formats.
 
 ## What it does
 
