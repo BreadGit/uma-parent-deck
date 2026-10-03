@@ -158,6 +158,9 @@ try {
   let picker = editor.locator('[data-card]');
   await picker.fill('no-such-card');
   assert.match(await page.locator('.scan-no-matches [role="status"]').textContent(), /No cards match/);
+  await page.locator('.scan-no-matches').click();
+  assert.equal(await picker.getAttribute('aria-expanded'), 'true', 'pressing the no-matches row keeps the list open');
+  assert.equal(await picker.evaluate(el => el === document.activeElement), true, 'and keeps focus in the search');
   await picker.press('Enter');
   assert.equal(await picker.getAttribute('data-card-id'), '30125', 'no results cannot change the selection');
   await picker.press('Escape');
@@ -182,6 +185,10 @@ try {
     const active = list.querySelector('[aria-selected="true"]').getBoundingClientRect(), bounds = list.getBoundingClientRect();
     return active.top >= bounds.top && active.bottom <= bounds.bottom;
   }), true, 'keyboard selection scrolls into view');
+  // Chrome focuses a scrolling list when its scrollbar is dragged; that focus stays inside the picker.
+  await page.getByRole('listbox').evaluate(list => list.focus());
+  assert.equal(await picker.getAttribute('aria-expanded'), 'true', 'focusing the result list keeps it open');
+  await picker.focus();
   await picker.press('Tab');
   assert.equal(await picker.getAttribute('aria-expanded'), 'false', 'tab dismisses without choosing');
   assert.equal(await picker.getAttribute('data-card-id'), '30062');
