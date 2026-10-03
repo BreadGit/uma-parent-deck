@@ -55,9 +55,7 @@ function resetAdvanced() {
 export function renderInventory() {
   return panel({ title: COPY.settings.inventoryTitle, tip: COPY.settings.inventoryTip }, html`
     <button class="primary inventory-scan" data-action="open-scanner" ?disabled=${view.scannerLoading} @click=${() => void openScanner()}>${view.scannerLoading ? SCANNER_COPY.loadingScanner : COPY.settings.scan}</button>
-    <p class="small muted inventory-scan-intro">${COPY.settings.scanIntro}</p>
     <div class="kv kv-center">
-      <span class="kv-k">${COPY.settings.inventory}</span>
       <button class="small" data-action="export" @click=${() => exportInventory(store.inventory, data.cards, store.settings.defaultLb)}>${COPY.settings.export}</button>
       <button class="small" data-action="import-click" @click=${() => document.getElementById('import-file')?.click()}>${COPY.settings.import}</button><input type="file" id="import-file" accept="application/json" class="hidden" aria-label="Import inventory file" @change=${onImport} />
       ${Object.keys(store.inventory).length ? html`<button class="small" data-action="reset-inventory" @click=${resetInventory}>${COPY.settings.reset}</button>` : nothing}
