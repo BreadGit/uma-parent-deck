@@ -344,9 +344,13 @@ export function createScanner(host: ScannerHost): Scanner {
       <button data-add @click=${addManual} ?disabled=${busy}>${C.add}</button>
       ${rows.length || sources.length ? html`<button data-new @click=${newInventory} ?disabled=${busy}>${C.newBatch}</button>` : nothing}
     </div>`;
-    if (!rows.length) return html`<section class="panel scan-review scan-waiting">${stepHead(2, C.stepReview, nothing, toolbar)}<p class="muted">${C.noExport}</p></section>`;
+    // Steps after the first stay dimmed until a batch has finished reading.
+    const waiting = busy || !rows.length ? 'scan-waiting' : '';
+    const reading = busy ? html`<p class="scan-reading" data-reading><span class="scan-spinner" aria-hidden="true"></span><span>${status}</span></p>` : nothing;
+    if (!rows.length) return html`<section class="panel scan-review ${waiting}">${stepHead(2, C.stepReview, nothing, toolbar)}${busy ? reading : html`<p class="muted">${C.noExport}</p>`}</section>`;
     const editor = (key: string, target: ReviewRow[]) => openKey === key ? reviewCard(target, result, sourceById, 'scan-tile-editor') : nothing;
-    return html`<section class="panel scan-review">
+    return html`<section class="panel scan-review ${waiting}">
+      ${reading}
       ${stepHead(2, C.stepReview, html`<span data-summary>${C.summary(result.owned, decide, result.duplicates, t.excluded.length)}</span>`, toolbar)}
       <div class="scan-filters">
         <input type="search" aria-label=${C.search} placeholder=${C.filter} .value=${live(query)}
@@ -398,7 +402,7 @@ export function createScanner(host: ScannerHost): Scanner {
   /** Explains what the action bar's button will do; the button itself stays in the bar so there is only one. */
   function finishStep(result: Summary, t: Triage) {
     if (!host.apply) {
-      return html`<section class="panel scan-export ${rows.length ? '' : 'scan-waiting'}">${stepHead(3, C.stepDownload)}<p>${C.missing}</p>
+      return html`<section class="panel scan-export ${canFinish(result) ? '' : 'scan-waiting'}">${stepHead(3, C.stepDownload)}<p>${C.missing}</p>
         <p>${C.import} ${host.plannerUrl ? html`<a href=${host.plannerUrl}>${C.openPlanner}</a>` : nothing}</p>
         ${result.pending.size ? html`<p class="scan-result-label">${C.exportBlocked}</p>` : nothing}
         ${canFinish(result) ? html`<details data-preview ?open=${previewOpen} @toggle=${toggled(v => { previewOpen = v; })}>
@@ -408,7 +412,7 @@ export function createScanner(host: ScannerHost): Scanner {
     const planned = change(result);
     const changes = planned ? planned.owned.length + planned.unowned.length + planned.changed.length : 0;
     const names = (list: ScanCard[]) => list.map(c => c.name).join(', ');
-    return html`<section class="panel scan-export ${rows.length ? '' : 'scan-waiting'}">${stepHead(3, C.stepApply)}
+    return html`<section class="panel scan-export ${planned ? '' : 'scan-waiting'}">${stepHead(3, C.stepApply)}
       <div class="scan-modes">
         ${modeOption('replace', C.modeReplace, C.modeReplaceHint(t.unseen.length))}
         ${modeOption('update', C.modeUpdate, C.modeUpdateHint)}
@@ -432,8 +436,7 @@ export function createScanner(host: ScannerHost): Scanner {
         ${status ? html`<span class="muted" role="status">${status}</span>` : nothing}
         ${decide ? html`<a class="button small" href="#scan-decide" data-jump
           @click=${(e: Event) => { e.preventDefault(); document.querySelector('[data-decide]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>${C.decide}</a>` : nothing}`;
-    if (!busy && !rows.length && !sources.length) return nothing;
-    return html`<div class="scan-bar" data-bar>
+    return html`<div class="scan-bar ${ready || busy ? '' : 'scan-waiting'}" data-bar>
       <div class="scan-bar-status">${summary}</div>
       ${host.apply
         ? html`<button class="primary" data-apply ?disabled=${!ready} title=${ready ? '' : C.applyBlocked} @click=${() => apply(result)}>${C.apply}</button>`

@@ -122,10 +122,10 @@ try {
   await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark', null, { timeout: 5000 });
   await page.emulateMedia({ colorScheme: 'light' });
   await assertNoOverflow('empty');
-  assert.equal(await page.locator('[data-bar]').count(), 0, 'nothing to act on, no action bar');
-  await page.locator('[data-add]').click();
   assert.equal(await page.locator('[data-download]').count(), 1, 'the download button lives in the action bar only');
   assert.equal(await page.locator('[data-download]').isEnabled(), false);
+  assert.equal(await page.locator('[data-bar].scan-waiting').count(), 1, 'the bar is dimmed until it can be used');
+  await page.locator('[data-add]').click();
   const manual = page.locator('[data-decide] [data-row]').first(), manualPicker = manual.locator('[data-card]');
   assert.equal(await manualPicker.evaluate(el => el === document.activeElement), true, 'manual cards focus the search');
   assert.equal(await manualPicker.getAttribute('role'), 'combobox');

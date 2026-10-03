@@ -131,5 +131,8 @@ body.scanner-open { overflow: hidden; }
 .scan-dropzone p { margin: 6px 0 0; }
 .scan-upload .scan-howto { margin-top: 4px; }
 .scan-waiting { opacity: .5; }
-.scan-waiting:focus-within, .scan-waiting:hover { opacity: 1; }
+/* The bar floats over content, so it keeps its background and dims only what it holds. */
+.scan-bar.scan-waiting { opacity: 1; }
+.scan-bar.scan-waiting > * { opacity: .5; }
+.scan-reading { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
 .scan-summary-note { margin: 0 0 10px; }
