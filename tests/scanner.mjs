@@ -122,9 +122,10 @@ try {
   await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark', null, { timeout: 5000 });
   await page.emulateMedia({ colorScheme: 'light' });
   await assertNoOverflow('empty');
+  assert.equal(await page.locator('[data-bar]').count(), 0, 'nothing to act on, no action bar');
+  await page.locator('[data-add]').click();
   assert.equal(await page.locator('[data-download]').count(), 1, 'the download button lives in the action bar only');
   assert.equal(await page.locator('[data-download]').isEnabled(), false);
-  await page.locator('[data-add]').click();
   const manual = page.locator('[data-decide] [data-row]').first(), manualPicker = manual.locator('[data-card]');
   assert.equal(await manualPicker.evaluate(el => el === document.activeElement), true, 'manual cards focus the search');
   assert.equal(await manualPicker.getAttribute('role'), 'combobox');
@@ -308,12 +309,12 @@ try {
   const sheet = page.locator('[data-scanner]');
   await sheet.locator('[data-files]').waitFor({ state: 'visible' });
   assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'close-scanner', 'the sheet opens on its back button');
-  assert.equal(await page.locator('[data-apply]').count(), 1, 'the apply button lives in the action bar only');
   await page.keyboard.press('Escape');
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'open-scanner', 'closing returns focus to the opener');
   await page.locator('[data-action="open-scanner"]').click();
   await scan('android');
+  assert.equal(await page.locator('[data-apply]').count(), 1, 'the apply button lives in the action bar only');
   assert.match(await page.locator('[data-change-summary]').textContent(), /\d+ marked not owned · 7 limit breaks changed/, 'replace marks unseen cards not owned');
   await page.locator('[data-mode="update"]').check();
   assert.match(await page.locator('[data-change-summary]').textContent(), /^0 newly owned · 0 marked not owned · 7 limit breaks changed/);

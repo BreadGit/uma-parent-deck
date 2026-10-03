@@ -208,8 +208,12 @@ export function createScanner(host: ScannerHost): Scanner {
 
   // ---- Step 1: screenshots -------------------------------------------------------------------------------------
 
-  const stepHead = (number: number, title: string, extra: TemplateResult | typeof nothing = nothing) =>
-    html`<div class="scan-step-head"><span class="scan-step-num" aria-hidden="true">${number}</span><h2>${title}</h2>${extra}</div>`;
+  /** The planner's panel chrome: a numbered heading, a muted note beside it and actions on the right. */
+  const stepHead = (step: number, title: string, note: string | TemplateResult | typeof nothing = nothing,
+    actions: TemplateResult | typeof nothing = nothing) =>
+    html`<div class="panel-head"><h2 data-step=${step}>${title}</h2>
+      ${note === nothing ? nothing : html`<span class="panel-sub">${note}</span>`}
+      ${actions === nothing ? nothing : html`<span class="panel-actions">${actions}</span>`}</div>`;
   function fileButton(label: string, cls = '') {
     return html`<label class="scan-file-button ${cls}">${label}<input data-files type="file" accept="image/png,image/jpeg,image/webp"
       multiple ?disabled=${busy} @change=${onChoose} /></label>`;
@@ -226,16 +230,15 @@ export function createScanner(host: ScannerHost): Scanner {
     const failed = sources.filter(s => s.error), stopped = sources.filter(s => s.stopped);
     const readings = sources.reduce((n, s) => n + s.count, 0), rare = sources.reduce((n, s) => n + s.rare, 0);
     const started = sources.length > 0;
-    return html`<section class="panel scan-upload ${dragging ? 'scan-dragging' : ''} ${started ? 'scan-upload-compact' : ''}" data-dropzone
+    return html`<section class="panel scan-upload ${dragging ? 'scan-dragging' : ''}" data-dropzone
       @dragenter=${onDragOver} @dragover=${onDragOver} @dragleave=${onDragLeave} @drop=${onDrop}>
-      ${stepHead(1, started ? C.stepScreenshots : C.drop, started
-        ? html`<span class="muted scan-batch" data-batch>${C.batchSummary(sources.length, readings, rare)}</span>${fileButton(C.addMore, 'small')}`
-        : nothing)}
+      ${stepHead(1, C.stepScreenshots, started ? html`<span data-batch>${C.batchSummary(sources.length, readings, rare)}</span>` : nothing,
+        started ? fileButton(C.addMore, 'small') : nothing)}
       ${started ? html`<details ?open=${sourcesOpen} @toggle=${toggled(v => { sourcesOpen = v; })}>
           <summary>${C.showScreenshots}</summary>${gallery()}</details>`
-        : html`${fileButton(C.choose)}<p class="scan-privacy">${C.privacy}</p>`}
-      <details class="scan-howto"><summary>${C.howTo}</summary><p>${C.guidance}</p><p>${C.rare}</p>
-        ${started ? html`<p class="scan-privacy">${C.privacy}</p>` : nothing}</details>
+        : html`<div class="scan-dropzone">${fileButton(C.choose)}<p class="muted">${C.drop}</p><p class="scan-privacy">${C.privacy}</p></div>`}
+      <details class="scan-howto about"><summary>${C.howTo}</summary><p class="small">${C.guidance}</p><p class="small">${C.rare}</p>
+        ${started ? html`<p class="small scan-privacy">${C.privacy}</p>` : nothing}</details>
       ${notice ? html`<p class="scan-notice" data-notice>${notice}</p>` : nothing}
       ${error || failed.length ? html`<div role="alert" class="field-error scan-messages">
         ${error ? html`<p>${error}</p>` : nothing}${failed.map(s => html`<p>${s.name}: ${s.error}</p>`)}</div>` : nothing}
@@ -341,12 +344,11 @@ export function createScanner(host: ScannerHost): Scanner {
       <button data-add @click=${addManual} ?disabled=${busy}>${C.add}</button>
       ${rows.length || sources.length ? html`<button data-new @click=${newInventory} ?disabled=${busy}>${C.newBatch}</button>` : nothing}
     </div>`;
-    if (!rows.length) return html`<section class="panel scan-review">${stepHead(2, C.stepReview, toolbar)}<p class="muted">${C.noExport}</p></section>`;
+    if (!rows.length) return html`<section class="panel scan-review scan-waiting">${stepHead(2, C.stepReview, nothing, toolbar)}<p class="muted">${C.noExport}</p></section>`;
     const editor = (key: string, target: ReviewRow[]) => openKey === key ? reviewCard(target, result, sourceById, 'scan-tile-editor') : nothing;
     return html`<section class="panel scan-review">
-      ${stepHead(2, C.stepReview, toolbar)}
+      ${stepHead(2, C.stepReview, html`<span data-summary>${C.summary(result.owned, decide, result.duplicates, t.excluded.length)}</span>`, toolbar)}
       <div class="scan-filters">
-        <p data-summary>${C.summary(result.owned, decide, result.duplicates, t.excluded.length)}</p>
         <input type="search" aria-label=${C.search} placeholder=${C.filter} .value=${live(query)}
           @input=${(e: Event) => { query = inputValue(e); paint(); }} />
       </div>
@@ -396,7 +398,7 @@ export function createScanner(host: ScannerHost): Scanner {
   /** Explains what the action bar's button will do; the button itself stays in the bar so there is only one. */
   function finishStep(result: Summary, t: Triage) {
     if (!host.apply) {
-      return html`<section class="panel scan-export">${stepHead(3, C.stepDownload)}<p>${C.missing}</p>
+      return html`<section class="panel scan-export ${rows.length ? '' : 'scan-waiting'}">${stepHead(3, C.stepDownload)}<p>${C.missing}</p>
         <p>${C.import} ${host.plannerUrl ? html`<a href=${host.plannerUrl}>${C.openPlanner}</a>` : nothing}</p>
         ${result.pending.size ? html`<p class="scan-result-label">${C.exportBlocked}</p>` : nothing}
         ${canFinish(result) ? html`<details data-preview ?open=${previewOpen} @toggle=${toggled(v => { previewOpen = v; })}>
@@ -406,7 +408,7 @@ export function createScanner(host: ScannerHost): Scanner {
     const planned = change(result);
     const changes = planned ? planned.owned.length + planned.unowned.length + planned.changed.length : 0;
     const names = (list: ScanCard[]) => list.map(c => c.name).join(', ');
-    return html`<section class="panel scan-export">${stepHead(3, C.stepApply)}
+    return html`<section class="panel scan-export ${rows.length ? '' : 'scan-waiting'}">${stepHead(3, C.stepApply)}
       <div class="scan-modes">
         ${modeOption('replace', C.modeReplace, C.modeReplaceHint(t.unseen.length))}
         ${modeOption('update', C.modeUpdate, C.modeUpdateHint)}
@@ -417,7 +419,7 @@ export function createScanner(host: ScannerHost): Scanner {
           ${planned.changed.length ? html`<p><strong>${C.listChanged}</strong> ${names(planned.changed)}</p>` : nothing}
           ${planned.unowned.length ? html`<p><strong>${C.listUnowned}</strong> ${names(planned.unowned)}</p>` : nothing}
         </details>` : nothing}`
-        : html`<p class="scan-result-label">${rows.length ? C.exportBlocked : C.noExport}</p>`}
+        : rows.length ? html`<p class="scan-result-label">${C.exportBlocked}</p>` : nothing}
     </section>`;
   }
   /** Stays in view at the bottom and holds the only finish button, so it never hides behind a long review. */
@@ -430,6 +432,7 @@ export function createScanner(host: ScannerHost): Scanner {
         ${status ? html`<span class="muted" role="status">${status}</span>` : nothing}
         ${decide ? html`<a class="button small" href="#scan-decide" data-jump
           @click=${(e: Event) => { e.preventDefault(); document.querySelector('[data-decide]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>${C.decide}</a>` : nothing}`;
+    if (!busy && !rows.length && !sources.length) return nothing;
     return html`<div class="scan-bar" data-bar>
       <div class="scan-bar-status">${summary}</div>
       ${host.apply

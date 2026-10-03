@@ -328,7 +328,7 @@ export const SCANNER_COPY = {
   openPlanner: 'Open Uma parent deck',
   privacy: 'Screenshots stay in this browser. No account, upload, or API key.',
   choose: 'Choose screenshots',
-  drop: 'Drop screenshots here, or choose files',
+  drop: 'or drop them anywhere on this panel',
   guidance: 'Use full-width, five-column Support Card List screenshots. Include all your SR and SSR cards, with some overlap between screenshots. Keep each person’s inventory in a separate batch.',
   rare: 'R cards are ignored in screenshots and exported at 4LB (MLB).',
   missing: 'SR and SSR cards missing from the reviewed results will be exported as not owned. Check coverage before downloading.',
