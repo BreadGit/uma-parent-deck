@@ -13,12 +13,12 @@
     "test:quick": "SKIP_ANALYSIS=1 node --test tests/*.test.ts",
     "check:data": "node --test tests/data.test.ts tests/scanner-catalog.test.ts tests/source-validation.test.ts tests/support-import.test.ts tests/page-cache.test.ts tests/measurement-sources.test.ts tests/stat-inputs.test.ts tests/support-effects.test.ts tests/model-evaluation.test.ts",
     "smoke": "node tests/smoke.mjs",
-    "test:e2e": "node tests/smoke.mjs && node tests/regressions.mjs && node --test tests/scroll-anchor.mjs && npm run test:scanner",
+    "test:e2e": "node --test tests/smoke.mjs tests/regressions.mjs tests/scroll-anchor.mjs tests/scanner-snapshot.mjs tests/scanner.mjs tests/scanner-worker.mjs",
     "inspect": "node tests/inspect.ts",
     "scratch": "node tests/scratch.mjs",
     "build:scanner": "tsc --noEmit && vite build --config vite.scanner.config.ts",
     "build:scanner-artwork": "node scripts/scanner-artwork.mjs",
-    "test:scanner": "node tests/scanner-snapshot.mjs && node tests/scanner.mjs && node tests/scanner-worker.mjs"
+    "test:scanner": "node --test tests/scanner-snapshot.mjs tests/scanner.mjs tests/scanner-worker.mjs"
   },
   "dependencies": {
     "lit-html": "^3.3.3"
