@@ -10,8 +10,14 @@ export interface ScanResult { detections: Detection[]; ignoredR: number }
 interface Slot { box: Box; rarity: Rarity | null; needsArtworkMatch: boolean }
 interface Samples { from: Uint32Array; to: Uint32Array }
 interface Template extends Pixels { samples: Samples }
-interface PreparedReference { reference: Reference; coarse: Template[]; fine: { width: number; patches: Template[] } | null }
+/** `fine` holds full-size templates by the coarse width they refine, most recently used last. */
+interface PreparedReference { reference: Reference; coarse: Template[]; fine: Map<number, Template[]> }
 const ARTWORK_REGION = { x: .07, y: .2, width: .86, height: .64 };
+/**
+ * The best coarse width differs from slot to slot even within one screenshot, so each card keeps fine templates for a
+ * few of its seven coarse widths. On the test fixtures four widths saved almost every rebuild that all seven did.
+ */
+const FINE_WIDTHS = 4;
 
 /** Area sampling makes matching insensitive to JPEG noise and small differences in screenshot scale. */
 export function sample(image: Pixels, x: number, y: number, width = 1, height = 1): number[] {
@@ -193,7 +199,7 @@ export function createRecognizer(references: Reference[]) {
     return { ...patch, samples: offsets };
   }
   const prepared: PreparedReference[] = references.filter(ref => ref.artwork).map(reference => ({ reference,
-    coarse: Array.from({ length: 7 }, (_, i) => template(reference.artwork!, 31 + i, 40)), fine: null,
+    coarse: Array.from({ length: 7 }, (_, i) => template(reference.artwork!, 31 + i, 40)), fine: new Map(),
   }));
   return (image: Pixels, progress?: (done: number, total: number) => void): ScanResult => {
     const slots = badges(image, references);
@@ -222,13 +228,16 @@ export function createRecognizer(references: Reference[]) {
       }
       matches.sort((a, b) => a.error - b.error);
       const candidates = matches.slice(0, 4).map(match => {
-        const entry = match.prepared;
-        // Keep only the most recent scale per card, bounding memory across differently sized uploads.
-        if (!entry.fine || entry.fine.width !== match.width) entry.fine = { width: match.width,
-          patches: [-1, 0, 1].map(offset => template(entry.reference.artwork!, match.width * 2 + offset, 80)),
-        };
+        const { fine, reference } = match.prepared;
+        let patches = fine.get(match.width);
+        if (patches) fine.delete(match.width);
+        else {
+          patches = [-1, 0, 1].map(offset => template(reference.artwork!, match.width * 2 + offset, 80));
+          if (fine.size >= FINE_WIDTHS) fine.delete(fine.keys().next().value!);
+        }
+        fine.set(match.width, patches);
         let error = Infinity;
-        for (const patch of entry.fine.patches) error = Math.min(error, search(tile, patch, error));
+        for (const patch of patches) error = Math.min(error, search(tile, patch, error));
         return { id: match.id, error };
       }).sort((a, b) => a.error - b.error);
       const first = candidates[0], second = candidates[1];
