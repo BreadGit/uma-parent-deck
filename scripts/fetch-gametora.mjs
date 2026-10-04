@@ -5,14 +5,16 @@
 // no identifying headers. Files already on disk are never re-downloaded unless
 // the manifest hash changed (data) or --force is passed (images).
 //
-// Usage: node scripts/fetch-gametora.mjs [--force] [--no-images] [--offline | --download-only | --normalize-only]
+// Usage: node scripts/fetch-gametora.mjs [--force] [--no-images] [--missions-only] [--offline | --download-only | --normalize-only]
 // --offline skips every request and only re-normalizes what is already in data/raw.
+// --missions-only refreshes just the limited missions and their race calendar.
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables } from './source-validation.ts';
+import { normalizeMissionCatalog } from './mission-import.ts';
 
 const BASE = 'https://gametora.com';
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -26,6 +28,7 @@ const FORCE = args.has('--force');
 const OFFLINE = args.has('--offline');
 const DOWNLOAD_ONLY = args.has('--download-only');
 const NORMALIZE_ONLY = args.has('--normalize-only');
+const MISSIONS_ONLY = args.has('--missions-only');
 const IMAGES = !args.has('--no-images') && !OFFLINE;
 
 const STATIC_KEYS = [
@@ -33,6 +36,7 @@ const STATIC_KEYS = [
   'races', 'ura-races', 'scenarios', 'en/db-files/single_mode_rank', 'en/db-files/support_card_level',
   'training_events/ssr', 'training_events/sr', 'training_events/friend', 'training_events/group',
   'training_events/shared', 'training_events/char', 'training_events/char_card', 'training_events/scenario', 'dict/evrew', 'status-effects', 'ura-objectives',
+  'en/missions/limited',
 ];
 
 let lastRequest = 0;
@@ -59,17 +63,17 @@ const readJson = async (f) => JSON.parse(await fs.readFile(f, 'utf8'));
 const writeJson = (f, v) => fs.writeFile(f, JSON.stringify(v, null, 1) + '\n');
 const rawName = (key) => path.join(RAW, key.replaceAll('/', '__') + '.json');
 
-async function fetchStatic() {
+async function fetchStatic(keys = STATIC_KEYS) {
   await fs.mkdir(RAW, { recursive: true });
   const manifestFile = path.join(RAW, 'manifest.json');
   console.log('manifest');
   const status = await fetchTo(`${BASE}/data/manifests/umamusume.json`, manifestFile, 'object');
   if (status !== 200) throw new Error(`manifest ${status}`);
   const manifest = await readJson(manifestFile);
-  for (const key of STATIC_KEYS) if (typeof manifest[key] !== 'string' || !manifest[key]) throw new Error(`manifest has no valid hash for required source ${key}`);
+  for (const key of keys) if (typeof manifest[key] !== 'string' || !manifest[key]) throw new Error(`manifest has no valid hash for required source ${key}`);
   const hashesFile = path.join(RAW, 'hashes.json');
   const hashes = (await exists(hashesFile)) ? await readJson(hashesFile) : {};
-  for (const key of STATIC_KEYS) {
+  for (const key of keys) {
     const hash = manifest[key];
     if (typeof hash !== 'string' || !hash) throw new Error(`manifest has no valid hash for required source ${key}`);
     const file = rawName(key);
@@ -80,7 +84,16 @@ async function fetchStatic() {
     hashes[key] = hash;
   }
   await writeJson(hashesFile, hashes);
-  await writeJson(path.join(RAW, 'fetch-meta.json'), { fetchedAt: new Date().toISOString() });
+  const meta = { fetchedAt: new Date().toISOString() };
+  if (!MISSIONS_ONLY) await writeJson(path.join(RAW, 'fetch-meta.json'), meta);
+  await writeJson(path.join(RAW, 'missions-fetch-meta.json'), meta);
+}
+
+async function normalizeMissions() {
+  const catalog = normalizeMissionCatalog({ races: await readJson(rawName('races')), calendar: await readJson(rawName('ura-races')),
+    missions: await readJson(rawName('en/missions/limited')) }, (await readJson(path.join(RAW, 'missions-fetch-meta.json'))).fetchedAt);
+  await writeJson(path.join(OUT, 'missions.json'), catalog);
+  console.log(`mission sets ${catalog.events.length}, mission calendar entries ${catalog.races.length}`);
 }
 
 // ---------- normalization ----------
@@ -490,10 +503,13 @@ async function fetchImages({ cards, skills, characters }) {
 
 if (process.argv[1] && await fs.realpath(path.resolve(process.argv[1])) === new URL(import.meta.url).pathname) {
   if ([OFFLINE, DOWNLOAD_ONLY, NORMALIZE_ONLY].filter(Boolean).length > 1) throw new Error('Choose only one of --offline, --download-only and --normalize-only.');
-  if (!OFFLINE && !NORMALIZE_ONLY) await fetchStatic();
+  if (!OFFLINE && !NORMALIZE_ONLY) await fetchStatic(MISSIONS_ONLY ? ['en/missions/limited', 'races', 'ura-races'] : STATIC_KEYS);
   if (!DOWNLOAD_ONLY) {
-    const norm = await normalize();
-    if (IMAGES) await fetchImages(norm);
+    await normalizeMissions();
+    if (!MISSIONS_ONLY) {
+      const norm = await normalize();
+      if (IMAGES) await fetchImages(norm);
+    }
   }
   console.log(`requests made: ${requestCount}`);
 }

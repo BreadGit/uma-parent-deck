@@ -474,6 +474,32 @@ details[data-agenda] { margin-top: 8px; }
 .agenda-pick select { width: 100%; max-width: 100%; min-width: 0; font-size: var(--fs-xs); padding: 1px 2px; }
 .agenda-label { font-size: var(--fs-xs); color: var(--muted); text-align: center; margin-top: 2px; height: 14px; }
 
+/* Missions reuse the agenda, with room for every race sharing a date. */
+.mission-inputs { min-width: 0; }
+.mission-check, .mission-event { display: flex; align-items: flex-start; gap: 7px; font-size: var(--fs-sm); }
+.mission-check input, .mission-event input { flex: none; margin: 3px 0 0; }
+.mission-event { padding: 9px 0; border-bottom: 1px solid var(--line); }
+.mission-date { display: block; color: var(--muted); font-size: var(--fs-xs); margin-top: 3px; }
+.mission-check-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; padding: 7px 0; }
+.mission-check-row > button { flex: none; }
+.mission-check-row .mission-check { min-width: 0; overflow-wrap: anywhere; }
+.mission-done { color: var(--muted); }
+.mission-done .agenda-race { text-decoration: line-through; }
+.mission-recommendations, .mission-race-search { display: grid; gap: 5px; margin-top: 8px; }
+.mission-recommendation { display: grid; text-align: left; gap: 2px; }
+.mission-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.mission-agenda .agenda-cell { height: auto; min-height: 118px; }
+.mission-agenda .agenda-body { overflow: visible; gap: 5px; padding: 3px; }
+.mission-agenda .agenda-race { display: block; overflow: visible; }
+.mission-race, .mission-goal { width: 100%; min-width: 0; padding: 4px 0; }
+.mission-race + .mission-race { border-top: 1px solid var(--line); }
+.mission-race-meta { font-size: var(--fs-xs); color: var(--muted); margin-top: 3px; }
+.mission-suggested { border-radius: var(--radius); background: color-mix(in srgb, var(--accent) 12%, var(--panel)); outline: 1px solid var(--accent); }
+.mission-quick-check { display: flex; justify-content: center; align-items: center; gap: 3px; min-height: 28px; }
+.mission-agenda .tag { white-space: normal; overflow-wrap: anywhere; margin: 2px 0; }
+textarea[data-mission-paste] { width: 100%; resize: vertical; font: inherit; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--text); background: var(--input); }
+textarea[data-mission-paste]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
 /* below the wide breakpoint the result column is narrower: three deck slots per row, compact stat rows, one year per row */
 @media (max-width: 1500px) {
   .deck { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -485,6 +511,9 @@ details[data-agenda] { margin-top: 8px; }
   header { position: static; }
   .inputs { position: static; max-height: none; overflow: visible; padding-right: 0; }
   .inputs-head { position: static; background: none; }
+  .mission-inputs { display: contents; }
+  .missions-page > .results { order: 1; }
+  .mission-inputs > section.panel:last-child { order: 2; }
 }
 /* phones and small tablets */
 @media (max-width: 700px) {

@@ -5,7 +5,7 @@ import type { TemplateResult } from 'lit-html';
 import { BUILD_VERSION } from 'virtual:build-version';
 import { planningKey } from '../recommendation.ts';
 import { loadData } from '../data.ts';
-import { loadState, saveState, saveRecommendation, type AppState } from '../state.ts';
+import { loadState, saveState, saveRecommendation, watchSavedState, type AppState } from '../state.ts';
 import { planRun, isLegalRunSelection, type RunPlan, type DeckSelection } from '../model/run.ts';
 import type { PlanWorkerRequest, PlanWorkerResponse } from './plan-worker.ts';
 import defaultInventory from '../../inventory.json' with { type: 'json' };
@@ -16,7 +16,7 @@ let inputKey = planningKey(store.run, store.settings, store.inventory);
 export let stateRevision = 0;
 
 /** The view fields that hold a search box's text. */
-export type SearchField = 'requiredQuery' | 'preferredQuery' | 'traineeQuery' | 'cardQuery' | 'ignoreQuery';
+export type SearchField = 'requiredQuery' | 'preferredQuery' | 'traineeQuery' | 'cardQuery' | 'ignoreQuery' | 'missionTraineeQuery';
 /** State that is not persisted: search boxes, open panels, the highlighted suggestion, drag state. */
 const viewState = {
   /** Each target group has its own search box. */
@@ -29,9 +29,14 @@ const viewState = {
   traineeQuery: '',
   cardQuery: '',
   ignoreQuery: '',
+  missionTraineeQuery: '',
+  missionPaste: '',
+  missionRaceQuery: '',
+  missionEventPick: '',
+  missionImportNotice: '',
   activeSearch: null as SearchField | null,
   /** Each search keeps its own keyboard highlight; -1 is none. */
-  suggestIndexes: { requiredQuery: -1, preferredQuery: -1, traineeQuery: -1, cardQuery: -1, ignoreQuery: -1 } as Record<SearchField, number>,
+  suggestIndexes: { requiredQuery: -1, preferredQuery: -1, traineeQuery: -1, cardQuery: -1, ignoreQuery: -1, missionTraineeQuery: -1 } as Record<SearchField, number>,
   showAdvanced: false,
   showSparks: false,
   showPinkSparks: false,
@@ -87,6 +92,14 @@ let updated: () => void = () => {};
 export function onRender(fn: () => void) { renderer = fn; }
 /** Observe successful user edits, excluding recommendation-cache writes and view-only changes. */
 export function onUpdate(fn: () => void) { updated = fn; }
+watchSavedState(data, (saved) => {
+  delete store.recommendation;
+  Object.assign(store, saved);
+  stateRevision++;
+  inputKey = planningKey(store.run, store.settings, store.inventory);
+  updated();
+  renderer();
+});
 /** Re-render after a view-only change. */
 export function refresh() { renderer(); }
 /** Apply a change to the persisted state, save it and re-render. */

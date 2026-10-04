@@ -11,11 +11,9 @@ import { options, selectValue } from '../fields.ts';
 import { int, num, pct } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
+import { agendaGrid, slotLabel } from '../agenda.ts';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const YEARS = ['Junior year', 'Classic year', 'Senior year'];
 const CATEGORY_SHORT: Record<string, string> = { sprint: 'spr', mile: 'mile', medium: 'med', long: 'long' };
-const slotLabel = (slot: number) => `${slot % 2 === 0 ? 'Early' : 'Late'} ${MONTHS[Math.floor((slot % 24) / 2)]}`;
 /** Race win chances come in 5% steps; the warn pill marks a streak-reduced chance, a real degradation. */
 const winPill = (x: number, cls = '') => html`<span class="pill ${cls}">${pct(x)}</span>`;
 
@@ -69,9 +67,7 @@ export function renderSchedule(c: RunPlan) {
     <p class="muted" data-fan-estimate>Fans at run completion: ${int(c.fans.calendar)} from the agenda + ${int(c.fans.finale)} from finales + ${int(c.fans.concerts)} from concerts.${tip(COPY.agenda.fansTip(c.fans.bonus))}</p>
     <details data-agenda ?open=${view.showAgenda} @toggle=${(e: Event) => { view.showAgenda = (e.target as HTMLDetailsElement).open; refresh(); }}>
       <summary>${COPY.agenda.open}</summary>
-      <div class="agenda">
-        ${YEARS.map((y, yi) => html`<div class="agenda-year"><div class="agenda-year-head">${y}</div><div class="agenda-grid">${Array.from({ length: 24 }, (_, i) => cell(yi * 24 + i, bySlot.get(yi * 24 + i) ?? []))}</div></div>`)}
-      </div>
+      ${agendaGrid((slot) => cell(slot, bySlot.get(slot) ?? []))}
     </details>
     ${about(COPY.agenda.aboutTitle, COPY.agenda.about)}`);
 }

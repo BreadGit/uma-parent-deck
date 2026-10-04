@@ -10,7 +10,7 @@ import { confirmDialog } from './dialog.ts';
 import { installSuggestDismiss } from './fields.ts';
 import { panel } from './panel.ts';
 import { installTooltips } from './tooltip.ts';
-import { followTheme, themeToggle } from './theme.ts';
+import { applyTheme, followTheme, themeToggle } from './theme.ts';
 import { installScrollAnchor } from './scroll-anchor.ts';
 import { runSummary } from './summary.ts';
 import { renderGoalEditor } from './panels/goal.ts';
@@ -66,6 +66,7 @@ function page() {
       <h1>Uma parent deck</h1>
       <span class="meta">${COPY.app.tagline}</span>
       <span class="header-actions">
+        <a class="button" href="./missions.html" data-page="missions">${COPY.missions.title}</a>
         ${themeToggle(store.ui.theme, (theme) => update((s) => { s.ui.theme = theme; }))}
         <button class="danger" data-action="reset-all" data-tip=${COPY.app.resetAllTip} @click=${resetAll}>${COPY.app.resetAll}</button>
       </span>
@@ -132,7 +133,7 @@ function watchCandidates(root: HTMLElement) {
 export function mount(root: HTMLElement) {
   const preserveScroll = installScrollAnchor(root);
   const watch = watchCandidates(root);
-  const draw = () => { preserveScroll(() => render(page(), root)); endPanelTracking(); watch(); };
+  const draw = () => { applyTheme(store.ui.theme); preserveScroll(() => render(page(), root)); endPanelTracking(); watch(); };
   onRender(draw);
   followTheme(() => store.ui.theme);
   installTooltips(root);

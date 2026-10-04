@@ -26,7 +26,7 @@ export const winChance = (raw: number, streak = 1) => Math.max(0, Math.min(1, ra
 export const baseWinChance = (race: Race, apt: Aptitudes) => winChance(rawWinScore(race, apt), 1);
 
 /** Turn index of a calendar slot: year (1..3), month, half. 0 = Junior early January, 71 = Senior late December. */
-export const slotOf = (r: Race) => (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1);
+export const slotOf = (r: Pick<Race, 'year' | 'month' | 'half'>) => (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1);
 
 export interface ScheduledRace {
   race: Race;

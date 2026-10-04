@@ -89,7 +89,7 @@ test('the recommendation build version changes automatically with source, data a
   const root = mkdtempSync(join(tmpdir(), 'uma-build-version-'));
   try {
     for (const dir of ['src', 'data', 'scripts']) mkdirSync(join(root, dir));
-    const files = ['src/main.ts', 'data/cards.json', 'inventory.json', 'package.json', 'package-lock.json', 'index.html', 'vite.config.ts', 'scripts/build-version.ts'];
+    const files = ['src/main.ts', 'data/cards.json', 'inventory.json', 'package.json', 'package-lock.json', 'index.html', 'missions.html', 'vite.config.ts', 'scripts/build-version.ts'];
     for (const file of files) writeFileSync(join(root, file), 'initial');
     const initial = buildVersion(root);
     assert.equal(buildVersion(root), initial);

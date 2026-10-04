@@ -7,7 +7,7 @@ export function buildVersionFiles(root: string): string[] {
     entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)]);
   return [...walk(join(root, 'src')),
     ...readdirSync(join(root, 'data')).filter((name) => name.endsWith('.json')).map((name) => join(root, 'data', name)),
-    ...['inventory.json', 'package.json', 'package-lock.json', 'index.html', 'vite.config.ts', 'scripts/build-version.ts'].map((name) => join(root, name)),
+    ...['inventory.json', 'package.json', 'package-lock.json', 'index.html', 'missions.html', 'vite.config.ts', 'scripts/build-version.ts'].map((name) => join(root, name)),
   ].sort();
 }
 

@@ -10,12 +10,13 @@ import { lineageFromSides, lineageFromTotals, sanitizeLineage, type Lineage } fr
 import { LINEAGE_SLOTS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
 import { clampStars } from './model/trainee.ts';
+import { defaultMissionState, type MissionState } from './model/missions.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean; /** The input column is hidden so the results take the full width. */ inputsHidden: boolean }
-export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; recommendation?: SavedRecommendation }
+export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; missions: MissionState; recommendation?: SavedRecommendation }
 
-export const STATE_VERSION = 23;
+export const STATE_VERSION = 24;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -33,7 +34,21 @@ export function defaultPins(data: Data): number[] {
   return lh ? [lh] : [];
 }
 export function defaultState(data: Data): AppState {
-  return { version: STATE_VERSION, run: { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) }, settings: structuredClone(DEFAULT_SETTINGS), inventory: {}, ui: { ...DEFAULT_UI } };
+  return { version: STATE_VERSION, run: { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) }, settings: structuredClone(DEFAULT_SETTINGS), inventory: {}, ui: { ...DEFAULT_UI }, missions: defaultMissionState() };
+}
+
+function migrateMissions(raw: unknown): MissionState {
+  const state = defaultMissionState();
+  if (!isPlainObject(raw)) return state;
+  const ids = (value: unknown) => [...new Set(numList(value).filter((id) => Number.isSafeInteger(id) && id > 0))];
+  const lines = (value: unknown) => Array.isArray(value) ? [...new Set(value.filter((line): line is string => typeof line === 'string' && !!line.trim()))] : [];
+  state.eventIds = Array.isArray(raw.eventIds) ? ids(raw.eventIds) : null;
+  state.customRaceIds = ids(raw.customRaceIds);
+  state.completedCustomRaceIds = ids(raw.completedCustomRaceIds);
+  state.completedMissionIds = lines(raw.completedMissionIds);
+  state.pastedLines = lines(raw.pastedLines);
+  state.traineeCardId = typeof raw.traineeCardId === 'number' && Number.isSafeInteger(raw.traineeCardId) && raw.traineeCardId > 0 ? raw.traineeCardId : null;
+  return state;
 }
 
 type Json = Record<string, unknown>;
@@ -147,6 +162,7 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
       run: isPlainObject(c.run) ? migrateRun(c.run, data, typeof c.version === 'number' && c.version >= 21) : base.run,
       settings: isPlainObject(c.settings) ? sanitizeSettings(c.settings as Partial<Record<keyof Settings, unknown>>) : base.settings,
       inventory: sanitizeInventory(c.inventory),
+      missions: migrateMissions(c.missions),
       ui: { sortKey: isPlainObject(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isPlainObject(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,
         showUnowned: isPlainObject(c.ui) && typeof c.ui.showUnowned === 'boolean' ? c.ui.showUnowned
           : isPlainObject(c.settings) && typeof c.settings.showUnowned === 'boolean' ? c.settings.showUnowned : DEFAULT_UI.showUnowned,
@@ -158,6 +174,7 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
     run: isPlainObject(saved.state) ? migrateRun(saved.state, data) : base.run,
     settings: isPlainObject(saved.settings) ? migrateSettings(saved.settings) : base.settings,
     inventory: sanitizeInventory(saved.inventory),
+    missions: base.missions,
     ui: { sortKey: isPlainObject(saved.state) && typeof saved.state.sortKey === 'string' ? saved.state.sortKey : DEFAULT_UI.sortKey, theme: isTheme(saved.theme) ? saved.theme : DEFAULT_UI.theme,
       showUnowned: isPlainObject(saved.settings) && typeof saved.settings.version === 'number' && saved.settings.version >= 3
         && typeof saved.settings.showUnowned === 'boolean' ? saved.settings.showUnowned : DEFAULT_UI.showUnowned,
@@ -182,6 +199,16 @@ export function loadState(data: Data, fallbackInventory: Inventory): AppState {
 }
 export function saveState(state: AppState) {
   localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+/** Keep open planner and mission tabs from overwriting each other's newer choices. */
+export function watchSavedState(data: Data, accept: (state: AppState) => void) {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== STATE_KEY || event.newValue === null) return;
+    let current: unknown;
+    try { current = JSON.parse(event.newValue); } catch { return; }
+    if (isPlainObject(current) && typeof current.version === 'number' && current.version >= 4) accept(migrate({ current }, data));
+  });
 }
 
 /** Replace only the shared inputs. Imported IDs stay intact even when today's data cannot resolve them. */

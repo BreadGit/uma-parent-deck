@@ -5,6 +5,7 @@ import { BLUE_SPARK_START_GAIN_BY_STARS } from '../src/model/rules.ts';
 import { loadData } from '../src/data.ts';
 import { startingAptitudes } from '../src/model/pink-inherit.ts';
 import { migrate, STATE_KEY } from '../src/state.ts';
+import missionCatalog from '../data/missions.json' with { type: 'json' };
 const data = loadData();
 const root = fileURLToPath(new URL('..', import.meta.url));
 const servedVersions = new Map();
@@ -54,7 +55,7 @@ export async function assertFieldsMatchState(page, where) {
   const saved = migrate({ current }, data);
   const trainee = data.charByCardId.get(saved.run?.traineeCardId);
   const expectedAptitudes = trainee ? startingAptitudes(trainee.aptitudes, saved.run.aptOverrides, saved.run.pinkLineage) : null;
-  const bad = await page.evaluate(({ gainByStars, expectedAptitudes, st }) => {
+  const bad = await page.evaluate(({ gainByStars, expectedAptitudes, st, missionEvents }) => {
     const out = [];
     const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'];
     for (const el of document.querySelectorAll('select[data-lb]')) {
@@ -128,7 +129,24 @@ export async function assertFieldsMatchState(page, where) {
       check(el, el.hasAttribute('data-pink-lineage') ? spark?.aptitude ?? '' : spark?.stars ?? '');
       if (el.hasAttribute('data-pink-lineage-stars') && el.disabled !== !spark) out.push(`pink stars ${index} disabled differs from state`);
     }
+    for (const el of document.querySelectorAll('[data-mission-complete]')) {
+      if (el.checked !== st.missions.completedMissionIds.includes(el.dataset.missionComplete)) out.push(`mission ${el.dataset.missionComplete} differs from state`);
+    }
+    for (const el of document.querySelectorAll('[data-custom-race-complete]')) {
+      if (el.checked !== st.missions.completedCustomRaceIds.includes(Number(el.dataset.customRaceComplete))) out.push(`custom race ${el.dataset.customRaceComplete} differs from state`);
+    }
+    for (const el of document.querySelectorAll('[data-mission-follow]')) {
+      if (el.checked !== (st.missions.eventIds === null)) out.push('following current missions differs from state');
+    }
+    for (const el of document.querySelectorAll('[data-mission-event]')) {
+      const id = Number(el.dataset.missionEvent), now = Date.now();
+      const want = st.missions.eventIds === null ? missionEvents.some((event) => event.id === id && event.start <= now && now <= event.end) : st.missions.eventIds.includes(id);
+      if (el.checked !== want) out.push(`mission event ${id} differs from state`);
+    }
+    for (const el of document.querySelectorAll('[data-mission-recommend]')) {
+      if (el.getAttribute('aria-pressed') !== String(st.missions.traineeCardId === Number(el.dataset.missionRecommend))) out.push('mission trainee differs from state');
+    }
     return out;
-  }, { gainByStars: BLUE_SPARK_START_GAIN_BY_STARS, expectedAptitudes, st: saved });
+  }, { gainByStars: BLUE_SPARK_START_GAIN_BY_STARS, expectedAptitudes, st: saved, missionEvents: missionCatalog.events });
   assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
 }

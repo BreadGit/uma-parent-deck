@@ -4,9 +4,11 @@ import { chromium } from 'playwright';
 import { assertFieldsMatchState, openApp, waitForPlan } from './browser-fields.mjs';
 import { holdSearch, releaseSearch } from './browser-search.mjs';
 import { STATE_KEY } from '../src/state.ts';
+import { checkMissions } from './missions-browser.mjs';
 const url = process.env.URL ?? 'http://localhost:5173/';
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
+const context = await browser.newContext({ viewport: { width: 1500, height: 1100 } });
+const page = await context.newPage();
 await holdSearch(page);
 const errors = [];
 // Edits save and render synchronously, so each wait below names the state the next assertion reads rather than a delay.
@@ -575,6 +577,7 @@ assert.ok(probed.some((entry) => entry.includes('inputs')), `the overflow report
 await page.evaluate(() => document.querySelector('#overflow-probe').remove());
 assert.deepEqual(await overflowReport(), []);
 console.log('errors:', errors);
+await checkMissions(page, url, overflowReport);
 await browser.close();
 process.exit(errors.length ? 1 : 0);
 
