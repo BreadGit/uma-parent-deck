@@ -10,6 +10,9 @@ Without them those tests skip with a notice in the summary rather than failing; 
 `npm run test:quick` skips them on purpose for the inner loop; run `npm test` before reporting work complete.
 Changes to the inventory scanner also run `npm run test:scanner`.
 
+Run heavy verification commands one at a time on the laptop. Each command handles its own parallelism;
+launching unit, browser, and build checks together compounds CPU and memory use.
+
 The smoke test drives headless Chromium through the main flows and checks for horizontal overflow at
 390, 768, 1280, 1440, 1680 and 1920 px in both themes. Reserve the browser regression suite for large
 changes or code review of a branch about to merge. Large changes include work spanning several user

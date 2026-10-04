@@ -58,9 +58,9 @@ const openAgenda = (page) => page.click('details[data-agenda] > summary');
 /** Prediction details opens on request; open it before reading or clicking anything inside. */
 const openDetails = async (page) => { await page.waitForSelector('.results'); const closed = page.locator('details[data-prediction-details]:not([open]) > summary'); if (await closed.count()) await closed.click(); };
 
-// Each test opens its own browser context, so tests run concurrently. The server's planner work in each page is
-// CPU-bound: beyond about four at once on a six-core laptop the gain is small and the machine is saturated.
-suite('browser regressions', { concurrency: 4 }, () => {
+// Each case owns a browser context. The combined runner lowers case concurrency so parallel files do not
+// multiply the number of active browser flows; running this file alone still runs cases in parallel.
+suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONCURRENCY ?? 2) }, () => {
   test('Basis labels distinguish observations, adjusted observations and model estimates without growing the row', async (t) => {
     const page = await editor(t, defaultState(data));
     const observed = page.locator('[data-basis="30028"]');
