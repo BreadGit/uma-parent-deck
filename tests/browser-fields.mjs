@@ -37,6 +37,7 @@ export async function assertServesThisTree(url) {
     'Find its directory with `readlink /proc/<pid>/cwd` (pid from `ss -ltnp`), or start one here with `npm run dev -- --port <n> --strictPort` and pass URL=http://localhost:<n>/');
 }
 
+/** Waits for a completed search; rejects search failures and held workers. Call it explicitly before asserting on the result. */
 export async function waitForPlan(page) {
   assert.notEqual(await page.evaluate(() => window.__searchHeld), true, 'release held search before asserting optimizer completion');
   await page.waitForSelector('.results');

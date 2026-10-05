@@ -87,13 +87,15 @@ response at the machine's LAN address and report the network URL printed by Vite
 Game information is curated and vendored in `docs/umamusume/`. This directory is for game information only, including mechanics, guides, and reference datasets. Use it to answer game knowledge questions before searching the internet. Keep project architecture, implementation notes, and plans outside this directory. Game terms are defined in `docs/umamusume/GLOSSARY.md`; tool terms are defined in `docs/GLOSSARY.md`.
 
 - `src/model/`: pure game and tool logic, no DOM. `run.ts` has `planRun()`, the whole pipeline from the
-  user's choices to the plan the page shows. Named game constants in `rules.ts`; tunable estimates with
+  user's choices to the plan the page shows; `sparks.ts` finds skill sources, `deck.ts` and `goal-deck.ts`
+  build and search decks, `goal.ts` evaluates parent goals. Named game constants in `rules.ts`; tunable estimates with
   their provenance in `src/settings.ts` (`SETTING_HELP` there is the user-facing source note, and
   `SETTING_SPEC` is what each value accepts).
 - `src/state.ts`: the one persisted object and the one migration path from every older shape. Nothing
   else touches localStorage.
 - `src/ui/`: lit-html templates. `context.ts` holds the data, the store, view state and the memoized plan;
-  panels change persisted state only through `update()`. One module per panel under `panels/`.
+  panels change persisted state only through `update()`. One module per panel under `panels/`;
+  `plan-worker.ts` runs deck search off the main thread.
 - `src/scanner/`: the screenshot inventory scanner, embedded in the planner from the Inventory panel and standalone in `scanner.html`; `session.ts` is the shared flow, which reads support-card screenshots in a worker
   and exports `inventory.json`. It shares styles, copy and form helpers with `src/ui/` but not the planner's data or state.
 - `tests/`: `model.test.ts` has a test per rule, `run.test.ts` covers the pipeline and the family-aware

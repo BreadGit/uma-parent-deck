@@ -17,7 +17,10 @@ const browser = await chromium.launch();
 const url = process.env.URL ?? 'http://localhost:5173/';
 after(() => browser.close());
 
-/** `init` runs in the page before the app, as the held search does, so a test can replace browser APIs from the first load. */
+/**
+ * A page with real optimizer integration; use it for search-quality and publication assertions. `init` runs in the
+ * page before the app, as the held search does, so a test can replace browser APIs from the first load.
+ */
 async function fresh(t, saved, { held = false, settle = !held, touch = false, init } = {}) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, hasTouch: touch, isMobile: touch });
   t.after(() => context.close());
@@ -39,6 +42,7 @@ async function fresh(t, saved, { held = false, settle = !held, touch = false, in
   if (settle) await waitForPlan(page);
   return page;
 }
+/** A page with search held pending, for inputs, migration and immediate-estimate checks. */
 const editor = (t, saved) => fresh(t, saved, { held: true });
 const state = (page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
 async function pick(page, selector, query, action) {

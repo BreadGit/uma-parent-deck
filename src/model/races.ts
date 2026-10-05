@@ -22,7 +22,10 @@ export function rawWinScore(race: Race, apt: Aptitudes): number {
 export const streakPenalty = (n: number) => STREAK_PENALTY[Math.min(STREAK_PENALTY.length - 1, Math.max(0, n))] ?? 0;
 /** Displayed win probability: the raw score minus the streak penalty, clamped to 0..100%. */
 export const winChance = (raw: number, streak = 1) => Math.max(0, Math.min(1, raw - streakPenalty(streak)));
-/** Win chance from aptitudes alone, clamped, as the game would display it for a fresh race. */
+/**
+ * Win chance from aptitudes alone, clamped, as the game would display it for a fresh race. The agenda uses the
+ * start-of-run aptitudes for the whole run; a mid-run pink inspiration increase counts for spark eligibility only.
+ */
 export const baseWinChance = (race: Race, apt: Aptitudes) => winChance(rawWinScore(race, apt), 1);
 
 /** Turn index of a calendar slot: year (1..3), month, half. 0 = Junior early January, 71 = Senior late December. */

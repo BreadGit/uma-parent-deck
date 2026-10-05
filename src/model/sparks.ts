@@ -187,7 +187,8 @@ export function eventSources(card: Card, settings: Settings, data: Data): EventS
  * Skill sources of one event that fires with chance `pFire`: one per skill per option, with the chance the option's
  * outcomes give that skill (outcomes are assumed equally likely; the game does not publish their odds). A skill
  * offered by only some of several options is choice-gated. `owner` names the card or trainee in labels,
- * `keyPrefix` groups the event's options under one key so that one option is taken per run.
+ * `keyPrefix` groups the event's options under one key so that one option is taken per run. The stat rewards of the
+ * options not taken are forfeited and not modelled.
  */
 function scanEvent(ev: CardEvent | TraineeEvent, pFire: number, label: string, owner: string, keyPrefix: string, settings: Settings, data: Data, extra: Partial<EventSource> = {}): EventSource[] {
   const out: EventSource[] = [];

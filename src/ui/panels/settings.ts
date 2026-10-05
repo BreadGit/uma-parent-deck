@@ -50,8 +50,7 @@ function resetAdvanced() {
 }
 
 // The inventory sits above the numbered steps: screenshots are the main way to set it up, and the file buttons keep
-// the export format of the repo's inventory.json; dropping an export there makes it the default for a fresh browser
-// (README, "What it does").
+// the export format of the repo's inventory.json; dropping an export there makes it the default for a fresh browser.
 export function renderInventory() {
   return panel({ title: COPY.settings.inventoryTitle, tip: COPY.settings.inventoryTip }, html`
     <button class="primary inventory-scan" data-action="open-scanner" ?disabled=${view.scannerLoading} @click=${() => void openScanner()}>${view.scannerLoading ? SCANNER_COPY.loadingScanner : COPY.settings.scan}</button>

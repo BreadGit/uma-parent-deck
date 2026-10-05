@@ -3,6 +3,7 @@
 The app uses GameTora game data, community measurements, and documented model assumptions.
 These need different checks. A valid JSON shape does not establish completeness or prove a
 measurement applies to the selected limit break, race count, or game version.
+The shapes of `data/*.json` are the types in `src/types.ts`; `tests/data.test.ts` checks them.
 
 ## Updating data
 
@@ -73,6 +74,9 @@ and direct the updater to refit. They also compare the generated extracts agains
 sources. Hand-editing an extracted number cannot silently change the next fit.
 
 ## Limits of the evidence
+
+Known gaps in the imported data: career goals come per character, so an alternate outfit shows the base
+outfit's goals; the two Group cards' random events and Team Sirius's sixth chain event are incomplete.
 
 Source reconciliation establishes what was imported and why. It cannot establish that every
 community reading or upstream game description is correct. Model evaluation holds complete
