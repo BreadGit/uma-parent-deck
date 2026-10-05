@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
+import pkg from './package.json' with { type: 'json' };
 import { scannerCatalog } from './scripts/scanner-catalog.ts';
 import { buildVersion, buildVersionFiles } from './scripts/build-version.ts';
 
@@ -21,4 +22,4 @@ function recommendationVersion(): Plugin {
 }
 
 // Bundled game data is intentional; review size growth above 3,000 kB per chunk or sooner if loading slows.
-export default defineConfig({ plugins: [recommendationVersion(), scannerCatalog()], build: { chunkSizeWarningLimit: 3000, rollupOptions: { input: ['index.html', 'scanner.html', 'missions.html'] } } });
+export default defineConfig({ define: { __APP_VERSION__: JSON.stringify(pkg.version) }, plugins: [recommendationVersion(), scannerCatalog()], build: { chunkSizeWarningLimit: 3000, rollupOptions: { input: ['index.html', 'scanner.html', 'missions.html'] } } });
