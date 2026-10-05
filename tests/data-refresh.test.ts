@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { refreshDue, contentForComparison } from '../scripts/data-refresh.ts';
+import { refreshDue, releasesFrom, contentForComparison } from '../scripts/data-refresh.ts';
+import calendar from '../docs/umamusume/release-calendar.json' with { type: 'json' };
 
 test('refresh schedule has a weekly fallback and delayed confirmed-release checks', () => {
   assert.equal(refreshDue(new Date('2026-10-05T12:37:00Z'), []), true);
@@ -9,8 +10,27 @@ test('refresh schedule has a weekly fallback and delayed confirmed-release check
   assert.equal(refreshDue(new Date('2026-10-06T12:37:00Z'), releases), false);
   assert.equal(refreshDue(new Date('2026-10-06T14:00:00Z'), releases), true);
   assert.equal(refreshDue(new Date('2026-10-07T12:37:00Z'), releases), true);
-  assert.equal(refreshDue(new Date('2026-10-08T15:00:00Z'), releases), false);
-  assert.throws(() => refreshDue(new Date(), [{ ...releases[0]!, at: '2026-10-06' }]));
+  assert.equal(refreshDue(new Date('2026-10-07T14:00:00Z'), releases), false);
+  assert.equal(refreshDue(new Date('2026-10-08T12:37:00Z'), releases), false);
+});
+
+test('the daily scheduled run refreshes once for each confirmed release', () => {
+  const dailyRuns = ['2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09'].map(day => new Date(`${day}T12:37:00Z`));
+  for (let minute = 0; minute < 24 * 60; minute += 15) {
+    const at = new Date(Date.parse('2026-10-06T00:00:00Z') + minute * 60_000).toISOString();
+    const releases = [{ at, source: 'https://example.com/official-announcement' }];
+    assert.equal(dailyRuns.filter(run => refreshDue(run, releases)).length, 1, at);
+  }
+});
+
+test('the checked-in release calendar is valid and malformed entries are rejected', () => {
+  assert.doesNotThrow(() => releasesFrom(calendar));
+  const release = { at: '2026-10-06T10:00:00Z', source: 'https://example.com/official-announcement' };
+  assert.deepEqual(releasesFrom({ releases: [release] }), [release]);
+  for (const bad of [{ ...release, at: '2026-10-06' }, { ...release, at: 'not a dateZ' }, { ...release, source: 'http://example.com' }, { at: release.at }]) {
+    assert.throws(() => releasesFrom({ releases: [bad] }), JSON.stringify(bad));
+  }
+  assert.throws(() => releasesFrom({}));
 });
 
 test('refresh comparison ignores check times but detects changed mission content and artwork', () => {

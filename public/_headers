@@ -1,3 +1,9 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+
+# Vite writes content-hashed bundles directly in assets/. The subdirectories copied from
+# public/assets/ keep stable names that data refreshes overwrite, so a placeholder, which
+# matches a single path segment, leaves them revalidating.
+/assets/:file
+  Cache-Control: public, max-age=31536000, immutable

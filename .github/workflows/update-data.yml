@@ -21,6 +21,7 @@ jobs:
           node-version-file: .node-version
       - id: schedule
         run: node scripts/refresh-data.mjs --due
+      # Includes Chromium: the fetch renders scanner references for new cards with it (scripts/scanner-artwork.mjs).
       - uses: ./.github/actions/setup
         if: steps.schedule.outputs.due == 'true'
       - id: refresh

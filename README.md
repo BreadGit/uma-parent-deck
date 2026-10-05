@@ -174,6 +174,7 @@ npm run test:quick # the same without the Python analysis checks, for the inner 
 npm run smoke      # headless Chromium walk-through against the dev server, writes docs/screenshot.png
 npm run scratch -- /tmp/probe.mjs   # one-off browser script with the test helpers; also --eval '<expr>' or --shot <png>
 npm run test:e2e   # smoke, browser regressions, and scroll-anchor checks
+npm run test:browsers # the browser suites CI runs, on their own dev and preview servers; build first
 npm run build
 ```
 
@@ -214,11 +215,17 @@ to Cloudflare Workers Static Assets. [wrangler.jsonc](wrangler.jsonc) owns the s
 The site needs no application server; screenshots and saved choices stay in the browser.
 GitHub Actions needs the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 Scope the token's **Edit Cloudflare Workers** permissions to the hosting account.
+Before the first deploy, register the account's workers.dev subdomain once in the Cloudflare
+dashboard; **Workers & Pages** asks for one on first use. CI deploys to that subdomain.
 
 [Update game data](.github/workflows/update-data.yml) opens a reviewable pull request for changed
 snapshots; merging it publishes through the same CI checks. Enable **Allow GitHub Actions to create
 and approve pull requests** in the repository's Actions settings. A failed refresh leaves the
 published snapshot intact. Its manual **Run workflow** button forces a check.
+Pull requests opened with the workflow's token do not start CI themselves: GitHub records a failed
+`pull_request` run with no jobs, which reports no checks and can be ignored. The workflow
+dispatches CI on the data branch instead, and that run reports the required **Validate** as a
+commit status on the pull request's head; its details link opens that run.
 
 Add confirmed Global releases to [release-calendar.json](docs/umamusume/release-calendar.json)
 as `{"at":"2026-10-06T10:00:00Z","source":"https://example.com/official-announcement"}`

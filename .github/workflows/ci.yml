@@ -4,21 +4,20 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
-    inputs:
-      rename_workers_subdomain:
-        description: Rename this account's workers.dev subdomain to breadgit (requires uma-parent-deck to be its only Worker)
-        type: boolean
-        default: false
 permissions:
   contents: read
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Only superseded pull-request runs are cancelled; a run on main may be deploying.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   validate:
     name: Validate
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: ./.github/actions/setup
@@ -31,6 +30,19 @@ jobs:
           path: dist/
           retention-days: 3
           if-no-files-found: error
+      # GitHub leaves check runs of workflow_dispatch runs out of a commit's status rollup, which is
+      # what a pull request lists. Data-update PRs are validated only by a dispatched run, so that
+      # run also reports the required Validate result as a commit status.
+      - name: Report Validate on the commit
+        if: always() && github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA"
+          -f context=Validate
+          -f state=${{ job.status == 'success' && 'success' || 'failure' }}
+          -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          -f description="Dispatched CI run: ${{ job.status }}"
   deploy:
     name: Deploy
     needs: validate
@@ -54,46 +66,6 @@ jobs:
           path: dist/
       - name: Confirm this is still the current main revision
         run: test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
-      - name: Configure workers.dev
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          RENAME_WORKERS_SUBDOMAIN: ${{ inputs.rename_workers_subdomain }}
-        run: |
-          node --input-type=module <<'JS'
-          const base = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers`;
-          const headers = { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' };
-          async function request(path, options = {}) {
-            return (await fetch(`${base}/${path}`, { ...options, headers, signal: AbortSignal.timeout(30_000) })).json();
-          }
-          const current = await request('subdomain');
-          if (current.success && current.result?.subdomain) {
-            console.log(`Using ${current.result.subdomain}.workers.dev`);
-            if (process.env.RENAME_WORKERS_SUBDOMAIN === 'true' && current.result.subdomain !== 'breadgit') {
-              // Renaming is account-wide; never change another site's address as a side effect.
-              const scripts = await request('scripts');
-              if (!scripts.success || !Array.isArray(scripts.result)) throw new Error('Cannot list Workers; the account subdomain was not changed.');
-              if (scripts.result.length !== 1 || scripts.result[0].id !== 'uma-parent-deck') {
-                throw new Error('Rename requires uma-parent-deck to be the account\'s only Worker. Review the other Workers in Cloudflare first.');
-              }
-              console.log('Confirmed uma-parent-deck is the only Worker in this account.');
-              const available = await request('subdomains/breadgit');
-              if (!available.success && !(available.errors?.length === 1 && available.errors[0].code === 10032)) {
-                throw new Error(`Cannot reserve breadgit.workers.dev; Cloudflare error codes: ${available.errors?.map(error => error.code).join(', ') || 'unknown'}. The account subdomain was not changed.`);
-              }
-              const renamed = await request('subdomain', { method: 'PUT', body: JSON.stringify({ subdomain: 'breadgit' }) });
-              if (!renamed.success || renamed.result?.subdomain !== 'breadgit') throw new Error('Cloudflare did not confirm the rename. Check the account subdomain before retrying.');
-              const verified = await request('subdomain');
-              if (!verified.success || verified.result?.subdomain !== 'breadgit') throw new Error('Could not verify the new account subdomain.');
-              console.log('Renamed and verified breadgit.workers.dev');
-            }
-          } else {
-            if (!current.errors?.some(error => error.code === 10007)) throw new Error('Cannot read the account workers.dev setting. Check the Cloudflare credential permissions.');
-            const created = await request('subdomain', { method: 'PUT', body: JSON.stringify({ subdomain: 'breadgit' }) });
-            if (!created.success) throw new Error('Cannot register breadgit.workers.dev. Choose an available subdomain in Cloudflare Workers onboarding, then rerun this job.');
-            console.log(`Registered ${created.result.subdomain}.workers.dev`);
-          }
-          JS
       - run: npm run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -3,15 +3,25 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
 export interface Release { at: string; source: string }
-export function refreshDue(now: Date, releases: Release[]): boolean {
-  for (const release of releases) {
-    if (!/^https:\/\//.test(release.source) || !/(?:Z|[+-]\d{2}:\d{2})$/.test(release.at) || !Number.isFinite(Date.parse(release.at))) {
-      throw new Error('Each confirmed release needs an ISO timestamp with timezone and an HTTPS source.');
+/** Reads docs/umamusume/release-calendar.json, rejecting entries the schedule cannot use. */
+export function releasesFrom(calendar: unknown): Release[] {
+  const releases = (calendar as { releases?: unknown } | null)?.releases;
+  if (!Array.isArray(releases)) throw new Error('The release calendar needs a releases array.');
+  for (const release of releases as Partial<Release>[]) {
+    if (typeof release?.source !== 'string' || !/^https:\/\//.test(release.source) || typeof release.at !== 'string'
+      || !/(?:Z|[+-]\d{2}:\d{2})$/.test(release.at) || !Number.isFinite(Date.parse(release.at))) {
+      throw new Error(`Each confirmed release needs an ISO timestamp with timezone and an HTTPS source: ${JSON.stringify(release)}`);
     }
   }
+  return releases as Release[];
+}
+// The window lasts one interval of the daily schedule in .github/workflows/update-data.yml, so one run checks each release.
+export const RELEASE_WINDOW_HOURS = [4, 28] as const;
+export function refreshDue(now: Date, releases: Release[]): boolean {
+  const [from, until] = RELEASE_WINDOW_HOURS;
   return now.getUTCDay() === 1 || releases.some(release => {
     const hours = (now.getTime() - Date.parse(release.at)) / 3_600_000;
-    return hours >= 4 && hours <= 52;
+    return hours >= from && hours < until;
   });
 }
 
