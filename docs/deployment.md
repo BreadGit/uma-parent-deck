@@ -1,9 +1,8 @@
 # Deployment
 
 [CI](../.github/workflows/ci.yml) validates every push to `main` and every pull request, and deploys
-a release when a `v*` tag is pushed: the tagged build goes to Cloudflare Workers Static Assets and a
-GitHub release with generated notes is created for it. [wrangler.jsonc](../wrangler.jsonc) owns the
-site configuration. The site needs no application server; screenshots and saved choices stay in the
+a release when a `v*` tag is pushed: the tagged build goes to Cloudflare Workers Static Assets.
+[wrangler.jsonc](../wrangler.jsonc) owns the site configuration. The site needs no application server; screenshots and saved choices stay in the
 browser.
 
 ## Releases
@@ -20,7 +19,7 @@ git push --follow-tags
 ```
 
 CI validates the tag again and deploys it. The deploy refuses a tag whose commit is not on `main`.
-To redeploy a release, run the CI workflow manually on its tag. `npx wrangler rollback` returns the
+The tag list is the release history; no GitHub release or release notes are written. To redeploy a release, run the CI workflow manually on its tag. `npx wrangler rollback` returns the
 site to an earlier upload without a new tag.
 
 Repository rulesets keep `main` and `v*` tags from being force-pushed, moved or deleted, and the
