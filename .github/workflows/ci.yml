@@ -13,7 +13,8 @@ permissions:
   contents: read
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Only superseded pull-request runs are cancelled; a run on main may be deploying.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   validate:
     name: Validate
