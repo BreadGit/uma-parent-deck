@@ -1,6 +1,6 @@
 # Uma parent deck
 
-A local web tool for Umamusume: Pretty Derby (Global) that ranks support cards and builds a
+A browser-based tool for Umamusume: Pretty Derby (Global) that ranks support cards and builds a
 6-card deck for independent-training parent farming, aimed at sparking specific white skills.
 
 ## Import using screenshots
@@ -163,10 +163,13 @@ for terminology. Game constants live in
 
 ## Running
 
+Use the versions in [.node-version](.node-version) and [.python-version](.python-version).
+Install the analysis dependencies with `python3 -m pip install -r analysis/requirements.txt`.
+
 ```
-npm install
+npm ci
 npm run dev        # http://localhost:5173, also reachable on the LAN at http://<this machine's IP>:5173
-npm test           # model tests (node --test); the analysis checks need python3 with numpy and openpyxl, and skip without them
+npm test           # includes Python analysis checks; missing dependencies fail in CI and skip locally
 npm run test:quick # the same without the Python analysis checks, for the inner loop
 npm run smoke      # headless Chromium walk-through against the dev server, writes docs/screenshot.png
 npm run scratch -- /tmp/probe.mjs   # one-off browser script with the test helpers; also --eval '<expr>' or --shot <png>
@@ -203,6 +206,28 @@ appear in a notice; calculations use only the available choices. Reset all remov
 Share formats have fixed defaults and stable game IDs, independent of weekly data updates and
 saved-state versions. The original prototype codes remain readable. See [Sharing](docs/sharing.md)
 for the format contract and compatibility checks.
+
+## Deployment
+
+[CI](.github/workflows/ci.yml) validates pull requests and deploys the tested build from `main`
+to Cloudflare Workers Static Assets. [wrangler.jsonc](wrangler.jsonc) owns the site configuration.
+The site needs no application server; screenshots and saved choices stay in the browser.
+GitHub Actions needs the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+Scope the token's **Edit Cloudflare Workers** permissions to the hosting account.
+
+[Update game data](.github/workflows/update-data.yml) opens a reviewable pull request for changed
+snapshots; merging it publishes through the same CI checks. Enable **Allow GitHub Actions to create
+and approve pull requests** in the repository's Actions settings. A failed refresh leaves the
+published snapshot intact. Its manual **Run workflow** button forces a check.
+
+Add confirmed Global releases to [release-calendar.json](docs/umamusume/release-calendar.json)
+as `{"at":"2026-10-06T10:00:00Z","source":"https://example.com/official-announcement"}`
+entries in `releases`, using the actual announced time and source URL. Prefer official monthly
+announcements; [uma.moe](https://uma.moe/timeline) is an estimate, not a confirmed calendar.
+Run `node scripts/refresh-data.mjs --help` for the scheduling and change-detection policy.
+No automatic announcement parser is configured.
+GitHub can [disable scheduled workflows after 60 days without repository activity](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/disabling-and-enabling-a-workflow);
+re-enable the update workflow in Actions if the repository has been idle.
 
 ## Data
 
@@ -407,4 +432,4 @@ Data from [GameTora](https://gametora.com). Independent training measurements fr
 Loopacord research sheet and [fujikiseki.xyz](https://fujikiseki.xyz/training-data/insights).
 Mechanics are summarized in [Game basics and mechanics](docs/umamusume/GAMEPLAY.md) and the
 linked GameTora and community references, including uma.guide. Game assets belong
-to Cygames; this is a personal tool and the images are not for redistribution.
+to Cygames. This is an unofficial fan tool, not affiliated with Cygames.

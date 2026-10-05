@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { assertServesThisTree } from './browser-fields.mjs';
 
@@ -158,11 +159,12 @@ try {
   assert.equal(await page.locator('[data-dropzone].scan-dragging').count(), 1, 'dragging over the zone highlights it');
   await page.dispatchEvent('[data-dropzone]', 'dragleave', { dataTransfer: dropped });
   assert.equal(await page.locator('[data-dropzone].scan-dragging').count(), 0);
-  const android = await page.evaluateHandle(async () => {
+  const android = await page.evaluateHandle(encoded => {
     const transfer = new DataTransfer();
-    transfer.items.add(new File([await (await fetch('/tests/fixtures/scanner/android.jpg')).blob()], 'android.jpg', { type: 'image/jpeg' }));
+    const bytes = Uint8Array.from(atob(encoded), character => character.charCodeAt(0));
+    transfer.items.add(new File([bytes], 'android.jpg', { type: 'image/jpeg' }));
     return transfer;
-  });
+  }, (await readFile(file)).toString('base64'));
   await page.dispatchEvent('[data-dropzone]', 'drop', { dataTransfer: android });
   await page.locator('[data-stop]').waitFor({ state: 'hidden', timeout: 90000 });
   assert.equal(await readings(), 50, 'a dropped screenshot is read');

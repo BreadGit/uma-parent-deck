@@ -134,6 +134,9 @@ Skill names use the official Global name (`name`) with GameTora's translation as
 
 ## Commits
 
+This project is published and managed as `BreadGit`. Verify Git's author identity and the
+GitHub CLI account before committing or pushing; keep that identity in the project's Git configuration.
+
 Commit completed, authorized work on your own, without waiting for the user to ask or confirm. Respect
 an explicit request to leave work uncommitted. Split work into focused, logical commits as you go;
 include the tests and documentation for a change with that change. Use imperative commit messages.
