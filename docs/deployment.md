@@ -24,7 +24,8 @@ The tag list is the release history; no GitHub release or release notes are writ
 site to an earlier upload without a new tag.
 
 Repository rulesets keep `main` and `v*` tags from being force-pushed, moved or deleted, and the
-`production` environment accepts deployments only from `v*` tags. Both are repository settings, not
+`production` environment accepts deployments only from `v*` tags and from `main`, which the data
+update uses. Both are repository settings, not
 files in this checkout.
 
 ## Cloudflare
@@ -36,15 +37,16 @@ Pages** asks for one on first use. CI deploys to that subdomain.
 
 ## Game data updates
 
-[Update game data](../.github/workflows/update-data.yml) opens a reviewable pull request for changed
-snapshots; merging it lands them on `main`, and the next release publishes them. Enable **Allow GitHub Actions to create
-and approve pull requests** in the repository's Actions settings. A failed refresh leaves the
-published snapshot intact. The workflow's manual **Run workflow** button forces a check.
-
-Pull requests opened with the workflow's token do not start CI themselves: GitHub records a failed
-`pull_request` run with no jobs, which reports no checks and can be ignored. The workflow dispatches
-CI on the data branch instead, and that run reports **Validate** as a commit status on the pull
-request's head; its details link opens that run.
+[Update game data](../.github/workflows/update-data.yml) runs on a schedule with no review step. When
+the refreshed snapshot differs, it commits the data to `main` and deploys it onto the latest `v*`
+release's code, so production carries the newest data without waiting for a release. The tests and
+the build gate both steps: `main` receives only data that passes them against `main`, and the deploy
+happens only when they and the browser suites pass against the released code. Data the released code
+rejects stays on `main` and ships with the next release; the run summary says which happened, and a
+failed refresh leaves both `main` and the site unchanged. The data checks are the tests behind
+`npm run check:data` in [package.json](../package.json). A push made with the workflow's token starts
+no CI run, so the workflow's own validation stands in for it. The workflow's manual **Run workflow**
+button forces a refresh.
 
 Run `node scripts/refresh-data.mjs --help` for the scheduling and change-detection policy. The
 schedule follows the game's own release notices ([official notices](umamusume/refs/official-notices.md)),

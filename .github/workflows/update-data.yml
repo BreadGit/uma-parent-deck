@@ -7,15 +7,18 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-  pull-requests: write
-  actions: write
 concurrency:
   group: update-game-data
   cancel-in-progress: false
 jobs:
   refresh:
+    name: Refresh main
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.refresh.outputs.changed }}
+      sha: ${{ steps.commit.outputs.sha }}
+      paths: ${{ steps.commit.outputs.paths }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -29,34 +32,67 @@ jobs:
       - id: refresh
         if: steps.schedule.outputs.due == 'true'
         run: npm run refresh:data
-      - name: Validate refreshed data
+      - name: Validate the refreshed data against main
         if: steps.refresh.outputs.changed == 'true'
         run: npm test && npm run build
-      - uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+      # A push made with the workflow token starts no CI run; the validation above stands in for it.
+      - name: Commit to main
+        id: commit
         if: steps.refresh.outputs.changed == 'true'
-        id: pr
-        with:
-          branch: automation/update-game-data
-          title: Update GameTora data
-          commit-message: Update GameTora data
-          author: BreadGit <58152441+BreadGit@users.noreply.github.com>
-          committer: BreadGit <58152441+BreadGit@users.noreply.github.com>
-          body: |
-            Refresh the vendored GameTora snapshot, artwork and fitted model.
-
-            The fetch pipeline and unit/data checks passed. A dispatched CI run reports Validate on this
-            pull request. Merging lands the data on main; the next release publishes it.
-          add-paths: |
-            data/
-            public/assets/
-            docs/umamusume/loopacord-card-data.csv
-            docs/umamusume/fujikiseki-card-table.csv
-            docs/umamusume/fujikiseki-card-table.json
-      - name: Run CI on the data branch
-        if: steps.pr.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run ci.yml --ref automation/update-game-data
+        run: |
+          paths="$(node scripts/refresh-data.mjs --paths | tr '\n' ' ')"
+          git config user.name BreadGit
+          git config user.email 58152441+BreadGit@users.noreply.github.com
+          git add -- $paths
+          git commit --quiet -m 'Update GameTora data'
+          git push --quiet origin HEAD:main || { git pull --quiet --rebase origin main && git push --quiet origin HEAD:main; }
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "paths=$paths" >> "$GITHUB_OUTPUT"
       - name: Explain refresh failure
         if: failure()
-        run: echo 'Data update failed. The published site is unchanged. Inspect the failed step; source/schema changes may need importer changes.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'Data update failed before reaching main. The published site is unchanged. Inspect the failed step; source/schema changes may need importer changes.' >> "$GITHUB_STEP_SUMMARY"
+  deploy:
+    # Production runs the latest release's code with the newest data, so a refresh does not wait for a release.
+    name: Deploy to the current release
+    needs: refresh
+    if: needs.refresh.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Check out the latest release with the refreshed data
+        id: release
+        env:
+          SHA: ${{ needs.refresh.outputs.sha }}
+          PATHS: ${{ needs.refresh.outputs.paths }}
+        run: |
+          git fetch --quiet --depth=1 origin '+refs/tags/v*:refs/tags/v*'
+          tag="$(git tag --list 'v*' --sort=-version:refname | head -n 1)"
+          if [ -z "$tag" ]; then
+            echo 'No release yet: the data is on main and ships with the first release.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'tag=' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git checkout --quiet "$tag"
+          git fetch --quiet --depth=1 origin "$SHA"
+          git rm --quiet -r --ignore-unmatch -- $PATHS
+          git checkout --quiet "$SHA" -- $PATHS
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - uses: ./.github/actions/setup
+        if: steps.release.outputs.tag != ''
+      - if: steps.release.outputs.tag != ''
+        run: npm test && npm run build && npm run test:browsers
+      - if: steps.release.outputs.tag != ''
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - if: steps.release.outputs.tag != ''
+        run: echo "Deployed ${{ steps.release.outputs.tag }} with the data from ${{ needs.refresh.outputs.sha }}." >> "$GITHUB_STEP_SUMMARY"
+      - name: Explain deploy failure
+        if: failure()
+        run: echo 'The refreshed data is on main but the current release rejected it. The published site is unchanged; the next release ships the data.' >> "$GITHUB_STEP_SUMMARY"
