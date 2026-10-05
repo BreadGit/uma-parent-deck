@@ -51,13 +51,7 @@ async function loadShare(code: string) {
     view.requiredQuery = ''; view.preferredQuery = ''; view.traineeQuery = ''; view.cardQuery = ''; view.ignoreQuery = ''; view.activeSearch = null;
     view.drag = { key: null, over: null };
     if (shareKey(choices) !== shareKey(sharedChoices(store))) {
-      try { update((s) => applySharedChoices(s, choices)); }
-      catch (error) {
-        if (!(error instanceof DOMException) || !['QuotaExceededError', 'SecurityError'].includes(error.name)) throw error;
-        queueSync(true);
-        void notice(COPY.share.saveFailed);
-        return;
-      }
+      update((s) => applySharedChoices(s, choices));
     }
     queueSync(true);
   } catch (error) {

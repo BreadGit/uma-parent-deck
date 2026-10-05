@@ -183,22 +183,35 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
 }
 const isTheme = (v: unknown): v is Theme => v === 'system' || v === 'light' || v === 'dark';
 
-const readJson = (key: string): unknown => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : undefined; } catch { return undefined; } };
+export let storageUnavailable = false;
+const readStored = (key: string): string | null => {
+  try { return localStorage.getItem(key); }
+  catch { storageUnavailable = true; return null; }
+};
+const readJson = (key: string): unknown => { try { const raw = readStored(key); return raw ? JSON.parse(raw) : undefined; } catch { return undefined; } };
 
 /** Load from localStorage, migrating older keys on the way. `fallbackInventory` is the repo's inventory.json. */
 export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   const current = readJson(STATE_KEY);
-  const state = migrate({ current, state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: localStorage.getItem(LEGACY_KEYS.theme) }, data);
+  const state = migrate({ current, state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) }, data);
   if (current === undefined && readJson(LEGACY_KEYS.inventory) === undefined) state.inventory = sanitizeInventory(fallbackInventory);
   // Retire historical family aliases once, before another data update can reinterpret the old save.
   // If storage is read-only or full, the migrated in-memory state still remains usable.
   if (isPlainObject(current) && typeof current.version === 'number' && current.version >= 4 && current.version < STATE_VERSION) {
-    try { saveState(state); } catch { /* Keep the loaded state. */ }
+    saveState(state);
   }
   return state;
 }
 export function saveState(state: AppState) {
-  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  const serialized = JSON.stringify(state);
+  try {
+    localStorage.setItem(STATE_KEY, serialized);
+    storageUnavailable = false;
+    return true;
+  } catch {
+    storageUnavailable = true;
+    return false;
+  }
 }
 
 /** Keep open planner and mission tabs from overwriting each other's newer choices. */
@@ -232,5 +245,9 @@ export function resetRun(state: AppState, data: Data): AppState {
 /** Optional cached results must not prevent the current recommendation from appearing if storage is full. */
 export function saveRecommendation(state: AppState, recommendation: SavedRecommendation) {
   state.recommendation = recommendation;
-  try { saveState(state); } catch { delete state.recommendation; }
+  if (!saveState(state)) {
+    delete state.recommendation;
+    // A large optional cache must not prevent saving the user's smaller choices.
+    saveState(state);
+  }
 }

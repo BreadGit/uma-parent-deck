@@ -7,6 +7,7 @@ import { applyTheme, followTheme, themeToggle } from './theme.ts';
 import { installTooltips } from './tooltip.ts';
 import { installSuggestDismiss } from './fields.ts';
 import { renderMissions } from './panels/missions.ts';
+import { storageNotice } from './storage-notice.ts';
 
 const root = document.getElementById('app')!;
 const catalog = catalogJson as MissionCatalog;
@@ -20,6 +21,7 @@ function draw() {
       ${themeToggle(store.ui.theme, (theme) => update((state) => { state.ui.theme = theme; }))}
     </span>
   </header>
+  ${storageNotice()}
   ${renderMissions(catalog, Date.now())}
   <div id="tooltip" role="tooltip"></div>
   <div class="footer">${COPY.missions.checkedAt(new Date(catalog.fetchedAt).toLocaleDateString())}

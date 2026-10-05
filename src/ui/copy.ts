@@ -21,7 +21,6 @@ export const COPY = {
   share: {
     generateFailed: 'Could not update the share code. Your choices are saved on this device. Try an up-to-date browser.',
     loadFailed: 'This code is invalid or incomplete. Your saved choices were kept.',
-    saveFailed: 'Choices loaded, but this browser could not save them. Copy the URL before leaving this page.',
     unsupported: 'This code uses a newer or unsupported share format. Try updating the app. Your saved choices were kept.',
     tooLarge: 'These choices exceed the share-code size limit. Your saved choices were kept.',
     editedDuringLoad: 'Your choices changed while the code was loading. Load it again to replace them.',
@@ -31,6 +30,7 @@ export const COPY = {
     missingSkills: (ids: number[]) => `Unavailable skills: ${ids.join(', ')}`,
   },
   app: {
+    storageUnavailable: 'This browser cannot save your changes. You can keep using this page, but changes may be lost when you leave. Copy the run URL and export your inventory before leaving; advanced settings are not included in the run URL.',
     tagline: 'Independent-training deck builder for white-spark farming',
     resetAll: LABEL.resetAll,
     resetAllTip: 'Start over: clears every choice except your inventory and advanced settings',

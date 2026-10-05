@@ -1984,6 +1984,23 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.equal((await state(page)).run.traineeStars, 1);
   });
 
+  test('blocked browser storage still allows planning, themes and reset', async (t) => {
+    const page = await fresh(t, undefined, { held: true, init: () => {
+      Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('Blocked', 'SecurityError'); } });
+    } });
+    await page.locator('[data-storage-warning]').waitFor();
+    await trainee(page);
+    await page.locator('[data-theme-pick="dark"]').click();
+    assert.equal(await page.locator('[data-theme-pick="dark"]').getAttribute('aria-pressed'), 'true');
+    await waitForShare(page);
+    assert.ok((await decodeShare(new URL(page.url()).searchParams.get('run'))).run.traineeCardId);
+    await page.locator('[data-action="reset-all"]').click();
+    await confirmDialog(page);
+    assert.equal(await page.locator('[data-waiting]').count(), 1);
+    assert.equal(new URL(page.url()).searchParams.has('run'), false);
+    assert.equal(await page.locator('[data-storage-warning]').count(), 1);
+  });
+
   test('a share import remains copyable when the browser cannot save it', async (t) => {
     const page = await editor(t, shareFixture());
     await waitForShare(page);
@@ -1992,9 +2009,8 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     const incoming = defaultState(data);
     incoming.settings.focus = 'balanced';
     await navigateShare(page, shareUrl(url, await encodeShare(sharedChoices(incoming))));
-    await page.waitForSelector('[data-dialog]');
-    assert.match(await page.locator('[data-dialog-message]').innerText(), /could not save/);
-    await page.click('[data-dialog-confirm]');
+    await page.waitForSelector('[data-storage-warning]');
+    assert.match(await page.locator('[data-storage-warning]').innerText(), /cannot save/);
     await waitForShare(page);
     assert.equal((await decodeShare(new URL(page.url()).searchParams.get('run'))).run.traineeCardId, null);
     assert.deepEqual(await state(page), before, 'the existing persisted save was not damaged');
