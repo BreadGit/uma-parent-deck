@@ -87,8 +87,10 @@ jobs:
       - if: steps.release.outputs.tag != ''
         run: npm test && npm run build && npm run test:browsers
       - if: steps.release.outputs.tag != ''
-        run: npm run deploy
+        run: npm run deploy -- --tag "$TAG" --message "Data refresh ${SHA::7} on $TAG"
         env:
+          TAG: ${{ steps.release.outputs.tag }}
+          SHA: ${{ needs.refresh.outputs.sha }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - if: steps.release.outputs.tag != ''

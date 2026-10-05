@@ -68,7 +68,7 @@ jobs:
             identical|behind) ;;
             *) echo "::error::$GITHUB_REF_NAME points at a commit that is not on main (compare status: $status)"; exit 1 ;;
           esac
-      - run: npm run deploy
+      - run: npm run deploy -- --tag "$GITHUB_REF_NAME" --message "Release $GITHUB_REF_NAME"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

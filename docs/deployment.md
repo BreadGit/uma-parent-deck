@@ -21,6 +21,8 @@ git push --follow-tags
 
 The page footer shows this version and the data snapshot date, so the live site states what it runs.
 CI validates the tag again and deploys it. The deploy refuses a tag whose commit is not on `main`.
+Each deploy uploads a Worker version labelled with the tag (`node scripts/deploy.mjs --help`), so the
+Cloudflare dashboard's version list names releases and data refreshes.
 The tag list is the release history; no GitHub release or release notes are written. To redeploy a release, run the CI workflow manually on its tag. `npx wrangler rollback` returns the
 site to an earlier upload without a new tag.
 

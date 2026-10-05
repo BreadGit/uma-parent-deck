@@ -20,7 +20,7 @@
     "build:scanner-artwork": "node scripts/scanner-artwork.mjs",
     "test:scanner": "node --test --test-concurrency=2 tests/scanner-snapshot.mjs tests/scanner.mjs tests/scanner-worker.mjs",
     "test:browsers": "node scripts/check-browsers.mjs",
-    "deploy": "wrangler deploy",
+    "deploy": "node scripts/deploy.mjs",
     "refresh:data": "node scripts/refresh-data.mjs"
   },
   "dependencies": {
