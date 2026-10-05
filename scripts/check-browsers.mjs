@@ -9,14 +9,18 @@ async function check(mode, port, commands) {
   server.stderr.on('data', chunk => { output += chunk; });
   const url = `http://localhost:${port}/`;
   try {
-    let ready = false;
+    let ready = false, probeError = '';
     for (let attempt = 0; attempt < 100; attempt++) {
       if (server.exitCode !== null) throw new Error(output);
-      ready = await fetch(url).then(response => response.ok, () => false);
+      ready = await fetch(url).then(async response => {
+        await response.body?.cancel();
+        probeError = `HTTP ${response.status}`;
+        return response.ok;
+      }, error => { probeError = String(error.cause ?? error); return false; });
       if (ready) break;
       await sleep(100);
     }
-    if (!ready) throw new Error(`Server did not start: ${output}`);
+    if (!ready) throw new Error(`Server did not answer at ${url}: ${probeError}\n${output}`);
     for (const args of commands) {
       const child = spawn(process.execPath, args, { stdio: 'inherit', env: { ...process.env, URL: url, SCREENSHOT_PATH: '', BROWSER_TEST_CONCURRENCY: '1' } });
       await new Promise((resolve, reject) => {
@@ -30,4 +34,4 @@ async function check(mode, port, commands) {
   }
 }
 await check('dev', 5190, [['--test', '--test-concurrency=1', 'tests/regressions.mjs', 'tests/scroll-anchor.mjs', 'tests/scanner-snapshot.mjs']]);
-await check('preview', 4190, [['--test', '--test-concurrency=1', 'tests/smoke.mjs', 'tests/scanner.mjs', 'tests/scanner-worker.mjs']]);
+await check('preview', 4174, [['--test', '--test-concurrency=1', 'tests/smoke.mjs', 'tests/scanner.mjs', 'tests/scanner-worker.mjs']]);
