@@ -3,6 +3,8 @@
 [CI](../.github/workflows/ci.yml) validates pull requests and deploys the tested build from `main` to
 Cloudflare Workers Static Assets. [wrangler.jsonc](../wrangler.jsonc) owns the site configuration.
 The site needs no application server; screenshots and saved choices stay in the browser.
+`main` is protected in the repository settings: a pull request with a passing Validate check, current
+with `main`, is the only way in, for the owner too. Merging it is the deploy.
 
 ## Cloudflare
 
