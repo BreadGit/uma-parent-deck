@@ -5,6 +5,7 @@
 // data/raw/char-events.json. Source revisions invalidate stale page caches.
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { requestSource } from './source-request.ts';
 import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, uniqueEffectText, UNLOCK_LINE } from './page-cache.ts';
 
 const BASE = 'https://gametora.com';
@@ -31,21 +32,20 @@ async function save(file, value) {
 }
 
 let last = 0;
-async function getJson(url) {
+async function throttle() {
   const wait = last + DELAY_MS - Date.now();
   if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   last = Date.now();
-  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+}
+async function getJson(url) {
+  const res = await requestSource(url, throttle, UA);
   if (!res.ok) throw new Error(`Page fetch ${res.status}: ${url}`);
   return res.json();
 }
 
 /** A page's HTML, throttled like getJson. */
 async function getText(url) {
-  const wait = last + DELAY_MS - Date.now();
-  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-  last = Date.now();
-  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  const res = await requestSource(url, throttle, UA);
   if (!res.ok) throw new Error(`Page fetch ${res.status}: ${url}`);
   return res.text();
 }

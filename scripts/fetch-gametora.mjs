@@ -11,6 +11,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { requestSource } from './source-request.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables } from './source-validation.ts';
@@ -48,8 +49,7 @@ async function throttle() {
   requestCount++;
 }
 async function fetchTo(url, file, jsonShape) {
-  await throttle();
-  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  const res = await requestSource(url, throttle, UA);
   if (!res.ok) return res.status;
   const buffer = Buffer.from(await res.arrayBuffer());
   if (jsonShape) parseSourceDownload(buffer.toString('utf8'), jsonShape, url);
