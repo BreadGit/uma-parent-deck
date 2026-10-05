@@ -19,12 +19,19 @@ jobs:
     permissions:
       contents: read
       statuses: write
+    env:
+      # Pushes to main get the unit tests and the build; the browser suites run where a release
+      # or review depends on them: tags, pull requests and manual runs.
+      BROWSERS: ${{ github.event_name != 'push' || github.ref_type == 'tag' }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: ./.github/actions/setup
+        with:
+          browsers: ${{ env.BROWSERS }}
       - run: npm test
       - run: npm run build
       - run: npm run test:browsers
+        if: env.BROWSERS == 'true'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: site

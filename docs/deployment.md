@@ -1,7 +1,8 @@
 # Deployment
 
-[CI](../.github/workflows/ci.yml) validates every push to `main` and every pull request, and deploys
-a release when a `v*` tag is pushed: the tagged build goes to Cloudflare Workers Static Assets.
+[CI](../.github/workflows/ci.yml) runs the unit tests and the build on every push to `main`, adds
+the browser suites for pull requests, manual runs and `v*` tags, and deploys a release when a `v*`
+tag is pushed: the tagged build goes to Cloudflare Workers Static Assets.
 [wrangler.jsonc](../wrangler.jsonc) owns the site configuration. The site needs no application server; screenshots and saved choices stay in the
 browser.
 
