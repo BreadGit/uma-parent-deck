@@ -15,10 +15,13 @@ export function releasesFrom(calendar: unknown): Release[] {
   }
   return releases as Release[];
 }
+// The window lasts one interval of the daily schedule in .github/workflows/update-data.yml, so one run checks each release.
+export const RELEASE_WINDOW_HOURS = [4, 28] as const;
 export function refreshDue(now: Date, releases: Release[]): boolean {
+  const [from, until] = RELEASE_WINDOW_HOURS;
   return now.getUTCDay() === 1 || releases.some(release => {
     const hours = (now.getTime() - Date.parse(release.at)) / 3_600_000;
-    return hours >= 4 && hours <= 52;
+    return hours >= from && hours < until;
   });
 }
 
