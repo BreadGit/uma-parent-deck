@@ -1,36 +1,33 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { refreshDue, releasesFrom, contentForComparison } from '../scripts/data-refresh.ts';
-import calendar from '../docs/umamusume/release-calendar.json' with { type: 'json' };
+import { RELEASE_TITLE, noticesFrom, refreshDue, contentForComparison } from '../scripts/data-refresh.ts';
+import feed from './fixtures/notices.json' with { type: 'json' };
 
-test('refresh schedule has a weekly fallback and delayed confirmed-release checks', () => {
-  assert.equal(refreshDue(new Date('2026-10-05T12:37:00Z'), []), true);
-  assert.equal(refreshDue(new Date('2026-10-06T12:37:00Z'), []), false);
-  const releases = [{ at: '2026-10-06T10:00:00Z', source: 'https://example.com/official-announcement' }];
-  assert.equal(refreshDue(new Date('2026-10-06T12:37:00Z'), releases), false);
-  assert.equal(refreshDue(new Date('2026-10-06T14:00:00Z'), releases), true);
-  assert.equal(refreshDue(new Date('2026-10-07T12:37:00Z'), releases), true);
-  assert.equal(refreshDue(new Date('2026-10-07T14:00:00Z'), releases), false);
-  assert.equal(refreshDue(new Date('2026-10-08T12:37:00Z'), releases), false);
+const notices = noticesFrom(feed);
+
+test('the notice feed parses as UTC times and release notices are the ones that change the snapshot', () => {
+  assert.equal(notices.find(notice => notice.title === 'The event Aim for the Stars! Dream Team has ended!')?.postedAt.toISOString(), '2026-10-04T22:00:00.000Z');
+  const releases = notices.filter(notice => RELEASE_TITLE.test(notice.title)).map(notice => notice.title);
+  for (const title of ['Spotlight Pretty Derby and Spotlight Support Card Scouts out now!', 'The story event Illuminate the Heart is here!',
+    'The new Career scenario "Brighter Together! Our Grand Concert" is here!', 'Holiday Celebration Part 1 now available!', 'Check out all the latest updates!']) {
+    assert.ok(releases.includes(title), title);
+  }
+  for (const title of ['New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!', 'The story event "Hark Back, Run Forward" has ended!',
+    'Maintenance Announcement', 'Issue with Independent Training']) {
+    assert.ok(!releases.includes(title), title);
+  }
+  assert.throws(() => noticesFrom({}));
+  assert.throws(() => noticesFrom({ information_list: [{ title: 'x', post_at: 'soon' }] }));
 });
 
-test('the daily scheduled run refreshes once for each confirmed release', () => {
-  const dailyRuns = ['2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09'].map(day => new Date(`${day}T12:37:00Z`));
-  for (let minute = 0; minute < 24 * 60; minute += 15) {
-    const at = new Date(Date.parse('2026-10-06T00:00:00Z') + minute * 60_000).toISOString();
-    const releases = [{ at, source: 'https://example.com/official-announcement' }];
-    assert.equal(dailyRuns.filter(run => refreshDue(run, releases)).length, 1, at);
-  }
-});
-
-test('the checked-in release calendar is valid and malformed entries are rejected', () => {
-  assert.doesNotThrow(() => releasesFrom(calendar));
-  const release = { at: '2026-10-06T10:00:00Z', source: 'https://example.com/official-announcement' };
-  assert.deepEqual(releasesFrom({ releases: [release] }), [release]);
-  for (const bad of [{ ...release, at: '2026-10-06' }, { ...release, at: 'not a dateZ' }, { ...release, source: 'http://example.com' }, { at: release.at }]) {
-    assert.throws(() => releasesFrom({ releases: [bad] }), JSON.stringify(bad));
-  }
-  assert.throws(() => releasesFrom({}));
+test('a release is refreshed about one, four and twenty-five hours after its notice, and never on a quiet day', () => {
+  // Cards went live at 2026-09-15 22:00 UTC; the notices on the days around it announce or end things.
+  const runs = (day: string) => [new Date(`${day}T23:07:00Z`), new Date(`${day}T02:07:00Z`)];
+  assert.deepEqual([...runs('2026-09-15'), ...runs('2026-09-16'), ...runs('2026-09-17')].map(run => refreshDue(run, notices)), [true, false, true, true, false, false]);
+  assert.equal(refreshDue(new Date('2026-10-02T23:07:00Z'), notices), false, 'Friday without release notices');
+  assert.equal(refreshDue(new Date('2026-10-05T23:07:00Z'), []), true, 'Monday 23 UTC fallback');
+  assert.equal(refreshDue(new Date('2026-10-05T02:07:00Z'), []), false, 'the other Monday run');
+  assert.equal(refreshDue(new Date('2026-09-27T23:07:00Z'), [{ title: 'New Spotlight Scouts coming soon!', postedAt: new Date('2026-09-27T22:00:00Z') }]), false, 'advance notices wait for the release');
 });
 
 test('refresh comparison ignores check times but detects changed mission content and artwork', () => {

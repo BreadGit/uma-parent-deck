@@ -1,0 +1,604 @@
+{
+ "information_list": [
+  {
+   "announce_id": 100109,
+   "title": "Issue with Obtaining Scout Points in the Aim for the Stars! Dream Team Event",
+   "post_at": "2026-09-29 08:15:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1056,
+   "title": "The event Aim for the Stars! Dream Team has ended!",
+   "post_at": "2026-10-04 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1041,
+   "title": "Bonus Star Piece rewards in Career!",
+   "post_at": "2026-10-04 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1073,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-09-28 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1077,
+   "title": "The story event Illuminate the Heart is here!",
+   "post_at": "2026-09-28 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1079,
+   "title": "Holiday Celebration Part 1 now available!",
+   "post_at": "2026-09-28 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1004,
+   "title": "Bonus Star Piece rewards in Career!",
+   "post_at": "2026-09-28 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100101,
+   "title": "Updates to Recommended Devices",
+   "post_at": "2026-08-28 08:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1072,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-09-27 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1055,
+   "title": "The event Aim for the Stars! Dream Team is here!",
+   "post_at": "2026-09-27 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1065,
+   "title": "The race event Champions Meeting: Sagittarius Cup is coming in early October!",
+   "post_at": "2026-09-26 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1054,
+   "title": "The event Aim for the Stars! Dream Team is coming soon!",
+   "post_at": "2026-09-26 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1076,
+   "title": "The story event Illuminate the Heart is coming soon!",
+   "post_at": "2026-09-24 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1058,
+   "title": "Transfer Requests now available!",
+   "post_at": "2026-09-24 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1052,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-09-23 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1057,
+   "title": "Transfer Requests coming soon!",
+   "post_at": "2026-09-23 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1064,
+   "title": "Check out Sakura Chiyono O's SUPER KEEN ADVICE!",
+   "post_at": "2026-09-23 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1051,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-09-22 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1050,
+   "title": "The race event Champions Meeting: Scorpio Cup is here!",
+   "post_at": "2026-09-19 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1024,
+   "title": "The story event \"Hark Back, Run Forward\" has ended!",
+   "post_at": "2026-09-19 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1040,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-09-15 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1049,
+   "title": "The league selection period for the Champions Meeting: Scorpio Cup has begun!",
+   "post_at": "2026-09-15 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1047,
+   "title": "Special Snowy Integrity outfits!",
+   "post_at": "2026-09-15 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1003,
+   "title": "Bonus Star Piece rewards in Career!",
+   "post_at": "2026-09-15 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1048,
+   "title": "New Functions and Songs added to the Uma Jukebox!",
+   "post_at": "2026-09-15 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1039,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-09-14 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1002,
+   "title": "Bonus Star Piece rewards in Career!",
+   "post_at": "2026-09-13 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1046,
+   "title": "New Functions and Songs coming soon to the Uma Jukebox!",
+   "post_at": "2026-09-12 22:00:00",
+   "announce_label": 3
+  },
+  {
+   "announce_id": 1001,
+   "title": "Fall G1 Celebration Part 2 now available!",
+   "post_at": "2026-09-08 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1026,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-09-07 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1023,
+   "title": "The story event \"Hark Back, Run Forward\" is here!",
+   "post_at": "2026-09-07 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1025,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-09-06 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 952,
+   "title": "Bonus Star Piece rewards in Career!",
+   "post_at": "2026-09-06 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1029,
+   "title": "Check out all the latest updates!",
+   "post_at": "2026-09-06 22:00:00",
+   "announce_label": 3
+  },
+  {
+   "announce_id": 997,
+   "title": "The race event Champions Meeting: Scorpio Cup is coming in mid-September!",
+   "post_at": "2026-09-04 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1022,
+   "title": "The story event \"Hark Back, Run Forward\" is coming soon!",
+   "post_at": "2026-09-03 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1021,
+   "title": "A Legend Race is here!",
+   "post_at": "2026-09-03 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1018,
+   "title": "Increased Daily Race Tickets event coming soon!",
+   "post_at": "2026-09-02 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1006,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-09-01 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1016,
+   "title": "Transfer Requests now available!",
+   "post_at": "2026-09-01 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1010,
+   "title": "Let's Go! Uma Outing now available!",
+   "post_at": "2026-09-01 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1005,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-08-31 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1020,
+   "title": "A Legend Race is coming soon!",
+   "post_at": "2026-08-31 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1015,
+   "title": "Transfer Requests coming soon!",
+   "post_at": "2026-08-31 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 1009,
+   "title": "Let's Go! Uma Outing coming soon!",
+   "post_at": "2026-08-31 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 974,
+   "title": "The story event \"Days Flying By\" has ended!",
+   "post_at": "2026-08-30 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 951,
+   "title": "Bonus Star Piece rewards in Career!",
+   "post_at": "2026-08-30 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 992,
+   "title": "The race event Champions Meeting: Libra Cup is here!",
+   "post_at": "2026-08-28 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 994,
+   "title": "A special Umayuru Celebration has begun!",
+   "post_at": "2026-08-26 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 990,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-08-25 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 991,
+   "title": "The league selection period for the Champions Meeting: Libra Cup has begun!",
+   "post_at": "2026-08-25 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 989,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-08-24 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 963,
+   "title": "1.5-Year Anniversary Celebrations ending soon!",
+   "post_at": "2026-08-23 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 950,
+   "title": "Bonus Star Piece rewards in Career!",
+   "post_at": "2026-08-23 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 957,
+   "title": "The event \"Trainer Aptitude Test\" has ended!",
+   "post_at": "2026-08-21 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100100,
+   "title": "Issue with Independent Training",
+   "post_at": "2026-08-13 10:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 967,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-08-18 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 973,
+   "title": "The story event \"Days Flying By\" is here!",
+   "post_at": "2026-08-18 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 969,
+   "title": "New Team Ranks Added",
+   "post_at": "2026-08-18 09:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 966,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-08-17 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 949,
+   "title": "Bonus Star Piece rewards in Career!",
+   "post_at": "2026-08-17 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 979,
+   "title": "Check out all the latest updates!",
+   "post_at": "2026-08-17 22:00:00",
+   "announce_label": 3
+  },
+  {
+   "announce_id": 945,
+   "title": "The race event Champions Meeting: Libra Cup is coming in late August!",
+   "post_at": "2026-08-15 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 972,
+   "title": "The story event \"Days Flying By\" is coming soon!",
+   "post_at": "2026-08-14 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 954,
+   "title": "A Legend Race is here!",
+   "post_at": "2026-08-13 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 947,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-08-12 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 956,
+   "title": "The event \"Trainer Aptitude Test\" is here!",
+   "post_at": "2026-08-12 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 959,
+   "title": "Transfer Requests now available!",
+   "post_at": "2026-08-12 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 948,
+   "title": "Fall G1 Celebration Part 1 now available!",
+   "post_at": "2026-08-12 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 946,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-08-11 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 955,
+   "title": "The event \"Trainer Aptitude Test\" is coming soon!",
+   "post_at": "2026-08-11 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 958,
+   "title": "Transfer Requests coming soon!",
+   "post_at": "2026-08-11 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 916,
+   "title": "The story event \"Wings of Steam and Steel\" has ended!",
+   "post_at": "2026-08-10 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 953,
+   "title": "A Legend Race is coming soon!",
+   "post_at": "2026-08-09 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 936,
+   "title": "The race event Champions Meeting: Virgo Cup is here!",
+   "post_at": "2026-08-08 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100099,
+   "title": "Regarding the Three Cheers for Trainer! August Giveaway Gift Contents",
+   "post_at": "2026-08-06 04:45:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 934,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-08-05 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 935,
+   "title": "The league selection period for the Champions Meeting: Virgo Cup has begun!",
+   "post_at": "2026-08-05 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 943,
+   "title": "Timing of Addition of Future Trainees as Singers",
+   "post_at": "2026-08-05 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 933,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-08-04 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 155,
+   "title": "List of Known Issues",
+   "post_at": "2025-06-26 00:30:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 907,
+   "title": "Spotlight Pretty Derby and Spotlight Support Card Scouts out now!",
+   "post_at": "2026-07-27 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 915,
+   "title": "The story event \"Wings of Steam and Steel\" is here!",
+   "post_at": "2026-07-27 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 917,
+   "title": "1.5-Year Anniversary Celebration Part 3 now available!",
+   "post_at": "2026-07-27 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100084,
+   "title": "1.5-Year Anniversary Celebration Part 2 items now available on the Cygames WebStore!",
+   "post_at": "2026-07-27 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 200014,
+   "title": "Umamusume: Pretty Derby Brighter Together: Our Grand Concert Support Event",
+   "post_at": "2026-07-27 01:55:00",
+   "announce_label": 3
+  },
+  {
+   "announce_id": 906,
+   "title": "New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!",
+   "post_at": "2026-07-26 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 914,
+   "title": "The story event \"Wings of Steam and Steel\" is coming soon!",
+   "post_at": "2026-07-23 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100098,
+   "title": "Issue with Abnormal Attribute Gains in Independent Training",
+   "post_at": "2026-07-23 13:45:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100097,
+   "title": "Issue with Yaeno Muteki's Independent Training",
+   "post_at": "2026-07-23 09:15:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 200013,
+   "title": "Umamusume: Pretty Derby Brighter Together: Our Grand Concert Celebration Event",
+   "post_at": "2026-07-23 01:55:00",
+   "announce_label": 3
+  },
+  {
+   "announce_id": 899,
+   "title": "New Career Scenario Celebration Pretty Derby and Support Card Scouts out now!",
+   "post_at": "2026-07-22 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 897,
+   "title": "3★ Guaranteed and SSR Guaranteed 1.5-Year Anniversary Scouts now available!",
+   "post_at": "2026-07-22 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 908,
+   "title": "The race event Champions Meeting: Virgo Cup is coming in early August!",
+   "post_at": "2026-07-22 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 905,
+   "title": "The new Career scenario \"Brighter Together! Our Grand Concert\" is here!",
+   "post_at": "2026-07-22 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 902,
+   "title": "1.5-Year Anniversary Celebration Part 2 now available!",
+   "post_at": "2026-07-22 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 901,
+   "title": "Up to 100 free scouts! Daily Free 10x Scout has begun!",
+   "post_at": "2026-07-22 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100083,
+   "title": "1.5-Year Anniversary Celebration items now available on the Cygames WebStore!",
+   "post_at": "2026-07-22 22:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100089,
+   "title": "Maintenance Announcement",
+   "post_at": "2026-07-21 04:00:00",
+   "announce_label": 1
+  },
+  {
+   "announce_id": 100094,
+   "title": "Career Mode Race Rewards Adjustment Announcement",
+   "post_at": "2026-07-22 08:30:00",
+   "announce_label": 1
+  }
+ ]
+}

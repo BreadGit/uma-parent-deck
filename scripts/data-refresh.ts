@@ -2,26 +2,35 @@ import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
-export interface Release { at: string; source: string }
-/** Reads docs/umamusume/release-calendar.json, rejecting entries the schedule cannot use. */
-export function releasesFrom(calendar: unknown): Release[] {
-  const releases = (calendar as { releases?: unknown } | null)?.releases;
-  if (!Array.isArray(releases)) throw new Error('The release calendar needs a releases array.');
-  for (const release of releases as Partial<Release>[]) {
-    if (typeof release?.source !== 'string' || !/^https:\/\//.test(release.source) || typeof release.at !== 'string'
-      || !/(?:Z|[+-]\d{2}:\d{2})$/.test(release.at) || !Number.isFinite(Date.parse(release.at))) {
-      throw new Error(`Each confirmed release needs an ISO timestamp with timezone and an HTTPS source: ${JSON.stringify(release)}`);
-    }
-  }
-  return releases as Release[];
+/** The official site's in-game notice feed, also shown at https://umamusume.com/news/. See docs/umamusume/refs/official-notices.md. */
+export const NOTICE_FEED = {
+  url: 'https://umamusume.com/api/ajax/pr_info_index?format=json',
+  request: { announce_label: 0, limit: 50, offset: 0 },
+} as const;
+export interface Notice { title: string; postedAt: Date }
+/** The notices in a feed response. Times in the feed are UTC, as the notice text states. */
+export function noticesFrom(feed: unknown): Notice[] {
+  const list = (feed as { information_list?: unknown } | null)?.information_list;
+  if (!Array.isArray(list)) throw new Error('The notice feed has no information_list.');
+  return list.map((notice: { title?: unknown; post_at?: unknown }) => {
+    const postedAt = new Date(typeof notice.post_at === 'string' ? notice.post_at.replace(' ', 'T') + 'Z' : NaN);
+    if (typeof notice.title !== 'string' || Number.isNaN(postedAt.getTime())) throw new Error(`Unexpected notice: ${JSON.stringify(notice)}`);
+    return { title: notice.title, postedAt };
+  });
 }
-// The window lasts one interval of the daily schedule in .github/workflows/update-data.yml, so one run checks each release.
-export const RELEASE_WINDOW_HOURS = [4, 28] as const;
-export function refreshDue(now: Date, releases: Release[]): boolean {
+/** Notices posted when content the snapshot covers goes live: cards, trainees, scenarios, events and their missions. */
+export const RELEASE_TITLE = /\b(?:out now|is here|now available|latest updates)\b/i;
+// The schedule in .github/workflows/update-data.yml runs about one and four hours after the daily 22:00 UTC
+// release slot. The window also covers the next day's runs, so a release GameTora reflected late is retried.
+export const RELEASE_WINDOW_HOURS = [0, 26] as const;
+// The fallback for releases the feed misses: the first run on Monday, 23:xx UTC.
+export const WEEKLY_CHECK = { utcDay: 1, utcHour: 23 } as const;
+export function refreshDue(now: Date, notices: Notice[]): boolean {
   const [from, until] = RELEASE_WINDOW_HOURS;
-  return now.getUTCDay() === 1 || releases.some(release => {
-    const hours = (now.getTime() - Date.parse(release.at)) / 3_600_000;
-    return hours >= from && hours < until;
+  const weekly = now.getUTCDay() === WEEKLY_CHECK.utcDay && now.getUTCHours() === WEEKLY_CHECK.utcHour;
+  return weekly || notices.some(notice => {
+    const hours = (now.getTime() - notice.postedAt.getTime()) / 3_600_000;
+    return RELEASE_TITLE.test(notice.title) && hours >= from && hours < until;
   });
 }
 

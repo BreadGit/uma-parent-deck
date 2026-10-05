@@ -1,7 +1,7 @@
-import { appendFile, readFile } from 'node:fs/promises';
+import { appendFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
-import { RELEASE_WINDOW_HOURS, refreshDue, releasesFrom, snapshotDigest } from './data-refresh.ts';
+import { NOTICE_FEED, RELEASE_TITLE, RELEASE_WINDOW_HOURS, WEEKLY_CHECK, noticesFrom, refreshDue, snapshotDigest } from './data-refresh.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 async function output(key, value) {
@@ -9,10 +9,13 @@ async function output(key, value) {
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
 }
 if (process.argv.includes('--help')) {
-  console.log(`Refresh GameTora data, fit and validate it, then report changed=true only for substantive snapshot changes. --due checks the weekly fallback (Monday UTC) and confirmed releases in docs/umamusume/release-calendar.json, from ${RELEASE_WINDOW_HOURS[0]} to ${RELEASE_WINDOW_HOURS[1]} hours after release, so the daily run checks each release once. GITHUB_EVENT_NAME=workflow_dispatch forces a refresh. Outputs also go to GITHUB_OUTPUT when set.`);
+  console.log(`Refresh GameTora data, fit and validate it, then report changed=true only for substantive snapshot changes. --due reports true when the official notice feed (${NOTICE_FEED.url}) has a notice matching ${RELEASE_TITLE} posted ${RELEASE_WINDOW_HOURS[0]} to ${RELEASE_WINDOW_HOURS[1]} hours ago, and for the weekly fallback (UTC day ${WEEKLY_CHECK.utcDay}, Monday, during hour ${WEEKLY_CHECK.utcHour}). A feed failure is reported and leaves only the fallback. GITHUB_EVENT_NAME=workflow_dispatch forces a refresh. Outputs also go to GITHUB_OUTPUT when set.`);
 } else if (process.argv.includes('--due')) {
-  const releases = releasesFrom(JSON.parse(await readFile(new URL('../docs/umamusume/release-calendar.json', import.meta.url), 'utf8')));
-  await output('due', process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' || refreshDue(new Date(), releases));
+  const notices = await fetch(NOTICE_FEED.url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(NOTICE_FEED.request), signal: AbortSignal.timeout(30_000) })
+    .then(async response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return noticesFrom(await response.json()); })
+    .catch(error => { console.warn(`Notice feed unavailable, only the weekly fallback applies: ${error.message ?? error}`); return []; });
+  for (const notice of notices.filter(notice => RELEASE_TITLE.test(notice.title)).slice(0, 5)) console.log(`${notice.postedAt.toISOString()} ${notice.title}`);
+  await output('due', process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' || refreshDue(new Date(), notices));
 } else {
   const before = await snapshotDigest(root);
   const child = spawn('npm', ['run', 'fetch'], { cwd: root, stdio: 'inherit' });

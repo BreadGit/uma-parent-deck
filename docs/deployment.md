@@ -47,12 +47,9 @@ CI on the data branch instead, and that run reports **Validate** as a commit sta
 request's head; its details link opens that run.
 
 Run `node scripts/refresh-data.mjs --help` for the scheduling and change-detection policy. The
-schedule follows confirmed Global releases. Add them to
-[release-calendar.json](umamusume/release-calendar.json) as
-`{"at":"2026-10-06T10:00:00Z","source":"https://example.com/official-announcement"}` entries in
-`releases`, using the announced time and source URL. Prefer official monthly announcements;
-[uma.moe](https://uma.moe/timeline) is an estimate, not a confirmed calendar. No automatic
-announcement parser is configured.
+schedule follows the game's own release notices ([official notices](umamusume/refs/official-notices.md)),
+so nothing needs to be entered by hand. If the feed changes shape, the run logs a warning and only
+the weekly fallback refreshes until `scripts/data-refresh.ts` is updated.
 
 GitHub can
 [disable scheduled workflows after 60 days without repository activity](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/disabling-and-enabling-a-workflow);

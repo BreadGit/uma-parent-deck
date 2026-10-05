@@ -1,7 +1,9 @@
 name: Update game data
 on:
   schedule:
-    - cron: '37 12 * * *'
+    # About one and four hours after the daily 22:00 UTC release slot; scripts/data-refresh.ts decides whether a refresh is due.
+    - cron: '7 23 * * *'
+    - cron: '7 2 * * *'
   workflow_dispatch:
 permissions:
   contents: write
