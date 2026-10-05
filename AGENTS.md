@@ -140,9 +140,9 @@ This project is published and managed as `BreadGit`. Verify Git's author identit
 GitHub CLI account before committing or pushing; keep that identity in the project's Git configuration.
 
 Commit completed, authorized work on your own, without waiting for the user to ask or confirm. Respect
-an explicit request to leave work uncommitted. `main` is protected: changes reach it through a pull request
-whose Validate check passed, and merging deploys the site. Do not push, open or merge a pull request unless
-the user asks; the user decides when a batch of commits goes live. Split work into focused, logical commits as you go;
+an explicit request to leave work uncommitted. Work on `main`; pushing it publishes nothing. A release
+is a `v*` tag, cut by the user as described in [deployment](docs/deployment.md). Do not push, tag, or
+open a pull request unless the user asks. Split work into focused, logical commits as you go;
 include the tests and documentation for a change with that change. Use imperative commit messages.
 Run the required checks before reporting the work complete.
 
