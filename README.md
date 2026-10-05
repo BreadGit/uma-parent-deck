@@ -214,6 +214,8 @@ to Cloudflare Workers Static Assets. [wrangler.jsonc](wrangler.jsonc) owns the s
 The site needs no application server; screenshots and saved choices stay in the browser.
 GitHub Actions needs the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 Scope the token's **Edit Cloudflare Workers** permissions to the hosting account.
+Before the first deploy, register the account's workers.dev subdomain once in the Cloudflare
+dashboard; **Workers & Pages** asks for one on first use. CI deploys to that subdomain.
 
 [Update game data](.github/workflows/update-data.yml) opens a reviewable pull request for changed
 snapshots; merging it publishes through the same CI checks. Enable **Allow GitHub Actions to create
