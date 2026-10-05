@@ -222,6 +222,10 @@ dashboard; **Workers & Pages** asks for one on first use. CI deploys to that sub
 snapshots; merging it publishes through the same CI checks. Enable **Allow GitHub Actions to create
 and approve pull requests** in the repository's Actions settings. A failed refresh leaves the
 published snapshot intact. Its manual **Run workflow** button forces a check.
+Pull requests opened with the workflow's token do not start CI themselves: GitHub records a failed
+`pull_request` run with no jobs, which reports no checks and can be ignored. The workflow
+dispatches CI on the data branch instead, and that run reports the required **Validate** as a
+commit status on the pull request's head; its details link opens that run.
 
 Add confirmed Global releases to [release-calendar.json](docs/umamusume/release-calendar.json)
 as `{"at":"2026-10-06T10:00:00Z","source":"https://example.com/official-announcement"}`
