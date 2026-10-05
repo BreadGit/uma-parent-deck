@@ -19,8 +19,10 @@ function pythonUnavailable(): string | null {
 
 /** Runs one `analysis/test_*.py` module and fails the node test with its output when it fails. */
 export function runAnalysisTests(t: TestContext, pattern: string) {
+  assert.ok(!process.env.CI || !process.env.SKIP_ANALYSIS, 'CI must run the analysis tests');
   if (process.env.SKIP_ANALYSIS) return t.skip('SKIP_ANALYSIS is set (npm run test:quick)');
   const reason = pythonUnavailable();
+  if (process.env.CI) assert.equal(reason, null, 'CI requires Python analysis dependencies');
   if (reason) return t.skip(reason);
   const result = spawnSync('python3', ['-m', 'unittest', 'discover', '-s', 'analysis', '-p', pattern], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.error?.message ?? `${result.stdout}\n${result.stderr}`);

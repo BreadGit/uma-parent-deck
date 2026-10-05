@@ -8,3 +8,8 @@ docs/screenshot.png
 _*.mjs
 __pycache__/
 dist-scanner/
+.wrangler/
+.env
+.env.*
+.dev.vars
+.venv/

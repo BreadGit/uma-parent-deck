@@ -239,6 +239,8 @@ await assertOrdering('after the inventory edits are undone');
 // Prediction details builds its sections only once opened.
 assert.equal(await page.locator('[data-stat-breakdown]').count(), 0, 'the closed details panel renders no sections');
 await page.click('details[data-prediction-details] > summary');
+// Native details toggles dispatch asynchronously, after the click's default action.
+await page.waitForSelector('[data-stat-breakdown] tbody tr');
 const breakdownRows = await page.locator('[data-stat-breakdown] tbody tr').count();
 assert.ok(breakdownRows >= 10, `breakdown should list cards, career, inheritance, base, final, spread; got ${breakdownRows}`);
 await page.click('details[data-prediction-details] > summary');

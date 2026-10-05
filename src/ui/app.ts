@@ -3,7 +3,7 @@
 // one-line run summary keeping the context. The right column is every result, most useful first.
 import { html, nothing, render } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
-import { resetRun, saveState } from '../state.ts';
+import { resetRun, storageUnavailable } from '../state.ts';
 import { data, endPanelTracking, onRender, plan, refresh, searchState, stateRevision, store, trackedPanel, update, view } from './context.ts';
 import { COPY } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
@@ -29,12 +29,13 @@ import { renderScannerOverlay } from './panels/scanner.ts';
 import { hasWarnings, renderWarnings } from './panels/warnings.ts';
 import { clearSharedUrl } from './share.ts';
 import { unavailableRunChoices } from '../model/run.ts';
+import { storageNotice } from './storage-notice.ts';
 
 async function resetAll() {
   if (!await confirmDialog(COPY.app.resetAllConfirm, COPY.app.resetAll)) return;
-  saveState(resetRun(store, data));
+  update((state) => Object.assign(state, resetRun(state, data)));
   clearSharedUrl();
-  location.reload();
+  if (!storageUnavailable) location.reload();
 }
 
 function unavailableChoices() {
@@ -71,6 +72,7 @@ function page() {
         <button class="danger" data-action="reset-all" data-tip=${COPY.app.resetAllTip} @click=${resetAll}>${COPY.app.resetAll}</button>
       </span>
     </header>
+    ${storageNotice()}
     <main class="${inputsHidden ? 'inputs-hidden' : ''}">
       ${inputsHidden ? nothing : html`<div class="inputs" id="inputs" data-inputs>
         ${ready ? html`<div class="inputs-head"><button class="small" data-action="hide-inputs" aria-expanded="true" aria-controls="inputs" data-tip=${COPY.app.hideInputsTip} @click=${() => setInputsHidden(true)}>${COPY.app.hideInputs}</button></div>` : nothing}
