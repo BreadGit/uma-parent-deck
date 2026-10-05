@@ -15,7 +15,7 @@ launching unit, browser, and build checks together compounds CPU and memory use.
 
 The smoke test drives headless Chromium through the main flows and checks for horizontal overflow at
 390, 768, 1280, 1440, 1680 and 1920 px in both themes. Reserve the browser regression suite for large
-changes or code review of a branch about to merge. Large changes include work spanning several user
+changes or review before a release. Large changes include work spanning several user
 flows or substantial changes to shared planning, persistence, or worker behavior. Routine isolated
 changes use the checks above and direct verification of the affected behavior; changing a browser
 interaction alone does not require the regression suite.

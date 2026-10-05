@@ -44,7 +44,8 @@ jobs:
           body: |
             Refresh the vendored GameTora snapshot, artwork and fitted model.
 
-            The fetch pipeline and unit/data checks passed. CI verifies the browser flows before merge.
+            The fetch pipeline and unit/data checks passed. A dispatched CI run reports Validate on this
+            pull request. Merging lands the data on main; the next release publishes it.
           add-paths: |
             data/
             public/assets/
