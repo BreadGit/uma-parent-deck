@@ -49,6 +49,24 @@ jobs:
           path: dist/
       - name: Confirm this is still the current main revision
         run: test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+      - name: Initialize workers.dev for a new account
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node --input-type=module <<'JS'
+          const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/subdomain`;
+          const headers = { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' };
+          const current = await (await fetch(url, { headers })).json();
+          if (current.success && current.result?.subdomain) {
+            console.log(`Using ${current.result.subdomain}.workers.dev`);
+          } else {
+            if (!current.errors?.some(error => error.code === 10007)) throw new Error('Cannot read the account workers.dev setting. Check the Cloudflare credential permissions.');
+            const created = await (await fetch(url, { method: 'PUT', headers, body: JSON.stringify({ subdomain: 'breadgit' }) })).json();
+            if (!created.success) throw new Error('Cannot register breadgit.workers.dev. Choose an available subdomain in Cloudflare Workers onboarding, then rerun this job.');
+            console.log(`Registered ${created.result.subdomain}.workers.dev`);
+          }
+          JS
       - run: npm run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
