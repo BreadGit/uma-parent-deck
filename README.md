@@ -174,6 +174,7 @@ npm run test:quick # the same without the Python analysis checks, for the inner 
 npm run smoke      # headless Chromium walk-through against the dev server, writes docs/screenshot.png
 npm run scratch -- /tmp/probe.mjs   # one-off browser script with the test helpers; also --eval '<expr>' or --shot <png>
 npm run test:e2e   # smoke, browser regressions, and scroll-anchor checks
+npm run test:browsers # the browser suites CI runs, on their own dev and preview servers; build first
 npm run build
 ```
 
