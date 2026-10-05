@@ -3,7 +3,8 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    # The composite action pins actions too and is outside the workflows directory.
+    directories: ['/', '/.github/actions/setup']
     schedule:
       interval: monthly
     groups:
