@@ -2,7 +2,7 @@ import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { SCANNER_COPY as C } from '../ui/copy.ts';
-import { inputValue } from '../ui/form.ts';
+import { inputValue, isComposing } from '../ui/form.ts';
 import { artworkUrl } from './images.ts';
 import type { ScanCard } from './recognize.ts';
 
@@ -33,7 +33,7 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
     const choose = (card: ScanCard) => { close(); pick(card.id); };
     const show = () => { if (!open) { active = key; query = ''; index = -1; change(); } };
     const onKey = (event: KeyboardEvent) => {
-      if (event.isComposing) return;
+      if (isComposing(event)) return;
       if (event.key === 'Escape') { event.preventDefault(); dismiss(); }
       else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
