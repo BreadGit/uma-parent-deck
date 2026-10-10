@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { defaultPins, defaultState, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
+import { importInventory } from '../src/inventory.ts';
 import { defaultParentSparks, gainsOfParentSparks } from '../src/model/inherit.ts';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, parseSetting, sanitizeSettings, SETTING_HELP, type Settings } from '../src/settings.ts';
 
@@ -54,7 +55,7 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.deepEqual(s1.run.parentSparks, [Array(3).fill({ stat: 'speed', stars: 1 + 2 }), defaultParentSparks()], 'parent 1 fills first with three 3★ Speed sparks; the rest would need four umas on parent 2, so that side is the default');
   assert.deepEqual(s1.run.targetLineage['200352'], [3, 3, 0, 3, 0, 0], 'three 3★ copies: both parents and a grandparent on parent 1\'s side');
   assert.equal(s1.ui.sortKey, 'stats');
-  const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { a: true, b: 'no' }, traineeStars: 'five' };
+  const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { 1011: true, a: true, b: 'no' }, traineeStars: 'five' };
   const s2 = migrate({ state: v2 }, data);
   assert.deepEqual(s2.run.targets, [{ id: 200352, role: 'preferred', stars: 2, priority: 0 }]);
   assert.deepEqual(s2.run.pinnedIds, [30052, 30028]);
@@ -62,7 +63,7 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.deepEqual(s2.run.targetLineage, { '200352': [3, 0, 0, 0, 0, 0] });
   const v22 = { targets: [200352], targetLineage: { '200352': { k1: 2, k2: 1, p1: 5, p2: 3 }, '201601': [0, 2, 0, 0, 0, 1], '200012': [1, 2, 3], '200022': [0, 0, 0, 0, 0, 4] } };
   assert.deepEqual(migrate({ state: v22 }, data).run.targetLineage, { '200352': [3, 2, 0, 3, 0, 0], '201601': [0, 2, 0, 0, 0, 1] }, 'per-side totals place their copies; six-uma entries are kept and malformed ones dropped');
-  assert.deepEqual(s2.run.raceOverrides, { a: true });
+  assert.deepEqual(s2.run.raceOverrides, { 1011: true }, 'race overrides are keyed by calendar ID; other keys are dropped');
   assert.equal(s2.run.traineeStars, 3);
   const sw = must(data.characters.find((c) => c.name === 'Special Week'));
   assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 1 } }, data).run.traineeStars, 3, 'a star count below the trainee\'s rarity is raised to it');
@@ -162,6 +163,31 @@ test('validation: inventory entries are numeric ids with LB 0..4 or null; every 
   assert.equal(sanitizeSettings({ scenarioId: '3' }).scenarioId, 3, 'a string is not the number the model compares with');
   assert.equal(sanitizeSettings({ focus: 3 }).focus, 'stamina');
   assert.deepEqual(sanitizeSettings({ affinity: -1, hintScale: 2, bigRewardRate: 0.3 } as Record<string, unknown>), { ...DEFAULT_SETTINGS, hintScale: 2 }, 'out-of-range and retired keys are dropped');
+});
+
+test('saved IDs follow the share-code rule: invalid entries drop, duplicates keep their first place, unknown IDs stay', () => {
+  const unknown = 99999999;
+  const current = { version: STATE_VERSION, run: {
+    traineeCardId: 1.5, pinnedIds: [1.5, -1, 0, 30052, unknown, 30052, '30028'], ignoredIds: [30001, 30001, 2 ** 60],
+    wishlistOrder: [200012, NaN, 200012, unknown], wishlistExcluded: [-5, 200022],
+    raceOverrides: { 1011: true, '01011': false, abc: true, '-3': false, 1012: 'yes' },
+  }, missions: { eventIds: [3, 3, 0], customRaceIds: [1011, 1.2], traineeCardId: -1 } };
+  const s = migrate({ current }, data);
+  assert.equal(s.run.traineeCardId, null);
+  assert.deepEqual(s.run.pinnedIds, [30052, unknown]);
+  assert.deepEqual(s.run.ignoredIds, [30001]);
+  assert.deepEqual(s.run.wishlistOrder, [200012, unknown]);
+  assert.deepEqual(s.run.wishlistExcluded, [200022]);
+  assert.deepEqual(s.run.raceOverrides, { 1011: true }, 'the exact key wins over a padded alias');
+  assert.deepEqual([s.missions.eventIds, s.missions.customRaceIds, s.missions.traineeCardId], [[3], [1011], null]);
+  assert.deepEqual(migrate({ current: { version: STATE_VERSION, run: { traineeCardId: 100101 } } }, data).run.traineeCardId, 100101);
+});
+
+test('inventory keys take their canonical form in saves and imports, and the exact key wins', async () => {
+  assert.deepEqual(sanitizeInventory({ '030028': 2, '30028': 3, '0030052': 1, '030052': 4, '0': 1, '900719925474099999999': 4 }), { '30028': 3, '30052': 1 });
+  const file = (value: unknown) => new File([JSON.stringify(value)], 'inventory.json', { type: 'application/json' });
+  assert.deepEqual(await importInventory(file({ '030028': 2, 30052: 'none' })), { '30028': 2, '30052': null });
+  for (const bad of [{ 0: 1 }, { '900719925474099999999': 4 }]) await assert.rejects(importInventory(file(bad)), Error, JSON.stringify(bad));
 });
 
 test('the advanced settings panel lays out every advanced setting exactly once', () => {

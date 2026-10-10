@@ -1,4 +1,4 @@
-import { STATS, APTITUDE_KEYS, isPlainObject, type AptKey, type Data, type Stat } from '../types.ts';
+import { STATS, APTITUDE_KEYS, isGameId, isPlainObject, type AptKey, type Data, type Stat } from '../types.ts';
 import { isDebuff, resolveTarget } from './sparks.ts';
 
 export const APTITUDE_LABELS: Record<AptKey, string> = { turf: 'Turf', dirt: 'Dirt', sprint: 'Sprint', mile: 'Mile', medium: 'Medium', long: 'Long', front: 'Front Runner', pace: 'Pace Chaser', late: 'Late Surger', end: 'End Closer' };
@@ -52,7 +52,7 @@ export function sanitizePinkGoals(raw: unknown): PinkGoal[] {
 
 /** Older saves used family aliases. Current saves retain stable IDs even if their family changes later. */
 export function savedTargetId(id: unknown, data: Data, preserveIds = false): number | null {
-  if (typeof id !== 'number' || !Number.isSafeInteger(id) || id <= 0) return null;
+  if (!isGameId(id)) return null;
   return preserveIds ? id : goalFamily(id, data) ?? id;
 }
 

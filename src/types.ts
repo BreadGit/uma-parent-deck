@@ -82,6 +82,15 @@ export const APTITUDE_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'mediu
 export const APT_GRADES: Grade[] = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
 /** A JSON object as opposed to an array, null or a primitive. Saved state and cached results are checked with it. */
 export const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+/**
+ * A game ID (card, character, skill, race): a positive safe integer. Saved state, inventory files and share codes all
+ * use this rule. An ID the installed data does not know is still valid and is kept.
+ */
+export const isGameId = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v > 0;
+/** The valid game IDs of a saved list, first occurrence first; anything else in it is dropped. */
+export const gameIds = (v: unknown): number[] => Array.isArray(v) ? [...new Set(v.filter(isGameId))] : [];
+/** An inventory or lineage key in its canonical decimal form ("030028" becomes "30028"), or null if it names no game ID. */
+export const gameIdKey = (key: string): string | null => /^\d+$/.test(key) && isGameId(Number(key)) ? String(Number(key)) : null;
 
 export interface Character {
   cardId: number;

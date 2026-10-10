@@ -262,3 +262,15 @@ test('schedule overrides reject ambiguous IDs and invalid flags', async () => {
     await assert.rejects(encodeShare(choices), ShareCodeError);
   }
 });
+
+test('every choice a save keeps can be shared: migration applies the share-code ID rule', async () => {
+  const unknown = 99999999;
+  const saved = defaultState(data);
+  const raw = JSON.parse(JSON.stringify(saved));
+  Object.assign(raw.run, { traineeCardId: 100101, pinnedIds: [1.5, -1, 0, 30052, 30052, unknown], ignoredIds: [30001, 30001],
+    wishlistOrder: [200012, 200012], wishlistExcluded: [0, 200022], raceOverrides: { abc: true, 1011: false } });
+  const state = migrate({ current: raw }, data);
+  const decoded = await decodeShare(await encodeShare(sharedChoices(state)));
+  assert.deepEqual(decoded, sharedChoices(state));
+  assert.deepEqual(decoded.run.pinnedIds, [30052, unknown], 'a valid unknown ID survives the round trip');
+});

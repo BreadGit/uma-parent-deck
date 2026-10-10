@@ -2,7 +2,7 @@
 import type { AppState } from './state.ts';
 import type { RunInput } from './model/run.ts';
 import type { Settings } from './settings.ts';
-import type { AptKey, Grade, Stat } from './types.ts';
+import { isGameId, type AptKey, type Grade, type Stat } from './types.ts';
 import { lineageFromSides, type Lineage } from './model/sparks.ts';
 
 export interface SharedChoices {
@@ -38,7 +38,8 @@ const list = (v: unknown): unknown[] => Array.isArray(v) ? v : invalid();
 const tuple = (v: unknown, length: number): unknown[] => { const a = list(v); return a.length === length ? a : invalid(); };
 const integer = (v: unknown, min = 0, max = Number.MAX_SAFE_INTEGER): number =>
   typeof v === 'number' && Number.isSafeInteger(v) && v >= min && v <= max ? v : invalid();
-const id = (v: unknown) => integer(v, 1);
+/** The saved state's ID rule; a share code with an invalid ID is rejected rather than repaired. */
+const id = (v: unknown): number => isGameId(v) ? v : invalid();
 const stars = (v: unknown) => integer(v, 1, 3);
 const choice = <T>(v: unknown, options: readonly T[]): T => options[integer(v, 0, options.length - 1)]!;
 const unique = <T>(values: T[], key: (v: T) => unknown = (v) => v): T[] =>

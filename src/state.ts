@@ -1,7 +1,7 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
 import { parseRecommendation, type SavedRecommendation } from './recommendation.ts';
-import { STATS, APTITUDE_KEYS, APT_GRADES, isPlainObject, type Data, type Grade, type Inventory } from './types.ts';
+import { STATS, APTITUDE_KEYS, APT_GRADES, gameIdKey, gameIds, isGameId, isPlainObject, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
@@ -40,19 +40,17 @@ export function defaultState(data: Data): AppState {
 function migrateMissions(raw: unknown): MissionState {
   const state = defaultMissionState();
   if (!isPlainObject(raw)) return state;
-  const ids = (value: unknown) => [...new Set(numList(value).filter((id) => Number.isSafeInteger(id) && id > 0))];
   const lines = (value: unknown) => Array.isArray(value) ? [...new Set(value.filter((line): line is string => typeof line === 'string' && !!line.trim()))] : [];
-  state.eventIds = Array.isArray(raw.eventIds) ? ids(raw.eventIds) : null;
-  state.customRaceIds = ids(raw.customRaceIds);
-  state.completedCustomRaceIds = ids(raw.completedCustomRaceIds);
+  state.eventIds = Array.isArray(raw.eventIds) ? gameIds(raw.eventIds) : null;
+  state.customRaceIds = gameIds(raw.customRaceIds);
+  state.completedCustomRaceIds = gameIds(raw.completedCustomRaceIds);
   state.completedMissionIds = lines(raw.completedMissionIds);
   state.pastedLines = lines(raw.pastedLines);
-  state.traineeCardId = typeof raw.traineeCardId === 'number' && Number.isSafeInteger(raw.traineeCardId) && raw.traineeCardId > 0 ? raw.traineeCardId : null;
+  state.traineeCardId = isGameId(raw.traineeCardId) ? raw.traineeCardId : null;
   return state;
 }
 
 type Json = Record<string, unknown>;
-const numList = (v: unknown): number[] => (Array.isArray(v) ? v.filter((x): x is number => typeof x === 'number') : []);
 /** Stat arrays are positional. A malformed entry becomes zero without moving the entries after it. */
 const statValues = (raw: unknown): number[] => STATS.map((_, i) => {
   const v: unknown = Array.isArray(raw) ? raw[i] : undefined;
@@ -62,8 +60,9 @@ const statValues = (raw: unknown): number[] => STATS.map((_, i) => {
 /** Older shapes of the run state and what they turn into. */
 function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   const run: RunInput = { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) };
-  for (const k of ['wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = numList(raw[k]);
-  if (typeof raw.traineeCardId === 'number') run.traineeCardId = raw.traineeCardId;
+  // IDs follow the rule share codes use, so every saved choice can be shared; unknown but valid IDs are kept.
+  for (const k of ['wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = gameIds(raw[k]);
+  if (isGameId(raw.traineeCardId)) run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
   // Legacy saves clamp to the trainee's rarity. Current saves keep the entered count; planRun applies today's rarity.
   run.traineeStars = clampStars(!preserveIds && run.traineeCardId != null ? data.charByCardId.get(run.traineeCardId) ?? null : null, run.traineeStars);
@@ -73,12 +72,15 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
     const v = raw.aptOverrides[k];
     if (typeof v === 'string' && APT_GRADES.includes(v as Grade)) run.aptOverrides[k] = v === 'S' ? 'A' : v as Grade;
   }
-  if (isPlainObject(raw.raceOverrides)) run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([, v]) => typeof v === 'boolean')) as Record<string, boolean>;
+  if (isPlainObject(raw.raceOverrides)) for (const [k, v] of Object.entries(raw.raceOverrides)) {
+    const key = gameIdKey(k);
+    if (key !== null && typeof v === 'boolean' && (key === k || !(key in raw.raceOverrides || key in run.raceOverrides))) run.raceOverrides[key] = v;
+  }
   // pins: a single pinnedId (v1) became pinnedIds (v2)
-  if (Array.isArray(raw.pinnedIds)) run.pinnedIds = numList(raw.pinnedIds);
-  else if (typeof raw.pinnedId === 'number') run.pinnedIds = [raw.pinnedId];
+  if (Array.isArray(raw.pinnedIds)) run.pinnedIds = gameIds(raw.pinnedIds);
+  else if (isGameId(raw.pinnedId)) run.pinnedIds = [raw.pinnedId];
   // ignored cards: a card is pinned or ignored, never both; the pin wins
-  if (Array.isArray(raw.ignoredIds)) run.ignoredIds = numList(raw.ignoredIds).filter((id) => !run.pinnedIds.includes(id));
+  if (Array.isArray(raw.ignoredIds)) run.ignoredIds = gameIds(raw.ignoredIds).filter((id) => !run.pinnedIds.includes(id));
   if (typeof raw.borrowIgnored === 'boolean') run.borrowIgnored = raw.borrowIgnored;
   // lineage: {n, stars} (v1) became per-side counts and star totals {k1, k2, p1, p2} (v2), then the stars on each
   // of the six umas (v23). Older totals place their copies the way the form does.
@@ -135,12 +137,16 @@ function migrateSettings(raw: Json): Settings {
   return merged;
 }
 
-/** Keep only well-formed inventory entries: numeric card id -> LB 0..4 or null. */
+/**
+ * Keep only well-formed inventory entries: card ID -> LB 0..4 or null. Keys take their canonical decimal form; an exact
+ * key wins over a zero-padded alias of the same card, and the first alias wins over later ones.
+ */
 export function sanitizeInventory(raw: unknown): Inventory {
   const out: Inventory = {};
   if (!isPlainObject(raw)) return out;
-  for (const [k, v] of Object.entries(raw)) {
-    if (!/^\d+$/.test(k)) continue;
+  for (const [key, v] of Object.entries(raw)) {
+    const k = gameIdKey(key);
+    if (k === null || (k !== key && (k in raw || k in out))) continue;
     if (v === null) out[k] = null;
     else if (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 4) out[k] = v;
   }

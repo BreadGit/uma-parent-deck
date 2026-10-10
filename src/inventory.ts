@@ -1,4 +1,5 @@
-import type { Card, Inventory } from './types.ts';
+import { gameIdKey, type Card, type Inventory } from './types.ts';
+import { sanitizeInventory } from './state.ts';
 import { effectiveLb } from './model/run.ts';
 import { downloadText } from './download.ts';
 export { effectiveLb };
@@ -8,17 +9,20 @@ export function exportInventory(inv: Inventory, cards: Card[], defaults: { R: nu
   const sorted = Object.fromEntries(cards.slice().sort((a, b) => a.id - b.id).map((c) => [String(c.id), effectiveLb(inv, c, defaults)]));
   downloadText('inventory.json', JSON.stringify(sorted, null, 1) + '\n', 'application/json');
 }
-/** Read an inventory.json; `-1` and `"none"` are accepted as "not owned" for hand-written files. */
+/**
+ * Read an inventory.json; `-1` and `"none"` are accepted as "not owned" for hand-written files. Card IDs follow the saved
+ * state's rule, including its canonical form for zero-padded keys.
+ */
 export async function importInventory(file: File): Promise<Inventory> {
   const parsed: unknown = JSON.parse(await file.text());
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Expected an object of card IDs and limit breaks.');
   const normalized: Inventory = {};
   for (const [id, raw] of Object.entries(parsed)) {
     const value = raw === -1 || raw === 'none' ? null : typeof raw === 'string' && /^[0-4]$/.test(raw) ? Number(raw) : raw;
-    if (!/^\d+$/.test(id) || !(value === null || (typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 4))) {
+    if (gameIdKey(id) === null || !(value === null || (typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 4))) {
       throw new Error(`Invalid inventory entry for ${id}. Use a numeric card ID with LB 0 to 4 or null.`);
     }
     normalized[id] = value;
   }
-  return normalized;
+  return sanitizeInventory(normalized);
 }
