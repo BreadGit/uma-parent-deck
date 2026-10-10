@@ -33,17 +33,19 @@ export function cropUrl(canvas: HTMLCanvasElement, box: Box): string {
 /**
  * The badge templates and the matching reference of every card that has one (`hasReference`, decided when the catalog
  * is built). A card without a reference is never requested and cannot be matched; a failure to load any image the
- * catalog promises rejects, and the page says the artwork could not load.
+ * catalog promises rejects, and the page says the artwork could not load. Once `signal` aborts no further image is
+ * requested and the promise rejects; decodes already under way finish unused.
  */
-export async function loadReferences(cards: ScanCard[]): Promise<Reference[]> {
+export async function loadReferences(cards: ScanCard[], signal?: AbortSignal): Promise<Reference[]> {
   const badges = new Set(badgeCards(cards).map(c => c.id));
   const queue = cards.filter(c => c.hasReference || badges.has(c.id));
   const references: Reference[] = [];
+  const decode = async (url: string) => { signal?.throwIfAborted(); return pixels(await imageCanvas(url)); };
   // Limit parallel image decoding on phones.
   await Promise.all(Array.from({ length: 6 }, async () => {
     for (let card = queue.shift(); card; card = queue.shift()) references.push({ ...card,
-      image: badges.has(card.id) ? pixels(await imageCanvas(artworkUrl(card.id))) : null,
-      artwork: card.hasReference ? pixels(await imageCanvas(referenceUrl(card.id))) : null,
+      image: badges.has(card.id) ? await decode(artworkUrl(card.id)) : null,
+      artwork: card.hasReference ? await decode(referenceUrl(card.id)) : null,
     });
   }));
   return references.sort((a, b) => a.id - b.id);

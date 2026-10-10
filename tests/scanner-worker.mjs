@@ -193,5 +193,24 @@ try {
   await partial.locator('[data-files]').setInputFiles(file);
   await partial.getByRole('alert').waitFor({ timeout: 90000 });
   assert.match(await partial.getByRole('alert').textContent(), /Could not load the card artwork/);
-  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, unread files of an interrupted batch, and unreachable references passed.');
+
+  // Stopping while the references load requests no further image; the ones already requested finish unused.
+  const loading = await browser.newPage();
+  const held = [], late = [];
+  let stopped = false;
+  await loading.route(/\/assets\/supports\//, route => { if (stopped) { late.push(route.request().url()); return route.continue(); } held.push(route); });
+  await loading.goto(new URL('scanner.html', base).href);
+  await loading.locator('[data-files]').setInputFiles(file);
+  for (const start = Date.now(); held.length < 6; await new Promise(resolve => setTimeout(resolve, 50))) {
+    assert.ok(Date.now() - start < 30000, `reference requests started: ${held.length}`);
+  }
+  await loading.locator('[data-stop]').click();
+  stopped = true;
+  for (const route of held) await route.continue();
+  await Promise.all(held.map(async route => (await route.request().response())?.finished()));
+  // Each lane would request its next card as soon as the released image decodes.
+  await loading.waitForTimeout(300);
+  assert.deepEqual(late, [], 'no reference is requested after Stop');
+  await loading.close();
+  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, unread files of an interrupted batch, and unreachable references and stopping reference loading passed.');
 } finally { await browser.close(); }

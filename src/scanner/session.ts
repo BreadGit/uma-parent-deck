@@ -157,7 +157,7 @@ export function createScanner(host: ScannerHost): Scanner {
     try {
       let scanner = worker;
       if (!scanner) {
-        const loaded = await step(loadReferences(cards));
+        const loaded = await step(loadReferences(cards, signal));
         loading = false;
         scanner = await startWorker(loaded, signal);
       }
