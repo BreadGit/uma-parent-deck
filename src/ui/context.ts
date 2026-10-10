@@ -180,11 +180,12 @@ export function plan(): RunPlan {
       worker = new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
       worker.onerror = (event) => fail(event.message ?? 'worker error');
       worker.onmessageerror = () => fail('unreadable worker message');
-      worker.onmessage = (event: MessageEvent<PlanWorkerResponse>) => {
-        const response = event.data;
-        if (!current() || response.id !== id) return;
-        if (response.kind !== 'result' || !Array.isArray(response.selection)) {
-          fail(response.kind === 'error' ? response.message : 'malformed worker response');
+      worker.onmessage = (event: MessageEvent<unknown>) => {
+        if (!current()) return;
+        // Each search has its own worker, so a reply without this request's id is malformed rather than obsolete.
+        const response = event.data as Partial<PlanWorkerResponse> | null;
+        if (response?.id !== id || response.kind !== 'result' || !Array.isArray(response.selection)) {
+          fail(response?.id === id && response.kind === 'error' ? response.message ?? 'worker error' : 'malformed worker response');
           return;
         }
         try {
