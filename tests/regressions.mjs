@@ -659,6 +659,25 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await assertFieldsMatchState(page, 'after hiding an extra');
   });
 
+  test('arranging the extras after a missed storage event rearranges the other tab\'s order', async (t) => {
+    const saved = defaultState(data);
+    saved.run.traineeCardId = 100101;
+    const page = await fresh(t, saved);
+    const extras = await page.locator('.wishlist li[data-wl-role="extra"]').evaluateAll((els) => els.map((el) => Number(el.dataset.wlKey)));
+    assert.ok(extras.length >= 3, 'the fixture shows at least three extras');
+    const [a, b, c, ...rest] = extras;
+    // Another tab moves the third extra to the top; a page's own localStorage writes raise no storage event, so this one misses it.
+    await page.evaluate(({ key, order }) => {
+      const other = JSON.parse(localStorage.getItem(key));
+      other.run.wishlistOrder = order;
+      localStorage.setItem(key, JSON.stringify(other));
+    }, { key: STATE_KEY, order: [c, a, b, ...rest] });
+    await page.click(`[data-action="wl-down"][data-id="${a}"]`);
+    assert.deepEqual((await state(page)).run.wishlistOrder.slice(0, 3), [c, b, a], 'the move applies to the other tab\'s order');
+    assert.deepEqual(await page.locator('.wishlist li[data-wl-role="extra"]').evaluateAll((els) => els.slice(0, 3).map((el) => Number(el.dataset.wlKey))), [c, b, a]);
+    await assertFieldsMatchState(page, 'after arranging extras that took over a missed change from another tab');
+  });
+
   test('candidate toggle disappears when all chips fit, including after resizing an expanded list', async (t) => {
     const saved = defaultState(data);
     saved.run.traineeCardId = 100501;

@@ -14,9 +14,15 @@ import { skillTipText, skillWithTip } from '../format.ts';
 import { panel } from '../panel.ts';
 
 const isExtra = (w: WishlistEntry) => w.role === 'extra';
-/** The extras as shown, in order; the saved order is rewritten from these so an edit pins every visible extra. */
-const shownExtras = () => plan().wl.filter(isExtra).map((w) => w.key);
-const saveOrder = (keys: number[]) => update((s) => { s.run.wishlistOrder = keys; });
+/**
+ * Rewrite the saved order from the extras as shown, so an edit pins every visible extra. The edit runs inside
+ * `update()`, where the plan reflects another tab's save taken over since this page rendered, so it rearranges
+ * that tab's order rather than replacing it. An edit returns nothing when its keys are no longer shown.
+ */
+const editOrder = (edit: (shown: number[]) => number[] | void) => update((s) => {
+  const next = edit(plan().wl.filter(isExtra).map((w) => w.key));
+  if (next) s.run.wishlistOrder = next;
+});
 
 function hideSkill(key: number) {
   update((s) => { s.run.wishlistExcluded = [...new Set([...s.run.wishlistExcluded, key])]; s.run.wishlistOrder = s.run.wishlistOrder.filter((x) => x !== key); });
@@ -26,29 +32,31 @@ function restoreSkill(key: number) {
 }
 /** Put an unlisted extra first among the extras, so it shows whenever the targets leave any slot free. */
 function addSkill(key: number) {
-  saveOrder([key, ...shownExtras().filter((x) => x !== key)]);
+  editOrder((cur) => [key, ...cur.filter((x) => x !== key)]);
 }
-/** Move an extra to another extra's place; the arrows and the drag handlers both end up here. */
+/** Move the extra at index i to index j of the shown extras. */
+function moveIn(cur: number[], i: number, j: number) {
+  if (i < 0 || j < 0 || j >= cur.length || i === j) return; // stale key after a re-render, or a target row
+  const next = [...cur];
+  next.splice(j, 0, ...next.splice(i, 1));
+  return next;
+}
+/** Move an extra to another extra's place; the drag handlers end up here. */
 function moveSkill(from: number, to: number) {
-  const cur = shownExtras();
-  const i = cur.indexOf(from), j = cur.indexOf(to);
-  if (i < 0 || j < 0 || i === j) return; // stale key after a re-render, or a target row
-  cur.splice(i, 1); cur.splice(j, 0, from);
-  saveOrder(cur);
+  editOrder((cur) => moveIn(cur, cur.indexOf(from), cur.indexOf(to)));
 }
 function nudgeSkill(key: number, delta: number) {
-  const cur = shownExtras();
-  const i = cur.indexOf(key), j = i + delta;
-  if (i < 0 || j < 0 || j >= cur.length) return;
-  moveSkill(key, cur[j]!);
+  editOrder((cur) => { const i = cur.indexOf(key); return i < 0 ? undefined : moveIn(cur, i, i + delta); });
 }
 /** Put `sibling` in `winner`'s place so it takes their shared event; the winner moves behind it. */
 function swapSkill(sibling: number, winner: number) {
-  const cur = shownExtras().filter((k) => k !== sibling);
-  const i = cur.indexOf(winner);
-  if (i < 0) return;
-  cur.splice(i, 0, sibling);
-  saveOrder(cur);
+  editOrder((shown) => {
+    const cur = shown.filter((k) => k !== sibling);
+    const i = cur.indexOf(winner);
+    if (i < 0) return;
+    cur.splice(i, 0, sibling);
+    return cur;
+  });
 }
 const resetExtras = () => update((s) => { s.run.wishlistOrder = []; s.run.wishlistExcluded = []; });
 
