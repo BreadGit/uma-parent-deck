@@ -2,7 +2,7 @@ import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { SCANNER_COPY as C } from '../ui/copy.ts';
-import { inputValue, isComposing } from '../ui/form.ts';
+import { inputValue, isComposing, matchesWords, queryWords } from '../ui/form.ts';
 import { artworkUrl } from './images.ts';
 import type { ScanCard } from './recognize.ts';
 
@@ -27,8 +27,8 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
   const keepFocus = (event: Event) => event.preventDefault();
   function picker(key: number, selected: ScanCard | null | undefined, pick: (id: number) => void) {
     const open = active === key;
-    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    const matches = open ? catalog.filter(card => words.every(word => label(card).toLowerCase().includes(word))) : [];
+    const words = queryWords(query);
+    const matches = open ? catalog.filter(card => matchesWords(words, label(card))) : [];
     const id = `scan-card-${key}`, listId = `${id}-list`;
     const choose = (card: ScanCard) => { close(); pick(card.id); };
     const show = () => { if (!open) { active = key; query = ''; index = -1; change(); } };

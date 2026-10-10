@@ -5,7 +5,7 @@ import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
 import type { Inventory } from '../types.ts';
 import { SCANNER_COPY as C } from '../ui/copy.ts';
-import { inputValue, numbered, options, selectValue } from '../ui/form.ts';
+import { chosenFiles, clearFiles, inputValue, isOpen, numbered, options, selectValue } from '../ui/form.ts';
 import { confirmDialog } from '../ui/dialog.ts';
 import { downloadText } from '../download.ts';
 import { createCardPicker } from './card-picker.ts';
@@ -229,16 +229,15 @@ export function createScanner(host: ScannerHost): Scanner {
     dragging = false; paint();
   }
   function onChoose(event: Event) {
-    const input = event.target as HTMLInputElement;
-    void addFiles(Array.from(input.files ?? []));
-    input.value = '';
+    void addFiles(chosenFiles(event));
+    clearFiles(event);
   }
   function onDrop(event: DragEvent) {
     event.preventDefault();
     dragging = false; paint();
     void addFiles(Array.from(event.dataTransfer?.files ?? []));
   }
-  const toggled = (set: (value: boolean) => void) => (e: Event) => { set((e.target as HTMLDetailsElement).open); paint(); };
+  const toggled = (set: (value: boolean) => void) => (e: Event) => { set(isOpen(e)); paint(); };
 
   // ---- Step 1: screenshots -------------------------------------------------------------------------------------
 
