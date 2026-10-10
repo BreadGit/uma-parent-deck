@@ -32,11 +32,9 @@ jobs:
       - id: refresh
         if: steps.schedule.outputs.due == 'true'
         run: npm run refresh:data
-      - name: Validate the refreshed data against main
-        if: steps.refresh.outputs.changed == 'true'
-        run: npm test && npm run build
-      # A push made with the workflow token starts no CI run; the validation above stands in for it.
-      - name: Commit to main
+      # Validate the exact commit that will be pushed: the refreshed data on top of main as it is now.
+      # A push made with the workflow token starts no CI run, so this validation stands in for it.
+      - name: Commit onto the current main
         id: commit
         if: steps.refresh.outputs.changed == 'true'
         run: |
@@ -45,9 +43,17 @@ jobs:
           git config user.email 58152441+BreadGit@users.noreply.github.com
           git add -- $paths
           git commit --quiet -m 'Update GameTora data'
-          git push --quiet origin HEAD:main || { git pull --quiet --rebase origin main && git push --quiet origin HEAD:main; }
+          git pull --quiet --rebase origin main
+          git diff --quiet "$GITHUB_SHA" HEAD -- package-lock.json || npm ci
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "paths=$paths" >> "$GITHUB_OUTPUT"
+      - name: Validate the refreshed data against main
+        if: steps.refresh.outputs.changed == 'true'
+        run: npm test && npm run build
+      # If main moved again, the push fails and a later scheduled run retries; nothing unvalidated reaches main.
+      - name: Push to main
+        if: steps.refresh.outputs.changed == 'true'
+        run: git push --quiet origin HEAD:main
       - name: Explain refresh failure
         if: failure()
         run: echo 'Data update failed before reaching main. The published site is unchanged. Inspect the failed step; source/schema changes may need importer changes.' >> "$GITHUB_STEP_SUMMARY"
