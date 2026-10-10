@@ -6,7 +6,7 @@ import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
 import { cardEffectCoverage } from '../../model/support-effects.ts';
 import { compareTargetChances, cardTargetChances, deckDisplayOrder } from '../../model/card-ranking.ts';
-import { data, searchState, store } from '../context.ts';
+import { data, store, view } from '../context.ts';
 import { ignoreToggle, pinToggle } from '../card-toggles.ts';
 import { COPY } from '../copy.ts';
 import { basisLabel, effectList, missingEffect, observedCaveat, observedDeckEffect } from '../effect-coverage.ts';
@@ -59,6 +59,6 @@ export function renderDeck(c: RunPlan) {
     ? html`<div class="deck">${repeat(ordered, (cs) => `${cs.card.id}:${cs.borrowed ? 'b' : 'o'}`, (cs) => slot(c, cs))}</div>`
     : html`<div class="muted">${COPY.deck.noCards}</div>`;
   return panel({ title: COPY.deck.title, kind: 'result', tip: COPY.deck.tip }, html`
-    ${searchState.pending ? html`<p class="status small muted" data-plan-pending role="status" aria-live="polite">${COPY.app.searching}</p>` : nothing}
+    ${view.searchPending ? html`<p class="status small muted" data-plan-pending role="status" aria-live="polite">${COPY.app.searching}</p>` : nothing}
     ${deck}`);
 }

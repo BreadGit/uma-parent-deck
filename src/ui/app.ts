@@ -4,7 +4,7 @@
 import { html, nothing, render } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
 import { resetRun, storageUnavailable } from '../state.ts';
-import { data, endPanelTracking, onRender, plan, refresh, searchState, stateRevision, store, trackedPanel, update, view } from './context.ts';
+import { data, endPanelTracking, onRender, plan, refresh, stateRevision, store, trackedPanel, update, view } from './context.ts';
 import { COPY } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
 import { installSuggestDismiss } from './fields.ts';
@@ -87,14 +87,14 @@ function page() {
       <div class="results ${ready ? '' : 'waiting'}">
         ${inputsHidden ? html`<div class="results-head"><button class="small" data-action="show-inputs" aria-expanded="false" aria-controls="inputs" @click=${() => setInputsHidden(false)}>${COPY.app.showInputs}</button>${runSummary(c)}</div>${unavailableChoices()}` : nothing}
         ${ready ? nothing : html`<p class="banner" data-waiting>${COPY.app.waiting}</p>`}
-        ${hasWarnings(c) ? section('warnings', () => renderWarnings(c), [searchState.failed]) : nothing}
-        ${section('deck', () => renderDeck(c), [searchState.pending])}
+        ${hasWarnings(c) ? section('warnings', () => renderWarnings(c)) : nothing}
+        ${section('deck', () => renderDeck(c))}
         ${complete ? html`<div class="results-split">
           <div class="results-col">
             ${section('estimate', () => renderGoalResult(c))}
             ${section('prediction', () => renderPrediction(c))}
           </div>
-          <div class="results-col">${section('priorities', () => renderPriorities(c), [searchState.pending])}</div>
+          <div class="results-col">${section('priorities', () => renderPriorities(c))}</div>
         </div>
         ${section('schedule', () => renderSchedule(c))}` : section('estimate', () => renderGoalResult(c))}
         ${section('details', () => renderPredictionDetails(c))}

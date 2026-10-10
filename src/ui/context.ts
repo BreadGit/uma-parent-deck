@@ -17,14 +17,17 @@ export let stateRevision = 0;
 
 /** The view fields that hold a search box's text. */
 export type SearchField = 'requiredQuery' | 'preferredQuery' | 'traineeQuery' | 'cardQuery' | 'ignoreQuery' | 'missionTraineeQuery';
-/** State that is not persisted: search boxes, open panels, the highlighted suggestion, drag state. */
+/**
+ * State that is not persisted: search boxes, open panels, the highlighted suggestion, drag state, the deck search.
+ * Panels memoize by the identity of each field they read, so object and list fields are readonly: replace them.
+ */
 const viewState = {
   /** Each target group has its own search box. */
   requiredQuery: '',
   preferredQuery: '',
   targetEditorId: null as number | null,
   /** The target groups start open; one holding the selected target is shown open regardless. */
-  targetGroupsOpen: { required: true, preferred: true },
+  targetGroupsOpen: { required: true, preferred: true } as Readonly<Record<'required' | 'preferred', boolean>>,
   goalTemplateId: '',
   traineeQuery: '',
   cardQuery: '',
@@ -36,17 +39,17 @@ const viewState = {
   missionImportNotice: '',
   activeSearch: null as SearchField | null,
   /** Each search keeps its own keyboard highlight; -1 is none. */
-  suggestIndexes: { requiredQuery: -1, preferredQuery: -1, traineeQuery: -1, cardQuery: -1, ignoreQuery: -1, missionTraineeQuery: -1 } as Record<SearchField, number>,
+  suggestIndexes: { requiredQuery: -1, preferredQuery: -1, traineeQuery: -1, cardQuery: -1, ignoreQuery: -1, missionTraineeQuery: -1 } as Readonly<Record<SearchField, number>>,
   showAdvanced: false,
   showSparks: false,
   showPinkSparks: false,
   showAgenda: false,
   showDetails: false,
-  expandedRankingCards: [] as number[],
+  expandedRankingCards: [] as readonly number[],
   /** Advanced settings whose last typed value was rejected, with the accepted range. */
-  settingErrors: {} as Record<string, { value: string; message: string }>,
+  settingErrors: {} as Readonly<Record<string, Readonly<{ value: string; message: string }>>>,
   /** The prioritized-skill row being dragged and the row under the pointer. */
-  drag: { key: null as number | null, over: null as number | null },
+  drag: { key: null, over: null } as Readonly<{ key: number | null; over: number | null }>,
   /** The skill candidates below the prioritized list are clamped to three lines unless expanded. */
   showAllCandidates: false,
   /** Observed after layout by app.ts: whether the clamped candidates hide any. */
@@ -56,6 +59,10 @@ const viewState = {
   /** The screenshot scanner is shown over the page; its module loads on first use. */
   scannerOpen: false,
   scannerLoading: false,
+  /** A deck search is running; the deck shown keeps its checked estimates meanwhile. */
+  searchPending: false,
+  /** The last deck search failed; the warnings panel offers a retry. */
+  searchFailed: false,
 };
 export type View = typeof viewState;
 
@@ -127,8 +134,6 @@ export function update(fn: (s: AppState) => void) {
 /** The search key plus the user's arrangement of the extras, which changes the plan shown but not the search. */
 const displayKey = () => `${inputKey}${JSON.stringify([store.run.wishlistOrder, store.run.wishlistExcluded])}`;
 let cache: { searchKey: string; displayKey: string; value: RunPlan } | null = null;
-/** Whether a deck search is running, and whether the last one failed (the warnings panel then offers a retry). */
-export const searchState = { pending: false, failed: false };
 let worker: Worker | null = null, requestId = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let previous: DeckSelection | undefined;
@@ -158,16 +163,16 @@ export function plan(): RunPlan {
   previous = value.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   cache = { searchKey: key, displayKey: shown, value };
   if (sameSearch) return value;
-  searchState.failed = false;
-  searchState.pending = !restored && !!value.trainee && !value.issues.length && store.run.goal.blueStats.length > 0;
-  if (searchState.pending) timer = setTimeout(() => {
+  view.searchFailed = false;
+  view.searchPending = !restored && !!value.trainee && !value.issues.length && store.run.goal.blueStats.length > 0;
+  if (view.searchPending) timer = setTimeout(() => {
     const current = () => id === requestId && cache?.searchKey === key;
     // Every way a search can fail settles it here, so the deck never stays pending; the deck shown keeps its estimates.
     const fail = (detail: string) => {
       if (!current()) return;
       console.warn('Deck search failed:', detail);
-      searchState.pending = false;
-      searchState.failed = true;
+      view.searchPending = false;
+      view.searchFailed = true;
       worker?.terminate(); worker = null;
       renderer();
     };
@@ -187,7 +192,7 @@ export function plan(): RunPlan {
             { selection: response.selection, summary: response.summary, search: false });
           cache!.displayKey = displayKey();
           previous = response.selection;
-          searchState.pending = false;
+          view.searchPending = false;
           worker?.terminate(); worker = null;
           if (response.summary && isLegalRunSelection(response.selection, store.run, store.settings, store.inventory, data)) {
             saveRecommendation(store, { build: BUILD_VERSION, key, selection: response.selection, summary: response.summary });

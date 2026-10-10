@@ -97,7 +97,7 @@ export function installSuggestDismiss(root: HTMLElement) {
     if ((e.target as Element).closest('.suggest')) return;
     if (view.activeSearch === null) return;
     view.activeSearch = null;
-    for (const field of Object.keys(view.suggestIndexes) as SearchField[]) view.suggestIndexes[field] = -1;
+    view.suggestIndexes = Object.fromEntries(Object.keys(view.suggestIndexes).map((field) => [field, -1])) as Record<SearchField, number>;
     refresh();
   });
 }

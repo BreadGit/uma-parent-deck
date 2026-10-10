@@ -8,7 +8,7 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import type { RunPlan } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
-import { plan, refresh, searchState, store, update, view } from '../context.ts';
+import { plan, refresh, store, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
 import { skillTipText, skillWithTip } from '../format.ts';
 import { panel } from '../panel.ts';
@@ -127,7 +127,7 @@ function candidates(c: RunPlan, locked: boolean) {
 }
 
 export function renderPriorities(c: RunPlan) {
-  const locked = searchState.pending;
+  const locked = view.searchPending;
   const customized = store.run.wishlistOrder.length > 0 || store.run.wishlistExcluded.length > 0;
   const actions = customized ? html`<button class="small" data-action="wl-reset" ?disabled=${locked} @click=${resetExtras}>${COPY.priorities.reset}</button>` : nothing;
   const hidden = c.wlLayout.shadowed.length;
