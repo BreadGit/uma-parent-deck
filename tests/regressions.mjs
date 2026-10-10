@@ -1357,9 +1357,15 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.waitForSelector('[data-lineage-parents="201601"]');
     assert.equal(await page.getAttribute('[data-action="toggle-lineage-parents"]', 'aria-pressed'), 'true');
     assert.deepEqual(await page.$$eval('[data-lineage-uma]', (els) => els.map((s) => [s.value, s.classList.contains('set')])), [['3', true], ['3', true], ['0', false], ['0', false], ['0', false], ['2', true]]);
+    // Another tab sets a different slot, and this page misses its storage event (a page's own writes raise none).
+    await page.evaluate((key) => {
+      const other = JSON.parse(localStorage.getItem(key));
+      other.run.targetLineage[201601][3] = 2;
+      localStorage.setItem(key, JSON.stringify(other));
+    }, STATE_KEY);
     await page.selectOption('[data-lineage-uma="201601-0"]', '0');
-    assert.deepEqual((await state(page)).run.targetLineage[201601], [0, 3, 0, 0, 0, 2]);
-    assert.equal(await page.locator('[data-lineage-summary="201601"]').innerText(), '2 copies · 5★ total');
+    assert.deepEqual((await state(page)).run.targetLineage[201601], [0, 3, 0, 2, 0, 2], 'the edit keeps the other tab\'s slot');
+    assert.equal(await page.locator('[data-lineage-summary="201601"]').innerText(), '3 copies · 7★ total');
     await assertFieldsMatchState(page, 'after clearing a parent in the per-parent form');
     await page.click('[data-action="select-target"][data-id="200012"]');
     assert.equal(await page.locator('[data-lineage-parents="200012"]').count(), 1, 'the form stays open for the next target');

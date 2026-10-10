@@ -53,9 +53,15 @@ export function selectTarget(id: number) {
 }
 const entryOf = (id: number) => store.run.targets.find((t) => t.id === id);
 const editTarget = (id: number, fn: (t: NonNullable<ReturnType<typeof entryOf>>) => void) => update((s) => { const t = s.run.targets.find((r) => r.id === id); if (t) fn(t); });
-/** Replace one target's lineage; an entry with no copies is dropped. */
-function setLineage(id: number, next: Lineage) {
-  update((s) => { if (lineageCount(next) === 0) delete s.run.targetLineage[String(id)]; else s.run.targetLineage[String(id)] = next; });
+/**
+ * Edit one target's lineage; an entry with no copies is dropped. The edit applies to the lineage `update()` sees, which
+ * includes another tab's save taken over since this page rendered.
+ */
+function editLineage(id: number, edit: (l: Lineage) => Lineage) {
+  update((s) => {
+    const next = edit(s.run.targetLineage[String(id)] ?? emptyLineage());
+    if (lineageCount(next) === 0) delete s.run.targetLineage[String(id)]; else s.run.targetLineage[String(id)] = next;
+  });
 }
 const lineageOf = (id: number): Lineage => store.run.targetLineage[String(id)] ?? emptyLineage();
 const toggleLineageParents = () => { view.showLineageParents = !view.showLineageParents; refresh(); };
@@ -82,8 +88,8 @@ function lineageTotals(id: number, l: Lineage) {
   const n = lineageCount(l), stars = lineageStars(l);
   const starChoices = numbered(Array.from({ length: STARS_PER_SPARK_MAX * n - n + 1 }, (_, i) => n + i), (i) => `${i}★`);
   return html`<div class="target-lineage-totals">
-    <label>${COPY.targets.lineageCopies} <select data-lineage-copies=${id} aria-label="Copies in lineage" .value=${live(String(n))} @change=${(e: Event) => setLineage(id, withLineageCopies(l, Number(selectValue(e))))}>${options(COPY_CHOICES, String(n))}</select></label>
-    <label>${COPY.targets.lineageStars} <select data-lineage-stars=${id} aria-label="Total stars in lineage" ?disabled=${!n} .value=${live(String(stars))} @change=${(e: Event) => setLineage(id, withLineageStars(l, Number(selectValue(e))))}>${options(starChoices, String(stars))}</select></label>
+    <label>${COPY.targets.lineageCopies} <select data-lineage-copies=${id} aria-label="Copies in lineage" .value=${live(String(n))} @change=${(e: Event) => editLineage(id, (current) => withLineageCopies(current, Number(selectValue(e))))}>${options(COPY_CHOICES, String(n))}</select></label>
+    <label>${COPY.targets.lineageStars} <select data-lineage-stars=${id} aria-label="Total stars in lineage" ?disabled=${!n} .value=${live(String(stars))} @change=${(e: Event) => editLineage(id, (current) => withLineageStars(current, Number(selectValue(e))))}>${options(starChoices, String(stars))}</select></label>
   </div>`;
 }
 /** The stars on each parent and grandparent, one column per side, with the totals they add up to underneath. */
@@ -91,7 +97,7 @@ function lineageParents(id: number, l: Lineage) {
   return html`<div class="per-parent white" id="target-lineage-parents" data-lineage-parents=${id}>
     ${SIDES.map((side) => html`<div class="side p${side + 1}"><span class="side-head">Parent ${side + 1}</span>
       ${UMAS.map((ui) => { const i = side * UMAS_PER_PARENT_SIDE + ui, v = String(l[i]); return html`<span class="who">${UMA_LABELS[ui]}</span>
-        <select class=${l[i] ? 'set' : ''} data-lineage-uma="${id}-${i}" aria-label="Parent ${side + 1} ${UMA_LABELS[ui]} stars" .value=${live(v)} @change=${(e: Event) => { const next = [...l]; next[i] = Number(selectValue(e)); setLineage(id, next); }}>${options(UMA_STAR_CHOICES, v)}</select>`; })}
+        <select class=${l[i] ? 'set' : ''} data-lineage-uma="${id}-${i}" aria-label="Parent ${side + 1} ${UMA_LABELS[ui]} stars" .value=${live(v)} @change=${(e: Event) => { const stars = Number(selectValue(e)); editLineage(id, (current) => current.map((was, j) => j === i ? stars : was)); }}>${options(UMA_STAR_CHOICES, v)}</select>`; })}
     </div>`)}
   </div>
   <p class="small muted target-lineage-summary" data-lineage-summary=${id}>${COPY.targets.lineageSummary(lineageCount(l), lineageStars(l))}</p>`;
