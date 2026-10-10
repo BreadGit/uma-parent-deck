@@ -282,7 +282,12 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     const current = deck.find((d) => d.borrowed);
     if (current) borrow = { card: current.card, replaces: null, gain: current.marginalValue, statGain: current.statPower };
     else {
-      const best = borrowPool.filter(free).map((p) => score(p, true)).sort(cmp)[0];
+      // A borrow sharing a character with the last owned cards able to fill the owned slots would leave one empty.
+      const ownedChars = new Set(pool.filter((p) => free(p) && !chosen.has(p.card.id)).map((p) => p.card.charId));
+      const open = ownedSlots - deck.filter((d) => !d.borrowed).length;
+      const leavesOwned = (p: { card: Card }) => ownedChars.size - Number(ownedChars.has(p.card.charId)) >= open;
+      const candidates = borrowPool.filter(free);
+      const best = (candidates.some(leavesOwned) ? candidates.filter(leavesOwned) : candidates).map((p) => score(p, true)).sort(cmp)[0];
       if (best) { add(best, why(best)); borrow = { card: best.card, replaces: null, gain: best.marginalValue, statGain: best.statPower }; }
     }
   }

@@ -360,14 +360,23 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const lb = e.borrowed ? BORROWED_LB : effectiveLb(inventory, card, settings.defaultLb);
     return lb === null ? [] : [{ card, lb, borrowed: e.borrowed }];
   });
-  const retained = options.search === false && trainee && goal.blueStats.length > 0 && previous && goalDeckConstraints({ owned: deckPool, borrows: borrowPool,
-    pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee?.charId ?? null })?.legal(previous) ? previous : undefined;
-  const initial = options.selection ? describeDeck(options.selection.map((e) => ({ card: data.cardById.get(e.id)!, lb: e.lb, borrowed: e.borrowed })), targets, baseCtx)
+  let legality: ReturnType<typeof goalDeckConstraints> | undefined;
+  const deckRules = () => legality === undefined ? (legality = goalDeckConstraints({ owned: deckPool, borrows: borrowPool,
+    pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee?.charId ?? null })) : legality;
+  const retained = options.search === false && trainee && goal.blueStats.length > 0 && previous && deckRules()?.legal(previous) ? previous : undefined;
+  const complete = (deck: { borrowed?: boolean }[]) => deck.filter((d) => !d.borrowed).length === DECK_SIZE - BORROWED_SLOTS && deck.filter((d) => d.borrowed).length === BORROWED_SLOTS;
+  let initial = options.selection ? describeDeck(options.selection.map((e) => ({ card: data.cardById.get(e.id)!, lb: e.lb, borrowed: e.borrowed })), targets, baseCtx)
     : retained ? describeDeck(retained, targets, baseCtx) : buildDeck(deckPool, targets, baseCtx, { ...build, swapPasses: 0 });
+  if (!options.selection && !retained && !complete(initial.deck)) {
+    // The greedy build can miss a legal deck in a small inventory. The search's own rules find one whenever one exists.
+    const rules = deckRules();
+    const seed = rules?.legalSeeds.find(rules.legal);
+    if (seed) initial = { ...describeDeck(seed, targets, baseCtx), steps: ['The greedy build left a slot empty, so this deck is the first legal combination of your cards.'] };
+  }
   const issues: string[] = [];
   const ownedCount = initial.deck.filter((d) => !d.borrowed).length;
   const borrowedCount = initial.deck.filter((d) => d.borrowed).length;
-  if (ownedCount !== DECK_SIZE - BORROWED_SLOTS || borrowedCount !== BORROWED_SLOTS) {
+  if (!complete(initial.deck)) {
     issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
   }
   const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048, display = false) => {

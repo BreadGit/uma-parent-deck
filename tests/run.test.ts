@@ -9,9 +9,10 @@ import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/traine
 import { rankEstimate, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
 import { displayedStat } from '../src/model/stat-outcomes.ts';
-import { SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
+import { BORROWED_LB, SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
 import { raceScale } from '../src/model/stats.ts';
-import type { EntryRole, WishlistEntry } from '../src/model/deck.ts';
+import { buildDeck, type EntryRole, type WishlistEntry } from '../src/model/deck.ts';
+import { goalDeckConstraints } from '../src/model/goal-deck.ts';
 import type { Target } from '../src/model/sparks.ts';
 
 const data = loadData();
@@ -324,4 +325,39 @@ test('contested required targets use shared outcome probability instead of multi
   // B-first: P(A)=.1, P(B)=.6, so both sparks occur with .1*.6*.2*.2 = .0024, above .002.
   assert.equal(p.wl[0]!.targetId, b, 'B-first has the better true joint chance despite the smaller product of marginals');
   assert.ok(Math.abs(p.goalEstimate.allAvailable - .06) < 1e-12);
+});
+
+test('initial deck: a borrow never takes the last owned character a slot needs; the legal-deck rules fill what the greedy build misses', () => {
+  const trainee = must(data.charByCardId.get(100101));
+  const onlyOwned = (ids: number[]) => Object.fromEntries(data.cards.map((c) => [String(c.id), ids.includes(c.id) ? 4 : null]));
+  const fiveCharacters = [30078, 30052, 20005, 30045, 30074];
+  const input = { ...empty, traineeCardId: trainee.cardId };
+  const plan = planRun(input, settings, onlyOwned(fiveCharacters), data, { search: false });
+  assert.deepEqual(plan.issues, [], 'five owned characters and any borrow make a legal deck');
+  assert.deepEqual(plan.deckResult.deck.filter((d) => !d.borrowed).map((d) => d.card.id).sort(), fiveCharacters.slice().sort());
+  assert.equal(plan.deckResult.deck.filter((d) => d.borrowed).length, 1);
+  assert.ok(planRun(input, settings, onlyOwned(fiveCharacters), data, { budget: 8 }).search, 'the search starts');
+  // An unowned pin of an owned character makes the greedy build borrow it; the legal-deck rules still fill all six slots.
+  const fuku = must(data.cardById.get(30078));
+  const otherFuku = must(data.cards.find((c) => c.charId === fuku.charId && c.id !== fuku.id));
+  const pinned = planRun({ ...input, pinnedIds: [otherFuku.id] }, settings, onlyOwned(fiveCharacters), data, { search: false });
+  assert.deepEqual(pinned.issues, []);
+  assert.equal(pinned.deckResult.deck.filter((d) => !d.borrowed).length, 5);
+
+  // Small inventories built around the best borrow: the greedy build is complete exactly when a legal deck exists.
+  const ctx = plan.ctx;
+  const borrowPool = data.cards.map((card) => ({ card, lb: BORROWED_LB }));
+  const best = must(buildDeck([], [], ctx, { pinnedIds: [], borrowPool, swapPasses: 0 }).deck.find((d) => d.borrowed)).card;
+  const others = data.cards.filter((c) => c.charId !== trainee.charId && c.charId !== best.charId);
+  let seed = 7;
+  const next = () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
+  for (let i = 0; i < 24; i++) {
+    const owned = [best];
+    const size = 4 + (i % 4); // five to eight cards, so some inventories have repeated characters
+    while (owned.length < size) { const c = others[Math.floor(next() * others.length)]!; if (!owned.includes(c)) owned.push(c); }
+    const pool = owned.map((card) => ({ card, lb: 4 }));
+    const deck = buildDeck(pool, [], ctx, { pinnedIds: [], borrowPool, swapPasses: 0 }).deck;
+    const legal = goalDeckConstraints({ owned: pool, borrows: borrowPool, pinnedIds: [], borrowFromAll: false, traineeId: trainee.charId }) !== null;
+    assert.equal(deck.length === 6 && deck.filter((d) => d.borrowed).length === 1, legal, `inventory ${owned.map((c) => c.id).join(',')}`);
+  }
 });
