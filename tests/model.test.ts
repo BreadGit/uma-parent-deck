@@ -2,14 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { DEFAULT_SETTINGS } from '../src/settings.ts';
+import { DEFAULT_SETTINGS, isValidSetting, SETTING_SPEC, type Settings } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
 import { STATS, type Card, type Race } from '../src/types.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, isCircle, isDebuff, isGold, isWhite, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
-import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
+import { buildDeck, describeDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
-import { affinityMultiplier, defaultParentSparks, gainOfSparks, gainsOfParentSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, parentSparksFromGains, sparksFromGain, sparksFromStars, START_GAINS, withParentGain, type ParentSparks } from '../src/model/inherit.ts';
+import { affinityMultiplier, defaultParentSparks, inheritedFromSparks, gainOfSparks, gainsOfParentSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, parentSparksFromGains, sparksFromGain, sparksFromStars, START_GAINS, withParentGain, type ParentSparks } from '../src/model/inherit.ts';
 import { SLOT_COUNT } from '../src/model/rules.ts';
 import { jointSkillForms } from '../src/model/goal-skills.ts';
 
@@ -725,4 +725,44 @@ test('skill tiers: gold, ◎, white and debuff forms are told apart in one place
   assert.deepEqual(tier(corner.white!), [false, false, true, false], 'a ○ skill is the white form');
   assert.deepEqual(tier(must(skills.find((s) => s.name.includes('◎') && s.rarity === 1))), [false, true, false, false]);
   assert.deepEqual(tier(byName('Gatekept')), [false, false, false, true]);
+});
+
+test('settings at the ends of their accepted ranges keep every chance a probability and every inspiration mean below its maximum', () => {
+  const targets = [200352, 201601, byName('Focus').id].map((id) => resolveTarget(id, data)!);
+  const deck = buildDeck(all4, targets, ctxOf({ trainee: sw }), { pinnedIds: [], borrowPool: all4, swapPasses: 0 }).deck;
+  const sources = targets.flatMap((t) => describeDeck(deck, targets, ctxOf({ trainee: sw })).coverage.get(t.id) ?? []);
+  assert.ok(sources.some((src) => 'chain' in src && src.chain) && sources.some((src) => src.kind === 'hint'), 'the deck covers the targets through chain events and hints');
+  const ends = (key: keyof Settings): unknown[] => {
+    const spec = SETTING_SPEC[key];
+    if (spec.kind === 'number' || spec.kind === 'number-or-null') return [spec.min, spec.max];
+    if (spec.kind !== 'list') return [];
+    const unit = (i: number) => Array.from({ length: spec.length }, (_, j) => Number(i === j));
+    return [Array(spec.length).fill(spec.min), Array(spec.length).fill(spec.max), unit(0), unit(spec.length - 1),
+      spec.bounds?.map(([low]) => low), spec.bounds?.map(([, high]) => high)].filter((v) => v && isValidSetting(key, v));
+  };
+  const probability = (p: number, what: string) => assert.ok(p >= -1e-12 && p <= 1 + 1e-12, `${what}: ${p}`);
+  let checked = 0;
+  for (const key of Object.keys(SETTING_SPEC) as (keyof Settings)[]) {
+    for (const value of ends(key)) {
+      const s = { ...settings, [key]: value } as Settings;
+      const ctx = makeCtx({ data, settings: s, races: 20, totalTurns: T, trainee: sw });
+      const result = describeDeck(deck, targets, ctx);
+      for (const t of targets) {
+        const own = combineSources(result.coverage.get(t.id) ?? []);
+        for (const [form, p] of Object.entries(own)) probability(p, `${key}=${JSON.stringify(value)} ${t.name} ${form}`);
+        probability(result.sparks.get(t.id) ?? 0, `${key}=${JSON.stringify(value)} ${t.name} spark`);
+      }
+      const joint = jointSkillForms(targets, result.coverage, data);
+      for (const component of joint.components) {
+        const total = [...component.distribution.states.values()].reduce((a, p) => a + p, 0);
+        assert.ok(Math.abs(total - 1) < 1e-9, `${key}=${JSON.stringify(value)} joint forms sum to ${total}`);
+      }
+      for (const stars of [1, 2, 3]) {
+        const inheritance = inheritedFromSparks([stars], s);
+        assert.ok(inheritance.inspiration <= inheritance.inspirationMax + 1e-9 && inheritance.variance >= 0, `${key}=${JSON.stringify(value)} ${stars}★ inspiration`);
+      }
+      checked++;
+    }
+  }
+  assert.ok(checked > 40, `${checked} setting values checked`);
 });
