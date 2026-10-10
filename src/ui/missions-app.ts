@@ -23,7 +23,6 @@ function draw() {
   </header>
   ${storageNotice()}
   ${renderMissions(catalog, Date.now())}
-  <div id="tooltip" role="tooltip"></div>
   <div class="footer">${COPY.missions.checkedAt(new Date(catalog.fetchedAt).toLocaleDateString())}
     <a href="https://gametora.com/umamusume/missions" target="_blank" rel="noopener">${COPY.missions.source}</a>
   </div>`, root);

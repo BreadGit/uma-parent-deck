@@ -102,7 +102,6 @@ function page() {
       </div>
     </main>
     ${renderScannerOverlay()}
-    <div id="tooltip" role="tooltip"></div>
     <div class="footer">Version ${__APP_VERSION__}. Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
 }
 

@@ -1,4 +1,5 @@
-// Custom tooltips: one floating box positioned next to the hovered, focused or clicked ⓘ.
+// Custom tooltips: one floating box positioned next to the hovered, focused or clicked ⓘ. The box lives outside the lit
+// root, like the dialogs, so writing its text and position directly is allowed.
 import { html } from 'lit-html';
 
 /** Info icon that opens the tooltip on hover or focus; a click pins it until the next click elsewhere. Any element
@@ -10,8 +11,9 @@ let pinned: HTMLElement | null = null;
  * and the browser then reports a hover the user never made. */
 let awaitingMove = false;
 
+let box: HTMLElement | null = null;
+
 function show(el: HTMLElement) {
-  const box = document.getElementById('tooltip');
   if (!box) return;
   box.textContent = el.dataset.tip ?? '';
   box.classList.add('show');
@@ -25,7 +27,7 @@ function show(el: HTMLElement) {
 }
 function hide(force = false) {
   if (pinned && !force) return;
-  document.getElementById('tooltip')?.classList.remove('show');
+  box?.classList.remove('show');
   if (force) { pinned?.classList.remove('pinned'); pinned = null; }
 }
 const tipOf = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]');
@@ -34,6 +36,10 @@ const tipOf = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('[d
 const interactive = (el: HTMLElement) => !!el.closest('button, a, select, input, summary, label');
 
 export function installTooltips(root: HTMLElement) {
+  box = document.createElement('div');
+  box.id = 'tooltip';
+  box.setAttribute('role', 'tooltip');
+  document.body.append(box);
   root.addEventListener('mousemove', () => { awaitingMove = false; });
   root.addEventListener('mouseover', (ev) => { if (pinned || awaitingMove) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('mouseout', (ev) => { if (tipOf(ev)) hide(); });
