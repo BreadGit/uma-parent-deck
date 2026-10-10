@@ -3,6 +3,7 @@
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import type { Card } from '../types.ts';
+import { MAX_LB } from '../model/rules.ts';
 import type { RunPlan } from '../model/run.ts';
 import { COPY } from './copy.ts';
 import { refresh, store, update, view } from './context.ts';
@@ -115,6 +116,6 @@ export function lbSelect(c: RunPlan, card: Card, lb: number, cls = '') {
   const owned = !c.unowned.has(card.id);
   const explicit = store.inventory[String(card.id)] !== undefined;
   const current = owned ? String(lb) : 'none';
-  const items: Option[] = [{ value: 'none', label: COPY.fields.notOwned }, ...[0, 1, 2, 3, 4].map((l) => ({ value: String(l), label: `${l}${!explicit && lb === l ? ` ${COPY.fields.default}` : ''}` }))];
+  const items: Option[] = [{ value: 'none', label: COPY.fields.notOwned }, ...Array.from({ length: MAX_LB + 1 }, (_, l) => l).map((l) => ({ value: String(l), label: `${l}${!explicit && lb === l ? ` ${COPY.fields.default}` : ''}` }))];
   return html`<select data-lb=${card.id} class="${cls} ${explicit ? '' : 'muted'}" aria-label="Limit break" .value=${live(current)} @change=${(e: Event) => setLb(card, selectValue(e))}>${options(items, current)}</select>`;
 }

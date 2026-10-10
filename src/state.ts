@@ -7,7 +7,7 @@ import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
 import type { SharedChoices } from './share.ts';
 import { lineageFromSides, lineageFromTotals, sanitizeLineage, type Lineage } from './model/sparks.ts';
-import { LINEAGE_SLOTS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
+import { isLimitBreak, LINEAGE_SLOTS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
 import { clampStars } from './model/trainee.ts';
 import { defaultMissionState, type MissionState } from './model/missions.ts';
@@ -138,7 +138,7 @@ function migrateSettings(raw: Json): Settings {
 }
 
 /**
- * Keep only well-formed inventory entries: card ID -> LB 0..4 or null. Keys take their canonical decimal form; an exact
+ * Keep only well-formed inventory entries: card ID -> a limit break or null. Keys take their canonical decimal form; an exact
  * key wins over a zero-padded alias of the same card, and the first alias wins over later ones.
  */
 export function sanitizeInventory(raw: unknown): Inventory {
@@ -148,7 +148,7 @@ export function sanitizeInventory(raw: unknown): Inventory {
     const k = gameIdKey(key);
     if (k === null || (k !== key && (k in raw || k in out))) continue;
     if (v === null) out[k] = null;
-    else if (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 4) out[k] = v;
+    else if (isLimitBreak(v)) out[k] = v;
   }
   return out;
 }
