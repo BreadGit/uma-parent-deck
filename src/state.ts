@@ -194,6 +194,16 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
 const isTheme = (v: unknown): v is Theme => v === 'system' || v === 'light' || v === 'dark';
 
 export let storageUnavailable = false;
+/**
+ * Set when the save comes from a newer version of the app, such as a tab left open across a release. This version reads
+ * it as well as it can, but saving would drop the choices only the newer version understands, so nothing is written
+ * until the user chooses to replace it.
+ */
+export let newerSave = false;
+export function replaceNewerSave(state: AppState) {
+  newerSave = false;
+  return saveState(state);
+}
 const readStored = (key: string): string | null => {
   try { return localStorage.getItem(key); }
   catch { storageUnavailable = true; return null; }
@@ -220,6 +230,7 @@ export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   const raw = readStored(STATE_KEY);
   const current = parseJson(raw);
   if (raw !== null && !isSave(current)) keepUnreadable(raw);
+  if (isSave(current) && current.version > STATE_VERSION) newerSave = true;
   const state = migrate({ current, state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) }, data);
   if (raw === null && readJson(LEGACY_KEYS.inventory) === undefined) state.inventory = sanitizeInventory(fallbackInventory);
   // Retire historical family aliases once, before another data update can reinterpret the old save.
@@ -230,6 +241,7 @@ export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   return state;
 }
 export function saveState(state: AppState) {
+  if (newerSave) return false;
   const serialized = JSON.stringify(state);
   try {
     localStorage.setItem(STATE_KEY, serialized);
@@ -241,13 +253,17 @@ export function saveState(state: AppState) {
   }
 }
 
-/** Keep open planner and mission tabs from overwriting each other's newer choices. */
-export function watchSavedState(data: Data, accept: (state: AppState) => void) {
+/**
+ * Keep open planner and mission tabs from overwriting each other's newer choices. A save from a newer version of the
+ * app is not taken over; `blocked` reports that this page stopped saving.
+ */
+export function watchSavedState(data: Data, accept: (state: AppState) => void, blocked: () => void) {
   window.addEventListener('storage', (event) => {
     if (event.key !== STATE_KEY || event.newValue === null) return;
-    let current: unknown;
-    try { current = JSON.parse(event.newValue); } catch { return; }
-    if (isPlainObject(current) && typeof current.version === 'number' && current.version >= 4) accept(migrate({ current }, data));
+    const current = parseJson(event.newValue);
+    if (!isSave(current)) return;
+    if (current.version > STATE_VERSION) { newerSave = true; blocked(); return; }
+    accept(migrate({ current }, data));
   });
 }
 

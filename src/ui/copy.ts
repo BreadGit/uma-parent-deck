@@ -30,6 +30,10 @@ export const COPY = {
     missingSkills: (ids: number[]) => `Unavailable skills: ${ids.join(', ')}`,
   },
   app: {
+    newerSave: 'The choices in this browser were saved by a newer version of this page, so this older page does not save changes. Reload to get the newer version.',
+    replaceNewerSave: 'Save changes here anyway',
+    replaceNewerSaveConfirm: 'Saving here replaces the newer save with this older format. Choices only the newer version understands are lost. Continue?',
+    replaceNewerSaveAction: 'Save here',
     unreadableSave: 'The choices saved in this browser could not be read, so the page started from the defaults. A copy of the unreadable save is kept in this browser until you remove it.',
     downloadUnreadable: 'Download the unreadable save',
     removeUnreadable: 'Remove the copy',

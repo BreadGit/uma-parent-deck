@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
-import { defaultState, loadState, removeUnreadableSave, saveState, STATE_KEY, storageUnavailable, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
+import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
 
 test('storage failures preserve in-memory edits and an existing save, then recover', () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
@@ -78,5 +78,27 @@ test('an unreadable save is copied aside before an edit replaces it, and the cop
   withStorage(fresh, () => {
     assert.deepEqual(loadState(data, { 30028: 3 }).inventory, { 30028: 3 }, 'a fresh browser starts from the bundled inventory');
     assert.equal(fresh.has(UNREADABLE_KEY), false);
+  });
+});
+
+test('a save from a newer version is read but never replaced until the user chooses to', () => {
+  const data = loadData();
+  const future = { ...defaultState(data), version: STATE_VERSION + 1, futureField: 1 };
+  future.run = { ...future.run, newRunField: 'kept' } as typeof future.run;
+  future.inventory = { 30028: 2 };
+  const raw = JSON.stringify(future);
+  const saved = new Map([[STATE_KEY, raw]]);
+  withStorage(saved, () => {
+    const loaded = loadState(data, {});
+    assert.equal(newerSave, true);
+    assert.deepEqual(loaded.inventory, { 30028: 2 }, 'the choices this version understands are shown');
+    loaded.ui.theme = 'dark';
+    assert.equal(saveState(loaded), false);
+    assert.equal(saved.get(STATE_KEY), raw, 'ordinary edits leave the newer save intact');
+    assert.equal(storageUnavailable, false, 'a newer save is not reported as unavailable storage');
+    assert.equal(replaceNewerSave(loaded), true, 'the user can choose to replace it');
+    assert.equal(newerSave, false);
+    assert.equal(JSON.parse(saved.get(STATE_KEY)!).version, STATE_VERSION);
+    assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
   });
 });

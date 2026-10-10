@@ -99,7 +99,7 @@ watchSavedState(data, (saved) => {
   inputKey = planningKey(store.run, store.settings, store.inventory);
   updated();
   renderer();
-});
+}, () => renderer());
 /** Re-render after a view-only change. */
 export function refresh() { renderer(); }
 /** Apply a change to the persisted state, save it and re-render. */

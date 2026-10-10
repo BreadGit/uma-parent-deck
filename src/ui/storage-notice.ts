@@ -1,13 +1,19 @@
 import { html, nothing } from 'lit-html';
-import { removeUnreadableSave, storageUnavailable, unreadableSave } from '../state.ts';
+import { newerSave, removeUnreadableSave, replaceNewerSave, storageUnavailable, unreadableSave } from '../state.ts';
 import { downloadText } from '../download.ts';
-import { refresh } from './context.ts';
+import { refresh, store } from './context.ts';
 import { COPY } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
 
 async function removeCopy() {
   if (!await confirmDialog(COPY.app.removeUnreadableConfirm, COPY.app.removeUnreadableAction)) return;
   removeUnreadableSave();
+  refresh();
+}
+
+async function replaceNewer() {
+  if (!await confirmDialog(COPY.app.replaceNewerSaveConfirm, COPY.app.replaceNewerSaveAction)) return;
+  replaceNewerSave(store);
   refresh();
 }
 
@@ -20,6 +26,9 @@ function unreadableNotice() {
     <button class="small" data-action="remove-unreadable" @click=${removeCopy}>${COPY.app.removeUnreadable}</button></div>`;
 }
 
-export const storageNotice = () => html`${storageUnavailable
+export const storageNotice = () => html`${newerSave
+  ? html`<div class="banner" data-newer-save role="status"><p>${COPY.app.newerSave}</p>
+    <button class="small" data-action="replace-newer-save" @click=${replaceNewer}>${COPY.app.replaceNewerSave}</button></div>`
+  : nothing}${storageUnavailable
   ? html`<p class="banner" data-storage-warning role="status">${COPY.app.storageUnavailable}</p>`
   : nothing}${unreadableNotice()}`;
