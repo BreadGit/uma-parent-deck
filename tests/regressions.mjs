@@ -721,6 +721,20 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.equal(saved.inventory['30028'], 2);
   });
 
+  test('Reset all under a newer save keeps the reset on the page instead of reloading the old run', async (t) => {
+    const saved = { ...defaultState(data), version: 99 };
+    saved.run.traineeCardId = 100101;
+    const page = await editor(t, saved);
+    await page.waitForSelector('[data-newer-save]');
+    await page.evaluate(() => { window.beforeReset = true; });
+    await page.click('[data-action="reset-all"]');
+    await confirmDialog(page);
+    await page.waitForSelector('[data-action="clear-trainee"]', { state: 'detached' });
+    await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.beforeReset), true, 'a reset that was not saved does not reload');
+    assert.equal((await state(page)).run.traineeCardId, 100101, 'the newer save is left intact');
+  });
+
   test('ranking pins persist and an unowned pin requests a borrowed card', async (t) => {
     const saved = defaultState(data);
     saved.inventory['30028'] = null;

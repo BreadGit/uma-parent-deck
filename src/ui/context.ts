@@ -118,17 +118,18 @@ watchSavedState(data, (saved) => {
 }, () => renderer());
 /** Re-render after a view-only change. */
 export function refresh() { renderer(); }
-/** Apply a change to the persisted state, save it and re-render. */
-export function update(fn: (s: AppState) => void) {
+/** Apply a change to the persisted state, save it and re-render. Returns whether the save was written. */
+export function update(fn: (s: AppState) => void): boolean {
   adoptLatest();
   fn(store);
   stateRevision++;
   const nextKey = planningKey(store.run, store.settings, store.inventory);
   if (nextKey !== inputKey) delete store.recommendation;
   inputKey = nextKey;
-  saveState(store);
+  const saved = saveState(store);
   updated();
   renderer();
+  return saved;
 }
 
 /** The search key plus the user's arrangement of the extras, which changes the plan shown but not the search. */

@@ -3,7 +3,7 @@
 // one-line run summary keeping the context. The right column is every result, most useful first.
 import { html, nothing, render } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
-import { resetRun, storageUnavailable } from '../state.ts';
+import { resetRun } from '../state.ts';
 import { data, endPanelTracking, onRender, plan, refresh, stateRevision, store, trackedPanel, update, view } from './context.ts';
 import { COPY } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
@@ -33,9 +33,10 @@ import { storageNotice } from './storage-notice.ts';
 
 async function resetAll() {
   if (!await confirmDialog(COPY.app.resetAllConfirm, COPY.app.resetAll)) return;
-  update((state) => Object.assign(state, resetRun(state, data)));
+  const saved = update((state) => Object.assign(state, resetRun(state, data)));
   clearSharedUrl();
-  if (!storageUnavailable) location.reload();
+  // A reload reads the save back, so it would restore the old run if the reset was not written.
+  if (saved) location.reload();
 }
 
 function unavailableChoices() {
