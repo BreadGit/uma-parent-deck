@@ -15,7 +15,7 @@ function spCost(c: RunPlan) {
   if (!c.targets.length) return nothing;
   const p = c.pred, over = c.spCost.total > p.sp;
   const detail = c.spCost.items.map((it) => `${it.skill?.name ?? it.target.name}: ${it.purchases.map((s) => `${s.name} ${s.cost ?? '?'}`).join(' + ')} = ${it.cost ?? '?'}`).join(', ');
-  return html`<div class="small ${over ? 'warn' : 'muted'}">Worst-case target SP cost: <b>${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}</b> of ${num(p.sp)} estimated SP${over ? ', more than the run is expected to earn' : ''}${tip(`${COPY.coverage.spCostTip} (${detail})`)}</div>`;
+  return html`<div class="small ${over ? 'warn' : 'muted'}">Worst-case target SP cost: <b>${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}</b> of ${num(p.sp)} estimated SP${over ? ', more than the run is expected to earn' : ''}${tip(`${COPY.coverage.spCostTip}${detail ? ` (${detail})` : ''}`)}</div>`;
 }
 
 export function coverageTable(c: RunPlan) {

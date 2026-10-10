@@ -771,6 +771,8 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     const page = await editor(t);
     await trainee(page);
     await pin(page, 'piece of mind');
+    // Fine Motion hints Right-Handed ○. A target no deck card can give is not bought, so it would cost nothing.
+    await pin(page, 'wave of gratitude');
     await openDetails(page);
     await target(page, 'Swinging Maestro');
     assert.match(await page.locator('div.small').filter({ hasText: /^Worst-case target SP cost:/ }).innerText(), /340 of/);
@@ -779,6 +781,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     const row = coverage(page, 'Right-Handed');
     const hint = Number((await row.locator('td').nth(2).innerText()).replace('%', ''));
     const spark = Number((await row.locator('td').nth(3).innerText()).replace('%', ''));
+    assert.ok(hint > 0, 'the pinned Fine Motion card hints Right-Handed');
     assert.ok(Math.abs(spark - hint * 0.25) <= 1, `${spark}% must use the circle rate on ${hint}% hint availability`);
     assert.match(await page.locator('div.small').filter({ hasText: /^Worst-case target SP cost:/ }).innerText(), /200 of/);
     assert.equal(await page.locator('.wishlist').getByText('Right-Handed ◎', { exact: true }).count(), 0);
