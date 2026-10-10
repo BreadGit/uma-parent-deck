@@ -17,3 +17,8 @@ export const selectValue = (e: Event) => (e.target as HTMLSelectElement).value;
 export const inputValue = (e: Event) => (e.target as HTMLInputElement).value;
 export const inputNumber = (e: Event) => (e.target as HTMLInputElement).valueAsNumber;
 export const isChecked = (e: Event) => (e.target as HTMLInputElement).checked;
+/**
+ * Whether a key press belongs to text an input method is still composing, such as the Enter that confirms a kana
+ * conversion. Safari reports the confirming Enter after compositionend, with isComposing false but keyCode 229.
+ */
+export const isComposing = (e: KeyboardEvent) => e.isComposing || e.keyCode === 229;

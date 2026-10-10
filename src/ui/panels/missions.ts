@@ -81,7 +81,7 @@ function traineePicker(recommendations: MissionRaceFit[], chosen: MissionRaceFit
       <button class="small" data-action="clear-mission-trainee" @click=${() => pickTrainee(null)}>${copy.remove}</button>
     </div><p class="small" data-mission-fit>${copy.fit(chosen.schedule.size, chosen.total)} · ${copy.overlap(chosen.goalMatches)}</p>
       ${chosen.total && !chosen.schedule.size ? html`<p class="small warn">${copy.noFit}</p>` : nothing}` : html`<p class="small muted">${copy.noTrainee}</p>`}
-    ${searchBox<Character>({ id: 'mission-trainee-search', field: 'missionTraineeQuery', placeholder: copy.traineePlaceholder, items: matches,
+    ${searchBox<Character>({ id: 'mission-trainee-search', field: 'missionTraineeQuery', label: copy.traineeSearchLabel, placeholder: copy.traineePlaceholder, items: matches,
       key: (item) => item.cardId, action: 'pick-mission-trainee', pick: (item) => pickTrainee(item.cardId),
       row: (item) => html`${item.name}<span class="suggest-r">${item.title}</span>` })}
     ${recommendations[0]?.total ? html`<h3>${copy.recommendations}</h3><div class="mission-recommendations">

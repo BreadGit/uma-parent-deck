@@ -55,7 +55,7 @@ export function renderRun(c: RunPlan) {
     ${threshold()}
     ${sub(COPY.run.pins, { tip: COPY.run.pinsTip })}
     ${searchBox<Card>({
-      id: 'card-search', placeholder: COPY.run.pinPlaceholder, field: 'cardQuery', items: matches(view.cardQuery, store.run.pinnedIds), key: (card) => card.id, action: 'pin-card',
+      id: 'card-search', label: COPY.run.pinSearchLabel, placeholder: COPY.run.pinPlaceholder, field: 'cardQuery', items: matches(view.cardQuery, store.run.pinnedIds), key: (card) => card.id, action: 'pin-card',
       row: searchRow, pick: (card) => pinCard(card.id),
     })}
     <div class="chips pin-list">${pins}</div>
@@ -64,7 +64,7 @@ export function renderRun(c: RunPlan) {
     ${!lhOptions.length ? html`<div class="small warn">${COPY.run.noLightHello}</div>` : nothing}
     ${sub(COPY.run.ignored, { tip: COPY.run.ignoredTip })}
     ${searchBox<Card>({
-      id: 'ignore-search', placeholder: COPY.run.ignorePlaceholder, field: 'ignoreQuery', items: matches(view.ignoreQuery, store.run.ignoredIds), key: (card) => card.id, action: 'ignore-card',
+      id: 'ignore-search', label: COPY.run.ignoreSearchLabel, placeholder: COPY.run.ignorePlaceholder, field: 'ignoreQuery', items: matches(view.ignoreQuery, store.run.ignoredIds), key: (card) => card.id, action: 'ignore-card',
       row: searchRow, pick: (card) => ignoreCard(card.id),
     })}
     <div class="chips pin-list" data-ignore-list>${ignored}</div>

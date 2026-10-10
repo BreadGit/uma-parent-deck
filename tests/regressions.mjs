@@ -302,6 +302,33 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await assertFieldsMatchState(page, 'after keyboard navigation and wrapping in suggestions');
   });
 
+  test('search boxes leave composition keys to the input method and have accessible names', async (t) => {
+    const page = await editor(t);
+    const composing = (selector, key, keyCode = 0) => page.locator(selector).evaluate((input, { key, keyCode }) => {
+      const event = new KeyboardEvent('keydown', { key, isComposing: keyCode === 0, bubbles: true, cancelable: true });
+      if (keyCode) Object.defineProperty(event, 'keyCode', { value: keyCode });
+      input.dispatchEvent(event);
+    }, { key, keyCode });
+    for (const [selector, query, label] of [['#trainee-search', 'special', 'Search trainees'],
+      ['#target-search-required', 'groundwork', 'Search skills to add as required'], ['#card-search', 'piece of mind', 'Search support cards to pin']]) {
+      assert.equal(await page.locator(selector).getAttribute('aria-label'), label);
+      await page.fill(selector, query);
+      const before = await state(page);
+      await composing(selector, 'ArrowDown');
+      assert.equal(await page.locator(selector).getAttribute('aria-activedescendant'), '', `${selector}: composition arrows do not move the highlight`);
+      await composing(selector, 'Enter');
+      await composing(selector, 'Enter', 229);
+      assert.deepEqual(await state(page), before, `${selector}: composition Enter does not pick a suggestion`);
+      assert.equal(await page.inputValue(selector), query, `${selector}: the query is kept`);
+    }
+    await page.press('#card-search', 'Enter');
+    assert.equal((await state(page)).run.pinnedIds.length, defaultState(data).run.pinnedIds.length + 1, 'Enter after composition picks normally');
+    await page.fill('#trainee-search', 'special');
+    await page.press('#trainee-search', 'Enter');
+    assert.notEqual((await state(page)).run.traineeCardId, null);
+    await assertFieldsMatchState(page, 'after composition keys in search boxes');
+  });
+
   test('touch help icons stay pinned without activating labels or disclosures', async (t) => {
     const page = await fresh(t, undefined, { held: true, touch: true });
     await page.setViewportSize({ width: 390, height: 844 });

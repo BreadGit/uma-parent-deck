@@ -53,7 +53,7 @@ function chosen(c: RunPlan) {
 
 const picker = () => html`
   ${searchBox<Character>({
-    id: 'trainee-search', placeholder: COPY.trainee.placeholder, field: 'traineeQuery', items: matches(), key: (ch) => ch.cardId, action: 'pick-trainee',
+    id: 'trainee-search', label: COPY.trainee.searchLabel, placeholder: COPY.trainee.placeholder, field: 'traineeQuery', items: matches(), key: (ch) => ch.cardId, action: 'pick-trainee',
     row: (ch) => html`<img src="${charImg(ch)}" alt="" class="thumb thumb-sm" />${ch.name}<span class="suggest-r">${ch.title}</span>`,
     pick: (ch) => pickTrainee(ch.cardId),
   })}

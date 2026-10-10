@@ -7,11 +7,13 @@ import type { RunPlan } from '../model/run.ts';
 import { COPY } from './copy.ts';
 import { refresh, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
-import { options, numbered, selectValue, inputValue, inputNumber, isChecked, type Option } from './form.ts';
-export { options, numbered, selectValue, inputValue, inputNumber, isChecked, type Option };
+import { options, numbered, selectValue, inputValue, inputNumber, isChecked, isComposing, type Option } from './form.ts';
+export { options, numbered, selectValue, inputValue, inputNumber, isChecked, isComposing, type Option };
 
 export interface SearchBox<T> {
   id: string;
+  /** The input's accessible name; the placeholder disappears once the user types. */
+  label: string;
   placeholder: string;
   /** Which view field holds the query; the smoke test reads it from data-input. */
   field: SearchField;
@@ -45,7 +47,8 @@ function revealSuggestion(listId: string) {
 
 /**
  * A search input with a suggestion list under it. Arrow keys move the highlight, Enter picks the highlighted item
- * (or the first match), Escape clears the query, and a click outside the box closes it.
+ * (or the first match), Escape clears the query, and a click outside the box closes it. Keys that belong to text an
+ * input method is composing are left to it.
  */
 export function searchBox<T>(box: SearchBox<T>) {
   const query = view[box.field];
@@ -63,7 +66,7 @@ export function searchBox<T>(box: SearchBox<T>) {
   const setQuery = (q: string) => { view[box.field] = q; view.activeSearch = box.field; setIndex(-1); refresh(); revealSuggestion(listId); };
   const choose = (item: T) => { setIndex(-1); view.activeSearch = null; box.pick(item); };
   const onKey = (e: KeyboardEvent) => {
-    if (!open) return;
+    if (!open || isComposing(e)) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       const n = box.items.length;
@@ -80,7 +83,7 @@ export function searchBox<T>(box: SearchBox<T>) {
     }
   };
   return html`<div class="suggest" data-suggest=${box.id}>
-    <input id=${box.id} type="search" role="combobox" placeholder=${box.placeholder} .value=${live(query)} data-input=${box.field} class="wide" autocomplete="off"
+    <input id=${box.id} type="search" role="combobox" aria-label=${box.label} placeholder=${box.placeholder} .value=${live(query)} data-input=${box.field} class="wide" autocomplete="off"
       aria-autocomplete="list" aria-expanded=${open} aria-controls=${listId} aria-activedescendant=${open && index >= 0 ? `${listId}-${index}` : ''}
       @focus=${focus} @input=${(e: Event) => setQuery(inputValue(e))} @keydown=${onKey} />
     ${open ? html`<ul id=${listId} role="listbox">${box.items.map((item, i) => html`<li id=${`${listId}-${i}`} role="option" aria-selected=${i === index} class=${i === index ? 'active' : ''} data-action=${box.action} data-id=${box.key(item)} @mousedown=${(e: Event) => e.preventDefault()} @click=${() => choose(item)}>${box.row(item)}</li>`)}</ul>` : nothing}

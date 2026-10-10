@@ -127,7 +127,7 @@ function editor(c: RunPlan, t: Target) {
 function search(role: Role) {
   const field = QUERY_FIELD[role];
   return searchBox<Skill>({
-    id: `target-search-${role}`, placeholder: COPY.targets.placeholder[role], field, items: matchTargets(view[field]), key: (s) => s.id, action: 'add-target',
+    id: `target-search-${role}`, label: COPY.targets.searchLabel[role], placeholder: COPY.targets.placeholder[role], field, items: matchTargets(view[field]), key: (s) => s.id, action: 'add-target',
     row: (s) => { const fam = resolveTarget(s.id, data); return html`<img src="${skillIcon(s)}" alt="" />${s.name}<span class="suggest-r">${s.rarity === 2 ? 'gold' : 'white'}${fam?.gold && s.rarity === 1 ? ` · gold: ${fam.gold.name}` : ''}</span>`; },
     pick: (s) => addTarget(s.id, role),
   });
