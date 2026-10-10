@@ -1,5 +1,5 @@
 // Every card scored against the targets, with the limit-break dropdowns that make up the inventory.
-import { html, nothing, type TemplateResult } from 'lit-html';
+import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { STATS } from '../../types.ts';
@@ -74,11 +74,12 @@ export function renderRanking(c: RunPlan) {
   const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
   const rows = rankingRows(c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)), store.run.pinnedIds, deckOrder(c), (a, b) =>
     fn ? fn(b) - fn(a) : compareTargetChances(chances.get(a.card.id)!, chances.get(b.card.id)!));
-  const th = (k: string, label: string | TemplateResult, cls = 'num') => html`<th class="${cls} sortable" data-sort="${k}" aria-sort=${sortKey === k ? 'descending' : 'none'} @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${sortKey === k ? ' ▾' : ''}</th>`;
+  // A native button makes each header sortable from the keyboard; the info tip stays beside it, outside the button.
+  const th = (k: string, label: string, help?: string, cls = 'num') => html`<th class=${cls} aria-sort=${sortKey === k ? 'descending' : 'none'}><button type="button" class="sort-button" data-sort="${k}" @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${sortKey === k ? html`<span aria-hidden="true"> ▾</span>` : nothing}</button>${help ? tip(help) : nothing}</th>`;
   const totalTip = `What the card adds to the final stats at ${c.ctx.races} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. Target spark sorting uses Total when Required and Preferred chances both tie.`;
   const actions = html`<label class="row"><span class="row-k">${COPY.ranking.showUnowned}</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.ui.showUnowned)} @change=${(e: Event) => update((s) => { s.ui.showUnowned = isChecked(e); })} /></label>`;
   return panel({ title: COPY.ranking.title, kind: 'result', subtitle: `${rows.length} cards · ${COPY.ranking.sortHint}`, tip: COPY.ranking.tip, actions, cls: 'panel-live' }, html`
-    <div class="scroll"><table class="ranking-table"><thead><tr><th></th><th>${COPY.ranking.columns.card}</th><th>${COPY.ranking.columns.lb}</th>${th('score', html`${COPY.ranking.columns.targets}${tip(COPY.ranking.targetTip)}`, '')}${STATS.map((s) => th(s, s))}${th('stats', html`${COPY.ranking.columns.total}${tip(totalTip)}`)}${th('sp', COPY.ranking.columns.sp)}<th>${COPY.ranking.columns.basis}${tip(COPY.ranking.basisTip(data.model.races.reference, c.ctx.races))}</th></tr></thead><tbody>
+    <div class="scroll"><table class="ranking-table"><thead><tr><th></th><th>${COPY.ranking.columns.card}</th><th>${COPY.ranking.columns.lb}</th>${th('score', COPY.ranking.columns.targets, COPY.ranking.targetTip, '')}${STATS.map((s) => th(s, s))}${th('stats', COPY.ranking.columns.total, totalTip)}${th('sp', COPY.ranking.columns.sp)}<th>${COPY.ranking.columns.basis}${tip(COPY.ranking.basisTip(data.model.races.reference, c.ctx.races))}</th></tr></thead><tbody>
       ${repeat(rows, (x) => x.card.id, (x) => row(c, x, chances.get(x.card.id)!.targets, focusMul))}
     </tbody></table></div>
     ${about(COPY.ranking.aboutTitle, COPY.ranking.about)}`);

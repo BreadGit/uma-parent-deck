@@ -329,6 +329,23 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await assertFieldsMatchState(page, 'after composition keys in search boxes');
   });
 
+  test('ranking headers sort from the keyboard and keep focus', async (t) => {
+    const page = await editor(t);
+    const sorts = page.locator('.ranking-table th button[data-sort]');
+    assert.equal(await sorts.count(), 8);
+    assert.ok((await sorts.evaluateAll((buttons) => buttons.map((b) => b.tabIndex))).every((i) => i === 0));
+    assert.equal(await page.locator('[data-sort="score"] .tip').count(), 0, 'the help icon is not nested in the button');
+    await page.focus('[data-sort="speed"]');
+    await page.keyboard.press('Enter');
+    assert.equal((await state(page)).ui.sortKey, 'speed');
+    assert.equal(await page.locator('th:has([data-sort="speed"])').getAttribute('aria-sort'), 'descending');
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-sort')), 'speed', 'focus stays on the header');
+    await page.focus('[data-sort="sp"]');
+    await page.keyboard.press('Space');
+    assert.equal((await state(page)).ui.sortKey, 'sp');
+    await assertFieldsMatchState(page, 'after sorting from the keyboard');
+  });
+
   test('touch help icons stay pinned without activating labels or disclosures', async (t) => {
     const page = await fresh(t, undefined, { held: true, touch: true });
     await page.setViewportSize({ width: 390, height: 844 });

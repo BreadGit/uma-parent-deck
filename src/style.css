@@ -177,8 +177,9 @@ th, td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: lef
 th { color: var(--muted); font-weight: 600; font-size: var(--fs-sm); background: var(--panel); }
 /* only the scrolling ranking table keeps its header in view; a sticky header on an in-flow table would float over the page */
 .scroll th { position: sticky; top: 0; z-index: 2; }
-th.sortable { cursor: pointer; }
-th.sortable:hover { color: var(--text); }
+/* the sort control is a native button that reads as the header text */
+th .sort-button { padding: 0; border: none; border-radius: 0; background: none; color: inherit; font-weight: inherit; text-align: inherit; }
+th .sort-button:hover { color: var(--text); }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tr.dim { color: var(--muted); }
 tr.dim img { opacity: .5; }

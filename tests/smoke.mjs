@@ -141,10 +141,10 @@ const assertOrdering = async (where) => {
 };
 await assertOrdering('after pinning by search');
 assert.deepEqual((await deckIds()).slice(0, 2), [30052, 30028], 'Light Hello was pinned first, Kitasan second');
-await page.click('th[data-sort="sp"]');
+await page.click('[data-sort="sp"]');
 await savedState('st.ui.sortKey === "sp"');
 await assertOrdering('sorted by SP');
-await page.click('th[data-sort="score"]');
+await page.click('[data-sort="score"]');
 await savedState('st.ui.sortKey === "score"');
 // The deck slot's button unpins too.
 await deckPin.click();
