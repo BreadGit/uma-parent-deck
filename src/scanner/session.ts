@@ -32,9 +32,9 @@ export interface ScannerHost {
   /** Set on the standalone page: where the planner lives, for the import instructions. */
   plannerUrl?: string;
 }
+/** Lives as long as its page: both hosts keep the session, so closing the planner's sheet keeps the review. */
 export interface Scanner {
   render(): TemplateResult;
-  dispose(): void;
 }
 
 /**
@@ -81,7 +81,7 @@ export function createScanner(host: ScannerHost): Scanner {
   /** The one tile expanded into an editor: `c<cardId>` for a read card, `r<rowKey>` for an excluded row, `u<cardId>` for an unseen card. */
   let openKey: string | null = null;
   let nextKey = 1;
-  /** Aborted by Stop, New inventory and disposal: the batch being read stops where it is. */
+  /** Aborted by Stop and New inventory: the batch being read stops where it is. */
   let batch: AbortController | null = null;
 
   // One worker keeps the loaded references and matching templates between batches. The decoded references move to
@@ -180,7 +180,7 @@ export function createScanner(host: ScannerHost): Scanner {
         paint();
       }
     } catch (e) {
-      // Stop, New inventory and disposal settle the batch themselves.
+      // Stop and New inventory settle the batch themselves.
       if (signal.aborted) return;
       if (!(e instanceof WorkerFailure)) console.error(e);
       error = loading ? C.referencesFailed : C.scannerFailed(e instanceof Error ? e.message : String(e));
@@ -477,9 +477,5 @@ export function createScanner(host: ScannerHost): Scanner {
     const t = triage(rows, cards, result);
     return html`<div class="scan-flow">${uploadStep()}${reviewStep(result, t)}${finishStep(result, t)}${actionBar(result, t)}</div>`;
   }
-  function dispose() {
-    batch?.abort(); worker?.terminate(); worker = null;
-    for (const source of sources) if (source.image) URL.revokeObjectURL(source.image);
-  }
-  return { render, dispose };
+  return { render };
 }
