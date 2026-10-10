@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
-import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, storedIfChanged, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
+import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, storedIfChanged, uncopiedUnreadable, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
 
 test('storage failures preserve in-memory edits and an existing save, then recover', () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
@@ -41,12 +41,15 @@ test('storage failures preserve in-memory edits and an existing save, then recov
   }
 });
 
-/** A Map-backed localStorage for one test. */
-function withStorage(saved: Map<string, string>, run: () => void) {
+/** A Map-backed localStorage for one test; `full` rejects writes to new keys, as a browser out of quota would. */
+function withStorage(saved: Map<string, string>, run: () => void, full = false) {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
     getItem: (key: string) => saved.get(key) ?? null,
-    setItem: (key: string, value: string) => { saved.set(key, value); },
+    setItem: (key: string, value: string) => {
+      if (full && !saved.has(key)) throw new DOMException('Full', 'QuotaExceededError');
+      saved.set(key, value);
+    },
     removeItem: (key: string) => { saved.delete(key); },
   } });
   try { run(); } finally {
@@ -81,6 +84,25 @@ test('an unreadable save is copied aside before an edit replaces it, and the cop
   });
 });
 
+test('an unreadable save without room for a copy stays in place until the user replaces it', () => {
+  const data = loadData(), unreadable = '{invalid: audit probe';
+  const saved = new Map([[STATE_KEY, unreadable]]);
+  withStorage(saved, () => {
+    const loaded = loadState(data, {});
+    assert.equal(saved.has(UNREADABLE_KEY), false, 'there is no room for the copy');
+    assert.equal(uncopiedUnreadable, unreadable);
+    assert.equal(unreadableSave(), unreadable, 'the original is still offered as a download');
+    loaded.ui.theme = 'dark';
+    assert.equal(saveState(loaded), false);
+    assert.equal(saved.get(STATE_KEY), unreadable, 'an ordinary edit does not overwrite the only copy');
+    assert.equal(storageUnavailable, false, 'a kept unreadable save is not reported as unavailable storage');
+    removeUnreadableSave();
+    assert.equal(unreadableSave(), null);
+    assert.equal(saveState(loaded), true, 'replacing it lets the page save again');
+    assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
+  }, true);
+});
+
 test('a save from a newer version is read but never replaced until the user chooses to', () => {
   const data = loadData();
   const future = { ...defaultState(data), version: STATE_VERSION + 1, futureField: 1 };
@@ -100,6 +122,23 @@ test('a save from a newer version is read but never replaced until the user choo
     assert.equal(newerSave, false);
     assert.equal(JSON.parse(saved.get(STATE_KEY)!).version, STATE_VERSION);
     assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
+  });
+});
+
+test('a page blocked by a newer save saves again once another tab replaces it with a supported save', () => {
+  const data = loadData();
+  const future = { ...defaultState(data), version: STATE_VERSION + 1 };
+  const saved = new Map([[STATE_KEY, JSON.stringify(future)]]);
+  withStorage(saved, () => {
+    const page = loadState(data, {});
+    assert.equal(newerSave, true);
+    const other = defaultState(data);
+    other.settings.focus = 'balanced';
+    saved.set(STATE_KEY, JSON.stringify(other));
+    assert.equal(storedIfChanged(data)?.settings.focus, 'balanced');
+    assert.equal(newerSave, false);
+    page.ui.sortKey = 'speed';
+    assert.equal(saveState(page), true);
   });
 });
 

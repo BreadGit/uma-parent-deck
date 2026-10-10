@@ -211,14 +211,20 @@ const readStored = (key: string): string | null => {
 const parseJson = (raw: string | null): unknown => { try { return raw ? JSON.parse(raw) : undefined; } catch { return undefined; } };
 const readJson = (key: string): unknown => parseJson(readStored(key));
 
+/**
+ * An unreadable save that could not be copied aside because storage is read-only or full. The original is then the
+ * only copy, so nothing is written over it until the user removes it.
+ */
+export let uncopiedUnreadable: string | null = null;
 /** Keep the only copy of an unreadable save; an earlier copy the user has not removed yet is never replaced. */
 function keepUnreadable(raw: string) {
   try { if (localStorage.getItem(UNREADABLE_KEY) === null) localStorage.setItem(UNREADABLE_KEY, raw); }
-  catch { /* storage is read-only or full: the original save is still in place until an edit succeeds */ }
+  catch { uncopiedUnreadable = raw; }
 }
-/** The copy of a save that could not be read, for the notice that offers it as a download. */
-export const unreadableSave = (): string | null => readStored(UNREADABLE_KEY);
+/** The save that could not be read, for the notice that offers it as a download. */
+export const unreadableSave = (): string | null => uncopiedUnreadable ?? readStored(UNREADABLE_KEY);
 export function removeUnreadableSave() {
+  uncopiedUnreadable = null;
   try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
 }
 
@@ -244,7 +250,7 @@ export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   return state;
 }
 export function saveState(state: AppState) {
-  if (newerSave) return false;
+  if (newerSave || uncopiedUnreadable !== null) return false;
   const serialized = JSON.stringify(state);
   try {
     localStorage.setItem(STATE_KEY, serialized);
@@ -260,7 +266,8 @@ export function saveState(state: AppState) {
 /**
  * The save another tab wrote since this page last read or wrote one, or null. Its storage event can arrive late, or
  * never reach a page restored from the back-forward cache, so an edit checks here before writing the whole state.
- * A save from a newer version of the app is not taken over: it sets `newerSave` instead.
+ * A save from a newer version of the app is not taken over: it sets `newerSave` instead, until another tab replaces it
+ * with a save this version reads.
  */
 export function storedIfChanged(data: Data): AppState | null {
   const raw = readStored(STATE_KEY);
@@ -269,6 +276,7 @@ export function storedIfChanged(data: Data): AppState | null {
   if (!isSave(current)) return null;
   lastRaw = raw;
   if (current.version > STATE_VERSION) { newerSave = true; return null; }
+  newerSave = false;
   return migrate({ current }, data);
 }
 
