@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
-import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
+import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, storedIfChanged, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
 
 test('storage failures preserve in-memory edits and an existing save, then recover', () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
@@ -100,5 +100,27 @@ test('a save from a newer version is read but never replaced until the user choo
     assert.equal(newerSave, false);
     assert.equal(JSON.parse(saved.get(STATE_KEY)!).version, STATE_VERSION);
     assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
+  });
+});
+
+test('a save another tab wrote is found before this page writes, even without its storage event', () => {
+  const data = loadData();
+  const saved = new Map([[STATE_KEY, JSON.stringify(defaultState(data))]]);
+  withStorage(saved, () => {
+    const page = loadState(data, {});
+    assert.equal(storedIfChanged(data), null, 'nothing changed since loading');
+    const other = defaultState(data);
+    other.settings.focus = 'balanced';
+    saved.set(STATE_KEY, JSON.stringify(other));
+    const latest = storedIfChanged(data);
+    assert.equal(latest?.settings.focus, 'balanced');
+    assert.equal(storedIfChanged(data), null, 'a save is taken over once');
+    page.ui.sortKey = 'speed';
+    assert.equal(saveState(page), true);
+    assert.equal(storedIfChanged(data), null, "this page's own write is not another tab's change");
+    const recommendation = { build: 'x', key: 'k', selection: [], summary: {} } as unknown as Parameters<typeof saveRecommendation>[1];
+    saved.set(STATE_KEY, JSON.stringify(other));
+    saveRecommendation(page, recommendation);
+    assert.equal(JSON.parse(saved.get(STATE_KEY)!).settings.focus, 'balanced', 'the optional cache does not overwrite a save not taken over yet');
   });
 });

@@ -5,7 +5,7 @@ import type { TemplateResult } from 'lit-html';
 import { BUILD_VERSION } from 'virtual:build-version';
 import { planningKey } from '../recommendation.ts';
 import { loadData } from '../data.ts';
-import { loadState, saveState, saveRecommendation, watchSavedState, type AppState } from '../state.ts';
+import { loadState, saveState, saveRecommendation, storedIfChanged, watchSavedState, type AppState } from '../state.ts';
 import { planRun, isLegalRunSelection, type RunPlan, type DeckSelection } from '../model/run.ts';
 import type { PlanWorkerRequest, PlanWorkerResponse } from './plan-worker.ts';
 import defaultInventory from '../../inventory.json' with { type: 'json' };
@@ -92,11 +92,20 @@ let updated: () => void = () => {};
 export function onRender(fn: () => void) { renderer = fn; }
 /** Observe successful user edits, excluding recommendation-cache writes and view-only changes. */
 export function onUpdate(fn: () => void) { updated = fn; }
-watchSavedState(data, (saved) => {
+/** Take over a save another tab wrote. The caller re-renders. */
+function adopt(saved: AppState) {
   delete store.recommendation;
   Object.assign(store, saved);
   stateRevision++;
   inputKey = planningKey(store.run, store.settings, store.inventory);
+}
+/** Take over the latest save before writing the whole state, so another tab's change is not lost. */
+function adoptLatest() {
+  const latest = storedIfChanged(data);
+  if (latest) adopt(latest);
+}
+watchSavedState(data, (saved) => {
+  adopt(saved);
   updated();
   renderer();
 }, () => renderer());
@@ -104,6 +113,7 @@ watchSavedState(data, (saved) => {
 export function refresh() { renderer(); }
 /** Apply a change to the persisted state, save it and re-render. */
 export function update(fn: (s: AppState) => void) {
+  adoptLatest();
   fn(store);
   stateRevision++;
   const nextKey = planningKey(store.run, store.settings, store.inventory);
@@ -122,6 +132,7 @@ let worker: Worker | null = null, requestId = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let previous: DeckSelection | undefined;
 export function retrySearch() {
+  adoptLatest();
   delete store.recommendation;
   saveState(store);
   cache = null;

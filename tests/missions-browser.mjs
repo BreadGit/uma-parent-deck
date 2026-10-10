@@ -7,6 +7,13 @@ export async function checkMissions(page, url, overflowReport) {
   const read = () => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
   const previous = await read();
   await page.addInitScript(() => { Date.now = () => new Date('2026-10-04T12:00:00Z').getTime(); });
+  // Lets a check hold storage events back, as a frozen tab would, by setting window.holdStorageEvents.
+  await page.addInitScript(() => {
+    const add = window.addEventListener;
+    window.addEventListener = function (type, listener, options) {
+      return add.call(this, type, type === 'storage' ? (event) => { if (!window.holdStorageEvents) listener(event); } : listener, options);
+    };
+  });
   await page.goto(new URL('missions.html', url).href);
   await page.waitForSelector('[data-mission-event="201"]');
   assert.equal(await page.locator('[data-mission-event="201"]').isChecked(), true);
@@ -67,6 +74,18 @@ export async function checkMissions(page, url, overflowReport) {
   await assertFieldsMatchState(page, 'after another tab changes mission progress');
   await page.locator('[data-mission-event="206"]').click();
   assert.ok(!(await read()).missions.completedCustomRaceIds.includes(1011), 'the next edit does not overwrite progress from another tab');
+  // A frozen or restored tab can miss the storage event. Its next edit still starts from the latest save.
+  await page.evaluate(() => { window.holdStorageEvents = true; });
+  await otherTab.locator('[data-custom-race-complete="1011"]').check();
+  await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).missions.completedCustomRaceIds.includes(1011), STATE_KEY);
+  assert.equal(await page.locator('[data-custom-race-complete="1011"]').isChecked(), false, 'the event was not delivered');
+  const selected = (await read()).missions.eventIds;
+  await page.locator('[data-mission-event="206"]').click();
+  const merged = (await read()).missions;
+  assert.ok(merged.completedCustomRaceIds.includes(1011), 'an edit after a missed storage event keeps the other tab\'s change');
+  assert.notDeepEqual(merged.eventIds, selected, 'and applies its own');
+  await assertFieldsMatchState(page, 'after an edit that took over a missed change from another tab');
+  await page.evaluate(() => { window.holdStorageEvents = false; });
   await otherTab.close();
   for (const scheme of ['light', 'dark']) {
     await page.locator(`[data-theme-pick="${scheme}"]`).click();

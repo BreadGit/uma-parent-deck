@@ -222,12 +222,15 @@ export function removeUnreadableSave() {
   try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
 }
 
+/** The save as this page last read or wrote it. A write from another tab since then makes the stored text differ. */
+let lastRaw: string | null = null;
+
 /**
  * Load from localStorage, migrating older keys on the way. `fallbackInventory` is the repo's inventory.json, the
  * starting inventory of a fresh browser; a browser whose save could not be read is not fresh and does not get it.
  */
 export function loadState(data: Data, fallbackInventory: Inventory): AppState {
-  const raw = readStored(STATE_KEY);
+  const raw = lastRaw = readStored(STATE_KEY);
   const current = parseJson(raw);
   if (raw !== null && !isSave(current)) keepUnreadable(raw);
   if (isSave(current) && current.version > STATE_VERSION) newerSave = true;
@@ -245,6 +248,7 @@ export function saveState(state: AppState) {
   const serialized = JSON.stringify(state);
   try {
     localStorage.setItem(STATE_KEY, serialized);
+    lastRaw = serialized;
     storageUnavailable = false;
     return true;
   } catch {
@@ -254,17 +258,33 @@ export function saveState(state: AppState) {
 }
 
 /**
- * Keep open planner and mission tabs from overwriting each other's newer choices. A save from a newer version of the
- * app is not taken over; `blocked` reports that this page stopped saving.
+ * The save another tab wrote since this page last read or wrote one, or null. Its storage event can arrive late, or
+ * never reach a page restored from the back-forward cache, so an edit checks here before writing the whole state.
+ * A save from a newer version of the app is not taken over: it sets `newerSave` instead.
+ */
+export function storedIfChanged(data: Data): AppState | null {
+  const raw = readStored(STATE_KEY);
+  if (raw === null || raw === lastRaw) return null;
+  const current = parseJson(raw);
+  if (!isSave(current)) return null;
+  lastRaw = raw;
+  if (current.version > STATE_VERSION) { newerSave = true; return null; }
+  return migrate({ current }, data);
+}
+
+/**
+ * Keep open planner and mission tabs from overwriting each other's newer choices. `accept` takes over another tab's
+ * save; `blocked` reports that this page stopped saving because the save came from a newer version.
  */
 export function watchSavedState(data: Data, accept: (state: AppState) => void, blocked: () => void) {
-  window.addEventListener('storage', (event) => {
-    if (event.key !== STATE_KEY || event.newValue === null) return;
-    const current = parseJson(event.newValue);
-    if (!isSave(current)) return;
-    if (current.version > STATE_VERSION) { newerSave = true; blocked(); return; }
-    accept(migrate({ current }, data));
-  });
+  const check = () => {
+    const wasNewer = newerSave;
+    const saved = storedIfChanged(data);
+    if (saved) accept(saved);
+    else if (newerSave && !wasNewer) blocked();
+  };
+  window.addEventListener('storage', (event) => { if (event.key === STATE_KEY) check(); });
+  window.addEventListener('pageshow', (event) => { if (event.persisted) check(); });
 }
 
 /** Replace only the shared inputs. Imported IDs stay intact even when today's data cannot resolve them. */
@@ -288,6 +308,8 @@ export function resetRun(state: AppState, data: Data): AppState {
 /** Optional cached results must not prevent the current recommendation from appearing if storage is full. */
 export function saveRecommendation(state: AppState, recommendation: SavedRecommendation) {
   state.recommendation = recommendation;
+  // The cache is optional: it never writes the whole state over a save from another tab that this page has not taken over.
+  if (readStored(STATE_KEY) !== lastRaw) return;
   if (!saveState(state)) {
     delete state.recommendation;
     // A large optional cache must not prevent saving the user's smaller choices.
