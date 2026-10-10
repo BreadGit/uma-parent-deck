@@ -1,5 +1,5 @@
 import type { Focus } from './types.ts';
-import { OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
+import { isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
 
 export interface Settings {
   goalTieTolerance: number;     // relative required-goal window in which preferred extras can decide
@@ -152,7 +152,7 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
       && (spec.sum === undefined || Math.abs(value.reduce((sum, p) => sum + p, 0) - spec.sum) < 1e-9);
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
     case 'boolean': return typeof value === 'boolean';
-    case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => inRange((value as Record<string, unknown>)[r], 0, 4));
+    case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => isLimitBreak((value as Record<string, unknown>)[r]));
   }
 }
 

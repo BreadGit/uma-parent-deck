@@ -188,3 +188,9 @@ test('current saves keep trainee star choices when current data has a higher rar
   saved.run.traineeStars = 1;
   assert.deepEqual(migrate({ current: saved }, data), saved);
 });
+
+test('setting specs: a default limit break must be a whole LB from 0 to 4', () => {
+  assert.deepEqual(sanitizeSettings({ defaultLb: { R: 1.5, SR: 4, SSR: 4 } }).defaultLb, DEFAULT_SETTINGS.defaultLb, 'a fractional LB indexes no effect table');
+  assert.deepEqual(sanitizeSettings({ defaultLb: { R: 0, SR: 2, SSR: 5 } }).defaultLb, DEFAULT_SETTINGS.defaultLb);
+  assert.deepEqual(sanitizeSettings({ defaultLb: { R: 0, SR: 2, SSR: 3 } }).defaultLb, { R: 0, SR: 2, SSR: 3 });
+});

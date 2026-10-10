@@ -2,6 +2,7 @@ import { isPlainObject, type Inventory } from './types.ts';
 import type { Settings } from './settings.ts';
 import type { DeckSelection, GoalSearchSummary, RunInput } from './model/run.ts';
 import type { GoalScore } from './model/goal-objective.ts';
+import { isLimitBreak } from './model/rules.ts';
 
 export interface SavedRecommendation {
   build: string;
@@ -33,7 +34,7 @@ const score = (v: unknown): v is GoalScore => isPlainObject(v)
 export function parseRecommendation(raw: unknown): SavedRecommendation | undefined {
   if (!isPlainObject(raw) || typeof raw.build !== 'string' || typeof raw.key !== 'string') return;
   if (!Array.isArray(raw.selection) || !raw.selection.every((e) => isPlainObject(e) && integer(e.id)
-    && integer(e.lb) && e.lb <= 4 && (e.borrowed === undefined || typeof e.borrowed === 'boolean'))) return;
+    && isLimitBreak(e.lb) && (e.borrowed === undefined || typeof e.borrowed === 'boolean'))) return;
   const summary = raw.summary;
   if (!isPlainObject(summary) || !score(summary.score) || !integer(summary.evaluated) || !integer(summary.screened)
     || typeof summary.exhaustive !== 'boolean' || !ids(summary.unavailableWhiteIds)) return;

@@ -1,6 +1,6 @@
 import effectsJson from '../../data/effects.json' with { type: 'json' };
 import { STATS, type Card, type StatModel, type UniqueEffect } from '../types.ts';
-import { FACILITY_LEVEL_MAX, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP } from './rules.ts';
+import { FACILITY_LEVEL_MAX, MAX_LB, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP } from './rules.ts';
 
 export const EFFECT = {
   friendship: 1, mood: 2, statBonus: 3, trainingEff: 8, initialStat: 9, initialGauge: 14,
@@ -31,7 +31,7 @@ export const spModelFor = (card: Card, model: StatModel): StatModel['sp'] =>
 /** Ordinary unique effects have already been folded into the values for each limit break. */
 export function passives(card: Card, lb: number, extra: Record<number, number> = {}): Record<number, number> {
   const out: Record<number, number> = {};
-  for (const [key, value] of Object.entries(card.effectsByLb[Math.max(0, Math.min(4, lb))] ?? {})) {
+  for (const [key, value] of Object.entries(card.effectsByLb[Math.max(0, Math.min(MAX_LB, lb))] ?? {})) {
     const id = Number(key.replace('u', ''));
     out[id] = (out[id] ?? 0) + value;
   }
