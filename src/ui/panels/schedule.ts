@@ -7,7 +7,7 @@ import { buildSchedule, goalRaces, slotOf, type ScheduledRace } from '../../mode
 import { racePopularityMap } from '../../model/run.ts';
 import { data, plan, refresh, store, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
-import { options, selectValue } from '../fields.ts';
+import { isOpen, options, selectValue } from '../fields.ts';
 import { int, num, pct } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
@@ -65,7 +65,7 @@ export function renderSchedule(c: RunPlan) {
   const actions = overridden ? html`<button class="small" data-action="reset-races" data-tip=${COPY.agenda.resetTip} @click=${() => update((s) => { s.run.raceOverrides = {}; })}>${COPY.agenda.reset}</button>` : nothing;
   return panel({ title: COPY.agenda.title, kind: 'result', subtitle, tip: COPY.agenda.tip, actions }, html`
     <p class="muted" data-fan-estimate>Fans at run completion: ${int(c.fans.calendar)} from the agenda + ${int(c.fans.finale)} from finales + ${int(c.fans.concerts)} from concerts.${tip(COPY.agenda.fansTip(c.fans.bonus))}</p>
-    <details data-agenda ?open=${view.showAgenda} @toggle=${(e: Event) => { view.showAgenda = (e.target as HTMLDetailsElement).open; refresh(); }}>
+    <details data-agenda ?open=${view.showAgenda} @toggle=${(e: Event) => { view.showAgenda = isOpen(e); refresh(); }}>
       <summary>${COPY.agenda.open}</summary>
       ${agendaGrid((slot) => cell(slot, bySlot.get(slot) ?? []))}
     </details>

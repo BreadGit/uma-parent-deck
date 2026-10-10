@@ -13,7 +13,7 @@ import { UMA_LABELS } from '../../model/inherit.ts';
 import { LINEAGE_SLOTS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
-import { inputNumber, numbered, options, searchBox, selectValue } from '../fields.ts';
+import { inputNumber, isOpen, numbered, options, searchBox, selectValue } from '../fields.ts';
 import { probability, skillIcon } from '../format.ts';
 import { tip } from '../tooltip.ts';
 
@@ -143,7 +143,7 @@ function group(c: RunPlan, role: Role) {
   const stored = view.targetGroupsOpen[role];
   const holdsSelected = targets.some(isSelected);
   const onToggle = (e: Event) => {
-    const open = (e.target as HTMLDetailsElement).open;
+    const open = isOpen(e);
     if (open === stored) return;
     if (!open && holdsSelected) view.targetEditorId = null;
     view.targetGroupsOpen = { ...view.targetGroupsOpen, [role]: open };

@@ -5,6 +5,7 @@ import { html, nothing } from 'lit-html';
 import type { RunPlan } from '../../model/run.ts';
 import { refresh, view } from '../context.ts';
 import { COPY } from '../copy.ts';
+import { isOpen } from '../fields.ts';
 import { panel, sub } from '../panel.ts';
 import { coverageTable } from './coverage.ts';
 import { deckBuild } from './deck.ts';
@@ -22,7 +23,7 @@ function sections(c: RunPlan, complete: boolean) {
 export function renderPredictionDetails(c: RunPlan) {
   const complete = !c.issues.length;
   return panel({ title: COPY.details.title, kind: 'result', subtitle: COPY.details.sections(complete), tip: COPY.details.tip }, html`
-    <details class="explore" data-prediction-details ?open=${view.showDetails} @toggle=${(e: Event) => { view.showDetails = (e.target as HTMLDetailsElement).open; refresh(); }}>
+    <details class="explore" data-prediction-details ?open=${view.showDetails} @toggle=${(e: Event) => { view.showDetails = isOpen(e); refresh(); }}>
       <summary>${COPY.details.explore}</summary>
       ${view.showDetails ? sections(c, complete) : nothing}
     </details>`);

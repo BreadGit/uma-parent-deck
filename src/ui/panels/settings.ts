@@ -10,7 +10,7 @@ import { setSetting } from '../actions.ts';
 import { COPY, SCANNER_COPY } from '../copy.ts';
 import { openScanner } from './scanner.ts';
 import { confirmDialog, notice } from '../dialog.ts';
-import { inputValue } from '../fields.ts';
+import { chosenFiles, clearFiles, inputValue, isOpen } from '../fields.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
@@ -34,12 +34,11 @@ function field(f: SettingField) {
 }
 
 async function onImport(e: Event) {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
+  const [file] = chosenFiles(e);
+  clearFiles(e); // so importing the same file again fires change
   if (!file) return;
   try { const inv = await importInventory(file); update((s) => { s.inventory = inv; }); }
   catch (err) { await notice(COPY.settings.importFailed(err instanceof Error ? err.message : String(err))); }
-  input.value = ''; // so importing the same file again fires change
 }
 async function resetInventory() {
   if (await confirmDialog(COPY.settings.resetInventoryConfirm, COPY.settings.reset)) update((s) => { s.inventory = {}; });
@@ -63,7 +62,7 @@ export function renderInventory() {
 
 export function renderSettings() {
   return panel({ title: COPY.settings.title }, html`
-    <details ?open=${view.showAdvanced} data-details="advanced" @toggle=${(e: Event) => { view.showAdvanced = (e.target as HTMLDetailsElement).open; refresh(); }}>
+    <details ?open=${view.showAdvanced} data-details="advanced" @toggle=${(e: Event) => { view.showAdvanced = isOpen(e); refresh(); }}>
       <summary>${COPY.settings.advanced}${tip(COPY.settings.advancedTip)}</summary>
       <button class="small gap-top" data-action="export-settings" @click=${() => downloadText('settings.json', JSON.stringify(store.settings, null, 2) + '\n', 'application/json')}>${COPY.settings.exportSettings}</button>
       ${ADVANCED_SETTING_GROUPS.map((g) => html`<h3>${g.title}</h3><div class="settings-grid">${g.fields.map(field)}</div>`)}
