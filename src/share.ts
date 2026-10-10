@@ -201,8 +201,23 @@ export async function decodeShare(code: string): Promise<SharedChoices> {
   } catch (error) { throw error instanceof ShareCodeError ? error : new ShareCodeError(); }
 }
 
+// A code lives in the URL fragment as `run=<code>`, beside any other fragment text. Browsers never send the fragment to
+// the server, so reloading or opening a link does not put the user's choices in a request. Links made before the
+// fragment format carry the code in the `run` query parameter; they still load, and the next write moves the code.
+const RUN = 'run=';
+const fragmentParts = (url: URL) => url.hash.slice(1).split('&').filter((part) => part !== '');
+
+/** The address with this share code, or with none; other query parameters and fragment text are kept. */
 export function shareUrl(href: string, code: string | null): string {
   const url = new URL(href);
-  if (code === null) url.searchParams.delete('run'); else url.searchParams.set('run', code);
+  url.searchParams.delete('run');
+  const parts = fragmentParts(url).filter((part) => !part.startsWith(RUN));
+  if (code !== null) parts.push(RUN + code);
+  url.hash = parts.join('&');
   return url.href;
+}
+/** The share code an address carries: in the fragment, or in the query of an older link. */
+export function shareCode(href: string): string | null {
+  const url = new URL(href);
+  return fragmentParts(url).find((part) => part.startsWith(RUN))?.slice(RUN.length) ?? url.searchParams.get('run');
 }

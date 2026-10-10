@@ -6,7 +6,10 @@ aptitude and white skill sparks) and what you know about her lineage. The tool s
 inventory for the deck most likely to produce that parent and predicts the run: stats, rank, G1
 schedule, skill points and the skills to prioritize.
 
-Saved choices, inventory and settings stay in the browser. Nothing is sent to a server.
+Saved choices, inventory and settings stay in the browser, and screenshots are read on your device.
+The page address carries a share code of your run choices (not your inventory or advanced settings)
+in its fragment, which browsers do not send to the server. Older links with the code in the query
+send it when opened.
 
 ## Using the tool
 

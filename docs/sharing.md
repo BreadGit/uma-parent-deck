@@ -14,15 +14,20 @@ state. `src/state.ts` applies a validated snapshot to the existing save. `src/ui
 loading and synchronization through the existing context update hook. Sharing uses the browser
 address bar. `src/ui/app.ts` shows a notice only when saved choices are unavailable in the game data.
 
-An incoming `run` URL parameter loads before the first render. Invalid or unsupported codes do not
+The code sits in the URL fragment as `run=<code>` (`shareUrl` and `shareCode` in `src/share.ts`).
+Browsers do not send the fragment to the server, so reloading the page or opening a link keeps the
+choices out of requests and host logs. Links made before this carry the code in the `run` query
+parameter. They still load, and the first write moves the code into the fragment.
+
+An incoming code loads before the first render. Invalid or unsupported codes do not
 change saved choices. Browser history navigation also loads incoming codes and checks that no
 user edit occurred during decoding. Every history navigation invalidates unfinished imports and URL
 writes for the previous location, including navigation to a URL without a share code.
 The address bar updates with `history.replaceState`, so edits do not add browser-history entries.
 Only shared input changes trigger encoding. Compression is debounced by 300 ms and older asynchronous
-results cannot replace newer snapshots. The app removes an outdated parameter immediately on an edit;
+results cannot replace newer snapshots. The app removes an outdated code immediately on an edit;
 reloading during the debounce therefore reads the latest local save. Reset all cancels pending writes
-and removes the parameter before reloading. Other URL parameters and the fragment are preserved.
+and removes the code before reloading. Other URL parameters and other fragment text are preserved.
 
 ## Format contract
 

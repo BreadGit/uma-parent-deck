@@ -4,7 +4,7 @@ import { loadData } from '../src/data.ts';
 import { importInventory } from '../src/inventory.ts';
 import { planRun } from '../src/model/run.ts';
 import { DEFAULT_SETTINGS, SETTING_SPEC, isValidSetting } from '../src/settings.ts';
-import { decodeShare } from '../src/share.ts';
+import { decodeShare, shareCode } from '../src/share.ts';
 import { isPlainObject } from '../src/types.ts';
 
 const usage = 'node scripts/hint-sensitivity.mjs --run <share URL or code> --inventory <inventory.json> (--settings <settings.json> | --default-settings) [--multipliers 0.5,1,2]';
@@ -25,7 +25,7 @@ try {
   }
   const unknown = Object.keys(snapshot).filter((key) => !Object.hasOwn(DEFAULT_SETTINGS, key));
   if (unknown.length) throw new Error(`Unknown settings: ${unknown.join(', ')}. Export settings again from the app.`);
-  const code = /^https?:\/\//.test(values.run) ? new URL(values.run).searchParams.get('run') : values.run;
+  const code = /^https?:\/\//.test(values.run) ? shareCode(values.run) : values.run;
   if (!code) throw new Error('The URL has no run code.');
   const shared = await decodeShare(code);
   // Match importing a shared run into the app: its focus and win threshold override the device's settings.

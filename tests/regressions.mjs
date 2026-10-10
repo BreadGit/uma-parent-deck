@@ -8,7 +8,7 @@ import { defaultState, STATE_KEY } from '../src/state.ts';
 import { assertFieldsMatchState, BASE_URL as url, launchBrowser, openApp, waitForPlan } from './browser-fields.mjs';
 import { holdSearch } from './browser-search.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
-import { encodeShare, decodeShare, sharedChoices, shareUrl } from '../src/share.ts';
+import { encodeShare, decodeShare, shareCode, sharedChoices, shareUrl } from '../src/share.ts';
 import { planRun } from '../src/model/run.ts';
 
 const data = loadData();
@@ -1753,7 +1753,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
   });
 
   // Share fixtures exercise the same inputs and saved-state boundary as the UI, without importing browser modules.
-  const waitForShare = (page) => page.waitForFunction(() => new URL(location.href).searchParams.has('run'));
+  const waitForShare = (page) => page.waitForFunction(() => /(^|&)run=/.test(location.hash.slice(1)));
   const navigateShare = (page, href) => page.evaluate((next) => {
     history.pushState(null, '', next);
     dispatchEvent(new PopStateEvent('popstate'));
@@ -1820,7 +1820,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     }));
     await decoding.release();
     assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
-    assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(saved));
+    assert.deepEqual(await decodeShare(shareCode(page.url())), sharedChoices(saved));
     assert.equal(await page.locator('[data-dialog]').count(), 0);
     await assertFieldsMatchState(page, 'after abandoning a share import with Back');
   });
@@ -1859,7 +1859,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
       await page.waitForSelector('#target-search-required');
       await waitForShare(page);
       assert.deepEqual(sharedChoices(await state(page)), sharedChoices(incoming));
-      assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(incoming));
+      assert.deepEqual(await decodeShare(shareCode(page.url())), sharedChoices(incoming));
       await assertFieldsMatchState(page, 'after reloading during a share import');
     });
   }
@@ -1878,7 +1878,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.waitForFunction(() => document.querySelector('[data-select="trainee-stars"]').value === '5');
     await decoding.release();
     assert.deepEqual(sharedChoices(await state(page)), sharedChoices(latest));
-    assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(latest));
+    assert.deepEqual(await decodeShare(shareCode(page.url())), sharedChoices(latest));
     assert.equal(await page.locator('[data-dialog]').count(), 0);
     await assertFieldsMatchState(page, 'after overlapping share imports');
   });
@@ -1899,7 +1899,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.match(await page.locator('[data-dialog-message]').innerText(), /choices changed while the code was loading/);
     saved.settings.focus = 'balanced';
     assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
-    assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(saved));
+    assert.deepEqual(await decodeShare(shareCode(page.url())), sharedChoices(saved));
     await page.click('[data-dialog-confirm]');
     await assertFieldsMatchState(page, 'after skipping a share import to preserve an edit');
   });
@@ -1911,9 +1911,9 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     receiver.run.raceOverrides = { 999999: false };
     const page = await editor(t, receiver);
     const source = shareFixture();
-    const link = new URL(shareUrl(url, await encodeShare(sharedChoices(source))));
+    const link = new URL(url);
     link.searchParams.set('keep', 'yes'); link.hash = 'shared';
-    await page.goto(link.href);
+    await page.goto(shareUrl(link.href, await encodeShare(sharedChoices(source))));
     await page.waitForSelector('#target-search-required');
     await waitForShare(page);
     const loaded = await state(page);
@@ -1924,14 +1924,14 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await assertFieldsMatchState(page, 'after opening a share URL');
     const historyLength = await page.evaluate(() => history.length);
     await page.selectOption('[data-setting="focus"]', 'balanced');
-    assert.equal(new URL(page.url()).searchParams.has('run'), false, 'remove stale snapshots during the debounce');
+    assert.equal(shareCode(page.url()), null, 'remove stale snapshots during the debounce');
     await page.reload();
     await page.waitForSelector('#target-search-required');
     assert.equal((await state(page)).settings.focus, 'balanced', 'reload keeps the edit made before compression');
     await waitForShare(page);
-    assert.equal((await decodeShare(new URL(page.url()).searchParams.get('run'))).settings.focus, 'balanced');
+    assert.equal((await decodeShare(shareCode(page.url()))).settings.focus, 'balanced');
     assert.equal(new URL(page.url()).searchParams.get('keep'), 'yes');
-    assert.equal(new URL(page.url()).hash, '#shared');
+    assert.match(new URL(page.url()).hash, /^#shared&run=/, 'other fragment text is kept');
     assert.equal(await page.evaluate(() => history.length), historyLength);
     await assertFieldsMatchState(page, 'after reloading a just-edited share');
     const currentUrl = page.url();
@@ -1941,10 +1941,32 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.click('[data-dialog-confirm]');
     await page.waitForFunction(() => document.querySelector('#trainee-search'));
     await page.waitForTimeout(500);
-    assert.equal(new URL(page.url()).searchParams.has('run'), false);
+    assert.equal(shareCode(page.url()), null);
     assert.deepEqual((await state(page)).inventory, receiver.inventory);
     assert.equal((await state(page)).settings.affinity, 220);
     await assertFieldsMatchState(page, 'after resetting a shared run');
+  });
+
+  test('older query share links still load, and no request carries a share code', async (t) => {
+    const page = await editor(t, defaultState(data));
+    const requests = [];
+    page.on('request', (request) => requests.push(request.url()));
+    const source = shareFixture();
+    const code = await encodeShare(sharedChoices(source));
+    const older = new URL(url);
+    older.searchParams.set('run', code);
+    await page.goto(older.href);
+    await page.waitForSelector('#target-search-required');
+    await page.waitForFunction(() => !new URL(location.href).searchParams.has('run'));
+    assert.deepEqual(sharedChoices(await state(page)), sharedChoices(source));
+    assert.deepEqual(await decodeShare(shareCode(page.url())), sharedChoices(source), 'the code moved into the fragment');
+    requests.length = 0;
+    await page.reload();
+    await page.waitForSelector('#target-search-required');
+    await waitForShare(page);
+    assert.ok(requests.length > 0);
+    assert.deepEqual(requests.filter((request) => request.includes(code) || /[?&]run=/.test(request)), [], 'reloading sends no share code');
+    await assertFieldsMatchState(page, 'after loading an older query link');
   });
 
   test('share URL navigation rejects bad input atomically without sharing controls', async (t) => {
@@ -1990,7 +2012,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.reload(); await page.waitForSelector('#target-search-required'); await waitForShare(page);
     saved.settings.focus = 'balanced';
     assert.deepEqual(sharedChoices(await state(page)), sharedChoices(saved));
-    assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), sharedChoices(saved));
+    assert.deepEqual(await decodeShare(shareCode(page.url())), sharedChoices(saved));
     await assertFieldsMatchState(page, 'after reloading unavailable choices');
   });
 
@@ -2017,7 +2039,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.selectOption('[data-setting="focus"]', 'stamina');
     await waitForShare(page);
     const newestUrl = page.url();
-    assert.equal((await decodeShare(new URL(newestUrl).searchParams.get('run'))).settings.focus, 'stamina');
+    assert.equal((await decodeShare(shareCode(newestUrl))).settings.focus, 'stamina');
     await page.waitForTimeout(1100);
     assert.equal(page.url(), newestUrl);
     await assertFieldsMatchState(page, 'after overlapping share encodes');
@@ -2030,7 +2052,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.waitForSelector('#target-search-required');
     await page.waitForSelector('[data-dialog]');
     assert.deepEqual(await state(page), before);
-    assert.equal(new URL(page.url()).searchParams.get('run'), '6jW10');
+    assert.equal(shareCode(page.url()), '6jW10');
     await page.click('[data-dialog-confirm]');
     await page.goto(shareUrl(url, '2jW10'));
     await page.waitForSelector('#trainee-search');
@@ -2038,7 +2060,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     const expected = await decodeShare('2jW10');
     expected.run.raceOverrides = {};
     assert.deepEqual(sharedChoices(await state(page)), expected);
-    assert.deepEqual(await decodeShare(new URL(page.url()).searchParams.get('run')), expected);
+    assert.deepEqual(await decodeShare(shareCode(page.url())), expected);
     await assertFieldsMatchState(page, 'after recovering from an invalid startup URL');
   });
 
@@ -2070,11 +2092,11 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.locator('[data-theme-pick="dark"]').click();
     assert.equal(await page.locator('[data-theme-pick="dark"]').getAttribute('aria-pressed'), 'true');
     await waitForShare(page);
-    assert.ok((await decodeShare(new URL(page.url()).searchParams.get('run'))).run.traineeCardId);
+    assert.ok((await decodeShare(shareCode(page.url()))).run.traineeCardId);
     await page.locator('[data-action="reset-all"]').click();
     await confirmDialog(page);
     assert.equal(await page.locator('[data-waiting]').count(), 1);
-    assert.equal(new URL(page.url()).searchParams.has('run'), false);
+    assert.equal(shareCode(page.url()), null);
     assert.equal(await page.locator('[data-storage-warning]').count(), 1);
   });
 
@@ -2089,7 +2111,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.waitForSelector('[data-storage-warning]');
     assert.match(await page.locator('[data-storage-warning]').innerText(), /cannot save/);
     await waitForShare(page);
-    assert.equal((await decodeShare(new URL(page.url()).searchParams.get('run'))).run.traineeCardId, null);
+    assert.equal((await decodeShare(shareCode(page.url()))).run.traineeCardId, null);
     assert.deepEqual(await state(page), before, 'the existing persisted save was not damaged');
     assert.equal(await page.locator('#trainee-search').count(), 1, 'the decoded choices remain usable in memory');
   });
@@ -2111,7 +2133,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.ok(Object.values(overrides).includes(false));
     assert.equal(overrides[picks.race], true);
     const link = page.url();
-    assert.deepEqual((await decodeShare(new URL(link).searchParams.get('run'))).run.raceOverrides, overrides);
+    assert.deepEqual((await decodeShare(shareCode(link))).run.raceOverrides, overrides);
     await assertFieldsMatchState(page, 'after sharing manual agenda choices');
     const receiver = shareFixture();
     receiver.run.raceOverrides = { 999999: true };
@@ -2128,7 +2150,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.deepEqual((await state(other)).run.raceOverrides, overrides);
     await other.click('[data-action="reset-races"]');
     await waitForShare(other);
-    assert.deepEqual((await decodeShare(new URL(other.url()).searchParams.get('run'))).run.raceOverrides, {});
+    assert.deepEqual((await decodeShare(shareCode(other.url()))).run.raceOverrides, {});
     await assertFieldsMatchState(other, 'after resetting shared agenda choices');
   });
 });

@@ -4,7 +4,7 @@ import { must } from './helpers.ts';
 import { deflateRawSync, inflateRawSync } from 'node:zlib';
 import { loadData } from '../src/data.ts';
 import { applySharedChoices, defaultState, migrate } from '../src/state.ts';
-import { decodeShare, encodeShare, sharedChoices, shareKey, shareUrl, ShareCodeError, type SharedChoices } from '../src/share.ts';
+import { decodeShare, encodeShare, shareCode, sharedChoices, shareKey, shareUrl, ShareCodeError, type SharedChoices } from '../src/share.ts';
 import { GOAL_TEMPLATES } from '../src/model/goal-templates.ts';
 import { planRun, unavailableRunChoices } from '../src/model/run.ts';
 
@@ -176,10 +176,19 @@ test('decoder bounds both the incoming code and decompressed size', async () => 
   }
 });
 
-test('share URLs preserve unrelated URL parameters and fragments', () => {
+test('share codes live in the fragment, preserve unrelated URL parts, and older query links still read', () => {
   const url = shareUrl('https://example.com/planner/?theme=dark#goal', '2jW10');
-  assert.equal(url, 'https://example.com/planner/?theme=dark&run=2jW10#goal');
+  assert.equal(url, 'https://example.com/planner/?theme=dark#goal&run=2jW10');
+  assert.equal(new URL(url).search, '?theme=dark', 'the code is not part of the request');
+  assert.equal(shareCode(url), '2jW10');
   assert.equal(shareUrl(url, null), 'https://example.com/planner/?theme=dark#goal');
+  assert.equal(shareUrl(shareUrl(url, '5jAA'), '5jBB'), 'https://example.com/planner/?theme=dark#goal&run=5jBB', 'a new code replaces the old one');
+  const older = 'https://example.com/planner/?theme=dark&run=2jW10#goal';
+  assert.equal(shareCode(older), '2jW10');
+  assert.equal(shareUrl(older, '2jW10'), url, 'writing moves an older query code into the fragment');
+  assert.equal(shareUrl(older, null), 'https://example.com/planner/?theme=dark#goal');
+  assert.equal(shareCode('https://example.com/planner/'), null);
+  assert.equal(shareUrl('https://example.com/planner/', null), 'https://example.com/planner/');
 });
 
 test('format 4 stores signed calendar IDs and replaces the whole override set', async () => {

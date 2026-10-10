@@ -1,5 +1,5 @@
 // URL import and synchronization. Persisted choices still change only through context.update().
-import { decodeShare, encodeShare, sharedChoices, shareKey, shareUrl, ShareCodeError } from '../share.ts';
+import { decodeShare, encodeShare, shareCode, sharedChoices, shareKey, shareUrl, ShareCodeError } from '../share.ts';
 import { applySharedChoices, defaultState } from '../state.ts';
 import { data, onUpdate, refresh, stateRevision, store, update, view } from './context.ts';
 import { COPY } from './copy.ts';
@@ -70,7 +70,7 @@ function cancelPendingSharing() {
 async function loadSharedUrl() {
   // Navigation supersedes both unfinished imports and URL writes for the previous location.
   cancelPendingSharing();
-  const code = new URL(location.href).searchParams.get('run');
+  const code = shareCode(location.href);
   if (code !== null) await loadShare(code); else { queueSync(true); refresh(); }
 }
 
