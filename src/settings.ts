@@ -1,5 +1,5 @@
 import type { Focus } from './types.ts';
-import { isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
+import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
 
 export interface Settings {
   goalTieTolerance: number;     // relative required-goal window in which preferred extras can decide
@@ -90,7 +90,7 @@ export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'defaultLb'] as cons
 export type SettingSpec =
   | { kind: 'number'; min: number; max: number }
   | { kind: 'number-or-null'; min: number; max: number }
-  | { kind: 'list'; length: number; min: number; max: number; sum?: number; nonIncreasing?: boolean }
+  | { kind: 'list'; length: number; min: number; max: number; sum?: number; nonIncreasing?: boolean; bounds?: readonly (readonly [number, number])[] } // bounds: each entry's own range, inside min..max
   | { kind: 'enum'; values: readonly (string | number)[] }   // the saved value must be one of these, same type included
   | { kind: 'boolean' }
   | { kind: 'lb-defaults' };
@@ -98,6 +98,8 @@ const rate: SettingSpec = { kind: 'number', min: 0, max: 1 };
 const odds: SettingSpec = { kind: 'list', length: 3, min: 0, max: 1 };
 /** Chain stage reach chances: reaching a stage needs every stage before it. */
 const chainReach = (length: number): SettingSpec => ({ kind: 'list', length, min: 0, max: 1, nonIncreasing: true });
+/** A blue spark's inspiration roll range for 1, 2 and 3 stars. */
+const BLUE_ROLL_RANGES = BLUE_SPARK_INSPIRATION_RANGE_BY_STARS.slice(1);
 const starDistribution: SettingSpec = { ...odds, sum: 1 };
 /** Overall affinity thresholds the game shows: ◎ above 150, ○ above 50, △ otherwise; the overall value is the sum of the six individual scores. */
 /** The race count the stat model was measured at; a total-turn override below it would scale card stats by zero or a negative number. */
@@ -135,7 +137,7 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   whiteStarsUE: starDistribution,
   whiteSparkInheritRates: odds,
   lineageSparkMultiplier: { kind: 'number', min: 0, max: 10 },
-  blueInspirationGainMean: { kind: 'list', length: 3, min: 0, max: 30 },
+  blueInspirationGainMean: { kind: 'list', length: 3, min: Math.min(...BLUE_ROLL_RANGES.map(([low]) => low)), max: Math.max(...BLUE_ROLL_RANGES.map(([, high]) => high)), bounds: BLUE_ROLL_RANGES },
   uniqueAprilBondRate: rate,
   lossPenalty: { kind: 'number', min: 0, max: 10000 },
   skillScoreSd: { kind: 'number', min: 0, max: 100000 },
@@ -152,7 +154,8 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
     case 'number-or-null': return value === null || inRange(value, spec.min, spec.max);
     case 'list': return Array.isArray(value) && value.length === spec.length && value.every((v) => inRange(v, spec.min, spec.max))
       && (spec.sum === undefined || Math.abs(value.reduce((sum, p) => sum + p, 0) - spec.sum) < 1e-9)
-      && (!spec.nonIncreasing || value.every((v, i) => i === 0 || v <= value[i - 1]!));
+      && (!spec.nonIncreasing || value.every((v, i) => i === 0 || v <= value[i - 1]!))
+      && (!spec.bounds || value.every((v, i) => inRange(v, spec.bounds![i]![0], spec.bounds![i]![1])));
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
     case 'boolean': return typeof value === 'boolean';
     case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => isLimitBreak((value as Record<string, unknown>)[r]));
@@ -187,6 +190,9 @@ export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>
   return structuredClone(out);
 }
 
+const blueRolls = BLUE_ROLL_RANGES.map(([low, high]) => `${low} and ${high}`);
+const blueRollPhrase = `${blueRolls.slice(0, -1).join(', ')}, and ${blueRolls.at(-1)}`;
+
 /** User-facing note per advanced setting: what it does and where the default comes from. */
 export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   concertGreatSuccessRate: 'Assumed chance of great success for each promotional concert and an ordinary final concert. Independent-training rates are unmeasured. Fan rewards use mee1080/umasim manual JP observations, without a deck Fan Bonus on concerts. The 18-song setting approximates the chance of the special final concert (9,000 fans); the source also requires two new songs in the final period.',
@@ -217,7 +223,7 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   whiteStarsUE: 'Approximate 1/2/3-star white spark distribution at rank UE and above. Based on Crazyfellow, as recorded in docs/umamusume/refs/hakuraku-spark-generation.md. Values must sum to one.',
   whiteSparkInheritRates: 'Chance, per inspiration event, that a 1/2/3★ white spark already in the lineage gives you its hint, at 0 affinity; scaled by (1 + individual affinity/100) of the uma carrying it. Based on Polaris\'s zero-affinity data via Crazyfellow\'s guide.',
   lineageSparkMultiplier: 'Each time the same white spark already appears in the lineage, the chance of generating it again is multiplied by this. Based on uma.guide, supported by a 26.5-million-trainee dataset.',
-  blueInspirationGainMean: 'Assumed average stat gain when a 1★ / 2★ / 3★ blue spark procs at an inspiration event. The game rolls a random value between 1 and 10, 1 and 16, and 1 and 28 respectively, and higher stars are said to roll near the top more often, but the distribution has not been measured. Defaults are the midpoints of those ranges; they are an assumption, not a game rule.',
+  blueInspirationGainMean: `Assumed average stat gain when a 1★ / 2★ / 3★ blue spark procs at an inspiration event. The game rolls a random value between ${blueRollPhrase} respectively, and higher stars are said to roll near the top more often, but the distribution has not been measured. Defaults are the midpoints of those ranges; they are an assumption, not a game rule.`,
   uniqueAprilBondRate: "The unique skill gains a level at three fan checks: Senior early February (60,000 fans), early April (70,000 fans and a green bond with the chairperson) and late December (120,000 fans); dirt-oriented trainees need 40,000 / 60,000 / 80,000. Fans include earlier calendar placing rewards with the deck Fan Bonus and earlier concerts. Finales arrive too late for these checks. The April bond check is not predicted, so this is the chance it passes. The rate is a placeholder.",
   lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. The effect of losses and conditions like Skin Outbreak has not been measured.',
   skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. The initial estimate allowed roughly two skills either way.',

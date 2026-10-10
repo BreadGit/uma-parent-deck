@@ -201,3 +201,12 @@ test('setting specs: chain reach chances may not rise from one stage to the next
   assert.deepEqual(parseSetting('chainRatesSSR', '0.7, 0.4, 0.4'), [0.7, 0.4, 0.4], 'equal reaches are allowed');
   assert.deepEqual(sanitizeSettings({ chainRatesSSR: [0, 0.36, 0.12] }).chainRatesSSR, DEFAULT_SETTINGS.chainRatesSSR, 'an impossible saved list falls back to the default');
 });
+
+test('setting specs: each blue spark mean roll stays inside that star count\'s roll range', () => {
+  assert.deepEqual(parseSetting('blueInspirationGainMean', '10, 16, 28'), [10, 16, 28]);
+  assert.deepEqual(parseSetting('blueInspirationGainMean', '1, 1, 1'), [1, 1, 1]);
+  assert.equal(parseSetting('blueInspirationGainMean', '10.5, 8.5, 14.5'), undefined, 'a 1★ spark rolls at most 10');
+  assert.equal(parseSetting('blueInspirationGainMean', '5.5, 8.5, 29'), undefined);
+  assert.equal(parseSetting('blueInspirationGainMean', '0, 8.5, 14.5'), undefined, 'every roll gives at least 1');
+  assert.deepEqual(sanitizeSettings({ blueInspirationGainMean: [30, 30, 30] }).blueInspirationGainMean, DEFAULT_SETTINGS.blueInspirationGainMean);
+});
