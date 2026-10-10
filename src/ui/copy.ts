@@ -30,6 +30,11 @@ export const COPY = {
     missingSkills: (ids: number[]) => `Unavailable skills: ${ids.join(', ')}`,
   },
   app: {
+    unreadableSave: 'The choices saved in this browser could not be read, so the page started from the defaults. A copy of the unreadable save is kept in this browser until you remove it.',
+    downloadUnreadable: 'Download the unreadable save',
+    removeUnreadable: 'Remove the copy',
+    removeUnreadableConfirm: 'Remove the copy of the unreadable save? It cannot be recovered afterwards.',
+    removeUnreadableAction: 'Remove',
     storageUnavailable: 'This browser cannot save your changes. You can keep using this page, but changes may be lost when you leave. Copy the run URL and export your inventory before leaving; advanced settings are not included in the run URL.',
     tagline: 'Independent-training deck builder for white-spark farming',
     resetAll: LABEL.resetAll,

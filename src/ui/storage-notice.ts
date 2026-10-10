@@ -1,7 +1,25 @@
 import { html, nothing } from 'lit-html';
-import { storageUnavailable } from '../state.ts';
+import { removeUnreadableSave, storageUnavailable, unreadableSave } from '../state.ts';
+import { downloadText } from '../download.ts';
+import { refresh } from './context.ts';
 import { COPY } from './copy.ts';
+import { confirmDialog } from './dialog.ts';
 
-export const storageNotice = () => storageUnavailable
+async function removeCopy() {
+  if (!await confirmDialog(COPY.app.removeUnreadableConfirm, COPY.app.removeUnreadableAction)) return;
+  removeUnreadableSave();
+  refresh();
+}
+
+/** The copy of an unreadable save stays offered until the user removes it, so its notice outlives the session that found it. */
+function unreadableNotice() {
+  const raw = unreadableSave();
+  if (raw === null) return nothing;
+  return html`<div class="banner" data-unreadable-save role="status"><p>${COPY.app.unreadableSave}</p>
+    <button class="small" data-action="download-unreadable" @click=${() => downloadText('uma-parent-deck-unreadable-save.txt', raw)}>${COPY.app.downloadUnreadable}</button>
+    <button class="small" data-action="remove-unreadable" @click=${removeCopy}>${COPY.app.removeUnreadable}</button></div>`;
+}
+
+export const storageNotice = () => html`${storageUnavailable
   ? html`<p class="banner" data-storage-warning role="status">${COPY.app.storageUnavailable}</p>`
-  : nothing;
+  : nothing}${unreadableNotice()}`;

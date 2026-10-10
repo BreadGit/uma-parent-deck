@@ -18,6 +18,8 @@ export interface AppState { version: number; run: RunInput; settings: Settings; 
 
 export const STATE_VERSION = 24;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
+/** A save that could not be read is copied here before the first edit replaces it, until the user removes the copy. */
+export const UNREADABLE_KEY = `${STATE_KEY}.unreadable`;
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
 
@@ -51,6 +53,8 @@ function migrateMissions(raw: unknown): MissionState {
 }
 
 type Json = Record<string, unknown>;
+/** Whether a parsed value has the single-object shape the state key has always held (version 4 onward). */
+const isSave = (v: unknown): v is Json & { version: number } => isPlainObject(v) && Number.isSafeInteger(v.version) && (v.version as number) >= 4;
 /** Stat arrays are positional. A malformed entry becomes zero without moving the entries after it. */
 const statValues = (raw: unknown): number[] => STATS.map((_, i) => {
   const v: unknown = Array.isArray(raw) ? raw[i] : undefined;
@@ -159,7 +163,7 @@ export function sanitizeInventory(raw: unknown): Inventory {
  */
 export function migrate(saved: { current?: unknown; state?: unknown; settings?: unknown; inventory?: unknown; theme?: unknown }, data: Data): AppState {
   const base = defaultState(data);
-  if (isPlainObject(saved.current) && typeof saved.current.version === 'number' && saved.current.version >= 4) {
+  if (isSave(saved.current)) {
     const c = saved.current;
     const recommendation = c.version === STATE_VERSION ? parseRecommendation(c.recommendation) : undefined;
     return {
@@ -194,16 +198,33 @@ const readStored = (key: string): string | null => {
   try { return localStorage.getItem(key); }
   catch { storageUnavailable = true; return null; }
 };
-const readJson = (key: string): unknown => { try { const raw = readStored(key); return raw ? JSON.parse(raw) : undefined; } catch { return undefined; } };
+const parseJson = (raw: string | null): unknown => { try { return raw ? JSON.parse(raw) : undefined; } catch { return undefined; } };
+const readJson = (key: string): unknown => parseJson(readStored(key));
 
-/** Load from localStorage, migrating older keys on the way. `fallbackInventory` is the repo's inventory.json. */
+/** Keep the only copy of an unreadable save; an earlier copy the user has not removed yet is never replaced. */
+function keepUnreadable(raw: string) {
+  try { if (localStorage.getItem(UNREADABLE_KEY) === null) localStorage.setItem(UNREADABLE_KEY, raw); }
+  catch { /* storage is read-only or full: the original save is still in place until an edit succeeds */ }
+}
+/** The copy of a save that could not be read, for the notice that offers it as a download. */
+export const unreadableSave = (): string | null => readStored(UNREADABLE_KEY);
+export function removeUnreadableSave() {
+  try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
+}
+
+/**
+ * Load from localStorage, migrating older keys on the way. `fallbackInventory` is the repo's inventory.json, the
+ * starting inventory of a fresh browser; a browser whose save could not be read is not fresh and does not get it.
+ */
 export function loadState(data: Data, fallbackInventory: Inventory): AppState {
-  const current = readJson(STATE_KEY);
+  const raw = readStored(STATE_KEY);
+  const current = parseJson(raw);
+  if (raw !== null && !isSave(current)) keepUnreadable(raw);
   const state = migrate({ current, state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) }, data);
-  if (current === undefined && readJson(LEGACY_KEYS.inventory) === undefined) state.inventory = sanitizeInventory(fallbackInventory);
+  if (raw === null && readJson(LEGACY_KEYS.inventory) === undefined) state.inventory = sanitizeInventory(fallbackInventory);
   // Retire historical family aliases once, before another data update can reinterpret the old save.
   // If storage is read-only or full, the migrated in-memory state still remains usable.
-  if (isPlainObject(current) && typeof current.version === 'number' && current.version >= 4 && current.version < STATE_VERSION) {
+  if (isSave(current) && current.version < STATE_VERSION) {
     saveState(state);
   }
   return state;
