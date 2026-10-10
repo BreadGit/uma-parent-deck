@@ -1,12 +1,14 @@
 // Fetches Umamusume Global data from GameTora's static JSON feed and normalizes
 // it into data/*.json plus thumbnails under public/assets/.
 //
-// Load policy: one request at a time, ~1.1 s apart, generic browser user agent,
-// no identifying headers. Files already on disk are never re-downloaded unless
-// the manifest hash changed (data) or --force is passed (images).
+// Load policy: GAMETORA in source-request.ts. Files already on disk are never
+// re-downloaded unless the manifest hash changed (data) or --force is passed (images).
 //
 // Usage: node scripts/fetch-gametora.mjs [--force] [--no-images] [--missions-only] [--offline | --download-only | --normalize-only]
 // --offline skips every request and only re-normalizes what is already in data/raw.
+// --download-only fetches the static feed into data/raw without normalizing.
+// --normalize-only re-normalizes data/raw, then downloads missing images and builds scanner
+// references; add --no-images to make no requests.
 // --missions-only refreshes just the limited missions and their race calendar.
 
 import fs from 'node:fs/promises';
