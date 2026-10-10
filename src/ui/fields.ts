@@ -8,8 +8,8 @@ import type { RunPlan } from '../model/run.ts';
 import { COPY } from './copy.ts';
 import { refresh, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
-import { options, numbered, selectValue, inputValue, inputNumber, isChecked, isComposing, isOpen, chosenFiles, clearFiles, type Option } from './form.ts';
-export { options, numbered, selectValue, inputValue, inputNumber, isChecked, isComposing, isOpen, chosenFiles, clearFiles, type Option };
+import { options, numbered, selectValue, inputValue, inputNumber, isChecked, isComposing, isOpen, chosenFiles, clearFiles, queryWords, matchesWords, type Option } from './form.ts';
+export { options, numbered, selectValue, inputValue, inputNumber, isChecked, isComposing, isOpen, chosenFiles, clearFiles, queryWords, matchesWords, type Option };
 
 export interface SearchBox<T> {
   id: string;

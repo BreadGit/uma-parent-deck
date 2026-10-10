@@ -8,7 +8,8 @@ import { eventStatus, hasRaceAptitude, missionAgenda, missionRaceFit, parsePaste
 import { data, refresh, store, update, view } from '../context.ts';
 import { agendaGrid, slotLabel } from '../agenda.ts';
 import { COPY } from '../copy.ts';
-import { inputValue, isChecked, options, searchBox, selectValue } from '../fields.ts';
+import { inputValue, isChecked, matchesWords, options, queryWords, searchBox, selectValue } from '../fields.ts';
+import { charImg } from '../format.ts';
 import { about, panel } from '../panel.ts';
 
 const copy = COPY.missions;
@@ -70,13 +71,13 @@ function manualMatches(catalog: MissionCatalog) {
 }
 
 function traineePicker(recommendations: MissionRaceFit[], chosen: MissionRaceFit | null, now: number) {
-  const words = view.missionTraineeQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
-  const matches = words.length ? data.characters.filter((trainee) => Date.parse(trainee.releaseEn) <= now && words.every((word) => `${trainee.name} ${trainee.title}`.toLowerCase().includes(word)))
+  const words = queryWords(view.missionTraineeQuery);
+  const matches = words.length ? data.characters.filter((trainee) => Date.parse(trainee.releaseEn) <= now && matchesWords(words, `${trainee.name} ${trainee.title}`))
     .sort((a, b) => a.name.localeCompare(b.name) || a.cardId - b.cardId).slice(0, 12) : [];
   const trainee = chosen?.trainee;
   return panel({ title: copy.trainee }, html`
     ${trainee ? html`<div class="trainee-card">
-      <img class="thumb thumb-lg" src="/assets/characters/${trainee.cardId}.png" alt="">
+      <img class="thumb thumb-lg" src=${charImg(trainee)} alt="">
       <div class="trainee-id"><span class="trainee-k">${trainee.title}</span><span class="trainee-v">${trainee.name}</span></div>
       <button class="small" data-action="clear-mission-trainee" @click=${() => pickTrainee(null)}>${copy.remove}</button>
     </div><p class="small" data-mission-fit>${copy.fit(chosen.schedule.size, chosen.total)} · ${copy.overlap(chosen.goalMatches)}</p>

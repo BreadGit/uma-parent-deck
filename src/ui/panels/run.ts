@@ -7,7 +7,7 @@ import { effectiveLb } from '../../model/run.ts';
 import { data, store, update, view } from '../context.ts';
 import { ignoreCard, pinCard, setSetting, unignoreCard, unpinCard } from '../actions.ts';
 import { COPY } from '../copy.ts';
-import { inputValue, isChecked, options, searchBox, selectValue } from '../fields.ts';
+import { inputValue, isChecked, matchesWords, options, queryWords, searchBox, selectValue } from '../fields.ts';
 import { capitalize, cardImg, cardThumb, cardUrl, pct, typeIcon } from '../format.ts';
 import { panel, sub } from '../panel.ts';
 import { tip } from '../tooltip.ts';
@@ -19,9 +19,9 @@ const FOCUS_CHOICES = (['balanced', 'stamina', 'sprint'] as const).map((f) => ({
 
 /** Cards matching a search box's words, minus those already in the list it feeds. */
 function matches(query: string, listed: number[]): Card[] {
-  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const words = queryWords(query);
   if (!words.length) return [];
-  return data.cards.filter((card) => !listed.includes(card.id) && words.every((w) => `${card.name} ${card.rarity} ${card.type}`.toLowerCase().includes(w)))
+  return data.cards.filter((card) => !listed.includes(card.id) && matchesWords(words, `${card.name} ${card.rarity} ${card.type}`))
     .sort((a, b) => b.rarity.length - a.rarity.length || a.charName.localeCompare(b.charName) || a.id - b.id).slice(0, 12);
 }
 const searchRow = (card: Card) => { const lb = lbOf(card); return html`<img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="suggest-r">${lb == null ? 'not owned · borrow' : `LB${lb}`}</span>`; };

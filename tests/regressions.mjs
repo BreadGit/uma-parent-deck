@@ -327,6 +327,17 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await assertFieldsMatchState(page, 'after composition keys in search boxes');
   });
 
+  test('every search box matches words in any order', async (t) => {
+    const page = await editor(t);
+    const names = (list) => page.locator(`${list} li`).allInnerTexts();
+    await page.fill('#target-search-required', 'recovery corner');
+    assert.ok((await names('#target-search-required-list')).some((text) => text.startsWith('Corner Recovery')), 'skill search');
+    await page.fill('#card-search', 'hello light');
+    assert.ok((await names('#card-search-list')).some((text) => text.includes('Light Hello')), 'card search');
+    await page.fill('#trainee-search', 'week special');
+    assert.ok((await names('#trainee-search-list')).some((text) => text.includes('Special Week')), 'trainee search');
+  });
+
   test('ranking headers sort from the keyboard and keep focus', async (t) => {
     const page = await editor(t);
     const sorts = page.locator('.ranking-table th button[data-sort]');

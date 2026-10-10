@@ -13,7 +13,7 @@ import { UMA_LABELS } from '../../model/inherit.ts';
 import { LINEAGE_SLOTS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
-import { inputNumber, isOpen, numbered, options, searchBox, selectValue } from '../fields.ts';
+import { inputNumber, isOpen, matchesWords, numbered, options, queryWords, searchBox, selectValue } from '../fields.ts';
 import { probability, skillIcon } from '../format.ts';
 import { tip } from '../tooltip.ts';
 
@@ -25,9 +25,10 @@ const PEEK = 4;
 
 const targetable = data.skills.filter((s) => !s.unreleasedEn && (s.rarity === 1 || s.rarity === 2) && goalFamily(s.id, data) === resolveTarget(s.id, data)?.id);
 
+/** Skills whose official or GameTora name holds every word of the query. */
 export function matchTargets(query: string): Skill[] {
-  const q = query.trim().toLowerCase();
-  return q ? targetable.filter((s) => s.name.toLowerCase().includes(q) || (s.altName ?? '').toLowerCase().includes(q)).slice(0, 12) : [];
+  const words = queryWords(query);
+  return words.length ? targetable.filter((s) => matchesWords(words, s.name) || matchesWords(words, s.altName ?? '')).slice(0, 12) : [];
 }
 /** Add a skill's family to a role and open its editor; a target already listed moves to that role instead. */
 export function addTarget(id: number, role: Role) {

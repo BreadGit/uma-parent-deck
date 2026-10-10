@@ -7,15 +7,15 @@ import type { RunPlan } from '../../model/run.ts';
 import { clampStars, hasExactStarTable, STARS_MAX } from '../../model/trainee.ts';
 import { data, store, update, view } from '../context.ts';
 import { COPY } from '../copy.ts';
-import { numbered, options, searchBox, selectValue } from '../fields.ts';
+import { matchesWords, numbered, options, queryWords, searchBox, selectValue } from '../fields.ts';
 import { capitalize, charImg, skillName, statIcon } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
 function matches(): Character[] {
-  const words = view.traineeQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const words = queryWords(view.traineeQuery);
   if (!words.length) return [];
-  return data.characters.filter((ch) => { const hay = `${ch.name} ${ch.title}`.toLowerCase(); return words.every((w) => hay.includes(w)); })
+  return data.characters.filter((ch) => matchesWords(words, `${ch.name} ${ch.title}`))
     .sort((a, b) => a.name.localeCompare(b.name) || a.cardId - b.cardId).slice(0, 12);
 }
 function pickTrainee(cardId: number | null) {
