@@ -101,7 +101,6 @@ const chainReach = (length: number): SettingSpec => ({ kind: 'list', length, min
 /** A blue spark's inspiration roll range for 1, 2 and 3 stars. */
 const BLUE_ROLL_RANGES = BLUE_SPARK_INSPIRATION_RANGE_BY_STARS.slice(1);
 const starDistribution: SettingSpec = { ...odds, sum: 1 };
-/** Overall affinity thresholds the game shows: ◎ above 150, ○ above 50, △ otherwise; the overall value is the sum of the six individual scores. */
 /** The race count the stat model was measured at; a total-turn override below it would scale card stats by zero or a negative number. */
 export const RACES_REFERENCE = 28;
 export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {

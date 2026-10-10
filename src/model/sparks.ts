@@ -72,7 +72,6 @@ export interface SkillReward extends SkillForm { skillId: number; share: number;
 export interface EventRoll { pFire: number; outcomes: SkillReward[][][] }
 export interface ResolvedEvent { event: EventRef; chain?: ChainRef; roll: EventRoll }
 export type SkillSource = PlainSource | EventSource;
-export type SourceKind = SkillSource['kind'];
 /** Narrow to a choice-gated source, which always has its event. */
 export const isChoiceSource = (s: SkillSource): s is EventSource & { isChoice: true } => s.isChoice;
 export const isEventSource = (s: SkillSource): s is EventSource => 'event' in s;

@@ -122,7 +122,6 @@ export function phi(z: number): number {
   const p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
   return z >= 0 ? 1 - p : p;
 }
-export const pAbove = (mean: number, sd: number, threshold: number) => 1 - phi((threshold - mean) / Math.max(1, sd));
 
 /** Blue spark star bands: a stat at or above these values at run end raises the odds of 2★ and 3★ blue sparks. */
 export const BLUE_STAR_BANDS = { mid: BLUE_GENERATION_BANDS[1].min, high: BLUE_GENERATION_BANDS[2].min } as const;

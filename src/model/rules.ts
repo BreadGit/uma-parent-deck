@@ -34,9 +34,6 @@ export const BLUE_SPARK_INSPIRATION_RANGE_BY_STARS: [number, number][] = [[0, 0]
 export const BLUE_SPARK_START_UNCAP_BY_STARS = [0, 4, 9, 16];
 /** Chance a blue spark procs at an inspiration event at 0 affinity, by stars; scaled by (1 + individual affinity/100). */
 export const BLUE_SPARK_INSPIRATION_PROC_BY_STARS = [0, 0.7, 0.8, 0.9];
-/** Overall affinity symbol thresholds: ◎ above AFFINITY_GREAT, ○ above AFFINITY_GOOD, △ otherwise. The overall value is the sum of the six individual scores. */
-export const AFFINITY_GREAT = 150;
-export const AFFINITY_GOOD = 50;
 
 // --- scenario ---
 export const OUR_GRAND_CONCERT = 3;
