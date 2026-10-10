@@ -360,7 +360,7 @@ export const COPY = {
     title: TITLE.coverage,
     tip: "Chance the run hands over each target's hint, by form. The spark chance assumes you buy the best hinted form at the end: gold at 40%, otherwise a released ◎ upgrade at 25%, otherwise the base skill at 20%. Where a ◎ exists, buying it needs no separate hint. The run itself buys nothing.",
     noSource: 'no source in the deck',
-    spCostTip: 'The base cost of every target bought once in its best hinted form, with prerequisites and no hint discounts. An upper bound to check against the estimated SP; you choose the purchases at the end of the run.',
+    spCostTip: 'The base cost of every target the deck, trainee or lineage can provide, bought once in its best hinted form, with prerequisites and no hint discounts. Targets nothing can provide are not priced. An upper bound to check against the estimated SP; you choose the purchases at the end of the run.',
   },
   missions: {
     title: 'Mission races',
