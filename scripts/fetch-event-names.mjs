@@ -3,19 +3,15 @@
 // into story, choice, outing and secret events, nor the secret events' race conditions).
 // One request per card (~245) and per character (~66), throttled, cached in data/raw/event-names.json and
 // data/raw/char-events.json. Source revisions invalidate stale page caches.
-import fs from 'node:fs/promises';
 import path from 'node:path';
-import { requestSource } from './source-request.ts';
+import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
+import { exists, readJson, writeJson } from './json-file.ts';
 import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, uniqueEffectText, UNLOCK_LINE } from './page-cache.ts';
 
-const BASE = 'https://gametora.com';
-const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
-const DELAY_MS = 1100;
+const BASE = GAMETORA.base;
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const RAW = path.join(ROOT, 'data', 'raw');
 const OUT = path.join(RAW, 'event-names.json');
-const exists = (f) => fs.access(f).then(() => true, () => false);
-const readJson = async (f) => JSON.parse(await fs.readFile(f, 'utf8'));
 const FORCE = process.argv.includes('--force');
 const REVISION_OUT = path.join(RAW, 'page-source-revisions.json');
 const revisions = (await exists(REVISION_OUT)) ? await readJson(REVISION_OUT) : {};
@@ -25,33 +21,23 @@ const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async 
 const inputFor = (key, card) => pageInput(key, card, sourceHashes);
 const current = (key, card, payload) => !FORCE && pageCacheMatches(revisions[key], inputFor(key, card), payload);
 const remember = (key, card, payload) => { revisions[key] = pageRevision(inputFor(key, card), payload); };
-async function save(file, value) {
-  const temp = `${file}.tmp`;
-  await fs.writeFile(temp, JSON.stringify(value, null, 1) + '\n');
-  await fs.rename(temp, file);
-}
 
-let last = 0;
-async function throttle() {
-  const wait = last + DELAY_MS - Date.now();
-  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-  last = Date.now();
-}
+const throttle = createThrottle();
 async function getJson(url) {
-  const res = await requestSource(url, throttle, UA);
+  const res = await requestSource(url, throttle.wait, GAMETORA.userAgent);
   if (!res.ok) throw new Error(`Page fetch ${res.status}: ${url}`);
   return res.json();
 }
 
 /** A page's HTML, throttled like getJson. */
 async function getText(url) {
-  const res = await requestSource(url, throttle, UA);
+  const res = await requestSource(url, throttle.wait, GAMETORA.userAgent);
   if (!res.ok) throw new Error(`Page fetch ${res.status}: ${url}`);
   return res.text();
 }
 
 async function buildId() {
-  await new Promise((r) => setTimeout(r, DELAY_MS));
+  await new Promise((r) => setTimeout(r, GAMETORA.delayMs));
   const html = await getText(`${BASE}/umamusume/supports`);
   const m = html.match(/"buildId":"([^"]+)"/);
   if (!m) throw new Error('buildId not found');
@@ -65,7 +51,7 @@ const full = (await exists(FULL)) ? await readJson(FULL) : {};
 const isPalGroup = (c) => c.type === 'friend' || c.type === 'group';
 const supportPayload = (c) => ({ names: names[c.support_id], ...(isPalGroup(c) ? { full: full[c.support_id] } : {}) });
 const todo = cards.filter((c) => !names[c.support_id] || (isPalGroup(c) && !full[c.support_id]) || !current(`support:${c.support_id}`, c, supportPayload(c)));
-async function saveSupports() { await save(OUT, names); await save(FULL, full); await save(REVISION_OUT, revisions); }
+async function saveSupports() { await writeJson(OUT, names); await writeJson(FULL, full); await writeJson(REVISION_OUT, revisions); }
 console.log(`${todo.length} cards to fetch (${cards.length - todo.length} cached)`);
 if (todo.length) {
   const id = await buildId();
@@ -101,10 +87,10 @@ if (charTodo.length) {
     const en = pageEvents(d.pageProps?.eventData?.en, 'character', `character ${c.char_id}`);
     charEvents[c.char_id] = en;
     remember(`character:${c.char_id}`, c, en);
-    if (++n % 20 === 0) { await save(CHAR_OUT, charEvents); await save(REVISION_OUT, revisions); console.log(`${n}/${charTodo.length}`); }
+    if (++n % 20 === 0) { await writeJson(CHAR_OUT, charEvents); await writeJson(REVISION_OUT, revisions); console.log(`${n}/${charTodo.length}`); }
   }
-  await save(CHAR_OUT, charEvents);
-  await save(REVISION_OUT, revisions);
+  await writeJson(CHAR_OUT, charEvents);
+  await writeJson(REVISION_OUT, revisions);
 }
 console.log('characters done', Object.keys(charEvents).length);
 
@@ -121,10 +107,10 @@ if (altTodo.length) {
     const en = pageEvents(d.pageProps?.eventData?.en, 'character', `outfit ${c.card_id}`);
     byCard[c.card_id] = en;
     remember(`outfit:${c.card_id}`, c, en);
-    if (++n % 10 === 0) { await save(CARD_OUT, byCard); await save(REVISION_OUT, revisions); console.log(`${n}/${altTodo.length}`); }
+    if (++n % 10 === 0) { await writeJson(CARD_OUT, byCard); await writeJson(REVISION_OUT, revisions); console.log(`${n}/${altTodo.length}`); }
   }
-  await save(CARD_OUT, byCard);
-  await save(REVISION_OUT, revisions);
+  await writeJson(CARD_OUT, byCard);
+  await writeJson(REVISION_OUT, revisions);
 }
 console.log('outfits done', Object.keys(byCard).length);
 
@@ -141,6 +127,6 @@ for (const c of compound) {
   uniqueTexts[c.support_id] = uniqueEffectText(page);
   remember(`unique:${c.support_id}`, c, uniqueTexts[c.support_id]);
 }
-await save(UNIQUE_OUT, uniqueTexts);
-await save(REVISION_OUT, revisions);
+await writeJson(UNIQUE_OUT, uniqueTexts);
+await writeJson(REVISION_OUT, revisions);
 console.log('unique texts done', Object.keys(uniqueTexts).length);

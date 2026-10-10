@@ -11,15 +11,14 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { requestSource } from './source-request.ts';
+import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
+import { exists, readJson, writeFileAtomic, writeJson } from './json-file.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables } from './source-validation.ts';
 import { normalizeMissionCatalog } from './mission-import.ts';
 
-const BASE = 'https://gametora.com';
-const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
-const DELAY_MS = 1100;
+const BASE = GAMETORA.base;
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const RAW = path.join(ROOT, 'data', 'raw');
 const OUT = path.join(ROOT, 'data');
@@ -40,27 +39,16 @@ const STATIC_KEYS = [
   'en/missions/limited',
 ];
 
-let lastRequest = 0;
-let requestCount = 0;
-async function throttle() {
-  const wait = lastRequest + DELAY_MS - Date.now();
-  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-  lastRequest = Date.now();
-  requestCount++;
-}
+const throttle = createThrottle();
 async function fetchTo(url, file, jsonShape) {
-  const res = await requestSource(url, throttle, UA);
+  const res = await requestSource(url, throttle.wait, GAMETORA.userAgent);
   if (!res.ok) return res.status;
   const buffer = Buffer.from(await res.arrayBuffer());
   if (jsonShape) parseSourceDownload(buffer.toString('utf8'), jsonShape, url);
   await fs.mkdir(path.dirname(file), { recursive: true });
-  await fs.writeFile(`${file}.tmp`, buffer);
-  await fs.rename(`${file}.tmp`, file);
+  await writeFileAtomic(file, buffer);
   return 200;
 }
-const exists = (f) => fs.access(f).then(() => true, () => false);
-const readJson = async (f) => JSON.parse(await fs.readFile(f, 'utf8'));
-const writeJson = (f, v) => fs.writeFile(f, JSON.stringify(v, null, 1) + '\n');
 const rawName = (key) => path.join(RAW, key.replaceAll('/', '__') + '.json');
 
 async function fetchStatic(keys = STATIC_KEYS) {
@@ -511,7 +499,7 @@ if (process.argv[1] && await fs.realpath(path.resolve(process.argv[1])) === new 
       if (IMAGES) await fetchImages(norm);
     }
   }
-  console.log(`requests made: ${requestCount}`);
+  console.log(`requests made: ${throttle.count}`);
 }
 
 export { normalizeCards, normalizeSkills, normalizeCharacters, normalizeRaces, normalizeRanks, normalizeScenarios, normalizeScenarioEvents };

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { requestSource } from '../scripts/source-request.ts';
+import { createThrottle, requestSource } from '../scripts/source-request.ts';
 
 test('source requests retry temporary errors, throttle every attempt and bound failures', async (t) => {
   let calls = 0, throttled = 0;
@@ -27,4 +27,12 @@ test('source requests retry temporary errors, throttle every attempt and bound f
   assert.equal(calls, 3);
   await assert.rejects(requestSource(`${url}/hang`, throttle, 'test', { ...options, attempts: 2, timeoutMs: 50 }));
   assert.equal(throttled, 5);
+});
+
+test('the source throttle spaces and counts requests', async () => {
+  const throttle = createThrottle(40);
+  const start = Date.now();
+  for (let i = 0; i < 3; i++) await throttle.wait();
+  assert.ok(Date.now() - start >= 80, 'three requests span at least two delays');
+  assert.equal(throttle.count, 3);
 });
