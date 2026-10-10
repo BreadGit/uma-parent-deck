@@ -83,7 +83,10 @@ export const DEFAULT_SETTINGS: Settings = {
   totalTurnsOverride: null,
 };
 
-/** Settings kept when the advanced panel is reset: the ones on the main page. */
+/**
+ * Settings kept when the advanced panel is reset. winThreshold and focus are edited on the main page; defaultLb has no
+ * editor (a saved value still applies to cards without an inventory entry).
+ */
 export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'defaultLb'] as const satisfies readonly (keyof Settings)[];
 
 /** What each setting accepts. Values that fail the spec are rejected in favour of the current value. */

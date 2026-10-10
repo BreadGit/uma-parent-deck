@@ -6,6 +6,7 @@ import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { STATS, type AptKey } from '../src/types.ts';
 import { uniqueExtras } from '../src/model/stats.ts';
+import { RACES_REFERENCE } from '../src/settings.ts';
 import fixtureJson from '../data/unique-extras-fixture.json' with { type: 'json' };
 const fixture = fixtureJson as { uniqueRampShare: number; rows: { cardId: number; lb: number; extras: Record<string, number> }[] };
 
@@ -173,6 +174,7 @@ test('model coefficients, reference conditions and observed provenance are usabl
     assert.ok(values.every((v) => isNum(v) && (positive ? v > 0 : v >= 0)), name);
   };
   assert.ok(m.races.totalTurns > m.races.reference && m.races.reference > 0, 'total turns exceed the reference race count');
+  assert.equal(m.races.reference, RACES_REFERENCE, 'the total-turn setting is validated against the race count the model was fitted at');
   assert.ok(m.uniqueRampShare >= 0 && m.uniqueRampShare <= 1, 'uniqueRampShare is a share');
   for (const values of [m.slopes, m.roleConstants, m.effectSlopes ?? {}, m.sp.effectSlopes ?? {}]) {
     for (const value of Object.values(values)) assert.ok(isNum(value), 'finite fitted coefficient');
