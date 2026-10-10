@@ -5,7 +5,7 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
 import { STATS, type Card, type Race } from '../src/types.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, isCircle, isDebuff, isGold, isWhite, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
@@ -716,4 +716,13 @@ test('scenario options: only the linked characters present change them, so other
   assert.equal(scenarioOptions(data, settings, new Set([first!, unlinked[1]!])), base, 'an unlinked character does not change the options');
   assert.notEqual(scenarioOptions(data, settings, new Set([unlinked[1]!])), base);
   assert.ok(base.some((o) => o.linkedCharId === first && o.event.option.includes('gold version')), 'the linked character present upgrades her option');
+});
+
+test('skill tiers: gold, ◎, white and debuff forms are told apart in one place', () => {
+  const corner = resolveTarget(200352, data)!; // Corner Recovery ○ / Swinging Maestro
+  const tier = (s: Parameters<typeof isGold>[0]) => [isGold(s), isCircle(s), isWhite(s), isDebuff(s)];
+  assert.deepEqual(tier(corner.gold!), [true, false, false, false]);
+  assert.deepEqual(tier(corner.white!), [false, false, true, false], 'a ○ skill is the white form');
+  assert.deepEqual(tier(must(skills.find((s) => s.name.includes('◎') && s.rarity === 1))), [false, true, false, false]);
+  assert.deepEqual(tier(byName('Gatekept')), [false, false, false, true]);
 });

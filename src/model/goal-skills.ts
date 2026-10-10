@@ -1,6 +1,6 @@
 import type { Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { resolveEventSources, hasWhiteSpark, isEventSource, lastStageShares, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
+import { resolveEventSources, hasWhiteSpark, isCircle, isEventSource, isGold, lastStageShares, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
 
 // Each digit records a family's best available form: none, white, circle, gold.
 interface Distribution { states: Map<string, number>; approximate: boolean }
@@ -82,7 +82,7 @@ function skillState(id: number, targets: Target[], data: Data): string {
   return targets.map((t) => {
     if (!hasWhiteSpark(t) || !t.familyIds.has(id)) return '0';
     const skill = data.skillById.get(id);
-    return skill?.rarity === 2 ? '3' : (t.circle && !t.circle.unreleasedEn) || skill?.name.includes('◎') ? '2' : '1';
+    return skill && isGold(skill) ? '3' : (t.circle && !t.circle.unreleasedEn) || (skill && isCircle(skill)) ? '2' : '1';
   }).join('');
 }
 function eventDistribution(roll: EventRoll, targets: Target[], data: Data): Distribution {

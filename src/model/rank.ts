@@ -4,6 +4,7 @@ import { phi } from './stats.ts';
 import type { Aptitudes } from './races.ts';
 import { APTITUDE_BUCKET_MULTIPLIER, MAX_STAT_VALUE, SKILL_SCORE, UNIQUE_LEVEL_CHECKS, UNIQUE_SKILL_LEVEL_MAX, UNIQUE_SKILL_SCORE_PER_LEVEL, UNIQUE_SKILL_START_LEVEL_BY_STARS } from './rules.ts';
 import { statMasses, type StatMass } from './stat-outcomes.ts';
+import { isCircle, isGold } from './sparks.ts';
 export { MAX_STAT_VALUE } from './rules.ts';
 
 /**
@@ -68,7 +69,7 @@ export function aptitudeMultiplier(skill: Skill, apt: Aptitudes | null): number 
 
 /** Individual evaluation points, with an explicit rarity fallback for unverified skills. Unique skills score by level elsewhere. */
 export function skillScore(skill: Skill, apt: Aptitudes | null = null): number {
-  const base = skill.rating ?? (skill.rarity === 2 ? SKILL_SCORE.gold : skill.rarity === 1 ? (skill.name.includes('◎') ? SKILL_SCORE.circle : SKILL_SCORE.white) : 200);
+  const base = skill.rating ?? (isGold(skill) ? SKILL_SCORE.gold : isCircle(skill) ? SKILL_SCORE.circle : skill.rarity === 1 ? SKILL_SCORE.white : 200);
   return Math.round(base * aptitudeMultiplier(skill, apt));
 }
 

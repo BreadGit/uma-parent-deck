@@ -1,7 +1,7 @@
 import type { Card, Skill } from '../types.ts';
 import { purchaseCoverage, type Ctx } from './deck.ts';
 import { jointSkillForms, type FormDistribution } from './goal-skills.ts';
-import { combineSources, isDebuff, purchasedOwnership, resolveTarget, type SkillSource, type Target } from './sparks.ts';
+import { combineSources, isDebuff, isWhite, purchasedOwnership, resolveTarget, type SkillSource, type Target } from './sparks.ts';
 import { skillScore } from './rank.ts';
 import type { Aptitudes } from './races.ts';
 import { SCENARIO_COMPLETION_SKILLS } from './rules.ts';
@@ -117,7 +117,7 @@ function referenceRate(skills: Skill[], apt: Aptitudes): Reference {
   let points = 0, cost = 0;
   const unverified: number[] = [];
   for (const skill of skills) {
-    if (!usable(skill) || skill.rarity !== 1 || skill.name.includes('◎') || skill.cost == null || skill.cost <= 0) continue;
+    if (!usable(skill) || !isWhite(skill) || skill.cost == null || skill.cost <= 0) continue;
     points += skillScore(skill, apt); cost += skill.cost;
     if (skill.rating === undefined) unverified.push(skill.id);
   }

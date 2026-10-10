@@ -5,7 +5,7 @@ import { teamInitialBond } from './support-effects.ts';
 import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import type { PreparedRunSources } from './run-sources.ts';
-import { hasWhiteSpark, isDebuff, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
+import { hasWhiteSpark, isDebuff, isGold, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
 
 /** Everything a run evaluation needs besides the cards: the data, the settings and the run's fixed choices. */
 export interface Ctx {
@@ -456,7 +456,7 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     const sk = ctx.data.skillById.get(o.skillId);
     if (!sk || sk.unreleasedEn || isDebuff(sk)) continue;
     seen.add(o.skillId);
-    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, role: 'extra', targetId: null, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (sk.rarity === 2 ? 1.2 : 1), reason: o.detail, events: [o.event] });
+    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, role: 'extra', targetId: null, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (isGold(sk) ? 1.2 : 1), reason: o.detail, events: [o.event] });
   }
   // Other choice-gated skills from the deck's and the trainee's events (not targets): listing them steers the AI to that option.
   const offered = [...deck.map((d) => ({ owner: d.card.name, sources: eventSources(d.card, ctx.settings, ctx.data) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data) }] : [])];
@@ -467,7 +467,7 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     const sk = ctx.data.skillById.get(skillId);
     if (!sk || sk.unreleasedEn || isDebuff(sk)) continue;
     const pObtain = Math.max(...offers.map((o) => o.src.pObtain));
-    entries.push({ key: skillId, skillId, name: sk.name, form: null, gated: true, isTarget: false, role: 'extra', targetId: null, weight: 1 + 0.5 * pObtain * (sk.rarity === 2 ? 1.2 : 1),
+    entries.push({ key: skillId, skillId, name: sk.name, form: null, gated: true, isTarget: false, role: 'extra', targetId: null, weight: 1 + 0.5 * pObtain * (isGold(sk) ? 1.2 : 1),
       reason: offers.map((o) => `${o.owner}: ${o.src.detail}`).join('; '), events: uniqueEvents(offers.map((o) => o.src.event)) });
   }
   return entries.sort((a, b) => b.weight - a.weight);
