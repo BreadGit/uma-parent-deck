@@ -3,7 +3,6 @@ import { sanitizeInventory } from './state.ts';
 import { effectiveLb } from './model/run.ts';
 import { downloadText } from './download.ts';
 import { isLimitBreak, MAX_LB } from './model/rules.ts';
-export { effectiveLb };
 
 /** Writes every card explicitly so the file stands on its own: id -> lb or null. */
 export function exportInventory(inv: Inventory, cards: Card[], defaults: { R: number; SR: number; SSR: number }) {
