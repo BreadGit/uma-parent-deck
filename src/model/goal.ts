@@ -68,6 +68,9 @@ export function pinkGoalsEstimate(apt: Record<AptKey, Grade>, goals: PinkGoal[],
   return { probability, upperProbability, warnings: probability === upperProbability ? [] : warnings, eligibility, alternatives };
 }
 
+/** Rank samples for a full-fidelity goal estimate: the deck shown and the search's finalists. */
+export const FINAL_GOAL_SAMPLES = 2048;
+
 export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number; rawUnits?: boolean }
 export interface StatGoalMoments { blue: number; whiteStars: number[]; blueAllWhiteStars: number; pSS: number; approximateRank: number }
 export interface GoalRankBands { blue: number; rank: number[]; blueRank: number[]; pSS: number; approximateRank: number }
@@ -124,7 +127,7 @@ export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshol
 }
 
 /** Shared rank weights let every required subset and preferred intersection reuse the same outcomes. */
-export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS, sampleCount = 2048): GoalRankBands {
+export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS, sampleCount = FINAL_GOAL_SAMPLES): GoalRankBands {
   const bands = whiteGenerationBands(settings);
   const result: GoalRankBands = { blue: 0, rank: bands.map(() => 0), blueRank: bands.map(() => 0), pSS: 0, approximateRank: 0 };
   const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i], input.rawUnits));

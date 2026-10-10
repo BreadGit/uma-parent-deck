@@ -2,10 +2,10 @@ import { STATS, type Card, type Character, type Data, type Inventory } from '../
 import type { Settings } from '../settings.ts';
 import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type ResolvedGoal, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
-import { evaluateParentGoal, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
+import { evaluateParentGoal, FINAL_GOAL_SAMPLES, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
 import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { chooseGoal, goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
-import { EXPLORATION_SAMPLES, SCREENED_DECKS, SEARCH_RANK_SAMPLES } from './goal-population.ts';
+import { EXPLORE_SAMPLES, SCREENED_DECKS, SCREEN_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
 import { lineageCount, resolveTarget, type Lineage, type Target } from './sparks.ts';
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
@@ -379,7 +379,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   if (!complete(initial.deck)) {
     issues.push(`Incomplete deck. Choose ${DECK_SIZE - BORROWED_SLOTS} owned cards from different characters and ${BORROWED_SLOTS} borrowed card. The current deck has ${ownedCount} owned and ${borrowedCount} borrowed.`);
   }
-  const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = 2048, display = false) => {
+  const evaluateCandidate = (entries: GoalDeckEntry[], sampleCount = FINAL_GOAL_SAMPLES, display = false) => {
     const scoringEntries = canonicalDeck(entries);
     const fans = estimateFans(schedule, scoringEntries, settings);
     const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
@@ -400,7 +400,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const { key: _order, ...chosen } = chooseGoal(evaluated, 0);
     return chosen;
   };
-  let chosen = evaluateCandidate(initial.deck, 2048, true);
+  let chosen = evaluateCandidate(initial.deck, FINAL_GOAL_SAMPLES, true);
   let search: GoalSearchSummary | null = options.summary ?? null;
   if (options.search !== false && !options.selection && trainee && goal.blueStats.length && !issues.length) {
     const baseRanking = rankCards(deckPool, targets, traineeCoverage(targets, baseCtx), baseCtx);
@@ -422,13 +422,13 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const found = searchGoalDeck({ owned: deckPool, borrows: borrowPool, ownedOrders: orders(baseRanking), borrowOrders: orders(borrowRanking),
       seeds: [initial.deck], pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee.charId,
       tolerance: settings.goalTieTolerance, budget: options.budget, evaluate: evaluateCandidate,
-      explore: (entries) => { const { score, statPower } = evaluateCandidate(entries, EXPLORATION_SAMPLES); return { score, statPower }; },
-      screen: (entries) => { const { score, statPower } = evaluateCandidate(entries, SEARCH_RANK_SAMPLES); return { score, statPower }; },
+      explore: (entries) => { const { score, statPower } = evaluateCandidate(entries, EXPLORE_SAMPLES); return { score, statPower }; },
+      screen: (entries) => { const { score, statPower } = evaluateCandidate(entries, SCREEN_SAMPLES); return { score, statPower }; },
       screenBudget: options.budget === undefined ? SCREENED_DECKS : options.budget * 8,
       onProgress: options.onProgress ? (progress) => options.onProgress!(progress.best.entries.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), summarize(progress)) : undefined,
     });
     // The deck shown is evaluated once more with the user's extras, so the estimate matches the list they will type.
-    if (found) { chosen = evaluateCandidate(found.best.value.entries, 2048, true); search = summarize(found); }
+    if (found) { chosen = evaluateCandidate(found.best.value.entries, FINAL_GOAL_SAMPLES, true); search = summarize(found); }
   }
   const { entries, ctx, fans, goalStats, basis, sources, candidates, layout } = chosen.value;
   const prediction = finishPrediction(chosen.value.prediction, input, ctx);
