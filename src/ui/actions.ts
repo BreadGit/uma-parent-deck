@@ -8,7 +8,7 @@ export function settingRange(key: keyof Settings): string {
   switch (spec.kind) {
     case 'number': return `Enter a number from ${spec.min} to ${spec.max}.`;
     case 'number-or-null': return `Leave blank or enter a number from ${spec.min} to ${spec.max}.`;
-    case 'list': return `Enter ${spec.length} numbers from ${spec.min} to ${spec.max}, separated by commas${spec.sum !== undefined ? `, adding up to ${spec.sum}` : ''}.`;
+    case 'list': return `Enter ${spec.length} numbers from ${spec.min} to ${spec.max}, separated by commas${spec.sum !== undefined ? `, adding up to ${spec.sum}` : ''}${spec.nonIncreasing ? ', each no larger than the one before' : ''}.`;
     case 'enum': return `Choose one of ${spec.values.join(', ')}.`;
     default: return 'This value cannot be edited here.';
   }

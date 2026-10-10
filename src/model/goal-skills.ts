@@ -1,6 +1,6 @@
 import type { Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { resolveEventSources, hasWhiteSpark, isEventSource, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
+import { resolveEventSources, hasWhiteSpark, isEventSource, lastStageShares, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
 
 // Each digit records a family's best available form: none, white, circle, gold.
 interface Distribution { states: Map<string, number>; approximate: boolean }
@@ -115,16 +115,16 @@ function componentForms(targets: Target[], coverage: Map<number, SkillSource[]>,
     const conditional = eventDistribution(roll, targets, data), pFire = roll.pFire;
     if (!chain) { dist = combine(dist, fires(conditional, pFire, targets.length)); continue; }
     const stages = chains.get(chain.key) ?? [];
-    stages.push({ stage: chain.stage, pReach: clamp(chain.pReach), conditional }); chains.set(chain.key, stages);
+    stages.push({ stage: chain.stage, pReach: chain.pReach, conditional }); chains.set(chain.key, stages);
   }
   for (const stages of chains.values()) {
     stages.sort((a, b) => a.stage - b.stage);
-    for (let i = 1; i < stages.length; i++) stages[i]!.pReach = Math.min(stages[i]!.pReach, stages[i - 1]!.pReach);
-    const states = new Map([['0'.repeat(targets.length), 1 - stages[0]!.pReach]]);
+    const shares = lastStageShares(stages.map((stage) => stage.pReach));
+    const states = new Map([['0'.repeat(targets.length), 1 - shares.reduce((sum, p) => sum + p, 0)]]);
     let reached = empty(targets.length), approximate = false;
     stages.forEach((stage, i) => {
       reached = combine(reached, stage.conditional); approximate ||= reached.approximate;
-      const deepest = stage.pReach - (stages[i + 1]?.pReach ?? 0);
+      const deepest = shares[i]!;
       for (const [state, p] of reached.states) add(states, state, p * deepest);
     });
     dist = combine(dist, bound({ states, approximate }));

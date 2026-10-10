@@ -194,3 +194,10 @@ test('setting specs: a default limit break must be a whole LB from 0 to 4', () =
   assert.deepEqual(sanitizeSettings({ defaultLb: { R: 0, SR: 2, SSR: 5 } }).defaultLb, DEFAULT_SETTINGS.defaultLb);
   assert.deepEqual(sanitizeSettings({ defaultLb: { R: 0, SR: 2, SSR: 3 } }).defaultLb, { R: 0, SR: 2, SSR: 3 });
 });
+
+test('setting specs: chain reach chances may not rise from one stage to the next', () => {
+  assert.equal(parseSetting('chainRatesSSR', '1, 0, 1'), undefined, 'stage 3 needs stage 2');
+  assert.equal(parseSetting('chainRatesSR', '0.3, 0.5'), undefined);
+  assert.deepEqual(parseSetting('chainRatesSSR', '0.7, 0.4, 0.4'), [0.7, 0.4, 0.4], 'equal reaches are allowed');
+  assert.deepEqual(sanitizeSettings({ chainRatesSSR: [0, 0.36, 0.12] }).chainRatesSSR, DEFAULT_SETTINGS.chainRatesSSR, 'an impossible saved list falls back to the default');
+});

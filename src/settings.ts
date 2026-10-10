@@ -90,12 +90,14 @@ export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'defaultLb'] as cons
 export type SettingSpec =
   | { kind: 'number'; min: number; max: number }
   | { kind: 'number-or-null'; min: number; max: number }
-  | { kind: 'list'; length: number; min: number; max: number; sum?: number }
+  | { kind: 'list'; length: number; min: number; max: number; sum?: number; nonIncreasing?: boolean }
   | { kind: 'enum'; values: readonly (string | number)[] }   // the saved value must be one of these, same type included
   | { kind: 'boolean' }
   | { kind: 'lb-defaults' };
 const rate: SettingSpec = { kind: 'number', min: 0, max: 1 };
 const odds: SettingSpec = { kind: 'list', length: 3, min: 0, max: 1 };
+/** Chain stage reach chances: reaching a stage needs every stage before it. */
+const chainReach = (length: number): SettingSpec => ({ kind: 'list', length, min: 0, max: 1, nonIncreasing: true });
 const starDistribution: SettingSpec = { ...odds, sum: 1 };
 /** Overall affinity thresholds the game shows: ◎ above 150, ○ above 50, △ otherwise; the overall value is the sum of the six individual scores. */
 /** The race count the stat model was measured at; a total-turn override below it would scale card stats by zero or a negative number. */
@@ -108,8 +110,8 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   hintBase: rate,
   hintScale: { kind: 'number', min: 0, max: 10 },
   hintTurnsShare: rate,
-  chainRatesSSR: odds,
-  chainRatesSR: { kind: 'list', length: 2, min: 0, max: 1 },
+  chainRatesSSR: chainReach(3),
+  chainRatesSR: chainReach(2),
   randomEventRate: rate,
   palChainRate: rate,
   groupOutingRate: rate,
@@ -149,7 +151,8 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
     case 'number': return inRange(value, spec.min, spec.max);
     case 'number-or-null': return value === null || inRange(value, spec.min, spec.max);
     case 'list': return Array.isArray(value) && value.length === spec.length && value.every((v) => inRange(v, spec.min, spec.max))
-      && (spec.sum === undefined || Math.abs(value.reduce((sum, p) => sum + p, 0) - spec.sum) < 1e-9);
+      && (spec.sum === undefined || Math.abs(value.reduce((sum, p) => sum + p, 0) - spec.sum) < 1e-9)
+      && (!spec.nonIncreasing || value.every((v, i) => i === 0 || v <= value[i - 1]!));
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
     case 'boolean': return typeof value === 'boolean';
     case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => isLimitBreak((value as Record<string, unknown>)[r]));

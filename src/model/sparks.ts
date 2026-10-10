@@ -532,6 +532,16 @@ const ZERO_MASS: Mass = { any: 0, goldOrCircle: 0, gold: 0 };
 const massOf = (s: SkillSource, p: number): Mass => ({ any: p, goldOrCircle: s.gold || s.circle ? p : 0, gold: s.gold ? p : 0 });
 
 /**
+ * For nested chain stages in order, the chance each one is the last stage reached. Reaching a stage needs every stage
+ * before it, so the reach chances are clamped to [0, 1] and made non-increasing first.
+ */
+export function lastStageShares(reaches: number[]): number[] {
+  const nested: number[] = [];
+  reaches.forEach((p, i) => nested.push(Math.min(Math.max(0, Math.min(1, p)), i ? nested[i - 1]! : 1)));
+  return nested.map((p, i) => p - (nested[i + 1] ?? 0));
+}
+
+/**
  * Combine a target's sources into ownership odds using resolved event outcomes. Chain stages are nested
  * (stage k implies every earlier stage), so a skill offered by several stages counts once per run.
  * Callers prune each event to its taken option first (`pruneConflicts`); options left unpruned combine as
@@ -553,11 +563,12 @@ export function combineSources(sources: SkillSource[]): Ownership {
   }
   for (const [key, stages] of chains) {
     const ordered = [...stages].sort((a, b) => a[0] - b[0]);
+    const shares = lastStageShares(ordered.map(([, stage]) => stage.pReach));
     const total: Mass = { any: 0, goldOrCircle: 0, gold: 0 };
     const miss = { any: 1, goldOrCircle: 1, gold: 1 };
-    ordered.forEach(([, { pReach, q }], i) => {
+    ordered.forEach(([, { q }], i) => {
       miss.any *= 1 - q.any; miss.goldOrCircle *= 1 - q.goldOrCircle; miss.gold *= 1 - q.gold;
-      const deepest = Math.max(0, pReach - (ordered[i + 1]?.[1].pReach ?? 0)); // this is the last stage reached
+      const deepest = shares[i]!;
       total.any += deepest * (1 - miss.any); total.goldOrCircle += deepest * (1 - miss.goldOrCircle); total.gold += deepest * (1 - miss.gold);
     });
     groups.set(`chain:${key}`, total);

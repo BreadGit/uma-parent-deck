@@ -5,12 +5,13 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
 import { STATS, type Card, type Race } from '../src/types.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
 import { affinityMultiplier, defaultParentSparks, gainOfSparks, gainsOfParentSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, parentSparksFromGains, sparksFromGain, sparksFromStars, START_GAINS, withParentGain, type ParentSparks } from '../src/model/inherit.ts';
 import { SLOT_COUNT } from '../src/model/rules.ts';
+import { jointSkillForms } from '../src/model/goal-skills.ts';
 
 const data = loadData();
 const { cards, skills, characters } = data;
@@ -684,4 +685,24 @@ test('base schedule fans include the placing reward for likely losses', () => {
   assert.equal(sum.expectedFans, expectedFansBefore(sched, SLOT_COUNT));
   const winsOnly = sched.filter((s) => s.selected).reduce((a, s) => a + s.race.fansGain * Math.min(1, s.pWin), 0);
   assert.ok(sum.expectedFans >= winsOnly, 'losses still pay placing fans');
+});
+
+test('chain stages: reach chances nest, so the per-skill odds and the joint forms agree and stay probabilities', () => {
+  const focus = target('Focus');
+  const chain = (reaches: number[], stages = [1, 2, 3]): EventSource[] => stages.map((stage) => ({ kind: 'chain', isChoice: false, skillId: focus.white!.id, pObtain: reaches[stage - 1]!,
+    detail: '', gold: false, circle: false, event: { key: `c:${stage}`, label: '', option: '', optionIndex: 0 }, chain: { key: 'c', stage, pReach: reaches[stage - 1]! },
+    roll: { pFire: reaches[stage - 1]!, outcomes: [[[{ skillId: focus.white!.id, share: 1, rolled: false, gold: false, circle: false }]]] } }));
+  const jointAny = (sources: EventSource[]) => 1 - (jointSkillForms([focus], new Map([[focus.id, sources]]), data).components[0]!.distribution.states.get('0') ?? 0);
+  for (const reaches of [[0.69, 0.36, 0.12], [1, 0.5, 0.5], [0.3, 0, 0]]) {
+    for (const stages of [[1, 2, 3], [1, 3], [2, 3]]) {
+      const sources = chain(reaches, stages);
+      const own = combineSources(sources);
+      assert.ok(Math.abs(own.pAny - reaches[stages[0]! - 1]!) < 1e-9, `${reaches} at stages ${stages}: owned once the first offering stage is reached`);
+      assert.ok(Math.abs(own.pAny - jointAny(sources)) < 1e-9, `${reaches} at stages ${stages}: marginal ${own.pAny}, joint ${jointAny(sources)}`);
+    }
+  }
+  assert.deepEqual(lastStageShares([1, 0, 1]), [1, 0, 0], 'a later stage cannot be reached more often than an earlier one');
+  const impossible = chain([1, 0, 1]);
+  assert.equal(combineSources(impossible).pAny, 1);
+  assert.equal(jointAny(impossible), 1);
 });
