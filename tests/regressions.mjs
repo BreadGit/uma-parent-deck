@@ -830,6 +830,18 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.deepEqual((await state(page)).run.parentSparks, [defaultParentSparks(), [{ stat: 'wit', stars: 3 }, { stat: 'wit', stars: 3 }, { stat: 'guts', stars: 1 }]], 'the next edit saves the repaired side 1 along with the change on side 2');
   });
 
+  test('cards without an inventory entry show their rarity\'s saved default limit break', async (t) => {
+    const saved = defaultState(data);
+    saved.settings.defaultLb = { R: 4, SR: 2, SSR: 3 };
+    const listed = data.cards.find((card) => card.rarity === 'SR');
+    saved.inventory = { [listed.id]: 4 };
+    const page = await editor(t, saved);
+    await page.waitForSelector('select[data-lb]');
+    const shown = new Set(await page.$$eval('select[data-lb]', (els) => els.map((el) => el.value)));
+    assert.ok(shown.has('2') && shown.has('3'), `unlisted SR and SSR cards show their defaults: ${[...shown]}`);
+    await assertFieldsMatchState(page, 'with non-default limit breaks per rarity');
+  });
+
   test('negative skills are absent from target search and saved negative targets remain visible as unavailable', async (t) => {
     const saved = defaultState(data);
     saved.run.traineeCardId = 100701;
