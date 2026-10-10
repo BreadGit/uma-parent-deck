@@ -47,10 +47,12 @@ function eventPicker(catalog: MissionCatalog, selected: MissionEvent[], now: num
         @input=${(event: Event) => { view.missionPaste = inputValue(event); view.missionImportNotice = ''; refresh(); }}></textarea></label>
       <button class="small gap-top" data-action="import-missions" ?disabled=${!view.missionPaste.trim()} @click=${() => {
         const lines = parsePastedMissions(view.missionPaste, catalog.races).map((mission) => mission.text);
-        const added = lines.filter((line) => !store.missions.pastedLines.includes(line));
-        view.missionImportNotice = copy.imported(added.length);
         view.missionPaste = '';
-        update((state) => { state.missions.pastedLines.push(...added); });
+        update((state) => {
+          const added = lines.filter((line) => !state.missions.pastedLines.includes(line));
+          view.missionImportNotice = copy.imported(added.length);
+          state.missions.pastedLines.push(...added);
+        });
       }}>${copy.import}</button>
       <p class="small" role="status">${view.missionImportNotice}</p>
     </details>
@@ -67,7 +69,7 @@ function manualMatches(catalog: MissionCatalog) {
   const matches = [...new Map(catalog.races.map((race) => [race.raceId, race])).values()]
     .filter((race) => !store.missions.customRaceIds.includes(race.raceId) && matchesWords(words, race.name)).slice(0, 12);
   return html`<div class="mission-race-search">${matches.length ? matches.map((race) => html`<button class="small" data-add-mission-race=${race.raceId}
-    @click=${() => { view.missionRaceQuery = ''; update((state) => { state.missions.customRaceIds.push(race.raceId); }); }}>${race.name} · ${race.grade}</button>`) : html`<p class="small muted">${copy.noRaces}</p>`}</div>`;
+    @click=${() => { view.missionRaceQuery = ''; update((state) => { state.missions.customRaceIds = toggle(state.missions.customRaceIds, race.raceId, true); }); }}>${race.name} · ${race.grade}</button>`) : html`<p class="small muted">${copy.noRaces}</p>`}</div>`;
 }
 
 function traineePicker(recommendations: MissionRaceFit[], chosen: MissionRaceFit | null, now: number) {
