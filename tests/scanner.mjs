@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { chromium } from 'playwright';
 import { importInventory } from '../src/inventory.ts';
 import { loadData } from '../src/data.ts';
 import { STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, assertServesThisTree } from './browser-fields.mjs';
+import { assertFieldsMatchState, assertServesThisTree, BASE_URL as base, launchBrowser, previewJson } from './browser-fields.mjs';
 
-const base = process.env.URL ?? 'http://localhost:5173/';
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const page = await browser.newPage();
 const errors = [], uploads = [], referenceRequests = [];
 page.on('pageerror', error => errors.push(String(error)));
@@ -39,12 +37,6 @@ async function expectConfident(expected, label) {
     assert.equal(read.get(id).confident, true, `${label}: ${id} needs no confirmation`);
   }
   return read;
-}
-/** The JSON is built only while the preview is open, so open it before reading. */
-async function previewJson() {
-  const preview = page.locator('[data-preview]');
-  if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
-  return JSON.parse(await page.locator('[data-json]').textContent());
 }
 async function newInventory() {
   await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
@@ -175,7 +167,7 @@ try {
   await picker.press('Enter');
   assert.equal(await page.locator('[data-tile="c30125"]').count(), 0, 'the reading now belongs to the chosen card');
   assert.equal(await page.locator('[data-tile="c30062"]').getAttribute('data-lb'), '2', 'changing artwork preserves LB');
-  assert.equal((await previewJson())[30062], 2);
+  assert.equal((await previewJson(page))[30062], 2);
   editor = await openTile(30062);
   picker = editor.locator('[data-card]');
   await picker.click();
@@ -251,7 +243,7 @@ try {
     await scanFile(await alteredScreenshot('android', { covers }));
     const read = await expectConfident(expectedCards, 'isolated artwork');
     assert.equal(read.size, expectedCards.length, 'a complete lone card survives without adjacent cards');
-    const exported = await previewJson();
+    const exported = await previewJson(page);
     for (const [id, lb] of expectedCards) assert.equal(exported[id], lb, `isolated artwork ${id} stays owned`);
     await newInventory();
   }
@@ -275,7 +267,7 @@ try {
   assert.equal(await page.locator('[data-excluded] [data-tile="r"]').count(), 0);
   assert.equal(await page.locator('[data-excluded] [data-tile]').count(), 1, 'excluded readings keep a tile of their own');
   assert.equal(await page.locator('[data-download]').isEnabled(), true, 'an inventory containing only default R cards is usable');
-  const rareOnly = await previewJson();
+  const rareOnly = await previewJson(page);
   assert.equal(rareOnly[20021], null);
   for (const card of loadData().cards) if (card.rarity === 'R') assert.equal(rareOnly[card.id], 4);
   await newInventory();

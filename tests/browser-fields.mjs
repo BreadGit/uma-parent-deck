@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
+import playwright from 'playwright';
 import { buildVersion, BUILD_VERSION_PATH, parseBuildVersion } from '../scripts/build-version.ts';
 import { BLUE_SPARK_START_GAIN_BY_STARS } from '../src/model/rules.ts';
 import { loadData } from '../src/data.ts';
@@ -7,6 +8,26 @@ import { startingAptitudes } from '../src/model/pink-inherit.ts';
 import { migrate, STATE_KEY } from '../src/state.ts';
 import missionCatalog from '../data/missions.json' with { type: 'json' };
 const data = loadData();
+
+/** The server the browser suites test; set URL for a server on another port. */
+export const BASE_URL = process.env.URL ?? 'http://localhost:5173/';
+
+/** Launches the engine named by BROWSER (chromium, firefox or webkit), Chromium by default. */
+export function launchBrowser(options) {
+  const name = process.env.BROWSER ?? 'chromium';
+  if (!['chromium', 'firefox', 'webkit'].includes(name)) throw new Error(`BROWSER must be chromium, firefox or webkit, not ${name}`);
+  return playwright[name].launch(options);
+}
+
+/** Resolves after the next two animation frames, once layout and paint have caught up. */
+export const settled = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+
+/** The scanner's exported inventory. The JSON is built only while the preview is open, so open it before reading. */
+export async function previewJson(page) {
+  const preview = page.locator('[data-preview]');
+  if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
+  return JSON.parse(await page.locator('[data-json]').textContent());
+}
 const root = fileURLToPath(new URL('..', import.meta.url));
 const servedVersions = new Map();
 let ourVersion;

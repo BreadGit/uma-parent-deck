@@ -2,19 +2,17 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test, after, suite } from 'node:test';
-import { chromium } from 'playwright';
 import { ModuleKind, ScriptTarget, transpileModule } from 'typescript';
 import { loadData } from '../src/data.ts';
 import { defaultState, STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, openApp, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, BASE_URL as url, launchBrowser, openApp, waitForPlan } from './browser-fields.mjs';
 import { holdSearch } from './browser-search.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
 import { encodeShare, decodeShare, sharedChoices, shareUrl } from '../src/share.ts';
 import { planRun } from '../src/model/run.ts';
 
 const data = loadData();
-const browser = await chromium.launch();
-const url = process.env.URL ?? 'http://localhost:5173/';
+const browser = await launchBrowser();
 after(() => browser.close());
 
 /**

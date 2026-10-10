@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { chromium } from 'playwright';
-import { assertServesThisTree } from './browser-fields.mjs';
+import { assertServesThisTree, BASE_URL as base, launchBrowser, previewJson } from './browser-fields.mjs';
 
-const base = process.env.URL ?? 'http://localhost:5173/';
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const page = await browser.newPage();
 const file = new URL('fixtures/scanner/android.jpg', import.meta.url).pathname;
 const iphone = new URL('fixtures/scanner/iphone.jpg', import.meta.url).pathname;
@@ -30,12 +28,6 @@ async function holdScreenshot(skip = 0) {
     window.releaseScreenshot = () => { Image.prototype.decode = decode; release(); };
   }, skip);
 }
-/** The JSON is built only while the preview is open, so open it before reading. */
-async function previewJson() {
-  const preview = page.locator('[data-preview]');
-  if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
-  return JSON.parse(await page.locator('[data-json]').textContent());
-}
 async function start(files = file) {
   await page.locator('[data-files]').setInputFiles(files);
   await page.locator('[data-stop]').waitFor({ state: 'visible' });
@@ -48,7 +40,7 @@ async function scan(count) {
   assert.deepEqual(await page.locator('[role="alert"]').allTextContents(), []);
   assert.equal(await readings(), count);
   assert.equal(await page.locator('[data-download]').isEnabled(), true);
-  assert.equal((await previewJson())[30001], 1);
+  assert.equal((await previewJson(page))[30001], 1);
 }
 async function failed(count) {
   await page.getByRole('alert').waitFor({ timeout: 10000 });

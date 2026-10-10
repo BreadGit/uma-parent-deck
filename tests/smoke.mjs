@@ -1,12 +1,10 @@
 // Checks editor flows with search held pending, then completes a real search and checks six widths in both themes.
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
-import { assertFieldsMatchState, openApp, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, BASE_URL as url, launchBrowser, openApp, settled, waitForPlan } from './browser-fields.mjs';
 import { holdSearch, releaseSearch } from './browser-search.mjs';
 import { STATE_KEY } from '../src/state.ts';
 import { checkMissions } from './missions-browser.mjs';
-const url = process.env.URL ?? 'http://localhost:5173/';
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const context = await browser.newContext({ viewport: { width: 1500, height: 1100 } });
 const page = await context.newPage();
 await holdSearch(page);
@@ -14,7 +12,6 @@ const errors = [];
 // Edits save and render synchronously, so each wait below names the state the next assertion reads rather than a delay.
 const savedState = (predicate) => page.waitForFunction(({ key, body }) => new Function('st', `return ${body}`)(JSON.parse(localStorage.getItem(key))), { key: STATE_KEY, body: predicate });
 const fieldValue = (selector, value) => page.waitForFunction(({ selector, value }) => document.querySelector(selector)?.value === value, { selector, value });
-const settled = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await openApp(page, url);
@@ -267,7 +264,7 @@ if (await swapChip.count()) {
   const [sibling, winner] = await swapChip.evaluate((b) => [b.dataset.id, b.dataset.for]);
   await swapChip.click();
   await savedState(`st.run.wishlistOrder.indexOf(${sibling}) === st.run.wishlistOrder.indexOf(${winner}) - 1`);
-  await settled();
+  await settled(page);
   assert.equal(await page.locator(`.wishlist li[data-wl-key="${sibling}"] [data-action="wl-swap"][data-id="${winner}"]`).count(), 1, 'the displaced entry is a chip under the one that took its place');
   await page.click(`[data-action="wl-swap"][data-id="${winner}"][data-for="${sibling}"]`);
   await savedState(`st.run.wishlistOrder.indexOf(${winner}) === st.run.wishlistOrder.indexOf(${sibling}) - 1`);
@@ -561,7 +558,7 @@ for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.setViewportSize({ width, height: 1000 });
-    await settled();
+    await settled(page);
     assert.match(await page.locator('[data-sort="score"]').innerText(), /^Target spark chances.*▾$/);
     assert.equal(await page.getByText('Added spark chance', { exact: true }).count(), 0);
     assert.equal(await page.getByText('Spark chance alone', { exact: true }).count(), 0);

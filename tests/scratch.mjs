@@ -8,10 +8,9 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { chromium } from 'playwright';
 import { loadData } from '../src/data.ts';
 import { STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, openApp, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, BASE_URL as url, launchBrowser, openApp, settled as settledPage, waitForPlan } from './browser-fields.mjs';
 import { holdSearch, releaseSearch } from './browser-search.mjs';
 
 const { values: opts, positionals: [script] } = parseArgs({ allowPositionals: true, options: {
@@ -22,8 +21,7 @@ if (!script && !opts.eval && !opts.shot) {
   console.error('usage: node tests/scratch.mjs <script.mjs> | --eval <expression> | --shot <path.png> [--width N --height N --dark --state file.json --hold]');
   process.exit(2);
 }
-const url = process.env.URL ?? 'http://localhost:5173/';
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: { width: Number(opts.width), height: Number(opts.height) }, colorScheme: opts.dark ? 'dark' : 'light' });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
@@ -38,7 +36,7 @@ if (opts.state) {
   }, { key: STATE_KEY, saved });
 }
 if (opts.hold) await holdSearch(page);
-const settled = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+const settled = () => settledPage(page);
 const shot = (path, options = {}) => page.screenshot({ path, fullPage: true, ...options });
 let code = 0;
 try {
