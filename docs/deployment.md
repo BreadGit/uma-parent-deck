@@ -4,7 +4,7 @@
 the browser suites for pull requests, manual runs and `v*` tags, and deploys a release when a `v*`
 tag is pushed: the tagged build goes to Cloudflare Workers Static Assets.
 [wrangler.jsonc](../wrangler.jsonc) owns the site configuration. The runner image is pinned and
-[Dependabot](../.github/dependabot.yml) opens a monthly pull request for pinned action updates. The site needs no application server; screenshots and saved choices stay in the
+[Dependabot](../.github/dependabot.yml) proposes action, npm and Python updates. The site needs no application server; screenshots and saved choices stay in the
 browser.
 
 ## Releases

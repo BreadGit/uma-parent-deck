@@ -1,7 +1,7 @@
-# Actions are pinned by commit SHA, so nothing else updates them. One grouped pull request a month;
-# its CI run includes the browser suites.
+# One grouped pull request a month per ecosystem; its CI run includes the browser suites.
 version: 2
 updates:
+  # Actions are pinned by commit SHA, so nothing else updates them.
   - package-ecosystem: github-actions
     # The composite action pins actions too and is outside the workflows directory.
     directories: ['/', '/.github/actions/setup']
@@ -9,4 +9,23 @@ updates:
       interval: monthly
     groups:
       actions:
+        patterns: ['*']
+  # Major versions arrive as separate pull requests.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        update-types: [minor, patch]
+    ignore:
+      # Follows the Node major in .node-version.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+  - package-ecosystem: pip
+    directory: /analysis
+    schedule:
+      interval: monthly
+    groups:
+      python:
         patterns: ['*']
