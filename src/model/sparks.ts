@@ -393,17 +393,25 @@ const SCENARIO_EVENT_LABEL = "Our Grand Concert's scenario skill event (Senior N
  */
 export interface ScenarioOption { skillId: number; event: EventRef; detail: string; linkedCharId?: number }
 
-const scenarioOptionCache = new WeakMap<Data, Map<string, ScenarioOption[]>>();
+const scenarioOptionCache = new WeakMap<Data, { linked: Map<number, Set<number>>; options: Map<string, ScenarioOption[]> }>();
 
-/** Every option the scenario's linked events offer in a run with these characters present. Memoized per data set. */
+/**
+ * Every option the scenario's linked events offer in a run with these characters present. Memoized per data set and
+ * keyed by the linked characters present, the only ones that change the options.
+ */
 export function scenarioOptions(data: Data, settings: Settings, present: Set<number>): ScenarioOption[] {
-  const key = `${settings.scenarioId}|${[...present].sort((a, b) => a - b).join(',')}`;
   let perData = scenarioOptionCache.get(data);
-  if (!perData) { perData = new Map(); scenarioOptionCache.set(data, perData); }
-  const hit = perData.get(key);
+  if (!perData) { perData = { linked: new Map(), options: new Map() }; scenarioOptionCache.set(data, perData); }
+  let linked = perData.linked.get(settings.scenarioId);
+  if (!linked) {
+    linked = new Set(data.scenarioEvents.filter((ev) => ev.scenarioId === settings.scenarioId).flatMap((ev) => ev.choices.flatMap((ch) => ch.linkedCharId == null ? [] : [ch.linkedCharId])));
+    perData.linked.set(settings.scenarioId, linked);
+  }
+  const key = `${settings.scenarioId}|${[...present].filter((id) => linked.has(id)).sort((a, b) => a - b).join(',')}`;
+  const hit = perData.options.get(key);
   if (hit) return hit;
   const value = computeScenarioOptions(data, settings, present);
-  perData.set(key, value);
+  perData.options.set(key, value);
   return value;
 }
 

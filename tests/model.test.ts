@@ -5,7 +5,7 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
 import { STATS, type Card, type Race } from '../src/types.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
@@ -705,4 +705,15 @@ test('chain stages: reach chances nest, so the per-skill odds and the joint form
   const impossible = chain([1, 0, 1]);
   assert.equal(combineSources(impossible).pAny, 1);
   assert.equal(jointAny(impossible), 1);
+});
+
+test('scenario options: only the linked characters present change them, so other characters share one cached list', () => {
+  const linked = new Set(data.scenarioEvents.filter((ev) => ev.scenarioId === settings.scenarioId).flatMap((ev) => ev.choices.flatMap((ch) => ch.linkedCharId == null ? [] : [ch.linkedCharId])));
+  const [first] = [...linked];
+  const unlinked = characters.map((c) => c.charId).filter((id) => !linked.has(id));
+  assert.ok(first !== undefined && unlinked.length >= 2);
+  const base = scenarioOptions(data, settings, new Set([first!, unlinked[0]!]));
+  assert.equal(scenarioOptions(data, settings, new Set([first!, unlinked[1]!])), base, 'an unlinked character does not change the options');
+  assert.notEqual(scenarioOptions(data, settings, new Set([unlinked[1]!])), base);
+  assert.ok(base.some((o) => o.linkedCharId === first && o.event.option.includes('gold version')), 'the linked character present upgrades her option');
 });
