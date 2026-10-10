@@ -62,10 +62,10 @@ function eventPicker(catalog: MissionCatalog, selected: MissionEvent[], now: num
 }
 
 function manualMatches(catalog: MissionCatalog) {
-  const query = view.missionRaceQuery.trim().toLowerCase();
-  if (!query) return nothing;
+  const words = queryWords(view.missionRaceQuery);
+  if (!words.length) return nothing;
   const matches = [...new Map(catalog.races.map((race) => [race.raceId, race])).values()]
-    .filter((race) => !store.missions.customRaceIds.includes(race.raceId) && race.name.toLowerCase().includes(query)).slice(0, 12);
+    .filter((race) => !store.missions.customRaceIds.includes(race.raceId) && matchesWords(words, race.name)).slice(0, 12);
   return html`<div class="mission-race-search">${matches.length ? matches.map((race) => html`<button class="small" data-add-mission-race=${race.raceId}
     @click=${() => { view.missionRaceQuery = ''; update((state) => { state.missions.customRaceIds.push(race.raceId); }); }}>${race.name} · ${race.grade}</button>`) : html`<p class="small muted">${copy.noRaces}</p>`}</div>`;
 }

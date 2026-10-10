@@ -52,7 +52,7 @@ export async function checkMissions(page, url, overflowReport) {
   await assertFieldsMatchState(page, 'after picking a different mission trainee');
   assert.match(await page.locator('[data-mission-fit]').innerText(), /0 \/ 3/);
   await page.getByText('Add a race', { exact: true }).click();
-  await page.locator('[data-mission-race-search]').fill('Yasuda Kinen');
+  await page.locator('[data-mission-race-search]').fill('kinen yasuda');
   await page.locator('[data-add-mission-race="1011"]').click();
   await assertFieldsMatchState(page, 'after adding an extra race');
   await page.locator('[data-custom-race-complete="1011"]').check();
