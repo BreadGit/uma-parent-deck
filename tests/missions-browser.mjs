@@ -80,7 +80,7 @@ export async function checkMissions(page, url, overflowReport) {
   await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).missions.completedCustomRaceIds.includes(1011), STATE_KEY);
   assert.equal(await page.locator('[data-custom-race-complete="1011"]').isChecked(), false, 'the event was not delivered');
   const selected = (await read()).missions.eventIds;
-  await page.locator('[data-mission-event="206"]').click();
+  await page.locator('[data-mission-event="201"]').click();
   const merged = (await read()).missions;
   assert.ok(merged.completedCustomRaceIds.includes(1011), 'an edit after a missed storage event keeps the other tab\'s change');
   assert.notDeepEqual(merged.eventIds, selected, 'and applies its own');
