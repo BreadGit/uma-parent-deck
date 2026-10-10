@@ -6,7 +6,7 @@ on:
     - cron: '7 2 * * *'
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: update-game-data
   cancel-in-progress: false
@@ -15,6 +15,9 @@ jobs:
     name: Refresh main
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    # Only this job pushes; the deploy job runs with read access.
+    permissions:
+      contents: write
     outputs:
       changed: ${{ steps.refresh.outputs.changed }}
       sha: ${{ steps.commit.outputs.sha }}
