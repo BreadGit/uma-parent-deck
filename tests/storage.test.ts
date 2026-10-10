@@ -103,6 +103,23 @@ test('an unreadable save without room for a copy stays in place until the user r
   }, true);
 });
 
+test('a page kept from saving over an unreadable save saves again once another tab replaces it', () => {
+  const data = loadData();
+  const saved = new Map([[STATE_KEY, '{invalid: audit probe']]);
+  withStorage(saved, () => {
+    const page = loadState(data, {});
+    assert.notEqual(uncopiedUnreadable, null);
+    const other = defaultState(data);
+    other.settings.focus = 'balanced';
+    saved.set(STATE_KEY, JSON.stringify(other));
+    assert.equal(storedIfChanged(data)?.settings.focus, 'balanced');
+    assert.equal(uncopiedUnreadable, null, 'nothing unreadable is left in place to protect');
+    assert.equal(unreadableSave(), null);
+    page.ui.sortKey = 'speed';
+    assert.equal(saveState(page), true);
+  }, true);
+});
+
 test('a save from a newer version is read but never replaced until the user chooses to', () => {
   const data = loadData();
   const future = { ...defaultState(data), version: STATE_VERSION + 1, futureField: 1 };

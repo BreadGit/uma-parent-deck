@@ -275,6 +275,8 @@ export function storedIfChanged(data: Data): AppState | null {
   const current = parseJson(raw);
   if (!isSave(current)) return null;
   lastRaw = raw;
+  // Another tab wrote over an unreadable save it could not copy aside, so there is nothing left in place to protect.
+  uncopiedUnreadable = null;
   if (current.version > STATE_VERSION) { newerSave = true; return null; }
   newerSave = false;
   return migrate({ current }, data);
