@@ -5,6 +5,7 @@ import { buildVersion, BUILD_VERSION_PATH, parseBuildVersion } from '../scripts/
 import { BLUE_SPARK_START_GAIN_BY_STARS } from '../src/model/rules.ts';
 import { loadData } from '../src/data.ts';
 import { startingAptitudes } from '../src/model/pink-inherit.ts';
+import { effectiveLb } from '../src/model/run.ts';
 import { migrate, STATE_KEY } from '../src/state.ts';
 import missionCatalog from '../data/missions.json' with { type: 'json' };
 const data = loadData();
@@ -77,12 +78,14 @@ export async function assertFieldsMatchState(page, where) {
   const saved = migrate({ current }, data);
   const trainee = data.charByCardId.get(saved.run?.traineeCardId);
   const expectedAptitudes = trainee ? startingAptitudes(trainee.aptitudes, saved.run.aptOverrides, saved.run.pinkLineage) : null;
-  const bad = await page.evaluate(({ gainByStars, expectedAptitudes, st, missionEvents }) => {
+  // A card without an inventory entry shows its rarity's saved default limit break.
+  const expectedLb = Object.fromEntries(data.cards.map((card) => [card.id, effectiveLb(saved.inventory, card, saved.settings.defaultLb)]));
+  const bad = await page.evaluate(({ gainByStars, expectedAptitudes, expectedLb, st, missionEvents }) => {
     const out = [];
     const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'];
     for (const el of document.querySelectorAll('select[data-lb]')) {
-      const v = st.inventory?.[el.dataset.lb];
-      const want = v === null ? 'none' : String(v ?? 4);
+      const lb = expectedLb[el.dataset.lb];
+      const want = lb === null ? 'none' : String(lb);
       if (el.value !== want) out.push(`LB select for ${el.dataset.lb} shows ${el.value}, state ${want}`);
     }
     for (const el of document.querySelectorAll('select[data-gain]')) {
@@ -169,6 +172,6 @@ export async function assertFieldsMatchState(page, where) {
       if (el.getAttribute('aria-pressed') !== String(st.missions.traineeCardId === Number(el.dataset.missionRecommend))) out.push('mission trainee differs from state');
     }
     return out;
-  }, { gainByStars: BLUE_SPARK_START_GAIN_BY_STARS, expectedAptitudes, st: saved, missionEvents: missionCatalog.events });
+  }, { gainByStars: BLUE_SPARK_START_GAIN_BY_STARS, expectedAptitudes, expectedLb, st: saved, missionEvents: missionCatalog.events });
   assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
 }
