@@ -31,8 +31,8 @@ const SORT_KEYS: Record<string, (x: CardScore) => number> = {
 };
 const targetLabel = (x: TargetSparkChance) => `${x.target.name}${x.role === 'required' ? ` ${x.stars}★+` : ''}`;
 const sourceDetails = (x: TargetSparkChance) => x.sources.length
-  ? x.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${probability(s.pObtain)} skill acquisition`).join('\n')
-  : 'No available source on this card under the current skill priorities.';
+  ? x.sources.map((s) => COPY.ranking.source(skillName(s.skillId), s.detail, probability(s.pObtain))).join('\n')
+  : COPY.ranking.noSource;
 const targetChance = (x: TargetSparkChance) => html`<div class="target-spark" data-target-spark=${x.target.id}><span>${targetLabel(x)}</span> <span class="target-spark-value"><span class="pill">${probability(x.probability)}</span>${tip(sourceDetails(x))}</span></div>`;
 function toggleTargets(cardId: number) {
   view.expandedRankingCards = view.expandedRankingCards.includes(cardId)
@@ -45,7 +45,7 @@ function targetChancesCell(cardId: number, targets: TargetSparkChance[]) {
   const expanded = view.expandedRankingCards.includes(cardId), detailsId = `card-targets-${cardId}`;
   return html`<td class="cover target-chances" data-target-chances>
     ${available.slice(0, 4).map(targetChance)}
-    ${hidden.length ? html`<button type="button" class="target-more" data-target-more aria-expanded=${expanded} aria-controls=${detailsId} @click=${() => toggleTargets(cardId)}>${expanded ? 'Show fewer' : `+${hidden.length} more`}</button>
+    ${hidden.length ? html`<button type="button" class="target-more" data-target-more aria-expanded=${expanded} aria-controls=${detailsId} @click=${() => toggleTargets(cardId)}>${expanded ? COPY.ranking.fewerTargets : COPY.ranking.moreTargets(hidden.length)}</button>
       <div id=${detailsId} ?hidden=${!expanded}>${expanded ? hidden.map(targetChance) : nothing}</div>` : nothing}
   </td>`;
 }
@@ -76,7 +76,7 @@ export function renderRanking(c: RunPlan) {
     fn ? fn(b) - fn(a) : compareTargetChances(chances.get(a.card.id)!, chances.get(b.card.id)!));
   // A native button makes each header sortable from the keyboard; the info tip stays beside it, outside the button.
   const th = (k: string, label: string, help?: string, cls = 'num') => html`<th class=${cls} aria-sort=${sortKey === k ? 'descending' : 'none'}><button type="button" class="sort-button" data-sort="${k}" @click=${() => update((s) => { s.ui.sortKey = k; })}>${label}${sortKey === k ? html`<span aria-hidden="true"> ▾</span>` : nothing}</button>${help ? tip(help) : nothing}</th>`;
-  const totalTip = `What the card adds to the final stats at ${c.ctx.races} races under the ${store.settings.focus} focus: each stat column carries that focus's multiplier (${focusMul.map((m) => m.toFixed(2)).join(' / ')}) and Total is their sum. Target spark sorting uses Total when Required and Preferred chances both tie.`;
+  const totalTip = COPY.ranking.totalTip(c.ctx.races, store.settings.focus, focusMul.map((m) => m.toFixed(2)).join(' / '));
   const actions = html`<label class="row"><span class="row-k">${COPY.ranking.showUnowned}</span><input type="checkbox" data-setting="showUnowned" .checked=${live(store.ui.showUnowned)} @change=${(e: Event) => update((s) => { s.ui.showUnowned = isChecked(e); })} /></label>`;
   return panel({ title: COPY.ranking.title, kind: 'result', subtitle: `${rows.length} cards · ${COPY.ranking.sortHint}`, tip: COPY.ranking.tip, actions, cls: 'panel-live' }, html`
     <div class="scroll"><table class="ranking-table"><thead><tr><th></th><th>${COPY.ranking.columns.card}</th><th>${COPY.ranking.columns.lb}</th>${th('score', COPY.ranking.columns.targets, COPY.ranking.targetTip, '')}${STATS.map((s) => th(s, s))}${th('stats', COPY.ranking.columns.total, totalTip)}${th('sp', COPY.ranking.columns.sp)}<th>${COPY.ranking.columns.basis}${tip(COPY.ranking.basisTip(data.model.races.reference, c.ctx.races))}</th></tr></thead><tbody>

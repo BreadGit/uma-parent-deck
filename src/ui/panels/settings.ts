@@ -42,7 +42,7 @@ async function onImport(e: Event) {
   input.value = ''; // so importing the same file again fires change
 }
 async function resetInventory() {
-  if (await confirmDialog(COPY.settings.resetInventoryConfirm, 'Reset')) update((s) => { s.inventory = {}; });
+  if (await confirmDialog(COPY.settings.resetInventoryConfirm, COPY.settings.reset)) update((s) => { s.inventory = {}; });
 }
 function resetAdvanced() {
   view.settingErrors = {};
