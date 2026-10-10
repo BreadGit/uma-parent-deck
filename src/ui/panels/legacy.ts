@@ -35,26 +35,29 @@ function setGain(pi: number, si: number, gain: number) {
  * uma has a spark; only the "+0" dropdown does), and stars alone cannot fill one, so those edits are ignored.
  */
 function setSpark(pi: number, ui: number, patch: { stat?: Stat; stars?: number }) {
-  const cur = store.run.parentSparks[pi]![ui] ?? null;
-  const stat = patch.stat ?? cur?.stat;
-  const stars = patch.stars ?? cur?.stars ?? NEW_SPARK_STARS;
-  if (!STATS.includes(stat as Stat) || !STAR_OPTIONS.includes(stars)) return;
-  const next: BlueSpark = { stat: stat as Stat, stars };
-  update((s) => { s.run.parentSparks = s.run.parentSparks.map((p, j) => (j === pi ? p.map((u, k) => (k === ui ? next : u)) : p)); });
+  update((s) => {
+    const cur = s.run.parentSparks[pi]![ui] ?? null;
+    const stat = patch.stat ?? cur?.stat;
+    const stars = patch.stars ?? cur?.stars ?? NEW_SPARK_STARS;
+    if (!STATS.includes(stat as Stat) || !STAR_OPTIONS.includes(stars)) return;
+    const next: BlueSpark = { stat: stat as Stat, stars };
+    s.run.parentSparks = s.run.parentSparks.map((p, j) => (j === pi ? p.map((u, k) => (k === ui ? next : u)) : p));
+  });
 }
 /** An override equal to the trainee's own grade is just the base again. */
 function setAptitude(k: AptKey, grade: Grade) {
-  const t = store.run.traineeCardId != null ? data.charByCardId.get(store.run.traineeCardId) : null;
-  const inferred = t ? withPinkAptitude(t.aptitudes, { ...t.aptitudes, ...store.run.aptOverrides }, store.run.pinkLineage, k, grade) : null;
-  if (!inferred) { refresh(); return; }
   update((s) => {
+    const t = s.run.traineeCardId != null ? data.charByCardId.get(s.run.traineeCardId) : null;
+    const inferred = t ? withPinkAptitude(t.aptitudes, { ...t.aptitudes, ...s.run.aptOverrides }, s.run.pinkLineage, k, grade) : null;
+    if (!inferred) return;
     s.run.aptOverrides = Object.fromEntries(APTITUDE_KEYS.filter((key) => inferred.aptitudes[key] !== t!.aptitudes[key]).map((key) => [key, inferred.aptitudes[key]]));
     s.run.pinkLineage = inferred.lineage;
   });
 }
-function setPinkSpark(index: number, spark: PinkSpark | null) {
+/** Edit one ancestor's pink spark as `update()` sees it, which includes another tab's save taken over since this page rendered. */
+function setPinkSpark(index: number, edit: (spark: PinkSpark | null) => PinkSpark | null) {
   update((s) => {
-    const next = [...s.run.pinkLineage]; next[index] = spark;
+    const next = [...s.run.pinkLineage]; next[index] = edit(next[index] ?? null);
     const trainee = s.run.traineeCardId === null ? null : data.charByCardId.get(s.run.traineeCardId);
     if (trainee) {
       const aptitudes = withPinkLineage(trainee.aptitudes, s.run.aptOverrides, s.run.pinkLineage, next);
@@ -98,8 +101,8 @@ function pinkRow(pi: number, ui: number) {
   const aptitude = spark?.aptitude ?? '', stars = spark ? String(spark.stars) : '';
   const aptitudes = [EMPTY, ...APTITUDE_KEYS.map((k) => ({ value: k, label: APTITUDE_LABELS[k] }))];
   return html`<span class="who">${UMA_LABELS[ui]}${spark?.inferred ? html`<small class="pink-inferred" data-pink-inferred=${index}>Estimated</small>` : nothing}</span>
-    <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink aptitude" data-pink-lineage=${index} .value=${live(aptitude)} @change=${(e: Event) => { const key = selectValue(e) as AptKey | ''; setPinkSpark(index, key ? { aptitude: key, stars: spark?.stars ?? NEW_SPARK_STARS } : null); }}>${options(aptitudes, aptitude)}</select>
-    <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink stars" data-pink-lineage-stars=${index} ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => { if (spark) setPinkSpark(index, { aptitude: spark.aptitude, stars: Number(selectValue(e)) }); }}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>`;
+    <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink aptitude" data-pink-lineage=${index} .value=${live(aptitude)} @change=${(e: Event) => { const key = selectValue(e) as AptKey | ''; setPinkSpark(index, (cur) => key ? { aptitude: key, stars: cur?.stars ?? NEW_SPARK_STARS } : null); }}>${options(aptitudes, aptitude)}</select>
+    <select aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} pink stars" data-pink-lineage-stars=${index} ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => { const picked = Number(selectValue(e)); setPinkSpark(index, (cur) => cur && { aptitude: cur.aptitude, stars: picked }); }}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>`;
 }
 const pinkForm = () => html`<div id="legacy-pink-sparks" data-pink-sparks-form>
   <div class="per-parent pink">${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><span class="side-head">Parent ${pi + 1}</span>${UMAS.map((ui) => pinkRow(pi, ui))}</div>`)}</div>

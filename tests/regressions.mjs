@@ -1277,6 +1277,32 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.deepEqual((await state(page)).run.pinkLineage, Array(6).fill(null));
   });
 
+  test('legacy edits after a missed storage event keep the other tab\'s changes', async (t) => {
+    const page = await editor(t);
+    await trainee(page);
+    await page.click('[data-action="toggle-sparks"]');
+    await page.selectOption('[data-spark-stat="0-0"]', 'speed');
+    await page.click('[data-action="toggle-pink-sparks"]');
+    await page.selectOption('[data-pink-lineage="3"]', 'turf');
+    // Another tab edits the same sparks; a page's own localStorage writes raise no storage event, so this one misses it.
+    const otherTab = (edit) => page.evaluate(({ key, edit }) => {
+      const saved = JSON.parse(localStorage.getItem(key));
+      (0, eval)(edit)(saved.run);
+      localStorage.setItem(key, JSON.stringify(saved));
+    }, { key: STATE_KEY, edit: edit.toString() });
+    await otherTab((run) => { run.parentSparks[0][0].stars = 1; run.parentSparks[0][1] = { stat: 'power', stars: 2 }; });
+    await page.selectOption('[data-spark-stat="0-0"]', 'stamina');
+    assert.deepEqual((await state(page)).run.parentSparks[0], [{ stat: 'stamina', stars: 1 }, { stat: 'power', stars: 2 }, null], 'a stat edit keeps the other tab\'s stars and sparks');
+    await otherTab((run) => { run.pinkLineage[3] = { aptitude: 'dirt', stars: 3 }; run.pinkLineage[4] = { aptitude: 'long', stars: 2 }; });
+    await page.selectOption('[data-pink-lineage-stars="3"]', '1');
+    assert.deepEqual((await state(page)).run.pinkLineage.slice(3, 5), [{ aptitude: 'dirt', stars: 1 }, { aptitude: 'long', stars: 2 }], 'a stars edit keeps the other tab\'s aptitude and sparks');
+    await otherTab((run) => { run.pinkLineage[5] = { aptitude: 'sprint', stars: 2 }; });
+    const mile = await page.inputValue('[data-apt="mile"]');
+    await page.selectOption('[data-apt="mile"]', mile === 'A' ? 'B' : 'A');
+    assert.deepEqual((await state(page)).run.pinkLineage[5], { aptitude: 'sprint', stars: 2 }, 'an aptitude edit keeps the other tab\'s pink spark');
+    await assertFieldsMatchState(page, 'after legacy edits that took over a missed change from another tab');
+  });
+
   test('dimmed aptitude choices rebalance pink sparks and planning overrides preserve them', async (t) => {
     const page = await editor(t);
     await trainee(page);
