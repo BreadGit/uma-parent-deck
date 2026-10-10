@@ -13,7 +13,7 @@ import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSumma
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
 import { rankEstimate, skillPointsOf, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { displayedStat, statMasses, statMoments } from './stat-outcomes.ts';
-import { estimatePurchases, estimateSkillRating, targetSpCost, type Purchases, type SkillRating, type SpCost } from './skill-purchases.ts';
+import { estimatePurchases, estimateSkillRating, type Purchases, type SkillRating, type SpCost } from './skill-purchases.ts';
 import { projectForms } from './goal-skills.ts';
 import { gainsOfParentSparks, inheritedFromParents, type Inheritance, type ParentSparks } from './inherit.ts';
 import { clampStars, traineeAt } from './trainee.ts';
@@ -443,7 +443,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       `Required goals come first. Preferred sparks on successful parents can decide within ${(settings.goalTieTolerance * 100).toLocaleString()}% of the best required chance found.`,
       ...pinnedIds.filter((id) => !deckResult.deck.some((e) => e.card.id === id)).map((id) => `${data.cardById.get(id)!.name} was not selected. Pins compete when slots or character restrictions prevent including them together.`)];
   } else deckResult.steps = retained ? ['Kept the displayed cards and updated their estimates for your current inputs.'] : initial.steps;
-  const spCost = targetSpCost(targets, deckResult.coverage);
+  // The goal's share of the purchase estimate: a target the deck cannot give cannot be bought, so it costs nothing.
+  const spCost = prediction.purchases.goalCost;
   return {
     search, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, ignoredIds, existing, ranking, deckResult, ...prediction, spCost,
     wl: layout.live.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: layout.live.slice(PRIORITIZED_SKILLS_MAX), wlHidden: hidden, wlLayout: layout,

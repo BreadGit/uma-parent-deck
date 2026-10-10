@@ -361,3 +361,14 @@ test('initial deck: a borrow never takes the last owned character a slot needs; 
     assert.equal(deck.length === 6 && deck.filter((d) => d.borrowed).length === 1, legal, `inventory ${owned.map((c) => c.id).join(',')}`);
   }
 });
+
+test('worst-case target SP cost: a target the deck cannot give costs nothing, matching the purchase estimate', () => {
+  const skill = must(data.skills.find((s) => s.rarity === 1 && s.cost && s.hintCards.length && !s.eventCards.length && !s.innateChars.length && !s.eventChars.length && !s.unreleasedEn && !s.name.includes('◎')));
+  const trainee = must(data.charByCardId.get(100101));
+  const used = new Set([trainee.charId]);
+  const selection = data.cards.filter((c) => !skill.hintCards.includes(c.id) && !used.has(c.charId) && used.add(c.charId)).slice(0, 6).map((c, i) => ({ id: c.id, lb: 4, borrowed: i === 0 }));
+  const plan = planRun({ ...empty, traineeCardId: trainee.cardId, targets: [{ id: skill.id, role: 'preferred', stars: 1, priority: 0 }] }, settings, {}, data, { selection, search: false });
+  assert.equal(plan.deckResult.coverage.get(skill.id)?.length ?? 0, 0, 'no card in the deck hints the skill');
+  assert.equal(plan.spCost.total, 0);
+  assert.deepEqual(plan.spCost, plan.purchases.goalCost);
+});

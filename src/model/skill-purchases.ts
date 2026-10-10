@@ -20,9 +20,8 @@ export interface SpCost { total: number; incomplete: boolean; items: { target: T
 export interface Purchases {
   targets: Target[];        // goal and listed families; unavailable goals retain zero forms for goal evaluation
   forms: FormDistribution;  // the forms the run ends up owning, from its sources. Rank spends SP separately (SkillRating).
-  spent: number;            // worst-case SP: the best obtainable form of every family with its prerequisites, at full price
-  extrasSpent: number;      // the listed extras' share of `spent`; the rest is the goal's targets
-  incomplete: boolean;      // a family's price is unknown, so `spent` is a lower bound
+  goalCost: SpCost;         // worst-case SP for the goal's targets the run can obtain: best form with prerequisites, at full price
+  extrasCost: SpCost;       // the same for the listed extras the run can obtain
 }
 
 /** A form the run can buy: released and not a debuff. */
@@ -76,7 +75,7 @@ export function estimatePurchases(deck: { card: Card; lb: number }[], goalTarget
   const forms = jointSkillForms(targets, coverage, ctx.data);
   const goalCost = targetSpCost(targets.filter((t) => goalIds.has(t.id) && obtainable(t)), coverage);
   const extrasCost = targetSpCost(targets.filter((t) => !goalIds.has(t.id)), coverage);
-  return { targets, forms, spent: goalCost.total + extrasCost.total, extrasSpent: extrasCost.total, incomplete: goalCost.incomplete || extrasCost.incomplete };
+  return { targets, forms, goalCost, extrasCost };
 }
 
 interface SpendingPoint { cost: number; points: number; unverified: number[] }
