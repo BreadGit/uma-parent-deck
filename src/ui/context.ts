@@ -127,7 +127,8 @@ export function update(fn: (s: AppState) => void) {
 /** The search key plus the user's arrangement of the extras, which changes the plan shown but not the search. */
 const displayKey = () => `${inputKey}${JSON.stringify([store.run.wishlistOrder, store.run.wishlistExcluded])}`;
 let cache: { searchKey: string; displayKey: string; value: RunPlan } | null = null;
-export const searchState = { pending: false, error: '' };
+/** Whether a deck search is running, and whether the last one failed (the warnings panel then offers a retry). */
+export const searchState = { pending: false, failed: false };
 let worker: Worker | null = null, requestId = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let previous: DeckSelection | undefined;
@@ -157,40 +158,45 @@ export function plan(): RunPlan {
   previous = value.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   cache = { searchKey: key, displayKey: shown, value };
   if (sameSearch) return value;
-  searchState.error = '';
+  searchState.failed = false;
   searchState.pending = !restored && !!value.trainee && !value.issues.length && store.run.goal.blueStats.length > 0;
   if (searchState.pending) timer = setTimeout(() => {
-    const fail = () => {
-      if (id !== requestId || cache?.searchKey !== key) return;
+    const current = () => id === requestId && cache?.searchKey === key;
+    // Every way a search can fail settles it here, so the deck never stays pending; the deck shown keeps its estimates.
+    const fail = (detail: string) => {
+      if (!current()) return;
+      console.warn('Deck search failed:', detail);
       searchState.pending = false;
-      searchState.error = 'Deck search could not finish.';
+      searchState.failed = true;
       worker?.terminate(); worker = null;
       renderer();
     };
     try {
       worker = new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
-      worker.onerror = fail;
+      worker.onerror = (event) => fail(event.message ?? 'worker error');
+      worker.onmessageerror = () => fail('unreadable worker message');
       worker.onmessage = (event: MessageEvent<PlanWorkerResponse>) => {
-        const publish = () => {
-          if (id !== requestId || event.data.id !== id || cache?.searchKey !== key) return;
-          if (event.data.error) { fail(); return; }
-          // Publish once, after both search stages, so intermediate results do not move the editor.
-          if (!event.data.complete || !event.data.selection) return;
-          cache.value = planRun(store.run, store.settings, store.inventory, data,
-            { selection: event.data.selection, summary: event.data.summary, search: false });
-          cache.displayKey = displayKey();
-          previous = event.data.selection;
+        const response = event.data;
+        if (!current() || response.id !== id) return;
+        if (response.kind !== 'result' || !Array.isArray(response.selection)) {
+          fail(response.kind === 'error' ? response.message : 'malformed worker response');
+          return;
+        }
+        try {
+          cache!.value = planRun(store.run, store.settings, store.inventory, data,
+            { selection: response.selection, summary: response.summary, search: false });
+          cache!.displayKey = displayKey();
+          previous = response.selection;
           searchState.pending = false;
           worker?.terminate(); worker = null;
-          if (event.data.summary && isLegalRunSelection(event.data.selection, store.run, store.settings, store.inventory, data)) {
-            saveRecommendation(store, { build: BUILD_VERSION, key, selection: event.data.selection, summary: event.data.summary });
+          if (response.summary && isLegalRunSelection(response.selection, store.run, store.settings, store.inventory, data)) {
+            saveRecommendation(store, { build: BUILD_VERSION, key, selection: response.selection, summary: response.summary });
           }
           renderer();
-        };
-        publish();
+        } catch (error) { fail(error instanceof Error ? error.message : String(error)); }
       };
       worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory } satisfies PlanWorkerRequest);
-    } catch { fail(); }
+    } catch (error) { fail(error instanceof Error ? error.message : String(error)); }
   }, 400);
   return value;
 }

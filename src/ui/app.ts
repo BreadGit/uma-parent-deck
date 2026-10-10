@@ -87,7 +87,7 @@ function page() {
       <div class="results ${ready ? '' : 'waiting'}">
         ${inputsHidden ? html`<div class="results-head"><button class="small" data-action="show-inputs" aria-expanded="false" aria-controls="inputs" @click=${() => setInputsHidden(false)}>${COPY.app.showInputs}</button>${runSummary(c)}</div>${unavailableChoices()}` : nothing}
         ${ready ? nothing : html`<p class="banner" data-waiting>${COPY.app.waiting}</p>`}
-        ${hasWarnings(c) ? section('warnings', () => renderWarnings(c), [searchState.error]) : nothing}
+        ${hasWarnings(c) ? section('warnings', () => renderWarnings(c), [searchState.failed]) : nothing}
         ${section('deck', () => renderDeck(c), [searchState.pending])}
         ${complete ? html`<div class="results-split">
           <div class="results-col">

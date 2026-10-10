@@ -5,14 +5,17 @@ import type { Inventory } from '../types.ts';
 
 const data = loadData();
 export interface PlanWorkerRequest { id: number; run: RunInput; settings: Settings; inventory: Inventory }
-export interface PlanWorkerResponse { id: number; complete: boolean; selection?: DeckSelection; summary?: GoalSearchSummary; error?: string }
+/** One answer per request, after both search stages: the deck found, or why the search failed. */
+export type PlanWorkerResponse =
+  | { id: number; kind: 'result'; selection: DeckSelection; summary?: GoalSearchSummary }
+  | { id: number; kind: 'error'; message: string };
+const reply = (response: PlanWorkerResponse) => self.postMessage(response);
 self.onmessage = (event: MessageEvent<PlanWorkerRequest>) => {
   const { id, run, settings, inventory } = event.data;
-  const publish = (selection: DeckSelection, summary: GoalSearchSummary) => self.postMessage({ id, selection, summary, complete: false } satisfies PlanWorkerResponse);
   try {
-    const result = planRun(run, settings, inventory, data, { onProgress: publish });
-    self.postMessage({ id, complete: true, selection: result.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), summary: result.search ?? undefined } satisfies PlanWorkerResponse);
+    const result = planRun(run, settings, inventory, data);
+    reply({ id, kind: 'result', selection: result.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), summary: result.search ?? undefined });
   } catch (error) {
-    self.postMessage({ id, complete: true, error: error instanceof Error ? error.message : String(error) } satisfies PlanWorkerResponse);
+    reply({ id, kind: 'error', message: error instanceof Error ? error.message : String(error) });
   }
 };

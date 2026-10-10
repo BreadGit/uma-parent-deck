@@ -472,13 +472,13 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
       window.Worker = class extends NativeWorker {
         constructor(...args) {
           super(...args);
+          // Registered before the app's handler: the first answer becomes an error instead.
           this.addEventListener('message', (event) => {
-            if (event.data.complete || failed) return;
+            if (failed) return;
             failed = true;
-            setTimeout(() => {
-              this.terminate();
-              this.dispatchEvent(new MessageEvent('message', { data: { id: event.data.id, complete: true, error: 'Injected refinement failure' } }));
-            }, 0);
+            event.stopImmediatePropagation();
+            this.terminate();
+            this.dispatchEvent(new MessageEvent('message', { data: { id: event.data.id, kind: 'error', message: 'Injected refinement failure' } }));
           });
         }
       };
@@ -493,6 +493,37 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.equal(await page.locator('[data-action="retry-search"]').count(), 0);
     assert.ok(parseFloat(await page.locator('[data-goal-probability]').innerText()) >= reference - 0.05, 'the retried search reaches the reported deck');
     await assertFieldsMatchState(page, 'after retrying a failed refinement');
+  });
+
+  test('every planner worker failure settles the search and offers a retry', async (t) => {
+    const saved = defaultState(data);
+    saved.run.traineeCardId = 100101;
+    const page = await fresh(t, saved, { settle: false, init: () => {
+      window.searchWorkers = [];
+      window.Worker = class {
+        constructor() { window.searchWorkers.push(this); }
+        postMessage(request) { this.request = request; }
+        terminate() { this.terminated = true; }
+      };
+    } });
+    const failures = [
+      (worker) => worker.onmessage({ data: { id: worker.request.id, kind: 'result' } }),
+      (worker) => worker.onmessage({ data: { id: worker.request.id, kind: 'result', selection: [{ id: -1, lb: 9 }] } }),
+      (worker) => worker.onmessageerror(new MessageEvent('messageerror')),
+      (worker) => worker.onmessage({ data: { id: worker.request.id, kind: 'error', message: 'injected' } }),
+    ];
+    for (const [i, failure] of failures.entries()) {
+      await page.waitForFunction((n) => window.searchWorkers.length === n, i + 1);
+      await page.evaluate((source) => (0, eval)(source)(window.searchWorkers.at(-1)), failure.toString());
+      await page.waitForSelector('[data-action="retry-search"]');
+      assert.equal(await page.locator('[data-plan-pending]').count(), 0, `failure ${i} is not left pending`);
+      assert.equal(await page.evaluate(() => window.searchWorkers.at(-1).terminated), true);
+      assert.equal(await page.locator('.deck .slot').count(), 6, 'the checked deck stays');
+      await page.click('[data-action="retry-search"]');
+    }
+    await page.waitForFunction((n) => window.searchWorkers.length === n, failures.length + 1);
+    assert.equal(await page.locator('[data-action="retry-search"]').count(), 0, 'a retry clears the failure');
+    await assertFieldsMatchState(page, 'after retrying failed searches');
   });
 
   test('search stays responsive, ignores obsolete results, and persists the tie setting', async (t) => {
@@ -533,7 +564,7 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
         constructor() { window.searchWorkers.push(this); }
         postMessage(request) { this.request = request; }
         terminate() { this.terminated = true; }
-        deliver(selection, complete = true) { this.onmessage({ data: { id: this.request.id, selection, complete } }); }
+        deliver(selection) { this.onmessage({ data: { id: this.request.id, kind: 'result', selection } }); }
       };
     } });
     await page.setViewportSize({ width: 390, height: 844 });
@@ -542,8 +573,6 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     const cards = () => page.locator('.deck .card-link').evaluateAll((els) => els.map((el) => el.getAttribute('href')));
     const original = await cards();
     const alternative = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
-    await page.evaluate((selection) => window.searchWorkers[0].deliver(selection, false), alternative);
-    assert.deepEqual(await cards(), original, 'the first search stage does not replace the deck');
     await page.evaluate(() => { window.retainedDeck = document.querySelector('.deck'); window.retainedList = document.querySelector('.wishlist'); });
     const heading = page.locator('h2').filter({ hasText: 'Prioritized skills' });
     await heading.scrollIntoViewIfNeeded();
@@ -1515,13 +1544,13 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.waitForFunction(() => window.searchWorkers.length === 2);
     await page.evaluate((result) => {
       const worker = window.searchWorkers[0];
-      worker.onmessage({ data: { id: worker.request.id, complete: true, selection: result.selection, summary: result.summary } });
+      worker.onmessage({ data: { id: worker.request.id, kind: 'result', selection: result.selection, summary: result.summary } });
     }, finished.recommendation);
     assert.equal((await state(page)).recommendation, undefined, 'an obsolete result cannot repopulate the cache after A to B to A');
     assert.equal(await page.locator('[data-plan-pending]').count(), 1);
     await page.evaluate((result) => {
       const worker = window.searchWorkers[1];
-      worker.onmessage({ data: { id: worker.request.id, complete: true, selection: result.selection, summary: result.summary } });
+      worker.onmessage({ data: { id: worker.request.id, kind: 'result', selection: result.selection, summary: result.summary } });
     }, finished.recommendation);
     await assertFieldsMatchState(page, 'after publishing the current result');
     assert.deepEqual((await state(page)).recommendation, finished.recommendation);

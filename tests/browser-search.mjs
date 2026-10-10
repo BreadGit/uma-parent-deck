@@ -16,6 +16,7 @@ export async function holdSearch(page) {
         this.worker = new NativeWorker(...this.args);
         this.worker.onmessage = (event) => this.onmessage?.(event);
         this.worker.onerror = (event) => this.onerror?.(event);
+        this.worker.onmessageerror = (event) => this.onmessageerror?.(event);
         this.worker.postMessage(this.request);
       }
     };
