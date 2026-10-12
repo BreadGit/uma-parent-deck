@@ -166,7 +166,8 @@ test('borrow gain uses the final five owned cards as its baseline', () => {
   }
   const sum = (v: Map<number, number>) => [...v.values()].reduce((a, b) => a + b, 0);
   const gain = sum(p.deckResult.sparks) - sum(evaluate(owned, p.targets, p.ctx).sparks);
-  assert.ok(Math.abs(p.deckResult.borrow!.gain - gain) < 1e-9, `${p.deckResult.borrow!.gain} != ${gain}`);
+  const borrowed = p.deckResult.deck.find((entry) => entry.borrowed)!;
+  assert.ok(Math.abs(borrowed.marginalValue - gain) < 1e-9, `${borrowed.marginalValue} != ${gain}`);
 });
 
 test('inventory import rejects invalid structure and invalid entries atomically', async () => {

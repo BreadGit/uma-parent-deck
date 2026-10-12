@@ -383,14 +383,8 @@ test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin w
   const before = structuredClone(saved);
   const reference = fujiReference(saved);
   assert.ok(reference > 0, 'the reported deck is a legal selection with a positive chance');
-  const progress: number[] = [];
-  const result = planRun(saved.run, saved.settings, saved.inventory, data, { onProgress: (selection, summary) => {
-    const check = planRun(saved.run, saved.settings, saved.inventory, data, { selection });
-    assert.equal(check.goalEstimate.probability, summary.score.probability);
-    progress.push(summary.score.probability);
-  } });
+  const result = planRun(saved.run, saved.settings, saved.inventory, data);
   assert.ok(result.goalEstimate.probability! >= reference, `search reached ${result.goalEstimate.probability} against the reported deck's ${reference}`);
-  assert.ok(progress.length && result.goalEstimate.probability! >= progress[0]!, `progress ${progress} must not exceed the final ${result.goalEstimate.probability}`);
   assert.ok(result.search!.screened > 0, 'the search screened the wider pool');
   assert.ok(!result.deckResult.deck.some((e) => e.card.id === 30017 && !e.borrowed), 'Smart Falcon is not owned, so she cannot fill an owned slot');
   assert.deepEqual(saved, before);

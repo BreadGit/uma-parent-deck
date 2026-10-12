@@ -1,5 +1,11 @@
 export type Stat = 'speed' | 'stamina' | 'power' | 'guts' | 'wit';
-export const STATS: Stat[] = ['speed', 'stamina', 'power', 'guts', 'wit'];
+export const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'] as const;
+export type StatValues = [number, number, number, number, number];
+export type StatIndex = 0 | 1 | 2 | 3 | 4;
+/** Build a stat vector in the one order used by the model and forms. */
+export function statValues(value: (stat: Stat, index: StatIndex) => number): StatValues {
+  return [value(STATS[0], 0), value(STATS[1], 1), value(STATS[2], 2), value(STATS[3], 3), value(STATS[4], 4)];
+}
 export type CardType = Stat | 'pal' | 'group';
 export type Rarity = 'R' | 'SR' | 'SSR';
 export type Focus = 'balanced' | 'stamina' | 'sprint';

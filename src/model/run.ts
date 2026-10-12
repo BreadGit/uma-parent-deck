@@ -2,7 +2,7 @@ import { STATS, type Card, type Character, type Data, type Inventory } from '../
 import type { Settings } from '../settings.ts';
 import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type ResolvedGoal, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
-import { evaluateParentGoal, FINAL_GOAL_SAMPLES, goalRankBands, pinkGoalsEstimate, type GoalEstimate } from './goal.ts';
+import { evaluateParentGoal, FINAL_GOAL_SAMPLES, goalRankBands, pinkGoalsEstimate, type GoalEstimate, type GoalStats } from './goal.ts';
 import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, rankCards, traineeCoverage, wishlistCandidates, type CardScore, type Ctx, type DeckResult, type Existing, type WishlistEntry } from './deck.ts';
 import { chooseGoal, goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { EXPLORE_SAMPLES, SCREENED_DECKS, SCREEN_SAMPLES } from './goal-population.ts';
@@ -11,7 +11,7 @@ import { lineageCount, resolveTarget, type Lineage, type Target } from './sparks
 import { predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
-import { rankEstimate, skillPointsOf, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
+import { rankMoments, skillPointsOf, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { displayedStat, statMasses, statMoments } from './stat-outcomes.ts';
 import { estimatePurchases, estimateSkillRating, type Purchases, type SkillRating, type SpCost } from './skill-purchases.ts';
 import { projectForms } from './goal-skills.ts';
@@ -94,7 +94,6 @@ export interface RunOptions {
   search?: boolean;
   selection?: DeckSelection;
   previous?: DeckSelection;              // retain a legal displayed deck only when search is disabled
-  onProgress?: (selection: DeckSelection, summary: GoalSearchSummary) => void;
   summary?: GoalSearchSummary;
   budget?: number;
 }
@@ -295,8 +294,13 @@ function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, c
   return { pred, parentGains, inherited, rawFinalMean, rawFinalSd, purchases, skillRating, statCaps, uniqueLevel, skillPoints };
 }
 
+function goalStatsOf(prediction: ReturnType<typeof predictCandidate>, settings: Settings): GoalStats {
+  return { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true,
+    skillPoints: prediction.skillPoints, skillSd: settings.skillScoreSd };
+}
+
 /** Display summaries are only needed after selecting a deck. */
-function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input: RunInput, ctx: Ctx): DeckPrediction {
+function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input: RunInput, ctx: Ctx, pSS: number): DeckPrediction {
   const { uniqueLevel, skillPoints: _skillPoints, ...base } = prediction;
   const { rawFinalMean, rawFinalSd, statCaps, skillRating } = base;
   const { data, settings, trainee } = ctx;
@@ -304,14 +308,16 @@ function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input
   const moments = masses.map(statMoments);
   const finalMean = moments.map((m) => m.mean), finalSd = moments.map((m) => m.sd);
   const statChances = moments.map((m) => ({ mid: Math.min(1, m.above(600)), high: Math.min(1, m.above(1100)) }));
-  const rank = rankEstimate(finalMean, finalSd, skillRating.score, trainee, clampStars(trainee, input.traineeStars), uniqueLevel, data, settings, 0, masses);
+  const rank = { ...rankMoments(masses, skillRating.score, trainee, clampStars(trainee, input.traineeStars), uniqueLevel, data, settings), pSS };
   return { ...base, finalMean, finalSd, statChances, rank };
 }
 
 /** Predict a supplied deck without selecting cards. */
 export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, prepared = preparePrediction(input, ctx)): DeckPrediction {
   const canonical = canonicalDeck(deck);
-  return finishPrediction(predictCandidate(canonical, input, ctx, apt, predictCandidateStats(canonical, ctx, expectedLosses), prepared), input, ctx);
+  const prediction = predictCandidate(canonical, input, ctx, apt, predictCandidateStats(canonical, ctx, expectedLosses), prepared);
+  const basis = goalRankBands(goalStatsOf(prediction, ctx.settings), input.goal, thresholdFor('SS', ctx.data.ranks), ctx.settings);
+  return finishPrediction(prediction, input, ctx, basis.pSS);
 }
 
 /** Plan the whole run: schedule, deck, prediction, rank estimate and prioritized skills. Pure; the app memoizes it. */
@@ -366,7 +372,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const retained = options.search === false && trainee && goal.blueStats.length > 0 && previous && deckRules()?.legal(previous) ? previous : undefined;
   const complete = (deck: { borrowed?: boolean }[]) => deck.filter((d) => !d.borrowed).length === DECK_SIZE - BORROWED_SLOTS && deck.filter((d) => d.borrowed).length === BORROWED_SLOTS;
   let initial = options.selection ? describeDeck(options.selection.map((e) => ({ card: data.cardById.get(e.id)!, lb: e.lb, borrowed: e.borrowed })), targets, baseCtx)
-    : retained ? describeDeck(retained, targets, baseCtx) : buildDeck(deckPool, targets, baseCtx, { ...build, swapPasses: 0 });
+    : retained ? describeDeck(retained, targets, baseCtx) : buildDeck(deckPool, targets, baseCtx, build);
   if (!options.selection && !retained && !complete(initial.deck)) {
     // The greedy build can miss a legal deck in a small inventory. The search's own rules find one whenever one exists.
     const rules = deckRules();
@@ -389,7 +395,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const evaluated = listsFor(scoringEntries, candidateCtx, display).map(({ candidates, layout, priority }, i) => {
       const ctx: Ctx = { ...candidateCtx, priority };
       const prediction = predictCandidate(scoringEntries, input, ctx, apt, pred, preparedPrediction);
-      const goalStats = { rawMean: prediction.rawFinalMean, sd: prediction.rawFinalSd, caps: prediction.statCaps?.cap, rawUnits: true, skillPoints: prediction.skillPoints, skillSd: settings.skillScoreSd };
+      const goalStats = goalStatsOf(prediction, settings);
       const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
       const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
       const sources = goalSources(goal, forms, ctx);
@@ -425,14 +431,12 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       explore: (entries) => { const { score, statPower } = evaluateCandidate(entries, EXPLORE_SAMPLES); return { score, statPower }; },
       screen: (entries) => { const { score, statPower } = evaluateCandidate(entries, SCREEN_SAMPLES); return { score, statPower }; },
       screenBudget: options.budget === undefined ? SCREENED_DECKS : options.budget * 8,
-      onProgress: options.onProgress ? (progress) => options.onProgress!(progress.best.entries.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), summarize(progress)) : undefined,
     });
     // The deck shown is evaluated once more with the user's extras, so the estimate matches the list they will type.
     if (found) { chosen = evaluateCandidate(found.best.value.entries, FINAL_GOAL_SAMPLES, true); search = summarize(found); }
   }
   const { entries, ctx, fans, goalStats, basis, sources, candidates, layout } = chosen.value;
-  const prediction = finishPrediction(chosen.value.prediction, input, ctx);
-  prediction.rank.pSS = basis.pSS;
+  const prediction = finishPrediction(chosen.value.prediction, input, ctx, basis.pSS);
   const deckResult = describeDeck(entries, targets, ctx);
   sum.expectedFans = fans.total;
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);

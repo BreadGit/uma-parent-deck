@@ -6,9 +6,9 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
 import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, isLegalRunSelection, layoutWishlist, permutations, planRun, targetSpCost, withRequiredOrder, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
-import { rankEstimate, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
+import { rankMoments, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
-import { displayedStat } from '../src/model/stat-outcomes.ts';
+import { displayedStat, statMasses } from '../src/model/stat-outcomes.ts';
 import { BORROWED_LB, SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
 import { raceScale } from '../src/model/stats.ts';
 import { buildDeck, type EntryRole, type WishlistEntry } from '../src/model/deck.ts';
@@ -40,18 +40,20 @@ test('star tables: every listed table is used as is; only a missing one interpol
   assert.ok(!hasExactStarTable({ ...gold, threeStarStats: null }, 3));
 });
 
-test('rank estimate: the unique skill at its level adds to the budgeted purchase score, P(SS) rises with score', () => {
-  const low = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 3, data, settings);
-  const high = rankEstimate([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, 5, 5, data, settings);
-  assert.ok(high.score > low.score && high.pSS > low.pSS, 'higher stats and stars raise the score and P(SS)');
-  const noTrainee = rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, null, 3, 0, data, settings);
+test('rank moments: the unique skill at its level adds to the budgeted purchase score', () => {
+  const rankAt = (mean: number[], sd: number[], purchased: number, trainee: typeof sw | null, stars: number, level: number) =>
+    rankMoments(mean.map((value, i) => statMasses(value, sd[i] ?? 0)), purchased, trainee, stars, level, data, settings);
+  const low = rankAt([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 3);
+  const high = rankAt([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, 5, 5);
+  assert.ok(high.score > low.score, 'higher stats and stars raise the score');
+  const noTrainee = rankAt([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, null, 3, 0);
   assert.equal(low.uniquePts, 510, 'a 3★ trainee at unique Lv3');
   assert.equal(low.score - noTrainee.score, 510, 'innate purchases are already in the budget and add no free rating');
-  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6, data, settings).uniquePts, 1020);
-  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6, data, settings).skillPts, skillPointsOf(300, sw, 5, 6), 'the search scores skill points the way the rank reports them');
+  assert.equal(rankAt([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6).uniquePts, 1020);
+  assert.equal(rankAt([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 5, 6).skillPts, skillPointsOf(300, sw, 5, 6), 'the search scores skill points the way the rank reports them');
   assert.equal(skillPointsOf(300, sw, 5, 6), 1320);
   assert.equal(skillPointsOf(300, null, 5, 6), 300);
-  assert.equal(rankEstimate([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 2, 2, data, settings).uniquePts, 240, 'a 2★ trainee scores 120 per level');
+  assert.equal(rankAt([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 2, 2).uniquePts, 240, 'a 2★ trainee scores 120 per level');
   assert.equal(low.ssMin, must(data.ranks.find((r) => r.name === 'SS')).min);
 });
 
@@ -347,7 +349,7 @@ test('initial deck: a borrow never takes the last owned character a slot needs; 
   // Small inventories built around the best borrow: the greedy build is complete exactly when a legal deck exists.
   const ctx = plan.ctx;
   const borrowPool = data.cards.map((card) => ({ card, lb: BORROWED_LB }));
-  const best = must(buildDeck([], [], ctx, { pinnedIds: [], borrowPool, swapPasses: 0 }).deck.find((d) => d.borrowed)).card;
+  const best = must(buildDeck([], [], ctx, { pinnedIds: [], borrowPool }).deck.find((d) => d.borrowed)).card;
   const others = data.cards.filter((c) => c.charId !== trainee.charId && c.charId !== best.charId);
   let seed = 7;
   const next = () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
@@ -356,7 +358,7 @@ test('initial deck: a borrow never takes the last owned character a slot needs; 
     const size = 4 + (i % 4); // five to eight cards, so some inventories have repeated characters
     while (owned.length < size) { const c = others[Math.floor(next() * others.length)]!; if (!owned.includes(c)) owned.push(c); }
     const pool = owned.map((card) => ({ card, lb: 4 }));
-    const deck = buildDeck(pool, [], ctx, { pinnedIds: [], borrowPool, swapPasses: 0 }).deck;
+    const deck = buildDeck(pool, [], ctx, { pinnedIds: [], borrowPool }).deck;
     const legal = goalDeckConstraints({ owned: pool, borrows: borrowPool, pinnedIds: [], borrowFromAll: false, traineeId: trainee.charId }) !== null;
     assert.equal(deck.length === 6 && deck.filter((d) => d.borrowed).length === 1, legal, `inventory ${owned.map((c) => c.id).join(',')}`);
   }

@@ -1,4 +1,4 @@
-import { STATS, type Card, type Character, type Focus, type StatModel } from '../types.ts';
+import { STATS, statValues, type Card, type Character, type Focus, type StatModel, type StatValues } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { BLUE_GENERATION_BANDS } from './rules.ts';
 
@@ -19,12 +19,12 @@ export function raceScale(races: number, model: StatModel, settings: Settings): 
 }
 
 /** Model-only card contribution at the reference race count, balanced focus. `extra` adds deck-dependent passives. */
-export function modelContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): { stats: number[]; sp: number } {
+export function modelContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): { stats: StatValues; sp: number } {
   const p = passives(card, lb, extra);
   const fittedEffects = (slopes: Record<number, number> = {}) => Object.entries(slopes)
     .reduce((sum, [effect, coefficient]) => sum + coefficient * (p[Number(effect)] ?? 0), 0);
   const statEffects = fittedEffects(model.effectSlopes);
-  const stats = STATS.map((s, i) => {
+  const stats = statValues((s, i) => {
     let v = model.floor + (p[EFFECT.initialStat + i] ?? 0);
     const role = card.type === s ? 'primary' : (model.secondary[card.type] ?? []).includes(s) ? 'secondary' : null;
     if (role) {
@@ -41,7 +41,7 @@ export function modelContribution(card: Card, lb: number, model: StatModel, extr
   return { stats, sp: Math.max(0, sp) };
 }
 
-export interface Contribution { stats: number[]; sp: number; source: 'observed' | 'observed+model' | 'model'; runs?: number }
+export interface Contribution { stats: StatValues; sp: number; source: 'observed' | 'observed+model' | 'model'; runs?: number }
 
 /** The recorded reference used by both the prediction and its source explanation. */
 export function referenceObservation(card: Card, lb: number, model: StatModel): StatModel['observed'][number] | undefined {
@@ -58,12 +58,12 @@ export function referenceObservation(card: Card, lb: number, model: StatModel): 
  */
 export function cardContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): Contribution {
   const near = referenceObservation(card, lb, model);
-  if (near?.lb === lb) return { stats: near.stats.slice(), sp: near.sp, source: 'observed', runs: near.runs };
+  if (near?.lb === lb) return { stats: statValues((_, i) => near.stats[i]!), sp: near.sp, source: 'observed', runs: near.runs };
   const m = modelContribution(card, lb, model, near ? {} : extra);
   if (near) {
     const mNear = modelContribution(card, near.lb, model);
     return {
-      stats: near.stats.map((v, i) => Math.max(0, v + (m.stats[i]! - mNear.stats[i]!))),
+      stats: statValues((_, i) => Math.max(0, near.stats[i]! + (m.stats[i] - mNear.stats[i]))),
       sp: Math.max(0, near.sp + (m.sp - mNear.sp)),
       source: 'observed+model',
       runs: near.runs,
@@ -74,26 +74,37 @@ export function cardContribution(card: Card, lb: number, model: StatModel, extra
 
 export interface DeckInput { card: Card; lb: number }
 export interface Prediction {
-  mean: number[];        // expected final stat gain per stat (excludes the trainee's base stats and inheritance)
-  sd: number[];
-  cardStats: number[];
-  eventStats: number[];
+  mean: StatValues;        // expected final stat gain per stat (excludes the trainee's base stats and inheritance)
+  sd: StatValues;
+  cardStats: StatValues;
+  eventStats: StatValues;
   sp: number;
   cardSp: number;
-  finalMean: number[];   // + trainee base stats (no inheritance)
+  finalMean: StatValues;   // + trainee base stats (no inheritance)
 }
 
-function interp(model: StatModel, key: 'eventBase' | 'eventSp', races: number): number[] | number {
-  const a = (model as unknown as Record<string, Record<string, number[] | number>>)[key]!;
-  const v28 = a['28']!, v23 = a['23'] ?? v28;
-  const t = (model.races.reference - races) / 5; // 0 at 28 races, 1 at 23
-  if (Array.isArray(v28)) return v28.map((x, i) => x + ((v23 as number[])[i]! - x) * t);
-  return (v28 as number) + ((v23 as number) - (v28 as number)) * t;
+function interp(values: Record<string, number[]>, races: number): StatValues;
+function interp(values: Record<string, number>, races: number): number;
+function interp(values: Record<string, number | number[]>, races: number): number | StatValues {
+  const samples = Object.entries(values).map(([count, value]) => ({ races: Number(count), value }))
+    .filter((sample) => Number.isFinite(sample.races)).sort((a, b) => a.races - b.races);
+  if (!samples.length) throw new Error('event model has no race measurements');
+  const upper = samples.findIndex((sample) => sample.races >= races);
+  const index = Math.max(0, Math.min(samples.length - 2, upper < 0 ? samples.length - 2 : upper - 1));
+  const low = samples[index]!, high = samples[index + 1] ?? low;
+  const weight = high.races === low.races ? 0 : (high.races - races) / (high.races - low.races);
+  const interpolate = (a: number, b: number) => b + (a - b) * weight;
+  if (Array.isArray(low.value) && Array.isArray(high.value)) {
+    const a = low.value, b = high.value;
+    return statValues((_, i) => interpolate(a[i]!, b[i]!));
+  }
+  if (typeof low.value === 'number' && typeof high.value === 'number') return interpolate(low.value, high.value);
+  throw new Error('event model race measurements mix stats and skill points');
 }
 
 export function predictDeck(deck: DeckInput[], trainee: Character | null, races: number, focus: Focus, expectedLosses: number, model: StatModel, settings: Settings, fansBefore?: (slot: number) => number): Prediction {
   const scale = raceScale(races, model, settings);
-  const cardStats = [0, 0, 0, 0, 0];
+  const cardStats: StatValues = [0, 0, 0, 0, 0];
   let cardSp = 0;
   for (const d of deck) {
     const c = cardContribution(d.card, d.lb, model, uniqueExtras(d.card, d.lb, model, { deck, fansBefore }));
@@ -101,16 +112,17 @@ export function predictDeck(deck: DeckInput[], trainee: Character | null, races:
     cardSp += c.sp * scale;
   }
   const growth = trainee?.growth ?? [0, 0, 0, 0, 0];
-  // Event stats (which include race rewards) are only measured at 28 and 23 races; extrapolate linearly but clamp the range.
+  // Interpolate the measured race counts; extrapolate linearly within the planning range.
   const r = Math.max(8, Math.min(40, races));
-  const eventStats = (interp(model, 'eventBase', r) as number[]).map((v, i) => v * (1 + model.growthEffect * (growth[i] ?? 0) / 100));
+  const eventBase = interp(model.eventBase, r);
+  const eventStats = statValues((_, i) => eventBase[i] * (1 + model.growthEffect * (growth[i] ?? 0) / 100));
   const focusMul = model.focus[focus] ?? [1, 1, 1, 1, 1];
   const penalty = settings.lossPenalty * expectedLosses;
-  const mean = STATS.map((_, i) => Math.max(0, (cardStats[i]! + eventStats[i]!) * focusMul[i]! - penalty / 5));
-  const sd = model.sigma.map((s) => s);
-  const sp = cardSp + (interp(model, 'eventSp', r) as number);
+  const mean = statValues((_, i) => Math.max(0, (cardStats[i]! + eventStats[i]!) * focusMul[i]! - penalty / STATS.length));
+  const sd = statValues((_, i) => model.sigma[i]!);
+  const sp = cardSp + interp(model.eventSp, r);
   const base = trainee?.baseStats ?? [0, 0, 0, 0, 0];
-  const out = { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: mean.map((v, i) => v + (base[i] ?? 0)) };
+  const out = { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: statValues((_, i) => mean[i] + (base[i] ?? 0)) };
   for (const v of [...out.mean, ...out.sd, ...out.finalMean, out.sp]) if (!Number.isFinite(v)) throw new Error('prediction produced a non-finite number');
   return out;
 }

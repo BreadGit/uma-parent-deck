@@ -15,7 +15,7 @@ console.log('targets', targets.map((t) => `${t.name} [white ${t.white?.id} gold 
 const pool = cards.map((card) => ({ card, lb: 4 }));
 const r = rankCards(pool, targets, traineeCoverage(targets, ctx), ctx);
 for (const x of r.slice(0, 12)) console.log(`${x.card.name.padEnd(40)} ${x.card.rarity.padEnd(3)} ${x.card.type.padEnd(7)} marg ${(x.marginalValue*100).toFixed(1).padStart(5)}%  stats ${x.statPower.toFixed(0).padStart(4)} sp ${x.sp.toFixed(0)}  ${x.source}  ` + x.coverage.map((c) => `${c.target.name}:${(c.spark*100).toFixed(0)}%[${c.sources.map((s) => s.kind + (s.gold ? '*' : '') + ' ' + (s.pObtain*100).toFixed(0)).join(',')}]`).join(' '));
-const d = buildDeck(pool, targets, ctx, [30052]);
+const d = buildDeck(pool, targets, ctx, { pinnedIds: [30052] });
 console.log('\nDECK'); d.steps.forEach((s) => console.log(' -', s));
 const p = predictDeck(d.deck.map((x) => ({ card: x.card, lb: x.lb })), trainee, 20, 'stamina', 1, data.model, settings);
 console.log('pred gain', p.mean.map((v) => v.toFixed(0)), 'final', p.finalMean.map((v) => v.toFixed(0)), 'sp', p.sp.toFixed(0), 'card', p.cardStats.map((v) => v.toFixed(0)));

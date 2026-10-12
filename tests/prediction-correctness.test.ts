@@ -74,7 +74,7 @@ test('reported Fuji build counts 22 races and shares one probability basis', asy
   for (const key of ['pred', 'parentGains', 'inherited', 'rawFinalMean', 'rawFinalSd', 'finalMean', 'finalSd', 'statChances', 'purchases', 'skillRating', 'statCaps'] as const) {
     assert.deepEqual(suggested[key], prediction[key], `the chosen deck retains its full ${key} summary`);
   }
-  assert.deepEqual(suggested.rank, { ...prediction.rank, pSS: suggested.goalEstimate.pSS });
+  assert.deepEqual(suggested.rank, prediction.rank, 'fixed-deck and planned rank summaries use the same sampled chance');
   assert.ok(suggested.goalEstimate.blue < biko.goalEstimate.blue);
   // Biko's chance is within the tie tolerance, so the preferred sparks decide for Throne's Assemblage.
   assert.ok(suggested.goalEstimate.probability! >= biko.goalEstimate.probability! * (1 - settings.goalTieTolerance));
