@@ -9,6 +9,8 @@ export const MAX_LB = 4;                     // limit breaks run from 0 to 4
 export const BORROWED_LB = MAX_LB;           // a friend's card is assumed fully limit broken
 /** A limit break the effect tables can index: an integer from 0 to MAX_LB. */
 export const isLimitBreak = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= MAX_LB;
+/** Every limit break in order, for choices that list them. */
+export const LIMIT_BREAKS: readonly number[] = Array.from({ length: MAX_LB + 1 }, (_, lb) => lb);
 
 // --- prioritized skills (independent training) ---
 export const PRIORITIZED_SKILLS_MAX = 10;    // Cygames: "Up to ten skills can be prioritized"

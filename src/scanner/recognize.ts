@@ -1,4 +1,5 @@
 import type { CardType, Rarity } from '../types.ts';
+import { MAX_LB } from '../model/rules.ts';
 
 export interface Pixels { width: number; height: number; data: Uint8ClampedArray }
 /** A catalog card; `hasReference` is set when its matching reference exists, so the scanner can match it. */
@@ -222,10 +223,10 @@ function cardType(tile: Pixels): CardType | null {
   return best && best[1] >= TYPE_ICON.minVotes ? best[0] : null;
 }
 
-/** Read the four diamonds, never infer LB from the card's training level. */
+/** Read the four diamonds, one per limit break; never infer LB from the card's training level. */
 export function readLimitBreak(tile: Pixels): number | null {
   const lit: boolean[] = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < MAX_LB; i++) {
     // Sample the interior above the lower tip, where the transparent edge picks up the artwork.
     const rgb = sample(tile, DIAMONDS.x + i * DIAMONDS.pitch, DIAMONDS.y, DIAMONDS.size, DIAMONDS.size);
     const [r, g, b] = rgb as [number, number, number];

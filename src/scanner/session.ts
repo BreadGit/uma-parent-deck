@@ -4,6 +4,7 @@ import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
 import type { Inventory } from '../types.ts';
+import { LIMIT_BREAKS } from '../model/rules.ts';
 import { SCANNER_COPY as C } from '../ui/copy.ts';
 import { chosenFiles, clearFiles, inputValue, isOpen, numbered, options, selectValue } from '../ui/form.ts';
 import { confirmDialog } from '../ui/dialog.ts';
@@ -71,7 +72,7 @@ export function createScanner(host: ScannerHost): Scanner {
   const cardById = cardIndex(cards);
   const catalog = cards.filter(c => c.rarity !== 'R').sort((a, b) => a.charName.localeCompare(b.charName) || a.id - b.id);
   const cardPicker = createCardPicker(catalog, paint);
-  const lbOptions = [{ value: '', label: C.unknownLb }, ...numbered([0, 1, 2, 3, 4], C.lbOption)];
+  const lbOptions = [{ value: '', label: C.unknownLb }, ...numbered(LIMIT_BREAKS, C.lbOption)];
 
   // Nothing here persists: closing the page discards the screenshots and the review.
   let sources: Source[] = [], rows: ReviewRow[] = [];

@@ -1,4 +1,5 @@
 import type { Inventory } from '../types.ts';
+import { isLimitBreak } from '../model/rules.ts';
 import type { Detection, ScanCard } from './recognize.ts';
 
 export interface ReviewRow {
@@ -25,7 +26,7 @@ export function summarize(rows: ReviewRow[], cards: ScanCard[]) {
   const cardById = cardIndex(cards);
   const included = rows.filter(r => !r.excluded);
   const invalid = new Set(included.filter(r => !r.reviewed || r.cardId === null || !cardById.has(r.cardId)
-    || cardById.get(r.cardId)?.rarity === 'R' || r.lb === null || !Number.isInteger(r.lb) || r.lb < 0 || r.lb > 4));
+    || cardById.get(r.cardId)?.rarity === 'R' || !isLimitBreak(r.lb)));
   const values = new Map<number, Set<number>>();
   for (const row of included) {
     if (invalid.has(row)) continue;
