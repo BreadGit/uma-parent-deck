@@ -28,11 +28,14 @@ function eventPicker(catalog: MissionCatalog, selected: MissionEvent[], now: num
   const visible = [...new Map([...active, ...selected].map((event) => [event.id, event])).values()];
   const choices = [{ value: '', label: copy.chooseEvent }, ...catalog.events.filter((event) => !selected.includes(event)).map((event) => ({ value: String(event.id), label: `${eventStatus(event, now)} · ${event.name}` }))];
   const setEvent = (id: number, checked: boolean) => update((state) => {
-    state.missions.eventIds = toggle(state.missions.eventIds ?? selected.map((event) => event.id), id, checked);
+    state.missions.eventIds = toggle(state.missions.eventIds ?? selectedMissionEvents(catalog.events, state.missions, now).map((event) => event.id), id, checked);
   });
   return panel({ title: copy.events }, html`
     <label class="mission-check"><input type="checkbox" data-mission-follow .checked=${live(store.missions.eventIds === null)}
-      @change=${(event: Event) => update((state) => { state.missions.eventIds = isChecked(event) ? null : selected.map((item) => item.id); })}>${copy.follow}</label>
+      @change=${(event: Event) => update((state) => {
+        state.missions.eventIds = isChecked(event) ? null
+          : state.missions.eventIds ?? selectedMissionEvents(catalog.events, state.missions, now).map((item) => item.id);
+      })}>${copy.follow}</label>
     ${!active.length ? html`<p class="small muted">${copy.noCurrent}</p>` : nothing}
     ${repeat(visible, (event) => event.id, (event) => html`<label class="mission-event">
       <input type="checkbox" data-mission-event=${event.id} .checked=${live(selected.includes(event))} @change=${(e: Event) => setEvent(event.id, isChecked(e))}>

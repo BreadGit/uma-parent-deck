@@ -842,6 +842,39 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     });
   });
 
+  test('mission event selection edits use the latest save after a missed storage event', async (t) => {
+    for (const scenario of [
+      { name: 'selecting an event after another tab starts following current events', initial: [206], latest: null,
+        selector: '[data-mission-event="201"]', checked: true, expected: [201, 202] },
+      { name: 'stopping follow-current after another tab explicitly selects events', initial: null, latest: [206, 999999],
+        selector: '[data-mission-follow]', checked: false, expected: [206, 999999] },
+    ]) await t.test(scenario.name, async (t) => {
+      const saved = defaultState(data);
+      saved.missions.eventIds = scenario.initial;
+      const page = await fresh(t, saved, { held: true, init: () => {
+        Date.now = () => new Date('2026-10-04T12:00:00Z').getTime();
+      } });
+      await page.goto(new URL('missions.html', url).href);
+      const control = page.locator(scenario.selector);
+      await control.waitFor();
+      assert.equal(await control.isChecked(), !scenario.checked, 'the user changes the displayed selection');
+      await assertFieldsMatchState(page, 'before a mission event edit');
+      // A same-page write models another tab's save without delivering its storage event to this page.
+      await page.evaluate(({ key, eventIds }) => {
+        const other = JSON.parse(localStorage.getItem(key));
+        other.missions.eventIds = eventIds;
+        other.settings.focus = 'balanced';
+        localStorage.setItem(key, JSON.stringify(other));
+      }, { key: STATE_KEY, eventIds: scenario.latest });
+      assert.equal(await control.isChecked(), !scenario.checked, 'the missed event leaves the displayed selection stale');
+      await control.setChecked(scenario.checked);
+      const current = await state(page);
+      assert.deepEqual(current.missions.eventIds.slice().sort((a, b) => a - b), scenario.expected, 'the edit uses the latest selection');
+      assert.equal(current.settings.focus, 'balanced', 'unrelated choices from the latest save are kept');
+      await assertFieldsMatchState(page, 'after a mission event edit takes over a missed save');
+    });
+  });
+
   test('skill advice includes prerequisite costs and buyable circle upgrades', async (t) => {
     const page = await editor(t);
     await trainee(page);
