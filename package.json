@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "fetch": "node scripts/fetch-gametora.mjs --download-only && node scripts/fetch-event-names.mjs && node scripts/fetch-gametora.mjs --normalize-only && npm run fit && npm run check:data",
     "fit": "python3 analysis/fit_stat_model.py",
@@ -16,7 +16,7 @@
     "test:e2e": "BROWSER_TEST_CONCURRENCY=1 node --test --test-concurrency=2 tests/smoke.mjs tests/regressions.mjs tests/scroll-anchor.mjs tests/scanner-snapshot.mjs tests/scanner.mjs tests/scanner-worker.mjs",
     "inspect": "node tests/inspect.ts",
     "scratch": "node tests/scratch.mjs",
-    "build:scanner": "tsc --noEmit && vite build --config vite.scanner.config.ts",
+    "build:scanner": "npm run typecheck && vite build --config vite.scanner.config.ts",
     "build:scanner-artwork": "node scripts/scanner-artwork.mjs",
     "test:scanner": "node --test --test-concurrency=2 tests/scanner-snapshot.mjs tests/scanner.mjs tests/scanner-worker.mjs",
     "test:browsers": "node scripts/check-browsers.mjs",
@@ -26,7 +26,8 @@
     "postcheck:data": "node scripts/refresh-data.mjs --complete",
     "prebuild": "node scripts/refresh-data.mjs --check",
     "prebuild:scanner": "node scripts/refresh-data.mjs --check",
-    "recover:data": "node scripts/fetch-gametora.mjs --offline && npm run fit && npm run check:data"
+    "recover:data": "node scripts/fetch-gametora.mjs --offline && npm run fit && npm run check:data",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.scripts.json"
   },
   "dependencies": {
     "lit-html": "^3.3.3"

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": [],
+  "files": [
+    "scripts/deploy.mjs",
+    "scripts/check-browsers.mjs",
+    "scripts/refresh-data.mjs"
+  ]
+}

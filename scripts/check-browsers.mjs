@@ -2,6 +2,7 @@
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
 
+/** @param {'dev' | 'preview'} mode @param {number} port @param {string[][]} commands */
 async function check(mode, port, commands) {
   const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', ...(mode === 'preview' ? ['preview'] : []), '--host', '--port', String(port), '--strictPort'], { stdio: ['ignore', 'pipe', 'pipe'] });
   let output = '';
@@ -25,12 +26,12 @@ async function check(mode, port, commands) {
       const child = spawn(process.execPath, args, { stdio: 'inherit', env: { ...process.env, URL: url, SCREENSHOT_PATH: '', BROWSER_TEST_CONCURRENCY: '1' } });
       await new Promise((resolve, reject) => {
         child.once('error', reject);
-        child.once('exit', code => code === 0 ? resolve() : reject(new Error(`${args.join(' ')} exited ${code}`)));
+        child.once('exit', code => code === 0 ? resolve(undefined) : reject(new Error(`${args.join(' ')} exited ${code}`)));
       });
     }
   } finally {
     server.kill();
-    await new Promise(resolve => { if (server.exitCode !== null || server.signalCode !== null) resolve(); else server.once('exit', resolve); });
+    await new Promise(resolve => { if (server.exitCode !== null || server.signalCode !== null) resolve(undefined); else server.once('exit', () => resolve(undefined)); });
   }
 }
 await check('dev', 5190, [['--test', '--test-concurrency=1', 'tests/regressions.mjs', 'tests/scroll-anchor.mjs', 'tests/scanner-snapshot.mjs']]);

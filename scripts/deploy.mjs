@@ -3,6 +3,7 @@
 import { spawnSync } from 'node:child_process';
 
 const args = process.argv.slice(2);
+/** @param {string} name */
 const option = (name) => { const at = args.indexOf(name); return at === -1 ? undefined : args[at + 1]; };
 if (args.includes('--help')) {
   console.log('Usage: node scripts/deploy.mjs [--tag <label>] [--message <text>]\n'
@@ -11,15 +12,21 @@ if (args.includes('--help')) {
   process.exit(0);
 }
 
+/** @param {string[]} command */
 function wrangler(...command) {
   const result = spawnSync('npx', ['wrangler', ...command], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
-  process.stdout.write(result.stdout);
+  process.stdout.write(result.stdout ?? '');
   if (result.status !== 0) throw new Error(`wrangler ${command[0]} ${command[1]} exited ${result.status}`);
-  return result.stdout;
+  return result.stdout ?? '';
 }
 
-const label = [option('--tag') && ['--tag', option('--tag')], option('--message') && ['--message', option('--message')]].flat().filter(Boolean);
+const label = [];
+for (const name of ['--tag', '--message']) {
+  const value = option(name);
+  if (value) label.push(name, value);
+}
 const upload = wrangler('versions', 'upload', ...label);
 const id = /Worker Version ID:\s*([0-9a-f-]{36})/i.exec(upload)?.[1];
 if (!id) throw new Error('wrangler versions upload printed no Worker Version ID.');
-wrangler('versions', 'deploy', `${id}@100%`, '--yes', ...(option('--message') ? ['--message', option('--message')] : []));
+const message = option('--message');
+wrangler('versions', 'deploy', `${id}@100%`, '--yes', ...(message ? ['--message', message] : []));
