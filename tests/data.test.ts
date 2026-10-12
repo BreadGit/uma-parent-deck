@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { STATS, type AptKey } from '../src/types.ts';
+import { isCalendarId, STATS, type AptKey } from '../src/types.ts';
 import { uniqueExtras } from '../src/model/stats.ts';
 import { RACES_REFERENCE } from '../src/settings.ts';
 import fixtureJson from '../data/unique-extras-fixture.json' with { type: 'json' };
@@ -152,6 +152,7 @@ test('races sit on the three-year calendar and ranks include SS', () => {
   for (const r of data.races) {
     assert.ok(r.year >= 1 && r.year <= 3 && r.month >= 1 && r.month <= 12 && (r.half === 1 || r.half === 2), `${r.name} calendar`);
     assert.ok(['turf', 'dirt'].includes(r.surface) && ['sprint', 'mile', 'medium', 'long'].includes(r.category), `${r.name} surface/category`);
+    assert.ok(isCalendarId(r.calendarId), `${r.name} calendar ID ${r.calendarId} is one a saved schedule override keeps`);
   }
   assert.ok(data.ranks.some((r) => r.name === 'SS'), 'the SS rank is listed');
 });

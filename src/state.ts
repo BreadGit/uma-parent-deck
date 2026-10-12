@@ -1,7 +1,7 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
 import { parseRecommendation, type SavedRecommendation } from './recommendation.ts';
-import { STATS, APTITUDE_KEYS, APT_GRADES, gameIdKey, gameIds, isGameId, isPlainObject, type Data, type Grade, type Inventory } from './types.ts';
+import { STATS, APTITUDE_KEYS, APT_GRADES, gameIdKey, gameIds, isCalendarId, isGameId, isPlainObject, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
@@ -76,9 +76,8 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
     const v = raw.aptOverrides[k];
     if (typeof v === 'string' && APT_GRADES.includes(v as Grade)) run.aptOverrides[k] = v === 'S' ? 'A' : v as Grade;
   }
-  if (isPlainObject(raw.raceOverrides)) for (const [k, v] of Object.entries(raw.raceOverrides)) {
-    const key = gameIdKey(k);
-    if (key !== null && typeof v === 'boolean' && (key === k || !(key in raw.raceOverrides || key in run.raceOverrides))) run.raceOverrides[key] = v;
+  if (isPlainObject(raw.raceOverrides)) {
+    run.raceOverrides = Object.fromEntries(Object.entries(raw.raceOverrides).filter(([k, v]) => isCalendarId(k) && typeof v === 'boolean')) as Record<string, boolean>;
   }
   // pins: a single pinnedId (v1) became pinnedIds (v2)
   if (Array.isArray(raw.pinnedIds)) run.pinnedIds = gameIds(raw.pinnedIds);
