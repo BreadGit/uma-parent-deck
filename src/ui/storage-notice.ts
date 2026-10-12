@@ -1,5 +1,5 @@
 import { html, nothing } from 'lit-html';
-import { newerSave, removeUnreadableSave, replaceNewerSave, saveState, storageUnavailable, uncopiedUnreadable, unreadableSave } from '../state.ts';
+import { newerSave, removeUnreadableSave, replaceNewerSave, replaceUnreadableSave, storageUnavailable, uncopiedUnreadable, unreadableSave } from '../state.ts';
 import { downloadText } from '../download.ts';
 import { refresh, store } from './context.ts';
 import { COPY } from './copy.ts';
@@ -11,11 +11,10 @@ async function removeCopy() {
   refresh();
 }
 
-/** Without room for a copy, the unreadable save is still in place; replacing it lets this page save again. */
+/** Without a copy, the unreadable save is still in place; replacing it lets this page save again. */
 async function replaceUnreadable() {
   if (!await confirmDialog(COPY.app.replaceUnreadableConfirm, COPY.app.replaceUnreadableAction)) return;
-  removeUnreadableSave();
-  saveState(store);
+  replaceUnreadableSave(store);
   refresh();
 }
 

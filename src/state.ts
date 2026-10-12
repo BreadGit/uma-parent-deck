@@ -212,20 +212,31 @@ const parseJson = (raw: string | null): unknown => { try { return raw ? JSON.par
 const readJson = (key: string): unknown => parseJson(readStored(key));
 
 /**
- * An unreadable save that could not be copied aside because storage is read-only or full. The original is then the
- * only copy, so nothing is written over it until the user removes it.
+ * An unreadable save that could not be copied aside because storage is read-only, full or holds an earlier copy.
+ * The original is then the only copy, so nothing is written over it until the user replaces it.
  */
 export let uncopiedUnreadable: string | null = null;
 /** Keep the only copy of an unreadable save; an earlier copy the user has not removed yet is never replaced. */
 function keepUnreadable(raw: string) {
-  try { if (localStorage.getItem(UNREADABLE_KEY) === null) localStorage.setItem(UNREADABLE_KEY, raw); }
+  try {
+    const copy = localStorage.getItem(UNREADABLE_KEY);
+    if (copy === null) localStorage.setItem(UNREADABLE_KEY, raw);
+    uncopiedUnreadable = copy === null || copy === raw ? null : raw;
+  }
   catch { uncopiedUnreadable = raw; }
 }
 /** The save that could not be read, for the notice that offers it as a download. */
 export const unreadableSave = (): string | null => uncopiedUnreadable ?? readStored(UNREADABLE_KEY);
 export function removeUnreadableSave() {
-  uncopiedUnreadable = null;
   try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
+}
+/** Replace the unreadable original without discarding an earlier retained copy. A failed write keeps it protected. */
+export function replaceUnreadableSave(state: AppState) {
+  const raw = uncopiedUnreadable;
+  uncopiedUnreadable = null;
+  if (saveState(state)) return true;
+  uncopiedUnreadable = raw;
+  return false;
 }
 
 /** The save as this page last read or wrote it. A write from another tab since then makes the stored text differ. */
@@ -238,8 +249,9 @@ let lastRaw: string | null = null;
 export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   const raw = lastRaw = readStored(STATE_KEY);
   const current = parseJson(raw);
+  uncopiedUnreadable = null;
   if (raw !== null && !isSave(current)) keepUnreadable(raw);
-  if (isSave(current) && current.version > STATE_VERSION) newerSave = true;
+  newerSave = isSave(current) && current.version > STATE_VERSION;
   const state = migrate({ current, state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) }, data);
   if (raw === null && readJson(LEGACY_KEYS.inventory) === undefined) state.inventory = sanitizeInventory(fallbackInventory);
   // Retire historical family aliases once, before another data update can reinterpret the old save.
@@ -266,32 +278,32 @@ export function saveState(state: AppState) {
 /**
  * The save another tab wrote since this page last read or wrote one, or null. Its storage event can arrive late, or
  * never reach a page restored from the back-forward cache, so an edit checks here before writing the whole state.
- * A save from a newer version of the app is not taken over: it sets `newerSave` instead, until another tab replaces it
- * with a save this version reads.
+ * A save from a newer version sets `newerSave` instead of being taken over. An unreadable save is protected the
+ * same way as on startup, and the choices already on this page stay in place.
  */
 export function storedIfChanged(data: Data): AppState | null {
   const raw = readStored(STATE_KEY);
   if (raw === null || raw === lastRaw) return null;
   const current = parseJson(raw);
-  if (!isSave(current)) return null;
   lastRaw = raw;
   // Another tab wrote over an unreadable save it could not copy aside, so there is nothing left in place to protect.
   uncopiedUnreadable = null;
-  if (current.version > STATE_VERSION) { newerSave = true; return null; }
   newerSave = false;
+  if (!isSave(current)) { keepUnreadable(raw); return null; }
+  if (current.version > STATE_VERSION) { newerSave = true; return null; }
   return migrate({ current }, data);
 }
 
 /**
  * Keep open planner and mission tabs from overwriting each other's newer choices. `accept` takes over another tab's
- * save; `blocked` reports that this page stopped saving because the save came from a newer version.
+ * save; `notice` refreshes warnings for a save this version cannot read.
  */
-export function watchSavedState(data: Data, accept: (state: AppState) => void, blocked: () => void) {
+export function watchSavedState(data: Data, accept: (state: AppState) => void, notice: () => void) {
   const check = () => {
-    const wasNewer = newerSave;
+    const previousRaw = lastRaw;
     const saved = storedIfChanged(data);
     if (saved) accept(saved);
-    else if (newerSave && !wasNewer) blocked();
+    else if (lastRaw !== previousRaw) notice();
   };
   window.addEventListener('storage', (event) => { if (event.key === STATE_KEY) check(); });
   window.addEventListener('pageshow', (event) => { if (event.persisted) check(); });

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { test, after, suite } from 'node:test';
 import { ModuleKind, ScriptTarget, transpileModule } from 'typescript';
 import { loadData } from '../src/data.ts';
-import { defaultState, STATE_KEY } from '../src/state.ts';
+import { defaultState, STATE_KEY, UNREADABLE_KEY } from '../src/state.ts';
 import { assertFieldsMatchState, BASE_URL as url, launchBrowser, openApp, waitForPlan } from './browser-fields.mjs';
 import { holdSearch } from './browser-search.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
@@ -2214,6 +2214,61 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     await page.reload(); await page.waitForSelector('[data-trainee-rarity-note]');
     await waitForShare(page);
     assert.equal((await state(page)).run.traineeStars, 1);
+  });
+
+  test('unreadable saves from another tab show recovery choices without resetting the current run', async (t) => {
+    const saved = shareFixture(), page = await editor(t, saved);
+    const otherTab = await page.context().newPage();
+    await otherTab.goto(new URL('missions.html', url).href);
+    const first = '{first broken save', second = '{second broken save';
+    await otherTab.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: STATE_KEY, raw: first });
+    await page.locator('[data-action="remove-unreadable"]').waitFor();
+    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), first);
+    assert.equal(await page.locator('[data-action="clear-trainee"]').count(), 1, 'the current trainee stays on the page');
+    assert.doesNotMatch(await page.locator('[data-unreadable-save]').innerText(), /started from the defaults/);
+    await page.locator('[data-theme-pick="dark"]').click();
+    assert.deepEqual((await state(page)).run, saved.run, 'an edit keeps the current run after the unreadable save is copied');
+    await assertFieldsMatchState(page, 'after safely replacing a copied save from another tab');
+    await otherTab.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: STATE_KEY, raw: second });
+    await page.locator('[data-action="replace-unreadable"]').waitFor();
+    assert.match(await page.locator('[data-unreadable-save]').innerText(), /does not save changes/);
+    await page.locator('[data-theme-pick="light"]').click();
+    assert.equal(await page.evaluate((key) => localStorage.getItem(key), STATE_KEY), second, 'an ordinary edit keeps the uncopied original');
+    const downloading = page.waitForEvent('download');
+    await page.locator('[data-action="download-unreadable"]').click();
+    assert.equal(await readFile(await (await downloading).path(), 'utf8'), second, 'the current original is available to download');
+    await page.locator('[data-action="replace-unreadable"]').click();
+    await confirmDialog(page);
+    await page.locator('[data-action="remove-unreadable"]').waitFor();
+    assert.equal((await state(page)).ui.theme, 'light');
+    assert.deepEqual((await state(page)).run, saved.run);
+    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), first, 'explicit replacement preserves the earlier copy');
+    await assertFieldsMatchState(page, 'after explicitly replacing an uncopied save from another tab');
+  });
+
+  test('an edit after a missed unreadable storage event protects the original and an earlier copy', async (t) => {
+    const saved = shareFixture();
+    saved.inventory = { 30028: 2 };
+    const page = await editor(t, saved);
+    const unreadable = '{missed broken save', earlier = '{older broken save';
+    // A same-page write models a change from another tab whose storage event was missed.
+    await page.evaluate(({ key, copyKey, raw, copy }) => {
+      localStorage.setItem(copyKey, copy);
+      localStorage.setItem(key, raw);
+    }, { key: STATE_KEY, copyKey: UNREADABLE_KEY, raw: unreadable, copy: earlier });
+    assert.equal(await page.locator('[data-unreadable-save]').count(), 0, 'the change has not been observed yet');
+    await page.locator('[data-theme-pick="dark"]').click();
+    await page.locator('[data-action="replace-unreadable"]').waitFor();
+    assert.equal(await page.evaluate((key) => localStorage.getItem(key), STATE_KEY), unreadable);
+    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), earlier);
+    assert.equal(await page.locator('[data-action="clear-trainee"]').count(), 1, 'the current run stays usable');
+    await page.locator('[data-action="replace-unreadable"]').click();
+    await confirmDialog(page);
+    assert.deepEqual((await state(page)).run, saved.run);
+    assert.deepEqual((await state(page)).inventory, saved.inventory);
+    assert.equal((await state(page)).ui.theme, 'dark');
+    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), earlier);
+    await assertFieldsMatchState(page, 'after an explicit replacement following a missed unreadable storage event');
   });
 
   test('blocked browser storage still allows planning, themes and reset', async (t) => {
