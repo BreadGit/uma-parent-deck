@@ -802,6 +802,46 @@ suite('browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONC
     assert.equal(Number(heading.match(/^(\d+) races/)[1]), await page.locator('.agenda-cell.sel').count());
   });
 
+  test('manual agenda choices use the latest save after a missed storage event', async (t) => {
+    for (const scenario of [
+      { name: 'pick below the latest threshold', threshold: 0.8, overrides: { 624: false }, latestThreshold: 1,
+        choice: '624', expected: { 623: false, 624: true } },
+      { name: 'skip above the latest threshold', threshold: 1, overrides: { 624: true }, latestThreshold: 0.8,
+        choice: '', expected: { 623: false, 624: false } },
+      { name: 'clear overrides for the latest automatic choice', threshold: 1, overrides: { 623: true }, latestThreshold: 0.8,
+        choice: '624', expected: {} },
+      { name: 'pick after the latest aptitude change', threshold: 0.8, overrides: { 624: false }, latestThreshold: 0.8, mile: 'G',
+        choice: '624', expected: { 623: false, 624: true } },
+    ]) await t.test(scenario.name, async (t) => {
+      const saved = defaultState(data);
+      saved.run.traineeCardId = 100101;
+      saved.settings.winThreshold = scenario.threshold;
+      saved.run.raceOverrides = scenario.overrides;
+      const page = await editor(t, saved);
+      await openAgenda(page);
+      // Special Week's optional Junior December slot contains Hanshin Juvenile Fillies (623) and Asahi Hai (624).
+      const slot = '[data-slot="22"]';
+      const previous = await page.inputValue(slot);
+      assert.notEqual(previous, scenario.choice, 'the user changes the displayed choice');
+      // A same-page write models another tab's save without delivering its storage event to this page.
+      await page.evaluate(({ key, threshold, mile }) => {
+        const other = JSON.parse(localStorage.getItem(key));
+        other.settings.winThreshold = threshold;
+        if (mile) other.run.aptOverrides.mile = mile;
+        other.run.raceOverrides[625] = true;
+        localStorage.setItem(key, JSON.stringify(other));
+      }, { key: STATE_KEY, threshold: scenario.latestThreshold, mile: scenario.mile });
+      assert.equal(await page.inputValue(slot), previous, 'the missed event leaves the displayed choice stale');
+      await page.selectOption(slot, scenario.choice);
+      assert.equal(await page.inputValue(slot), scenario.choice, 'the agenda keeps the requested choice');
+      const current = await state(page);
+      assert.equal(current.settings.winThreshold, scenario.latestThreshold);
+      if (scenario.mile) assert.equal(current.run.aptOverrides.mile, scenario.mile);
+      assert.deepEqual(current.run.raceOverrides, { ...scenario.expected, 625: true }, 'other slots retain the latest overrides');
+      await assertFieldsMatchState(page, 'after an agenda choice takes over a missed save');
+    });
+  });
+
   test('skill advice includes prerequisite costs and buyable circle upgrades', async (t) => {
     const page = await editor(t);
     await trainee(page);

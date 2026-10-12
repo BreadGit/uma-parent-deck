@@ -23,11 +23,11 @@ const winPill = (x: number, cls = '') => html`<span class="pill ${cls}">${pct(x)
  */
 function pickSlot(slot: number, calendarId: string) {
   const inSlot = data.races.filter((r) => !r.unreleasedEn && slotOf(r) === slot);
-  const auto = new Map(Object.entries(store.run.raceOverrides));
-  for (const r of inSlot) auto.delete(r.calendarId);
-  const c = plan();
-  const autoPick = buildSchedule(data.races, c.apt, store.settings.winThreshold, auto, racePopularityMap(data), goalRaces(c.trainee)).find((x) => x.slot === slot && x.selected)?.race.calendarId ?? '';
   update((s) => {
+    const auto = new Map(Object.entries(s.run.raceOverrides));
+    for (const r of inSlot) auto.delete(r.calendarId);
+    const c = plan();
+    const autoPick = buildSchedule(data.races, c.apt, s.settings.winThreshold, auto, racePopularityMap(data), goalRaces(c.trainee)).find((x) => x.slot === slot && x.selected)?.race.calendarId ?? '';
     for (const r of inSlot) delete s.run.raceOverrides[r.calendarId];
     if (calendarId !== autoPick) for (const r of inSlot) s.run.raceOverrides[r.calendarId] = r.calendarId === calendarId;
   });
