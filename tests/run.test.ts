@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
-import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, isLegalRunSelection, layoutWishlist, permutations, planRun, targetSpCost, withRequiredOrder, type RunInput } from '../src/model/run.ts';
+import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, effectiveLb, isLegalRunSelection, layoutWishlist, permutations, planRun, targetSpCost, withRequiredOrder, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankMoments, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
@@ -16,12 +16,32 @@ import { goalDeckConstraints } from '../src/model/goal-deck.ts';
 import type { Target } from '../src/model/sparks.ts';
 
 const data = loadData();
-const settings = { ...DEFAULT_SETTINGS };
+const settings = { ...DEFAULT_SETTINGS, inventoryOverrides: { R: null, SR: null, SSR: null } };
+const inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
 const byName = (n: string) => must(data.skills.find((s) => s.name === n && !s.unreleasedEn), `released skill ${n}`);
 const sw = must(data.characters.find((c) => c.name === 'Special Week'));
 const empty: RunInput = { goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3, aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], borrowIgnored: false, parentSparks: [[null, null, null], [null, null, null]] };
 const entry = (skillId: number, weight: number, key = skillId): WishlistEntry => ({ key, skillId, name: String(skillId), form: null, gated: true, isTarget: false, role: 'extra', targetId: null, reason: '', weight, events: [] });
 const targetEntry = (t: Target, role: EntryRole, weight: number, skillId = t.id): WishlistEntry => ({ ...entry(skillId, weight), isTarget: true, role, targetId: t.id });
+
+test('inventory overrides take precedence without changing imported ownership or LB0', () => {
+  const inventory = { 1: 0, 2: null, 3: 2 };
+  const before = structuredClone(inventory);
+  for (const rarity of ['R', 'SR', 'SSR'] as const) {
+    const usingInventory = { R: null, SR: null, SSR: null };
+    assert.equal(effectiveLb(inventory, { id: 1, rarity }, usingInventory), 0);
+    assert.equal(effectiveLb(inventory, { id: 2, rarity }, usingInventory), null);
+    assert.equal(effectiveLb(inventory, { id: 4, rarity }, usingInventory), null);
+    for (const lb of [0, 4]) {
+      const overrides = { ...usingInventory, [rarity]: lb };
+      for (const id of [1, 2, 3, 4]) assert.equal(effectiveLb(inventory, { id, rarity }, overrides), lb);
+    }
+  }
+  assert.equal(effectiveLb(inventory, { id: 2, rarity: 'R' }, DEFAULT_SETTINGS.inventoryOverrides), 4);
+  assert.equal(effectiveLb(inventory, { id: 2, rarity: 'SR' }, DEFAULT_SETTINGS.inventoryOverrides), null);
+  assert.equal(effectiveLb(inventory, { id: 1, rarity: 'SSR' }, DEFAULT_SETTINGS.inventoryOverrides), 0);
+  assert.deepEqual(inventory, before);
+});
 
 test('star tables: every listed table is used as is; only a missing one interpolates, and counts outside the range clamp', () => {
   const ch = must(data.characters.find((c) => c.fourStarStats && c.fiveStarStats && c.rarity === 3));
@@ -64,7 +84,7 @@ test('the star count is clamped to the trainee: a count below her rarity cannot 
   assert.equal(clampStars(null, 1), 1);
   const urara = must(data.characters.find((c) => c.name === 'Haru Urara'));
   assert.equal(clampStars(urara, 1), 1, 'a 1★ uma can be 1★');
-  const at = (traineeStars: number) => planRun({ ...empty, traineeCardId: sw.cardId, traineeStars }, settings, {}, data, { search: false });
+  const at = (traineeStars: number) => planRun({ ...empty, traineeCardId: sw.cardId, traineeStars }, settings, inventory, data, { search: false });
   const p1 = at(1), p3 = at(3), p5 = at(5);
   assert.equal(p1.rank.uniqueLevel, p3.rank.uniqueLevel);
   assert.equal(p1.rank.score, p3.rank.score, 'a stale 1★ scores like 3★');
@@ -115,20 +135,20 @@ test('the scenario completion reward is a source for I Wanna Win with You and On
 test("predicted stats are clamped to the scenario caps plus the blue sparks' start uncaps", () => {
   const caps = SCENARIO_STAT_CAPS[3]!;
   const heavy: RunInput = { ...empty, traineeCardId: sw.cardId, parentSparks: [Array(3).fill({ stat: 'stamina', stars: 3 }), Array(3).fill({ stat: 'stamina', stars: 3 })] };
-  const plan = planRun(heavy, settings, {}, data, { search: false });
+  const plan = planRun(heavy, settings, inventory, data, { search: false });
   assert.deepEqual(plan.issues, []);
   assert.ok(plan.statCaps, 'the plan reports stat caps');
   assert.deepEqual(plan.statCaps!.uncap, [0, 96, 0, 0, 0], 'six 3★ stamina sparks raise only the stamina cap by 16 each');
   plan.finalMean.forEach((v, i) => { assert.ok(v <= caps[i]! + plan.statCaps!.uncap[i]! + 1e-9, `stat ${i} ${v} within cap`); assert.ok(v <= plan.rawFinalMean[i]! + 1e-9); });
   assert.equal(plan.statCaps!.capped.some(Boolean), plan.rawFinalMean.some((v, i) => displayedStat(v) > caps[i]! + plan.statCaps!.uncap[i]!));
-  const light = planRun({ ...empty, traineeCardId: sw.cardId }, settings, {}, data, { search: false });
+  const light = planRun({ ...empty, traineeCardId: sw.cardId }, settings, inventory, data, { search: false });
   assert.ok(light.finalMean[0]! < light.rawFinalMean[0]!, 'above-1200 outcomes are reduced even without inheritance');
   assert.ok(Math.abs(light.finalMean[1]! - light.rawFinalMean[1]!) < .01, 'far below the threshold the conversion leaves the mean unchanged');
 });
 
 test('worst-case target SP cost: each family once with prerequisite costs, missing costs mark it incomplete', () => {
   const corner = resolveTarget(200352, data)!; // Corner Recovery ○ / Swinging Maestro
-  const plan = planRun({ ...empty, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), pinnedIds: [30028] }, settings, {}, data);
+  const plan = planRun({ ...empty, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), pinnedIds: [30028] }, settings, inventory, data);
   const cost = targetSpCost([corner], new Map([[corner.id, plan.deckResult.coverage.get(corner.id)!]]));
   const goldCost = corner.gold!.cost!, whiteCost = corner.white!.cost!;
   assert.equal(cost.total, goldCost + whiteCost, 'buying the gold also requires buying the white form');
@@ -182,7 +202,7 @@ test('prioritized skills: a candidate whose every event a higher entry takes is 
   assert.deepEqual(capped.live.map((w) => w.key), [1, 2, 3, 4], 'past the list length nothing takes an event, so a sibling there stays a candidate');
   assert.equal(capped.shadowed.length, 0);
   assert.equal(capped.steers.has(3), false);
-  const plan = planRun(empty, settings, {}, data, { budget: 8 });
+  const plan = planRun(empty, settings, inventory, data, { budget: 8 });
   const scenarioListed = plan.wl.filter((w) => w.events.some((e) => e.key.startsWith('scenario:')));
   assert.equal(scenarioListed.length, 1, 'one scenario option is listed');
   assert.ok(plan.wlLayout.shadowed.length >= 1 && plan.wlLayout.shadowed.every((s) => s.by.includes(scenarioListed[0]!.key) || s.entry.events.every((e) => !e.key.startsWith('scenario:'))), 'the other scenario options sit behind it');
@@ -194,9 +214,9 @@ test("planRun: the goal's priorities decide a shared event; arranging the list d
   const focus = resolveTarget(byName('Focus').id, data)!;
   const falcon = must(data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power'));
   const targets = (groundworkPriority: number, focusPriority: number) => [{ id: groundwork.id, role: 'preferred' as const, stars: 2, priority: groundworkPriority }, { id: focus.id, role: 'preferred' as const, stars: 2, priority: focusPriority }];
-  const a = planRun({ ...empty, targets: targets(0, 1), pinnedIds: [falcon.id] }, settings, {}, data);
-  const b = planRun({ ...empty, targets: targets(1, 0), pinnedIds: [falcon.id] }, settings, {}, data);
-  const c = planRun({ ...empty, targets: targets(0, 1), pinnedIds: [falcon.id], wishlistOrder: [focus.id, groundwork.id] }, settings, {}, data);
+  const a = planRun({ ...empty, targets: targets(0, 1), pinnedIds: [falcon.id] }, settings, inventory, data);
+  const b = planRun({ ...empty, targets: targets(1, 0), pinnedIds: [falcon.id] }, settings, inventory, data);
+  const c = planRun({ ...empty, targets: targets(0, 1), pinnedIds: [falcon.id], wishlistOrder: [focus.id, groundwork.id] }, settings, inventory, data);
   const falconEvent = (p: typeof a) => p.deckResult.conflicts.find((e) => e.eventKey.startsWith(`${falcon.id}:chain`));
   assert.equal(falconEvent(a)?.taken.target, groundwork.id);
   assert.equal(falconEvent(b)?.taken.target, focus.id);
@@ -207,16 +227,16 @@ test("planRun: the goal's priorities decide a shared event; arranging the list d
   const lane = byName('Lane Legerdemain');
   const fixed: RunInput = { ...empty, targets: [{ id: focus.id, role: 'preferred', stars: 2, priority: 0 }], traineeCardId: sw.cardId, wishlistOrder: [lane.id] };
   // No search: the scenario event and the list order do not depend on the best deck.
-  const plan = planRun(fixed, settings, {}, data, { search: false });
+  const plan = planRun(fixed, settings, inventory, data, { search: false });
   assert.ok(plan.wl[0]!.targetId === focus.id, 'the target is first');
   assert.ok(!plan.deckResult.conflicts.some((e) => e.eventKey.startsWith('scenario:') && e.taken.skillId === lane.id), 'Lane Legerdemain cannot take the scenario event');
   assert.ok(plan.deckResult.coverage.get(focus.id)!.some((s) => s.kind === 'scenario'), 'Focus keeps the scenario event');
   assert.ok(plan.wlLayout.shadowed.some((s) => s.entry.key === lane.id), 'Lane Legerdemain is hidden behind Focus');
 });
 
-test('planRun: an empty input still builds a full deck with scenario options; the trainee, her lineage and the inventory shape the result', () => {
+test('planRun: empty run input with owned cards still builds a full deck; the trainee, lineage and inventory shape the result', () => {
   // No search: the shape of the plan, not the best deck, is under test.
-  const plan = planRun(empty, settings, {}, data, { search: false });
+  const plan = planRun(empty, settings, inventory, data, { search: false });
   assert.equal(plan.trainee, null);
   assert.equal(plan.deckResult.deck.length, 6);
   assert.equal(plan.deckResult.deck.filter((d) => d.borrowed).length, 1);
@@ -225,72 +245,72 @@ test('planRun: an empty input still builds a full deck with scenario options; th
   assert.ok(plan.rank.pSS >= 0 && plan.rank.pSS <= 1, 'P(SS) is a probability');
   const corner = resolveTarget(200352, data)!;
   const input: RunInput = { ...empty, traineeCardId: sw.cardId, traineeStars: 3, targets: [corner.id].map((id) => ({ id, role: 'preferred' as const, stars: 2, priority: 0 })), targetLineage: { [corner.id]: [3, 0, 0, 0, 0, 0] }, pinnedIds: [30052] };
-  const withTrainee = planRun(input, settings, {}, data, { search: false });
+  const withTrainee = planRun(input, settings, inventory, data, { search: false });
   assert.equal(withTrainee.trainee?.name, 'Special Week');
   assert.ok(withTrainee.deckResult.deck.some((d) => d.card.id === 30052), 'pinned Light Hello is in the deck');
   assert.ok(!withTrainee.deckResult.deck.some((d) => d.card.charId === sw.charId), "the trainee's own cards are excluded");
   assert.ok((withTrainee.existing.sources.get(corner.id) ?? []).some((s) => s.kind === 'lineage'), 'the lineage source is present for the target');
   // Hold the deck fixed: reoptimizing can trade this preferred spark for a stronger combined goal.
   const selection = withTrainee.deckResult.deck.map((d) => ({ id: d.card.id, lb: d.lb, borrowed: d.borrowed }));
-  const withoutLineage = planRun({ ...input, targetLineage: {} }, settings, {}, data, { selection });
+  const withoutLineage = planRun({ ...input, targetLineage: {} }, settings, inventory, data, { selection });
   assert.deepEqual(withoutLineage.deckResult.deck.map((d) => d.card.id), selection.map((d) => d.id));
   assert.ok((withTrainee.deckResult.sparks.get(corner.id) ?? 0) > (withoutLineage.deckResult.sparks.get(corner.id) ?? 0), 'lineage raises the spark chance for the same deck');
-  const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { '30052': null }, data, { search: false });
+  const unowned = planRun({ ...empty, pinnedIds: [30052] }, settings, { ...inventory, '30052': null }, data, { search: false });
   assert.ok(!unowned.deckResult.deck.some((d) => d.card.id === 30052 && !d.borrowed), 'an unowned pin is skipped');
   assert.ok(unowned.unowned.has(30052) && unowned.ranking.some((r) => r.card.id === 30052), 'still shown in the ranking: the model retains unowned cards for the UI visibility filter');
 });
 
 test('ignored cards are never suggested: not for an owned slot, not as the borrow, not even when pinned', () => {
   const input: RunInput = { ...structuredClone(empty), traineeCardId: sw.cardId, targets: [{ id: 200352, role: 'preferred', stars: 2, priority: 0 }] };
-  const base = planRun(input, settings, {}, data, { search: false });
+  const base = planRun(input, settings, inventory, data, { search: false });
   const owned = must(base.deckResult.deck.find((e) => !e.borrowed), 'an owned deck card');
   const borrowed = must(base.deckResult.deck.find((e) => e.borrowed), 'the borrowed deck card');
   const ignoredIds = [owned.card.id, borrowed.card.id];
-  const without = planRun({ ...input, ignoredIds }, settings, {}, data, { search: false });
+  const without = planRun({ ...input, ignoredIds }, settings, inventory, data, { search: false });
   assert.deepEqual(without.ignoredIds, ignoredIds);
   assert.ok(without.deckResult.deck.every((e) => !ignoredIds.includes(e.card.id)), 'both ignored cards leave the deck');
   assert.equal(without.deckResult.deck.length, base.deckResult.deck.length, 'the deck is refilled');
   assert.ok(without.ranking.some((r) => r.card.id === owned.card.id), 'an ignored card is still ranked, so it can be un-ignored there');
-  const pinnedToo = planRun({ ...input, ignoredIds, pinnedIds: [...input.pinnedIds, owned.card.id] }, settings, {}, data, { search: false });
+  const pinnedToo = planRun({ ...input, ignoredIds, pinnedIds: [...input.pinnedIds, owned.card.id] }, settings, inventory, data, { search: false });
   assert.ok(!pinnedToo.deckResult.deck.some((e) => e.card.id === owned.card.id), 'ignoring wins over a stale pin');
   assert.ok(!pinnedToo.pinnedIds.includes(owned.card.id) && !pinnedToo.deckResult.steps.some((s) => s.includes('pinned but not chosen')), 'an ignored pin is not reported as a pin the search dropped');
   const previous = base.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
-  const retained = planRun({ ...input, ignoredIds: [owned.card.id] }, settings, {}, data, { previous, search: false });
+  const retained = planRun({ ...input, ignoredIds: [owned.card.id] }, settings, inventory, data, { previous, search: false });
   assert.ok(!retained.deckResult.deck.some((e) => e.card.id === owned.card.id), 'a retained deck cannot keep an ignored card');
   const goalInput: RunInput = { ...input, goal: { ...input.goal, blueStats: ['speed'] } };
-  assert.equal(isLegalRunSelection(previous, goalInput, settings, {}, data), true);
-  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [owned.card.id] }, settings, {}, data), false, 'a saved recommendation with an ignored card is discarded');
-  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [borrowed.card.id] }, settings, {}, data), false, 'the borrow cannot be an ignored card either');
-  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [99999999] }, settings, {}, data), true, 'an ignored id missing from the data changes nothing');
+  assert.equal(isLegalRunSelection(previous, goalInput, settings, inventory, data), true);
+  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [owned.card.id] }, settings, inventory, data), false, 'a saved recommendation with an ignored card is discarded');
+  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [borrowed.card.id] }, settings, inventory, data), false, 'the borrow cannot be an ignored card either');
+  assert.equal(isLegalRunSelection(previous, { ...goalInput, ignoredIds: [99999999] }, settings, inventory, data), true, 'an ignored id missing from the data changes nothing');
   // allowing ignored cards in the friend's slot keeps them out of the owned slots only
   const lenient = { ...goalInput, ignoredIds, borrowIgnored: true };
-  assert.equal(isLegalRunSelection(previous, lenient, settings, {}, data), false, 'the owned ignored card still disqualifies the deck');
-  assert.equal(isLegalRunSelection(previous, { ...lenient, ignoredIds: [borrowed.card.id] }, settings, {}, data), true, 'the borrow may be an ignored card');
-  const borrowable = planRun({ ...input, ignoredIds, borrowIgnored: true }, settings, {}, data, { previous, search: false });
+  assert.equal(isLegalRunSelection(previous, lenient, settings, inventory, data), false, 'the owned ignored card still disqualifies the deck');
+  assert.equal(isLegalRunSelection(previous, { ...lenient, ignoredIds: [borrowed.card.id] }, settings, inventory, data), true, 'the borrow may be an ignored card');
+  const borrowable = planRun({ ...input, ignoredIds, borrowIgnored: true }, settings, inventory, data, { previous, search: false });
   assert.ok(!borrowable.deckResult.deck.some((e) => e.card.id === owned.card.id), 'the ignored owned card leaves the deck');
   assert.ok(borrowable.deckResult.deck.some((e) => e.card.id === borrowed.card.id && e.borrowed), 'the ignored borrow stays');
 });
 
 test('retained decks update estimates and limit breaks, but cannot bypass ownership, pins or trainee exclusion', () => {
   const input = { ...structuredClone(empty), traineeCardId: sw.cardId };
-  const initial = planRun(input, settings, {}, data, { search: false });
+  const initial = planRun(input, settings, inventory, data, { search: false });
   const previous = initial.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   const edited = { ...input, goal: { ...input.goal, pink: [{ aptitude: 'any' as const, stars: 3 }] } };
-  const retained = planRun(edited, settings, {}, data, { previous, search: false });
-  const explicit = planRun(edited, settings, {}, data, { selection: previous, search: false });
+  const retained = planRun(edited, settings, inventory, data, { previous, search: false });
+  const explicit = planRun(edited, settings, inventory, data, { selection: previous, search: false });
   assert.deepEqual(retained.deckResult.deck.map((e) => e.card.id), previous.map((e) => e.id));
   assert.deepEqual(retained.goalEstimate, explicit.goalEstimate, 'retention evaluates the latest goal');
   assert.notDeepEqual(retained.goalEstimate, initial.goalEstimate);
   const owned = must(previous.find((e) => !e.borrowed));
-  const lower = planRun(input, settings, { [owned.id]: 0 }, data, { previous, search: false });
+  const lower = planRun(input, settings, { ...inventory, [owned.id]: 0 }, data, { previous, search: false });
   assert.equal(lower.deckResult.deck.find((e) => e.card.id === owned.id && !e.borrowed)?.lb, 0);
-  const unowned = planRun(input, settings, { [owned.id]: null }, data, { previous, search: false });
+  const unowned = planRun(input, settings, { ...inventory, [owned.id]: null }, data, { previous, search: false });
   assert.ok(!unowned.deckResult.deck.some((e) => e.card.id === owned.id && !e.borrowed), 'a card marked not owned leaves the owned slots');
   const pin = must(data.cards.find((c) => c.charId !== sw.charId && !previous.some((e) => e.id === c.id)));
-  const pinned = planRun({ ...input, pinnedIds: [pin.id] }, settings, {}, data, { previous, search: false });
+  const pinned = planRun({ ...input, pinnedIds: [pin.id] }, settings, inventory, data, { previous, search: false });
   assert.ok(pinned.deckResult.deck.some((e) => e.card.id === pin.id), 'a new pin joins the retained deck');
   const nextTrainee = must(data.characters.find((c) => previous.some((e) => must(data.cardById.get(e.id)).charId === c.charId)));
-  const changed = planRun({ ...input, traineeCardId: nextTrainee.cardId }, settings, {}, data, { previous, search: false });
+  const changed = planRun({ ...input, traineeCardId: nextTrainee.cardId }, settings, inventory, data, { previous, search: false });
   assert.ok(changed.deckResult.deck.every((e) => e.card.charId !== nextTrainee.charId), "the new trainee's own character leaves the deck");
   const incomplete = planRun(input, settings, Object.fromEntries(data.cards.map((c) => [c.id, null])), data, { previous, search: false });
   assert.ok(incomplete.issues.some((s) => s.includes('Incomplete deck')), 'an empty inventory reports an incomplete deck');
@@ -298,12 +318,12 @@ test('retained decks update estimates and limit breaks, but cannot bypass owners
 });
 
 test('partial input still builds for new white targets when a full goal search cannot run', () => {
-  const initial = planRun(empty, settings, {}, data, { search: false });
+  const initial = planRun(empty, settings, inventory, data, { search: false });
   const previous = initial.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
   const target = resolveTarget(200352, data)!;
   const input = { ...empty, targets: [{ id: target.id, role: 'required' as const, stars: 2, priority: 0 as const }] };
-  const partial = planRun(input, settings, {}, data, { previous, search: false });
-  const expected = planRun(input, settings, {}, data, { search: false });
+  const partial = planRun(input, settings, inventory, data, { previous, search: false });
+  const expected = planRun(input, settings, inventory, data, { search: false });
   assert.deepEqual(partial.deckResult.deck.map((e) => e.card.id), expected.deckResult.deck.map((e) => e.card.id));
   assert.ok(partial.deckResult.sparks.get(target.id)! > 0, 'white target coverage remains useful without a trainee');
 });
@@ -369,7 +389,7 @@ test('worst-case target SP cost: a target the deck cannot give costs nothing, ma
   const trainee = must(data.charByCardId.get(100101));
   const used = new Set([trainee.charId]);
   const selection = data.cards.filter((c) => !skill.hintCards.includes(c.id) && !used.has(c.charId) && used.add(c.charId)).slice(0, 6).map((c, i) => ({ id: c.id, lb: 4, borrowed: i === 0 }));
-  const plan = planRun({ ...empty, traineeCardId: trainee.cardId, targets: [{ id: skill.id, role: 'preferred', stars: 1, priority: 0 }] }, settings, {}, data, { selection, search: false });
+  const plan = planRun({ ...empty, traineeCardId: trainee.cardId, targets: [{ id: skill.id, role: 'preferred', stars: 1, priority: 0 }] }, settings, inventory, data, { selection, search: false });
   assert.equal(plan.deckResult.coverage.get(skill.id)?.length ?? 0, 0, 'no card in the deck hints the skill');
   assert.equal(plan.spCost.total, 0);
   assert.deepEqual(plan.spCost, plan.purchases.goalCost);

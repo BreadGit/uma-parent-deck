@@ -107,13 +107,13 @@ test('v6 sparks per uma round-trip, a null slot survives, and a malformed slot r
 
 test('legacy settings blobs: version bumps apply and invalid values are dropped', () => {
   const s1 = migrate({ settings: { version: 1, defaultLb: { R: 4, SR: 4, SSR: 0 }, showUnowned: false, chainRatesSSR: [0.5, 0.5], hintBase: 0.1 } }, data);
-  assert.equal(s1.settings.defaultLb.SSR, 4, 'v1 -> SSR default LB becomes 4');
+  assert.deepEqual(s1.settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides, 'v1 SSR default became 4; standard defaults now use SR/SSR inventory');
   assert.equal(s1.ui.showUnowned, true, 'v2 -> unowned shown by default');
   assert.deepEqual(s1.settings.chainRatesSSR, DEFAULT_SETTINGS.chainRatesSSR, 'a two-entry list is rejected');
   assert.equal(s1.settings.hintBase, 0.1);
   const s3 = migrate({ settings: { version: 3, showUnowned: false, defaultLb: { R: 2, SR: 3, SSR: 1 } } }, data);
   assert.equal(s3.ui.showUnowned, false);
-  assert.deepEqual(s3.settings.defaultLb, { R: 2, SR: 3, SSR: 1 });
+  assert.deepEqual(s3.settings.inventoryOverrides, { R: 2, SR: 3, SSR: 1 });
 });
 
 test('the current shape round-trips and wins over legacy keys', () => {
@@ -157,7 +157,7 @@ test('validation: inventory entries are numeric ids with LB 0..4 or null; every 
   assert.equal(parseSetting('totalTurnsOverride', '70'), 70);
   assert.equal(parseSetting('focus', 'sprint'), 'sprint');
   assert.equal(parseSetting('focus', 'fast'), undefined);
-  assert.equal(parseSetting('defaultLb', '4'), undefined);
+  assert.equal(parseSetting('inventoryOverrides', '4'), undefined);
   assert.equal(parseSetting('scenarioId', '5'), undefined, 'only the supported scenario');
   assert.equal(parseSetting('scenarioId', '3'), 3);
   assert.equal(sanitizeSettings({ scenarioId: '3' }).scenarioId, 3, 'a string is not the number the model compares with');
@@ -215,10 +215,26 @@ test('current saves keep trainee star choices when current data has a higher rar
   assert.deepEqual(migrate({ current: saved }, data), saved);
 });
 
-test('setting specs: a default limit break must be a whole LB from 0 to 4', () => {
-  assert.deepEqual(sanitizeSettings({ defaultLb: { R: 1.5, SR: 4, SSR: 4 } }).defaultLb, DEFAULT_SETTINGS.defaultLb, 'a fractional LB indexes no effect table');
-  assert.deepEqual(sanitizeSettings({ defaultLb: { R: 0, SR: 2, SSR: 5 } }).defaultLb, DEFAULT_SETTINGS.defaultLb);
-  assert.deepEqual(sanitizeSettings({ defaultLb: { R: 0, SR: 2, SSR: 3 } }).defaultLb, { R: 0, SR: 2, SSR: 3 });
+test('setting specs: inventory overrides accept use-inventory or a whole LB from 0 to 4', () => {
+  for (const inventoryOverrides of [{ R: 1.5, SR: null, SSR: 4 }, { R: 0, SR: 2, SSR: 5 }, { R: 4 }, { R: '4', SR: null, SSR: null }]) {
+    assert.deepEqual(sanitizeSettings({ inventoryOverrides }).inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides);
+  }
+  for (const inventoryOverrides of [{ R: 0, SR: 2, SSR: 3 }, { R: null, SR: null, SSR: null }]) {
+    assert.deepEqual(sanitizeSettings({ inventoryOverrides }).inventoryOverrides, inventoryOverrides);
+  }
+});
+
+test('old custom rarity settings survive migration without replacing imported inventory', () => {
+  const inventory = { 10001: 0, 20001: null, 30001: 1, 999999: 2 };
+  const saved = { version: 24, settings: { defaultLb: { R: 2, SR: 3, SSR: 1 } }, inventory };
+  const migrated = migrate({ current: saved }, data);
+  assert.deepEqual(migrated.settings.inventoryOverrides, { R: 2, SR: 3, SSR: 1 });
+  assert.deepEqual(migrated.inventory, inventory);
+  assert.equal('defaultLb' in migrated.settings, false);
+  assert.deepEqual(migrate({ current: migrated }, data), migrated);
+  const changed = migrate({ current: { ...saved, settings: { ...saved.settings, inventoryOverrides: { R: null, SR: null, SSR: null } } } }, data);
+  assert.deepEqual(changed.settings.inventoryOverrides, { R: null, SR: null, SSR: null }, 'the new explicit setting wins over a legacy value');
+  assert.deepEqual(migrate({ current: { ...saved, settings: { defaultLb: { R: 4, SR: 4, SSR: 4 } } } }, data).settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides);
 });
 
 test('setting specs: chain reach chances may not rise from one stage to the next', () => {

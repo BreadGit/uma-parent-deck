@@ -25,7 +25,7 @@ export interface ScannerHost {
   /** Set when the planner embeds the scanner: readings are applied to its inventory instead of downloaded. */
   apply?: {
     current: () => Inventory;
-    /** The planner's effective limit break for a card, including its rarity default. */
+    /** Stored ownership before import, excluding temporary planning overrides. */
     effective: (card: ScanCard) => number | null;
     onApply: (inventory: Inventory) => void;
   };

@@ -371,6 +371,7 @@ test('cheap rank sampling leaves analytic blue odds and subsequent full evaluati
 const FUJI_DECK = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
 const fujiState = () => {
   const saved = defaultState(data);
+  saved.inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
   saved.run.traineeCardId = 100501;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;

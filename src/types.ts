@@ -188,5 +188,5 @@ export interface Data {
   charById: Map<number, Character>; // first outfit of each character
 }
 
-/** Inventory: card id -> limit break 0..4, or null for "not owned". Absent = owned at the rarity's default LB. */
+/** Stored inventory: card id -> limit break 0..4, or null for "not owned". Absent entries are not owned. */
 export type Inventory = Record<string, number | null>;

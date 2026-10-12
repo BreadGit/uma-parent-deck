@@ -155,16 +155,71 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
   });
 
 
-  test('cards without an inventory entry show their rarity\'s saved default limit break', async (t) => {
+  test('advanced rarity overrides preserve imported values, export and individual edits', async (t) => {
     const saved = defaultState(data);
-    saved.settings.defaultLb = { R: 4, SR: 2, SSR: 3 };
-    const listed = data.cards.find((card) => card.rarity === 'SR');
-    saved.inventory = { [listed.id]: 4 };
+    const [r, sr, ssr] = ['R', 'SR', 'SSR'].map((rarity) => data.cards.find((card) => card.rarity === rarity));
+    const unowned = data.cards.find((card) => card.rarity === 'SR' && card.id !== sr.id);
+    const absent = data.cards.find((card) => card.rarity === 'SSR' && card.id !== ssr.id);
+    saved.inventory = { [r.id]: 0, [sr.id]: 2, [ssr.id]: 1, [unowned.id]: null };
     const page = await editor(t, saved);
+    const card = (id) => page.locator(`select[data-lb="${id}"]`).first();
+    await page.locator('[data-details="advanced"] > summary').click();
+    const override = (rarity) => page.locator(`[data-inventory-override="${rarity}"]`);
+    assert.equal(await override('R').inputValue(), '4');
+    assert.equal(await override('SR').inputValue(), '');
+    assert.equal(await override('SSR').inputValue(), '');
+    assert.equal(await card(r.id).inputValue(), '4', 'R overrides even an imported LB0');
+    assert.equal(await card(r.id).isDisabled(), true);
+    assert.equal(await card(sr.id).inputValue(), '2');
+    assert.equal(await card(ssr.id).inputValue(), '1');
+    assert.equal(await card(unowned.id).inputValue(), 'none');
+    assert.equal(await card(absent.id).inputValue(), 'none', 'an absent SSR is not owned');
+    await assertFieldsMatchState(page, 'with imported inventory and default rarity overrides');
+
+    await override('SR').selectOption('4');
+    assert.equal(await card(sr.id).inputValue(), '4');
+    assert.equal(await card(unowned.id).inputValue(), '4', 'the override owns explicitly unowned cards too');
+    assert.equal(await card(sr.id).isDisabled(), true);
+    assert.deepEqual((await state(page)).inventory, saved.inventory);
+    await assertFieldsMatchState(page, 'after overriding all SR cards');
+    await override('SSR').selectOption('0');
+    assert.equal(await card(ssr.id).inputValue(), '0');
+    assert.equal(await card(absent.id).inputValue(), '0', 'LB0 is a valid ownership override');
+    await assertFieldsMatchState(page, 'after overriding all SSR cards at LB0');
+
+    const downloading = page.waitForEvent('download');
+    await page.locator('[data-action="export"]').click();
+    const download = await downloading;
+    let contents = '';
+    for await (const chunk of await download.createReadStream()) contents += chunk;
+    const exported = JSON.parse(contents);
+    for (const [id, lb] of Object.entries(saved.inventory)) assert.equal(exported[id], lb, 'export keeps readings beneath overrides');
+    assert.equal(exported[absent.id], null);
+    await assertFieldsMatchState(page, 'after exporting the real inventory');
+
+    for (const rarity of ['R', 'SR', 'SSR']) {
+      await override(rarity).selectOption('');
+      await assertFieldsMatchState(page, `after disabling the ${rarity} override`);
+    }
+    assert.equal(await card(r.id).inputValue(), '0');
+    assert.equal(await card(sr.id).inputValue(), '2');
+    assert.equal(await card(ssr.id).inputValue(), '1');
+    assert.equal(await card(unowned.id).inputValue(), 'none');
+    assert.equal(await card(absent.id).inputValue(), 'none');
+    assert.equal(await card(sr.id).isDisabled(), false);
+    await card(ssr.id).selectOption('4');
+    assert.equal((await state(page)).inventory[ssr.id], 4, 'LB4 is stored explicitly');
+    await assertFieldsMatchState(page, 'after setting an individual SSR to MLB');
+    await page.reload();
     await page.waitForSelector('select[data-lb]');
-    const shown = new Set(await page.$$eval('select[data-lb]', (els) => els.map((el) => el.value)));
-    assert.ok(shown.has('2') && shown.has('3'), `unlisted SR and SSR cards show their defaults: ${[...shown]}`);
-    await assertFieldsMatchState(page, 'with non-default limit breaks per rarity');
+    assert.equal(await card(ssr.id).inputValue(), '4');
+    await assertFieldsMatchState(page, 'after reloading saved inventory overrides');
+    await page.locator('[data-details="advanced"] > summary').click();
+    await page.locator('[data-action="reset-settings"]').click();
+    assert.deepEqual((await state(page)).settings.inventoryOverrides, { R: 4, SR: null, SSR: null });
+    assert.equal((await state(page)).inventory[r.id], 0);
+    assert.equal((await state(page)).inventory[ssr.id], 4);
+    await assertFieldsMatchState(page, 'after resetting advanced rarity overrides');
   });
 
 

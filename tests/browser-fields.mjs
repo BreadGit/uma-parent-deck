@@ -78,8 +78,7 @@ export async function assertFieldsMatchState(page, where) {
   const saved = migrate({ current }, data);
   const trainee = data.charByCardId.get(saved.run?.traineeCardId);
   const expectedAptitudes = trainee ? startingAptitudes(trainee.aptitudes, saved.run.aptOverrides, saved.run.pinkLineage) : null;
-  // A card without an inventory entry shows its rarity's saved default limit break.
-  const expectedLb = Object.fromEntries(data.cards.map((card) => [card.id, effectiveLb(saved.inventory, card, saved.settings.defaultLb)]));
+  const expectedLb = Object.fromEntries(data.cards.map((card) => [card.id, effectiveLb(saved.inventory, card, saved.settings.inventoryOverrides)]));
   const bad = await page.evaluate(({ gainByStars, expectedAptitudes, expectedLb, st, missionEvents }) => {
     const out = [];
     const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'];
@@ -112,6 +111,10 @@ export async function assertFieldsMatchState(page, where) {
     for (const el of document.querySelectorAll('[data-setting]')) {
       const v = st.settings?.[el.dataset.setting];
       if (el.tagName === 'SELECT' && v !== undefined && el.value !== String(v)) out.push(`setting ${el.dataset.setting} shows ${el.value}, state ${v}`);
+    }
+    for (const el of document.querySelectorAll('[data-inventory-override]')) {
+      const lb = st.settings.inventoryOverrides[el.dataset.inventoryOverride];
+      if (el.value !== (lb === null ? '' : String(lb))) out.push(`inventory override ${el.dataset.inventoryOverride} differs from state`);
     }
     for (const el of document.querySelectorAll('[data-action="toggle-card-pin"], [data-action="toggle-card-ignore"]')) {
       const list = el.dataset.action === 'toggle-card-pin' ? st.run.pinnedIds : st.run.ignoredIds;

@@ -444,7 +444,7 @@ td.target-chances { min-width: 260px; }
 .settings-grid label.row { margin: 2px 0; align-items: flex-start; }
 .settings-grid input { flex: none; }
 .setting-default { display: block; font-size: var(--fs-xs); color: var(--muted); }
-.setting.modified input { border-color: var(--accent); }
+.setting.modified input, .setting.modified select { border-color: var(--accent); }
 .setting.modified .setting-default { color: var(--accent); }
 .field-error { color: var(--danger); margin: 0 0 6px; }
 

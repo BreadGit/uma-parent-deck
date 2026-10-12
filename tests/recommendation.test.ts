@@ -12,6 +12,8 @@ import { isLegalRunSelection, planRun, type GoalSearchSummary } from '../src/mod
 
 const data = loadData();
 const state = defaultState(data);
+state.settings.inventoryOverrides = { R: null, SR: null, SSR: null };
+state.inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
 state.run.traineeCardId = 100101;
 const plan = planRun(state.run, state.settings, state.inventory, data, { search: false });
 const selection = plan.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));

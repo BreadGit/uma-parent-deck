@@ -102,20 +102,20 @@ export function installSuggestDismiss(root: HTMLElement) {
   });
 }
 
-/** Set a card's limit break, or mark it not owned. The rarity's default LB means "no entry". */
+/** Store a card's limit break explicitly so later rarity overrides cannot erase it. */
 function setLb(card: Card, value: string) {
   update((s) => {
     const id = String(card.id);
     if (value === 'none') s.inventory[id] = null;
-    else if (Number(value) === s.settings.defaultLb[card.rarity]) delete s.inventory[id];
     else s.inventory[id] = Number(value);
   });
 }
 /** The LB dropdown shared by the deck slots and the ranking table. */
 export function lbSelect(c: RunPlan, card: Card, lb: number, cls = '') {
   const owned = !c.unowned.has(card.id);
+  const overridden = store.settings.inventoryOverrides[card.rarity] !== null;
   const explicit = store.inventory[String(card.id)] !== undefined;
   const current = owned ? String(lb) : 'none';
-  const items: Option[] = [{ value: 'none', label: COPY.fields.notOwned }, ...Array.from({ length: MAX_LB + 1 }, (_, l) => l).map((l) => ({ value: String(l), label: `${l}${!explicit && lb === l ? ` ${COPY.fields.default}` : ''}` }))];
-  return html`<select data-lb=${card.id} class="${cls} ${explicit ? '' : 'muted'}" aria-label="Limit break" .value=${live(current)} @change=${(e: Event) => setLb(card, selectValue(e))}>${options(items, current)}</select>`;
+  const items: Option[] = [{ value: 'none', label: COPY.fields.notOwned }, ...Array.from({ length: MAX_LB + 1 }, (_, l) => l).map((l) => ({ value: String(l), label: `${l}${overridden && lb === l ? ' (override)' : ''}` }))];
+  return html`<select data-lb=${card.id} class="${cls} ${explicit && !overridden ? '' : 'muted'}" aria-label="Limit break" .value=${live(current)} ?disabled=${overridden} data-tip=${overridden ? `${card.rarity} cards use a rarity override. Choose Use inventory in Advanced settings to edit individual cards.` : nothing} @change=${(e: Event) => setLb(card, selectValue(e))}>${options(items, current)}</select>`;
 }

@@ -25,7 +25,7 @@ function matches(query: string, listed: number[]): Card[] {
     .sort((a, b) => b.rarity.length - a.rarity.length || a.charName.localeCompare(b.charName) || a.id - b.id).slice(0, 12);
 }
 const searchRow = (card: Card) => { const lb = lbOf(card); return html`<img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="suggest-r">${lb == null ? 'not owned · borrow' : `LB${lb}`}</span>`; };
-const lbOf = (card: Card) => effectiveLb(store.inventory, card, store.settings.defaultLb);
+const lbOf = (card: Card) => effectiveLb(store.inventory, card, store.settings.inventoryOverrides);
 
 /** A pinned or ignored card: art, name, its limit break (or that it would be borrowed) and the button that removes it from the list. */
 function cardRow(id: number, action: 'unpin-card' | 'unignore-card') {

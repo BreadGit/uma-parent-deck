@@ -185,6 +185,8 @@ suite('editor browser regressions', { concurrency: Number(process.env.BROWSER_TE
 
   test('phone ranking reveals controls and spark chances when scrolled sideways', async (t) => {
     const saved = defaultState(data);
+    saved.settings.inventoryOverrides.R = null;
+    saved.inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
     saved.run.targets = [{ id: 200352, role: 'preferred', stars: 2, priority: 0 }];
     const page = await editor(t, saved);
     await page.setViewportSize({ width: 390, height: 844 });

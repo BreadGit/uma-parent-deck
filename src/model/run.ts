@@ -1,5 +1,5 @@
 import { STATS, type Card, type Character, type Data, type Inventory } from '../types.ts';
-import type { Settings } from '../settings.ts';
+import type { InventoryOverrides, Settings } from '../settings.ts';
 import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type ResolvedGoal, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
 import { evaluateParentGoal, FINAL_GOAL_SAMPLES, goalRankBands, pinkGoalsEstimate, type GoalEstimate, type GoalStats } from './goal.ts';
@@ -106,22 +106,19 @@ export function racePopularityMap(data: Data): Map<number, number> {
   return m;
 }
 
-/** Effective limit break for a card, or null when marked not owned. Absent from the inventory = owned at the rarity's default. */
-export function effectiveLb(inv: Inventory, card: Pick<Card, 'id' | 'rarity'>, defaults: { R: number; SR: number; SSR: number }): number | null {
-  const v = inv[String(card.id)];
-  if (v === null) return null;
-  if (typeof v === 'number') return v;
-  return defaults[card.rarity];
+/** Rarity overrides take precedence over stored ownership. Without an override, absent cards are not owned. */
+export function effectiveLb(inv: Inventory, card: Pick<Card, 'id' | 'rarity'>, overrides: InventoryOverrides): number | null {
+  return overrides[card.rarity] ?? inv[String(card.id)] ?? null;
 }
 
-/** The card pool from the inventory: owned cards at their LB, plus unowned ones at the default LB for display. */
+/** The card pool from the inventory and overrides; unowned cards are ranked at the borrowed LB. */
 function cardPool(data: Data, inventory: Inventory, settings: Settings) {
   const pool: { card: Card; lb: number }[] = [];
   const unowned = new Set<number>();
   for (const card of data.cards) {
-    const lb = effectiveLb(inventory, card, settings.defaultLb);
+    const lb = effectiveLb(inventory, card, settings.inventoryOverrides);
     if (lb != null) pool.push({ card, lb });
-    else { unowned.add(card.id); pool.push({ card, lb: settings.defaultLb[card.rarity] }); }
+    else { unowned.add(card.id); pool.push({ card, lb: BORROWED_LB }); }
   }
   return { pool, unowned };
 }
@@ -340,7 +337,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const preparedPrediction = preparePrediction(input, baseCtx);
   const { pool, unowned, ignoredIds, deckPool, borrowPool, pinnedIds } = selectablePools(input, settings, inventory, data);
   const ownedPinIds = pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
-  const build = { pinnedIds, borrowPool, borrowFromAll: input.borrowFromAll, size: DECK_SIZE };
+  const build = { pinnedIds, borrowPool, borrowFromAll: input.borrowFromAll };
   const goal = goalWithTargets(input.goal, activeTargets);
   const required = new Set(goal.required.map((r) => r.id));
   /**
@@ -363,7 +360,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const previous = options.previous?.flatMap((e) => {
     const card = data.cardById.get(e.id);
     if (!card) return [];
-    const lb = e.borrowed ? BORROWED_LB : effectiveLb(inventory, card, settings.defaultLb);
+    const lb = e.borrowed ? BORROWED_LB : effectiveLb(inventory, card, settings.inventoryOverrides);
     return lb === null ? [] : [{ card, lb, borrowed: e.borrowed }];
   });
   let legality: ReturnType<typeof goalDeckConstraints> | undefined;

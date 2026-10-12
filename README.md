@@ -15,8 +15,8 @@ send it when opened.
 
 The left column is the input flow, the right column the results.
 
-1. **Inventory**: every card counts as owned at the default limit break until you change it. Import
-   screenshots of your support-card list, or set limit breaks in the Card ranking table.
+1. **Inventory**: import screenshots of your support-card list, or set limit breaks in the Card
+   ranking table. Rarity-wide ownership assumptions live in Advanced settings.
 2. **Trainee**: her cards are excluded from the deck, her innate and awakening skills count as
    covered, and her growth rates, aptitudes and events feed the stat, race and skill models.
 3. **Parent goal**: the blue stats, pink aptitudes and white skill sparks the finished parent must

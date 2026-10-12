@@ -304,6 +304,10 @@ try {
   // Inside the planner the same flow ends in the saved inventory instead of a file.
   await page.goto(base);
   await page.waitForSelector('[data-action="open-scanner"]');
+  await page.locator('[data-details="advanced"] > summary').click();
+  await page.locator('[data-inventory-override="SR"]').selectOption('0');
+  await page.locator('[data-inventory-override="SSR"]').selectOption('4');
+  await assertFieldsMatchState(page, 'before importing with active rarity overrides');
   const scannerModule = /\/(?:src\/scanner\/session\.ts|assets\/session-[^/]+\.js)(?:\?|$)/;
   await page.route(scannerModule, route => route.fulfill({ status: 503, body: 'Scanner unavailable' }));
   await page.locator('[data-action="open-scanner"]').click();
@@ -353,9 +357,9 @@ try {
   await page.locator('[data-action="open-scanner"]').click();
   await scan('android');
   assert.equal(await page.locator('[data-apply]').count(), 1, 'the apply button lives in the action bar only');
-  assert.match(await page.locator('[data-change-summary]').textContent(), /\d+ marked not owned · 7 limit breaks changed/, 'replace marks unseen cards not owned');
+  assert.match(await page.locator('[data-change-summary]').textContent(), /^10 newly owned · 0 marked not owned · 0 limit breaks changed/, 'replace compares against stored ownership');
   await page.locator('[data-mode="update"]').check();
-  assert.match(await page.locator('[data-change-summary]').textContent(), /^0 newly owned · 0 marked not owned · 7 limit breaks changed/);
+  assert.match(await page.locator('[data-change-summary]').textContent(), /^10 newly owned · 0 marked not owned · 0 limit breaks changed/);
   // The planner's theme control is behind the sheet; set the theme the way it would.
   await assertNoOverflow('sheet', undefined, undefined, name => page.evaluate(n => { document.documentElement.dataset.theme = n; }, name));
   await page.locator('[data-apply]').click();
@@ -373,6 +377,12 @@ try {
   assert.equal(replaced[20001], null, 'replace mode marks unseen SR cards not owned');
   assert.equal(replaced[30001], 1);
   await assertFieldsMatchState(page, 'after replacing inventory from the scanner');
+  if (!await page.locator('[data-details="advanced"]').evaluate(details => details.open)) await page.locator('[data-details="advanced"] > summary').click();
+  await page.locator('[data-inventory-override="SR"]').selectOption('');
+  await page.locator('[data-inventory-override="SSR"]').selectOption('');
+  assert.equal(await page.locator('select[data-lb="30001"]').first().inputValue(), '1', 'disabling the override reveals the scanned LB');
+  assert.equal(await page.locator('select[data-lb="20001"]').first().inputValue(), 'none', 'unseen SR ownership is restored too');
+  await assertFieldsMatchState(page, 'after restoring scanned ownership beneath rarity overrides');
   assert.deepEqual(errors, []);
   console.log('Scanner: screenshot recognition, decision-first review, overlap/conflicts, unseen cards, export/import, new inventory, both phone sizes, theme control, the planner sheet and overflow at six widths in both themes passed.');
 } finally { await browser.close(); }

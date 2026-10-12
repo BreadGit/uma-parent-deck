@@ -187,14 +187,11 @@ export const COPY = {
     title: 'Settings',
     inventoryTitle: 'Card inventory',
     scan: 'Import using screenshots',
-    inventoryTip: `Every card counts as owned at LB4 until you change it in ${TITLE.ranking}. ${LABEL.exportFile} saves those changes; ${LABEL.importFile} loads them.`,
     export: LABEL.exportFile,
     import: LABEL.importFile,
     reset: 'Reset',
-    resetInventoryConfirm: 'Forget every card adjustment and count every card as owned at the default limit break?',
     importFailed: (reason: string) => `Import failed: ${reason}`,
     advanced: 'Advanced settings',
-    advancedTip: 'Rates and scales the model needs that the game does not publish. Each field shows its default; changed values are marked.',
     exportSettings: 'Export settings',
     resetAdvanced: 'Reset advanced settings',
     defaultLabel: 'default',
@@ -460,7 +457,6 @@ export const COPY = {
   },
   fields: {
     notOwned: 'not owned',
-    default: '(default)',
   },
 } as const;
 

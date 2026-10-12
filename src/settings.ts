@@ -1,12 +1,14 @@
-import type { Focus } from './types.ts';
+import type { Card, Focus } from './types.ts';
 import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
+
+export type InventoryOverrides = Record<Card['rarity'], number | null>;
 
 export interface Settings {
   goalTieTolerance: number;     // relative required-goal window in which preferred extras can decide
   // main page
   winThreshold: number;          // include a G1 when P(win) >= this
   focus: Focus;
-  defaultLb: { R: number; SR: number; SSR: number }; // assumed limit break for cards without an inventory entry
+  inventoryOverrides: InventoryOverrides; // null uses inventory; a number assumes every card of that rarity is owned at that LB
   // advanced: independent-training rates the game does not publish
   affinity: number;              // individual affinity score assumed for every uma in the lineage; each spark procs at (1 + affinity/100)
   hintBase: number;              // per-card per-turn hint chance before Hint Frequency, manual-run measurement
@@ -47,7 +49,7 @@ export const DEFAULT_SETTINGS: Settings = {
   goalTieTolerance: 0.02,
   winThreshold: 0.8,
   focus: 'stamina',
-  defaultLb: { R: 4, SR: 4, SSR: 4 },
+  inventoryOverrides: { R: 4, SR: null, SSR: null },
   affinity: 150,
   hintBase: 0.07,
   hintScale: 0.75,
@@ -83,11 +85,8 @@ export const DEFAULT_SETTINGS: Settings = {
   totalTurnsOverride: null,
 };
 
-/**
- * Settings kept when the advanced panel is reset. winThreshold and focus are edited on the main page; defaultLb has no
- * editor (a saved value still applies to cards without an inventory entry).
- */
-export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'defaultLb'] as const satisfies readonly (keyof Settings)[];
+/** Settings edited on the main page, kept when the advanced panel is reset. */
+export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus'] as const satisfies readonly (keyof Settings)[];
 
 /** What each setting accepts. Values that fail the spec are rejected in favour of the current value. */
 export type SettingSpec =
@@ -96,7 +95,7 @@ export type SettingSpec =
   | { kind: 'list'; length: number; min: number; max: number; sum?: number; nonIncreasing?: boolean; bounds?: readonly (readonly [number, number])[] } // bounds: each entry's own range, inside min..max
   | { kind: 'enum'; values: readonly (string | number)[] }   // the saved value must be one of these, same type included
   | { kind: 'boolean' }
-  | { kind: 'lb-defaults' };
+  | { kind: 'inventory-overrides' };
 const rate: SettingSpec = { kind: 'number', min: 0, max: 1 };
 const odds: SettingSpec = { kind: 'list', length: 3, min: 0, max: 1 };
 /** Chain stage reach chances: reaching a stage needs every stage before it. */
@@ -109,7 +108,7 @@ export const RACES_REFERENCE = 28;
 export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   winThreshold: rate,
   focus: { kind: 'enum', values: ['balanced', 'stamina', 'sprint'] },
-  defaultLb: { kind: 'lb-defaults' },
+  inventoryOverrides: { kind: 'inventory-overrides' },
   affinity: { kind: 'number', min: 0, max: 1000 },
   hintBase: rate,
   hintScale: { kind: 'number', min: 0, max: 10 },
@@ -160,7 +159,10 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
       && (!spec.bounds || value.every((v, i) => inRange(v, spec.bounds![i]![0], spec.bounds![i]![1])));
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
     case 'boolean': return typeof value === 'boolean';
-    case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => isLimitBreak((value as Record<string, unknown>)[r]));
+    case 'inventory-overrides': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => {
+      const lb = (value as Record<string, unknown>)[r];
+      return lb === null || isLimitBreak(lb);
+    });
   }
 }
 
@@ -177,17 +179,26 @@ export function parseSetting(key: keyof Settings, raw: string | boolean): Settin
     case 'number-or-null': value = raw === '' ? null : Number(raw); break;
     case 'number': value = Number(raw); break;
     case 'list': value = String(raw).split(/[,\s]+/).filter(Boolean).map(Number); break;
-    case 'lb-defaults': return undefined; // not editable from a single field
+    case 'inventory-overrides': return undefined; // each rarity has its own select
   }
   return isValidSetting(key, value) ? (value as Settings[keyof Settings]) : undefined;
 }
 
 /** Merge saved settings over the defaults, dropping any saved value that fails its spec. */
-export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>): Settings {
+export function sanitizeSettings(saved: Partial<Record<keyof Settings | 'defaultLb', unknown>>): Settings {
   const out: Settings = { ...DEFAULT_SETTINGS };
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
     const v = saved[key];
     if (v !== undefined && isValidSetting(key, v)) (out as unknown as Record<string, unknown>)[key] = v;
+  }
+  // The old missing-card defaults were always 4. Preserve custom levels as explicit overrides, while the new
+  // defaults use scanned SR/SSR ownership. Keep the inventory itself intact so disabling an override restores it.
+  if (saved.inventoryOverrides === undefined && saved.defaultLb && typeof saved.defaultLb === 'object') {
+    const old = saved.defaultLb as Record<string, unknown>;
+    if (['R', 'SR', 'SSR'].every((r) => isLimitBreak(old[r]))) {
+      out.inventoryOverrides = { ...DEFAULT_SETTINGS.inventoryOverrides };
+      for (const rarity of ['R', 'SR', 'SSR'] as const) if (old[rarity] !== 4) out.inventoryOverrides[rarity] = old[rarity] as number;
+    }
   }
   return structuredClone(out);
 }
@@ -197,6 +208,7 @@ const blueRollPhrase = `${blueRolls.slice(0, -1).join(', ')}, and ${blueRolls.at
 
 /** User-facing note per advanced setting: what it does and where the default comes from. */
 export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
+  inventoryOverrides: 'Use inventory keeps imported or individually entered ownership and limit breaks. An override assumes every card of that rarity is owned at the chosen LB, even cards marked not owned. Stored inventory values stay intact and return when the override is disabled.',
   concertGreatSuccessRate: 'Assumed chance of great success for each promotional concert and an ordinary final concert. Independent-training rates are unmeasured. Fan rewards use mee1080/umasim manual JP observations, without a deck Fan Bonus on concerts. The 18-song setting approximates the chance of the special final concert (9,000 fans); the source also requires two new songs in the final period.',
   goalTieTolerance: 'How much required-goal chance you will trade for more preferred sparks on successful parents. A fraction, not percentage points: for example, 0.02 allows a 2% relative difference. If the best chance found is 10%, decks at 9.8% or above can win on preferred extras. Zero allows only exact ties. Larger values give preferred sparks more influence. This is a preference, not a measure of model accuracy.',
   affinity: "Individual affinity score assumed for each of the six umas in the lineage (two parents, four grandparents). A blue or white spark procs at an inspiration event at its base chance times (1 + score/100), so 150 makes every blue spark proc. The game never shows individual scores, only their sum as ◎ (over 150), ○ (over 50) or △, and a ◎ made of six weak links procs far less than 150 each would; a compatibility calculator (GameTora, umaishow) gives the individual values. The per-uma value is an assumption, not an observed score.",
@@ -232,8 +244,8 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   totalTurnsOverride: `Total career turns used to scale card stats and SP by races run, as (T - races) / (T - ${RACES_REFERENCE}). Blank uses the value fitted from the 28-race and 23-race measurements. Values of ${RACES_REFERENCE} or less are rejected because they would divide by zero or flip the sign.`,
 };
 
-/** How the advanced settings panel lays a setting out: a number field, or a comma-separated list. */
-export interface SettingField { key: keyof Settings; label: string; kind: 'number' | 'list'; step?: number }
+/** How the advanced panel lays out a setting: a number, a list or per-rarity inventory overrides. */
+export interface SettingField { key: keyof Settings; label: string; kind: 'number' | 'list' | 'inventory-overrides'; step?: number }
 export interface SettingGroup { title: string; fields: SettingField[] }
 const n = (key: keyof Settings, label: string, step = 0.01): SettingField => ({ key, label, kind: 'number', step });
 const list = (key: keyof Settings, label: string): SettingField => ({ key, label, kind: 'list' });
@@ -242,6 +254,7 @@ const list = (key: keyof Settings, label: string): SettingField => ({ key, label
  * appears here exactly once (state.test.ts checks), except scenarioId, which has one supported value.
  */
 export const ADVANCED_SETTING_GROUPS: SettingGroup[] = [
+  { title: 'Card inventory', fields: [{ key: 'inventoryOverrides', label: 'Rarity overrides', kind: 'inventory-overrides' }] },
   { title: 'Deck search', fields: [n('goalTieTolerance', 'Required-goal tie tolerance (relative)', 0.001)] },
   { title: 'Lineage', fields: [n('affinity', 'Affinity per uma', 1), list('whiteSparkInheritRates', 'White spark hint rate, 1/2/3★'), list('pinkInspirationRates', 'Pink activation rate, 1/2/3★'), n('lineageSparkMultiplier', 'Spark chance × per lineage copy'), list('blueInspirationGainMean', 'Blue spark mean roll, 1/2/3★')] },
   { title: 'Hints', fields: [n('hintBase', 'Hint chance per card-turn'), n('hintScale', 'Hint model scale'), n('hintTurnsShare', 'Turns a card is on its facility')] },

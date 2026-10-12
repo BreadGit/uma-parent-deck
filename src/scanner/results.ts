@@ -74,7 +74,7 @@ export function triage(rows: ReviewRow[], cards: ScanCard[], result: Summary = s
   return { attention, conflicts: all.filter(g => g.lbs.length > 1), ready: all.filter(g => g.lbs.length === 1), excluded, unseen };
 }
 
-/** List every catalog card explicitly: an omitted ID would inherit the planner's rarity default. */
+/** List every catalog card explicitly so the exported inventory records unseen cards as not owned. */
 export function inventoryFromReview(rows: ReviewRow[], cards: ScanCard[], result: Summary = summarize(rows, cards)): Inventory {
   if (result.pending.size) throw new Error('unresolved-inventory');
   return Object.fromEntries(cards.slice().sort((a, b) => a.id - b.id).map(c => [
@@ -90,7 +90,7 @@ export interface InventoryChange {
   owned: ScanCard[]; unowned: ScanCard[]; changed: ScanCard[];
   unchanged: number;
 }
-/** The planner's inventory after the readings, plus what the change does to each card's effective limit break. */
+/** The stored inventory after the readings, plus changes before any host's planning overrides. */
 export function applyReadings(current: Inventory, cards: ScanCard[], effective: (card: ScanCard) => number | null,
   result: Summary, mode: ApplyMode): InventoryChange {
   const inventory: Inventory = { ...current };

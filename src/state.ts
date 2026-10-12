@@ -16,7 +16,7 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean; /** The input column is hidden so the results take the full width. */ inputsHidden: boolean }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; missions: MissionState; recommendation?: SavedRecommendation }
 
-export const STATE_VERSION = 24;
+export const STATE_VERSION = 25;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** A save that could not be read is copied here before the first edit replaces it, until the user removes the copy. */
 export const UNREADABLE_KEY = `${STATE_KEY}.unreadable`;
@@ -136,9 +136,8 @@ function migrateSettings(raw: Json): Settings {
   const version = typeof raw.version === 'number' ? raw.version : 1;
   const saved: Json = { ...raw };
   delete saved.version;
-  const merged = sanitizeSettings(saved as Partial<Record<keyof Settings, unknown>>);
-  if (version < 2) merged.defaultLb = { ...merged.defaultLb, SSR: 4 }; // default SSR LB changed from 0 to 4
-  return merged;
+  if (version < 2 && isPlainObject(saved.defaultLb)) saved.defaultLb = { ...saved.defaultLb, SSR: 4 }; // v2 changed the old SSR default
+  return sanitizeSettings(saved);
 }
 
 /**

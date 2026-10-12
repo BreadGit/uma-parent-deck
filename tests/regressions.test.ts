@@ -41,7 +41,7 @@ test('migrated states and sanitized settings own their mutable values', () => {
   const b = migrate({ current: { version: 5, run: {}, settings: {} } }, data);
   assert.notEqual(a.run.targets, b.run.targets);
   assert.notEqual(a.settings.chainRatesSSR, b.settings.chainRatesSSR);
-  assert.notEqual(a.settings.defaultLb, DEFAULT_SETTINGS.defaultLb);
+  assert.notEqual(a.settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides);
   const saved = { chainRatesSSR: [0.5, 0.3, 0.1] };
   assert.notEqual(sanitizeSettings(saved).chainRatesSSR, saved.chainRatesSSR);
 });
@@ -183,7 +183,7 @@ test('plans with fewer than five usable owned characters are explicitly incomple
   for (let n = 0; n <= 5; n++) {
     const inventory: Inventory = Object.fromEntries(data.cards.map((c) => [c.id, null]));
     candidates.slice(0, n).forEach((id) => { inventory[id] = 4; });
-    const p = planRun(input(), settings(), inventory, data, { search: false });
+    const p = planRun(input(), { ...settings(), inventoryOverrides: { R: null, SR: null, SSR: null } }, inventory, data, { search: false });
     assert.equal(p.issues.length > 0, n < 5, `${n} owned cards`);
     if (n === 5) assert.equal(p.deckResult.deck.length, 6);
   }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { assertFieldsMatchState, BASE_URL as url, launchBrowser, openApp, settled, waitForPlan } from './browser-fields.mjs';
 import { holdSearch, releaseSearch } from './browser-search.mjs';
 import { STATE_KEY } from '../src/state.ts';
+import { loadData } from '../src/data.ts';
 import { checkMissions } from './missions-browser.mjs';
 const browser = await launchBrowser();
 const context = await browser.newContext({ viewport: { width: 1500, height: 1100 } });
@@ -27,6 +28,10 @@ for (const [title, opacity] of dimmed) {
   assert.equal(opacity, live ? '1' : '0.35', `${title} should be ${live ? 'live' : 'dimmed'} before a trainee is picked`);
 }
 assert.ok(dimmed.some(([title]) => title.startsWith('Prioritized skills')) && dimmed.some(([title]) => title.startsWith('Warnings')), 'the nested panels and the warnings are rendered while waiting');
+assert.deepEqual(await page.$$eval('[data-inventory-override]', fields => fields.map(field => [field.dataset.inventoryOverride, field.value])), [['R', '4'], ['SR', ''], ['SSR', '']]);
+// The editor flows below use a full owned inventory, independent of the fresh-browser rarity assumptions.
+await page.setInputFiles('#import-file', { name: 'inventory.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(Object.fromEntries(loadData().cards.map(card => [card.id, 4])))) });
+await assertFieldsMatchState(page, 'after importing the smoke inventory');
 // The pinned input column ends inside the viewport on a fresh page, so its own scrolling reaches the last panel.
 const column = await page.$eval('.inputs', (el) => ({ top: Math.round(el.getBoundingClientRect().top), bottom: Math.round(el.getBoundingClientRect().bottom), headerBottom: Math.round(document.querySelector('header').getBoundingClientRect().bottom) }));
 assert.ok(column.top >= column.headerBottom && column.bottom <= 1100, `input column ${JSON.stringify(column)} should sit under the header and end inside the 1100px viewport`);
@@ -105,6 +110,8 @@ const advancedOverflow = await page.$eval('details[data-details="advanced"]', (d
   return Math.max(0, ...[...details.querySelectorAll('label, input, select')].map((el) => el.getBoundingClientRect().right - panelRight));
 });
 assert.ok(advancedOverflow <= 0.5, `advanced settings overflow their panel by ${advancedOverflow}px`);
+await page.selectOption('[data-inventory-override="R"]', '');
+await assertFieldsMatchState(page, 'after enabling individual edits for the full smoke inventory');
 for (const q of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) {
   await page.fill('#target-search-preferred', q);
   await page.waitForSelector('li[data-action="add-target"]');
@@ -226,9 +233,9 @@ await savedState('st.run.pinnedIds.includes(30028)');
   await savedState(`st.inventory["${outside}"] === 0`);
   await assertOrdering('after editing a card outside the deck');
   await assertFieldsMatchState(page, 'after one-at-a-time inventory edits');
-  // choosing the default LB removes the entry rather than storing it
+  // Restoring MLB keeps an explicit inventory entry.
   for (const id of [30028, unpinned[0], unpinned[1], outside]) await rankingLb(id).selectOption('4');
-  await savedState(`[30028, ${unpinned[0]}, ${unpinned[1]}, ${outside}].every((id) => st.inventory[id] === undefined)`);
+  await savedState(`[30028, ${unpinned[0]}, ${unpinned[1]}, ${outside}].every((id) => st.inventory[id] === 4)`);
 }
 await rankingPin.click();
 await savedState('!st.run.pinnedIds.includes(30028)');

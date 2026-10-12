@@ -1,12 +1,11 @@
 import { gameIdKey, type Card, type Inventory } from './types.ts';
 import { sanitizeInventory } from './state.ts';
-import { effectiveLb } from './model/run.ts';
 import { downloadText } from './download.ts';
 import { isLimitBreak, MAX_LB } from './model/rules.ts';
 
 /** Writes every card explicitly so the file stands on its own: id -> lb or null. */
-export function exportInventory(inv: Inventory, cards: Card[], defaults: { R: number; SR: number; SSR: number }) {
-  const sorted = Object.fromEntries(cards.slice().sort((a, b) => a.id - b.id).map((c) => [String(c.id), effectiveLb(inv, c, defaults)]));
+export function exportInventory(inv: Inventory, cards: Card[]) {
+  const sorted = Object.fromEntries(cards.slice().sort((a, b) => a.id - b.id).map((c) => [String(c.id), inv[String(c.id)] ?? null]));
   downloadText('inventory.json', JSON.stringify(sorted, null, 1) + '\n', 'application/json');
 }
 /**

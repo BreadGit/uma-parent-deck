@@ -146,6 +146,7 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
 
   test('editing waits for a pause, ignores intermediate and cancelled results, and keeps the phone editor in place', async (t) => {
     const saved = defaultState(data);
+    saved.inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
     saved.run.traineeCardId = 100501;
     saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
     saved.inventory['30017'] = null;
@@ -285,7 +286,9 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
 
 
   test('skill advice includes prerequisite costs and buyable circle upgrades', async (t) => {
-    const page = await editor(t);
+    const saved = defaultState(data);
+    saved.inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
+    const page = await editor(t, saved);
     await trainee(page);
     await pin(page, 'piece of mind');
     // Fine Motion hints Right-Handed ○. A target no deck card can give is not bought, so it would cost nothing.
@@ -320,7 +323,9 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
 
 
   test('zero through four owned characters show an incomplete deck, and five restore predictions', async (t) => {
-    const page = await editor(t);
+    const saved = defaultState(data);
+    saved.settings.inventoryOverrides.R = null;
+    const page = await editor(t, saved);
     await trainee(page);
     const cards = [30052, 30028, 30016, 30083, 20009];
     for (let n = 0; n <= 5; n++) {

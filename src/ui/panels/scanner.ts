@@ -1,7 +1,6 @@
 // The scanner embedded in the planner: loaded on first use, shown as a sheet over the page, and ending in the
 // store's inventory. The session outlives the sheet, so closing and reopening keeps the screenshots and the review.
 import { html, nothing } from 'lit-html';
-import { effectiveLb } from '../../model/run.ts';
 import type { Scanner } from '../../scanner/session.ts';
 import { refresh, store, update, view } from '../context.ts';
 import { SCANNER_COPY as C } from '../copy.ts';
@@ -21,7 +20,7 @@ export async function openScanner() {
         onChange: refresh,
         apply: {
           current: () => store.inventory,
-          effective: (card) => effectiveLb(store.inventory, card, store.settings.defaultLb),
+          effective: (card) => store.inventory[String(card.id)] ?? null,
           onApply: (inventory) => { update((s) => { s.inventory = inventory; }); closeScanner(); },
         },
       });
