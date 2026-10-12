@@ -113,7 +113,8 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   const lineage = run.targetLineage;
   run.targetLineage = {};
   for (const key of Object.keys(lineage)) {
-    const id = savedTargetId(Number(key), data, preserveIds);
+    const canonical = gameIdKey(key);
+    const id = canonical === null ? null : savedTargetId(Number(canonical), data, preserveIds);
     if (id === null) continue;
     // Inactive targets retain their lineage. Prefer exact white keys over old gold/circle aliases.
     run.targetLineage[String(id)] ??= lineage[String(id)] ?? lineage[key]!;

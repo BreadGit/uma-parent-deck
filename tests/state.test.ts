@@ -171,6 +171,7 @@ test('saved IDs follow the share-code rule: invalid entries drop, duplicates kee
     traineeCardId: 1.5, pinnedIds: [1.5, -1, 0, 30052, unknown, 30052, '30028'], ignoredIds: [30001, 30001, 2 ** 60],
     wishlistOrder: [200012, NaN, 200012, unknown], wishlistExcluded: [-5, 200022],
     raceOverrides: { 1011: true, '01011': false, abc: true, '-3': false, 1012: 'yes', '79_2': false, '79_02': true },
+    targetLineage: { '1e3': [3, 0, 0, 0, 0, 0], '0201601': [3, 0, 0, 0, 0, 0], 201601: [0, 2, 0, 0, 0, 1] },
   }, missions: { eventIds: [3, 3, 0], customRaceIds: [1011, 1.2], traineeCardId: -1 } };
   const s = migrate({ current }, data);
   assert.equal(s.run.traineeCardId, null);
@@ -179,6 +180,7 @@ test('saved IDs follow the share-code rule: invalid entries drop, duplicates kee
   assert.deepEqual(s.run.wishlistOrder, [200012, unknown]);
   assert.deepEqual(s.run.wishlistExcluded, [200022]);
   assert.deepEqual(s.run.raceOverrides, { 1011: true, '79_2': false }, 'overrides keep calendar IDs, including a later year\'s running, and drop other keys');
+  assert.deepEqual(s.run.targetLineage, { 201601: [0, 2, 0, 0, 0, 1] }, 'lineage keys follow the inventory key rule: a decimal ID, exact key first');
   assert.deepEqual([s.missions.eventIds, s.missions.customRaceIds, s.missions.traineeCardId], [[3], [1011], null]);
   assert.deepEqual(migrate({ current: { version: STATE_VERSION, run: { traineeCardId: 100101 } } }, data).run.traineeCardId, 100101);
 });
