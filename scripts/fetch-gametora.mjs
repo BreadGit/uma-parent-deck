@@ -15,6 +15,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
 import { exists, readJson, writeFileAtomic, writeJson } from './json-file.ts';
+import { beginDataUpdate } from './data-refresh.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables } from './source-validation.ts';
@@ -495,6 +496,7 @@ if (process.argv[1] && await fs.realpath(path.resolve(process.argv[1])) === new 
   if ([OFFLINE, DOWNLOAD_ONLY, NORMALIZE_ONLY].filter(Boolean).length > 1) throw new Error('Choose only one of --offline, --download-only and --normalize-only.');
   if (!OFFLINE && !NORMALIZE_ONLY) await fetchStatic(MISSIONS_ONLY ? ['en/missions/limited', 'races', 'ura-races'] : STATIC_KEYS);
   if (!DOWNLOAD_ONLY) {
+    await beginDataUpdate(ROOT);
     await normalizeMissions();
     if (!MISSIONS_ONLY) {
       const norm = await normalize();

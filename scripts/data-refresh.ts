@@ -1,6 +1,28 @@
 import { createHash } from 'node:crypto';
-import { readdir, readFile } from 'node:fs/promises';
+import { access, readdir, readFile, rm } from 'node:fs/promises';
 import { join, relative } from 'node:path';
+import { writeJson } from './json-file.ts';
+
+const INCOMPLETE_UPDATE = '.data-refresh-incomplete.json';
+export const RECOVER_DATA = 'npm run recover:data';
+
+/** A marker survives failed commands and process interruption until the data checks pass. */
+export async function dataUpdateIncomplete(root: string): Promise<boolean> {
+  return access(join(root, INCOMPLETE_UPDATE)).then(() => true, (error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  });
+}
+export async function beginDataUpdate(root: string): Promise<void> {
+  if (await dataUpdateIncomplete(root)) return;
+  await writeJson(join(root, INCOMPLETE_UPDATE), { startedAt: new Date().toISOString() });
+}
+export async function completeDataUpdate(root: string): Promise<void> {
+  await rm(join(root, INCOMPLETE_UPDATE), { force: true });
+}
+export async function requireCompleteData(root: string): Promise<void> {
+  if (await dataUpdateIncomplete(root)) throw new Error(`The data refresh has not completed. Recover from the cached sources with ${RECOVER_DATA}, or rerun npm run fetch. Data validation must pass before building.`);
+}
 
 /** The official site's in-game notice feed, also shown at https://umamusume.com/news/. See docs/umamusume/refs/official-notices.md. */
 export const NOTICE_FEED = {

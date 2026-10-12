@@ -13,3 +13,5 @@ dist-scanner/
 .env.*
 .dev.vars
 .venv/
+.data-refresh-incomplete.json
+.data-refresh-incomplete.json.tmp
