@@ -195,6 +195,11 @@ try {
   assert.equal((await expectConfident(android, 'Android')).size, 10);
   assert.equal(await page.locator('[data-decide]').count(), 0, 'clear readings need no decision');
   assert.match(await page.locator('[data-all-ready]').textContent(), /All 10 cards read with confidence/);
+  const reviewFilter = page.locator('.scan-filters input[type="search"]');
+  await reviewFilter.fill('suzuka winning');
+  assert.deepEqual(await page.locator('[data-ready] [data-tile]').evaluateAll(els => els.map(e => Number(e.dataset.cardId))), [30062],
+    'the review filter matches words in any order, like every search box');
+  await reviewFilter.fill('');
   assert.equal(await page.locator('[data-download]').isEnabled(), true);
   editor = await openTile(30001);
   await chooseCard(await editor.getAttribute('data-row'), 30001);

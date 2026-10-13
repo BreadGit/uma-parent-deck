@@ -6,7 +6,7 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import type { Inventory } from '../types.ts';
 import { LIMIT_BREAKS } from '../model/rules.ts';
 import { SCANNER_COPY as C } from '../ui/copy.ts';
-import { chosenFiles, clearFiles, inputValue, isOpen, numbered, options, selectValue } from '../ui/form.ts';
+import { chosenFiles, clearFiles, inputValue, isOpen, matchesWords, numbered, options, queryWords, selectValue } from '../ui/form.ts';
 import { confirmDialog } from '../ui/dialog.ts';
 import { downloadText } from '../download.ts';
 import { createCardPicker } from './card-picker.ts';
@@ -363,8 +363,9 @@ export function createScanner(host: ScannerHost): Scanner {
           ${options(lbOptions, '')}</select></label></div>
     </div>`;
   }
-  const matches = (text: string) => text.toLowerCase().includes(query.toLowerCase());
   function reviewStep(result: Summary, t: Triage) {
+    const words = queryWords(query);
+    const matches = (text: string) => matchesWords(words, text);
     const sourceById = new Map(sources.map(s => [s.id, s]));
     const rowText = (row: ReviewRow) => `${row.cardId !== null ? cardById.get(row.cardId)?.name : ''} ${sourceById.get(row.source)?.name ?? ''}`;
     const attention = t.attention.filter(row => matches(rowText(row)));
