@@ -457,7 +457,7 @@ async function normalize() {
   const fetchMeta = path.join(RAW, 'fetch-meta.json');
   const previousMeta = path.join(OUT, 'meta.json');
   const fetchedAt = (await exists(fetchMeta)) ? (await readJson(fetchMeta)).fetchedAt : (await exists(previousMeta)) ? (await readJson(previousMeta)).fetchedAt : null;
-  await writeJson(previousMeta, { fetchedAt, source: 'https://gametora.com', cards: cards.length, skills: skills.length, characters: characters.length, races: races.length });
+  await writeJson(previousMeta, { fetchedAt, source: BASE, cards: cards.length, skills: skills.length, characters: characters.length, races: races.length });
   console.log(`cards ${cards.length}, skills ${skills.length}, characters ${characters.length}, G1 calendar entries ${races.length}`);
   return { cards, skills, characters };
 }

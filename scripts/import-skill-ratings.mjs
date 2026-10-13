@@ -1,8 +1,10 @@
 // Import only direct GameWith evaluation values from UmaTools' full export, never its cost fallbacks.
-import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { readJson, writeJson } from './json-file.ts';
 
-const source = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-const skills = JSON.parse(fs.readFileSync(new URL('../data/skills.json', import.meta.url), 'utf8'));
+const data = (name) => fileURLToPath(new URL(`../data/${name}`, import.meta.url));
+const source = await readJson(process.argv[2]);
+const skills = await readJson(data('skills.json'));
 const normalize = (name) => name?.normalize('NFKC').replaceAll('◯', '○');
 const ratings = {};
 for (const skill of skills) {
@@ -21,5 +23,5 @@ const output = {
   extractor: 'https://github.com/daftuyda/UmaTools/blob/7d3a4e16a73bdccd6794e89546e3cd037f4b9ae5/scripts/data/gamewith-skills.js',
   ratings,
 };
-fs.writeFileSync(new URL('../data/skill-ratings.json', import.meta.url), JSON.stringify(output, null, 1) + '\n');
+await writeJson(data('skill-ratings.json'), output);
 console.log(`Imported ${Object.keys(ratings).length} verified skill ratings`);

@@ -6,6 +6,7 @@ import { planRun } from '../src/model/run.ts';
 import { DEFAULT_SETTINGS, SETTING_SPEC, isValidSetting } from '../src/settings.ts';
 import { decodeShare, shareCode } from '../src/share.ts';
 import { isPlainObject } from '../src/types.ts';
+import { readJson } from './json-file.ts';
 
 const usage = 'node scripts/hint-sensitivity.mjs --run <share URL or code> --inventory <inventory.json> (--settings <settings.json> | --default-settings) [--multipliers 0.5,1,2]';
 
@@ -17,7 +18,7 @@ try {
   if (values.help) { console.log(usage); process.exit(0); }
   if (!values.run || !values.inventory) throw new Error(usage);
   if (!!values.settings === !!values['default-settings']) throw new Error('Choose --settings <settings.json> or --default-settings. Share codes do not include advanced settings.');
-  const snapshot = values.settings ? JSON.parse(await readFile(values.settings, 'utf8')) : DEFAULT_SETTINGS;
+  const snapshot = values.settings ? await readJson(values.settings) : DEFAULT_SETTINGS;
   if (!isPlainObject(snapshot)) throw new Error('Expected a settings object exported from Advanced settings.');
   // Unlike saved-state migration, a reproducibility check must reject missing or invalid values, not replace them.
   for (const key of Object.keys(DEFAULT_SETTINGS)) {

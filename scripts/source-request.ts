@@ -1,9 +1,12 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 
+/** A generic browser user agent: requests to sources carry nothing that identifies this tool or its user. */
+export const BROWSER_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
+
 /** GameTora load policy: one request at a time, about 1.1 s apart, with a generic browser user agent and no identifying headers. */
 export const GAMETORA = {
   base: 'https://gametora.com',
-  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36',
+  userAgent: BROWSER_USER_AGENT,
   delayMs: 1_100,
 } as const;
 

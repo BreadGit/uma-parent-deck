@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { readJson, writeFileAtomic } from './json-file.ts';
 
 const modified = file => fs.stat(file).then(s => s.mtimeMs, () => null);
 
@@ -9,7 +10,7 @@ const modified = file => fs.stat(file).then(s => s.mtimeMs, () => null);
  * A reference newer than its source is kept; `force` regenerates them all after a change to the encoding below.
  */
 export async function buildScannerArtwork(root, { force = false } = {}) {
-  const cards = JSON.parse(await fs.readFile(path.join(root, 'data/cards.json'), 'utf8')).filter(c => c.rarity !== 'R');
+  const cards = (await readJson(path.join(root, 'data/cards.json'))).filter(c => c.rarity !== 'R');
   const destination = path.join(root, 'public/assets/supports/scanner');
   await fs.mkdir(destination, { recursive: true });
   const jobs = [], missing = [];
@@ -33,7 +34,7 @@ export async function buildScannerArtwork(root, { force = false } = {}) {
           canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
           return canvas.toDataURL('image/webp', .95).split(',')[1];
         }, (await fs.readFile(source)).toString('base64'));
-        await fs.writeFile(output, Buffer.from(encoded, 'base64'));
+        await writeFileAtomic(output, Buffer.from(encoded, 'base64'));
       }
     } finally { await browser.close(); }
   }

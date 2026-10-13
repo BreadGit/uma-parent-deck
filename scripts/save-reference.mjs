@@ -2,11 +2,12 @@
 // Usage: node scripts/save-reference.mjs <url> <name>
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
+import { BROWSER_USER_AGENT } from './source-request.ts';
 
 const [url, name] = process.argv.slice(2);
 if (!url || !name) { console.error('usage: save-reference.mjs <url> <name>'); process.exit(1); }
 const browser = await chromium.launch();
-const page = await browser.newPage({ userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36' });
+const page = await browser.newPage({ userAgent: BROWSER_USER_AGENT });
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.waitForTimeout(6000); // client-rendered pages; ad and analytics requests keep 'networkidle' from ever firing
 const md = await page.evaluate(() => {
