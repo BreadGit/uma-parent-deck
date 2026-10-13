@@ -11,13 +11,7 @@ The shapes of `data/*.json` are the types in `src/types.ts`; `tests/data.test.ts
 complete set, refits the model, and runs `npm run check:data`. A failed stage stops the command.
 Python with NumPy and openpyxl is required for fitting and the measurement checks.
 
-For an offline rebuild of the saved snapshots:
-
-```sh
-node scripts/fetch-gametora.ts --offline
-npm run fit
-npm run check:data
-```
+For an offline rebuild of the saved snapshots, run `npm run recover:data`.
 
 `npm test` includes the same data checks alongside the model and state tests. Application
 changes still require the repository's browser verification. Data checks do not replace it.

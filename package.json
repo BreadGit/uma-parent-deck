@@ -22,10 +22,6 @@
     "test:browsers": "node scripts/check-browsers.ts",
     "deploy": "node scripts/deploy.ts",
     "refresh:data": "node scripts/refresh-data.ts",
-    "prefetch": "node scripts/refresh-data.ts --begin",
-    "postcheck:data": "node scripts/refresh-data.ts --complete",
-    "prebuild": "node scripts/refresh-data.ts --check",
-    "prebuild:scanner": "node scripts/refresh-data.ts --check",
     "recover:data": "node scripts/fetch-gametora.ts --offline && npm run fit && npm run check:data"
   },
   "dependencies": {

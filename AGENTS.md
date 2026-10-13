@@ -132,9 +132,9 @@ outranks every variant and has bitten us twice). No inline styles in templates; 
 
 Data: `npm run fetch` is the only thing that talks to GameTora (one request a second, generic user
 agent, no identifying headers, manifest-hash cached; per-card and per-character page JSON cached in
-`data/raw`). `node scripts/fetch-gametora.ts --offline` re-normalizes `data/*.json` from `data/raw`
-without a request. `npm run fetch` also refits the stat model and runs `npm run check:data`.
-After an offline rebuild or another data change, run `npm run fit` and `npm run check:data`.
+`data/raw`). `npm run recover:data` rebuilds `data/*.json` from `data/raw` without a request, refits the
+stat model and runs `npm run check:data`, as `npm run fetch` does after downloading. After another data
+change, run `npm run fit` and `npm run check:data`.
 Skill names use the official Global name (`name`) with GameTora's translation as `altName`.
 
 ## Commits

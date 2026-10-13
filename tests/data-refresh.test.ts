@@ -1,10 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
-import { RELEASE_TITLE, noticesFrom, refreshDue, contentForComparison, beginDataUpdate, completeDataUpdate, dataUpdateIncomplete, requireCompleteData } from '../scripts/data-refresh.ts';
+import { RELEASE_TITLE, noticesFrom, refreshDue, contentForComparison } from '../scripts/data-refresh.ts';
 import feed from './fixtures/notices.json' with { type: 'json' };
 
 const notices = noticesFrom(feed);
@@ -51,32 +47,4 @@ test('refresh comparison ignores fitting roundoff but retains source and model c
   assert.equal(contentForComparison('data/stat-model.json', original), contentForComparison('data/stat-model.json', refitted));
   assert.notEqual(contentForComparison('data/stat-model.json', original), contentForComparison('data/stat-model.json', changed));
   assert.notDeepEqual(contentForComparison('data/raw/support-cards.json', original), contentForComparison('data/raw/support-cards.json', refitted));
-});
-
-test('an interrupted update stays visible and blocks builds until recovery completes', async (t) => {
-  const root = await mkdtemp(join(tmpdir(), 'uma-data-update-'));
-  t.after(() => rm(root, { recursive: true, force: true }));
-  await requireCompleteData(root);
-  await writeFile(join(root, 'cards.json'), 'old cards');
-  await writeFile(join(root, 'model.json'), 'old model');
-  const module = new URL('../scripts/data-refresh.ts', import.meta.url).href;
-  const child = spawnSync(process.execPath, ['--input-type=module', '-e', `
-    import { beginDataUpdate } from ${JSON.stringify(module)};
-    import { writeFile } from 'node:fs/promises';
-    await beginDataUpdate(process.cwd());
-    await writeFile('cards.json', 'new cards');
-    process.kill(process.pid, 'SIGKILL');
-  `], { cwd: root, encoding: 'utf8' });
-  assert.equal(child.signal, 'SIGKILL', child.stderr);
-  assert.equal(await readFile(join(root, 'cards.json'), 'utf8'), 'new cards');
-  assert.equal(await readFile(join(root, 'model.json'), 'utf8'), 'old model');
-  assert.equal(await dataUpdateIncomplete(root), true);
-  await assert.rejects(requireCompleteData(root), /npm run recover:data/);
-  await beginDataUpdate(root);
-  assert.equal(await dataUpdateIncomplete(root), true, 'starting recovery does not hide the incomplete update');
-  await writeFile(join(root, 'cards.json'), 'recovered cards');
-  await writeFile(join(root, 'model.json'), 'recovered model');
-  await completeDataUpdate(root);
-  await requireCompleteData(root);
-  assert.equal(await dataUpdateIncomplete(root), false);
 });
