@@ -52,8 +52,9 @@ const NOT_READ: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'f
 const PROBLEMS: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed']);
 const unfinished = (s: Source) => s.status === 'queued' || s.status === 'reading';
 class WorkerFailure extends Error {}
-/** The answer each worker request settles with. */
+/** The answer each worker request settles with, and the reply kind that carries it. */
 interface Answer { references: void; scan: ScanResult }
+const ANSWER_KIND = { references: 'ready', scan: 'result' } as const satisfies Record<WorkerRequest['kind'], WorkerResponse['kind']>;
 /** The pixel buffers a request hands over to the worker instead of copying. */
 function transferables(request: WorkerRequest): Transferable[] {
   const images = request.kind === 'references' ? request.references.flatMap(r => [r.image, r.artwork]) : [request.image];
@@ -100,7 +101,8 @@ export function createScanner(host: ScannerHost): Scanner {
   }
   /**
    * Sends one request and settles with its answer: nothing for references, the readings for a scan. The promise
-   * rejects when the worker fails or replies with an error (and the worker is dropped), or when `signal` aborts.
+   * rejects when the worker fails, replies with an error or with anything but the answer (and the worker is dropped),
+   * or when `signal` aborts.
    */
   function call<K extends WorkerRequest['kind']>(current: Worker, request: Extract<WorkerRequest, { kind: K }>,
     { progress, signal }: { progress?: (done: number, total: number) => void; signal?: AbortSignal } = {}): Promise<Answer[K]> {
@@ -114,10 +116,12 @@ export function createScanner(host: ScannerHost): Scanner {
         signal?.removeEventListener('abort', onAbort);
       };
       const fail = (detail: string) => { settle(); failWorker(current, detail); reject(new WorkerFailure(detail)); };
-      const onMessage = ({ data }: MessageEvent<WorkerResponse>) => {
-        if (data.kind === 'progress') progress?.(data.done, data.total);
-        else if (data.kind === 'error') fail(data.message);
-        else { settle(); resolve((data.kind === 'result' ? data.result : undefined) as Answer[K]); }
+      const onMessage = ({ data }: MessageEvent<WorkerResponse | null>) => {
+        if (data?.kind === 'progress') progress?.(data.done, data.total);
+        else if (data?.kind === 'error') fail(data.message);
+        else if (data?.kind === ANSWER_KIND[request.kind]) { settle(); resolve((data.kind === 'result' ? data.result : undefined) as Answer[K]); }
+        // One request is answered at a time, so any other reply is malformed rather than late.
+        else fail('malformed worker response');
       };
       const onError = (event: ErrorEvent) => fail(event.message ?? '');
       const onMessageError = () => fail('unreadable worker message');

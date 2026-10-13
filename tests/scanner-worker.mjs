@@ -79,6 +79,7 @@ try {
   await page.route(/\/(?:src\/scanner\/worker\.ts|assets\/worker-[^/]+\.js)(?:\?|$)/, route => {
     if (mode === 'fail') return route.fulfill({ contentType: 'text/javascript', body: "throw new Error('Simulated scanner worker failure')" });
     if (mode === 'hold') return route.fulfill({ contentType: 'text/javascript', body: 'self.initializing = new Promise(resolve => { self.onmessage = () => resolve(); });' });
+    if (mode === 'malformed') return route.fulfill({ contentType: 'text/javascript', body: 'self.onmessage = () => self.postMessage(null);' });
     return route.continue();
   });
   // Keep decoding pending so a startup error cannot be rescued by a later scan handler.
@@ -145,6 +146,13 @@ try {
   await start();
   await (await initializing).evaluate(() => self.initializing);
   await stop(40);
+  // A reply that does not answer the request fails the batch instead of leaving it reading.
+  mode = 'malformed';
+  await start();
+  await page.getByRole('alert').waitFor({ timeout: 30000 });
+  assert.match(await page.getByRole('alert').textContent(), /Recognition stopped.*Details: malformed worker response/s);
+  await page.locator('[data-stop]').waitFor({ state: 'hidden' });
+  assert.equal(await readings(), 40, 'a malformed reply adds no readings');
   mode = 'normal';
   // An idle drop highlights the zone and reads the file.
   await page.dispatchEvent('[data-dropzone]', 'dragenter', { dataTransfer: dropped });
@@ -212,5 +220,5 @@ try {
   await loading.waitForTimeout(300);
   assert.deepEqual(late, [], 'no reference is requested after Stop');
   await loading.close();
-  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, unread files of an interrupted batch, and unreachable references and stopping reference loading passed.');
+  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, malformed replies, unread files of an interrupted batch, and unreachable references and stopping reference loading passed.');
 } finally { await browser.close(); }
