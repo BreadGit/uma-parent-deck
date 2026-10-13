@@ -87,13 +87,12 @@ export function inventoryFromReview(rows: ReviewRow[], cards: ScanCard[], result
 export type ApplyMode = 'replace' | 'update';
 export interface InventoryChange {
   inventory: Inventory;
-  /** SR and SSR cards whose effective value changes, by kind. */
+  /** SR and SSR cards whose stored value changes, by kind. */
   owned: ScanCard[]; unowned: ScanCard[]; changed: ScanCard[];
   unchanged: number;
 }
-/** The stored inventory after the readings, plus changes before any host's planning overrides. */
-export function applyReadings(current: Inventory, cards: ScanCard[], effective: (card: ScanCard) => number | null,
-  result: Summary, mode: ApplyMode): InventoryChange {
+/** The stored inventory after the readings, plus what they change in it, before any host's planning overrides. */
+export function applyReadings(current: Inventory, cards: ScanCard[], result: Summary, mode: ApplyMode): InventoryChange {
   const inventory: Inventory = { ...current };
   const change: InventoryChange = { inventory, owned: [], unowned: [], changed: [], unchanged: 0 };
   for (const card of cards) {
@@ -101,8 +100,7 @@ export function applyReadings(current: Inventory, cards: ScanCard[], effective: 
     const read = result.values.get(card.id)?.values().next().value;
     if (read !== undefined) inventory[String(card.id)] = read;
     else if (mode === 'replace') inventory[String(card.id)] = null;
-    const stored = inventory[String(card.id)];
-    const before = effective(card), after = stored === undefined ? before : stored;
+    const before = current[String(card.id)] ?? null, after = inventory[String(card.id)] ?? null;
     if (before === after) change.unchanged++;
     else if (before === null) change.owned.push(card);
     else if (after === null) change.unowned.push(card);

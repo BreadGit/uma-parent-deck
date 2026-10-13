@@ -23,6 +23,16 @@ export function launchBrowser(options) {
 /** Resolves after the next two animation frames, once layout and paint have caught up. */
 export const settled = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
+/**
+ * Change the save as another tab would. A page gets no storage event for its own writes, so it misses this one the
+ * way a frozen or back-forward-cached tab does; `edit` changes the stored state in place.
+ */
+export async function writeMissedSave(page, edit) {
+  const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
+  edit(saved);
+  await page.evaluate(({ key, saved }) => localStorage.setItem(key, JSON.stringify(saved)), { key: STATE_KEY, saved });
+}
+
 /** The scanner's exported inventory. The JSON is built only while the preview is open, so open it before reading. */
 export async function previewJson(page) {
   const preview = page.locator('[data-preview]');

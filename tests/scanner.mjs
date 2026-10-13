@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { importInventory } from '../src/inventory.ts';
 import { loadData } from '../src/data.ts';
 import { STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, assertServesThisTree, BASE_URL as base, launchBrowser, previewJson } from './browser-fields.mjs';
+import { assertFieldsMatchState, assertServesThisTree, BASE_URL as base, launchBrowser, previewJson, writeMissedSave } from './browser-fields.mjs';
 
 const browser = await launchBrowser();
 const page = await browser.newPage();
@@ -367,11 +367,14 @@ try {
   assert.match(await page.locator('[data-change-summary]').textContent(), /^10 newly owned · 0 marked not owned · 0 limit breaks changed/);
   // The planner's theme control is behind the sheet; set the theme the way it would.
   await assertNoOverflow('sheet', undefined, undefined, name => page.evaluate(n => { document.documentElement.dataset.theme = n; }, name));
+  // Another tab adds a card after the summary was shown.
+  await writeMissedSave(page, other => { other.inventory[30106] = 3; });
   await page.locator('[data-apply]').click();
   await sheet.waitFor({ state: 'detached' });
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).inventory, STATE_KEY);
   for (const [id, lb] of android) assert.equal(saved[id], lb, `applied ${id}`);
-  assert.equal(Object.keys(saved).length, 10, 'update mode leaves other cards alone');
+  assert.equal(saved[30106], 3, 'the readings apply to the latest save');
+  assert.equal(Object.keys(saved).length, 11, 'update mode leaves other cards alone');
   await assertFieldsMatchState(page, 'after updating inventory from the scanner');
   await page.locator('[data-action="open-scanner"]').click();
   assert.match(await sheet.locator('[data-bar-summary]').textContent(), /10 ready/, 'reopening keeps the session');

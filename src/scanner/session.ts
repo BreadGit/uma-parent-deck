@@ -13,7 +13,7 @@ import { createCardPicker } from './card-picker.ts';
 import { artworkUrl, cropUrl, loadReferences, pixels, screenshotCanvas } from './images.ts';
 import {
   applyReadings, cardIndex, inventoryFromReview, summarize, triage,
-  type ApplyMode, type Group, type ReviewRow, type Summary, type Triage,
+  type ApplyMode, type Group, type InventoryChange, type ReviewRow, type Summary, type Triage,
 } from './results.ts';
 import type { Box, Reference, ScanCard, ScanResult } from './recognize.ts';
 import type { WorkerRequest, WorkerResponse } from './worker.ts';
@@ -25,10 +25,13 @@ export interface ScannerHost {
   onChange: () => void;
   /** Set when the planner embeds the scanner: readings are applied to its inventory instead of downloaded. */
   apply?: {
+    /** The stored inventory the change summary compares the readings with, before any planning overrides. */
     current: () => Inventory;
-    /** Stored ownership before import, excluding temporary planning overrides. */
-    effective: (card: ScanCard) => number | null;
-    onApply: (inventory: Inventory) => void;
+    /**
+     * Store the readings. `edit` turns a stored inventory into the new one; apply it to the latest save, which can hold
+     * another tab's change made since the summary was shown.
+     */
+    onApply: (edit: (current: Inventory) => Inventory) => void;
   };
   /** Set on the standalone page: where the planner lives, for the import instructions. */
   plannerUrl?: string;
@@ -423,13 +426,13 @@ export function createScanner(host: ScannerHost): Scanner {
   const canFinish = (result: Summary) => !busy && (rows.length > 0 || sources.some(s => s.rare > 0)) && result.pending.size === 0;
   const inventoryJson = (result: Summary) => JSON.stringify(inventoryFromReview(rows, cards, result), null, 1);
   const download = (result: Summary) => downloadText('inventory.json', inventoryJson(result) + '\n', 'application/json');
-  const change = (result: Summary) => host.apply && canFinish(result)
-    ? applyReadings(host.apply.current(), cards, host.apply.effective, result, mode) : null;
+  const change = (result: Summary) => host.apply && canFinish(result) ? applyReadings(host.apply.current(), cards, result, mode) : null;
   function apply(result: Summary) {
-    const planned = change(result);
-    if (!planned || !host.apply) return;
-    host.apply.onApply(planned.inventory);
-    notice = C.applied(planned.owned.length, planned.unowned.length, planned.changed.length); paint();
+    if (!host.apply || !canFinish(result)) return;
+    let applied = null as InventoryChange | null;
+    host.apply.onApply((current) => (applied = applyReadings(current, cards, result, mode)).inventory);
+    if (applied) notice = C.applied(applied.owned.length, applied.unowned.length, applied.changed.length);
+    paint();
   }
   const modeOption = (value: ApplyMode, title: string, hint: string) => html`<label class="scan-mode">
     <input type="radio" name="scan-mode" value=${value} .checked=${live(mode === value)} data-mode=${value}

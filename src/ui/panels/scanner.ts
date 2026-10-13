@@ -20,8 +20,7 @@ export async function openScanner() {
         onChange: refresh,
         apply: {
           current: () => store.inventory,
-          effective: (card) => store.inventory[String(card.id)] ?? null,
-          onApply: (inventory) => { update((s) => { s.inventory = inventory; }); closeScanner(); },
+          onApply: (edit) => { update((s) => { s.inventory = edit(s.inventory); }); closeScanner(); },
         },
       });
     } catch (error) {
