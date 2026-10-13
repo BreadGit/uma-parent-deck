@@ -13,32 +13,15 @@ import { TITLE } from '../copy.ts';
 import { skillTipText, skillWithTip } from '../format.ts';
 import { panel } from '../panel.ts';
 
-const copy = {
-  title: 'Prioritized skills',
-  tip: `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices; a target outside them is not credited with its event options. Targets follow ${TITLE.goal}: required first, then preferred by priority. The extras below them are yours to arrange; the deck search does not read that order. The run takes one option per event, so an option a higher entry already takes is not listed; the chips under that entry swap it in.`,
-  reset: 'Reset',
-  empty: 'Nothing to prioritize yet.',
-  notListed: 'Not listed:',
-  hiddenRow: 'Hidden:',
-  source: 'Source',
-  hintSource: (cards: string[]) => `Available as a hint on ${cards.length === 1 ? 'this card' : 'these cards'} in the deck: ${cards.join('; ')}.`,
-  allCandidates: 'Show all candidates',
-  fewerCandidates: 'Show fewer',
-  targetsFixed: `Target skills cannot be removed from the prioritized skills list. Change targets and their order in ${TITLE.goal}.`,
-  roles: {
-    required: { label: 'required', tip: 'A required target of the parent goal.' },
-    preferred: { label: 'preferred', tip: 'A preferred target of the parent goal.' },
-    extra: { label: 'extra', tip: 'Not a target. Listing it steers the run to this event option and its skill; the run buys it if it gets it.' },
-  },
-  marks: {
-    hintsOnly: { label: 'hints only', tip: 'The run gets this target without choosing anything at an event. It is listed so the run chases its hints; its position does not matter.' },
-    lostEvent: { label: 'lost event', tip: `Another target listed higher takes every event option that gives this one, so it gets nothing from those events and keeps only its hints. To change that, raise its priority in ${TITLE.goal} or change the competing target there.` },
-  },
-  instead: 'or instead:',
-  listedAt: (n: number) => `(currently #${n})`,
-  hidden: (n: number) => `${n} taken option${n === 1 ? '' : 's'} not listed`,
-  pending: 'updating with the deck search',
-} as const;
+const SOURCE_LABEL = 'Source';
+const TARGETS_FIXED = `Target skills cannot be removed from the prioritized skills list. Change targets and their order in ${TITLE.goal}.`;
+const ROLE_TAGS = {
+  required: { label: 'required', tip: 'A required target of the parent goal.' },
+  preferred: { label: 'preferred', tip: 'A preferred target of the parent goal.' },
+  extra: { label: 'extra', tip: 'Not a target. Listing it steers the run to this event option and its skill; the run buys it if it gets it.' },
+};
+const HINTS_ONLY_MARK = { label: 'hints only', tip: 'The run gets this target without choosing anything at an event. It is listed so the run chases its hints; its position does not matter.' };
+const LOST_EVENT_MARK = { label: 'lost event', tip: `Another target listed higher takes every event option that gives this one, so it gets nothing from those events and keeps only its hints. To change that, raise its priority in ${TITLE.goal} or change the competing target there.` };
 
 const isExtra = (w: WishlistEntry) => w.role === 'extra';
 /**
@@ -112,18 +95,18 @@ const entryName = (w: WishlistEntry) => w.form ? `${w.name} (for ${w.form})` : w
 
 /** The role tag every row carries, and a status mark only when a target has something to say. */
 function tags(c: RunPlan, w: WishlistEntry) {
-  const role = copy.roles[w.role];
+  const role = ROLE_TAGS[w.role];
   const cls = w.role === 'required' ? 'gold' : w.role === 'preferred' ? 'ok' : '';
-  const mark = !w.isTarget ? null : !w.gated ? copy.marks.hintsOnly : !c.wlLayout.steers.get(w.key)?.length ? copy.marks.lostEvent : null;
+  const mark = !w.isTarget ? null : !w.gated ? HINTS_ONLY_MARK : !c.wlLayout.steers.get(w.key)?.length ? LOST_EVENT_MARK : null;
   return html`<span class="tag ${cls} wl-kind" data-tip=${role.tip}>${role.label}</span>${mark
-    ? html`<span class="tag ${mark === copy.marks.lostEvent ? 'danger' : ''} wl-kind" data-wl-mark data-tip=${mark.tip}>${mark.label}</span>` : nothing}`;
+    ? html`<span class="tag ${mark === LOST_EVENT_MARK ? 'danger' : ''} wl-kind" data-wl-mark data-tip=${mark.tip}>${mark.label}</span>` : nothing}`;
 }
 
 /** A chip that swaps `sibling` in for `winner` at their shared event. Only extras take events from extras. */
 function swapChip(c: RunPlan, sibling: WishlistEntry, winner: WishlistEntry, locked: boolean) {
   const at = listedAt(c, sibling.key);
-  const tipText = skillTipText(sibling.skillId, `${copy.source}: ${sibling.reason}`);
-  return html`<button class="wl-swap" data-action="wl-swap" data-id="${sibling.key}" data-for="${winner.key}" ?disabled=${locked} data-tip=${tipText} @click=${() => swapSkill(sibling.key, winner.key)}>${entryName(sibling)}${at ? html` <span class="muted">${copy.listedAt(at)}</span>` : nothing}</button>`;
+  const tipText = skillTipText(sibling.skillId, `${SOURCE_LABEL}: ${sibling.reason}`);
+  return html`<button class="wl-swap" data-action="wl-swap" data-id="${sibling.key}" data-for="${winner.key}" ?disabled=${locked} data-tip=${tipText} @click=${() => swapSkill(sibling.key, winner.key)}>${entryName(sibling)}${at ? html` <span class="muted">(currently #${at})</span>` : nothing}</button>`;
 }
 
 function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
@@ -133,18 +116,18 @@ function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
   const sources = !w.gated && w.targetId !== null ? (c.deckResult.coverage.get(w.targetId) ?? [])
     .filter((s) => s.skillId === w.skillId && s.kind !== 'lineage' && s.kind !== 'innate' && s.kind !== 'awakening') : [];
   const hintCards = [...new Set(sources.flatMap((s) => s.kind === 'hint' && s.cardName ? [s.cardName] : []))];
-  const source = hintCards.length && sources.every((s) => s.kind === 'hint') ? copy.hintSource(hintCards) : w.reason;
-  const name = skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `${copy.source}: ${source}`);
+  const source = hintCards.length && sources.every((s) => s.kind === 'hint') ? `Available as a hint on ${hintCards.length === 1 ? 'this card' : 'these cards'} in the deck: ${hintCards.join('; ')}.` : w.reason;
+  const name = skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `${SOURCE_LABEL}: ${source}`);
   const sibs = extra ? siblingsOf(c, w.key) : [];
   return html`<li draggable="${extra && !locked ? 'true' : 'false'}" data-wl-key="${w.key}" data-wl-role="${w.role}" class="${extra ? 'wl-extra' : 'wl-target'} ${view.drag.key === w.key ? 'dragging' : ''} ${view.drag.over === w.key && view.drag.key !== w.key ? 'drop-target' : ''}">
     <span class="wl-num">${i + 1}.</span><span class="grip ${extra ? '' : 'grip-disabled'}" aria-hidden="true">⋮⋮</span>
     <span class="wl-body">${tags(c, w)}${name}</span>
-    <span class="wl-actions ${extra ? '' : 'wl-fixed'}" tabindex=${extra ? nothing : 0} role=${extra ? nothing : 'group'} aria-label=${extra ? nothing : copy.targetsFixed} data-tip=${extra ? nothing : copy.targetsFixed}>
+    <span class="wl-actions ${extra ? '' : 'wl-fixed'}" tabindex=${extra ? nothing : 0} role=${extra ? nothing : 'group'} aria-label=${extra ? nothing : TARGETS_FIXED} data-tip=${extra ? nothing : TARGETS_FIXED}>
       <button class="small wl-move" data-action="wl-up" data-id="${w.key}" aria-label="Move ${w.name} up" data-tip="Move up" ?disabled=${!canMove(-1)} @click=${() => nudgeSkill(w.key, -1)}>▲</button>
       <button class="small wl-move" data-action="wl-down" data-id="${w.key}" aria-label="Move ${w.name} down" data-tip="Move down" ?disabled=${!canMove(1)} @click=${() => nudgeSkill(w.key, 1)}>▼</button>
       <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Hide ${w.name}" data-tip="Hide from the list" ?disabled=${!extra || locked} @click=${() => { if (extra) hideSkill(w.key); }}>✕</button>
     </span>
-    ${sibs.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">${copy.instead}</span>${sibs.map((s) => swapChip(c, s, w, locked))}</div>` : nothing}</li>`;
+    ${sibs.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">or instead:</span>${sibs.map((s) => swapChip(c, s, w, locked))}</div>` : nothing}</li>`;
 }
 
 /**
@@ -155,19 +138,19 @@ function candidates(c: RunPlan, locked: boolean) {
   if (!c.wlRest.length && !c.wlHidden.length) return nothing;
   const expanded = view.showAllCandidates;
   return html`<div class="small muted wl-candidates ${expanded ? '' : 'clamped'}" data-candidates>
-      ${c.wlRest.length ? html`<span>${copy.notListed}</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name}${isExtra(w) ? html` <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" ?disabled=${locked} @click=${() => addSkill(w.key)}>+</button>` : nothing}</span>`)}` : nothing}
-      ${c.wlHidden.length ? html`<span>${copy.hiddenRow}</span> ${c.wlHidden.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" ?disabled=${locked} @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
+      ${c.wlRest.length ? html`<span>Not listed:</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name}${isExtra(w) ? html` <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" ?disabled=${locked} @click=${() => addSkill(w.key)}>+</button>` : nothing}</span>`)}` : nothing}
+      ${c.wlHidden.length ? html`<span>Hidden:</span> ${c.wlHidden.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" ?disabled=${locked} @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
     </div>
-    ${view.candidatesOverflow ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; refresh(); }}>${expanded ? copy.fewerCandidates : copy.allCandidates}</button>` : nothing}`;
+    ${view.candidatesOverflow ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; refresh(); }}>${expanded ? 'Show fewer' : 'Show all candidates'}</button>` : nothing}`;
 }
 
 export function renderPriorities(c: RunPlan) {
   const locked = view.searchPending;
   const customized = store.run.wishlistOrder.length > 0 || store.run.wishlistExcluded.length > 0;
-  const actions = customized ? html`<button class="small" data-action="wl-reset" ?disabled=${locked} @click=${resetExtras}>${copy.reset}</button>` : nothing;
+  const actions = customized ? html`<button class="small" data-action="wl-reset" ?disabled=${locked} @click=${resetExtras}>Reset</button>` : nothing;
   const hidden = c.wlLayout.shadowed.length;
-  const subtitle = [`up to ${PRIORITIZED_SKILLS_MAX}`, ...(hidden ? [copy.hidden(hidden)] : []), ...(locked ? [copy.pending] : [])].join(', ');
-  return panel({ title: copy.title, kind: 'result', subtitle, tip: copy.tip, actions }, html`
-    ${c.wl.length ? html`<ol class="wishlist ${locked ? 'wl-locked' : ''}" data-wl-locked=${locked ? 'true' : nothing} @dragstart=${drag.dragstart} @dragover=${drag.dragover} @drop=${drag.drop} @dragend=${drag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => row(c, w, i, locked))}</ol>` : html`<div class="muted small">${copy.empty}</div>`}
+  const subtitle = [`up to ${PRIORITIZED_SKILLS_MAX}`, ...(hidden ? [`${hidden} taken option${hidden === 1 ? '' : 's'} not listed`] : []), ...(locked ? ['updating with the deck search'] : [])].join(', ');
+  return panel({ title: 'Prioritized skills', kind: 'result', subtitle, tip: `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices; a target outside them is not credited with its event options. Targets follow ${TITLE.goal}: required first, then preferred by priority. The extras below them are yours to arrange; the deck search does not read that order. The run takes one option per event, so an option a higher entry already takes is not listed; the chips under that entry swap it in.`, actions }, html`
+    ${c.wl.length ? html`<ol class="wishlist ${locked ? 'wl-locked' : ''}" data-wl-locked=${locked ? 'true' : nothing} @dragstart=${drag.dragstart} @dragover=${drag.dragover} @drop=${drag.drop} @dragend=${drag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => row(c, w, i, locked))}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
     ${candidates(c, locked)}`);
 }

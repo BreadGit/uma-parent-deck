@@ -6,12 +6,6 @@ import { refresh, store, update, view } from '../context.ts';
 import { TITLE } from '../copy.ts';
 import { notice } from '../dialog.ts';
 
-const copy = {
-  scannerLoadFailed: 'Could not open screenshot import. Check your connection and try again. If it keeps failing, reload the page.',
-  closeScanner: '← Back to planner',
-  subtitleEmbedded: 'Read support cards and limit breaks from screenshots, check the readings, then apply them to your inventory.',
-} as const;
-
 let scanner: Scanner | null = null;
 
 export async function openScanner() {
@@ -31,7 +25,7 @@ export async function openScanner() {
       });
     } catch (error) {
       console.error('Scanner could not load:', error);
-      void notice(copy.scannerLoadFailed);
+      void notice('Could not open screenshot import. Check your connection and try again. If it keeps failing, reload the page.');
       return;
     } finally { view.scannerLoading = false; refresh(); }
   }
@@ -79,8 +73,8 @@ export function renderScannerOverlay() {
       if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) closeScanner();
     }}>
     <header class="scanner-sheet-head">
-      <button class="scanner-back" data-action="close-scanner" @click=${closeScanner}>${copy.closeScanner}</button>
-      <div><h1>${TITLE.scanner}</h1><p class="muted">${copy.subtitleEmbedded}</p></div>
+      <button class="scanner-back" data-action="close-scanner" @click=${closeScanner}>← Back to planner</button>
+      <div><h1>${TITLE.scanner}</h1><p class="muted">Read support cards and limit breaks from screenshots, check the readings, then apply them to your inventory.</p></div>
     </header>
     <main class="scan-main">${scanner.render()}</main>
   </dialog>`;

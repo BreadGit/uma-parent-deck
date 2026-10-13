@@ -6,11 +6,8 @@ import { inputValue, isComposing, matchesWords, queryWords } from '../ui/form.ts
 import { artworkUrl } from './images.ts';
 import type { ScanCard } from './recognize.ts';
 
-const copy = {
-  card: 'Card',
-  searchCards: 'Search name, title, or type',
-  noCardMatches: 'No cards match. Try another name or title.',
-} as const;
+/** Names both the search field and its list of results. */
+const PICKER_LABEL = 'Card';
 
 const title = (card: ScanCard) =>
   card.name.endsWith(card.charName) ? card.name.slice(0, -card.charName.length).trim() : card.name;
@@ -63,15 +60,15 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
       }
     };
     return html`<div class="suggest scan-card-picker" @focusout=${onFocusOut}>
-      <label for=${id}>${copy.card}</label>
+      <label for=${id}>${PICKER_LABEL}</label>
       <input id=${id} data-card=${key} data-card-id=${selected?.id ?? ''} type="search" role="combobox" class="wide"
-        title=${selected ? label(selected) : LABEL.selectCard} placeholder=${copy.searchCards} autocomplete="off"
+        title=${selected ? label(selected) : LABEL.selectCard} placeholder="Search name, title, or type" autocomplete="off"
         .value=${live(open ? query : selected ? label(selected) : '')}
         aria-autocomplete="list" aria-expanded=${open} aria-controls=${listId}
         aria-activedescendant=${open && index >= 0 ? `${listId}-${matches[index]?.id}` : ''}
         @focus=${show} @click=${show} @keydown=${onKey}
         @input=${(event: Event) => { active = key; query = inputValue(event); index = -1; change(); }} />
-      ${open ? html`<ul id=${listId} role="listbox" aria-label=${copy.card} tabindex="-1">
+      ${open ? html`<ul id=${listId} role="listbox" aria-label=${PICKER_LABEL} tabindex="-1">
         ${repeat(matches, card => card.id, (card, i) => html`<li id=${`${listId}-${card.id}`} role="option"
           aria-selected=${i === index} class=${i === index ? 'active' : ''} data-id=${card.id}
           @mousedown=${keepFocus} @click=${() => choose(card)}>
@@ -80,7 +77,7 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
             <span class="muted small">${title(card)}</span></span>
         </li>`)}
         ${matches.length ? nothing
-          : html`<li role="presentation" class="scan-no-matches" @mousedown=${keepFocus}><span role="status">${copy.noCardMatches}</span></li>`}
+          : html`<li role="presentation" class="scan-no-matches" @mousedown=${keepFocus}><span role="status">No cards match. Try another name or title.</span></li>`}
       </ul>` : nothing}
     </div>`;
   }

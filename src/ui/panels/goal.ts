@@ -14,23 +14,14 @@ import { panel } from '../panel.ts';
 import { renderGoalTemplates } from './goal-templates.ts';
 import { renderTargets } from './targets.ts';
 
-const copy = {
-  tip: 'What one finished parent must carry: a blue spark on an accepted stat, a pink spark on an accepted aptitude, and every required white spark, all at their minimum stars.',
-  blueLegend: 'Required blue spark',
-  pinkLegend: 'Required pink spark',
-  pinkAlternatives: 'Any one of these results satisfies the pink requirement.',
-  anyStat: 'Any stat',
-  addPink: 'Add spark',
-} as const;
-
 const change = (fn: (goal: ParentGoal) => void) => update((s) => { fn(s.run.goal); s.run.goal = sanitizeGoal(s.run.goal); });
 const STAR_CHOICES = numbered([1, 2, 3], (n) => `${n}★ or better`);
 const pinkLabel = (k: PinkGoal['aptitude']) => k === 'any' ? 'Any' : APTITUDE_LABELS[k];
 
 function blueGroup(g: ParentGoal) {
-  return html`<fieldset class="goal-group"><legend>${copy.blueLegend}</legend>
+  return html`<fieldset class="goal-group"><legend>Required blue spark</legend>
     <div class="goal-stats">${STATS.map((stat) => html`<label><input type="checkbox" data-goal-blue=${stat} .checked=${live(g.blueStats.includes(stat))} @change=${(e: Event) => change((g) => { g.blueStats = isChecked(e) ? [...g.blueStats, stat] : g.blueStats.filter((s) => s !== stat); })} /> ${capitalize(stat)}</label>`)}
-    <button class="small" data-action="goal-any-blue" @click=${() => change((g) => { g.blueStats = [...STATS]; })}>${copy.anyStat}</button></div>
+    <button class="small" data-action="goal-any-blue" @click=${() => change((g) => { g.blueStats = [...STATS]; })}>Any stat</button></div>
     <label class="goal-field">${LABEL.minimumStars}<select data-goal-stars="blue" .value=${live(String(g.blueStars))} @change=${(e: Event) => change((g) => { g.blueStars = Number(selectValue(e)); })}>${options(STAR_CHOICES, String(g.blueStars))}</select></label>
   </fieldset>`;
 }
@@ -52,14 +43,14 @@ function addPink(g: ParentGoal) {
 }
 
 function pinkGroup(g: ParentGoal) {
-  return html`<fieldset class="goal-group"><legend class="goal-group-header"><span>${copy.pinkLegend}</span><button class="small" data-action="reset-pink-goal" @click=${() => change((g) => { g.pink = []; })}>Reset</button></legend>
-    ${g.pink.length > 1 ? html`<p class="small muted">${copy.pinkAlternatives}</p>` : nothing}
+  return html`<fieldset class="goal-group"><legend class="goal-group-header"><span>Required pink spark</span><button class="small" data-action="reset-pink-goal" @click=${() => change((g) => { g.pink = []; })}>Reset</button></legend>
+    ${g.pink.length > 1 ? html`<p class="small muted">Any one of these results satisfies the pink requirement.</p>` : nothing}
     ${repeat(g.pink, (p) => p.aptitude, (p) => pinkRow(g, p))}
-    <div class="goal-stats"><button class="small" data-action="add-pink-goal" ?disabled=${g.pink.length >= APTITUDE_KEYS.length} @click=${() => change(addPink)}>${copy.addPink}</button></div>
+    <div class="goal-stats"><button class="small" data-action="add-pink-goal" ?disabled=${g.pink.length >= APTITUDE_KEYS.length} @click=${() => change(addPink)}>Add spark</button></div>
   </fieldset>`;
 }
 
 export function renderGoalEditor(c: RunPlan) {
   const g = store.run.goal;
-  return panel({ title: TITLE.goal, step: 2, tip: copy.tip }, html`${renderGoalTemplates()}${renderTargets(c)}${blueGroup(g)}${pinkGroup(g)}`);
+  return panel({ title: TITLE.goal, step: 2, tip: 'What one finished parent must carry: a blue spark on an accepted stat, a pink spark on an accepted aptitude, and every required white spark, all at their minimum stars.' }, html`${renderGoalTemplates()}${renderTargets(c)}${blueGroup(g)}${pinkGroup(g)}`);
 }

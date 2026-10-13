@@ -116,10 +116,8 @@ selected index onto a different entry. Read event values through `selectValue()`
 rather than casting `e.target`. Panels in `src/ui/app.ts` use `trackedPanel()` from `src/ui/context.ts`, which records the `view`
 fields a panel reads and re-renders it only when one of them, the plan or the persisted state changes; no
 dependency list is kept by hand, but a view change made without `refresh()` leaves that panel's memo stale.
-User-facing text lives in the module that shows it: sentences, tips, notices and confirmations in its
-top-level `copy` object, short labels and text woven into markup in the template. `src/ui/copy.ts` holds
-only wording that more than one module shows, such as panel titles other panels' instructions name;
-`tests/copy-usage.test.ts` checks both rules. Confirmations and notices use `src/ui/dialog.ts`, not
+Write user-facing text where it is shown. `src/ui/copy.ts` holds the panel titles and control labels that
+other modules' text names, so renaming one updates every mention. Confirmations and notices use `src/ui/dialog.ts`, not
 `window.confirm` or `alert`. Interactive elements may carry `data-tip` for hover and focus help, and only
 non-interactive elements pin the tooltip on click. The smoke test's
 `assertFieldsMatchState` compares every state-bound field with the saved state; call it after any new

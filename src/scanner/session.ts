@@ -22,109 +22,39 @@ import './style.css';
 /** A limit break as the game's card list shows it. */
 const lbBadge = (lb: number) => lb === MAX_LB ? 'MLB' : `${lb}LB`;
 
-const copy = {
-  openPlanner: 'Open Uma parent deck',
-  privacy: 'Screenshots stay in this browser. No account, upload, or API key.',
-  choose: 'Choose screenshots',
-  drop: 'or drop them anywhere on this panel',
-  guidance: 'Use full-width, five-column Support Card List screenshots. Include all your SR and SSR cards, with some overlap between screenshots. Keep each person’s inventory in a separate batch.',
-  rare: 'R cards are ignored in screenshots and exported at 4LB (MLB).',
-  rareEmbedded: 'R cards are ignored in screenshots and keep their current limit break in your inventory.',
-  missing: 'SR and SSR cards missing from the reviewed results will be exported as not owned. Check coverage before downloading.',
-  partial: 'Cropped or covered rows may be missed. Include them fully in another screenshot, or add the card manually.',
-  // Built from the labels of the planner's own controls, so renaming them updates the instructions.
-  import: `In Uma parent deck, choose ${LABEL.importFile} in the ${TITLE.inventory} panel and select the downloaded inventory.json.`,
-  loading: 'Loading card artwork…',
-  scanning: (name: string, done: number, total: number) => `Reading ${name}${total ? ` · ${done} / ${total} cards` : '…'}`,
-  busyDrop: 'Still reading. Add more screenshots when this batch finishes, or stop reading first.',
-  referencesFailed: 'Could not load the card artwork. Check the connection and try again.',
-  scannerFailed: (detail: string) => `Recognition stopped. Completed results are kept. Try adding the remaining screenshots again.${detail ? ` Details: ${detail}` : ''}`,
-  /** A screenshot's caption, and the message listed for one that was not read. */
-  sourceStatus: {
-    queued: 'Waiting to be read',
-    reading: 'Reading…',
-    unreadable: 'Could not read this image. Use a PNG, JPEG, or WebP image and try again.',
-    noCards: 'No complete card badges found. Use a full-width screenshot of the five-column support card list.',
-    failed: 'Not read because recognition stopped. Add this screenshot again.',
-    stopped: 'Not read because reading was stopped. Add this screenshot again.',
-  },
-  cancel: 'Stop reading',
-  stopped: 'Stopped',
-  newBatch: 'New inventory',
-  newBatchConfirm: 'Start a new inventory? This clears the current screenshots and review results.',
-  add: 'Add a card',
-  filter: 'Filter cards',
-  search: 'Filter by card or screenshot name',
-  lb: 'Limit break',
-  unknownLb: 'Not read',
-  lbOption: (lb: number) => lb === MAX_LB ? `${lb} (MLB)` : String(lb),
-  confirm: 'Confirm',
-  exclude: 'Exclude',
-  restore: 'Restore',
-  excluded: 'Excluded',
-  confirmed: 'Ready',
-  uncertain: 'Check card match',
-  unreadable: 'Check limit break',
-  conflict: 'Different LB readings. Correct or exclude one.',
-  manual: 'Added manually',
-  noFilterMatches: 'No cards match this filter.',
-  download: 'Download inventory.json',
-  preview: 'Preview JSON',
-  summary: (owned: number, pending: number, duplicates: number, excluded: number) => [
-    `${owned} unique card${owned === 1 ? '' : 's'}`, `${pending} to review`,
-    `${duplicates} duplicate reading${duplicates === 1 ? '' : 's'} from overlap`, ...excluded ? [`${excluded} excluded`] : [],
-  ].join(' · '),
-  fileSummary: (cards: number, rare: number) => `${cards} reading${cards === 1 ? '' : 's'}${rare ? ` · ${rare} R cards ignored` : ''}`,
-  exportBlocked: 'Resolve uncertain matches, unreadable diamonds, and conflicting readings before downloading.',
-  noExport: 'Add screenshots or cards to create an inventory.',
-  candidates: 'Suggested matches',
-  source: 'Screenshot crop',
-  reference: 'Reference artwork',
-  // Prototype flow: three numbered steps, a decision-first review, and a bar that keeps the finish action in view.
-  stepScreenshots: 'Screenshots',
-  stepReview: 'Check readings',
-  stepDownload: 'Download',
-  stepApply: 'Apply to inventory',
-  howTo: 'How to take screenshots',
-  addMore: 'Add more',
-  showScreenshots: 'Show screenshots',
-  batchSummary: (files: number, readings: number, rare: number) => [
-    `${files} screenshot${files === 1 ? '' : 's'}`, `${readings} reading${readings === 1 ? '' : 's'}`,
-    ...rare ? [`${rare} R card${rare === 1 ? '' : 's'} ignored`] : [],
-  ].join(' · '),
-  decide: 'Needs a decision',
-  allReady: (count: number) => `All ${count} card${count === 1 ? '' : 's'} read with confidence.`,
-  ready: 'Read with confidence',
-  readyHint: 'Open to check a reading or change a limit break.',
-  excludedGroup: 'Excluded',
-  unseen: 'Not seen in screenshots',
-  unseenHint: 'Tap a card you own to add it.',
-  seenIn: (count: number) => `Seen in ${count} screenshots`,
-  lbBadge,
-  useReading: (lb: number) => `Use ${lbBadge(lb)}`,
-  setLb: 'Set limit break',
-  barEmpty: 'No readings yet',
-  barSummary: (ready: number, decide: number) => decide
-    ? `${ready} ready · ${decide} to decide` : `${ready} ready`,
-  apply: 'Apply to inventory',
-  applied: (owned: number, unowned: number, changed: number) =>
-    `Inventory updated: ${owned} marked owned, ${unowned} marked not owned, ${changed} limit breaks changed.`,
-  modeReplace: 'Replace my inventory',
-  modeReplaceHint: (unseen: number) => `SR and SSR cards not seen in any screenshot (${unseen}) become not owned.`,
-  modeUpdate: 'Update only the cards that were read',
-  modeUpdateHint: 'Every other card keeps its current value.',
-  changeSummary: (owned: number, unowned: number, changed: number, unchanged: number) => [
-    `${owned} newly owned`, `${unowned} marked not owned`, `${changed} limit break${changed === 1 ? '' : 's'} changed`,
-    `${unchanged} unchanged`,
-  ].join(' · '),
-  noChanges: 'The readings match the current inventory.',
-  changeList: 'Show the cards',
-  listOwned: 'Owned:',
-  listChanged: 'Changed:',
-  listUnowned: 'Not owned:',
-  ownedAt: 'Owned at limit break',
-  applyBlocked: 'Decide the remaining readings first.',
-} as const;
+const PRIVACY_NOTE = 'Screenshots stay in this browser. No account, upload, or API key.';
+const SCREENSHOT_GUIDANCE = 'Use full-width, five-column Support Card List screenshots. Include all your SR and SSR cards, with some overlap between screenshots. Keep each person’s inventory in a separate batch.';
+const BUSY_NOTICE = 'Still reading. Add more screenshots when this batch finishes, or stop reading first.';
+const NEW_INVENTORY = 'New inventory';
+const EXCLUDE = 'Exclude';
+const CONFLICT_STATUS = 'Different LB readings. Correct or exclude one.';
+const ADDED_MANUALLY = 'Added manually';
+const EXPORT_BLOCKED = 'Resolve uncertain matches, unreadable diamonds, and conflicting readings before downloading.';
+const REVIEW_STEP = 'Check readings';
+const APPLY_BLOCKED = 'Decide the remaining readings first.';
+/** A screenshot's caption, and the message listed for one that was not read. */
+const STATUS_CAPTION = {
+  queued: 'Waiting to be read',
+  reading: 'Reading…',
+  unreadable: 'Could not read this image. Use a PNG, JPEG, or WebP image and try again.',
+  noCards: 'No complete card badges found. Use a full-width screenshot of the five-column support card list.',
+  failed: 'Not read because recognition stopped. Add this screenshot again.',
+  stopped: 'Not read because reading was stopped. Add this screenshot again.',
+};
+const readingStatus = (name: string, done: number, total: number) => `Reading ${name}${total ? ` · ${done} / ${total} cards` : '…'}`;
+const referenceAlt = (name: string) => `Reference artwork: ${name}`;
+const batchSummary = (files: number, readings: number, rare: number) => [
+  `${files} screenshot${files === 1 ? '' : 's'}`, `${readings} reading${readings === 1 ? '' : 's'}`,
+  ...rare ? [`${rare} R card${rare === 1 ? '' : 's'} ignored`] : [],
+].join(' · ');
+const reviewSummary = (owned: number, pending: number, duplicates: number, excluded: number) => [
+  `${owned} unique card${owned === 1 ? '' : 's'}`, `${pending} to review`,
+  `${duplicates} duplicate reading${duplicates === 1 ? '' : 's'} from overlap`, ...excluded ? [`${excluded} excluded`] : [],
+].join(' · ');
+const changeSummary = (owned: number, unowned: number, changed: number, unchanged: number) => [
+  `${owned} newly owned`, `${unowned} marked not owned`, `${changed} limit break${changed === 1 ? '' : 's'} changed`,
+  `${unchanged} unchanged`,
+].join(' · ');
 
 export interface ScannerHost {
   cards: ScanCard[];
@@ -150,10 +80,10 @@ export interface Scanner {
 
 /**
  * One chosen screenshot, listed as soon as its batch starts so an interrupted batch names every file it did not read.
- * Its caption comes from `status` (`copy.sourceStatus`); `count` and `rare` are its readings once `read`.
+ * Its caption comes from `status` (`STATUS_CAPTION`); `count` and `rare` are its readings once `read`.
  */
 interface Source { id: string; name: string; image: string; count: number; rare: number; status: SourceStatus }
-type SourceStatus = keyof typeof copy.sourceStatus | 'read';
+type SourceStatus = keyof typeof STATUS_CAPTION | 'read';
 /** Statuses of a file that was not read, which adding it again replaces. */
 const NOT_READ: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed', 'stopped']);
 const PROBLEMS: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed']);
@@ -182,7 +112,7 @@ export function createScanner(host: ScannerHost): Scanner {
   const cardById = cardIndex(cards);
   const catalog = cards.filter(c => c.rarity !== 'R').sort((a, b) => a.charName.localeCompare(b.charName) || a.id - b.id);
   const cardPicker = createCardPicker(catalog, paint);
-  const lbOptions = [{ value: '', label: copy.unknownLb }, ...numbered(LIMIT_BREAKS, copy.lbOption)];
+  const lbOptions = [{ value: '', label: 'Not read' }, ...numbered(LIMIT_BREAKS, lb => lb === MAX_LB ? `${lb} (MLB)` : String(lb))];
 
   // Nothing here persists: closing the page discards the screenshots and the review.
   let sources: Source[] = [], rows: ReviewRow[] = [];
@@ -256,14 +186,14 @@ export function createScanner(host: ScannerHost): Scanner {
   function interrupt(reason: 'failed' | 'stopped') { for (const s of sources) if (unfinished(s)) s.status = reason; }
   async function addFiles(files: File[]) {
     if (!files.length) return;
-    if (busy) { notice = copy.busyDrop; paint(); return; }
+    if (busy) { notice = BUSY_NOTICE; paint(); return; }
     const { signal } = batch = new AbortController();
     const step = <T>(promise: Promise<T>) => unlessAborted(promise, signal);
     for (const file of files) replaceAttempts(file.name);
     const queue = files.map((file): { file: File; source: Source } =>
       ({ file, source: { id: String(nextKey++), name: file.name, image: '', count: 0, rare: 0, status: 'queued' } }));
     sources.push(...queue.map(q => q.source));
-    busy = true; error = ''; notice = ''; status = copy.loading; paint();
+    busy = true; error = ''; notice = ''; status = 'Loading card artwork…'; paint();
     let loading = !worker;
     try {
       let scanner = worker;
@@ -274,13 +204,13 @@ export function createScanner(host: ScannerHost): Scanner {
       }
       for (const { file, source } of queue) {
         source.status = 'reading';
-        status = copy.scanning(file.name, 0, 0); paint();
+        status = readingStatus(file.name, 0, 0); paint();
         const canvas = await step(screenshotCanvas(file).catch(() => null));
         if (!canvas) { source.status = 'unreadable'; paint(); continue; }
         const blob = await step(new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .8)));
         if (blob) source.image = URL.createObjectURL(blob);
         const result = await call(scanner, { kind: 'scan', image: pixels(canvas) }, { signal,
-          progress: (done, total) => { status = copy.scanning(file.name, done, total); paint(); } });
+          progress: (done, total) => { status = readingStatus(file.name, done, total); paint(); } });
         Object.assign(source, { count: result.detections.length, rare: result.ignoredR,
           status: result.detections.length || result.ignoredR ? 'read' : 'noCards' });
         for (const detection of result.detections) {
@@ -294,7 +224,9 @@ export function createScanner(host: ScannerHost): Scanner {
       // Stop and New inventory settle the batch themselves.
       if (signal.aborted) return;
       if (!(e instanceof WorkerFailure)) console.error(e);
-      error = loading ? copy.referencesFailed : copy.scannerFailed(errorMessage(e));
+      const detail = errorMessage(e);
+      error = loading ? 'Could not load the card artwork. Check the connection and try again.'
+        : `Recognition stopped. Completed results are kept. Try adding the remaining screenshots again.${detail ? ` Details: ${detail}` : ''}`;
       interrupt('failed');
     } finally {
       if (!signal.aborted) { busy = false; status = ''; paint(); }
@@ -303,7 +235,7 @@ export function createScanner(host: ScannerHost): Scanner {
   function stop() {
     batch?.abort(); worker?.terminate(); worker = null;
     interrupt('stopped');
-    busy = false; status = copy.stopped; paint();
+    busy = false; status = 'Stopped'; paint();
   }
   function reset() {
     cardPicker.close();
@@ -311,7 +243,7 @@ export function createScanner(host: ScannerHost): Scanner {
     stop();
     sources = []; rows = []; query = ''; status = ''; error = ''; notice = ''; openKey = null; paint();
   }
-  async function newInventory() { if (await confirmDialog(copy.newBatchConfirm, copy.newBatch)) reset(); }
+  async function newInventory() { if (await confirmDialog('Start a new inventory? This clears the current screenshots and review results.', NEW_INVENTORY)) reset(); }
   /** A card the user adds by hand, searched for in a new row at the top of the decisions. */
   function addManual() {
     const row: ReviewRow = { key: nextKey++, source: '', crop: '', detection: null, cardId: null, lb: null, reviewed: false, excluded: false };
@@ -331,7 +263,7 @@ export function createScanner(host: ScannerHost): Scanner {
   function onDragOver(event: DragEvent) {
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = busy ? 'none' : 'copy';
-    if (busy && notice !== copy.busyDrop) { notice = copy.busyDrop; paint(); }
+    if (busy && notice !== BUSY_NOTICE) { notice = BUSY_NOTICE; paint(); }
     else if (!busy && !dragging) { dragging = true; paint(); }
   }
   function onDragLeave(event: DragEvent) {
@@ -362,12 +294,13 @@ export function createScanner(host: ScannerHost): Scanner {
     return html`<label class="scan-file-button ${cls}">${label}<input data-files type="file" accept="image/png,image/jpeg,image/webp"
       multiple ?disabled=${busy} @change=${onChoose} /></label>`;
   }
-  const sourceCaption = (s: Source) => s.status === 'read' ? copy.fileSummary(s.count, s.rare) : copy.sourceStatus[s.status];
+  const sourceCaption = (s: Source) => s.status === 'read'
+    ? `${s.count} reading${s.count === 1 ? '' : 's'}${s.rare ? ` · ${s.rare} R cards ignored` : ''}` : STATUS_CAPTION[s.status];
   function gallery() {
     return html`<div class="scan-sources">${repeat(sources, s => s.id, s => html`<figure>
       ${s.image ? html`<a href=${s.image} target="_blank" rel="noopener"><img src=${s.image} alt=${s.name} /></a>` : nothing}
       <figcaption>${s.name}<br />${sourceCaption(s)}</figcaption>
-    </figure>`)}</div><p class="muted">${copy.partial}</p>`;
+    </figure>`)}</div><p class="muted">Cropped or covered rows may be missed. Include them fully in another screenshot, or add the card manually.</p>`;
   }
   function uploadStep() {
     const failed = sources.filter(s => PROBLEMS.has(s.status)), stopped = sources.filter(s => s.status === 'stopped');
@@ -375,13 +308,15 @@ export function createScanner(host: ScannerHost): Scanner {
     const started = sources.length > 0 || busy;
     return html`<section class="panel scan-upload ${dragging ? 'scan-dragging' : ''}" data-dropzone
       @dragenter=${onDragOver} @dragover=${onDragOver} @dragleave=${onDragLeave} @drop=${onDrop}>
-      ${stepHead(1, copy.stepScreenshots, started ? html`<span data-batch>${copy.batchSummary(sources.length, readings, rare)}</span>` : nothing,
-        busy ? html`<button data-stop class="small" @click=${stop}>${copy.cancel}</button>` : started ? fileButton(copy.addMore, 'small') : nothing)}
+      ${stepHead(1, 'Screenshots', started ? html`<span data-batch>${batchSummary(sources.length, readings, rare)}</span>` : nothing,
+        busy ? html`<button data-stop class="small" @click=${stop}>Stop reading</button>` : started ? fileButton('Add more', 'small') : nothing)}
       ${started ? html`<details ?open=${sourcesOpen} @toggle=${toggled(v => { sourcesOpen = v; })}>
-          <summary>${copy.showScreenshots}</summary>${gallery()}</details>`
-        : html`<div class="scan-dropzone">${fileButton(copy.choose)}<p class="muted">${copy.drop}</p><p class="scan-privacy">${copy.privacy}</p></div>`}
-      <details class="scan-howto about"><summary>${copy.howTo}</summary><p class="small">${copy.guidance}</p><p class="small">${host.apply ? copy.rareEmbedded : copy.rare}</p>
-        ${started ? html`<p class="small scan-privacy">${copy.privacy}</p>` : nothing}</details>
+          <summary>Show screenshots</summary>${gallery()}</details>`
+        : html`<div class="scan-dropzone">${fileButton('Choose screenshots')}<p class="muted">or drop them anywhere on this panel</p><p class="scan-privacy">${PRIVACY_NOTE}</p></div>`}
+      <details class="scan-howto about"><summary>How to take screenshots</summary><p class="small">${SCREENSHOT_GUIDANCE}</p><p class="small">${host.apply
+          ? 'R cards are ignored in screenshots and keep their current limit break in your inventory.'
+          : 'R cards are ignored in screenshots and exported at 4LB (MLB).'}</p>
+        ${started ? html`<p class="small scan-privacy">${PRIVACY_NOTE}</p>` : nothing}</details>
       ${notice ? html`<p class="scan-notice" data-notice>${notice}</p>` : nothing}
       ${error || failed.length ? html`<div role="alert" class="field-error scan-messages">
         ${error ? html`<p>${error}</p>` : nothing}${failed.map(s => html`<p>${s.name}: ${sourceCaption(s)}</p>`)}</div>` : nothing}
@@ -392,15 +327,15 @@ export function createScanner(host: ScannerHost): Scanner {
   // ---- Step 2: review ------------------------------------------------------------------------------------------
 
   function label(row: ReviewRow, conflicts: Set<number>) {
-    if (row.excluded) return copy.excluded;
+    if (row.excluded) return 'Excluded';
     if (row.cardId === null) return LABEL.selectCard;
-    if (conflicts.has(row.cardId)) return copy.conflict;
-    if (row.lb === null) return row.reviewed ? copy.setLb : copy.unreadable;
-    return row.reviewed ? copy.confirmed : copy.uncertain;
+    if (conflicts.has(row.cardId)) return CONFLICT_STATUS;
+    if (row.lb === null) return row.reviewed ? 'Set limit break' : 'Check limit break';
+    return row.reviewed ? 'Ready' : 'Check card match';
   }
   function candidates(row: ReviewRow) {
     if (row.reviewed || !row.detection?.candidates.length) return nothing;
-    return html`<details><summary>${copy.candidates}</summary><div class="scan-candidates">
+    return html`<details><summary>Suggested matches</summary><div class="scan-candidates">
       ${row.detection.candidates.map(match => {
         const card = cardById.get(match.id), name = card?.name ?? String(match.id);
         return html`<button class="scan-candidate" aria-label=${name} title=${name}
@@ -414,25 +349,25 @@ export function createScanner(host: ScannerHost): Scanner {
     const row = target[0]!;
     const card = row.cardId !== null ? cardById.get(row.cardId) : null;
     const lb = row.lb === null ? '' : String(row.lb);
-    const where = target.length > 1 ? copy.seenIn(target.length) : sourceById.get(row.source)?.name ?? copy.manual;
+    const where = target.length > 1 ? `Seen in ${target.length} screenshots` : sourceById.get(row.source)?.name ?? ADDED_MANUALLY;
     return html`<article class="scan-card ${cls} ${result.pending.has(row.key) ? 'scan-pending' : ''} ${row.excluded ? 'scan-excluded' : ''}"
       data-row=${row.key}>
       <div class="scan-pictures">
-        ${row.crop ? html`<img class="scan-crop" src=${row.crop} alt=${copy.source} data-box=${boxAttr(row.detection?.box)} />` : nothing}
-        ${card ? html`<img class="scan-artwork" src=${artworkUrl(card.id)} alt=${`${copy.reference}: ${card.name}`} />` : nothing}
+        ${row.crop ? html`<img class="scan-crop" src=${row.crop} alt="Screenshot crop" data-box=${boxAttr(row.detection?.box)} />` : nothing}
+        ${card ? html`<img class="scan-artwork" src=${artworkUrl(card.id)} alt=${referenceAlt(card.name)} />` : nothing}
       </div>
       <div class="scan-card-fields">
         <div class="scan-row-head"><span class="scan-source">${where}</span>
           <span class="scan-result-label" data-row-status>${label(row, result.conflicts)}</span></div>
         ${cardPicker.render(row.key, card, id => edit(target, { cardId: id, reviewed: true }))}
         <div class="scan-row-actions">
-          <label>${copy.lb}<select data-row-lb=${row.key} .value=${live(lb)}
+          <label>Limit break<select data-row-lb=${row.key} .value=${live(lb)}
             @change=${(e: Event) => edit(target, { lb: selectValue(e) ? Number(selectValue(e)) : null })}>
             ${options(lbOptions, lb)}</select></label>
           ${!row.excluded && !row.reviewed ? html`<button class="primary" data-confirm=${row.key}
-            ?disabled=${row.cardId === null || row.lb === null} @click=${() => edit(target, { reviewed: true })}>${copy.confirm}</button>` : nothing}
+            ?disabled=${row.cardId === null || row.lb === null} @click=${() => edit(target, { reviewed: true })}>Confirm</button>` : nothing}
           <button data-exclude=${row.key} @click=${() => edit(target, { excluded: !row.excluded })}>
-            ${row.excluded ? copy.restore : copy.exclude}</button>
+            ${row.excluded ? 'Restore' : EXCLUDE}</button>
         </div>
         ${candidates(row)}
       </div>
@@ -441,16 +376,16 @@ export function createScanner(host: ScannerHost): Scanner {
   /** Screenshots that disagree: each reading is shown with its crop, and one tap settles the card. */
   function conflictCard(group: Group, sourceById: Map<string, Source>) {
     return html`<article class="scan-card scan-pending scan-conflict" data-row=${group.rows[0]!.key} data-conflict=${group.cardId}>
-      <div class="scan-pictures"><img class="scan-artwork" src=${artworkUrl(group.cardId)} alt=${`${copy.reference}: ${group.card.name}`} /></div>
+      <div class="scan-pictures"><img class="scan-artwork" src=${artworkUrl(group.cardId)} alt=${referenceAlt(group.card.name)} /></div>
       <div class="scan-card-fields">
         <div class="scan-row-head"><span class="scan-source">${group.card.name}</span>
-          <span class="scan-result-label" data-row-status>${copy.conflict}</span></div>
+          <span class="scan-result-label" data-row-status>${CONFLICT_STATUS}</span></div>
         <div class="scan-conflict-options">${group.rows.map(row => html`<div class="scan-conflict-option">
-          ${row.crop ? html`<img class="scan-crop" src=${row.crop} alt=${sourceById.get(row.source)?.name ?? copy.manual} />` : nothing}
-          <span class="scan-source">${sourceById.get(row.source)?.name ?? copy.manual}</span>
-          <button class="primary small" data-use=${row.key} @click=${() => edit(group.rows, { lb: row.lb })}>${copy.useReading(row.lb!)}</button>
+          ${row.crop ? html`<img class="scan-crop" src=${row.crop} alt=${sourceById.get(row.source)?.name ?? ADDED_MANUALLY} />` : nothing}
+          <span class="scan-source">${sourceById.get(row.source)?.name ?? ADDED_MANUALLY}</span>
+          <button class="primary small" data-use=${row.key} @click=${() => edit(group.rows, { lb: row.lb })}>Use ${lbBadge(row.lb!)}</button>
         </div>`)}</div>
-        <div class="scan-row-actions"><button data-exclude=${group.rows[0]!.key} @click=${() => edit(group.rows, { excluded: true })}>${copy.exclude}</button></div>
+        <div class="scan-row-actions"><button data-exclude=${group.rows[0]!.key} @click=${() => edit(group.rows, { excluded: true })}>${EXCLUDE}</button></div>
       </div>
     </article>`;
   }
@@ -459,7 +394,7 @@ export function createScanner(host: ScannerHost): Scanner {
     return html`<button class="scan-tile ${cls}" data-tile=${key} data-card-id=${card.id} data-lb=${lb ?? ''} data-box=${boxAttr(box)}
       aria-pressed=${openKey === key} aria-expanded=${openKey === key} title=${card.name} @click=${() => toggle(key)}>
       <span class="scan-tile-art"><img src=${artworkUrl(card.id)} alt="" loading="lazy" />
-        ${lb !== null ? html`<span class="scan-lb">${copy.lbBadge(lb)}</span>` : nothing}</span>
+        ${lb !== null ? html`<span class="scan-lb">${lbBadge(lb)}</span>` : nothing}</span>
       <span class="scan-tile-name">${card.charName}</span>
     </button>`;
   }
@@ -468,7 +403,7 @@ export function createScanner(host: ScannerHost): Scanner {
     return html`<div class="scan-tile-editor scan-unseen-editor" data-add-card=${card.id}>
       <img class="scan-artwork" src=${artworkUrl(card.id)} alt="" />
       <div><p class="scan-source">${card.name}</p>
-        <label>${copy.ownedAt}<select data-add-lb=${card.id} .value=${live('')}
+        <label>Owned at limit break<select data-add-lb=${card.id} .value=${live('')}
           @change=${(e: Event) => { if (selectValue(e)) addOwned(card.id, Number(selectValue(e))); }}>
           ${options(lbOptions, '')}</select></label></div>
     </div>`;
@@ -485,33 +420,33 @@ export function createScanner(host: ScannerHost): Scanner {
     const unseen = t.unseen.filter(c => matches(c.name));
     const decide = t.attention.length + t.conflicts.length;
     const note = busy ? html`<span class="scan-reading" data-reading><span class="scan-spinner" aria-hidden="true"></span><span role="status">${status}</span></span>`
-      : html`<span data-summary role="status">${rows.length ? copy.summary(result.owned, decide, result.duplicates, t.excluded.length) : status}</span>`;
+      : html`<span data-summary role="status">${rows.length ? reviewSummary(result.owned, decide, result.duplicates, t.excluded.length) : status}</span>`;
     const toolbar = html`<div class="scan-toolbar">
-      <button data-add @click=${addManual} ?disabled=${busy}>${copy.add}</button>
-      ${rows.length || sources.length ? html`<button data-new @click=${newInventory} ?disabled=${busy}>${copy.newBatch}</button>` : nothing}
+      <button data-add @click=${addManual} ?disabled=${busy}>Add a card</button>
+      ${rows.length || sources.length ? html`<button data-new @click=${newInventory} ?disabled=${busy}>${NEW_INVENTORY}</button>` : nothing}
     </div>`;
     // Steps after the first stay dimmed until a batch has finished reading.
     const waiting = busy || !rows.length ? 'scan-waiting' : '';
-    if (!rows.length) return html`<section class="panel scan-review ${waiting}">${stepHead(2, copy.stepReview, note, toolbar)}<p class="muted">${copy.noExport}</p></section>`;
+    if (!rows.length) return html`<section class="panel scan-review ${waiting}">${stepHead(2, REVIEW_STEP, note, toolbar)}<p class="muted">Add screenshots or cards to create an inventory.</p></section>`;
     const editor = (key: string, target: ReviewRow[]) => openKey === key ? reviewCard(target, result, sourceById, 'scan-tile-editor') : nothing;
     return html`<section class="panel scan-review ${waiting}">
-      ${stepHead(2, copy.stepReview, note, toolbar)}
+      ${stepHead(2, REVIEW_STEP, note, toolbar)}
       <div class="scan-filters">
-        <input type="search" aria-label=${copy.search} placeholder=${copy.filter} .value=${live(query)}
+        <input type="search" aria-label="Filter by card or screenshot name" placeholder="Filter cards" .value=${live(query)}
           @input=${(e: Event) => { query = inputValue(e); paint(); }} />
       </div>
-      ${decide ? html`<h3 class="scan-group-head scan-decide">${copy.decide} <span class="pill">${decide}</span></h3>
+      ${decide ? html`<h3 class="scan-group-head scan-decide">Needs a decision <span class="pill">${decide}</span></h3>
         <div class="scan-cards" data-decide>
           ${repeat(conflicts, g => `g${g.cardId}`, g => conflictCard(g, sourceById))}
           ${repeat(attention, row => row.key, row => reviewCard([row], result, sourceById))}
-        </div>` : html`<p class="scan-all-ready" data-all-ready>${copy.allReady(t.ready.length)}</p>`}
+        </div>` : html`<p class="scan-all-ready" data-all-ready>All ${t.ready.length} card${t.ready.length === 1 ? '' : 's'} read with confidence.</p>`}
       <details data-ready ?open=${readyOpen} @toggle=${toggled(v => { readyOpen = v; })}>
-        <summary>${copy.ready} <span class="pill">${t.ready.length}</span> <span class="muted small">${copy.readyHint}</span></summary>
+        <summary>Read with confidence <span class="pill">${t.ready.length}</span> <span class="muted small">Open to check a reading or change a limit break.</span></summary>
         <div class="scan-tiles">${repeat(ready, g => g.cardId, g => html`
           ${tile(g.card, g.lbs[0] ?? null, `c${g.cardId}`, g.rows[0]?.detection?.box)}${editor(`c${g.cardId}`, g.rows)}`)}</div>
       </details>
       ${t.excluded.length ? html`<details data-excluded>
-        <summary>${copy.excludedGroup} <span class="pill">${t.excluded.length}</span></summary>
+        <summary>Excluded <span class="pill">${t.excluded.length}</span></summary>
         <div class="scan-tiles">${repeat(excluded, r => r.key, r => {
           const card = r.cardId !== null ? cardById.get(r.cardId) : undefined;
           return card ? html`${tile(card, r.lb, `r${r.key}`, r.detection?.box, 'scan-dim')}${editor(`r${r.key}`, [r])}`
@@ -519,12 +454,12 @@ export function createScanner(host: ScannerHost): Scanner {
         })}</div>
       </details>` : nothing}
       <details data-unseen>
-        <summary>${copy.unseen} <span class="pill">${t.unseen.length}</span> <span class="muted small">${copy.unseenHint}</span></summary>
+        <summary>Not seen in screenshots <span class="pill">${t.unseen.length}</span> <span class="muted small">Tap a card you own to add it.</span></summary>
         <div class="scan-tiles">${repeat(unseen, c => c.id, c => html`
           ${tile(c, null, `u${c.id}`, undefined, 'scan-dim')}${openKey === `u${c.id}` ? unseenEditor(c) : nothing}`)}</div>
       </details>
       ${!attention.length && !conflicts.length && !ready.length && !excluded.length && !unseen.length && query
-        ? html`<p>${copy.noFilterMatches}</p>` : nothing}
+        ? html`<p>No cards match this filter.</p>` : nothing}
     </section>`;
   }
 
@@ -538,7 +473,7 @@ export function createScanner(host: ScannerHost): Scanner {
     if (!host.apply || !canFinish(result)) return;
     let applied = null as InventoryChange | null;
     host.apply.onApply((current) => (applied = applyReadings(current, cards, result, mode)).inventory);
-    if (applied) notice = copy.applied(applied.owned.length, applied.unowned.length, applied.changed.length);
+    if (applied) notice = `Inventory updated: ${applied.owned.length} marked owned, ${applied.unowned.length} marked not owned, ${applied.changed.length} limit breaks changed.`;
     paint();
   }
   const modeOption = (value: ApplyMode, title: string, hint: string) => html`<label class="scan-mode">
@@ -547,28 +482,28 @@ export function createScanner(host: ScannerHost): Scanner {
   /** Explains what the action bar's button will do; the button itself stays in the bar so there is only one. */
   function finishStep(result: Summary, t: Triage) {
     if (!host.apply) {
-      return html`<section class="panel scan-export ${canFinish(result) ? '' : 'scan-waiting'}">${stepHead(3, copy.stepDownload)}<p>${copy.missing}</p>
-        <p>${copy.import} ${host.plannerUrl ? html`<a href=${host.plannerUrl}>${copy.openPlanner}</a>` : nothing}</p>
-        ${result.pending.size ? html`<p class="scan-result-label">${copy.exportBlocked}</p>` : nothing}
+      return html`<section class="panel scan-export ${canFinish(result) ? '' : 'scan-waiting'}">${stepHead(3, 'Download')}<p>SR and SSR cards missing from the reviewed results will be exported as not owned. Check coverage before downloading.</p>
+        <p>In Uma parent deck, choose ${LABEL.importFile} in the ${TITLE.inventory} panel and select the downloaded inventory.json. ${host.plannerUrl ? html`<a href=${host.plannerUrl}>Open Uma parent deck</a>` : nothing}</p>
+        ${result.pending.size ? html`<p class="scan-result-label">${EXPORT_BLOCKED}</p>` : nothing}
         ${canFinish(result) ? html`<details data-preview ?open=${previewOpen} @toggle=${toggled(v => { previewOpen = v; })}>
-          <summary>${copy.preview}</summary>${previewOpen ? html`<pre data-json>${inventoryJson(result)}</pre>` : nothing}</details>` : nothing}
+          <summary>Preview JSON</summary>${previewOpen ? html`<pre data-json>${inventoryJson(result)}</pre>` : nothing}</details>` : nothing}
       </section>`;
     }
     const planned = change(result);
     const changes = planned ? planned.owned.length + planned.unowned.length + planned.changed.length : 0;
     const names = (list: ScanCard[]) => list.map(c => c.name).join(', ');
-    return html`<section class="panel scan-export ${planned ? '' : 'scan-waiting'}">${stepHead(3, copy.stepApply)}
+    return html`<section class="panel scan-export ${planned ? '' : 'scan-waiting'}">${stepHead(3, 'Apply to inventory')}
       <div class="scan-modes">
-        ${modeOption('replace', copy.modeReplace, copy.modeReplaceHint(t.unseen.length))}
-        ${modeOption('update', copy.modeUpdate, copy.modeUpdateHint)}
+        ${modeOption('replace', 'Replace my inventory', `SR and SSR cards not seen in any screenshot (${t.unseen.length}) become not owned.`)}
+        ${modeOption('update', 'Update only the cards that were read', 'Every other card keeps its current value.')}
       </div>
-      ${planned ? html`<p data-change-summary>${changes ? copy.changeSummary(planned.owned.length, planned.unowned.length, planned.changed.length, planned.unchanged) : copy.noChanges}</p>
-        ${changes ? html`<details class="scan-change-list"><summary>${copy.changeList}</summary>
-          ${planned.owned.length ? html`<p><strong>${copy.listOwned}</strong> ${names(planned.owned)}</p>` : nothing}
-          ${planned.changed.length ? html`<p><strong>${copy.listChanged}</strong> ${names(planned.changed)}</p>` : nothing}
-          ${planned.unowned.length ? html`<p><strong>${copy.listUnowned}</strong> ${names(planned.unowned)}</p>` : nothing}
+      ${planned ? html`<p data-change-summary>${changes ? changeSummary(planned.owned.length, planned.unowned.length, planned.changed.length, planned.unchanged) : 'The readings match the current inventory.'}</p>
+        ${changes ? html`<details class="scan-change-list"><summary>Show the cards</summary>
+          ${planned.owned.length ? html`<p><strong>Owned:</strong> ${names(planned.owned)}</p>` : nothing}
+          ${planned.changed.length ? html`<p><strong>Changed:</strong> ${names(planned.changed)}</p>` : nothing}
+          ${planned.unowned.length ? html`<p><strong>Not owned:</strong> ${names(planned.unowned)}</p>` : nothing}
         </details>` : nothing}`
-        : rows.length ? html`<p class="scan-result-label">${copy.exportBlocked}</p>` : nothing}
+        : rows.length ? html`<p class="scan-result-label">${EXPORT_BLOCKED}</p>` : nothing}
     </section>`;
   }
   /** Stays in view at the bottom and holds the only finish button, so it never hides behind a long review. */
@@ -576,13 +511,14 @@ export function createScanner(host: ScannerHost): Scanner {
     const decide = t.attention.length + t.conflicts.length;
     const ready = canFinish(result);
     return html`<div class="scan-bar ${ready ? '' : 'scan-waiting'}" data-bar>
-      <span data-bar-summary>${rows.length ? copy.barSummary(t.ready.length, decide) : copy.barEmpty}</span>
+      <span data-bar-summary>${rows.length ? `${t.ready.length} ready${decide ? ` · ${decide} to decide` : ''}` : 'No readings yet'}</span>
       ${host.apply
-        ? html`<button class="primary" data-apply ?disabled=${!ready} title=${ready ? '' : copy.applyBlocked} @click=${() => apply(result)}>${copy.apply}</button>`
-        : html`<button class="primary" data-download ?disabled=${!ready} title=${ready ? '' : copy.applyBlocked} @click=${() => download(result)}>${copy.download}</button>`}
+        ? html`<button class="primary" data-apply ?disabled=${!ready} title=${ready ? '' : APPLY_BLOCKED} @click=${() => apply(result)}>Apply to inventory</button>`
+        : html`<button class="primary" data-download ?disabled=${!ready} title=${ready ? '' : APPLY_BLOCKED} @click=${() => download(result)}>Download inventory.json</button>`}
     </div>`;
   }
 
+  // Prototype flow: three numbered steps, a decision-first review, and a bar that keeps the finish action in view.
   function render() {
     const result = summarize(rows, cards);
     const t = triage(rows, cards, result);

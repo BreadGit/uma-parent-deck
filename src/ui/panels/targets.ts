@@ -19,28 +19,10 @@ import { probability, skillIcon } from '../format.ts';
 import { tip } from '../tooltip.ts';
 
 const PER_PARENT = 'Per parent';
-const copy = {
-  legend: 'Target white sparks',
-  tip: 'The white skills you want the finished parent to carry as sparks. A card that gives the skill or its gold form counts as a source. Each group adds through its own search. Select a name to edit its goal and lineage, and select it again to close. Closing a group also closes its editor.',
-  placeholder: { required: 'Add a required skill…', preferred: 'Add a preferred skill…' },
-  searchLabel: { required: 'Search skills to add as required', preferred: 'Search skills to add as preferred' },
-  roles: { required: 'Required', preferred: 'Preferred' },
-  noWhite: 'No white spark',
-  unsupported: 'This skill has no released white spark. Its target and saved lineage are kept for review. Its spark chance is zero, and the lineage gives no hints.',
-  goalsHeading: 'Goals for target white spark',
-  lineageHeading: 'White sparks in lineage',
-  priorityTip: 'Lower numbers give more weight: priority 0 = 1, priority 1 = 0.5, priority 2 = 0.25. Preferred white sparks count at any star level. Several lower-weight sparks can outweigh one higher-weight spark. This does not change the prioritized-skills list.',
-  lineageTip: (multiplier: number) => `Copies of this white spark already in the lineage: how many of the six umas (each parent and her two grandparents) carry it, and their star total. Each copy rolls for the hint at both inspiration events, and each copy multiplies the spark chance by ×${multiplier}. Totals fill the parents first, then the grandparents; "${PER_PARENT}" sets each uma instead.`,
-  lineageCopies: 'Copies',
-  lineageStars: 'Total stars',
-  lineageSummary: (copies: number, stars: number) => `${copies} ${copies === 1 ? 'copy' : 'copies'} · ${stars}★ total`,
-  perParent: PER_PARENT,
-  perParentTip: 'Enter the stars on each parent and grandparent instead of the totals',
-  fromTrainee: 'from trainee',
-  remove: 'Remove',
-  goldForm: (name: string) => `Gold form: ${name}.`,
-  noGoldForm: 'This skill has no gold form.',
-} as const;
+const WHITE_TARGETS_TIP = 'The white skills you want the finished parent to carry as sparks. A card that gives the skill or its gold form counts as a source. Each group adds through its own search. Select a name to edit its goal and lineage, and select it again to close. Closing a group also closes its editor.';
+const SEARCH_PLACEHOLDERS = { required: 'Add a required skill…', preferred: 'Add a preferred skill…' };
+const SEARCH_LABELS = { required: 'Search skills to add as required', preferred: 'Search skills to add as preferred' };
+const ROLE_LABELS = { required: 'Required', preferred: 'Preferred' };
 
 type Role = 'required' | 'preferred';
 const ROLES: readonly Role[] = ['required', 'preferred'];
@@ -94,7 +76,7 @@ const isSelected = (t: Target) => view.targetEditorId === t.id;
 /** A target's name with its icon and either the star minimum, the priority, or a warning that it has no white spark. */
 function nameButton(t: Target) {
   const entry = entryOf(t.id)!;
-  const suffix = !hasWhiteSpark(t) ? html`<span class="tag warn">${copy.noWhite}</span>`
+  const suffix = !hasWhiteSpark(t) ? html`<span class="tag warn">No white spark</span>`
     : entry.role === 'required' ? html`<b class="target-name-stars">${entry.stars}★+</b>` : html`<span class="sub-note">P${entry.priority}</span>`;
   return html`<button class="target-name ${isSelected(t) ? 'selected' : ''}" data-action="select-target" data-id=${t.id} aria-expanded=${isSelected(t)} aria-controls="target-editor" @click=${() => selectTarget(t.id)}>
     <img src=${skillIcon(t.white ?? t.gold ?? undefined)} alt="" />${t.name}${suffix}</button>`;
@@ -110,19 +92,20 @@ function lineageTotals(id: number, l: Lineage) {
   const n = lineageCount(l), stars = lineageStars(l);
   const starChoices = numbered(Array.from({ length: STARS_PER_SPARK_MAX * n - n + 1 }, (_, i) => n + i), (i) => `${i}★`);
   return html`<div class="target-lineage-totals">
-    <label>${copy.lineageCopies} <select data-lineage-copies=${id} aria-label="Copies in lineage" .value=${live(String(n))} @change=${(e: Event) => editLineage(id, (current) => withLineageCopies(current, Number(selectValue(e))))}>${options(COPY_CHOICES, String(n))}</select></label>
-    <label>${copy.lineageStars} <select data-lineage-stars=${id} aria-label="Total stars in lineage" ?disabled=${!n} .value=${live(String(stars))} @change=${(e: Event) => editLineage(id, (current) => withLineageStars(current, Number(selectValue(e))))}>${options(starChoices, String(stars))}</select></label>
+    <label>Copies <select data-lineage-copies=${id} aria-label="Copies in lineage" .value=${live(String(n))} @change=${(e: Event) => editLineage(id, (current) => withLineageCopies(current, Number(selectValue(e))))}>${options(COPY_CHOICES, String(n))}</select></label>
+    <label>Total stars <select data-lineage-stars=${id} aria-label="Total stars in lineage" ?disabled=${!n} .value=${live(String(stars))} @change=${(e: Event) => editLineage(id, (current) => withLineageStars(current, Number(selectValue(e))))}>${options(starChoices, String(stars))}</select></label>
   </div>`;
 }
 /** The stars on each parent and grandparent, one column per side, with the totals they add up to underneath. */
 function lineageParents(id: number, l: Lineage) {
+  const copies = lineageCount(l);
   return html`<div class="per-parent white" id="target-lineage-parents" data-lineage-parents=${id}>
     ${SIDES.map((side) => html`<div class="side p${side + 1}"><span class="side-head">Parent ${side + 1}</span>
       ${UMAS.map((ui) => { const i = side * UMAS_PER_PARENT_SIDE + ui, v = String(l[i]); return html`<span class="who">${UMA_LABELS[ui]}</span>
         <select class=${l[i] ? 'set' : ''} data-lineage-uma="${id}-${i}" aria-label="Parent ${side + 1} ${UMA_LABELS[ui]} stars" .value=${live(v)} @change=${(e: Event) => { const stars = Number(selectValue(e)); editLineage(id, (current) => current.map((was, j) => j === i ? stars : was)); }}>${options(UMA_STAR_CHOICES, v)}</select>`; })}
     </div>`)}
   </div>
-  <p class="small muted target-lineage-summary" data-lineage-summary=${id}>${copy.lineageSummary(lineageCount(l), lineageStars(l))}</p>`;
+  <p class="small muted target-lineage-summary" data-lineage-summary=${id}>${copies} ${copies === 1 ? 'copy' : 'copies'} · ${lineageStars(l)}★ total</p>`;
 }
 
 function editor(c: RunPlan, t: Target) {
@@ -130,23 +113,24 @@ function editor(c: RunPlan, t: Target) {
   const required = entry.role === 'required';
   const l = lineageOf(t.id), perParent = view.showLineageParents;
   const own = (c.existing.sources.get(t.id) ?? []).filter((s) => s.kind !== 'lineage');
+  const lineageTip = `Copies of this white spark already in the lineage: how many of the six umas (each parent and her two grandparents) carry it, and their star total. Each copy rolls for the hint at both inspiration events, and each copy multiplies the spark chance by ×${store.settings.lineageSparkMultiplier}. Totals fill the parents first, then the grandparents; "${PER_PARENT}" sets each uma instead.`;
   const goalControl = required
     ? html`<label class="target-stars">${LABEL.minimumStars} <select data-target-stars=${t.id} .value=${live(String(entry.stars))} @change=${(e: Event) => editTarget(t.id, (r) => { r.stars = Number(selectValue(e)); })}>${options(STAR_CHOICES, String(entry.stars))}</select></label>`
-    : html`<label class="target-stars">Priority ${tip(copy.priorityTip)}
+    : html`<label class="target-stars">Priority ${tip('Lower numbers give more weight: priority 0 = 1, priority 1 = 0.5, priority 2 = 0.25. Preferred white sparks count at any star level. Several lower-weight sparks can outweigh one higher-weight spark. This does not change the prioritized-skills list.')}
         <input type="number" min="0" max=${Number.MAX_SAFE_INTEGER} step="1" data-target-priority=${t.id} .value=${live(String(entry.priority))} @change=${(e: Event) => editTarget(t.id, (r) => { r.priority = sanitizePriority(inputNumber(e)); })} /></label>`;
   return html`<div class="target-editor" id="target-editor" data-target-editor=${t.id}>
-    <div class="target-editor-name"><b>${t.name}</b>${tip(`${(t.white ?? t.gold)?.desc ?? ''}\n\n${t.gold ? copy.goldForm(t.gold.name) : copy.noGoldForm}`)}
-      ${own.length ? html`<span class="tag ok">${copy.fromTrainee}</span>${tip(own.map((s) => `${s.detail}: ${probability(s.pObtain)}`).join('\n'))}` : nothing}
-      <button class="small target-remove" data-action="remove-target" data-id=${t.id} aria-label="Remove ${t.name}" @click=${() => removeTarget(t.id)}>${copy.remove}</button></div>
-    ${!hasWhiteSpark(t) ? html`<p class="small warn" data-target-unsupported>${copy.unsupported}</p>` : nothing}
-    <div class="target-editor-goals"><h3>${copy.goalsHeading}</h3>
+    <div class="target-editor-name"><b>${t.name}</b>${tip(`${(t.white ?? t.gold)?.desc ?? ''}\n\n${t.gold ? `Gold form: ${t.gold.name}.` : 'This skill has no gold form.'}`)}
+      ${own.length ? html`<span class="tag ok">from trainee</span>${tip(own.map((s) => `${s.detail}: ${probability(s.pObtain)}`).join('\n'))}` : nothing}
+      <button class="small target-remove" data-action="remove-target" data-id=${t.id} aria-label="Remove ${t.name}" @click=${() => removeTarget(t.id)}>Remove</button></div>
+    ${!hasWhiteSpark(t) ? html`<p class="small warn" data-target-unsupported>This skill has no released white spark. Its target and saved lineage are kept for review. Its spark chance is zero, and the lineage gives no hints.</p>` : nothing}
+    <div class="target-editor-goals"><h3>Goals for target white spark</h3>
       <div class="target-editor-controls"><div class="target-roles" role="group" aria-label="Goal for ${t.name}">
-        ${ROLES.map((role) => html`<button data-target-role=${role} data-id=${t.id} class=${entry.role === role ? 'active' : ''} aria-pressed=${entry.role === role} @click=${() => editTarget(t.id, (r) => { r.role = role; })}>${copy.roles[role]}</button>`)}
+        ${ROLES.map((role) => html`<button data-target-role=${role} data-id=${t.id} class=${entry.role === role ? 'active' : ''} aria-pressed=${entry.role === role} @click=${() => editTarget(t.id, (r) => { r.role = role; })}>${ROLE_LABELS[role]}</button>`)}
       </div>${goalControl}</div>
     </div>
     <div class="target-editor-lineage">
-      <div class="target-lineage-head"><h3>${copy.lineageHeading}${tip(copy.lineageTip(store.settings.lineageSparkMultiplier))}</h3>
-        <button class="small ${perParent ? 'active' : ''}" data-action="toggle-lineage-parents" aria-pressed=${perParent} aria-expanded=${perParent} aria-controls="target-lineage-parents" data-tip=${copy.perParentTip} @click=${toggleLineageParents}>${copy.perParent}</button></div>
+      <div class="target-lineage-head"><h3>White sparks in lineage${tip(lineageTip)}</h3>
+        <button class="small ${perParent ? 'active' : ''}" data-action="toggle-lineage-parents" aria-pressed=${perParent} aria-expanded=${perParent} aria-controls="target-lineage-parents" data-tip="Enter the stars on each parent and grandparent instead of the totals" @click=${toggleLineageParents}>${PER_PARENT}</button></div>
       ${perParent ? lineageParents(t.id, l) : lineageTotals(t.id, l)}
     </div>
   </div>`;
@@ -156,7 +140,7 @@ function editor(c: RunPlan, t: Target) {
 function search(role: Role) {
   const field = QUERY_FIELD[role];
   return searchBox<Skill>({
-    id: `target-search-${role}`, label: copy.searchLabel[role], placeholder: copy.placeholder[role], field, items: matchTargets(view[field]), key: (s) => s.id, action: 'add-target',
+    id: `target-search-${role}`, label: SEARCH_LABELS[role], placeholder: SEARCH_PLACEHOLDERS[role], field, items: matchTargets(view[field]), key: (s) => s.id, action: 'add-target',
     row: (s) => { const fam = resolveTarget(s.id, data); return html`<img src="${skillIcon(s)}" alt="" />${s.name}<span class="suggest-r">${isGold(s) ? 'gold' : `white${fam?.gold ? ` · gold: ${fam.gold.name}` : ''}`}</span>`; },
     pick: (s) => addTarget(s.id, role),
   });
@@ -179,7 +163,7 @@ function group(c: RunPlan, role: Role) {
     refresh();
   };
   return html`<details class="target-group" data-target-group=${role} ?open=${stored || holdsSelected} @toggle=${onToggle}>
-    <summary><span class="sub-note" data-target-count=${role}>${targets.length}</span>${copy.roles[role]}
+    <summary><span class="sub-note" data-target-count=${role}>${targets.length}</span>${ROLE_LABELS[role]}
       <span class="target-peek">${targets.slice(0, PEEK).map((t) => t.name).join(', ')}${targets.length > PEEK ? ', …' : ''}</span></summary>
     <div class="target-search">${search(role)}</div>
     ${targets.length ? html`<div class="target-list">${repeat(targets, (t) => t.id, (t) => html`${nameButton(t)}${isSelected(t) ? editor(c, t) : nothing}`)}</div>` : nothing}
@@ -187,7 +171,7 @@ function group(c: RunPlan, role: Role) {
 }
 
 export function renderTargets(c: RunPlan) {
-  return html`<fieldset class="goal-group" id="goal-white-targets"><legend>${copy.legend}${tip(copy.tip)}</legend>
+  return html`<fieldset class="goal-group" id="goal-white-targets"><legend>Target white sparks${tip(WHITE_TARGETS_TIP)}</legend>
     ${ROLES.map((role) => group(c, role))}
   </fieldset>`;
 }

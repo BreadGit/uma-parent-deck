@@ -32,23 +32,9 @@ import { unavailableRunChoices } from '../model/run.ts';
 import { storageNotice } from './storage-notice.ts';
 
 const RESET_ALL = 'Reset all';
-const copy = {
-  unavailable: 'Some saved choices are unavailable in this game data. Their IDs are kept in your save and share code, but excluded from calculations. Estimates cover only the available choices.',
-  missingTrainee: (id: number) => `Unavailable trainee: ${id}`,
-  missingCards: (ids: number[]) => `Unavailable pinned cards: ${ids.join(', ')}`,
-  missingSkills: (ids: number[]) => `Unavailable skills: ${ids.join(', ')}`,
-  tagline: 'Independent-training deck builder for white-spark farming',
-  resetAll: RESET_ALL,
-  resetAllTip: 'Start over: clears every choice except your inventory and advanced settings',
-  resetAllConfirm: `${RESET_ALL}? This clears the trainee, parent goal, targets, legacy screen, pinned and ignored cards, agenda picks, prioritized order, training focus and win threshold. Your inventory and advanced settings are kept.`,
-  waiting: `Start with step 1: pick the uma you will train. The deck, estimate and agenda fill in from there. Your card inventory can be set in ${TITLE.ranking} at any time.`,
-  hideInputs: '« Hide inputs',
-  hideInputsTip: 'Give the results the full width. The summary line keeps the run in view.',
-  showInputs: '» Show inputs',
-} as const;
 
 async function resetAll() {
-  if (!await confirmDialog(copy.resetAllConfirm, copy.resetAll)) return;
+  if (!await confirmDialog(`${RESET_ALL}? This clears the trainee, parent goal, targets, legacy screen, pinned and ignored cards, agenda picks, prioritized order, training focus and win threshold. Your inventory and advanced settings are kept.`, RESET_ALL)) return;
   const saved = update((state) => Object.assign(state, resetRun(state, data)));
   clearSharedUrl();
   // A reload reads the save back, so it would restore the old run if the reset was not written.
@@ -59,10 +45,10 @@ function unavailableChoices() {
   const missing = unavailableRunChoices(store.run, data);
   if (missing.trainee === null && !missing.cards.length && !missing.skills.length) return nothing;
   return html`<div class="banner small" data-unavailable-choices role="status">
-    <p>${copy.unavailable}</p>
-    ${missing.trainee !== null ? html`<p>${copy.missingTrainee(missing.trainee)}</p>` : nothing}
-    ${missing.cards.length ? html`<p>${copy.missingCards(missing.cards)}</p>` : nothing}
-    ${missing.skills.length ? html`<p>${copy.missingSkills(missing.skills)}</p>` : nothing}
+    <p>Some saved choices are unavailable in this game data. Their IDs are kept in your save and share code, but excluded from calculations. Estimates cover only the available choices.</p>
+    ${missing.trainee !== null ? html`<p>Unavailable trainee: ${missing.trainee}</p>` : nothing}
+    ${missing.cards.length ? html`<p>Unavailable pinned cards: ${missing.cards.join(', ')}</p>` : nothing}
+    ${missing.skills.length ? html`<p>Unavailable skills: ${missing.skills.join(', ')}</p>` : nothing}
   </div>`;
 }
 
@@ -82,17 +68,17 @@ function page() {
   return html`
     <header>
       <h1>Uma parent deck</h1>
-      <span class="meta">${copy.tagline}</span>
+      <span class="meta">Independent-training deck builder for white-spark farming</span>
       <span class="header-actions">
         <a class="button" href="./missions.html" data-page="missions">${TITLE.missions}</a>
         ${themeToggle(store.ui.theme, (theme) => update((s) => { s.ui.theme = theme; }))}
-        <button class="danger" data-action="reset-all" data-tip=${copy.resetAllTip} @click=${resetAll}>${copy.resetAll}</button>
+        <button class="danger" data-action="reset-all" data-tip="Start over: clears every choice except your inventory and advanced settings" @click=${resetAll}>${RESET_ALL}</button>
       </span>
     </header>
     ${storageNotice()}
     <main class="${inputsHidden ? 'inputs-hidden' : ''}">
       ${inputsHidden ? nothing : html`<div class="inputs" id="inputs" data-inputs>
-        ${ready ? html`<div class="inputs-head"><button class="small" data-action="hide-inputs" aria-expanded="true" aria-controls="inputs" data-tip=${copy.hideInputsTip} @click=${() => setInputsHidden(true)}>${copy.hideInputs}</button></div>` : nothing}
+        ${ready ? html`<div class="inputs-head"><button class="small" data-action="hide-inputs" aria-expanded="true" aria-controls="inputs" data-tip="Give the results the full width. The summary line keeps the run in view." @click=${() => setInputsHidden(true)}>« Hide inputs</button></div>` : nothing}
         ${unavailableChoices()}
         ${section('inventory', () => renderInventory())}
         ${section('trainee', () => renderTrainee(c))}
@@ -102,8 +88,8 @@ function page() {
         ${section('settings', () => renderSettings())}
       </div>`}
       <div class="results ${ready ? '' : 'waiting'}">
-        ${inputsHidden ? html`<div class="results-head"><button class="small" data-action="show-inputs" aria-expanded="false" aria-controls="inputs" @click=${() => setInputsHidden(false)}>${copy.showInputs}</button>${runSummary(c)}</div>${unavailableChoices()}` : nothing}
-        ${ready ? nothing : html`<p class="banner" data-waiting>${copy.waiting}</p>`}
+        ${inputsHidden ? html`<div class="results-head"><button class="small" data-action="show-inputs" aria-expanded="false" aria-controls="inputs" @click=${() => setInputsHidden(false)}>» Show inputs</button>${runSummary(c)}</div>${unavailableChoices()}` : nothing}
+        ${ready ? nothing : html`<p class="banner" data-waiting>Start with step 1: pick the uma you will train. The deck, estimate and agenda fill in from there. Your card inventory can be set in ${TITLE.ranking} at any time.</p>`}
         ${hasWarnings(c) ? section('warnings', () => renderWarnings(c)) : nothing}
         ${section('deck', () => renderDeck(c))}
         ${complete ? html`<div class="results-split">

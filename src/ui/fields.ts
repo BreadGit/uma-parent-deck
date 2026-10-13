@@ -10,11 +10,6 @@ import { refresh, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
 import { options, selectValue, inputValue, isComposing, type Option } from './form.ts';
 
-const copy = {
-  notOwned: 'not owned',
-  overridden: (rarity: string) => `${rarity} cards use a rarity override. Choose ${LABEL.useInventory} in ${TITLE.advanced} to edit individual cards.`,
-} as const;
-
 export interface SearchBox<T> {
   id: string;
   /** The input's accessible name; the placeholder disappears once the user types. */
@@ -120,6 +115,6 @@ export function lbSelect(c: RunPlan, card: Card, lb: number, cls = '') {
   const overridden = store.settings.inventoryOverrides[card.rarity] !== null;
   const explicit = store.inventory[String(card.id)] !== undefined;
   const current = owned ? String(lb) : 'none';
-  const items: Option[] = [{ value: 'none', label: copy.notOwned }, ...LIMIT_BREAKS.map((l) => ({ value: String(l), label: `${l}${overridden && lb === l ? ' (override)' : ''}` }))];
-  return html`<select data-lb=${card.id} class="${cls} ${explicit && !overridden ? '' : 'muted'}" aria-label="Limit break" .value=${live(current)} ?disabled=${overridden} data-tip=${overridden ? copy.overridden(card.rarity) : nothing} @change=${(e: Event) => setLb(card, selectValue(e))}>${options(items, current)}</select>`;
+  const items: Option[] = [{ value: 'none', label: 'not owned' }, ...LIMIT_BREAKS.map((l) => ({ value: String(l), label: `${l}${overridden && lb === l ? ' (override)' : ''}` }))];
+  return html`<select data-lb=${card.id} class="${cls} ${explicit && !overridden ? '' : 'muted'}" aria-label="Limit break" .value=${live(current)} ?disabled=${overridden} data-tip=${overridden ? `${card.rarity} cards use a rarity override. Choose ${LABEL.useInventory} in ${TITLE.advanced} to edit individual cards.` : nothing} @change=${(e: Event) => setLb(card, selectValue(e))}>${options(items, current)}</select>`;
 }

@@ -4,13 +4,7 @@ import { applySharedChoices, defaultState } from '../state.ts';
 import { data, onUpdate, refresh, stateRevision, store, update, view } from './context.ts';
 import { notice } from './dialog.ts';
 
-const copy = {
-  generateFailed: 'Could not update the share code. Your choices are saved on this device. Try an up-to-date browser.',
-  loadFailed: 'This code is invalid or incomplete. Your saved choices were kept.',
-  unsupported: 'This code uses a newer or unsupported share format. Try updating the app. Your saved choices were kept.',
-  tooLarge: 'These choices exceed the share-code size limit. Your saved choices were kept.',
-  editedDuringLoad: 'Your choices changed while the code was loading. Load it again to replace them.',
-} as const;
+const TOO_LARGE_NOTICE = 'These choices exceed the share-code size limit. Your saved choices were kept.';
 
 const defaultKey = shareKey(sharedChoices(defaultState(data)));
 let lastKey = '';
@@ -20,8 +14,8 @@ let importRequest = 0;
 
 /** The notice for a code that could not be loaded. */
 function loadFailure(error: unknown) {
-  return error instanceof ShareCodeError && error.reason === 'version' ? copy.unsupported
-    : error instanceof ShareCodeError && error.reason === 'size' ? copy.tooLarge : copy.loadFailed;
+  return error instanceof ShareCodeError && error.reason === 'version' ? 'This code uses a newer or unsupported share format. Try updating the app. Your saved choices were kept.'
+    : error instanceof ShareCodeError && error.reason === 'size' ? TOO_LARGE_NOTICE : 'This code is invalid or incomplete. Your saved choices were kept.';
 }
 
 /** Invalidate in-flight compression immediately, before debouncing the next snapshot. */
@@ -42,7 +36,7 @@ function queueSync(force = false) {
       if (request !== generation) return;
       // An older link must not claim to represent inputs we could not encode.
       history.replaceState(history.state, '', shareUrl(location.href, null));
-      void notice(error instanceof ShareCodeError && error.reason === 'size' ? copy.tooLarge : copy.generateFailed);
+      void notice(error instanceof ShareCodeError && error.reason === 'size' ? TOO_LARGE_NOTICE : 'Could not update the share code. Your choices are saved on this device. Try an up-to-date browser.');
     }
   }, 300);
 }
@@ -53,7 +47,7 @@ async function loadShare(code: string) {
   try {
     const choices = await decodeShare(code);
     if (request !== importRequest) return;
-    if (revision !== stateRevision) { void notice(copy.editedDuringLoad); return; }
+    if (revision !== stateRevision) { void notice('Your choices changed while the code was loading. Load it again to replace them.'); return; }
     view.targetEditorId = null;
     view.goalTemplateId = '';
     view.requiredQuery = ''; view.preferredQuery = ''; view.traineeQuery = ''; view.cardQuery = ''; view.ignoreQuery = ''; view.activeSearch = null;
