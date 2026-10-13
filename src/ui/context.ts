@@ -67,8 +67,8 @@ const viewState = {
 export type View = typeof viewState;
 
 // Each panel is rendered inside trackedPanel(), which records the view fields it reads and their values, so the
-// panel re-renders only when the plan, the persisted state, its extra dependencies or one of those fields changed.
-// Adding a view field never needs a dependency list updated by hand.
+// panel re-renders only when the plan, the persisted state or one of those fields changed. Adding a view field never
+// needs a dependency list updated by hand.
 interface PanelMemo { token: object; deps: unknown[]; values: Map<keyof View, unknown> }
 const panels = new Map<string, PanelMemo>();
 let renderingPanel: string | null = null;

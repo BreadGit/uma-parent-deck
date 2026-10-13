@@ -62,7 +62,7 @@ function page() {
   // the column can only be hidden once there is a run to show; until then the inputs are the page
   const inputsHidden = ready && store.ui.inputsHidden;
   const complete = !c.issues.length;
-  const section = (name: string, render: () => ReturnType<typeof panel>, deps: unknown[] = []) => trackedPanel(name, [c, stateRevision, ...deps], render);
+  const section = (name: string, render: () => ReturnType<typeof panel>) => trackedPanel(name, [c, stateRevision], render);
   return html`
     <header>
       <h1>Uma parent deck</h1>
