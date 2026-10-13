@@ -1,5 +1,7 @@
 // Deploy dist/ to Cloudflare as a Worker version named after the release, so the dashboard's version
 // list and `wrangler rollback` show releases by name instead of only a commit hash.
+// update-data.yml copies this file alone and runs it against an older release's checkout, so it imports nothing
+// from the repository.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 
