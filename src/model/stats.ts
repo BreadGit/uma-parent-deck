@@ -1,4 +1,4 @@
-import { STATS, statValues, type Card, type Character, type Focus, type StatModel, type StatValues } from '../types.ts';
+import { STATS, perStat, type Card, type Character, type Focus, type StatModel, type StatValues } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { BLUE_GENERATION_BANDS } from './rules.ts';
 
@@ -24,7 +24,7 @@ export function modelContribution(card: Card, lb: number, model: StatModel, extr
   const fittedEffects = (slopes: Record<number, number> = {}) => Object.entries(slopes)
     .reduce((sum, [effect, coefficient]) => sum + coefficient * (p[Number(effect)] ?? 0), 0);
   const statEffects = fittedEffects(model.effectSlopes);
-  const stats = statValues((s, i) => {
+  const stats = perStat((s, i) => {
     let v = model.floor + (p[EFFECT.initialStat + i] ?? 0);
     const role = card.type === s ? 'primary' : (model.secondary[card.type] ?? []).includes(s) ? 'secondary' : null;
     if (role) {
@@ -58,12 +58,12 @@ export function referenceObservation(card: Card, lb: number, model: StatModel): 
  */
 export function cardContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): Contribution {
   const near = referenceObservation(card, lb, model);
-  if (near?.lb === lb) return { stats: statValues((_, i) => near.stats[i]!), sp: near.sp, source: 'observed', runs: near.runs };
+  if (near?.lb === lb) return { stats: perStat((_, i) => near.stats[i]), sp: near.sp, source: 'observed', runs: near.runs };
   const m = modelContribution(card, lb, model, near ? {} : extra);
   if (near) {
     const mNear = modelContribution(card, near.lb, model);
     return {
-      stats: statValues((_, i) => Math.max(0, near.stats[i]! + (m.stats[i] - mNear.stats[i]))),
+      stats: perStat((_, i) => Math.max(0, near.stats[i] + (m.stats[i] - mNear.stats[i]))),
       sp: Math.max(0, near.sp + (m.sp - mNear.sp)),
       source: 'observed+model',
       runs: near.runs,
@@ -83,9 +83,9 @@ export interface Prediction {
   finalMean: StatValues;   // + trainee base stats (no inheritance)
 }
 
-function interp(values: Record<string, number[]>, races: number): StatValues;
+function interp(values: Record<string, StatValues>, races: number): StatValues;
 function interp(values: Record<string, number>, races: number): number;
-function interp(values: Record<string, number | number[]>, races: number): number | StatValues {
+function interp(values: Record<string, number | StatValues>, races: number): number | StatValues {
   const samples = Object.entries(values).map(([count, value]) => ({ races: Number(count), value }))
     .filter((sample) => Number.isFinite(sample.races)).sort((a, b) => a.races - b.races);
   if (!samples.length) throw new Error('event model has no race measurements');
@@ -96,7 +96,7 @@ function interp(values: Record<string, number | number[]>, races: number): numbe
   const interpolate = (a: number, b: number) => b + (a - b) * weight;
   if (Array.isArray(low.value) && Array.isArray(high.value)) {
     const a = low.value, b = high.value;
-    return statValues((_, i) => interpolate(a[i]!, b[i]!));
+    return perStat((_, i) => interpolate(a[i], b[i]));
   }
   if (typeof low.value === 'number' && typeof high.value === 'number') return interpolate(low.value, high.value);
   throw new Error('event model race measurements mix stats and skill points');
@@ -104,25 +104,25 @@ function interp(values: Record<string, number | number[]>, races: number): numbe
 
 export function predictDeck(deck: DeckInput[], trainee: Character | null, races: number, focus: Focus, expectedLosses: number, model: StatModel, settings: Settings, fansBefore?: (slot: number) => number): Prediction {
   const scale = raceScale(races, model, settings);
-  const cardStats: StatValues = [0, 0, 0, 0, 0];
+  let cardStats: StatValues = perStat(() => 0);
   let cardSp = 0;
   for (const d of deck) {
     const c = cardContribution(d.card, d.lb, model, uniqueExtras(d.card, d.lb, model, { deck, fansBefore }));
-    c.stats.forEach((v, i) => (cardStats[i]! += v * scale));
+    cardStats = perStat((_, i) => cardStats[i] + c.stats[i] * scale);
     cardSp += c.sp * scale;
   }
-  const growth = trainee?.growth ?? [0, 0, 0, 0, 0];
+  const growth: StatValues = trainee?.growth ?? [0, 0, 0, 0, 0];
   // Interpolate the measured race counts; extrapolate linearly within the planning range.
   const r = Math.max(8, Math.min(40, races));
   const eventBase = interp(model.eventBase, r);
-  const eventStats = statValues((_, i) => eventBase[i] * (1 + model.growthEffect * (growth[i] ?? 0) / 100));
-  const focusMul = model.focus[focus] ?? [1, 1, 1, 1, 1];
+  const eventStats = perStat((_, i) => eventBase[i] * (1 + model.growthEffect * growth[i] / 100));
+  const focusMul: StatValues = model.focus[focus] ?? [1, 1, 1, 1, 1];
   const penalty = settings.lossPenalty * expectedLosses;
-  const mean = statValues((_, i) => Math.max(0, (cardStats[i]! + eventStats[i]!) * focusMul[i]! - penalty / STATS.length));
-  const sd = statValues((_, i) => model.sigma[i]!);
+  const mean = perStat((_, i) => Math.max(0, (cardStats[i] + eventStats[i]) * focusMul[i] - penalty / STATS.length));
+  const sd = perStat((_, i) => model.sigma[i]);
   const sp = cardSp + interp(model.eventSp, r);
-  const base = trainee?.baseStats ?? [0, 0, 0, 0, 0];
-  const out = { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: statValues((_, i) => mean[i] + (base[i] ?? 0)) };
+  const base: StatValues = trainee?.baseStats ?? [0, 0, 0, 0, 0];
+  const out = { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: perStat((_, i) => mean[i] + base[i]) };
   for (const v of [...out.mean, ...out.sd, ...out.finalMean, out.sp]) if (!Number.isFinite(v)) throw new Error('prediction produced a non-finite number');
   return out;
 }

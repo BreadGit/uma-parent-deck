@@ -1,7 +1,7 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
 import { parseRecommendation, type SavedRecommendation } from './recommendation.ts';
-import { APTITUDE_KEYS, APT_GRADES, RARITIES, gameIdKey, gameIds, isCalendarId, isGameId, isPlainObject, statValues, type Data, type Grade, type Inventory, type StatValues } from './types.ts';
+import { APTITUDE_KEYS, APT_GRADES, RARITIES, gameIdKey, gameIds, isCalendarId, isGameId, isPlainObject, perStat, type Data, type Grade, type Inventory, type StatValues } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
@@ -56,7 +56,7 @@ type Json = Record<string, unknown>;
 /** Whether a parsed value has the single-object shape the state key has always held (version 4 onward). */
 const isSave = (v: unknown): v is Json & { version: number } => isPlainObject(v) && Number.isSafeInteger(v.version) && (v.version as number) >= 4;
 /** Stat arrays are positional. A malformed entry becomes zero without moving the entries after it. */
-const savedStats = (raw: unknown): StatValues => statValues((_, i) => {
+const savedStats = (raw: unknown): StatValues => perStat((_, i) => {
   const v: unknown = Array.isArray(raw) ? raw[i] : undefined;
   return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : 0;
 });
@@ -95,17 +95,17 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   // blue sparks: one combined blueStars list (v1) became stars per parent (v2), then the start gain per parent as
   // the legacy screen shows it (v5), then the spark each of the side's three umas carries (v6). Gains decode into
   // sparks; a side the screen could not show becomes empty. Partial and empty sides are kept.
-  const starsToGains = (p: number[]) => p.map((stars) => gainOfSparks(sparksFromStars(stars)));
-  const sideFromGains = (gains: number[]): ParentSparks => parentSparksFromGains(gains) ?? defaultParentSparks();
-  let gains: number[][] | null = null;
+  const starsToGains = (stars: StatValues): StatValues => perStat((_, i) => gainOfSparks(sparksFromStars(stars[i])));
+  const sideFromGains = (gains: StatValues): ParentSparks => parentSparksFromGains(gains) ?? defaultParentSparks();
+  let gains: StatValues[] | null = null;
   if (Array.isArray(raw.parentSparks) && raw.parentSparks.length === 2) run.parentSparks = raw.parentSparks.map(sanitizeParentSparks);
   else if (Array.isArray(raw.parentGains) && raw.parentGains.length === 2) gains = raw.parentGains.map(savedStats);
   else if (Array.isArray(raw.parentStars) && raw.parentStars.length === 2) gains = raw.parentStars.map(savedStats).map(starsToGains);
   else if (Array.isArray(raw.blueStars)) {
     let left = MAX_PARENT_STARS;
     const all = savedStats(raw.blueStars);
-    const p1 = all.map((v) => { const take = Math.min(v, left); left -= take; return take; });
-    gains = [starsToGains(p1), starsToGains(all.map((v, i) => Math.min(MAX_PARENT_STARS, v - p1[i]!)))];
+    const p1 = perStat((_, i) => { const take = Math.min(all[i], left); left -= take; return take; });
+    gains = [starsToGains(p1), starsToGains(perStat((_, i) => Math.min(MAX_PARENT_STARS, all[i] - p1[i])))];
   }
   if (gains) run.parentSparks = gains.map(sideFromGains);
   run.goal = sanitizeGoal(raw.goal);

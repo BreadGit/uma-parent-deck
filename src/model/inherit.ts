@@ -1,5 +1,5 @@
 import type { Settings } from '../settings.ts';
-import { isPlainObject, STATS, type Stat } from '../types.ts';
+import { isPlainObject, perStat, STATS, type Stat, type StatIndex, type StatValues } from '../types.ts';
 import { BLUE_SPARK_INSPIRATION_PROC_BY_STARS, BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_GAIN_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, INSPIRATION_EVENTS, MAX_BLUE_STARS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from './rules.ts';
 export { MAX_BLUE_STARS, MAX_PARENT_STARS };
 
@@ -55,7 +55,7 @@ export function sanitizeParentSparks(raw: unknown): ParentSparks {
   return raw.map((v: BlueSpark | null) => (v ? { stat: v.stat, stars: v.stars } : null));
 }
 /** The "+XX" one side shows above each stat: the sum of its umas' sparks on that stat. */
-export const gainsOfParentSparks = (sparks: ParentSparks): number[] => STATS.map((st) => gainOfSparks(sparks.filter((s) => s?.stat === st).map((s) => s!.stars)));
+export const gainsOfParentSparks = (sparks: ParentSparks): StatValues => perStat((st) => gainOfSparks(sparks.filter((s) => s?.stat === st).map((s) => s!.stars)));
 /** Sparks from the legacy screen's five gains, in stat order, strongest first; null when they need more than three umas. */
 export function parentSparksFromGains(gains: number[]): ParentSparks | null {
   if (gains.length !== STATS.length || gains.some((g) => !START_GAINS.some((v) => v.gain === g))) return null;
@@ -131,8 +131,8 @@ export function inheritedFromSparks(sparks: number[], settings: Settings): Inher
 export const inheritedFromGain = (gain: number, settings: Settings) => inheritedFromSparks(sparksFromGain(gain), settings);
 
 /** Sum of both parents' inheritance for one stat from their start gains. */
-export function inheritedFromParents(parentGains: number[][], statIndex: number, settings: Settings): Inheritance {
-  const parts = parentGains.map((p) => inheritedFromGain(p[statIndex] ?? 0, settings));
+export function inheritedFromParents(parentGains: readonly StatValues[], statIndex: StatIndex, settings: Settings): Inheritance {
+  const parts = parentGains.map((p) => inheritedFromGain(p[statIndex], settings));
   const sum = (k: keyof Inheritance) => parts.reduce((a, x) => a + x[k], 0);
   return { start: sum('start'), inspiration: sum('inspiration'), inspirationMax: sum('inspirationMax'), total: sum('total'), uncap: sum('uncap'), variance: sum('variance') };
 }

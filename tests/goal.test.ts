@@ -13,7 +13,7 @@ import { statScore, thresholdFor } from '../src/model/rank.ts';
 import { phi } from '../src/model/stats.ts';
 import { planRun, predictRunDeck, unavailableRunChoices } from '../src/model/run.ts';
 import { makeCtx, evaluate, traineeCoverage, type Ctx } from '../src/model/deck.ts';
-import { APTITUDE_KEYS, type AptKey, type Grade } from '../src/types.ts';
+import { APTITUDE_KEYS, perStat, type AptKey, type Grade, type StatValues } from '../src/types.ts';
 
 const data = loadData(), settings = structuredClone(DEFAULT_SETTINGS);
 const DEFAULT_GOAL = goalWithTargets(BASE_GOAL, []);
@@ -118,7 +118,7 @@ test('Any pink counts all eligible types and needs no ancestry when one is alrea
 
 test('Any pink contributes its star chance to the complete goal', () => {
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
-  const stats = { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 3000, skillSd: 0 };
+  const stats: GoalStats = { rawMean: perStat(() => 1100), sd: perStat(() => 0), skillPoints: 3000, skillSd: 0 };
   for (const [pinkStars, expected] of [[2, .64], [3, .08]]) {
     const result = evaluateTraineeGoal({ ...DEFAULT_GOAL, pink: [{ aptitude: 'any', stars: pinkStars! }] }, emptyPinkLineage(), apt(), ctx, stats, []);
     assert.deepEqual(result.issues, []);
@@ -152,7 +152,7 @@ test('empty pink slots count as zero sparks and partial lineage gives an estimat
   assert.deepEqual(pinkEstimate(grades, 'end', 2, lineage(), 150).warnings, []);
   assert.deepEqual(pinkEstimate(grades, 'any', 2, partial, 150).warnings, []);
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
-  const stats = { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 3000, skillSd: 0 };
+  const stats: GoalStats = { rawMean: perStat(() => 1100), sd: perStat(() => 0), skillPoints: 3000, skillSd: 0 };
   const goal = { ...DEFAULT_GOAL, pink: [{ aptitude: 'turf' as const, stars: 2 }] };
   const result = evaluateTraineeGoal(goal, emptyPinkLineage(), grades, ctx, stats, []);
   close(result.probability!, .64);
@@ -247,7 +247,7 @@ test('gold-or-white outcome and duplicate prerequisite rewards yield one family 
 
 test('rank bands share a stat outcome with blue and both required white stars', () => {
   const goal = { ...structuredClone(DEFAULT_GOAL), required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] };
-  const means = [1090, 1000, 1000, 1000, 1000];
+  const means: StatValues = [1090, 1000, 1000, 1000, 1000];
   goal.blueStats = ['speed'];
   const points = 17500 - means.reduce((p, v) => p + statScore(v), 0);
   const shared = statGoalMoments({ rawMean: means, sd: [120, 0, 0, 0, 0], skillPoints: points, skillSd: 0 }, goal);
@@ -266,9 +266,9 @@ test('rare blue thresholds retain finite attempts and their shared white-rank ou
   const goal = { ...structuredClone(DEFAULT_GOAL), blueStats: ['stamina' as const], blueStars: 3, pink: [{ aptitude: 'any' as const, stars: 2 }] };
   const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
-  const stats = { rawMean: [1100, 490, 1100, 1100, 1100], sd: [0, 32, 0, 0, 0], skillPoints: 17500 - 4 * statScore(1100) - statScore(600), skillSd: 0 };
+  const stats: GoalStats = { rawMean: [1100, 490, 1100, 1100, 1100], sd: [0, 32, 0, 0, 0], skillPoints: 17500 - 4 * statScore(1100) - statScore(600), skillSd: 0 };
   const expectedBlue = .01 * (phi((490 - 599.5) / 32) + phi((490 - 1099.5) / 32));
-  const estimate = (required = goal.required, caps?: number[]) => evaluateTraineeGoal({ ...goal, required }, emptyPinkLineage(), apt(), ctx, { ...stats, caps }, []);
+  const estimate = (required = goal.required, caps?: StatValues) => evaluateTraineeGoal({ ...goal, required }, emptyPinkLineage(), apt(), ctx, { ...stats, caps }, []);
   const blueOnly = estimate();
   close(blueOnly.blue / expectedBlue, 1);
   close(blueOnly.probability! / (expectedBlue * .8), 1);
@@ -283,14 +283,14 @@ test('rare blue thresholds retain finite attempts and their shared white-rank ou
 });
 
 test('blue marginals integrate rounding, capped tails, and multiple acceptable stats', () => {
-  const stats = { rawMean: [590, 1090, 500, 590, 1090], sd: [32, 32, 0, 32, 32], caps: [599, 1099, 1200, 600, 1100], skillPoints: 3000, skillSd: 400 };
+  const stats: GoalStats = { rawMean: [590, 1090, 500, 590, 1090], sd: [32, 32, 0, 32, 32], caps: [599, 1099, 1200, 600, 1100], skillPoints: 3000, skillSd: 400 };
   const goal = structuredClone(DEFAULT_GOAL);
   const middleTail = phi((590 - 599.5) / 32), highTail = phi((1090 - 1099.5) / 32);
   close(statGoalMoments(stats, { ...goal, blueStars: 1 }).blue, 1);
-  close(statGoalMoments({ ...stats, rawMean: Array(5).fill(599.5), sd: Array(5).fill(32) }, { ...goal, blueStars: 1 }).blue, 1);
+  close(statGoalMoments({ ...stats, rawMean: perStat(() => 599.5), sd: perStat(() => 32) }, { ...goal, blueStars: 1 }).blue, 1);
   close(statGoalMoments(stats, goal).blue, (.1 + .5 + .1 + (.1 + .4 * middleTail) + (.5 + .3 * highTail)) / 5);
   close(statGoalMoments(stats, { ...goal, blueStars: 3 }).blue, (.05 + .05 * middleTail + .05 + .05 * highTail) / 5);
-  const extreme = { ...stats, rawMean: [0, 0, 0, 0, 0], sd: [70, 0, 0, 0, 0], caps: [1200, 1200, 1200, 1200, 1200] };
+  const extreme: GoalStats = { ...stats, rawMean: [0, 0, 0, 0, 0], sd: [70, 0, 0, 0, 0], caps: [1200, 1200, 1200, 1200, 1200] };
   const rare = statGoalMoments(extreme, { ...goal, blueStats: ['speed'], blueStars: 3 });
   close(rare.blue / (.01 * (phi(-599.5 / 70) + phi(-1099.5 / 70))), 1);
   assert.ok(rare.blueAllWhiteStars > 0, 'upper tails smaller than machine epsilon remain reachable');
@@ -345,7 +345,7 @@ test('unavailable required skills give zero; incomplete inputs give no complete 
   const goal = { ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
   const trainee = { ...data.characters[0]!, innateSkills: [], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings: { ...settings, scenarioPickRate: 0 }, races: 0, totalTurns: 72, trainee });
-  const stats = { rawMean: [1000, 1000, 1000, 1000, 1000], sd: [0, 0, 0, 0, 0], skillPoints: 3000, skillSd: 0 };
+  const stats: GoalStats = { rawMean: [1000, 1000, 1000, 1000, 1000], sd: [0, 0, 0, 0, 0], skillPoints: 3000, skillSd: 0 };
   const result = evaluateTraineeGoal(goal, lineage(), apt(), ctx, stats, []);
   assert.equal(result.probability, 0);
   assert.equal(evaluateTraineeGoal({ ...goal, blueStats: [] }, lineage(), apt(), ctx, stats, []).probability, null);
@@ -357,7 +357,7 @@ test('zero, one, and many required whites use a product within each shared rank 
   const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id, c.id], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
   const grades = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
-  const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
+  const stats: GoalStats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
   const requirements = [{ id: a.id, stars: 2 }, { id: b.id, stars: 3 }, { id: c.id, stars: 1 }];
   const each = [.2 * .8, .2 * .1, .25];
   const goal = (n: number) => ({ ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: requirements.slice(0, n), preferred: [] });
@@ -430,7 +430,8 @@ test('v7 required slots become a variable list and old goal-only skills join the
 
 
 test('warm stat distributions respect changed means, spread, caps and blue requirements', () => {
-  const stats = { rawMean: [600, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], caps: [1200, 0, 0, 0, 0], skillPoints: 0, skillSd: 0 };
+  const caps: StatValues = [1200, 0, 0, 0, 0];
+  const stats: GoalStats = { rawMean: [600, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], caps, skillPoints: 0, skillSd: 0 };
   const goal = { ...structuredClone(DEFAULT_GOAL), blueStats: ['speed' as const], blueStars: 3 };
   const estimate = () => goalRankBands(stats, goal, 17500).blue;
   close(estimate(), .01);
@@ -438,9 +439,9 @@ test('warm stat distributions respect changed means, spread, caps and blue requi
   close(estimate(), 0);
   stats.rawMean[0] = 600; stats.sd[0] = 32;
   close(estimate(), .01 * (phi(.5 / 32) + phi(-499.5 / 32)));
-  stats.caps[0] = 599;
+  caps[0] = 599;
   close(estimate(), 0);
-  stats.caps[0] = 1200; stats.sd[0] = 0;
+  caps[0] = 1200; stats.sd[0] = 0;
   close(estimate(), .01);
   goal.blueStars = 2;
   close(estimate(), .1);
@@ -449,7 +450,7 @@ test('warm stat distributions respect changed means, spread, caps and blue requi
 });
 
 test('shared stat distributions retain separate sample dimensions and sample counts', () => {
-  const stats = { rawMean: Array(5).fill(1000), sd: Array(5).fill(120), skillPoints: 3000, skillSd: 250 };
+  const stats: GoalStats = { rawMean: perStat(() => 1000), sd: perStat(() => 120), skillPoints: 3000, skillSd: 250 };
   // Recorded with the uncached sampler. Identical distributions still use five different Halton dimensions.
   const expected = [
     { count: 32, pSS: .09053644696617877, blueSS: .07722426755514515 },
@@ -469,7 +470,7 @@ test('shared stat distributions retain separate sample dimensions and sample cou
 });
 
 test('a stat with no outcomes fails loudly instead of yielding an empty rank basis', () => {
-  const stats = { rawMean: Array(5).fill(800), sd: [50, 50, 50, NaN, 50], skillPoints: 3000, skillSd: 250 };
+  const stats: GoalStats = { rawMean: perStat(() => 800), sd: [50, 50, 50, NaN, 50], skillPoints: 3000, skillSd: 250 };
   assert.throws(() => goalRankBands(stats, DEFAULT_GOAL, 17500, settings, 32), /guts has no stat outcomes/);
   assert.throws(() => goalRankBands({ ...stats, sd: [NaN, 50, 50, 50, 50] }, DEFAULT_GOAL, 17500, settings, 32), /speed has no stat outcomes/);
 });
@@ -514,7 +515,7 @@ test('preferred targets migrate priority zero and count one-star sparks without 
   const trainee = { ...data.characters[0]!, innateSkills: [a.id], awakeningSkills: [], eventSkills: [], events: [] };
   const oneStar = { ...settings, whiteSparkRate: .2, whiteStarsBelowB: [1, 0, 0] };
   const ctx = makeCtx({ data, settings: oneStar, races: 0, totalTurns: 72, trainee });
-  const stats = { rawMean: Array(5).fill(0), sd: Array(5).fill(0), skillPoints: 0, skillSd: 0 };
+  const stats: GoalStats = { rawMean: perStat(() => 0), sd: perStat(() => 0), skillPoints: 0, skillSd: 0 };
   const result = evaluateTraineeGoal(goal, [], apt(), ctx, stats, []);
   close(result.preferred[0]!.probability, .2);
   close(result.probability!, evaluateTraineeGoal({ ...goal, preferred: [] }, [], apt(), ctx, stats, []).probability!);

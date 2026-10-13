@@ -1,7 +1,7 @@
 // The trainee: who is being trained, at how many stars, and what she brings to the run herself.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
-import { STATS } from '../../types.ts';
+import { perStat } from '../../types.ts';
 import type { Character } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { clampStars, hasExactStarTable, STARS_MAX } from '../../model/trainee.ts';
@@ -55,8 +55,8 @@ function chosen(c: RunPlan) {
     ${store.run.traineeStars < rarity ? html`<p class="small warn" data-trainee-rarity-note>${copy.savedStars(rarity)}</p>` : nothing}
     <div class="facts small">
       <span class="fact-k">Base stats</span>
-      <span class="stat-strip">${STATS.map((st, i) => html`<span>${statIcon(st)}${t.baseStats[i]}</span>`)}${hasExactStarTable(data.charByCardId.get(t.cardId)!, store.run.traineeStars) ? nothing : html`<span class="warn">interpolated${tip(copy.interpolated(store.run.traineeStars))}</span>`}</span>
-      <span class="fact-k">Growth</span><span>${t.growth.some((g) => g > 0) ? STATS.map((s, i) => t.growth[i]! > 0 ? `${capitalize(s)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</span>
+      <span class="stat-strip">${perStat((st, i) => html`<span>${statIcon(st)}${t.baseStats[i]}</span>`)}${hasExactStarTable(data.charByCardId.get(t.cardId)!, store.run.traineeStars) ? nothing : html`<span class="warn">interpolated${tip(copy.interpolated(store.run.traineeStars))}</span>`}</span>
+      <span class="fact-k">Growth</span><span>${t.growth.some((g) => g > 0) ? perStat((s, i) => t.growth[i] > 0 ? `${capitalize(s)} +${t.growth[i]}%` : '').filter(Boolean).join(' · ') : 'none'}</span>
       <span class="fact-k">Innate</span><span>${skills(t.innateSkills)}</span>
       <span class="fact-k">Awakening</span><span>${skills(t.awakeningSkills)}</span>
     </div>`;

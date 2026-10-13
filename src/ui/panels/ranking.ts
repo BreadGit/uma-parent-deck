@@ -2,7 +2,7 @@
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
-import { STATS } from '../../types.ts';
+import { perStat, STATS, type StatValues } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
 import { cardTargetChances, compareTargetChances, rankingRows, type TargetSparkChance } from '../../model/card-ranking.ts';
@@ -72,7 +72,7 @@ function targetChancesCell(cardId: number, targets: TargetSparkChance[]) {
   </td>`;
 }
 
-function row(c: RunPlan, x: CardScore, chances: TargetSparkChance[], focusMul: number[]) {
+function row(c: RunPlan, x: CardScore, chances: TargetSparkChance[], focusMul: StatValues) {
   const owned = !c.unowned.has(x.card.id);
   const ignored = store.run.ignoredIds.includes(x.card.id);
   return html`<tr class="${owned ? '' : 'dim'} ${ignored ? 'ignored' : ''}" data-ranking-row=${x.card.id}>
@@ -82,7 +82,7 @@ function row(c: RunPlan, x: CardScore, chances: TargetSparkChance[], focusMul: n
     </div></td>
     <td>${lbSelect(c, x.card, x.lb)}</td>
     ${targetChancesCell(x.card.id, chances)}
-    ${x.stats.map((v, i) => html`<td class="num" data-card-stat="${STATS[i]}">${num(v * (focusMul[i] ?? 1))}</td>`)}
+    ${perStat((stat, i) => html`<td class="num" data-card-stat="${stat}">${num(x.stats[i] * focusMul[i])}</td>`)}
     <td class="num" data-card-stat-total><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
     <td class="basis small">${basis(c, x)}</td>
   </tr>`;
@@ -93,7 +93,7 @@ export function renderRanking(c: RunPlan) {
   const sortKey = fn ? store.ui.sortKey : 'score';
   const chances = new Map(c.ranking.map((x) => [x.card.id, cardTargetChances(x, store.run.targets, c.ctx)]));
   // per-stat cells carry the training focus multipliers, like the Total column (their focus-weighted sum)
-  const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
+  const focusMul: StatValues = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
   const rows = rankingRows(c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)), store.run.pinnedIds, deckOrder(c), (a, b) =>
     fn ? fn(b) - fn(a) : compareTargetChances(chances.get(a.card.id)!, chances.get(b.card.id)!));
   // A native button makes each header sortable from the keyboard; the info tip stays beside it, outside the button.

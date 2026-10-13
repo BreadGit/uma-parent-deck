@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { chooseGoal, scoreGoal, type GoalScore } from '../src/model/goal-objective.ts';
 import { searchGoalDeck, goalDeckKey, type GoalDeckEntry } from '../src/model/goal-deck.ts';
-import { goalRankBands, type GoalRankBands } from '../src/model/goal.ts';
+import { goalRankBands, type GoalRankBands, type GoalStats } from '../src/model/goal.ts';
 import { projectForms, subsetGeneration, type FormDistribution } from '../src/model/goal-skills.ts';
 import { DEFAULT_GOAL, type ResolvedGoal } from '../src/model/goal-input.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
@@ -359,7 +359,7 @@ test('screening can exchange competing pins without weakening the pin constraint
 });
 
 test('cheap rank sampling leaves analytic blue odds and subsequent full evaluations intact', () => {
-  const stats = { rawMean: [1000, 900, 800, 700, 600], sd: [50, 50, 50, 50, 50], skillPoints: 5000, skillSd: 400 };
+  const stats: GoalStats = { rawMean: [1000, 900, 800, 700, 600], sd: [50, 50, 50, 50, 50], skillPoints: 5000, skillSd: 400 };
   const full = goalRankBands(stats, goal, 17500, settings);
   const cheap = goalRankBands(stats, goal, 17500, settings, 32);
   assert.equal(cheap.blue, full.blue);

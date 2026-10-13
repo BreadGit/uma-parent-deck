@@ -1,7 +1,7 @@
 // The predicted run: rank, SP and final stats with their blue-spark band chances. Where every stat point comes from
 // is rendered by the prediction details panel through statBreakdown().
 import { html, nothing, type TemplateResult } from 'lit-html';
-import { STATS } from '../../types.ts';
+import { perStat, STATS, type StatValues } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { BLUE_STAR_BANDS, cardContribution, EFFECT, passives, raceScale, uniqueExtras } from '../../model/stats.ts';
 import { data, store } from '../context.ts';
@@ -26,25 +26,25 @@ const copy = {
 export function statBreakdown(c: RunPlan) {
   const d = c.deckResult, p = c.pred;
   const scale = raceScale(c.ctx.races, data.model, store.settings);
-  const focusMul = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
-  const row = (label: TemplateResult | string, vals: number[], cls = '') => html`<tr class="${cls}"><td>${label}</td>${vals.map((v) => html`<td class="num">${num(v)}</td>`)}<td class="num">${num(vals.reduce((a, b) => a + b, 0))}</td></tr>`;
+  const focusMul: StatValues = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
+  const row = (label: TemplateResult | string, vals: StatValues, cls = '') => html`<tr class="${cls}"><td>${label}</td>${vals.map((v) => html`<td class="num">${num(v)}</td>`)}<td class="num">${num(vals.reduce((a, b) => a + b, 0))}</td></tr>`;
   const cardRows = d.deck.map((cs) => {
     const cc = cardContribution(cs.card, cs.lb, data.model, uniqueExtras(cs.card, cs.lb, data.model, { deck: d.deck, fansBefore: c.ctx.fansBefore }));
-    return row(html`${cardThumb(cs.card, 'thumb thumb-sm')} ${cardLink(cs.card)} <span class="muted small">(${basisLabel(cs.card, cs.lb, cc.source)})</span>`, cc.stats.map((v, i) => v * scale * focusMul[i]!));
+    return row(html`${cardThumb(cs.card, 'thumb thumb-sm')} ${cardLink(cs.card)} <span class="muted small">(${basisLabel(cs.card, cs.lb, cc.source)})</span>`, perStat((_, i) => cc.stats[i] * scale * focusMul[i]));
   });
-  const base = c.trainee?.baseStats ?? [0, 0, 0, 0, 0];
+  const base: StatValues = c.trainee?.baseStats ?? [0, 0, 0, 0, 0];
   const penalty = store.settings.lossPenalty * c.sum.expectedLosses;
   const raceBonus = d.deck.reduce((a, cs) => a + (passives(cs.card, cs.lb)[EFFECT.raceBonus] ?? 0), 0);
   const capped = !!c.statCaps && c.statCaps.capped.some(Boolean);
   return html`<div class="scroll-x" data-stat-breakdown><table class="small"><thead><tr><th>Source</th>${STATS.map((st) => html`<th class="num">${st}</th>`)}<th class="num">total</th></tr></thead><tbody>
       ${cardRows}
-      ${row(`Career events and ${c.ctx.races} total races`, p.eventStats.map((v, i) => v * focusMul[i]!))}
-      ${row('Inheritance at the start', c.inherited.map((x) => x.start))}
-      ${row('Two inspiration events', c.inherited.map((x) => x.inspiration))}
+      ${row(`Career events and ${c.ctx.races} total races`, perStat((_, i) => p.eventStats[i] * focusMul[i]))}
+      ${row('Inheritance at the start', perStat((_, i) => c.inherited[i].start))}
+      ${row('Two inspiration events', perStat((_, i) => c.inherited[i].inspiration))}
       ${row(`Base stats${c.trainee ? ` (${c.trainee.name})` : ''}`, base)}
-      ${penalty ? row('Expected race losses', STATS.map(() => -penalty / 5)) : nothing}
+      ${penalty ? row('Expected race losses', perStat(() => -penalty / STATS.length)) : nothing}
       ${capped ? row('Scenario cap (base cap + blue spark uncaps)', c.statCaps!.cap) : nothing}
-      ${row('Conversion above 1,200 and caps', c.finalMean.map((v, i) => v - c.rawFinalMean[i]!))}
+      ${row('Conversion above 1,200 and caps', perStat((_, i) => c.finalMean[i] - c.rawFinalMean[i]))}
       ${row(html`<b>Final</b>`, c.finalMean, 'total')}
       ${row('Estimated spread (±1 sd)', c.finalSd)}
     </tbody></table></div>
@@ -67,8 +67,8 @@ export function renderPrediction(c: RunPlan) {
         <div class="outcome-item"><div class="stat-k">Rank score</div><div class="stat-v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
         <div class="outcome-item"><div class="stat-k">Estimated SP</div><div class="stat-v">${num(p.sp)}</div></div>
       </div>
-      ${STATS.map((s, i) => html`
-      <div class="stat"><div class="stat-k">${s}</div><div class="stat-v">${num(c.finalMean[i]!)} <span class="sd">±${num(c.finalSd[i]!)}</span></div>
-        <div class="stat-s"><span class="band">≥${BLUE_STAR_BANDS.mid} ${pill(c.statChances[i]!.mid, '', true)}</span> <span class="band">≥${BLUE_STAR_BANDS.high} ${pill(c.statChances[i]!.high, '', true)}</span></div></div>`)}
+      ${perStat((s, i) => html`
+      <div class="stat"><div class="stat-k">${s}</div><div class="stat-v">${num(c.finalMean[i])} <span class="sd">±${num(c.finalSd[i])}</span></div>
+        <div class="stat-s"><span class="band">≥${BLUE_STAR_BANDS.mid} ${pill(c.statChances[i].mid, '', true)}</span> <span class="band">≥${BLUE_STAR_BANDS.high} ${pill(c.statChances[i].high, '', true)}</span></div></div>`)}
     </div>`);
 }

@@ -1,9 +1,11 @@
 export type Stat = 'speed' | 'stamina' | 'power' | 'guts' | 'wit';
 export const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'] as const;
-export type StatValues = [number, number, number, number, number];
+/** One value per stat in STATS order. Its fixed length lets an index from perStat() read without a check. */
+export type PerStat<T> = [T, T, T, T, T];
+export type StatValues = PerStat<number>;
 export type StatIndex = 0 | 1 | 2 | 3 | 4;
-/** Build a stat vector in the one order used by the model and forms. */
-export function statValues(value: (stat: Stat, index: StatIndex) => number): StatValues {
+/** Build a per-stat vector in the one order used by the model, the data and the forms. */
+export function perStat<T>(value: (stat: Stat, index: StatIndex) => T): PerStat<T> {
   return [value(STATS[0], 0), value(STATS[1], 1), value(STATS[2], 2), value(STATS[3], 3), value(STATS[4], 4)];
 }
 export type CardType = Stat | 'pal' | 'group';
@@ -112,12 +114,12 @@ export interface Character {
   rarity: number;
   releaseEn: string;
   aptitudes: Record<AptKey, Grade>;
-  growth: number[];
-  baseStats: number[];       // at the card's base star rarity
-  twoStarStats: number[] | null;    // exact tables where GameTora lists them (a 1★ card has 2★ to 5★, a 2★ card 3★ to 5★, a 3★ card 4★ and 5★)
-  threeStarStats: number[] | null;
-  fourStarStats: number[] | null;
-  fiveStarStats: number[] | null;
+  growth: StatValues;
+  baseStats: StatValues;       // at the card's base star rarity
+  twoStarStats: StatValues | null;    // exact tables where GameTora lists them (a 1★ card has 2★ to 5★, a 2★ card 3★ to 5★, a 3★ card 4★ and 5★)
+  threeStarStats: StatValues | null;
+  fourStarStats: StatValues | null;
+  fiveStarStats: StatValues | null;
   innateSkills: number[];
   awakeningSkills: number[];
   eventSkills: number[];         // every skill her events can give (GameTora's flat list); the events below carry the structure
@@ -171,13 +173,13 @@ export interface StatModel {
     fittedTypes?: CardType[];
     fallback?: { base: number; wit: number; friend: number; skillPointBonus: number };
   };
-  eventBase: Record<string, number[]>;
+  eventBase: Record<string, StatValues>;
   eventSp: Record<string, number>;
   growthEffect: number;
   uniqueRampShare: number;   // share of the run a ramping compound unique effect is assumed at full strength (fitted)
-  sigma: number[];
-  focus: Record<Focus, number[]>;
-  observed: { cardId: number; lb: number; source: string; sourceRef?: string; raceReference?: number; runs: number; wellTested: boolean; stats: number[]; sp: number }[];
+  sigma: StatValues;
+  focus: Record<Focus, StatValues>;
+  observed: { cardId: number; lb: number; source: string; sourceRef?: string; raceReference?: number; runs: number; wellTested: boolean; stats: StatValues; sp: number }[];
 }
 
 export interface Data {

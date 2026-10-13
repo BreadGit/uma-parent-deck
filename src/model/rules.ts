@@ -1,6 +1,6 @@
 // Game and tool constants that the model relies on. Each one names a rule of the game or a fixed choice of this tool;
 // tunable estimates live in settings.ts instead.
-import type { Grade } from '../types.ts';
+import type { Grade, StatValues } from '../types.ts';
 
 // --- deck ---
 export const DECK_SIZE = 6;
@@ -41,7 +41,7 @@ export const BLUE_SPARK_INSPIRATION_PROC_BY_STARS = [0, 0.7, 0.8, 0.9];
 export const OUR_GRAND_CONCERT = 3;
 export const SUPPORTED_SCENARIOS = [OUR_GRAND_CONCERT];
 /** Base stat caps per scenario (speed, stamina, power, guts, wit). Grand Live: GameTora scenario page. */
-export const SCENARIO_STAT_CAPS: Record<number, number[]> = { [OUR_GRAND_CONCERT]: [1600, 1300, 1300, 1500, 1300] };
+export const SCENARIO_STAT_CAPS: Record<number, StatValues> = { [OUR_GRAND_CONCERT]: [1600, 1300, 1300, 1500, 1300] };
 /** Our Grand Concert's completion reward: 18 or more songs give the gold skill, 17 or fewer the white one. */
 export const SCENARIO_COMPLETION_SKILLS: Record<number, { gold: number; white: number; songsForGold: number }> = {
   [OUR_GRAND_CONCERT]: { gold: 210071 /* I Wanna Win with You */, white: 210072 /* On the Way to Our Dream */, songsForGold: 18 },

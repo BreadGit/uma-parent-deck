@@ -4,7 +4,7 @@ import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, isValidSetting, SETTING_SPEC, type Settings } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
-import { STATS, type Card, type Race } from '../src/types.ts';
+import { STATS, type Card, type Race, type StatModel } from '../src/types.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, isCircle, isDebuff, isGold, isWhite, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, describeDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
@@ -95,7 +95,7 @@ test('prediction: focus multiplies the split, growth raises event stats, race lo
 });
 
 test('event interpolation uses its measured race counts rather than fixed 23/28 anchors', () => {
-  const model = { ...data.model, growthEffect: 0, sigma: [0, 0, 0, 0, 0],
+  const model: StatModel = { ...data.model, growthEffect: 0, sigma: [0, 0, 0, 0, 0],
     eventBase: { '10': [100, 200, 300, 400, 500], '20': [200, 400, 600, 800, 1000] },
     eventSp: { '10': 100, '20': 200 } };
   for (const [races, expected] of [[10, 100], [15, 150], [20, 200], [30, 300]] as const) {
@@ -103,7 +103,7 @@ test('event interpolation uses its measured race counts rather than fixed 23/28 
     assert.deepEqual(result.eventStats, [expected, expected * 2, expected * 3, expected * 4, expected * 5]);
     assert.equal(result.sp, expected);
   }
-  const one = { ...model, eventBase: { '10': [100, 200, 300, 400, 500] }, eventSp: { '10': 100 } };
+  const one: StatModel = { ...model, eventBase: { '10': [100, 200, 300, 400, 500] }, eventSp: { '10': 100 } };
   assert.deepEqual(predictDeck([], null, 15, 'balanced', 0, one, settings).eventStats, [100, 200, 300, 400, 500]);
 });
 

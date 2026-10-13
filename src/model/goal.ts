@@ -1,4 +1,4 @@
-import { STATS, APTITUDE_KEYS, type AptKey, type Grade } from '../types.ts';
+import { STATS, APTITUDE_KEYS, perStat, type AptKey, type Grade, type StatValues } from '../types.ts';
 import type { Ctx, DeckResult } from './deck.ts';
 import { DEFAULT_SETTINGS, whiteGenerationBands, type Settings } from '../settings.ts';
 import { affinityMultiplier } from './inherit.ts';
@@ -11,12 +11,12 @@ import { statMasses, type StatMass } from './stat-outcomes.ts';
 import { statScore, thresholdFor } from './rank.ts';
 
 export const starChance = (rates: readonly number[], stars: number, exact = false) => exact ? rates[stars - 1] ?? 0 : rates.slice(stars - 1).reduce((a, p) => a + p, 0);
-export function blueChance(stats: number[], accepted: string[], stars: number): number {
-  return STATS.reduce((p, stat, i) => {
-    if (!accepted.includes(stat)) return p;
-    const band = [...BLUE_GENERATION_BANDS].reverse().find((b) => stats[i]! >= b.min) ?? BLUE_GENERATION_BANDS[0];
-    return p + starChance(band.rates, stars) / STATS.length;
-  }, 0);
+export function blueChance(stats: StatValues, accepted: string[], stars: number): number {
+  return perStat((stat, i) => {
+    if (!accepted.includes(stat)) return 0;
+    const band = [...BLUE_GENERATION_BANDS].reverse().find((b) => stats[i] >= b.min) ?? BLUE_GENERATION_BANDS[0];
+    return starChance(band.rates, stars) / STATS.length;
+  }).reduce((p, chance) => p + chance, 0);
 }
 export function attemptsFor(p: number, confidence: number): number {
   if (p <= 0) return Infinity;
@@ -71,7 +71,7 @@ export function pinkGoalsEstimate(apt: Record<AptKey, Grade>, goals: PinkGoal[],
 /** Rank samples for a full-fidelity goal estimate: the deck shown and the search's finalists. */
 export const FINAL_GOAL_SAMPLES = 2048;
 
-export interface GoalStats { rawMean: number[]; sd: number[]; caps?: number[]; skillPoints: number; skillSd: number; rawUnits?: boolean }
+export interface GoalStats { rawMean: StatValues; sd: StatValues; caps?: StatValues; skillPoints: number; skillSd: number; rawUnits?: boolean }
 export interface StatGoalMoments { blue: number; whiteStars: number[]; blueAllWhiteStars: number; pSS: number; approximateRank: number }
 export interface GoalRankBands { blue: number; rank: number[]; blueRank: number[]; pSS: number; approximateRank: number }
 function halton(index: number, base: number): number {
@@ -130,7 +130,7 @@ export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshol
 export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS, sampleCount = FINAL_GOAL_SAMPLES): GoalRankBands {
   const bands = whiteGenerationBands(settings);
   const result: GoalRankBands = { blue: 0, rank: bands.map(() => 0), blueRank: bands.map(() => 0), pSS: 0, approximateRank: 0 };
-  const masses = input.rawMean.map((mean, i) => statMasses(mean, input.sd[i] ?? 0, input.caps?.[i], input.rawUnits));
+  const masses = perStat((_, i) => statMasses(input.rawMean[i], input.sd[i], input.caps?.[i], input.rawUnits));
   const count = input.sd.every((sd) => sd === 0) ? 0 : sampleCount;
   const draws = count === 0 ? 1 : count;
   const statRatings = masses.map((outcomes, i) => {

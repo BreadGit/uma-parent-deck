@@ -1,4 +1,4 @@
-import type { Card, Character, Data } from '../types.ts';
+import { perStat, type Card, type Character, type Data, type StatValues } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale, uniqueExtras, type Contribution } from './stats.ts';
 import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
@@ -68,7 +68,7 @@ export interface Coverage { target: Target; sources: SkillSource[]; own: Ownersh
 export interface CardScore {
   card: Card;
   lb: number;
-  stats: number[];      // contribution at the chosen race count
+  stats: StatValues;    // contribution at the chosen race count
   sp: number;
   statPower: number;    // stat contribution weighted by the training focus multipliers
   source: Contribution['source'];
@@ -122,13 +122,13 @@ function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<numbe
   return mine;
 }
 /** Stat contribution at the run's race count (compound unique effects evaluated against the other cards in the run and the agenda), and its value under the chosen training focus. */
-function statsOf(card: Card, lb: number, ctx: Ctx, others: { card: Card; lb: number }[]): { contrib: Contribution; stats: number[]; statPower: number; sp: number } {
+function statsOf(card: Card, lb: number, ctx: Ctx, others: { card: Card; lb: number }[]): { contrib: Contribution; stats: StatValues; statPower: number; sp: number } {
   const extra = uniqueExtras(card, lb, ctx.data.model, { deck: [...others, { card, lb }], fansBefore: ctx.fansBefore });
   const contrib = cardContribution(card, lb, ctx.data.model, extra);
   const scale = raceScale(ctx.races, ctx.data.model, ctx.settings);
-  const stats = contrib.stats.map((v) => v * scale);
-  const focusMul = ctx.data.model.focus[ctx.settings.focus] ?? [1, 1, 1, 1, 1];
-  return { contrib, stats, statPower: stats.reduce((a, v, i) => a + v * (focusMul[i] ?? 1), 0), sp: contrib.sp * scale };
+  const stats = perStat((_, i) => contrib.stats[i] * scale);
+  const focusMul: StatValues = ctx.data.model.focus[ctx.settings.focus] ?? [1, 1, 1, 1, 1];
+  return { contrib, stats, statPower: perStat((_, i) => stats[i] * focusMul[i]).reduce((a, v) => a + v, 0), sp: contrib.sp * scale };
 }
 
 export function scoreCard(card: Card, lb: number, targets: Target[], existing: Existing, ctx: Ctx): CardScore {

@@ -4,7 +4,7 @@
 // pink form enters the ancestors' pink sparks behind the aptitude grades.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
-import { STATS, APTITUDE_KEYS, APT_GRADES, type AptKey, type Grade, type Stat } from '../../types.ts';
+import { STATS, APTITUDE_KEYS, APT_GRADES, perStat, type AptKey, type Grade, type Stat, type StatIndex } from '../../types.ts';
 import { APTITUDE_LABELS, emptyPinkLineage, type PinkSpark } from '../../model/goal-input.ts';
 import { pinkAptitudeGrades, withPinkAptitude, withPinkLineage } from '../../model/pink-inherit.ts';
 import type { RunPlan } from '../../model/run.ts';
@@ -135,9 +135,9 @@ const pinkForm = () => html`<div id="legacy-pink-sparks" data-pink-sparks-form>
   <div class="per-parent pink">${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><span class="side-head">Parent ${pi + 1}</span>${UMAS.map((ui) => pinkRow(pi, ui))}</div>`)}</div>
 </div>`;
 
-function statColumn(c: RunPlan, i: number) {
-  const st = STATS[i]!, t = c.trainee!;
-  const gains = PARENTS.map((pi) => c.parentGains[pi]![i]!);
+function statColumn(c: RunPlan, i: StatIndex) {
+  const st = STATS[i], t = c.trainee!;
+  const gains = PARENTS.map((pi) => c.parentGains[pi]![i]);
   const start = gains[0]! + gains[1]!;
   const parts = PARENTS.map((pi) => inheritedFromGain(gains[pi]!, store.settings));
   const later = parts.reduce((a, x) => a + x.inspiration, 0);
@@ -145,7 +145,7 @@ function statColumn(c: RunPlan, i: number) {
   return html`<div class="legacy-stat">
     <div class="gains">${PARENTS.map((pi) => gainSelect(c, pi, i))}</div>
     <div class="head">${statIcon(st)}${capitalize(st)}</div>
-    <div class="body"><div class="legacy-v">${t.baseStats[i]! + start}</div><div class="legacy-sub">base ${t.baseStats[i]}</div><div class="legacy-sub" data-tip=${max ? `at most +${max}` : nothing}>≈+${num(later)} later${i === 0 ? tip(copy.laterTip) : nothing}</div></div>
+    <div class="body"><div class="legacy-v">${t.baseStats[i] + start}</div><div class="legacy-sub">base ${t.baseStats[i]}</div><div class="legacy-sub" data-tip=${max ? `at most +${max}` : nothing}>≈+${num(later)} later${i === 0 ? tip(copy.laterTip) : nothing}</div></div>
   </div>`;
 }
 
@@ -164,7 +164,7 @@ function body(c: RunPlan) {
   return html`
     ${view.showSparks ? sparksForm() : nothing}
     <div class="legacy-legend"><span class="p1">Parent 1</span><span class="p2">Parent 2</span><span>${copy.gainsLabel}${tip(copy.gainsTip)}</span></div>
-    <div class="legacy-stats">${STATS.map((_, i) => statColumn(c, i))}</div>
+    <div class="legacy-stats">${perStat((_, i) => statColumn(c, i))}</div>
     <div class="legacy-pink-controls">
       <button class="small ${view.showPinkSparks ? 'active' : ''}" data-action="toggle-pink-sparks" aria-expanded=${view.showPinkSparks} aria-controls="legacy-pink-sparks" data-tip=${copy.pinkSparksTip} @click=${togglePinkSparks}>${copy.pinkSparks}</button>
       <button class="small" data-action="reset-pink-sparks" data-tip=${copy.resetPinkTip} @click=${resetPinkSparks}>${copy.resetPink}</button>

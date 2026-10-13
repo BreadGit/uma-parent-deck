@@ -1,4 +1,4 @@
-import { STATS, type Card, type Character, type Data, type Inventory } from '../types.ts';
+import { STATS, perStat, type Card, type Character, type Data, type Inventory, type PerStat, type StatValues } from '../types.ts';
 import type { InventoryOverrides, Settings } from '../settings.ts';
 import { goalFamily, goalWithTargets, type ParentGoal, type PinkSpark, type ResolvedGoal, type WhiteTarget } from './goal-input.ts';
 import { startingAptitudes } from './pink-inherit.ts';
@@ -42,7 +42,7 @@ export interface RunInput {
 /** The worst-case target cost lives with the purchase estimate; panels and tests still reach it from here. */
 export { targetSpCost, type SpCost } from './skill-purchases.ts';
 /** Scenario stat caps after the blue sparks' start-of-run uncaps, and whether the prediction hit them. */
-export interface StatCaps { cap: number[]; uncap: number[]; capped: boolean[] }
+export interface StatCaps { cap: StatValues; uncap: StatValues; capped: PerStat<boolean> }
 
 export interface RunPlan {
   search: GoalSearchSummary | null;
@@ -64,15 +64,15 @@ export interface RunPlan {
   ranking: CardScore[];
   deckResult: DeckResult;
   pred: Prediction;
-  parentGains: number[][];                 // [parent 1, parent 2], five stats each: the "+XX" the legacy screen shows, from the sparks
-  inherited: Inheritance[];                // per stat, from both parents' blue sparks
-  rawFinalMean: number[];                  // full raw totals including inheritance, before above-1200 conversion and caps
-  rawFinalSd: number[];
-  finalSd: number[];
-  statChances: { mid: number; high: number }[];
+  parentGains: StatValues[];               // [parent 1, parent 2], five stats each: the "+XX" the legacy screen shows, from the sparks
+  inherited: PerStat<Inheritance>;         // from both parents' blue sparks
+  rawFinalMean: StatValues;                // full raw totals including inheritance, before above-1200 conversion and caps
+  rawFinalSd: StatValues;
+  finalSd: StatValues;
+  statChances: PerStat<{ mid: number; high: number }>;
   purchases: Purchases;
   skillRating: SkillRating;
-  finalMean: number[];                     // expected displayed stats after conversion and caps
+  finalMean: StatValues;                   // expected displayed stats after conversion and caps
   statCaps: StatCaps | null;
   rank: RankEstimate;
   spCost: SpCost;
@@ -262,7 +262,7 @@ export type DeckPrediction = Pick<RunPlan, 'pred' | 'parentGains' | 'inherited' 
 
 function preparePrediction(input: RunInput, ctx: Ctx) {
   const parentGains = input.parentSparks.map(gainsOfParentSparks);
-  const inherited = STATS.map((_, i) => inheritedFromParents(parentGains, i, ctx.settings));
+  const inherited = perStat((_, i) => inheritedFromParents(parentGains, i, ctx.settings));
   const goal = goalWithTargets(input.goal, input.targets.filter((t) => goalFamily(t.id, ctx.data) === t.id));
   return { parentGains, inherited, goalTargets: [...goal.required, ...goal.preferred].map((t) => resolveTarget(t.id, ctx.data)).filter((t): t is Target => !!t) };
 }
@@ -279,10 +279,11 @@ function predictCandidate(deck: { card: Card; lb: number }[], input: RunInput, c
   const fansBefore = ctx.fansBefore ?? (() => 0);
   const stars = clampStars(trainee, input.traineeStars);
   const { parentGains, inherited, goalTargets } = prepared;
-  const rawFinalMean = pred.finalMean.map((v, i) => v + inherited[i]!.total);
+  const rawFinalMean = perStat((_, i) => pred.finalMean[i] + inherited[i].total);
   const caps = SCENARIO_STAT_CAPS[settings.scenarioId];
-  const statCaps: StatCaps | null = caps ? { cap: caps.map((c, i) => c + inherited[i]!.uncap), uncap: inherited.map((x) => x.uncap), capped: rawFinalMean.map((v, i) => displayedStat(v) > caps[i]! + inherited[i]!.uncap) } : null;
-  const rawFinalSd = pred.sd.map((sd, i) => Math.sqrt(sd ** 2 + inherited[i]!.variance));
+  const statCaps: StatCaps | null = caps ? { cap: perStat((_, i) => caps[i] + inherited[i].uncap), uncap: perStat((_, i) => inherited[i].uncap),
+    capped: perStat((_, i) => displayedStat(rawFinalMean[i]) > caps[i] + inherited[i].uncap) } : null;
+  const rawFinalSd = perStat((_, i) => Math.sqrt(pred.sd[i] ** 2 + inherited[i].variance));
   const purchases = estimatePurchases(deck, goalTargets, ctx);
   const skillRating = estimateSkillRating(deck, ctx, pred.sp, apt);
   // the fan thresholds are keyed to the character (her own aptitude table), not to the aptitudes after inheritance
@@ -301,10 +302,10 @@ function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input
   const { uniqueLevel, skillPoints: _skillPoints, ...base } = prediction;
   const { rawFinalMean, rawFinalSd, statCaps, skillRating } = base;
   const { data, settings, trainee } = ctx;
-  const masses = rawFinalMean.map((mean, i) => statMasses(mean, rawFinalSd[i]!, statCaps?.cap[i], true));
-  const moments = masses.map(statMoments);
-  const finalMean = moments.map((m) => m.mean), finalSd = moments.map((m) => m.sd);
-  const statChances = moments.map((m) => ({ mid: Math.min(1, m.above(600)), high: Math.min(1, m.above(1100)) }));
+  const masses = perStat((_, i) => statMasses(rawFinalMean[i], rawFinalSd[i], statCaps?.cap[i], true));
+  const moments = perStat((_, i) => statMoments(masses[i]));
+  const finalMean = perStat((_, i) => moments[i].mean), finalSd = perStat((_, i) => moments[i].sd);
+  const statChances = perStat((_, i) => ({ mid: Math.min(1, moments[i].above(600)), high: Math.min(1, moments[i].above(1100)) }));
   const rank = { ...rankMoments(masses, skillRating.score, trainee, clampStars(trainee, input.traineeStars), uniqueLevel, data, settings), pSS };
   return { ...base, finalMean, finalSd, statChances, rank };
 }
