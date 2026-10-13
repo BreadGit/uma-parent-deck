@@ -119,7 +119,11 @@ watchSavedState(data, (saved) => {
 }, () => renderer());
 /** Re-render after a view-only change. */
 export function refresh() { renderer(); }
-/** Apply a change to the persisted state, save it and re-render. Returns whether the save was written. */
+/**
+ * Apply a change to the persisted state, save it and re-render. Returns whether the save was written. A save another tab
+ * wrote since this page rendered is taken over first, so `fn` reads what it changes from `s`, not from values the page
+ * rendered.
+ */
 export function update(fn: (s: AppState) => void): boolean {
   adoptLatest();
   fn(store);

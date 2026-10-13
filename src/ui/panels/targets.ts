@@ -77,10 +77,7 @@ export function selectTarget(id: number) {
 }
 const entryOf = (id: number) => store.run.targets.find((t) => t.id === id);
 const editTarget = (id: number, fn: (t: NonNullable<ReturnType<typeof entryOf>>) => void) => update((s) => { const t = s.run.targets.find((r) => r.id === id); if (t) fn(t); });
-/**
- * Edit one target's lineage; an entry with no copies is dropped. The edit applies to the lineage `update()` sees, which
- * includes another tab's save taken over since this page rendered.
- */
+/** Edit one target's lineage; an entry with no copies is dropped. */
 function editLineage(id: number, edit: (l: Lineage) => Lineage) {
   update((s) => {
     const next = edit(s.run.targetLineage[String(id)] ?? emptyLineage());

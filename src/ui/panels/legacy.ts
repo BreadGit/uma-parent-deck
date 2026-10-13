@@ -81,7 +81,7 @@ function setAptitude(k: AptKey, grade: Grade) {
     s.run.pinkLineage = inferred.lineage;
   });
 }
-/** Edit one ancestor's pink spark as `update()` sees it, which includes another tab's save taken over since this page rendered. */
+/** Edit one ancestor's pink spark. */
 function setPinkSpark(index: number, edit: (spark: PinkSpark | null) => PinkSpark | null) {
   update((s) => {
     const next = [...s.run.pinkLineage]; next[index] = edit(next[index] ?? null);
