@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
+import { RARITIES } from '../src/types.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
 import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, effectiveLb, isLegalRunSelection, layoutWishlist, permutations, planRun, targetSpCost, withRequiredOrder, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
@@ -27,7 +28,7 @@ const targetEntry = (t: Target, role: EntryRole, weight: number, skillId = t.id)
 test('inventory overrides take precedence without changing imported ownership or LB0', () => {
   const inventory = { 1: 0, 2: null, 3: 2 };
   const before = structuredClone(inventory);
-  for (const rarity of ['R', 'SR', 'SSR'] as const) {
+  for (const rarity of RARITIES) {
     const usingInventory = { R: null, SR: null, SSR: null };
     assert.equal(effectiveLb(inventory, { id: 1, rarity }, usingInventory), 0);
     assert.equal(effectiveLb(inventory, { id: 2, rarity }, usingInventory), null);

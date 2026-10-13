@@ -1,5 +1,6 @@
 // The scanner's images under the public directory. The page prefixes the base URL; the catalog build checks which
 // references exist (scripts/scanner-catalog.ts) and copies them into the standalone app.
+import { RARITIES } from '../types.ts';
 import type { ScanCard } from './recognize.ts';
 
 /** A card's artwork as the planner shows it; the scanner also cuts rarity badges from it. */
@@ -8,4 +9,4 @@ export const artworkPath = (id: number) => `assets/supports/${id}.png`;
 export const referencePath = (id: number) => `assets/supports/scanner/${id}.webp`;
 /** Every card of a rarity carries the same badge, so the first card of each rarity supplies its template. */
 export const badgeCards = <T extends Pick<ScanCard, 'rarity'>>(cards: T[]) =>
-  (['R', 'SR', 'SSR'] as const).flatMap(rarity => cards.filter(c => c.rarity === rarity).slice(0, 1));
+  RARITIES.flatMap(rarity => cards.filter(c => c.rarity === rarity).slice(0, 1));

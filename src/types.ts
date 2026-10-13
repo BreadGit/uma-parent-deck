@@ -8,6 +8,7 @@ export function statValues(value: (stat: Stat, index: StatIndex) => number): Sta
 }
 export type CardType = Stat | 'pal' | 'group';
 export type Rarity = 'R' | 'SR' | 'SSR';
+export const RARITIES = ['R', 'SR', 'SSR'] as const satisfies readonly Rarity[];
 export type Focus = 'balanced' | 'stamina' | 'sprint';
 
 export interface Reward { t: string; v?: string; d?: number | { d: number; v: string }[]; r?: boolean }

@@ -1,7 +1,7 @@
-import type { Card, Focus } from './types.ts';
+import { RARITIES, type Focus, type Rarity } from './types.ts';
 import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
 
-export type InventoryOverrides = Record<Card['rarity'], number | null>;
+export type InventoryOverrides = Record<Rarity, number | null>;
 
 export interface Settings {
   goalTieTolerance: number;     // relative required-goal window in which preferred extras can decide
@@ -159,7 +159,7 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
       && (!spec.bounds || value.every((v, i) => inRange(v, spec.bounds![i]![0], spec.bounds![i]![1])));
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
     case 'boolean': return typeof value === 'boolean';
-    case 'inventory-overrides': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => {
+    case 'inventory-overrides': return !!value && typeof value === 'object' && RARITIES.every((r) => {
       const lb = (value as Record<string, unknown>)[r];
       return lb === null || isLimitBreak(lb);
     });
@@ -195,9 +195,9 @@ export function sanitizeSettings(saved: Partial<Record<keyof Settings | 'default
   // defaults use scanned SR/SSR ownership. Keep the inventory itself intact so disabling an override restores it.
   if (saved.inventoryOverrides === undefined && saved.defaultLb && typeof saved.defaultLb === 'object') {
     const old = saved.defaultLb as Record<string, unknown>;
-    if (['R', 'SR', 'SSR'].every((r) => isLimitBreak(old[r]))) {
+    if (RARITIES.every((r) => isLimitBreak(old[r]))) {
       out.inventoryOverrides = { ...DEFAULT_SETTINGS.inventoryOverrides };
-      for (const rarity of ['R', 'SR', 'SSR'] as const) if (old[rarity] !== 4) out.inventoryOverrides[rarity] = old[rarity] as number;
+      for (const rarity of RARITIES) if (old[rarity] !== 4) out.inventoryOverrides[rarity] = old[rarity] as number;
     }
   }
   return structuredClone(out);

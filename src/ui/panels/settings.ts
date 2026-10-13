@@ -5,6 +5,7 @@ import { live } from 'lit-html/directives/live.js';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, SETTING_HELP, type SettingField, type Settings } from '../../settings.ts';
 import { exportInventory, importInventory } from '../../inventory.ts';
 import { downloadText } from '../../download.ts';
+import { RARITIES } from '../../types.ts';
 import { LIMIT_BREAKS, MAX_LB } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { setSetting } from '../actions.ts';
@@ -26,7 +27,7 @@ function field(f: SettingField) {
     const choices = [{ value: '', label: 'Use inventory' }, ...LIMIT_BREAKS.map((lb) => ({ value: String(lb), label: overrideLabel(lb) }))];
     return html`<div data-setting-field="inventoryOverrides">
       <p class="small muted">${help('inventoryOverrides')}</p>
-      ${(['R', 'SR', 'SSR'] as const).map((rarity) => {
+      ${RARITIES.map((rarity) => {
         const lb = store.settings.inventoryOverrides[rarity];
         const fallback = DEFAULT_SETTINGS.inventoryOverrides[rarity];
         const value = lb === null ? '' : String(lb);

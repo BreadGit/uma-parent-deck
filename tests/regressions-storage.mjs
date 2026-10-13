@@ -4,6 +4,7 @@ import { test, suite } from 'node:test';
 import { defaultState, STATE_KEY, UNREADABLE_KEY } from '../src/state.ts';
 import { assertFieldsMatchState, BASE_URL as url } from './browser-fields.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
+import { RARITIES } from '../src/types.ts';
 import { encodeShare, decodeShare, shareCode, sharedChoices, shareUrl } from '../src/share.ts';
 import { data, fresh, editor, state, trainee, target, pin, inventoryFile, predictions, confirmDialog, openAgenda, waitForShare, shareFixture } from './browser-fixtures.mjs';
 
@@ -157,7 +158,7 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
 
   test('advanced rarity overrides preserve imported values, export and individual edits', async (t) => {
     const saved = defaultState(data);
-    const [r, sr, ssr] = ['R', 'SR', 'SSR'].map((rarity) => data.cards.find((card) => card.rarity === rarity));
+    const [r, sr, ssr] = RARITIES.map((rarity) => data.cards.find((card) => card.rarity === rarity));
     const unowned = data.cards.find((card) => card.rarity === 'SR' && card.id !== sr.id);
     const absent = data.cards.find((card) => card.rarity === 'SSR' && card.id !== ssr.id);
     saved.inventory = { [r.id]: 0, [sr.id]: 2, [ssr.id]: 1, [unowned.id]: null };
@@ -197,7 +198,7 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     assert.equal(exported[absent.id], null);
     await assertFieldsMatchState(page, 'after exporting the real inventory');
 
-    for (const rarity of ['R', 'SR', 'SSR']) {
+    for (const rarity of RARITIES) {
       await override(rarity).selectOption('');
       await assertFieldsMatchState(page, `after disabling the ${rarity} override`);
     }

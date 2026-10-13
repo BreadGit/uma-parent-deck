@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { isCalendarId, STATS, type AptKey } from '../src/types.ts';
+import { isCalendarId, RARITIES, STATS, type AptKey } from '../src/types.ts';
 import { uniqueExtras } from '../src/model/stats.ts';
 import { RACES_REFERENCE } from '../src/settings.ts';
 import fixtureJson from '../data/unique-extras-fixture.json' with { type: 'json' };
@@ -42,7 +42,7 @@ test('support effects interpolate with floor rounding between anchors, without u
 test('cards carry the fields the stat and spark models read', () => {
   assert.ok(data.cards.length > 100, `only ${data.cards.length} cards`);
   for (const c of data.cards) {
-    assert.ok(['R', 'SR', 'SSR'].includes(c.rarity), `${c.name} rarity`);
+    assert.ok(RARITIES.includes(c.rarity), `${c.name} rarity`);
     assert.ok([...STATS, 'pal', 'group'].includes(c.type), `${c.name} type ${c.type}`);
     assert.equal(c.effectsByLb.length, 5, `${c.name} effects per limit break`);
     for (const e of c.effectsByLb) for (const v of Object.values(e)) assert.ok(isNum(v), `${c.name} effect value`);
