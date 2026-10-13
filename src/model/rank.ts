@@ -1,4 +1,4 @@
-import type { AptKey, Character, Data, Grade, Skill } from '../types.ts';
+import { perStat, type AptKey, type Character, type Data, type Grade, type PerStat, type Skill } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import type { Aptitudes } from './races.ts';
 import { APTITUDE_BUCKET_MULTIPLIER, MAX_STAT_VALUE, SKILL_SCORE, UNIQUE_LEVEL_CHECKS, UNIQUE_SKILL_LEVEL_MAX, UNIQUE_SKILL_SCORE_PER_LEVEL, UNIQUE_SKILL_START_LEVEL_BY_STARS } from './rules.ts';
@@ -107,10 +107,11 @@ export function skillPointsOf(purchasedScore: number, trainee: Character | null,
 }
 
 /** Rank moments from displayed stats and an estimated skill-spending rating. */
-export function rankMoments(masses: readonly (readonly StatMass[])[], purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number, data: Data, settings: Settings): RankMoments {
-  const ratingMeans = masses.map((xs) => xs.reduce((sum, x) => sum + statScore(x.value) * x.probability, 0));
+export function rankMoments(masses: PerStat<readonly StatMass[]>, purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number, data: Data, settings: Settings): RankMoments {
+  const ratingMeans = perStat((_, i) => masses[i].reduce((sum, x) => sum + statScore(x.value) * x.probability, 0));
   const statPts = ratingMeans.reduce((sum, v) => sum + v, 0);
-  const statVariance = masses.reduce((sum, xs, i) => sum + xs.reduce((v, x) => v + (statScore(x.value) - ratingMeans[i]!) ** 2 * x.probability, 0), 0);
+  const statVariance = perStat((_, i) => masses[i].reduce((v, x) => v + (statScore(x.value) - ratingMeans[i]) ** 2 * x.probability, 0))
+    .reduce((sum, v) => sum + v, 0);
   const uniquePts = trainee ? uniqueSkillScore(stars, uniqueLevel) : 0;
   const skillPts = skillPointsOf(purchasedScore, trainee, stars, uniqueLevel);
   const score = statPts + skillPts;

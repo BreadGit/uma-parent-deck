@@ -1,5 +1,5 @@
 import effectsJson from '../../data/effects.json' with { type: 'json' };
-import { STATS, type Card, type StatModel, type UniqueEffect } from '../types.ts';
+import { perStat, STAT_INDEXES, STATS, type Card, type StatModel, type UniqueEffect } from '../types.ts';
 import { FACILITY_LEVEL_MAX, MAX_LB, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP } from './rules.ts';
 
 export const EFFECT = {
@@ -97,11 +97,11 @@ const UNIQUE_RULES: Readonly<Record<number, UniqueRule>> = {
     note: (u, share, ctx) => ctx.fansBefore ? `run average +${((u.value_1 ?? 0) * fanRampShare(ctx.fansBefore, u.value, u.value_1 ?? 0)).toFixed(1)} of ${u.value_1} from the agenda's fans` : `${share} of the fan cap (the agenda's fans once it is built)`,
   },
   105: {
-    reason: 'deckInitialStats', status: 'calculated', deckDependent: true, fields: ['value_1'], outputs: () => STATS.map((_, i) => EFFECT.initialStat + i),
-    apply: (u, _share, ctx, add) => STATS.forEach((stat, i) => {
+    reason: 'deckInitialStats', status: 'calculated', deckDependent: true, fields: ['value_1'], outputs: () => perStat((_, i) => EFFECT.initialStat + i),
+    apply: (u, _share, ctx, add) => {
       const deck = ctx.deck ?? [];
-      add(EFFECT.initialStat + i, u.value * deck.filter((d) => d.card.type === stat).length + (u.value_1 ?? 0) * deck.filter((d) => d.card.type === 'pal' || d.card.type === 'group').length);
-    }),
+      for (const i of STAT_INDEXES) add(EFFECT.initialStat + i, u.value * deck.filter((d) => d.card.type === STATS[i]).length + (u.value_1 ?? 0) * deck.filter((d) => d.card.type === 'pal' || d.card.type === 'group').length);
+    },
     note: () => 'initial stats per card in the deck once it is built',
   },
   106: {

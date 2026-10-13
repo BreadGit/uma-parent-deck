@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { RARITIES } from '../src/types.ts';
+import { perStat, RARITIES, type StatValues } from '../src/types.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
 import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, effectiveLb, isLegalRunSelection, layoutWishlist, permutations, planRun, targetSpCost, withRequiredOrder, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
@@ -62,8 +62,8 @@ test('star tables: every listed table is used as is; only a missing one interpol
 });
 
 test('rank moments: the unique skill at its level adds to the budgeted purchase score', () => {
-  const rankAt = (mean: number[], sd: number[], purchased: number, trainee: typeof sw | null, stars: number, level: number) =>
-    rankMoments(mean.map((value, i) => statMasses(value, sd[i] ?? 0)), purchased, trainee, stars, level, data, settings);
+  const rankAt = (mean: StatValues, sd: StatValues, purchased: number, trainee: typeof sw | null, stars: number, level: number) =>
+    rankMoments(perStat((_, i) => statMasses(mean[i], sd[i])), purchased, trainee, stars, level, data, settings);
   const low = rankAt([600, 600, 600, 600, 600], [50, 50, 50, 50, 50], 300, sw, 3, 3);
   const high = rankAt([1100, 1100, 1100, 1100, 1100], [50, 50, 50, 50, 50], 600, sw, 5, 5);
   assert.ok(high.score > low.score, 'higher stats and stars raise the score');

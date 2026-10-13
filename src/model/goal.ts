@@ -1,4 +1,4 @@
-import { STATS, APTITUDE_KEYS, perStat, type AptKey, type Grade, type StatValues } from '../types.ts';
+import { STATS, STAT_INDEXES, APTITUDE_KEYS, perStat, type AptKey, type Grade, type StatValues } from '../types.ts';
 import type { Ctx, DeckResult } from './deck.ts';
 import { DEFAULT_SETTINGS, whiteGenerationBands, type Settings } from '../settings.ts';
 import { affinityMultiplier } from './inherit.ts';
@@ -133,9 +133,9 @@ export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: n
   const masses = perStat((_, i) => statMasses(input.rawMean[i], input.sd[i], input.caps?.[i], input.rawUnits));
   const count = input.sd.every((sd) => sd === 0) ? 0 : sampleCount;
   const draws = count === 0 ? 1 : count;
-  const statRatings = masses.map((outcomes, i) => {
-    const { ratings } = ratingSamples(outcomes, i, count);
-    if (ratings.length !== draws) throw new Error(`${STATS[i]} has no stat outcomes (mean ${input.rawMean[i]}, sd ${input.sd[i]})`);
+  const statRatings = perStat((stat, i) => {
+    const { ratings } = ratingSamples(masses[i], i, count);
+    if (ratings.length !== draws) throw new Error(`${stat} has no stat outcomes (mean ${input.rawMean[i]}, sd ${input.sd[i]})`);
     return ratings;
   });
   const scores = Array.from({ length: draws }, (_, n) => statRatings.reduce((sum, ratings) => sum + ratings[n]!, input.skillPoints));
@@ -149,18 +149,18 @@ export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: n
       if (band.approximate) result.approximateRank += weight;
     });
   }
-  STATS.forEach((stat, i) => {
-    if (!goal.blueStats.includes(stat)) return;
+  for (const i of STAT_INDEXES) {
+    if (!goal.blueStats.includes(STATS[i])) continue;
     BLUE_GENERATION_BANDS.forEach((band, b) => {
       // A band the star requirement rules out adds nothing, so its draws are never needed.
       const chance = starChance(band.rates, goal.blueStars) / STATS.length;
       if (chance === 0) return;
-      const samples = ratingSamples(masses[i]!, i, count, b);
+      const samples = ratingSamples(masses[i], i, count, b);
       const blue = samples.mass * chance;
       result.blue += blue;
       if (blue === 0) return;
       for (let n = 0; n < draws; n++) {
-        const score = scores[n]! - statRatings[i]![n]! + samples.ratings[n]!;
+        const score = scores[n]! - statRatings[i][n]! + samples.ratings[n]!;
         let abovePrevious = 1;
         for (let j = 0; j < bands.length; j++) {
           const next = bands[j + 1]?.min;
@@ -170,7 +170,7 @@ export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: n
         }
       }
     });
-  });
+  }
   return result;
 }
 
