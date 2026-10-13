@@ -7,7 +7,7 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import type { Skill } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { Target } from '../../model/sparks.ts';
-import { emptyLineage, hasWhiteSpark, lineageCount, lineageStars, resolveTarget, withLineageCopies, withLineageStars, type Lineage } from '../../model/sparks.ts';
+import { emptyLineage, hasWhiteSpark, isGold, lineageCount, lineageStars, resolveTarget, withLineageCopies, withLineageStars, type Lineage } from '../../model/sparks.ts';
 import { goalFamily, sanitizePriority } from '../../model/goal-input.ts';
 import { UMA_LABELS } from '../../model/inherit.ts';
 import { LINEAGE_SLOTS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
@@ -135,7 +135,7 @@ function search(role: Role) {
   const field = QUERY_FIELD[role];
   return searchBox<Skill>({
     id: `target-search-${role}`, label: COPY.targets.searchLabel[role], placeholder: COPY.targets.placeholder[role], field, items: matchTargets(view[field]), key: (s) => s.id, action: 'add-target',
-    row: (s) => { const fam = resolveTarget(s.id, data); return html`<img src="${skillIcon(s)}" alt="" />${s.name}<span class="suggest-r">${s.rarity === 2 ? 'gold' : 'white'}${fam?.gold && s.rarity === 1 ? ` · gold: ${fam.gold.name}` : ''}</span>`; },
+    row: (s) => { const fam = resolveTarget(s.id, data); return html`<img src="${skillIcon(s)}" alt="" />${s.name}<span class="suggest-r">${isGold(s) ? 'gold' : `white${fam?.gold ? ` · gold: ${fam.gold.name}` : ''}`}</span>`; },
     pick: (s) => addTarget(s.id, role),
   });
 }

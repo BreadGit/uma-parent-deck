@@ -1,6 +1,7 @@
 // Small templates and formatters shared by the panels.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import type { Card, Character, Skill, Stat } from '../types.ts';
+import { isGold } from '../model/sparks.ts';
 import { data } from './context.ts';
 import { tip } from './tooltip.ts';
 
@@ -27,7 +28,7 @@ export const typeIcon = (c: Card) => html`<img class="type-icon" src="/assets/ic
 /** A skill description followed by an optional note such as where it comes from. */
 export function skillTipText(id: number, note?: string): string {
   const sk = data.skillById.get(id);
-  return [sk?.desc ? `${sk.name}${sk.rarity === 2 ? ' (gold)' : ''}: ${sk.desc}` : '', note ?? ''].filter(Boolean).join('\n\n');
+  return [sk?.desc ? `${sk.name}${isGold(sk) ? ' (gold)' : ''}: ${sk.desc}` : '', note ?? ''].filter(Boolean).join('\n\n');
 }
 /** A skill name with an info icon showing its description, followed by an optional note such as where it comes from. */
 export function skillWithTip(id: number, label?: string | TemplateResult, note?: string): TemplateResult {
