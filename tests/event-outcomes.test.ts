@@ -5,6 +5,7 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { SCENARIO_COMPLETION_SKILLS } from '../src/model/rules.ts';
 import { evaluate, makeCtx } from '../src/model/deck.ts';
+import { isGold } from '../src/types.ts';
 import { decodeEventRoll, cardSourcesForTarget, combineSources, pruneConflicts, scenarioCompletionSources, resolveTarget, type EventSource, type SkillSource, type Target } from '../src/model/sparks.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
 
@@ -12,7 +13,7 @@ const data = loadData();
 const settings = { ...DEFAULT_SETTINGS, hintScale: 0, randomEventRate: 0 };
 const close = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) < 1e-12, `${actual} != ${expected}`);
 const source = (skillId: number, roll: Parameters<typeof decodeEventRoll>[0], stage = 1): EventSource => ({
-  kind: 'chain', skillId, gold: data.skillById.get(skillId)?.rarity === 2, circle: false,
+  kind: 'chain', skillId, gold: data.skillById.has(skillId) && isGold(data.skillById.get(skillId)!), circle: false,
   pObtain: roll.pFire / 2, isChoice: true, detail: 'Shared choice', roll: decodeEventRoll(roll, data, settings),
   event: { key: `test:chain:${stage}`, label: 'Shared choice', option: 'one', optionIndex: 0 },
   chain: { key: 'test:chain', stage, pReach: roll.pFire },

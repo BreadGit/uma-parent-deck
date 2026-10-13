@@ -4,6 +4,7 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { makeCtx, purchaseCoverage } from '../src/model/deck.ts';
 import { estimatePurchases, estimateSkillRating, ratingFromCoverage, targetSpCost } from '../src/model/skill-purchases.ts';
+import { isGold } from '../src/types.ts';
 import { isDebuff, resolveTarget, type SkillSource, type EventSource, type Target } from '../src/model/sparks.ts';
 import { prepareRunSources } from '../src/model/run-sources.ts';
 import { planRun } from '../src/model/run.ts';
@@ -125,11 +126,11 @@ test('full-price cost retains rare gold sources omitted by bounded joint samplin
   }))).flat();
   const fixture = { ...data, skillById: new Map(skills.map((s) => [s.id, s])) };
   const targets = Array.from({ length: 13 }, (_, i) => resolveTarget(900000 + i * 2, fixture)!);
-  const reward = (skillId: number, share: number) => ({ skillId, share, gold: fixture.skillById.get(skillId)!.rarity === 2, circle: false, rolled: false });
+  const reward = (skillId: number, share: number) => ({ skillId, share, gold: isGold(fixture.skillById.get(skillId)!), circle: false, rolled: false });
   const rare = 1e-8;
   const roll = { pFire: 1, outcomes: [targets.map((t, i) => i ? [reward(t.id, .5)] : [reward(t.id, 1 - rare), reward(t.gold!.id, rare)])] };
   const coverage = new Map(targets.map((t, i) => [t.id, (i ? [{ id: t.id, p: .5 }] : [{ id: t.id, p: 1 - rare }, { id: t.gold!.id, p: rare }]).map(({ id, p }): EventSource => ({
-    kind: 'chain', skillId: id, gold: fixture.skillById.get(id)!.rarity === 2, circle: false, pObtain: p, isChoice: false,
+    kind: 'chain', skillId: id, gold: isGold(fixture.skillById.get(id)!), circle: false, pObtain: p, isChoice: false,
     detail: 'Shared reward', event: { key: 'shared', label: 'Shared reward', option: '', optionIndex: 0 }, roll,
   }))]));
   const ctx = makeCtx({ data: fixture, settings: DEFAULT_SETTINGS, races: 20, totalTurns: 72, trainee: null, priority: [] });

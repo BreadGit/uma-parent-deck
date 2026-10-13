@@ -1,6 +1,7 @@
 // Import only direct GameWith evaluation values from UmaTools' full export, never its cost fallbacks.
 import { fileURLToPath } from 'node:url';
 import { readJson, writeJson } from './json-file.ts';
+import { isGold, isNormalOrGold } from '../src/types.ts';
 
 /** @typedef {{ skill_jp?: string, is_evo: boolean, skill_type: string, base_value: unknown }} ExportedSkill */
 /** @param {string} name */
@@ -16,9 +17,9 @@ const normalize = (name) => name?.normalize('NFKC').replaceAll('◯', '○');
 /** @type {Record<number, { base: number, nameJp: string | null }>} */
 const ratings = {};
 for (const skill of skills) {
-  if (skill.unreleasedEn || ![1, 2].includes(skill.rarity)) continue;
+  if (skill.unreleasedEn || !isNormalOrGold(skill)) continue;
   const matches = source.skills.filter((row) => normalize(row.skill_jp) === normalize(skill.nameJp)
-    && !row.is_evo && (row.skill_type === 'gold') === (skill.rarity === 2));
+    && !row.is_evo && (row.skill_type === 'gold') === isGold(skill));
   const values = new Set(matches.map((row) => row.base_value));
   if (values.size !== 1) continue;
   const base = [...values][0];

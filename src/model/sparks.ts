@@ -1,4 +1,4 @@
-import type { Card, CardEvent, Character, Data, EventCondition, RaceRef, Reward, Skill, TraineeEvent } from '../types.ts';
+import { isGold, isNormal, type Card, type CardEvent, type Character, type Data, type EventCondition, type RaceRef, type Reward, type Skill, type TraineeEvent } from '../types.ts';
 import { DEFAULT_SETTINGS, type Settings } from '../settings.ts';
 import { EFFECT, passives } from './stats.ts';
 import type { RaceWins } from './races.ts';
@@ -16,17 +16,17 @@ export interface Target {
 }
 export const hasWhiteSpark = (target: Target): boolean => !!target.white && !target.white.unreleasedEn && !isDebuff(target.white);
 
-/** A gold (rare) skill. */
-export const isGold = (s: Skill) => s.rarity === 2;
+// Skill forms, built on the rarity tiers isNormal and isGold. Those live in types.ts with the Skill type, so the data
+// scripts can use them without loading the model and the data it reads.
 /** A ◎ form: a normal-rarity skill that upgrades the ○ or plain white form. */
-export const isCircle = (s: Skill) => s.rarity === 1 && s.name.includes('◎');
+export const isCircle = (s: Skill) => isNormal(s) && s.name.includes('◎');
 /**
  * A debuff: a × form or a negative event skill (Gatekept, Wallflower, …). GameTora's icon ids end in 4 for both.
  * The game gives them at events and never sells them, so one is neither a target form nor a purchase.
  */
-export const isDebuff = (s: Skill) => s.rarity === 1 && (s.name.includes('×') || (s.iconId ?? 0) % 10 === 4);
+export const isDebuff = (s: Skill) => isNormal(s) && (s.name.includes('×') || (s.iconId ?? 0) % 10 === 4);
 /** A white form: normal rarity, neither ◎ nor a debuff. */
-export const isWhite = (s: Skill) => s.rarity === 1 && !isCircle(s) && !isDebuff(s);
+export const isWhite = (s: Skill) => isNormal(s) && !isCircle(s) && !isDebuff(s);
 
 /** Build the family (white, ◎, gold) for any member skill id. */
 export function resolveTarget(id: number, data: Data): Target | null {
@@ -38,9 +38,9 @@ export function resolveTarget(id: number, data: Data): Target | null {
   const members = [s, ...s.versions.map((v) => data.skillById.get(v)).filter((x): x is Skill => !!x)];
   const gold = members.find(isGold) ?? null;
   const circle = members.find(isCircle) ?? null;
-  const white = members.find(isWhite) ?? (s.rarity === 1 ? s : null);
+  const white = members.find(isWhite) ?? (isNormal(s) ? s : null);
   const base = white ?? circle ?? gold ?? s;
-  const familyIds = new Set(members.filter((m) => !isDebuff(m) && (m.rarity !== 1 || m.id === white?.id || m.id === circle?.id)).map((m) => m.id));
+  const familyIds = new Set(members.filter((m) => !isDebuff(m) && (!isNormal(m) || m.id === white?.id || m.id === circle?.id)).map((m) => m.id));
   const name = base.unreleasedEn && gold && !gold.unreleasedEn ? gold.name : base.name;
   return { id: base.id, name: name.replace(/ ○$/, ''), white, circle, gold, familyIds };
 }

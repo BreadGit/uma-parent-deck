@@ -87,6 +87,12 @@ export interface Skill {
   eventChars: number[];
   desc: string;
 }
+/** A normal-rarity skill: a white, ○, ◎ or × form, or a negative event skill. */
+export const isNormal = (s: Pick<Skill, 'rarity'>) => s.rarity === 1;
+/** A gold (rare) skill. */
+export const isGold = (s: Pick<Skill, 'rarity'>) => s.rarity === 2;
+/** A normal or gold skill, as opposed to a unique or evolved one. Skill families and white sparks hold only these. */
+export const isNormalOrGold = (s: Pick<Skill, 'rarity'>) => isNormal(s) || isGold(s);
 
 export type AptKey = 'turf' | 'dirt' | 'sprint' | 'mile' | 'medium' | 'long' | 'front' | 'pace' | 'late' | 'end';
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';

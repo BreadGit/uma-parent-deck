@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { perStat, RARITIES, type StatValues } from '../src/types.ts';
+import { isNormal, perStat, RARITIES, type StatValues } from '../src/types.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
 import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, effectiveLb, isLegalRunSelection, layoutWishlist, permutations, planRun, targetSpCost, withRequiredOrder, type RunInput } from '../src/model/run.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
@@ -386,7 +386,7 @@ test('initial deck: a borrow never takes the last owned character a slot needs; 
 });
 
 test('worst-case target SP cost: a target the deck cannot give costs nothing, matching the purchase estimate', () => {
-  const skill = must(data.skills.find((s) => s.rarity === 1 && s.cost && s.hintCards.length && !s.eventCards.length && !s.innateChars.length && !s.eventChars.length && !s.unreleasedEn && !s.name.includes('◎')));
+  const skill = must(data.skills.find((s) => isNormal(s) && s.cost && s.hintCards.length && !s.eventCards.length && !s.innateChars.length && !s.eventChars.length && !s.unreleasedEn && !s.name.includes('◎')));
   const trainee = must(data.charByCardId.get(100101));
   const used = new Set([trainee.charId]);
   const selection = data.cards.filter((c) => !skill.hintCards.includes(c.id) && !used.has(c.charId) && used.add(c.charId)).slice(0, 6).map((c, i) => ({ id: c.id, lb: 4, borrowed: i === 0 }));

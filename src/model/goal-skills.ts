@@ -1,6 +1,6 @@
-import type { Data } from '../types.ts';
+import { isGold, type Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { resolveEventSources, hasWhiteSpark, isCircle, isEventSource, isGold, lastStageShares, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
+import { resolveEventSources, hasWhiteSpark, isCircle, isEventSource, lastStageShares, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
 
 // Each digit records a family's best available form: none, white, circle, gold.
 interface Distribution { states: Map<string, number>; approximate: boolean }

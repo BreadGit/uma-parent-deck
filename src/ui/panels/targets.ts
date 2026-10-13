@@ -4,10 +4,10 @@
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
-import type { Skill } from '../../types.ts';
+import { isGold, isNormalOrGold, type Skill } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { Target } from '../../model/sparks.ts';
-import { emptyLineage, hasWhiteSpark, isGold, lineageCount, lineageStars, resolveTarget, withLineageCopies, withLineageStars, type Lineage } from '../../model/sparks.ts';
+import { emptyLineage, hasWhiteSpark, lineageCount, lineageStars, resolveTarget, withLineageCopies, withLineageStars, type Lineage } from '../../model/sparks.ts';
 import { goalFamily, sanitizePriority } from '../../model/goal-input.ts';
 import { UMA_LABELS } from '../../model/inherit.ts';
 import { LINEAGE_SLOTS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
@@ -47,7 +47,7 @@ const QUERY_FIELD = { required: 'requiredQuery', preferred: 'preferredQuery' } a
 /** How many names a closed group previews in its summary. */
 const PEEK = 4;
 
-const targetable = data.skills.filter((s) => !s.unreleasedEn && (s.rarity === 1 || s.rarity === 2) && goalFamily(s.id, data) === resolveTarget(s.id, data)?.id);
+const targetable = data.skills.filter((s) => !s.unreleasedEn && isNormalOrGold(s) && goalFamily(s.id, data) === resolveTarget(s.id, data)?.id);
 
 /** Skills whose official or GameTora name holds every word of the query. */
 export function matchTargets(query: string): Skill[] {

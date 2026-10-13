@@ -1,7 +1,6 @@
 // Small templates and formatters shared by the panels.
 import { html, nothing, type TemplateResult } from 'lit-html';
-import type { Card, Character, Skill, Stat } from '../types.ts';
-import { isGold } from '../model/sparks.ts';
+import { isGold, type Card, type Character, type Skill, type Stat } from '../types.ts';
 import { data } from './context.ts';
 import { tip } from './tooltip.ts';
 

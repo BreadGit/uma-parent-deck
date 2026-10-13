@@ -20,6 +20,7 @@ import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCard
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables } from './source-validation.ts';
 import { normalizeMissionCatalog } from './mission-import.ts';
+import { isNormalOrGold } from '../src/types.ts';
 
 /** @typedef {import('./source-validation.ts').Row} Row */
 /** GameTora's static feed tables by key. Each has its own schema, so their rows stay untyped, as in source-validation.ts. @typedef {Record<(typeof STATIC_KEYS)[number], any[]>} RawTables */
@@ -518,7 +519,7 @@ async function fetchImages({ cards, skills, characters }) {
   const add = (/** @type {number} */ id) => { const s = skillById.get(id); if (s?.iconId) usedIcons.add(s.iconId); };
   for (const c of cards) { c.hintSkills.forEach(add); c.eventSkills.forEach(add); }
   for (const c of characters) { c.innateSkills.forEach(add); c.awakeningSkills.forEach(add); c.eventSkills.forEach(add); }
-  for (const s of skills) if (!s.unreleasedEn && s.iconId && (s.rarity === 1 || s.rarity === 2)) usedIcons.add(s.iconId);
+  for (const s of skills) if (!s.unreleasedEn && s.iconId && isNormalOrGold(s)) usedIcons.add(s.iconId);
   for (const ic of usedIcons) jobs.push([`/images/umamusume/skill_icons/utx_ico_skill_${ic}.png`, `skills/${ic}.png`]);
   let done = 0, skipped = 0, missing = 0;
   for (const [src, dst] of jobs) {

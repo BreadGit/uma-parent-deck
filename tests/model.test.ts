@@ -4,8 +4,8 @@ import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, isValidSetting, SETTING_SPEC, type Settings } from '../src/settings.ts';
 import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
-import { STATS, type Card, type Race, type StatModel } from '../src/types.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, isCircle, isDebuff, isGold, isWhite, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
+import { isGold, isNormal, isNormalOrGold, STATS, type Card, type Race, type Skill, type StatModel } from '../src/types.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, isCircle, isDebuff, isWhite, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { buildDeck, describeDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
@@ -427,7 +427,7 @@ test('career goals are fixed in the agenda: a placement objective is won automat
 test('rating: the UmaTools stat table exactly (values computed from its code), skills by form and aptitude bucket, the unique skill by stars and level', () => {
   for (const [v, pts] of [[0, 0], [-5, 0], [400, 577], [600, 1143], [1000, 2635], [1199, 3835], [1200, 3841], [1201, 3849], [1249, 4240], [1250, 4249], [1500, 6773], [1999, 14261], [2000, 14280], [2001, 14298]] as const) assert.equal(statScore(v), pts, `stat ${v}`);
   assert.equal(skillScore(byName('Groundwork'), null), 217);
-  const sprint = must(skills.find((s) => s.rarity === 1 && s.tags.includes('sho') && !s.unreleasedEn));
+  const sprint = must(skills.find((s) => isNormal(s) && s.tags.includes('sho') && !s.unreleasedEn));
   const apt = (g: Aptitudes['sprint']) => traineeAptitudes(null, { sprint: g });
   assert.deepEqual((['A', 'C', 'E', 'G'] as const).map((g) => skillScore(sprint, apt(g))), [1.1, 0.9, 0.8, 0.7].map((m) => Math.round(217 * m)));
   assert.equal(skillScore(byName('Groundwork'), apt('G')), 217, 'an unconditioned skill ignores aptitudes');
@@ -701,11 +701,15 @@ test('scenario options: only the linked characters present change them, so other
 
 test('skill tiers: gold, ◎, white and debuff forms are told apart in one place', () => {
   const corner = resolveTarget(200352, data)!; // Corner Recovery ○ / Swinging Maestro
-  const tier = (s: Parameters<typeof isGold>[0]) => [isGold(s), isCircle(s), isWhite(s), isDebuff(s)];
-  assert.deepEqual(tier(corner.gold!), [true, false, false, false]);
-  assert.deepEqual(tier(corner.white!), [false, false, true, false], 'a ○ skill is the white form');
-  assert.deepEqual(tier(must(skills.find((s) => s.name.includes('◎') && s.rarity === 1))), [false, true, false, false]);
-  assert.deepEqual(tier(byName('Gatekept')), [false, false, false, true]);
+  // Rarity numbers are the data's own codes (1 normal, 2 gold, 3 to 5 unique, 6 evolved), checked here directly.
+  const tier = (s: Skill) => [isGold(s), isCircle(s), isWhite(s), isDebuff(s), isNormal(s), isNormalOrGold(s)];
+  assert.deepEqual(tier(corner.gold!), [true, false, false, false, false, true]);
+  assert.deepEqual(tier(corner.white!), [false, false, true, false, true, true], 'a ○ skill is the white form');
+  assert.deepEqual(tier(must(skills.find((s) => s.name.includes('◎') && s.rarity === 1))), [false, true, false, false, true, true]);
+  assert.deepEqual(tier(byName('Gatekept')), [false, false, false, true, true, true]);
+  for (const rarity of [3, 4, 5, 6]) {
+    assert.deepEqual(tier(must(skills.find((s) => s.rarity === rarity))), [false, false, false, false, false, false], `rarity ${rarity} is neither normal nor gold`);
+  }
 });
 
 test('settings at the ends of their accepted ranges keep every chance a probability and every inspiration mean below its maximum', () => {
