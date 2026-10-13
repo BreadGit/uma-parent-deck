@@ -1,4 +1,4 @@
-import { isGold, perStat, type Card, type Character, type Data, type StatValues } from '../types.ts';
+import { isGold, perStat, STAT_INDEXES, type Card, type Character, type Data, type StatValues } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale, uniqueExtras, type Contribution } from './stats.ts';
 import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
@@ -128,7 +128,9 @@ function statsOf(card: Card, lb: number, ctx: Ctx, others: { card: Card; lb: num
   const scale = raceScale(ctx.races, ctx.data.model, ctx.settings);
   const stats = perStat((_, i) => contrib.stats[i] * scale);
   const focusMul: StatValues = ctx.data.model.focus[ctx.settings.focus] ?? [1, 1, 1, 1, 1];
-  return { contrib, stats, statPower: perStat((_, i) => stats[i] * focusMul[i]).reduce((a, v) => a + v, 0), sp: contrib.sp * scale };
+  let statPower = 0;
+  for (const i of STAT_INDEXES) statPower += stats[i] * focusMul[i];
+  return { contrib, stats, statPower, sp: contrib.sp * scale };
 }
 
 export function scoreCard(card: Card, lb: number, targets: Target[], existing: Existing, ctx: Ctx): CardScore {
