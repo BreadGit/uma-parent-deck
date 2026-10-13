@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { defaultPins, defaultState, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
+import { effectiveLb } from '../src/model/run.ts';
+import type { Inventory, Rarity } from '../src/types.ts';
 import { importInventory } from '../src/inventory.ts';
 import { defaultParentSparks, gainsOfParentSparks } from '../src/model/inherit.ts';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, parseSetting, sanitizeSettings, SETTING_HELP, type Settings } from '../src/settings.ts';
@@ -107,7 +109,7 @@ test('v6 sparks per uma round-trip, a null slot survives, and a malformed slot r
 
 test('legacy settings blobs: version bumps apply and invalid values are dropped', () => {
   const s1 = migrate({ settings: { version: 1, defaultLb: { R: 4, SR: 4, SSR: 0 }, showUnowned: false, chainRatesSSR: [0.5, 0.5], hintBase: 0.1 } }, data);
-  assert.deepEqual(s1.settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides, 'v1 SSR default became 4; standard defaults now use SR/SSR inventory');
+  assert.deepEqual(s1.settings.inventoryOverrides, { R: 4, SR: 4, SSR: 4 }, 'v1 SSR default became 4, and without an inventory every card kept it');
   assert.equal(s1.ui.showUnowned, true, 'v2 -> unowned shown by default');
   assert.deepEqual(s1.settings.chainRatesSSR, DEFAULT_SETTINGS.chainRatesSSR, 'a two-entry list is rejected');
   assert.equal(s1.settings.hintBase, 0.1);
@@ -226,17 +228,25 @@ test('setting specs: inventory overrides accept use-inventory or a whole LB from
   }
 });
 
-test('old custom rarity settings survive migration without replacing imported inventory', () => {
-  const inventory = { 10001: 0, 20001: null, 30001: 1, 999999: 2 };
-  const saved = { version: 24, settings: { defaultLb: { R: 2, SR: 3, SSR: 1 } }, inventory };
-  const migrated = migrate({ current: saved }, data);
-  assert.deepEqual(migrated.settings.inventoryOverrides, { R: 2, SR: 3, SSR: 1 });
-  assert.deepEqual(migrated.inventory, inventory);
+test('saves from before rarity overrides keep the ownership they showed', () => {
+  const defaultLb = { R: 2, SR: 3, SSR: 1 };
+  const first = (rarity: Rarity) => must(data.cards.find((card) => card.rarity === rarity), `an ${rarity} card`).id;
+  const inventory: Inventory = { [first('R')]: 0, [first('SR')]: null, [first('SSR')]: 1, 999999: 2 };
+  const migrated = migrate({ current: { version: 24, settings: { defaultLb }, inventory } }, data);
+  // Before v25 a card without an entry was owned at its rarity's default, which is also how a card set to it was stored.
+  for (const card of data.cards) {
+    const saved = inventory[card.id];
+    assert.equal(effectiveLb(migrated.inventory, card, migrated.settings.inventoryOverrides), saved === undefined ? defaultLb[card.rarity] : saved, `card ${card.id}`);
+  }
+  assert.deepEqual(migrated.settings.inventoryOverrides, { R: null, SR: null, SSR: 1 }, 'only the SSR cards all sat at their default');
+  assert.equal(migrated.inventory[999999], 2, 'entries for cards today\'s data lacks stay');
   assert.equal('defaultLb' in migrated.settings, false);
   assert.deepEqual(migrate({ current: migrated }, data), migrated);
-  const changed = migrate({ current: { ...saved, settings: { ...saved.settings, inventoryOverrides: { R: null, SR: null, SSR: null } } } }, data);
-  assert.deepEqual(changed.settings.inventoryOverrides, { R: null, SR: null, SSR: null }, 'the new explicit setting wins over a legacy value');
-  assert.deepEqual(migrate({ current: { ...saved, settings: { defaultLb: { R: 4, SR: 4, SSR: 4 } } } }, data).settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides);
+
+  const untouched = migrate({ current: { version: 24, settings: {}, inventory: {} } }, data);
+  assert.deepEqual(untouched.settings.inventoryOverrides, { R: 4, SR: 4, SSR: 4 }, 'a save that never set an LB owned every card at LB4');
+  assert.deepEqual(untouched.inventory, {});
+  assert.deepEqual(migrate({}, data).settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides, 'a fresh browser takes today\'s defaults');
 });
 
 test('setting specs: chain reach chances may not rise from one stage to the next', () => {

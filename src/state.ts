@@ -7,7 +7,7 @@ import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
 import type { SharedChoices } from './share.ts';
 import { lineageFromSides, lineageFromTotals, sanitizeLineage, type Lineage } from './model/sparks.ts';
-import { isLimitBreak, LINEAGE_SLOTS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
+import { isLimitBreak, LINEAGE_SLOTS, MAX_LB, MAX_PARENT_STARS, STARS_PER_SPARK_MAX } from './model/rules.ts';
 import { defaultParentSparks, gainOfSparks, parentSparksFromGains, sanitizeParentSparks, sparksFromStars, type ParentSparks } from './model/inherit.ts';
 import { clampStars } from './model/trainee.ts';
 import { defaultMissionState, type MissionState } from './model/missions.ts';
@@ -131,25 +131,27 @@ function migrateLineage(v: unknown): Lineage | null {
   return lineageFromTotals(n, n * (typeof v.stars === 'number' ? v.stars : STARS_PER_SPARK_MAX));
 }
 
-/** Older settings blobs carried their own version number. */
-function migrateSettings(raw: Json): Settings {
+/** The rarity defaults an older settings blob assumed; the blob carried its own version, and v2 changed the SSR default. */
+function legacyBlobDefaultLb(raw: Json): unknown {
   const version = typeof raw.version === 'number' ? raw.version : 1;
-  const saved: Json = { ...raw };
-  delete saved.version;
-  if (version < 2 && isPlainObject(saved.defaultLb)) saved.defaultLb = { ...saved.defaultLb, SSR: 4 }; // v2 changed the old SSR default
-  return settingsOf(saved);
+  return version < 2 && isPlainObject(raw.defaultLb) ? { ...raw.defaultLb, SSR: MAX_LB } : raw.defaultLb;
 }
+
 /**
- * Settings from any save. Rarity defaults (`defaultLb`, v24) became inventory overrides (v25). The old defaults were
- * always 4, so a changed level becomes that rarity's override and the rest take today's defaults, which use scanned
- * SR/SSR ownership. The inventory itself stays intact, so disabling an override restores it.
+ * Before v25 a card without an inventory entry counted as owned at its rarity's default LB (`defaultLb`, MAX_LB unless
+ * changed), and choosing that default for a card removed its entry. Today a card without an entry is not owned, so an
+ * older save keeps the ownership it showed: a rarity whose cards all sat at its default keeps that default as the
+ * rarity's override, and in any other rarity each card without an entry is written in at the default.
  */
-function settingsOf(raw: Json): Settings {
-  const { defaultLb, ...saved } = raw;
-  if (saved.inventoryOverrides === undefined && isPlainObject(defaultLb) && RARITIES.every((r) => isLimitBreak(defaultLb[r]))) {
-    saved.inventoryOverrides = Object.fromEntries(RARITIES.map((r) => [r, defaultLb[r] === 4 ? DEFAULT_SETTINGS.inventoryOverrides[r] : defaultLb[r]]));
+function keepLegacyOwnership(state: AppState, savedDefaults: unknown, data: Data) {
+  const valid = isPlainObject(savedDefaults) && RARITIES.every((r) => isLimitBreak(savedDefaults[r]));
+  for (const rarity of RARITIES) {
+    const lb = valid ? savedDefaults[rarity] as number : MAX_LB;
+    const keys = data.cards.filter((card) => card.rarity === rarity).map((card) => String(card.id));
+    const uniform = keys.every((key) => state.inventory[key] === undefined || state.inventory[key] === lb);
+    state.settings.inventoryOverrides[rarity] = uniform ? lb : null;
+    if (!uniform) for (const key of keys) if (!(key in state.inventory)) state.inventory[key] = lb;
   }
-  return sanitizeSettings(saved);
 }
 
 /**
@@ -177,11 +179,11 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
   if (isSave(saved.current)) {
     const c = saved.current;
     const recommendation = c.version === STATE_VERSION ? parseRecommendation(c.recommendation) : undefined;
-    return {
+    const state: AppState = {
       ...(recommendation ? { recommendation } : {}),
       version: STATE_VERSION,
       run: isPlainObject(c.run) ? migrateRun(c.run, data, c.version >= 21) : base.run,
-      settings: isPlainObject(c.settings) ? settingsOf(c.settings) : base.settings,
+      settings: isPlainObject(c.settings) ? sanitizeSettings(c.settings) : base.settings,
       inventory: sanitizeInventory(c.inventory),
       missions: migrateMissions(c.missions),
       ui: { sortKey: isPlainObject(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isPlainObject(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,
@@ -189,11 +191,13 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
           : isPlainObject(c.settings) && typeof c.settings.showUnowned === 'boolean' ? c.settings.showUnowned : DEFAULT_UI.showUnowned,
         inputsHidden: isPlainObject(c.ui) && typeof c.ui.inputsHidden === 'boolean' ? c.ui.inputsHidden : DEFAULT_UI.inputsHidden },
     };
+    if (c.version < 25) keepLegacyOwnership(state, isPlainObject(c.settings) ? c.settings.defaultLb : undefined, data);
+    return state;
   }
-  return {
+  const state: AppState = {
     version: STATE_VERSION,
     run: isPlainObject(saved.state) ? migrateRun(saved.state, data) : base.run,
-    settings: isPlainObject(saved.settings) ? migrateSettings(saved.settings) : base.settings,
+    settings: isPlainObject(saved.settings) ? sanitizeSettings(saved.settings) : base.settings,
     inventory: sanitizeInventory(saved.inventory),
     missions: base.missions,
     ui: { sortKey: isPlainObject(saved.state) && typeof saved.state.sortKey === 'string' ? saved.state.sortKey : DEFAULT_UI.sortKey, theme: isTheme(saved.theme) ? saved.theme : DEFAULT_UI.theme,
@@ -201,6 +205,10 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
         && typeof saved.settings.showUnowned === 'boolean' ? saved.settings.showUnowned : DEFAULT_UI.showUnowned,
       inputsHidden: DEFAULT_UI.inputsHidden },
   };
+  if ([saved.state, saved.settings, saved.inventory].some(isPlainObject)) {
+    keepLegacyOwnership(state, isPlainObject(saved.settings) ? legacyBlobDefaultLb(saved.settings) : undefined, data);
+  }
+  return state;
 }
 const isTheme = (v: unknown): v is Theme => v === 'system' || v === 'light' || v === 'dark';
 
