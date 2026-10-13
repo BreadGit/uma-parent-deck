@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { effectiveLb } from '../src/model/run.ts';
-import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, replaceUnreadableSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, storedIfChanged, uncopiedUnreadable, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
+import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, storedIfChanged, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
 
 test('storage failures preserve in-memory edits and an existing save, then recover', () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
@@ -59,20 +59,22 @@ function withStorage(saved: Map<string, string>, run: () => void, full = false) 
   }
 }
 
-test('an unreadable save is copied aside before an edit replaces it, and the copy stays until removed', () => {
+test('an unreadable save is copied aside, the page saves normally, and the copy stays until removed', () => {
   const data = loadData();
   for (const unreadable of ['{invalid: audit probe', 'null', '{"version":"24"}', '{"version":24.5,"run":{}}']) {
     const saved = new Map([[STATE_KEY, unreadable]]);
     withStorage(saved, () => {
       const loaded = loadState(data, { 30028: 3 });
       assert.deepEqual(loaded.inventory, {}, 'a browser with an unreadable save is not fresh, so the bundled inventory is not loaded');
+      assert.equal(saved.get(UNREADABLE_KEY), unreadable);
       assert.equal(unreadableSave(), unreadable);
-      assert.equal(saved.get(STATE_KEY), unreadable, 'loading alone does not replace the original');
       loaded.ui.theme = 'dark';
       assert.equal(saveState(loaded), true);
+      assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
       assert.equal(saved.get(UNREADABLE_KEY), unreadable, 'the copy survives the first edit');
       removeUnreadableSave();
       assert.equal(unreadableSave(), null);
+      assert.equal(saved.has(UNREADABLE_KEY), false);
     });
   }
   const fresh = new Map<string, string>();
@@ -91,122 +93,49 @@ test('a browser with only legacy blobs starts from the bundled inventory, and th
   });
 });
 
-test('a different unreadable save stays protected when an earlier copy is retained', () => {
-  const data = loadData(), unreadable = '{new broken save', earlier = '{older broken save';
-  const saved = new Map([[STATE_KEY, unreadable], [UNREADABLE_KEY, earlier]]);
+test('the latest unreadable save replaces an earlier copy', () => {
+  const data = loadData(), unreadable = '{new broken save';
+  const saved = new Map([[STATE_KEY, unreadable], [UNREADABLE_KEY, '{older broken save']]);
   withStorage(saved, () => {
-    const loaded = loadState(data, {});
-    assert.equal(uncopiedUnreadable, unreadable);
-    assert.equal(unreadableSave(), unreadable, 'the current original is offered for download');
-    loaded.ui.theme = 'dark';
-    assert.equal(saveState(loaded), false);
-    assert.equal(saved.get(STATE_KEY), unreadable, 'an ordinary edit keeps the only current copy');
-    assert.equal(saved.get(UNREADABLE_KEY), earlier, 'the earlier copy is also kept');
-    assert.equal(replaceUnreadableSave(loaded), true);
-    assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
-    assert.equal(saved.get(UNREADABLE_KEY), earlier, 'replacing the original does not remove the earlier copy');
-    assert.equal(unreadableSave(), earlier, 'the retained copy is offered after replacement');
-    removeUnreadableSave();
-  });
-});
-
-test('an unreadable save already copied aside can be safely replaced by an ordinary edit', () => {
-  const data = loadData(), unreadable = '{same broken save';
-  const saved = new Map([[STATE_KEY, unreadable], [UNREADABLE_KEY, unreadable]]);
-  withStorage(saved, () => {
-    const loaded = loadState(data, {});
-    assert.equal(uncopiedUnreadable, null);
-    loaded.ui.theme = 'dark';
-    assert.equal(saveState(loaded), true);
-    assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
+    loadState(data, {});
     assert.equal(saved.get(UNREADABLE_KEY), unreadable);
     removeUnreadableSave();
   });
 });
 
-test('an unreadable save without room for a copy stays in place until the user replaces it', () => {
+test('an unreadable save without room for a copy is still offered for download in this session', () => {
   const data = loadData(), unreadable = '{invalid: audit probe';
   const saved = new Map([[STATE_KEY, unreadable]]);
   withStorage(saved, () => {
     const loaded = loadState(data, {});
     assert.equal(saved.has(UNREADABLE_KEY), false, 'there is no room for the copy');
-    assert.equal(uncopiedUnreadable, unreadable);
-    assert.equal(unreadableSave(), unreadable, 'the original is still offered as a download');
-    loaded.ui.theme = 'dark';
-    assert.equal(saveState(loaded), false);
-    assert.equal(saved.get(STATE_KEY), unreadable, 'an ordinary edit does not overwrite the only copy');
-    assert.equal(storageUnavailable, false, 'a kept unreadable save is not reported as unavailable storage');
-    assert.equal(replaceUnreadableSave(loaded), true, 'replacing it lets the page save again');
-    assert.equal(unreadableSave(), null);
-    assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
-  }, true);
-});
-
-test('a failed explicit replacement keeps the unreadable original protected and retains an earlier copy', () => {
-  const data = loadData(), unreadable = '{new broken save', earlier = '{older broken save';
-  const saved = new Map([[STATE_KEY, unreadable], [UNREADABLE_KEY, earlier]]);
-  withStorage(saved, () => {
-    const loaded = loadState(data, {}), write = localStorage.setItem;
-    localStorage.setItem = () => { throw new DOMException('Full', 'QuotaExceededError'); };
-    loaded.ui.theme = 'dark';
-    assert.equal(replaceUnreadableSave(loaded), false);
-    assert.equal(uncopiedUnreadable, unreadable);
     assert.equal(unreadableSave(), unreadable);
-    assert.equal(saved.get(STATE_KEY), unreadable);
-    assert.equal(saved.get(UNREADABLE_KEY), earlier);
-    localStorage.setItem = write;
-    assert.equal(saveState(loaded), false, 'storage recovering does not authorize losing the original');
-    assert.equal(replaceUnreadableSave(loaded), true);
-    assert.equal(saved.get(UNREADABLE_KEY), earlier);
+    loaded.ui.theme = 'dark';
+    assert.equal(saveState(loaded), true);
+    assert.equal(unreadableSave(), unreadable, 'replacing the save keeps the download');
     removeUnreadableSave();
-  });
-});
-
-test('an unreadable save from another tab is copied or protected before an edit without its storage event', () => {
-  const data = loadData(), earlier = '{older broken save';
-  for (const protection of ['copy', 'retained', 'full'] as const) {
-    for (const unreadable of ['{other tab broken save', 'null', '{"version":"24"}']) {
-      const original = defaultState(data);
-      original.inventory = { 30028: 2 };
-      const saved = new Map([[STATE_KEY, JSON.stringify(original)]]);
-      if (protection === 'retained') saved.set(UNREADABLE_KEY, earlier);
-      withStorage(saved, () => {
-        const loaded = loadState(data, {});
-        saved.set(STATE_KEY, unreadable);
-        assert.equal(storedIfChanged(data), null, 'the current choices are kept on the page');
-        assert.equal(unreadableSave(), unreadable);
-        assert.deepEqual(loaded.inventory, original.inventory);
-        loaded.ui.theme = 'dark';
-        const copied = protection === 'copy';
-        assert.equal(saveState(loaded), copied);
-        if (copied) assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
-        else {
-          assert.equal(saved.get(STATE_KEY), unreadable, 'an uncopied original is left in place');
-          assert.equal(uncopiedUnreadable, unreadable);
-          assert.equal(replaceUnreadableSave(loaded), true);
-        }
-        assert.equal(saved.get(UNREADABLE_KEY), protection === 'retained' ? earlier : copied ? unreadable : undefined);
-        removeUnreadableSave();
-      }, protection === 'full');
-    }
-  }
-});
-
-test('a page kept from saving over an unreadable save saves again once another tab replaces it', () => {
-  const data = loadData();
-  const saved = new Map([[STATE_KEY, '{invalid: audit probe']]);
-  withStorage(saved, () => {
-    const page = loadState(data, {});
-    assert.notEqual(uncopiedUnreadable, null);
-    const other = defaultState(data);
-    other.settings.focus = 'balanced';
-    saved.set(STATE_KEY, JSON.stringify(other));
-    assert.equal(storedIfChanged(data)?.settings.focus, 'balanced');
-    assert.equal(uncopiedUnreadable, null, 'nothing unreadable is left in place to protect');
     assert.equal(unreadableSave(), null);
-    page.ui.sortKey = 'speed';
-    assert.equal(saveState(page), true);
   }, true);
+});
+
+test('an unreadable save from another tab is copied aside and the choices on this page are kept', () => {
+  const data = loadData();
+  for (const unreadable of ['{other tab broken save', 'null', '{"version":"24"}']) {
+    const original = defaultState(data);
+    original.inventory = { 30028: 2 };
+    const saved = new Map([[STATE_KEY, JSON.stringify(original)]]);
+    withStorage(saved, () => {
+      const loaded = loadState(data, {});
+      saved.set(STATE_KEY, unreadable);
+      assert.equal(storedIfChanged(data), null);
+      assert.equal(saved.get(UNREADABLE_KEY), unreadable);
+      assert.equal(unreadableSave(), unreadable);
+      loaded.ui.theme = 'dark';
+      assert.equal(saveState(loaded), true);
+      assert.deepEqual(JSON.parse(saved.get(STATE_KEY)!).inventory, original.inventory);
+      removeUnreadableSave();
+    });
+  }
 });
 
 test('a save from a newer version is read but never replaced until the user chooses to', () => {

@@ -18,7 +18,7 @@ export interface AppState { version: number; run: RunInput; settings: Settings; 
 
 export const STATE_VERSION = 25;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
-/** A save that could not be read is copied here before the first edit replaces it, until the user removes the copy. */
+/** The last save this app could not read, kept until the user removes it. */
 export const UNREADABLE_KEY = `${STATE_KEY}.unreadable`;
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -220,32 +220,15 @@ const readStored = (key: string): string | null => {
 const parseJson = (raw: string | null): unknown => { try { return raw ? JSON.parse(raw) : undefined; } catch { return undefined; } };
 const readJson = (key: string): unknown => parseJson(readStored(key));
 
-/**
- * An unreadable save that could not be copied aside because storage is read-only, full or holds an earlier copy.
- * The original is then the only copy, so nothing is written over it until the user replaces it.
- */
-export let uncopiedUnreadable: string | null = null;
-/** Keep the only copy of an unreadable save; an earlier copy the user has not removed yet is never replaced. */
+let unreadableFound: string | null = null;
 function keepUnreadable(raw: string) {
-  try {
-    const copy = localStorage.getItem(UNREADABLE_KEY);
-    if (copy === null) localStorage.setItem(UNREADABLE_KEY, raw);
-    uncopiedUnreadable = copy === null || copy === raw ? null : raw;
-  }
-  catch { uncopiedUnreadable = raw; }
+  unreadableFound = raw;
+  try { localStorage.setItem(UNREADABLE_KEY, raw); } catch { /* still offered for download from unreadableFound */ }
 }
-/** The save that could not be read, for the notice that offers it as a download. */
-export const unreadableSave = (): string | null => uncopiedUnreadable ?? readStored(UNREADABLE_KEY);
+export const unreadableSave = (): string | null => unreadableFound ?? readStored(UNREADABLE_KEY);
 export function removeUnreadableSave() {
+  unreadableFound = null;
   try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
-}
-/** Replace the unreadable original without discarding an earlier retained copy. A failed write keeps it protected. */
-export function replaceUnreadableSave(state: AppState) {
-  const raw = uncopiedUnreadable;
-  uncopiedUnreadable = null;
-  if (saveState(state)) return true;
-  uncopiedUnreadable = raw;
-  return false;
 }
 
 /** The save as this page last read or wrote it. A write from another tab since then makes the stored text differ. */
@@ -258,7 +241,6 @@ let lastRaw: string | null = null;
 export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   const raw = lastRaw = readStored(STATE_KEY);
   const current = parseJson(raw);
-  uncopiedUnreadable = null;
   if (raw !== null && !isSave(current)) keepUnreadable(raw);
   newerSave = isSave(current) && current.version > STATE_VERSION;
   const legacy = { state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) };
@@ -271,7 +253,7 @@ export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   return state;
 }
 export function saveState(state: AppState) {
-  if (newerSave || uncopiedUnreadable !== null) return false;
+  if (newerSave) return false;
   const serialized = JSON.stringify(state);
   try {
     localStorage.setItem(STATE_KEY, serialized);
@@ -287,16 +269,13 @@ export function saveState(state: AppState) {
 /**
  * The save another tab wrote since this page last read or wrote one, or null. Its storage event can arrive late, or
  * never reach a page restored from the back-forward cache, so an edit checks here before writing the whole state.
- * A save from a newer version sets `newerSave` instead of being taken over. An unreadable save is protected the
- * same way as on startup, and the choices already on this page stay in place.
+ * A save from a newer version sets `newerSave` instead of being taken over; an unreadable one is copied aside.
  */
 export function storedIfChanged(data: Data): AppState | null {
   const raw = readStored(STATE_KEY);
   if (raw === null || raw === lastRaw) return null;
   const current = parseJson(raw);
   lastRaw = raw;
-  // Another tab wrote over an unreadable save it could not copy aside, so there is nothing left in place to protect.
-  uncopiedUnreadable = null;
   newerSave = false;
   if (!isSave(current)) { keepUnreadable(raw); return null; }
   if (current.version > STATE_VERSION) { newerSave = true; return null; }
