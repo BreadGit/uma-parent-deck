@@ -13,10 +13,13 @@ const data = loadData();
 /** The server the browser suites test; set URL for a server on another port. */
 export const BASE_URL = process.env.URL ?? 'http://localhost:5173/';
 
-/** Launches the engine named by BROWSER (chromium, firefox or webkit), Chromium by default. */
+/**
+ * Launches the engine named by TEST_BROWSER (chromium, firefox or webkit), Chromium by default. Not BROWSER: desktops
+ * and editor terminals set that to the user's own browser or a helper script.
+ */
 export function launchBrowser(options) {
-  const name = process.env.BROWSER ?? 'chromium';
-  if (!['chromium', 'firefox', 'webkit'].includes(name)) throw new Error(`BROWSER must be chromium, firefox or webkit, not ${name}`);
+  const name = process.env.TEST_BROWSER ?? 'chromium';
+  if (!['chromium', 'firefox', 'webkit'].includes(name)) throw new Error(`TEST_BROWSER must be chromium, firefox or webkit, not ${name}`);
   return playwright[name].launch(options);
 }
 
