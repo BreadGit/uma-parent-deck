@@ -1,5 +1,5 @@
 import type { Settings } from '../settings.ts';
-import { STATS, type Stat } from '../types.ts';
+import { isPlainObject, STATS, type Stat } from '../types.ts';
 import { BLUE_SPARK_INSPIRATION_PROC_BY_STARS, BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_GAIN_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, INSPIRATION_EVENTS, MAX_BLUE_STARS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from './rules.ts';
 export { MAX_BLUE_STARS, MAX_PARENT_STARS };
 
@@ -47,7 +47,8 @@ export type ParentSparks = (BlueSpark | null)[];
 export const UMA_LABELS = ['Parent', 'Grandparent', 'Grandparent'];
 /** A fresh side has no entered sparks, so every stat starts at +0. */
 export const defaultParentSparks = (): ParentSparks => Array(UMAS_PER_PARENT_SIDE).fill(null);
-export const isValidSpark = (v: unknown): v is BlueSpark => !!v && typeof v === 'object' && STATS.includes((v as BlueSpark).stat) && Number.isInteger((v as BlueSpark).stars) && (v as BlueSpark).stars >= 1 && (v as BlueSpark).stars <= STARS_PER_SPARK_MAX;
+export const isValidSpark = (v: unknown): v is BlueSpark => isPlainObject(v) && STATS.includes(v.stat as Stat)
+  && typeof v.stars === 'number' && Number.isInteger(v.stars) && v.stars >= 1 && v.stars <= STARS_PER_SPARK_MAX;
 /** A saved side, or the default when it is not exactly three slots of a spark or null. */
 export function sanitizeParentSparks(raw: unknown): ParentSparks {
   if (!Array.isArray(raw) || raw.length !== UMAS_PER_PARENT_SIDE || !raw.every((v) => v === null || isValidSpark(v))) return defaultParentSparks();

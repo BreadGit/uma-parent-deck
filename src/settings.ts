@@ -1,4 +1,4 @@
-import { RARITIES, type Focus, type Rarity } from './types.ts';
+import { isPlainObject, RARITIES, type Focus, type Rarity } from './types.ts';
 import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
 
 export type InventoryOverrides = Record<Rarity, number | null>;
@@ -159,10 +159,7 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
       && (!spec.bounds || value.every((v, i) => inRange(v, spec.bounds![i]![0], spec.bounds![i]![1])));
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
     case 'boolean': return typeof value === 'boolean';
-    case 'inventory-overrides': return !!value && typeof value === 'object' && RARITIES.every((r) => {
-      const lb = (value as Record<string, unknown>)[r];
-      return lb === null || isLimitBreak(lb);
-    });
+    case 'inventory-overrides': return isPlainObject(value) && RARITIES.every((r) => value[r] === null || isLimitBreak(value[r]));
   }
 }
 

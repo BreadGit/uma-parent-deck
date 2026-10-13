@@ -1,4 +1,4 @@
-import { gameIdKey, type Card, type Inventory } from './types.ts';
+import { gameIdKey, isPlainObject, type Card, type Inventory } from './types.ts';
 import { sanitizeInventory } from './state.ts';
 import { downloadText } from './download.ts';
 import { isLimitBreak, MAX_LB } from './model/rules.ts';
@@ -14,7 +14,7 @@ export function exportInventory(inv: Inventory, cards: Card[]) {
  */
 export async function importInventory(file: File): Promise<Inventory> {
   const parsed: unknown = JSON.parse(await file.text());
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Expected an object of card IDs and limit breaks.');
+  if (!isPlainObject(parsed)) throw new Error('Expected an object of card IDs and limit breaks.');
   const normalized: Inventory = {};
   for (const [id, raw] of Object.entries(parsed)) {
     const value = raw === -1 || raw === 'none' ? null : typeof raw === 'string' && /^\d$/.test(raw) ? Number(raw) : raw;

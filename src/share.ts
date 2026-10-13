@@ -2,7 +2,7 @@
 import type { AppState } from './state.ts';
 import type { RunInput } from './model/run.ts';
 import type { Settings } from './settings.ts';
-import { isGameId, type AptKey, type Grade, type Stat } from './types.ts';
+import { isGameId, isPlainObject, type AptKey, type Grade, type Stat } from './types.ts';
 import { lineageFromSides, type Lineage } from './model/sparks.ts';
 
 export interface SharedChoices {
@@ -46,7 +46,7 @@ const unique = <T>(values: T[], key: (v: T) => unknown = (v) => v): T[] =>
   new Set(values.map(key)).size === values.length ? values : invalid();
 const ids = (v: unknown) => unique(list(v).map(id));
 const sortedEntries = <T>(v: Record<string, T>) => Object.entries(v).sort(([a], [b]) => Number(a) - Number(b));
-const canonical = (v: unknown): string => JSON.stringify(v, (_, value: unknown) => value && typeof value === 'object' && !Array.isArray(value)
+const canonical = (v: unknown): string => JSON.stringify(v, (_, value: unknown) => isPlainObject(value)
   ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b))) : value);
 
 /** Explicitly select the share scope. New RunInput fields require a decision here and in the format. */
