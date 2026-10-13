@@ -3,8 +3,14 @@
 import { html, nothing } from 'lit-html';
 import type { Scanner } from '../../scanner/session.ts';
 import { refresh, store, update, view } from '../context.ts';
-import { SCANNER_COPY as C } from '../copy.ts';
+import { TITLE } from '../copy.ts';
 import { notice } from '../dialog.ts';
+
+const copy = {
+  scannerLoadFailed: 'Could not open screenshot import. Check your connection and try again. If it keeps failing, reload the page.',
+  closeScanner: '← Back to planner',
+  subtitleEmbedded: 'Read support cards and limit breaks from screenshots, check the readings, then apply them to your inventory.',
+} as const;
 
 let scanner: Scanner | null = null;
 
@@ -25,7 +31,7 @@ export async function openScanner() {
       });
     } catch (error) {
       console.error('Scanner could not load:', error);
-      void notice(C.scannerLoadFailed);
+      void notice(copy.scannerLoadFailed);
       return;
     } finally { view.scannerLoading = false; refresh(); }
   }
@@ -64,7 +70,7 @@ function onKeyDown(e: KeyboardEvent) {
 
 export function renderScannerOverlay() {
   if (!view.scannerOpen || !scanner) return nothing;
-  return html`<dialog class="scanner-sheet" aria-label=${C.title} data-scanner
+  return html`<dialog class="scanner-sheet" aria-label=${TITLE.scanner} data-scanner
     @keydown=${onKeyDown}
     @close=${onClosed}
     @click=${(e: MouseEvent) => {
@@ -73,8 +79,8 @@ export function renderScannerOverlay() {
       if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) closeScanner();
     }}>
     <header class="scanner-sheet-head">
-      <button class="scanner-back" data-action="close-scanner" @click=${closeScanner}>${C.closeScanner}</button>
-      <div><h1>${C.title}</h1><p class="muted">${C.subtitleEmbedded}</p></div>
+      <button class="scanner-back" data-action="close-scanner" @click=${closeScanner}>${copy.closeScanner}</button>
+      <div><h1>${TITLE.scanner}</h1><p class="muted">${copy.subtitleEmbedded}</p></div>
     </header>
     <main class="scan-main">${scanner.render()}</main>
   </dialog>`;

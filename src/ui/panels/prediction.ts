@@ -5,11 +5,23 @@ import { STATS } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { BLUE_STAR_BANDS, cardContribution, EFFECT, passives, raceScale, uniqueExtras } from '../../model/stats.ts';
 import { data, store } from '../context.ts';
-import { COPY } from '../copy.ts';
+import { TITLE } from '../copy.ts';
 import { basisLabel } from '../effect-coverage.ts';
 import { capitalize, cardLink, cardThumb, num, pill } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
+
+const copy = {
+  aboutStats: 'How the stats are estimated',
+  tip: `Means with the run-to-run spread (±1 sd) from an empirical fit of logged independent-training runs. ≥${BLUE_STAR_BANDS.mid} and ≥${BLUE_STAR_BANDS.high} are the chances of the stat reaching the 2★ and 3★ blue spark bands.`,
+  ssTip: "Chance the final rank is SS or above, which improves white spark star odds. An estimate: the rank score is the game's stat table plus estimated skill terms, and its spread comes from the fitted stat model.",
+  scaling: (focus: string, multipliers: string, scale: string, races: number, reference: number) => `Card stats and SP use a race scaling of ×${scale} for ${races} races against the model's ${reference}-race reference. Career rewards use a separate estimate based on 23-race and 28-race measurements. Both card and career stats include the ${focus} focus multiplier (${multipliers}); SP does not.`,
+  skillCost: (cost: string, sp: string, overBudget: boolean, extras: string) => `Buying every target at full price costs ${cost} of ${sp} estimated SP${overBudget ? ', more than the run is expected to earn' : ''} (the worst case in ${TITLE.coverage}). The listed extras would add ${extras} SP; the run does not need them.`,
+  purchases: (pointsPerSp: number, referenceRate: number, referenceSp: number, fallback: boolean, unknown: number) => `Rank assumes all estimated SP is spent, averaging ${pointsPerSp.toFixed(2)} rating points per SP. ${fallback ? 'No obtainable skill has a known positive price.' : 'Obtainable skills contribute when their full-price value beats the reference rate. Availability limits their contribution, and inefficient optional skills or upgrades can be skipped.'} About ${Math.round(referenceSp).toLocaleString()} SP uses a reference rate of ${referenceRate.toFixed(2)} points per SP, derived from released white skills and the trainee's aptitudes independently of the deck. This rate is a planning assumption, not calibrated spending data. Fractional expected purchases approximate availability; shared outcomes and actual purchase budgets can differ. The full-price cost of the targets is checked separately, using each family's highest obtainable form with prerequisites, and the listed extras are priced apart from it. Goal spark chances assume the target forms are bought even when their cost exceeds estimated SP. Hint discounts, Fast Learner and SP variation are not modeled. ${unknown ? `${unknown} skill forms lack a verified individual rating and use rarity estimates. ` : ''}The skill-score spread describes uncertainty in spending efficiency; it is not a calibrated success rate.`,
+  evidence: (rmse: string, observations: number) => `The spread uses raw gains between logged runs, with a sample-variance correction and estimated inspiration variance. The full total is converted above 1,200 before caps and rating. Correlated stats and errors in the predicted mean are not measured by this spread. The card formula's fitting error is ${rmse} per stat over ${observations} observations; this is not an accuracy guarantee for new cards. Race scaling comes from the measured 23-race and 28-race schedules, and focus multipliers come from one measured deck.`,
+  raceBonus: (bonus: number) => `Career rewards include race rewards measured with the reference deck's Race Bonus. The baseline does not adjust for this deck's ${bonus}% Race Bonus, so comparisons between decks may miss that difference.`,
+  capped: 'A stat is clamped to the scenario cap plus the blue sparks\' start-of-run uncaps. Uncaps from inspiration events and green sparks are unknown and left out.',
+} as const;
 
 export function statBreakdown(c: RunPlan) {
   const d = c.deckResult, p = c.pred;
@@ -36,22 +48,22 @@ export function statBreakdown(c: RunPlan) {
       ${row(html`<b>Final</b>`, c.finalMean, 'total')}
       ${row('Estimated spread (±1 sd)', c.finalSd)}
     </tbody></table></div>
-    <p class="small ${c.spCost.total > p.sp ? 'warn' : 'muted'}">Rank score: stats ${num(c.rank.statPts)}, unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, purchased skills ${num(c.rank.skillPts - c.rank.uniquePts)}. ${COPY.prediction.skillCost(`${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}`, num(p.sp), c.spCost.total > p.sp, `${num(c.purchases.extrasCost.total)}${c.purchases.extrasCost.incomplete ? '+' : ''}`)}</p>
-    ${about(COPY.details.aboutStats, [
-      COPY.prediction.scaling(store.settings.focus, focusMul.map((m) => m.toFixed(2)).join(' / '), scale.toFixed(2), c.ctx.races, data.model.races.reference),
-      COPY.prediction.purchases(c.skillRating.pointsPerSp, c.skillRating.referenceRate, c.skillRating.referenceSp, c.skillRating.fallback, c.skillRating.unverified.length),
-      COPY.prediction.evidence(data.model.fit.rmse.toFixed(1), data.model.fit.n),
-      `${COPY.prediction.raceBonus(raceBonus)}${capped ? ` ${COPY.prediction.capped}` : ''}`,
+    <p class="small ${c.spCost.total > p.sp ? 'warn' : 'muted'}">Rank score: stats ${num(c.rank.statPts)}, unique skill Lv ${num(c.rank.uniqueLevel, 1)} for ${num(c.rank.uniquePts)}, purchased skills ${num(c.rank.skillPts - c.rank.uniquePts)}. ${copy.skillCost(`${num(c.spCost.total)}${c.spCost.incomplete ? '+' : ''}`, num(p.sp), c.spCost.total > p.sp, `${num(c.purchases.extrasCost.total)}${c.purchases.extrasCost.incomplete ? '+' : ''}`)}</p>
+    ${about(copy.aboutStats, [
+      copy.scaling(store.settings.focus, focusMul.map((m) => m.toFixed(2)).join(' / '), scale.toFixed(2), c.ctx.races, data.model.races.reference),
+      copy.purchases(c.skillRating.pointsPerSp, c.skillRating.referenceRate, c.skillRating.referenceSp, c.skillRating.fallback, c.skillRating.unverified.length),
+      copy.evidence(data.model.fit.rmse.toFixed(1), data.model.fit.n),
+      `${copy.raceBonus(raceBonus)}${capped ? ` ${copy.capped}` : ''}`,
     ])}`;
 }
 
 export function renderPrediction(c: RunPlan) {
   const p = c.pred;
   const subtitle = `${c.sum.count} calendar + ${c.ctx.races - c.sum.count} finale races · ${capitalize(store.settings.focus)} focus${c.trainee ? ` · ${c.trainee.name}` : ''}`;
-  return panel({ title: COPY.prediction.title, kind: 'result', subtitle, tip: COPY.prediction.tip }, html`
+  return panel({ title: TITLE.prediction, kind: 'result', subtitle, tip: copy.tip }, html`
     <div class="stats">
       <div class="stat outcome">
-        <div class="outcome-item"><div class="stat-k">SS or better${tip(COPY.prediction.ssTip)}</div><div class="stat-v">${pill(c.rank.pSS, '', true)}</div></div>
+        <div class="outcome-item"><div class="stat-k">SS or better${tip(copy.ssTip)}</div><div class="stat-v">${pill(c.rank.pSS, '', true)}</div></div>
         <div class="outcome-item"><div class="stat-k">Rank score</div><div class="stat-v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
         <div class="outcome-item"><div class="stat-k">Estimated SP</div><div class="stat-v">${num(p.sp)}</div></div>
       </div>

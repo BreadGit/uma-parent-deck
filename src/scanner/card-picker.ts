@@ -1,10 +1,16 @@
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
-import { SCANNER_COPY as C } from '../ui/copy.ts';
+import { LABEL } from '../ui/copy.ts';
 import { inputValue, isComposing, matchesWords, queryWords } from '../ui/form.ts';
 import { artworkUrl } from './images.ts';
 import type { ScanCard } from './recognize.ts';
+
+const copy = {
+  card: 'Card',
+  searchCards: 'Search name, title, or type',
+  noCardMatches: 'No cards match. Try another name or title.',
+} as const;
 
 const title = (card: ScanCard) =>
   card.name.endsWith(card.charName) ? card.name.slice(0, -card.charName.length).trim() : card.name;
@@ -57,15 +63,15 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
       }
     };
     return html`<div class="suggest scan-card-picker" @focusout=${onFocusOut}>
-      <label for=${id}>${C.card}</label>
+      <label for=${id}>${copy.card}</label>
       <input id=${id} data-card=${key} data-card-id=${selected?.id ?? ''} type="search" role="combobox" class="wide"
-        title=${selected ? label(selected) : C.selectCard} placeholder=${C.searchCards} autocomplete="off"
+        title=${selected ? label(selected) : LABEL.selectCard} placeholder=${copy.searchCards} autocomplete="off"
         .value=${live(open ? query : selected ? label(selected) : '')}
         aria-autocomplete="list" aria-expanded=${open} aria-controls=${listId}
         aria-activedescendant=${open && index >= 0 ? `${listId}-${matches[index]?.id}` : ''}
         @focus=${show} @click=${show} @keydown=${onKey}
         @input=${(event: Event) => { active = key; query = inputValue(event); index = -1; change(); }} />
-      ${open ? html`<ul id=${listId} role="listbox" aria-label=${C.card} tabindex="-1">
+      ${open ? html`<ul id=${listId} role="listbox" aria-label=${copy.card} tabindex="-1">
         ${repeat(matches, card => card.id, (card, i) => html`<li id=${`${listId}-${card.id}`} role="option"
           aria-selected=${i === index} class=${i === index ? 'active' : ''} data-id=${card.id}
           @mousedown=${keepFocus} @click=${() => choose(card)}>
@@ -74,7 +80,7 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
             <span class="muted small">${title(card)}</span></span>
         </li>`)}
         ${matches.length ? nothing
-          : html`<li role="presentation" class="scan-no-matches" @mousedown=${keepFocus}><span role="status">${C.noCardMatches}</span></li>`}
+          : html`<li role="presentation" class="scan-no-matches" @mousedown=${keepFocus}><span role="status">${copy.noCardMatches}</span></li>`}
       </ul>` : nothing}
     </div>`;
   }

@@ -6,12 +6,32 @@ import type { RunPlan } from '../../model/run.ts';
 import { buildSchedule, goalRaces, slotOf, type ScheduledRace } from '../../model/races.ts';
 import { racePopularityMap } from '../../model/run.ts';
 import { data, plan, refresh, store, update, view } from '../context.ts';
-import { COPY } from '../copy.ts';
+import { LABEL, TITLE } from '../copy.ts';
 import { isOpen, options, selectValue } from '../fields.ts';
 import { int, num, pct } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 import { agendaGrid, slotLabel } from '../agenda.ts';
+
+const AGENDA_RESET = 'Reset';
+const copy = {
+  title: 'G1 agenda',
+  tip: `Career goal races are fixed and shown in gold. Every other G1 the trainee can win at or above the threshold in ${TITLE.run} is scheduled once. Pick a race by hand to override the rule.`,
+  open: 'Show the race grid',
+  reset: AGENDA_RESET,
+  resetTip: 'Return every slot to the automatic rule',
+  manualTip: `Picked by hand. ${AGENDA_RESET} returns every slot to the automatic rule.`,
+  skip: '— skip —',
+  careerGoal: 'career goal',
+  streakTip: (n: number) => `${n} races in consecutive half-month slots: the streak penalty applies`,
+  fansTip: (bonus: number) => `Race rewards include the selected deck's ${bonus}% Fan Bonus and estimated non-win placings. Finale rewards assume completion and do not add to the calendar race count or earlier fan checks. Concert rewards use manual JP measurements and the ${LABEL.scenario} settings. Random race reward increases are omitted, so the estimate can remain low.`,
+  aboutTitle: 'How races are scheduled',
+  about: [
+    'Career goal races are fixed. Every other G1 the trainee can win at or above the threshold is scheduled once, in the year that costs fewer expected losses. When two G1s share a slot, the one more umas can run comfortably wins the tie, a stand-in for how common the race is on parents.',
+    "Win chances follow Shoppo_ura's independent-training data: 110% at A/A minus a penalty per surface grade (B −10, C −20, D −30, E −50, F −60, G −90) and per distance grade (B −10, C −20, D −30, E −40, F −60, G −90), minus the streak penalty for consecutive races (3rd in a row −5, 4th −20, 5th −30, 6th and later −50), clamped to 0 to 100%.",
+    'Stats, skills and mood do not matter. A career goal the run would end on losing is always won; a participation-only goal rolls the odds.',
+  ],
+} as const;
 
 const CATEGORY_SHORT: Record<string, string> = { sprint: 'spr', mile: 'mile', medium: 'med', long: 'long' };
 /** Race win chances come in 5% steps; the warn pill marks a streak-reduced chance, a real degradation. */
@@ -36,7 +56,7 @@ function pickSlot(slot: number, calendarId: string) {
 function raceInfo(sel: ScheduledRace) {
   return html`<div class="agenda-race ${sel.race.surface}">${sel.race.name}</div>
     <div class="agenda-meta">${sel.race.surface} ${CATEGORY_SHORT[sel.race.category]} ${sel.race.distance}</div>
-    <div class="agenda-meta">win ${winPill(sel.base)}${sel.pWin < sel.base ? html`→${winPill(sel.pWin, 'warn')}` : nothing}</div>${sel.consecutive > 2 ? html`<div class="agenda-meta"><span class="tag warn" data-tip=${COPY.agenda.streakTip(sel.consecutive)}>streak ${sel.consecutive}</span></div>` : nothing}`;
+    <div class="agenda-meta">win ${winPill(sel.base)}${sel.pWin < sel.base ? html`→${winPill(sel.pWin, 'warn')}` : nothing}</div>${sel.consecutive > 2 ? html`<div class="agenda-meta"><span class="tag warn" data-tip=${copy.streakTip(sel.consecutive)}>streak ${sel.consecutive}</span></div>` : nothing}`;
 }
 
 function cell(slot: number, entries: ScheduledRace[]) {
@@ -44,15 +64,15 @@ function cell(slot: number, entries: ScheduledRace[]) {
   if (!entries.length) return html`<div class="agenda-cell empty"><div class="agenda-body"></div><div class="agenda-pick"></div><div class="agenda-label">${slotLabel(slot)}</div></div>`;
   if (sel?.goal) return html`<div class="agenda-cell sel goal">
     <div class="agenda-body">${raceInfo(sel)}</div>
-    <div class="agenda-pick"><span class="tag goal">${COPY.agenda.careerGoal}</span></div>
+    <div class="agenda-pick"><span class="tag goal">${copy.careerGoal}</span></div>
     <div class="agenda-label">${slotLabel(slot)}</div>
   </div>`;
   const manual = entries.some((e) => store.run.raceOverrides[e.race.calendarId] != null);
   const current = sel?.race.calendarId ?? '';
-  const items = [{ value: '', label: COPY.agenda.skip }, ...entries.map((e) => ({ value: e.race.calendarId, label: `${e.race.name} (${pct(e.base)}${e.selected ? '' : `, ${e.reason.toLowerCase()}`})` }))];
+  const items = [{ value: '', label: copy.skip }, ...entries.map((e) => ({ value: e.race.calendarId, label: `${e.race.name} (${pct(e.base)}${e.selected ? '' : `, ${e.reason.toLowerCase()}`})` }))];
   return html`<div class="agenda-cell ${sel ? 'sel' : 'avail'}">
     <div class="agenda-body">${sel ? raceInfo(sel) : html`<div class="agenda-meta muted agenda-avail">${entries.map((e) => `${e.race.name} ${pct(e.base)}`).join(' · ')}</div>`}</div>
-    <div class="agenda-pick"><select data-slot="${slot}" aria-label="${slotLabel(slot)} race" .value=${live(current)} @change=${(e: Event) => pickSlot(slot, selectValue(e))}>${options(items, current)}</select>${manual ? tip(COPY.agenda.manualTip) : nothing}</div>
+    <div class="agenda-pick"><select data-slot="${slot}" aria-label="${slotLabel(slot)} race" .value=${live(current)} @change=${(e: Event) => pickSlot(slot, selectValue(e))}>${options(items, current)}</select>${manual ? tip(copy.manualTip) : nothing}</div>
     <div class="agenda-label">${slotLabel(slot)}</div>
   </div>`;
 }
@@ -62,12 +82,12 @@ export function renderSchedule(c: RunPlan) {
   for (const r of c.schedule) bySlot.set(r.slot, [...(bySlot.get(r.slot) ?? []), r]);
   const overridden = Object.keys(store.run.raceOverrides).length > 0;
   const subtitle = `${c.sum.count} races${c.sum.goals ? `, ${c.sum.goals} career goals` : ''} · ${num(c.sum.expectedWins, 1)} expected wins, ${num(c.sum.expectedLosses, 1)} expected losses · ${int(c.sum.expectedFans)} expected fans${c.sum.longestStreak > 2 ? ` · longest streak ${c.sum.longestStreak}` : ''}`;
-  const actions = overridden ? html`<button class="small" data-action="reset-races" data-tip=${COPY.agenda.resetTip} @click=${() => update((s) => { s.run.raceOverrides = {}; })}>${COPY.agenda.reset}</button>` : nothing;
-  return panel({ title: COPY.agenda.title, kind: 'result', subtitle, tip: COPY.agenda.tip, actions }, html`
-    <p class="muted" data-fan-estimate>Fans at run completion: ${int(c.fans.calendar)} from the agenda + ${int(c.fans.finale)} from finales + ${int(c.fans.concerts)} from concerts.${tip(COPY.agenda.fansTip(c.fans.bonus))}</p>
+  const actions = overridden ? html`<button class="small" data-action="reset-races" data-tip=${copy.resetTip} @click=${() => update((s) => { s.run.raceOverrides = {}; })}>${copy.reset}</button>` : nothing;
+  return panel({ title: copy.title, kind: 'result', subtitle, tip: copy.tip, actions }, html`
+    <p class="muted" data-fan-estimate>Fans at run completion: ${int(c.fans.calendar)} from the agenda + ${int(c.fans.finale)} from finales + ${int(c.fans.concerts)} from concerts.${tip(copy.fansTip(c.fans.bonus))}</p>
     <details data-agenda ?open=${view.showAgenda} @toggle=${(e: Event) => { view.showAgenda = isOpen(e); refresh(); }}>
-      <summary>${COPY.agenda.open}</summary>
+      <summary>${copy.open}</summary>
       ${agendaGrid((slot) => cell(slot, bySlot.get(slot) ?? []))}
     </details>
-    ${about(COPY.agenda.aboutTitle, COPY.agenda.about)}`);
+    ${about(copy.aboutTitle, copy.about)}`);
 }

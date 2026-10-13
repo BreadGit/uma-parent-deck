@@ -7,12 +7,59 @@ import { eventStatus, hasRaceAptitude, missionAgenda, missionRaceFit, parsePaste
   type Mission, type MissionAgendaEntry, type MissionCatalog, type MissionEvent, type MissionRaceFit } from '../../model/missions.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { agendaGrid, slotLabel } from '../agenda.ts';
-import { COPY } from '../copy.ts';
 import { inputValue, isChecked, matchesWords, options, queryWords, searchBox, selectValue } from '../fields.ts';
 import { charImg } from '../format.ts';
 import { about, panel } from '../panel.ts';
 
-const copy = COPY.missions;
+const copy = {
+  events: 'Mission sets',
+  follow: 'Follow current events',
+  noCurrent: 'No active race mission sets are in the available data. Choose another set or paste missions below.',
+  addEvent: 'Add another mission set',
+  chooseEvent: 'Choose an upcoming or past set…',
+  dates: 'Dates are shown in your local time. Upcoming dates may change.',
+  pasteTitle: 'Paste missions from GameTora',
+  pasteHelp: 'Copy the mission list, including rewards if you like. Recognized race names appear on the grid; other requirements stay in the checklist.',
+  pasteLabel: 'Mission text',
+  pastePlaceholder: 'Mile Ch.: Win the Fuji Stakes in Career',
+  import: 'Add pasted missions',
+  imported: (count: number) => `${count} new requirements added.`,
+  custom: 'Pasted missions',
+  manual: 'Add a race',
+  raceSearch: 'Search race names…',
+  noRaces: 'No matching races.',
+  addedRaces: 'Extra races',
+  remove: 'Remove',
+  trainee: 'Trainee',
+  traineePlaceholder: 'Search Global trainees…',
+  traineeSearchLabel: 'Search trainees',
+  noTrainee: 'Choose a trainee to see career goals, conflicts and a suggested schedule.',
+  recommendations: 'Suggested trainees',
+  rankingTitle: 'How trainees are ranked',
+  jump: 'Show agenda',
+  recommendationHelp: 'Ranked by how many different remaining mission races fit in one career, then by overlap with career goals. Uses base surface and distance grades B or better and the standard career goals; inheritance, win chances, fan requirements and other mission conditions are not evaluated.',
+  fit: (covered: number, total: number) => `${covered} / ${total} remaining races fit`,
+  overlap: (count: number) => `${count} also career goals`,
+  noFit: 'No remaining races fit this trainee at base grades B or better. You can still use the grid to plan with improved aptitudes or another career.',
+  checklist: 'Mission checklist',
+  progress: (done: number, total: number) => `${done} / ${total} requirements checked`,
+  checklistHelp: 'Check a requirement after completing it in the game. Progress stays saved when you change sets or trainees.',
+  noSlot: 'No fixed race date matched — check the requirement in the game.',
+  grid: 'Mission agenda',
+  gridHelp: 'Every available running is shown. Repeated appearances are alternatives. Only one race can be run per half-month; use another year or career for clashes. Check the full requirement below before marking it done.',
+  emptyGrid: 'Select a mission set, paste requirements or add a race to fill the grid.',
+  conflict: 'Same date',
+  conflictHelp: 'These remaining races share this date. Use different years or careers.',
+  goalConflict: (name: string) => `Career goal: ${name} occupies this date.`,
+  goalConflictShort: 'Goal conflict',
+  aptitude: (surface: string, distance: string) => `Base grades: ${surface} surface / ${distance} distance`,
+  lowAptitude: 'Low base aptitude',
+  suggested: 'Suggested',
+  complete: 'Done',
+  goal: 'Career goal',
+  remaining: 'Mission race',
+  waiting: 'No requirements selected.',
+} as const;
 const date = (time: number) => new Date(time).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 const toggle = <T,>(items: T[], value: T, checked: boolean) => checked ? [...new Set([...items, value])] : items.filter((item) => item !== value);
 function pickTrainee(id: number | null) {

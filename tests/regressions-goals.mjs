@@ -610,7 +610,6 @@ suite('goals browser regressions', { concurrency: Number(process.env.BROWSER_TES
 
   test('templates preview without edits, confirm replacement, and preserve unrelated input and inactive lineage', async (t) => {
     const { GOAL_TEMPLATES } = await import('../src/model/goal-templates.ts');
-    const { COPY } = await import('../src/ui/copy.ts');
     const saved = defaultState(data);
     saved.run.traineeCardId = 100101;
     saved.run.targets = [{ id: 210052, role: 'required', stars: 3, priority: 0 }];
@@ -629,7 +628,8 @@ suite('goals browser regressions', { concurrency: Number(process.env.BROWSER_TES
     assert.equal(await picker.locator('optgroup').count(), 0);
     assert.equal(await page.locator('[data-action="load-goal-template"]').isDisabled(), true);
     await details.locator('.tip').focus();
-    assert.equal(await page.locator('#tooltip').innerText(), COPY.templates.tip);
+    assert.equal(await page.locator('#tooltip').innerText(), await details.locator('.tip').getAttribute('data-tip'));
+    assert.match(await page.locator('#tooltip').innerText(), /three effort levels/);
     const before = await state(page);
     const godly = GOAL_TEMPLATES[2], lite = GOAL_TEMPLATES[0];
     await picker.selectOption(godly.id);

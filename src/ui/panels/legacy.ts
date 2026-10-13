@@ -9,13 +9,40 @@ import { APTITUDE_LABELS, emptyPinkLineage, type PinkSpark } from '../../model/g
 import { pinkAptitudeGrades, withPinkAptitude, withPinkLineage } from '../../model/pink-inherit.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { defaultParentSparks, inheritedFromGain, START_GAINS, UMA_LABELS, withParentGain, type BlueSpark } from '../../model/inherit.ts';
-import { STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
+import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
-import { COPY } from '../copy.ts';
+import { TITLE } from '../copy.ts';
 import { numbered, options, selectValue } from '../fields.ts';
 import { capitalize, num, statIcon } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
+
+const BLUE_BY_STARS = 'Blue per parent';
+const copy = {
+  tip: `Copy the game's legacy screen, shown before the run starts: the "+XX" each parent adds above every stat, and the aptitudes after inheritance. "${BLUE_BY_STARS}" enters the blue spark of each uma instead, for a parent found on a database.`,
+  byStars: BLUE_BY_STARS,
+  byStarsTip: 'Enter the blue spark of each parent and grandparent instead of the +XX',
+  reset: 'Reset',
+  resetTip: "Clear every gain to +0 and restore the trainee's own aptitudes",
+  pinkSparks: 'Pink per parent',
+  pinkSparksTip: 'Enter the pink spark of each parent and grandparent for mid-run aptitude estimates',
+  resetPink: 'Reset',
+  resetPinkTip: "Clear pink sparks and restore the trainee's base aptitudes",
+  gainsLabel: 'start gain per stat',
+  gainsTip: `The "+XX" above each stat on the legacy screen, per parent. Each value decodes to the blue sparks behind it. One parent side has ${UMAS_PER_PARENT_SIDE} umas (the parent and her two grandparents) with one blue spark each. Dimmed choices need sparks already assigned to other stats; selecting one takes those sparks, fewest stars first.`,
+  sparksTip: `Each parent and her two grandparents carry one blue spark: a stat and 1 to ${STARS_PER_SPARK_MAX} stars, as a database lists them. A slot shows — after its stat was set to +0 above; pick her stat to fill it.`,
+  laterTip: `Expected extra stat from the two inspiration events. A 3★ spark procs at 90%, 2★ at 80%, 1★ at 70%, times (1 + affinity/100). Each proc rolls 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[1]![1]} for 1★, 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[2]![1]} for 2★, 1 to ${BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[3]![1]} for 3★; the assumed mean per star is an advanced setting. Each spark also raises the stat's starting cap by +${BLUE_SPARK_START_UNCAP_BY_STARS[1]} / +${BLUE_SPARK_START_UNCAP_BY_STARS[2]} / +${BLUE_SPARK_START_UNCAP_BY_STARS[3]} by stars.`,
+  aptTip: "Copy all grades from the legacy screen after selecting both parents. Raising a grade above the trainee's base estimates the minimum pink stars behind it.",
+  planningOverride: 'Some grades are planning overrides outside starting inheritance. They still control the agenda. Pink sparks remain unchanged.',
+  aboutTitle: 'How grades and pink sparks relate',
+  about: [
+    'The agenda uses the starting surface and distance grades. These grades already include starting increases from parent sparks.',
+    "Raising a grade above the trainee's base estimates the minimum pink stars behind it. Grades outside the starting-inheritance range are planning overrides and keep the pink lineage unchanged.",
+    'Dimmed grade choices need slots used by other pink sparks. Selecting one reassigns the weakest other sparks and adjusts the affected aptitudes, never below their base.',
+    'Parent goals use the pink sparks to estimate mid-run increases. Unknown below-B eligibility produces a probability range. S is reached only during a career.',
+  ],
+  pickTrainee: 'Pick a trainee first.',
+} as const;
 
 const PARENTS = [0, 1] as const;
 const UMAS = [0, 1, 2] as const;
@@ -93,7 +120,7 @@ function sparkRow(pi: number, ui: number) {
     <select data-spark-stars="${pi}-${ui}" aria-label="Parent ${pi + 1} ${UMA_LABELS[ui]} stars" ?disabled=${!spark} .value=${live(stars)} @change=${(e: Event) => setSpark(pi, ui, { stars: Number(selectValue(e)) })}>${options(spark ? STAR_CHOICES : [EMPTY, ...STAR_CHOICES], stars)}</select>`;
 }
 const sparksForm = () => html`<div class="legacy-sparks per-parent blue" data-sparks-form>
-  ${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><div class="side-head">Parent ${pi + 1}${pi === 0 ? tip(COPY.legacy.sparksTip) : nothing}</div>${UMAS.map((ui) => sparkRow(pi, ui))}</div>`)}
+  ${PARENTS.map((pi) => html`<div class="side p${pi + 1}"><div class="side-head">Parent ${pi + 1}${pi === 0 ? tip(copy.sparksTip) : nothing}</div>${UMAS.map((ui) => sparkRow(pi, ui))}</div>`)}
 </div>`;
 
 function pinkRow(pi: number, ui: number) {
@@ -118,7 +145,7 @@ function statColumn(c: RunPlan, i: number) {
   return html`<div class="legacy-stat">
     <div class="gains">${PARENTS.map((pi) => gainSelect(c, pi, i))}</div>
     <div class="head">${statIcon(st)}${capitalize(st)}</div>
-    <div class="body"><div class="legacy-v">${t.baseStats[i]! + start}</div><div class="legacy-sub">base ${t.baseStats[i]}</div><div class="legacy-sub" data-tip=${max ? `at most +${max}` : nothing}>≈+${num(later)} later${i === 0 ? tip(COPY.legacy.laterTip) : nothing}</div></div>
+    <div class="body"><div class="legacy-v">${t.baseStats[i]! + start}</div><div class="legacy-sub">base ${t.baseStats[i]}</div><div class="legacy-sub" data-tip=${max ? `at most +${max}` : nothing}>≈+${num(later)} later${i === 0 ? tip(copy.laterTip) : nothing}</div></div>
   </div>`;
 }
 
@@ -136,23 +163,23 @@ function body(c: RunPlan) {
   const overridden = APTITUDE_KEYS.some((key) => !pinkAptitudeGrades(t.aptitudes[key]).includes(c.apt[key]));
   return html`
     ${view.showSparks ? sparksForm() : nothing}
-    <div class="legacy-legend"><span class="p1">Parent 1</span><span class="p2">Parent 2</span><span>${COPY.legacy.gainsLabel}${tip(COPY.legacy.gainsTip)}</span></div>
+    <div class="legacy-legend"><span class="p1">Parent 1</span><span class="p2">Parent 2</span><span>${copy.gainsLabel}${tip(copy.gainsTip)}</span></div>
     <div class="legacy-stats">${STATS.map((_, i) => statColumn(c, i))}</div>
     <div class="legacy-pink-controls">
-      <button class="small ${view.showPinkSparks ? 'active' : ''}" data-action="toggle-pink-sparks" aria-expanded=${view.showPinkSparks} aria-controls="legacy-pink-sparks" data-tip=${COPY.legacy.pinkSparksTip} @click=${togglePinkSparks}>${COPY.legacy.pinkSparks}</button>
-      <button class="small" data-action="reset-pink-sparks" data-tip=${COPY.legacy.resetPinkTip} @click=${resetPinkSparks}>${COPY.legacy.resetPink}</button>
+      <button class="small ${view.showPinkSparks ? 'active' : ''}" data-action="toggle-pink-sparks" aria-expanded=${view.showPinkSparks} aria-controls="legacy-pink-sparks" data-tip=${copy.pinkSparksTip} @click=${togglePinkSparks}>${copy.pinkSparks}</button>
+      <button class="small" data-action="reset-pink-sparks" data-tip=${copy.resetPinkTip} @click=${resetPinkSparks}>${copy.resetPink}</button>
     </div>
     ${view.showPinkSparks ? pinkForm() : nothing}
-    ${overridden ? html`<p class="small warn" data-apt-planning-override>${COPY.legacy.planningOverride}</p>` : nothing}
+    ${overridden ? html`<p class="small warn" data-apt-planning-override>${copy.planningOverride}</p>` : nothing}
     <div class="legacy-apts">
-      ${ROWS.map(([label, keys], ri) => html`<div class="rowlbl">${label}${ri === 0 ? tip(COPY.legacy.aptTip) : nothing}</div><div class="cells">${keys.map((k) => aptitudeCell(c, k))}</div>`)}
+      ${ROWS.map(([label, keys], ri) => html`<div class="rowlbl">${label}${ri === 0 ? tip(copy.aptTip) : nothing}</div><div class="cells">${keys.map((k) => aptitudeCell(c, k))}</div>`)}
     </div>
-    ${about(COPY.legacy.aboutTitle, COPY.legacy.about)}`;
+    ${about(copy.aboutTitle, copy.about)}`;
 }
 
 export function renderLegacy(c: RunPlan) {
   const actions = c.trainee ? html`
-    <button class="small ${view.showSparks ? 'active' : ''}" data-action="toggle-sparks" aria-expanded="${view.showSparks}" data-tip=${COPY.legacy.byStarsTip} @click=${toggleSparks}>${COPY.legacy.byStars}</button>
-    <button class="small" data-action="reset-legacy" data-tip=${COPY.legacy.resetTip} @click=${resetLegacy}>${COPY.legacy.reset}</button>` : nothing;
-  return panel({ title: COPY.legacy.title, step: 3, tip: COPY.legacy.tip, actions }, c.trainee ? body(c) : html`<div class="small muted">${COPY.legacy.pickTrainee}</div>`);
+    <button class="small ${view.showSparks ? 'active' : ''}" data-action="toggle-sparks" aria-expanded="${view.showSparks}" data-tip=${copy.byStarsTip} @click=${toggleSparks}>${copy.byStars}</button>
+    <button class="small" data-action="reset-legacy" data-tip=${copy.resetTip} @click=${resetLegacy}>${copy.reset}</button>` : nothing;
+  return panel({ title: TITLE.legacy, step: 3, tip: copy.tip, actions }, c.trainee ? body(c) : html`<div class="small muted">${copy.pickTrainee}</div>`);
 }

@@ -133,7 +133,7 @@ export function uniqueExtras(card: Card, lb: number, model: StatModel, ctx: Uniq
   return out;
 }
 
-/** Legacy text used by inspect tools; the UI formats coverage reasons through COPY. */
+/** Legacy text used by inspect tools; the UI formats coverage reasons in src/ui/effect-coverage.ts. */
 export function uniqueNote(card: Card, model: StatModel, ctx: UniqueContext = {}): string {
   const share = `${Math.round(model.uniqueRampShare * 100)}% of the run`;
   return (card.unique?.effects ?? []).map((u) => {

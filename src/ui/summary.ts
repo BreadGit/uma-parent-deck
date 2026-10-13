@@ -4,8 +4,14 @@ import { html, nothing } from 'lit-html';
 import { APTITUDE_LABELS } from '../model/goal-input.ts';
 import type { RunPlan } from '../model/run.ts';
 import { store } from './context.ts';
-import { COPY } from './copy.ts';
 import { capitalize, charImg } from './format.ts';
+
+const copy = {
+  blue: 'Blue',
+  pink: 'Pink',
+  required: 'Required',
+  preferred: 'Preferred',
+} as const;
 
 export function runSummary(c: RunPlan) {
   if (!c.trainee) return nothing;
@@ -15,9 +21,9 @@ export function runSummary(c: RunPlan) {
   const names = (list: { target: { name: string } }[]) => list.map((w) => w.target.name).join(', ');
   return html`<div class="run-summary" data-run-summary>
     <span><img class="thumb thumb-sm" src=${charImg(c.trainee)} alt="" /> <b>${c.trainee.name}</b> <span class="muted">${store.run.traineeStars}★</span></span>
-    <span><span class="muted">${COPY.summary.blue}</span> ${blue}</span>
-    <span><span class="muted">${COPY.summary.pink}</span> ${pink}</span>
-    ${r.required.length ? html`<span><span class="muted">${COPY.summary.required}</span> ${names(r.required)}</span>` : nothing}
-    ${r.preferred.length ? html`<span><span class="muted">${COPY.summary.preferred}</span> ${names(r.preferred)}</span>` : nothing}
+    <span><span class="muted">${copy.blue}</span> ${blue}</span>
+    <span><span class="muted">${copy.pink}</span> ${pink}</span>
+    ${r.required.length ? html`<span><span class="muted">${copy.required}</span> ${names(r.required)}</span>` : nothing}
+    ${r.preferred.length ? html`<span><span class="muted">${copy.preferred}</span> ${names(r.preferred)}</span>` : nothing}
   </div>`;
 }

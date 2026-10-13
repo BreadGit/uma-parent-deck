@@ -8,19 +8,28 @@ import { cardEffectCoverage } from '../../model/support-effects.ts';
 import { compareTargetChances, cardTargetChances, deckDisplayOrder } from '../../model/card-ranking.ts';
 import { data, store, view } from '../context.ts';
 import { ignoreToggle, pinToggle } from '../card-toggles.ts';
-import { COPY } from '../copy.ts';
+import { LABEL, TITLE } from '../copy.ts';
 import { basisLabel, effectList, missingEffect, observedCaveat, observedDeckEffect } from '../effect-coverage.ts';
 import { lbSelect } from '../fields.ts';
 import { cardLink, cardThumb, pill, probability, typeIcon } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
+const copy = {
+  searching: 'Searching for a better deck. The estimates below already reflect your inputs for the deck shown.',
+  tip: 'Five owned cards and one borrowed card, pins first. Search favors completing every required spark, then preferred sparks on successful parents within the advanced tie tolerance. This is the best deck found under the estimates, not a guaranteed global optimum. Each slot\'s buttons pin the card or ignore it for this run.',
+  noCards: 'No owned cards. Mark the cards you own in the card ranking.',
+  borrowed: "LB4 (friend's)",
+  limitations: (cards: number) => `Estimate limitations · ${cards} ${cards === 1 ? 'card' : 'cards'}`,
+  limitationsDetail: `These notes describe limits of the formula. Recorded results can already include the effects listed here. Open a card's ${LABEL.basisColumn} detail in ${TITLE.ranking} for its source and full formula coverage.`,
+} as const;
+
 function slot(c: RunPlan, cs: CardScore) {
   return html`<div class="slot">
     <div class="slot-top">${pinToggle(cs.card)}${ignoreToggle(cs.card)}${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : nothing}</div>
     ${cardThumb(cs.card, 'slot-art')}
     <div class="name">${typeIcon(cs.card)}${cardLink(cs.card, html`${cs.card.charName}<span class="muted title">${cs.card.title}</span>`)}</div>
-    <div class="lb">${cs.borrowed ? COPY.deck.borrowed : html`LB ${lbSelect(c, cs.card, cs.lb, 'small')}`}</div>
+    <div class="lb">${cs.borrowed ? copy.borrowed : html`LB ${lbSelect(c, cs.card, cs.lb, 'small')}`}</div>
     <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} <span class="n"><span class="muted">spark</span> ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${probability(s.pObtain)}`).join('\n'))}</span></span>`)}</div>
   </div>`;
 }
@@ -31,8 +40,8 @@ function limitations(c: RunPlan) {
     .filter(({ effects }) => effects.length > 0);
   if (!cards.length) return nothing;
   return html`<details class="estimate-limitations small" data-estimate-limitations>
-    <summary>${COPY.modelCoverage.limitations(cards.length)}</summary>
-    <p class="muted">${COPY.modelCoverage.limitationsDetail}</p>
+    <summary>${copy.limitations(cards.length)}</summary>
+    <p class="muted">${copy.limitationsDetail}</p>
     ${cards.map(({ cs, effects }) => html`<div class="estimate-limitations-card" data-card-limitations=${cs.card.id}>
       <b>${cardLink(cs.card)}</b> <span class="muted">${basisLabel(cs.card, cs.lb, cs.source)}</span>
       ${observedCaveat(cs.source, effects)}
@@ -57,8 +66,8 @@ export function renderDeck(c: RunPlan) {
   const ordered = deckOrder(c);
   const deck = d.deck.length
     ? html`<div class="deck">${repeat(ordered, (cs) => `${cs.card.id}:${cs.borrowed ? 'b' : 'o'}`, (cs) => slot(c, cs))}</div>`
-    : html`<div class="muted">${COPY.deck.noCards}</div>`;
-  return panel({ title: COPY.deck.title, kind: 'result', tip: COPY.deck.tip }, html`
-    ${view.searchPending ? html`<p class="status small muted" data-plan-pending role="status" aria-live="polite">${COPY.app.searching}</p>` : nothing}
+    : html`<div class="muted">${copy.noCards}</div>`;
+  return panel({ title: TITLE.deck, kind: 'result', tip: copy.tip }, html`
+    ${view.searchPending ? html`<p class="status small muted" data-plan-pending role="status" aria-live="polite">${copy.searching}</p>` : nothing}
     ${deck}`);
 }
