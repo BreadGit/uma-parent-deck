@@ -236,7 +236,7 @@ suite('sharing browser regressions', { concurrency: Number(process.env.BROWSER_T
     assert.equal(await page.locator('[data-share-controls], [data-share], [data-section="share"]').count(), 0);
     assert.equal(await page.getByText('Share run', { exact: true }).count(), 0);
     const before = await state(page);
-    for (const code of ['2dinvalid', '6jW10']) {
+    for (const code of ['2dinvalid', '7jW10']) {
       await navigateShare(page, shareUrl(url, code));
       await page.waitForSelector('[data-dialog]');
       assert.deepEqual(await state(page), before);
@@ -298,11 +298,11 @@ suite('sharing browser regressions', { concurrency: Number(process.env.BROWSER_T
   test('invalid startup shares keep the saved run and a valid URL recovers', async (t) => {
     const page = await editor(t, shareFixture());
     const before = await state(page);
-    await page.goto(shareUrl(url, '6jW10'));
+    await page.goto(shareUrl(url, '7jW10'));
     await page.waitForSelector('#target-search-required');
     await page.waitForSelector('[data-dialog]');
     assert.deepEqual(await state(page), before);
-    assert.equal(shareCode(page.url()), '6jW10');
+    assert.equal(shareCode(page.url()), '7jW10');
     await page.click('[data-dialog-confirm]');
     await page.goto(shareUrl(url, '2jW10'));
     await page.waitForSelector('#trainee-search');
@@ -336,12 +336,14 @@ suite('sharing browser regressions', { concurrency: Number(process.env.BROWSER_T
     const page = await editor(t, shareFixture());
     await waitForShare(page);
     await page.locator('[data-agenda] summary').click();
+    // The forced race is a Senior-year running, whose calendar ID carries a suffix that formats before 6 could not share.
     const picks = await page.locator('[data-slot]').evaluateAll((fields) => {
+      const later = (field) => [...field.options].find((o) => o.value.includes('_') && o.value !== field.value);
       const skip = fields.find((field) => field.value !== '');
-      const force = fields.find((field) => field !== skip && [...field.options].some((o) => o.value && o.value !== field.value));
-      return { skip: skip.dataset.slot, force: force.dataset.slot,
-        race: [...force.options].find((o) => o.value && o.value !== force.value).value };
+      const force = fields.find((field) => field !== skip && later(field));
+      return { skip: skip.dataset.slot, force: force.dataset.slot, race: later(force).value };
     });
+    assert.match(picks.race, /_/);
     await page.selectOption(`[data-slot="${picks.skip}"]`, '');
     await page.selectOption(`[data-slot="${picks.force}"]`, picks.race);
     await waitForShare(page);

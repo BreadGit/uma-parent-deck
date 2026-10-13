@@ -165,7 +165,8 @@ test('malformed codes fail before any choices can be applied', async () => {
   for (const code of ['', 'garbage', '2dinvalid', '2jW10=', '2jW11', prototype.slice(0, -3), ...badPayloads.map(plain)]) {
     await assert.rejects(decodeShare(code), ShareCodeError, code.slice(0, 80));
   }
-  await assert.rejects(decodeShare('6jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
+  await assert.rejects(decodeShare('7jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
+  await assert.rejects(decodeShare('0jW10'), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
   await assert.rejects(decodeShare(`1j${Buffer.from('[21]').toString('base64url')}`), (e: unknown) => e instanceof ShareCodeError && e.reason === 'version');
 });
 
@@ -191,11 +192,11 @@ test('share codes live in the fragment, preserve unrelated URL parts, and older 
   assert.equal(shareUrl('https://example.com/planner/', null), 'https://example.com/planner/');
 });
 
-test('format 4 stores signed calendar IDs and replaces the whole override set', async () => {
+test('schedule overrides replace the whole override set; formats 3 to 5 sign whole-number calendar IDs', async () => {
   const choices = structuredClone(populated);
   choices.run.raceOverrides = { 624: true, 623: false, 999999: false };
   const code = await encodeShare(choices);
-  assert.equal(code[0], '5');
+  assert.equal(code[0], '6');
   assert.deepEqual(await decodeShare(code), choices);
   const literal = '3j' + Buffer.from(JSON.stringify([...Array(14).fill(null), [-623, 624, -999999]])).toString('base64url');
   assert.deepEqual((await decodeShare(literal)).run.raceOverrides, choices.run.raceOverrides);
@@ -218,7 +219,7 @@ test('format 4 adds ignored cards in slot 15 and the borrow-ignored flag in slot
   choices.run.ignoredIds = [30028, 30001];
   choices.run.borrowIgnored = true;
   const code = await encodeShare(choices);
-  assert.equal(code[0], '5');
+  assert.equal(code[0], '6');
   assert.deepEqual(await decodeShare(code), choices);
   const slots = (code: string) => {
     const bytes = Buffer.from(code.slice(2), 'base64url');
@@ -248,7 +249,7 @@ test('format 5 stores the stars on each of the six umas; older formats place per
   const choices = structuredClone(populated);
   choices.run.targetLineage = { 201601: [0, 2, 0, 0, 0, 1] };
   const code = await encodeShare(choices);
-  assert.equal(code[0], '5');
+  assert.equal(code[0], '6');
   assert.deepEqual(await decodeShare(code), choices, 'a grandparent-only lineage survives the round trip');
   assert.deepEqual((await decodeShare(literal('4', [null, null, null, null, [[201601, 2, 1, 5, 3]]]))).run.targetLineage, { 201601: [3, 2, 0, 3, 0, 0] });
   assert.deepEqual((await decodeShare(literal('2', [null, null, null, null, [[201601, 2, 0, 0, 0]]]))).run.targetLineage, { 201601: [1, 1, 0, 0, 0, 0] }, 'an unentered total gives each copy one star');
@@ -260,11 +261,30 @@ test('format 5 stores the stars on each of the six umas; older formats place per
   }
 });
 
+test('format 6 stores later-year schedule overrides as calendar IDs with a flag', async () => {
+  const choices = structuredClone(populated);
+  choices.run.raceOverrides = { 623: false, 79: false, '79_2': true, '81_2': false };
+  const code = await encodeShare(choices);
+  assert.equal(code[0], '6');
+  assert.deepEqual(await decodeShare(code), choices, 'Senior-year runnings survive the round trip');
+  const reverse = structuredClone(choices);
+  reverse.run.raceOverrides = { '81_2': false, '79_2': true, 623: false, 79: false };
+  assert.equal(await encodeShare(reverse), code, 'insertion order does not change the code');
+  const literal = '6j' + Buffer.from(JSON.stringify([...Array(14).fill(null), [['79', 0], ['79_2', 1], ['999999', 0]]])).toString('base64url');
+  assert.deepEqual((await decodeShare(literal)).run.raceOverrides, { 79: false, '79_2': true, 999999: false });
+});
+
 test('schedule overrides reject ambiguous IDs and invalid flags', async () => {
   for (const overrides of [[0], [1.5], [623, -623], ['623'], [Number.MAX_SAFE_INTEGER + 1], {}]) {
     const code = '3j' + Buffer.from(JSON.stringify([...Array(14).fill(null), overrides])).toString('base64url');
     await assert.rejects(decodeShare(code), ShareCodeError);
   }
+  for (const overrides of [[623], [[623, 1]], [['079_2', 1]], [['79_0', 1]], [['abc', 1]], [['79_2', 2]], [['79_2']], ['79_2'], [['623', 1], ['623', 0]], {}]) {
+    const code = '6j' + Buffer.from(JSON.stringify([...Array(14).fill(null), overrides])).toString('base64url');
+    await assert.rejects(decodeShare(code), ShareCodeError, JSON.stringify(overrides));
+  }
+  const format5 = '5j' + Buffer.from(JSON.stringify([...Array(14).fill(null), [['623', 1]]])).toString('base64url');
+  await assert.rejects(decodeShare(format5), ShareCodeError, 'format 5 has no calendar ID tuples');
   for (const overrides of [{ '0623': true }, { invalid: false }, { 623: 1 }]) {
     const choices = structuredClone(populated);
     choices.run.raceOverrides = overrides as unknown as Record<string, boolean>;
@@ -277,9 +297,10 @@ test('every choice a save keeps can be shared: migration applies the share-code 
   const saved = defaultState(data);
   const raw = JSON.parse(JSON.stringify(saved));
   Object.assign(raw.run, { traineeCardId: 100101, pinnedIds: [1.5, -1, 0, 30052, 30052, unknown], ignoredIds: [30001, 30001],
-    wishlistOrder: [200012, 200012], wishlistExcluded: [0, 200022], raceOverrides: { abc: true, 1011: false } });
+    wishlistOrder: [200012, 200012], wishlistExcluded: [0, 200022], raceOverrides: { abc: true, 1011: false, '79_2': true } });
   const state = migrate({ current: raw }, data);
   const decoded = await decodeShare(await encodeShare(sharedChoices(state)));
   assert.deepEqual(decoded, sharedChoices(state));
   assert.deepEqual(decoded.run.pinnedIds, [30052, unknown], 'a valid unknown ID survives the round trip');
+  assert.deepEqual(decoded.run.raceOverrides, { 1011: false, '79_2': true }, 'a later-year override survives the round trip');
 });
