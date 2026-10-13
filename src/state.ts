@@ -140,8 +140,9 @@ function legacyBlobDefaultLb(raw: Json): unknown {
 /**
  * Before v25 a card without an inventory entry counted as owned at its rarity's default LB (`defaultLb`, MAX_LB unless
  * changed), and choosing that default for a card removed its entry. Today a card without an entry is not owned, so an
- * older save keeps the ownership it showed: a rarity whose cards all sat at its default keeps that default as the
- * rarity's override, and in any other rarity each card without an entry is written in at the default.
+ * older save keeps the ownership it showed: each card without an entry is written in at its rarity's default, which
+ * survives resetting or turning off the overrides. A rarity whose cards all sat at the default also keeps it as the
+ * rarity's override, which, as before, covers cards added later.
  */
 function keepLegacyOwnership(state: AppState, savedDefaults: unknown, data: Data) {
   const valid = isPlainObject(savedDefaults) && RARITIES.every((r) => isLimitBreak(savedDefaults[r]));
@@ -150,7 +151,7 @@ function keepLegacyOwnership(state: AppState, savedDefaults: unknown, data: Data
     const keys = data.cards.filter((card) => card.rarity === rarity).map((card) => String(card.id));
     const uniform = keys.every((key) => state.inventory[key] === undefined || state.inventory[key] === lb);
     state.settings.inventoryOverrides[rarity] = uniform ? lb : null;
-    if (!uniform) for (const key of keys) if (!(key in state.inventory)) state.inventory[key] = lb;
+    for (const key of keys) if (!(key in state.inventory)) state.inventory[key] = lb;
   }
 }
 
@@ -172,9 +173,10 @@ export function sanitizeInventory(raw: unknown): Inventory {
 
 /**
  * Build the current state from whatever was saved: the v4 object, or the three legacy blobs (run state, settings,
- * inventory) plus the theme key. Anything malformed falls back to its default.
+ * inventory) plus the theme key. Anything malformed falls back to its default. `fallbackInventory` stands in for a
+ * legacy inventory blob that was never saved.
  */
-export function migrate(saved: { current?: unknown; state?: unknown; settings?: unknown; inventory?: unknown; theme?: unknown }, data: Data): AppState {
+export function migrate(saved: { current?: unknown; state?: unknown; settings?: unknown; inventory?: unknown; theme?: unknown }, data: Data, fallbackInventory: Inventory = {}): AppState {
   const base = defaultState(data);
   if (isSave(saved.current)) {
     const c = saved.current;
@@ -198,7 +200,7 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
     version: STATE_VERSION,
     run: isPlainObject(saved.state) ? migrateRun(saved.state, data) : base.run,
     settings: isPlainObject(saved.settings) ? sanitizeSettings(saved.settings) : base.settings,
-    inventory: sanitizeInventory(saved.inventory),
+    inventory: sanitizeInventory(saved.inventory === undefined ? fallbackInventory : saved.inventory),
     missions: base.missions,
     ui: { sortKey: isPlainObject(saved.state) && typeof saved.state.sortKey === 'string' ? saved.state.sortKey : DEFAULT_UI.sortKey, theme: isTheme(saved.theme) ? saved.theme : DEFAULT_UI.theme,
       showUnowned: isPlainObject(saved.settings) && typeof saved.settings.version === 'number' && saved.settings.version >= 3
@@ -271,8 +273,8 @@ export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   uncopiedUnreadable = null;
   if (raw !== null && !isSave(current)) keepUnreadable(raw);
   newerSave = isSave(current) && current.version > STATE_VERSION;
-  const state = migrate({ current, state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) }, data);
-  if (raw === null && readJson(LEGACY_KEYS.inventory) === undefined) state.inventory = sanitizeInventory(fallbackInventory);
+  const legacy = { state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) };
+  const state = migrate({ current, ...legacy }, data, raw === null ? fallbackInventory : {});
   // Retire historical family aliases once, before another data update can reinterpret the old save.
   // If storage is read-only or full, the migrated in-memory state still remains usable.
   if (isSave(current) && current.version < STATE_VERSION) {

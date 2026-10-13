@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { defaultPins, defaultState, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
+import { defaultPins, defaultState, migrate, sanitizeInventory, STATE_VERSION, type AppState } from '../src/state.ts';
 import { effectiveLb } from '../src/model/run.ts';
 import type { Inventory, Rarity } from '../src/types.ts';
 import { importInventory } from '../src/inventory.ts';
@@ -133,7 +133,6 @@ test('ranking visibility moves from saved settings to UI state without losing th
     assert.equal(restored.ui.showUnowned, showUnowned);
     assert.equal('showUnowned' in restored.settings, false);
     assert.deepEqual(restored.run, saved.run);
-    assert.deepEqual(restored.inventory, saved.inventory);
     assert.deepEqual(migrate({ current: restored }, data), restored);
     assert.equal(migrate({ current: { ...old, ui: { ...old.ui, showUnowned: !showUnowned } } }, data).ui.showUnowned, !showUnowned);
   }
@@ -228,25 +227,43 @@ test('setting specs: inventory overrides accept use-inventory or a whole LB from
   }
 });
 
+/**
+ * Before v25 a card without an inventory entry was owned at its rarity's default, which is also how a card set to it was
+ * stored. A migrated save shows that ownership with its own overrides and with every rarity using the inventory, as
+ * today's SR and SSR defaults do after Reset.
+ */
+function assertOldOwnership(state: AppState, inventory: Inventory, defaultLb: Record<Rarity, number>, what: string) {
+  for (const overrides of [state.settings.inventoryOverrides, { R: null, SR: null, SSR: null }]) {
+    for (const card of data.cards) {
+      const saved = inventory[card.id];
+      assert.equal(effectiveLb(state.inventory, card, overrides), saved === undefined ? defaultLb[card.rarity] : saved, `${what}: card ${card.id} with ${JSON.stringify(overrides)}`);
+    }
+  }
+}
+const first = (rarity: Rarity) => must(data.cards.find((card) => card.rarity === rarity), `an ${rarity} card`).id;
+
 test('saves from before rarity overrides keep the ownership they showed', () => {
   const defaultLb = { R: 2, SR: 3, SSR: 1 };
-  const first = (rarity: Rarity) => must(data.cards.find((card) => card.rarity === rarity), `an ${rarity} card`).id;
   const inventory: Inventory = { [first('R')]: 0, [first('SR')]: null, [first('SSR')]: 1, 999999: 2 };
   const migrated = migrate({ current: { version: 24, settings: { defaultLb }, inventory } }, data);
-  // Before v25 a card without an entry was owned at its rarity's default, which is also how a card set to it was stored.
-  for (const card of data.cards) {
-    const saved = inventory[card.id];
-    assert.equal(effectiveLb(migrated.inventory, card, migrated.settings.inventoryOverrides), saved === undefined ? defaultLb[card.rarity] : saved, `card ${card.id}`);
-  }
+  assertOldOwnership(migrated, inventory, defaultLb, 'custom defaults');
   assert.deepEqual(migrated.settings.inventoryOverrides, { R: null, SR: null, SSR: 1 }, 'only the SSR cards all sat at their default');
   assert.equal(migrated.inventory[999999], 2, 'entries for cards today\'s data lacks stay');
   assert.equal('defaultLb' in migrated.settings, false);
   assert.deepEqual(migrate({ current: migrated }, data), migrated);
 
   const untouched = migrate({ current: { version: 24, settings: {}, inventory: {} } }, data);
-  assert.deepEqual(untouched.settings.inventoryOverrides, { R: 4, SR: 4, SSR: 4 }, 'a save that never set an LB owned every card at LB4');
-  assert.deepEqual(untouched.inventory, {});
-  assert.deepEqual(migrate({}, data).settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides, 'a fresh browser takes today\'s defaults');
+  assertOldOwnership(untouched, {}, { R: 4, SR: 4, SSR: 4 }, 'a save that never set an LB');
+  assert.deepEqual(untouched.settings.inventoryOverrides, { R: 4, SR: 4, SSR: 4 }, 'cards added later are owned at LB4, as before');
+});
+
+test('legacy blobs without an inventory take the bundled inventory before their old defaults fill the rest', () => {
+  const fallback: Inventory = { [first('SR')]: 1, [first('SSR')]: null };
+  const legacy = migrate({ state: {}, settings: { version: 3, defaultLb: { R: 4, SR: 4, SSR: 4 } } }, data, fallback);
+  assertOldOwnership(legacy, fallback, { R: 4, SR: 4, SSR: 4 }, 'legacy blobs');
+  const fresh = migrate({}, data, fallback);
+  assert.deepEqual(fresh.inventory, fallback);
+  assert.deepEqual(fresh.settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides, 'a fresh browser takes today\'s defaults');
 });
 
 test('setting specs: chain reach chances may not rise from one stage to the next', () => {

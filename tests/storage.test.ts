@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
+import { effectiveLb } from '../src/model/run.ts';
 import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, replaceUnreadableSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, storedIfChanged, uncopiedUnreadable, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
 
 test('storage failures preserve in-memory edits and an existing save, then recover', () => {
@@ -78,6 +79,15 @@ test('an unreadable save is copied aside before an edit replaces it, and the cop
   withStorage(fresh, () => {
     assert.deepEqual(loadState(data, { 30028: 3 }).inventory, { 30028: 3 }, 'a fresh browser starts from the bundled inventory');
     assert.equal(fresh.has(UNREADABLE_KEY), false);
+  });
+});
+
+test('a browser with only legacy blobs starts from the bundled inventory, and the old LB4 default owns the rest', () => {
+  const data = loadData();
+  withStorage(new Map([['uma-parent-deck.settings', JSON.stringify({ version: 3 })]]), () => {
+    const loaded = loadState(data, { 30028: 3 });
+    const shown = data.cards.filter((card) => effectiveLb(loaded.inventory, card, { R: null, SR: null, SSR: null }) !== (card.id === 30028 ? 3 : 4));
+    assert.deepEqual(shown.map((card) => card.id), []);
   });
 });
 
