@@ -83,23 +83,13 @@ export interface Prediction {
   finalMean: StatValues;   // + trainee base stats (no inheritance)
 }
 
-function interp(values: Record<string, StatValues>, races: number): StatValues;
-function interp(values: Record<string, number>, races: number): number;
-function interp(values: Record<string, number | StatValues>, races: number): number | StatValues {
-  const samples = Object.entries(values).map(([count, value]) => ({ races: Number(count), value }))
-    .filter((sample) => Number.isFinite(sample.races)).sort((a, b) => a.races - b.races);
-  if (!samples.length) throw new Error('event model has no race measurements');
-  const upper = samples.findIndex((sample) => sample.races >= races);
-  const index = Math.max(0, Math.min(samples.length - 2, upper < 0 ? samples.length - 2 : upper - 1));
-  const low = samples[index]!, high = samples[index + 1] ?? low;
-  const weight = high.races === low.races ? 0 : (high.races - races) / (high.races - low.races);
-  const interpolate = (a: number, b: number) => b + (a - b) * weight;
-  if (Array.isArray(low.value) && Array.isArray(high.value)) {
-    const a = low.value, b = high.value;
-    return perStat((_, i) => interpolate(a[i], b[i]));
-  }
-  if (typeof low.value === 'number' && typeof high.value === 'number') return interpolate(low.value, high.value);
-  throw new Error('event model race measurements mix stats and skill points');
+/** The two measured race counts nearest `races` (the outermost pair beyond them) and how far `races` lies from the lower. */
+function raceSegment(measured: Record<string, unknown>, races: number) {
+  const counts = Object.keys(measured).map(Number).sort((a, b) => a - b);
+  let i = 1;
+  while (i < counts.length - 1 && counts[i]! < races) i++;
+  const low = counts[Math.max(i - 1, 0)]!, high = counts[Math.min(i, counts.length - 1)]!;
+  return { low, high, weight: high === low ? 0 : (races - low) / (high - low) };
 }
 
 export function predictDeck(deck: DeckInput[], trainee: Character | null, races: number, focus: Focus, expectedLosses: number, model: StatModel, settings: Settings, fansBefore?: (slot: number) => number): Prediction {
@@ -112,15 +102,15 @@ export function predictDeck(deck: DeckInput[], trainee: Character | null, races:
     cardSp += c.sp * scale;
   }
   const growth: StatValues = trainee?.growth ?? [0, 0, 0, 0, 0];
-  // Interpolate the measured race counts; extrapolate linearly within the planning range.
-  const r = Math.max(8, Math.min(40, races));
-  const eventBase = interp(model.eventBase, r);
+  const { low, high, weight } = raceSegment(model.eventSp, Math.max(8, Math.min(40, races)));
+  const mix = (atLow: number, atHigh: number) => atLow + (atHigh - atLow) * weight;
+  const eventBase = perStat((_, i) => mix(model.eventBase[low]![i], model.eventBase[high]![i]));
   const eventStats = perStat((_, i) => eventBase[i] * (1 + model.growthEffect * growth[i] / 100));
   const focusMul: StatValues = model.focus[focus] ?? [1, 1, 1, 1, 1];
   const penalty = settings.lossPenalty * expectedLosses;
   const mean = perStat((_, i) => Math.max(0, (cardStats[i] + eventStats[i]) * focusMul[i] - penalty / STATS.length));
   const sd = perStat((_, i) => model.sigma[i]);
-  const sp = cardSp + interp(model.eventSp, r);
+  const sp = cardSp + mix(model.eventSp[low]!, model.eventSp[high]!);
   const base: StatValues = trainee?.baseStats ?? [0, 0, 0, 0, 0];
   const out = { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: perStat((_, i) => mean[i] + base[i]) };
   for (const v of [...out.mean, ...out.sd, ...out.finalMean, out.sp]) if (!Number.isFinite(v)) throw new Error('prediction produced a non-finite number');
