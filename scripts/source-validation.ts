@@ -3,7 +3,7 @@ import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal } fr
 import { fingerprint, pageCacheMatches, pageInput, type PageRevision } from './page-cache.ts';
 
 // Source JSON has several unrelated schemas. Checks below validate values before normalization or comparison.
-type Row = Record<string, any>;
+export type Row = Record<string, any>;
 export type SourceTables = Record<string, Row[]>;
 export interface PageSources { eventNames: Record<string, Row>; palGroupEvents: Record<string, Row>; charEvents: Record<string, Row>; charEventsByCard: Record<string, Row> }
 export interface NormalizedTables { cards: Row[]; skills: Row[]; characters: Row[]; races: Row[]; ranks: Row[]; effects: Row[]; scenarios: Row[]; scenarioEvents: Row[] }

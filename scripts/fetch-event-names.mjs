@@ -8,28 +8,40 @@ import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
 import { exists, readJson, writeJson } from './json-file.ts';
 import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, uniqueEffectText, UNLOCK_LINE } from './page-cache.ts';
 
+/**
+ * The rows of GameTora's static feed this script reads, and the validated event data of a page.
+ * @typedef {{ support_id: number, char_id: number, type: string, url_name: string, release_en?: string, unique?: { effects: { type: number }[] } }} RawSupport
+ * @typedef {{ card_id: number, char_id: number, url_name: string, release_en?: string }} RawCharacterCard
+ * @typedef {ReturnType<typeof pageEvents>} PageEvents
+ */
+
 const BASE = GAMETORA.base;
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const RAW = path.join(ROOT, 'data', 'raw');
 const OUT = path.join(RAW, 'event-names.json');
 const FORCE = process.argv.includes('--force');
 const REVISION_OUT = path.join(RAW, 'page-source-revisions.json');
+/** @type {Record<string, import('./page-cache.ts').PageRevision>} */
 const revisions = (await exists(REVISION_OUT)) ? await readJson(REVISION_OUT) : {};
 const sourceFiles = ['training_events__ssr', 'training_events__sr', 'training_events__friend', 'training_events__group',
   'training_events__shared', 'training_events__char', 'training_events__char_card', 'dict__evrew'];
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async (key) => [key, fingerprint(await readJson(path.join(RAW, `${key}.json`)))])));
+/** @param {string} key @param {unknown} card */
 const inputFor = (key, card) => pageInput(key, card, sourceHashes);
+/** @param {string} key @param {unknown} card @param {unknown} payload */
 const current = (key, card, payload) => !FORCE && pageCacheMatches(revisions[key], inputFor(key, card), payload);
+/** @param {string} key @param {unknown} card @param {unknown} payload */
 const remember = (key, card, payload) => { revisions[key] = pageRevision(inputFor(key, card), payload); };
 
 const throttle = createThrottle();
+/** @param {string} url */
 async function getJson(url) {
   const res = await requestSource(url, throttle.wait, GAMETORA.userAgent);
   if (!res.ok) throw new Error(`Page fetch ${res.status}: ${url}`);
   return res.json();
 }
 
-/** A page's HTML, throttled like getJson. */
+/** A page's HTML, throttled like getJson. @param {string} url */
 async function getText(url) {
   const res = await requestSource(url, throttle.wait, GAMETORA.userAgent);
   if (!res.ok) throw new Error(`Page fetch ${res.status}: ${url}`);
@@ -45,10 +57,16 @@ async function buildId() {
 }
 
 const FULL = path.join(RAW, 'event-data-friend-group.json'); // full event data for Pal and Group cards (their outings are not in the static feed)
-const cards = (await readJson(path.join(RAW, 'support-cards.json'))).filter((c) => c.release_en);
+/** @type {RawSupport[]} */
+const supports = await readJson(path.join(RAW, 'support-cards.json'));
+const cards = supports.filter((c) => c.release_en);
+/** @type {Record<number, { chain: string[], random: string[], special: string[], dates: string[] }>} */
 const names = (await exists(OUT)) ? await readJson(OUT) : {};
+/** @type {Record<number, PageEvents>} */
 const full = (await exists(FULL)) ? await readJson(FULL) : {};
+/** @param {RawSupport} c */
 const isPalGroup = (c) => c.type === 'friend' || c.type === 'group';
+/** @param {RawSupport} c */
 const supportPayload = (c) => ({ names: names[c.support_id], ...(isPalGroup(c) ? { full: full[c.support_id] } : {}) });
 const todo = cards.filter((c) => !names[c.support_id] || (isPalGroup(c) && !full[c.support_id]) || !current(`support:${c.support_id}`, c, supportPayload(c)));
 async function saveSupports() { await writeJson(OUT, names); await writeJson(FULL, full); await writeJson(REVISION_OUT, revisions); }
@@ -59,10 +77,11 @@ if (todo.length) {
   for (const c of todo) {
     const d = await getJson(`${BASE}/_next/data/${id}/umamusume/supports/${c.url_name}.json`);
     const en = pageEvents(d.pageProps?.eventData?.en, 'support', `support ${c.support_id}`);
-    const pick = (arr) => (arr ?? []).map((e) => e.n);
+    // pageEvents has checked that every event group is a list of named events.
+    const pick = (/** @type {unknown} */ events) => /** @type {{ n: string }[]} */ (events ?? []).map((e) => e.n);
     // Group cards keep their chain events under "special" instead of "arrows".
-    const chain = en?.arrows?.length ? pick(en.arrows) : pick(en?.special);
-    names[c.support_id] = { chain, random: pick(en?.random), special: pick(en?.special), dates: pick(en?.dates) };
+    const chain = pick(en.arrows).length ? pick(en.arrows) : pick(en.special);
+    names[c.support_id] = { chain, random: pick(en.random), special: pick(en.special), dates: pick(en.dates) };
     if (isPalGroup(c)) full[c.support_id] = en;
     remember(`support:${c.support_id}`, c, supportPayload(c));
     if (++n % 20 === 0) { await saveSupports(); console.log(`${n}/${todo.length}`); }
@@ -73,9 +92,13 @@ console.log('done', Object.keys(names).length);
 
 // Characters: one page per character (the first Global outfit's page carries the character's events).
 const CHAR_OUT = path.join(RAW, 'char-events.json');
-const charCards = (await readJson(path.join(RAW, 'character-cards.json'))).filter((c) => c.release_en).sort((a, b) => a.card_id - b.card_id);
+/** @type {RawCharacterCard[]} */
+const characterCards = await readJson(path.join(RAW, 'character-cards.json'));
+const charCards = characterCards.filter((c) => c.release_en).sort((a, b) => a.card_id - b.card_id);
+/** @type {Map<number, RawCharacterCard>} */
 const firstOutfit = new Map();
 for (const c of charCards) if (!firstOutfit.has(c.char_id)) firstOutfit.set(c.char_id, c);
+/** @type {Record<number, PageEvents>} */
 const charEvents = (await exists(CHAR_OUT)) ? await readJson(CHAR_OUT) : {};
 const charTodo = [...firstOutfit.values()].filter((c) => !current(`character:${c.char_id}`, c, charEvents[c.char_id]));
 console.log(`${charTodo.length} characters to fetch (${firstOutfit.size - charTodo.length} cached)`);
@@ -96,6 +119,7 @@ console.log('characters done', Object.keys(charEvents).length);
 
 // Alternate outfits: their own page carries the outfit's events, which the base page lacks. Keyed by card id.
 const CARD_OUT = path.join(RAW, 'char-events-by-card.json');
+/** @type {Record<number, PageEvents>} */
 const byCard = (await exists(CARD_OUT)) ? await readJson(CARD_OUT) : {};
 const altTodo = charCards.filter((c) => firstOutfit.get(c.char_id) !== c && !current(`outfit:${c.card_id}`, c, byCard[c.card_id]));
 console.log(`${altTodo.length} alternate outfits to fetch (${charCards.length - firstOutfit.size - altTodo.length} cached)`);
@@ -117,10 +141,13 @@ console.log('outfits done', Object.keys(byCard).length);
 // Compound unique effects (types 100 and up) have no definition in the static feed; GameTora renders their text
 // on the card page from the same payload. Keep that rendered text per card so the tool can show and decode it.
 const UNIQUE_OUT = path.join(RAW, 'unique-effect-texts.json');
+/** @type {Record<number, string>} */
 const uniqueTexts = (await exists(UNIQUE_OUT)) ? await readJson(UNIQUE_OUT) : {};
 // an earlier version of this script kept the UNLOCK_LINE as the text, so a cached entry that is only that line is refetched
-const compound = cards.filter((c) => c.release_en && c.unique?.effects.some((u) => u.type >= 100)
-  && (!uniqueTexts[c.support_id] || UNLOCK_LINE.test(uniqueTexts[c.support_id]) || !current(`unique:${c.support_id}`, c, uniqueTexts[c.support_id])));
+const compound = cards.filter((c) => {
+  const text = uniqueTexts[c.support_id];
+  return c.release_en && c.unique?.effects.some((u) => u.type >= 100) && (!text || UNLOCK_LINE.test(text) || !current(`unique:${c.support_id}`, c, text));
+});
 console.log(`${compound.length} compound unique effects to fetch (${Object.keys(uniqueTexts).length} cached)`);
 for (const c of compound) {
   const page = await getText(`${BASE}/umamusume/supports/${c.url_name}`);

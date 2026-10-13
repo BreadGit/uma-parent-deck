@@ -12,9 +12,13 @@ await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.waitForTimeout(6000); // client-rendered pages; ad and analytics requests keep 'networkidle' from ever firing
 const md = await page.evaluate(() => {
   const root = document.querySelector('main') || document.querySelector('article') || document.body;
+  /** @param {Element} el */
   const skip = (el) => /nav|header|footer|aside|script|style|noscript|svg|button|form/i.test(el.tagName) || /cookie|banner|advert|sidebar|nav|menu|footer|header/i.test(el.className || '');
-  const text = (el) => el.textContent.replace(/\s+/g, ' ').trim();
+  /** @param {Element} el */
+  const text = (el) => (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+  /** @type {string[]} */
   const out = [];
+  /** @param {Element} el */
   const walk = (el) => {
     if (el.nodeType !== 1 || skip(el)) return;
     const tag = el.tagName;
@@ -23,7 +27,8 @@ const md = await page.evaluate(() => {
     if (tag === 'LI') { const t = text(el); if (t) out.push('- ' + t); return; }
     if (tag === 'TABLE') {
       const rows = [...el.querySelectorAll('tr')].map((tr) => [...tr.querySelectorAll('th,td')].map((c) => text(c).replace(/\|/g, '/')));
-      if (rows.length) { out.push(''); out.push('| ' + rows[0].join(' | ') + ' |'); out.push('| ' + rows[0].map(() => '---').join(' | ') + ' |'); for (const r of rows.slice(1)) out.push('| ' + r.join(' | ') + ' |'); out.push(''); }
+      const [head, ...body] = rows;
+      if (head) { out.push(''); out.push('| ' + head.join(' | ') + ' |'); out.push('| ' + head.map(() => '---').join(' | ') + ' |'); for (const r of body) out.push('| ' + r.join(' | ') + ' |'); out.push(''); }
       return;
     }
     if (tag === 'IMG') { const a = el.getAttribute('alt'); if (a) out.push(`[image: ${a}]`); return; }

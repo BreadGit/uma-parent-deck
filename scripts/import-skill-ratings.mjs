@@ -2,10 +2,18 @@
 import { fileURLToPath } from 'node:url';
 import { readJson, writeJson } from './json-file.ts';
 
+/** @typedef {{ skill_jp?: string, is_evo: boolean, skill_type: string, base_value: unknown }} ExportedSkill */
+/** @param {string} name */
 const data = (name) => fileURLToPath(new URL(`../data/${name}`, import.meta.url));
-const source = await readJson(process.argv[2]);
+const exportFile = process.argv[2];
+if (!exportFile) throw new Error('Usage: node scripts/import-skill-ratings.mjs <UmaTools full export.json>');
+/** @type {{ metadata: { source_url: string, scraped_at_utc: string }, skills: ExportedSkill[] }} */
+const source = await readJson(exportFile);
+/** @type {import('../src/types.ts').Skill[]} */
 const skills = await readJson(data('skills.json'));
+/** @param {string | null | undefined} name */
 const normalize = (name) => name?.normalize('NFKC').replaceAll('◯', '○');
+/** @type {Record<number, { base: number, nameJp: string | null }>} */
 const ratings = {};
 for (const skill of skills) {
   if (skill.unreleasedEn || ![1, 2].includes(skill.rarity)) continue;
@@ -14,7 +22,7 @@ for (const skill of skills) {
   const values = new Set(matches.map((row) => row.base_value));
   if (values.size !== 1) continue;
   const base = [...values][0];
-  if (!Number.isInteger(base) || base < 0) throw new Error(`Invalid rating for ${skill.id}`);
+  if (typeof base !== 'number' || !Number.isInteger(base) || base < 0) throw new Error(`Invalid rating for ${skill.id}`);
   ratings[skill.id] = { base, nameJp: skill.nameJp };
 }
 const output = {

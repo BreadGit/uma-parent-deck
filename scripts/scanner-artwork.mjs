@@ -3,14 +3,18 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { readJson, writeFileAtomic } from './json-file.ts';
 
+/** @param {string} file */
 const modified = file => fs.stat(file).then(s => s.mtimeMs, () => null);
 
 /**
  * Use the same canvas resampling as the scanner, once at generation time instead of on every device.
  * A reference newer than its source is kept; `force` regenerates them all after a change to the encoding below.
  */
+/** @param {string} root @param {{ force?: boolean }} [options] */
 export async function buildScannerArtwork(root, { force = false } = {}) {
-  const cards = (await readJson(path.join(root, 'data/cards.json'))).filter(c => c.rarity !== 'R');
+  /** @type {import('../src/types.ts').Card[]} */
+  const all = await readJson(path.join(root, 'data/cards.json'));
+  const cards = all.filter(c => c.rarity !== 'R');
   const destination = path.join(root, 'public/assets/supports/scanner');
   await fs.mkdir(destination, { recursive: true });
   const jobs = [], missing = [];
@@ -31,9 +35,10 @@ export async function buildScannerArtwork(root, { force = false } = {}) {
           const image = new Image(); image.src = `data:image/png;base64,${encoded}`; await image.decode();
           const canvas = document.createElement('canvas');
           canvas.width = 128; canvas.height = Math.round(image.height * canvas.width / image.width);
-          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d')).drawImage(image, 0, 0, canvas.width, canvas.height);
           return canvas.toDataURL('image/webp', .95).split(',')[1];
         }, (await fs.readFile(source)).toString('base64'));
+        if (!encoded) throw new Error(`The browser produced no WebP data for ${source}.`);
         await writeFileAtomic(output, Buffer.from(encoded, 'base64'));
       }
     } finally { await browser.close(); }
