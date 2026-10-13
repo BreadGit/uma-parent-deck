@@ -6,10 +6,9 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 
 const args = process.argv.slice(2);
-/** @param {string} name */
-const option = (name) => { const at = args.indexOf(name); return at === -1 ? undefined : args[at + 1]; };
+const option = (name: string) => { const at = args.indexOf(name); return at === -1 ? undefined : args[at + 1]; };
 if (args.includes('--help')) {
-  console.log('Usage: node scripts/deploy.mjs [--tag <label>] [--message <text>] [--require-latest]\n'
+  console.log('Usage: node scripts/deploy.ts [--tag <label>] [--message <text>] [--require-latest]\n'
     + 'Uploads the built site with `wrangler versions upload`, labelled with the tag and message, then promotes that\n'
     + 'version to all traffic with `wrangler versions deploy`. Needs CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.\n'
     + '--require-latest requires --tag and checks origin before upload and promotion, skipping superseded releases.\n'
@@ -35,8 +34,7 @@ const tag = option('--tag');
 const requireLatest = args.includes('--require-latest');
 if (requireLatest && !tag?.startsWith('v')) throw new Error('--require-latest needs --tag <v* release>.');
 
-/** @param {boolean} deployed */
-function output(deployed) {
+function output(deployed: boolean) {
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `deployed=${deployed}\n`);
 }
 function currentRelease() {
@@ -51,15 +49,14 @@ function currentRelease() {
   return false;
 }
 
-/** @param {string[]} command */
-function wrangler(...command) {
+function wrangler(...command: string[]) {
   const result = spawnSync('npx', ['wrangler', ...command], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
   process.stdout.write(result.stdout ?? '');
   if (result.status !== 0) throw new Error(`wrangler ${command[0]} ${command[1]} exited ${result.status}`);
   return result.stdout ?? '';
 }
 
-const label = [];
+const label: string[] = [];
 for (const name of ['--tag', '--message']) {
   const value = option(name);
   if (value) label.push(name, value);

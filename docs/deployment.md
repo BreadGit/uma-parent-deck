@@ -25,7 +25,7 @@ The page footer shows this version and the data snapshot date, so the live site 
 newest release tag on origin. Superseded builds finish with a skip summary; they do not replace a
 newer release. The deploy also refuses a tag whose commit is not on `main`. Historical tags whose
 CI definitions predate this guard remain unguarded when their workflows are rerun.
-Each deploy uploads a Worker version labelled with the tag (`node scripts/deploy.mjs --help`), so the
+Each deploy uploads a Worker version labelled with the tag (`node scripts/deploy.ts --help`), so the
 Cloudflare dashboard's version list names releases and data refreshes.
 The tag list is the release history; no GitHub release or release notes are written. To redeploy the
 latest release, run the CI workflow manually on its tag. For an intentional return to an earlier
@@ -60,7 +60,7 @@ button forces a refresh.
 If a newer release appears during validation or upload, the data deployment skips promotion and
 explains why in its summary. The validated data remains on `main` for the next release or refresh.
 
-Run `node scripts/refresh-data.mjs --help` for the scheduling and change-detection policy. The
+Run `node scripts/refresh-data.ts --help` for the scheduling and change-detection policy. The
 schedule follows the game's own release notices ([official notices](umamusume/refs/official-notices.md)),
 so nothing needs to be entered by hand. If the feed changes shape, the run logs a warning and only
 the weekly fallback refreshes until `scripts/data-refresh.ts` is updated.

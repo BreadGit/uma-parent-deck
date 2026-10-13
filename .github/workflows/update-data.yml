@@ -28,8 +28,8 @@ jobs:
         with:
           node-version-file: .node-version
       - id: schedule
-        run: node scripts/refresh-data.mjs --due
-      # Includes Chromium: the fetch renders scanner references for new cards with it (scripts/scanner-artwork.mjs).
+        run: node scripts/refresh-data.ts --due
+      # Includes Chromium: the fetch renders scanner references for new cards with it (scripts/scanner-artwork.ts).
       - uses: ./.github/actions/setup
         if: steps.schedule.outputs.due == 'true'
       - id: refresh
@@ -41,7 +41,7 @@ jobs:
         id: commit
         if: steps.refresh.outputs.changed == 'true'
         run: |
-          paths="$(node scripts/refresh-data.mjs --paths | tr '\n' ' ')"
+          paths="$(node scripts/refresh-data.ts --paths | tr '\n' ' ')"
           git config user.name BreadGit
           git config user.email 58152441+BreadGit@users.noreply.github.com
           git add -- $paths
@@ -84,8 +84,8 @@ jobs:
           PATHS: ${{ needs.refresh.outputs.paths }}
         run: |
           # Keep the current guard even when the release predates it.
-          cp scripts/deploy.mjs "$RUNNER_TEMP/uma-deploy.mjs"
-          tag="$(node "$RUNNER_TEMP/uma-deploy.mjs" --latest-tag)"
+          cp scripts/deploy.ts "$RUNNER_TEMP/uma-deploy.mts"
+          tag="$(node "$RUNNER_TEMP/uma-deploy.mts" --latest-tag)"
           if [ -z "$tag" ]; then
             echo 'No release yet: the data is on main and ships with the first release.' >> "$GITHUB_STEP_SUMMARY"
             echo 'tag=' >> "$GITHUB_OUTPUT"
@@ -103,7 +103,7 @@ jobs:
         run: npm test && npm run build && npm run test:browsers
       - if: steps.release.outputs.tag != ''
         id: promotion
-        run: node "$RUNNER_TEMP/uma-deploy.mjs" --require-latest --tag "$TAG" --message "Data refresh ${SHA::7} on $TAG"
+        run: node "$RUNNER_TEMP/uma-deploy.mts" --require-latest --tag "$TAG" --message "Data refresh ${SHA::7} on $TAG"
         env:
           TAG: ${{ steps.release.outputs.tag }}
           SHA: ${{ needs.refresh.outputs.sha }}

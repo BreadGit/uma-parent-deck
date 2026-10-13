@@ -4,8 +4,7 @@ import { spawn } from 'node:child_process';
 import { NOTICE_FEED, REFRESH_PATHS, RELEASE_TITLE, RELEASE_WINDOW_HOURS, WEEKLY_CHECK, RECOVER_DATA, beginDataUpdate, completeDataUpdate, dataUpdateIncomplete, requireCompleteData, noticesFrom, refreshDue, snapshotDigest } from './data-refresh.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-/** @param {string} key @param {boolean} value */
-async function output(key, value) {
+async function output(key: string, value: boolean) {
   console.log(`${key}=${value}`);
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
 }
@@ -30,9 +29,9 @@ if (process.argv.includes('--help')) {
 } else {
   const before = await snapshotDigest(root);
   const child = spawn('npm', ['run', 'fetch'], { cwd: root, stdio: 'inherit' });
-  await new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     child.once('error', reject);
-    child.once('exit', code => code === 0 ? resolve(undefined) : reject(new Error(`Data refresh exited ${code}`)));
+    child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Data refresh exited ${code}`)));
   });
   await output('changed', before !== await snapshotDigest(root));
 }

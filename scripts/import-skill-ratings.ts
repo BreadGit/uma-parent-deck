@@ -1,21 +1,16 @@
 // Import only direct GameWith evaluation values from UmaTools' full export, never its cost fallbacks.
 import { fileURLToPath } from 'node:url';
 import { readJson, writeJson } from './json-file.ts';
-import { isGold, isNormalOrGold } from '../src/types.ts';
+import { isGold, isNormalOrGold, type Skill } from '../src/types.ts';
 
-/** @typedef {{ skill_jp?: string, is_evo: boolean, skill_type: string, base_value: unknown }} ExportedSkill */
-/** @param {string} name */
-const data = (name) => fileURLToPath(new URL(`../data/${name}`, import.meta.url));
+interface ExportedSkill { skill_jp?: string; is_evo: boolean; skill_type: string; base_value: unknown }
+const data = (name: string) => fileURLToPath(new URL(`../data/${name}`, import.meta.url));
 const exportFile = process.argv[2];
-if (!exportFile) throw new Error('Usage: node scripts/import-skill-ratings.mjs <UmaTools full export.json>');
-/** @type {{ metadata: { source_url: string, scraped_at_utc: string }, skills: ExportedSkill[] }} */
-const source = await readJson(exportFile);
-/** @type {import('../src/types.ts').Skill[]} */
-const skills = await readJson(data('skills.json'));
-/** @param {string | null | undefined} name */
-const normalize = (name) => name?.normalize('NFKC').replaceAll('◯', '○');
-/** @type {Record<number, { base: number, nameJp: string | null }>} */
-const ratings = {};
+if (!exportFile) throw new Error('Usage: node scripts/import-skill-ratings.ts <UmaTools full export.json>');
+const source: { metadata: { source_url: string; scraped_at_utc: string }; skills: ExportedSkill[] } = await readJson(exportFile);
+const skills: Skill[] = await readJson(data('skills.json'));
+const normalize = (name: string | null | undefined) => name?.normalize('NFKC').replaceAll('◯', '○');
+const ratings: Record<number, { base: number; nameJp: string | null }> = {};
 for (const skill of skills) {
   if (skill.unreleasedEn || !isNormalOrGold(skill)) continue;
   const matches = source.skills.filter((row) => normalize(row.skill_jp) === normalize(skill.nameJp)

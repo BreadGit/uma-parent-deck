@@ -36,8 +36,8 @@ async function fixture(t: TestContext, tags: string[]) {
   if (tags.length) git('checkout', '--quiet', tags[0]!);
 
   // As in update-data.yml, keep the current helper outside the checkout of historical release code.
-  const helper = join(root, 'uma-deploy.mjs');
-  await writeFile(helper, await readFile(new URL('../scripts/deploy.mjs', import.meta.url)));
+  const helper = join(root, 'uma-deploy.mts');
+  await writeFile(helper, await readFile(new URL('../scripts/deploy.ts', import.meta.url)));
   await writeFile(join(bin, 'npx'), `#!/usr/bin/env node
 import { appendFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';

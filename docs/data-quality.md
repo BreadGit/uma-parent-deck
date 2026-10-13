@@ -14,7 +14,7 @@ Python with NumPy and openpyxl is required for fitting and the measurement check
 For an offline rebuild of the saved snapshots:
 
 ```sh
-node scripts/fetch-gametora.mjs --offline
+node scripts/fetch-gametora.ts --offline
 npm run fit
 npm run check:data
 ```
@@ -43,7 +43,7 @@ invalidate a cache entry. Legacy caches remain usable offline after structural r
 their first online refresh establishes revision records. Once those records exist, incomplete
 refreshes cannot be normalized as a complete snapshot. Cache validation does not prove an
 unchanged upstream page is correct. Explicit forced page refreshes remain available with
-`node scripts/fetch-event-names.mjs --force`.
+`node scripts/fetch-event-names.ts --force`.
 
 Offline normalization must preserve the last actual fetch time. Regeneration is not evidence
 that the source was fetched again.

@@ -1,25 +1,21 @@
 // Renders a reference web page in headless Chromium and saves its main content as Markdown under docs/umamusume/refs/.
-// Usage: node scripts/save-reference.mjs <url> <name>
+// Usage: node scripts/save-reference.ts <url> <name>
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import { BROWSER_USER_AGENT } from './source-request.ts';
 
 const [url, name] = process.argv.slice(2);
-if (!url || !name) { console.error('usage: save-reference.mjs <url> <name>'); process.exit(1); }
+if (!url || !name) { console.error('usage: save-reference.ts <url> <name>'); process.exit(1); }
 const browser = await chromium.launch();
 const page = await browser.newPage({ userAgent: BROWSER_USER_AGENT });
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.waitForTimeout(6000); // client-rendered pages; ad and analytics requests keep 'networkidle' from ever firing
 const md = await page.evaluate(() => {
   const root = document.querySelector('main') || document.querySelector('article') || document.body;
-  /** @param {Element} el */
-  const skip = (el) => /nav|header|footer|aside|script|style|noscript|svg|button|form/i.test(el.tagName) || /cookie|banner|advert|sidebar|nav|menu|footer|header/i.test(el.className || '');
-  /** @param {Element} el */
-  const text = (el) => (el.textContent ?? '').replace(/\s+/g, ' ').trim();
-  /** @type {string[]} */
-  const out = [];
-  /** @param {Element} el */
-  const walk = (el) => {
+  const skip = (el: Element) => /nav|header|footer|aside|script|style|noscript|svg|button|form/i.test(el.tagName) || /cookie|banner|advert|sidebar|nav|menu|footer|header/i.test(el.className || '');
+  const text = (el: Element) => (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+  const out: string[] = [];
+  const walk = (el: Element) => {
     if (el.nodeType !== 1 || skip(el)) return;
     const tag = el.tagName;
     if (/^H[1-6]$/.test(tag)) { out.push('\n' + '#'.repeat(Number(tag[1])) + ' ' + text(el) + '\n'); return; }

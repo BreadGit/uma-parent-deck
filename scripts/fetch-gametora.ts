@@ -4,7 +4,7 @@
 // Load policy: GAMETORA in source-request.ts. Files already on disk are never
 // re-downloaded unless the manifest hash changed (data) or --force is passed (images).
 //
-// Usage: node scripts/fetch-gametora.mjs [--force] [--no-images] [--missions-only] [--offline | --download-only | --normalize-only]
+// Usage: node scripts/fetch-gametora.ts [--force] [--no-images] [--missions-only] [--offline | --download-only | --normalize-only]
 // --offline skips every request and only re-normalizes what is already in data/raw.
 // --download-only fetches the static feed into data/raw without normalizing.
 // --normalize-only re-normalizes data/raw, then downloads missing images and builds scanner
@@ -18,14 +18,13 @@ import { exists, readJson, writeFileAtomic, writeJson } from './json-file.ts';
 import { beginDataUpdate } from './data-refresh.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
-import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables } from './source-validation.ts';
+import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables, type PageSources, type Row } from './source-validation.ts';
 import { normalizeMissionCatalog } from './mission-import.ts';
 import { isNormalOrGold } from '../src/types.ts';
 
-/** @typedef {import('./source-validation.ts').Row} Row */
-/** GameTora's static feed tables by key. Each has its own schema, so their rows stay untyped, as in source-validation.ts. @typedef {Record<(typeof STATIC_KEYS)[number], any[]>} RawTables */
-/** @typedef {import('./source-validation.ts').PageSources} PageSources */
-/** @typedef {ReturnType<typeof normalizeReward>} Reward */
+/** GameTora's static feed tables by key. Each has its own schema, so their rows stay untyped, as in source-validation.ts. */
+type RawTables = Record<(typeof STATIC_KEYS)[number], any[]>;
+type Reward = ReturnType<typeof normalizeReward>;
 
 const BASE = GAMETORA.base;
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
@@ -40,17 +39,16 @@ const NORMALIZE_ONLY = args.has('--normalize-only');
 const MISSIONS_ONLY = args.has('--missions-only');
 const IMAGES = !args.has('--no-images') && !OFFLINE;
 
-const STATIC_KEYS = /** @type {const} */ ([
+const STATIC_KEYS = [
   'support-cards', 'support_effects', 'skills', 'character-cards', 'characters',
   'races', 'ura-races', 'scenarios', 'en/db-files/single_mode_rank', 'en/db-files/support_card_level',
   'training_events/ssr', 'training_events/sr', 'training_events/friend', 'training_events/group',
   'training_events/shared', 'training_events/char', 'training_events/char_card', 'training_events/scenario', 'dict/evrew', 'status-effects', 'ura-objectives',
   'en/missions/limited',
-]);
+] as const;
 
 const throttle = createThrottle();
-/** @param {string} url @param {string} file @param {'array' | 'object'} [jsonShape] */
-async function fetchTo(url, file, jsonShape) {
+async function fetchTo(url: string, file: string, jsonShape?: 'array' | 'object') {
   const res = await requestSource(url, throttle.wait, GAMETORA.userAgent);
   if (!res.ok) return res.status;
   const buffer = Buffer.from(await res.arrayBuffer());
@@ -59,11 +57,9 @@ async function fetchTo(url, file, jsonShape) {
   await writeFileAtomic(file, buffer);
   return 200;
 }
-/** @param {string} key */
-const rawName = (key) => path.join(RAW, key.replaceAll('/', '__') + '.json');
+const rawName = (key: string) => path.join(RAW, key.replaceAll('/', '__') + '.json');
 
-/** @param {readonly string[]} [keys] */
-async function fetchStatic(keys = STATIC_KEYS) {
+async function fetchStatic(keys: readonly string[] = STATIC_KEYS) {
   await fs.mkdir(RAW, { recursive: true });
   const manifestFile = path.join(RAW, 'manifest.json');
   console.log('manifest');
@@ -98,20 +94,16 @@ async function normalizeMissions() {
 
 // ---------- normalization ----------
 
-/** @type {Record<number, string>} */
-const RARITY = { 1: 'R', 2: 'SR', 3: 'SSR' };
-/** @type {Record<string, string>} */
-const TYPE = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
+const RARITY: Record<number, string> = { 1: 'R', 2: 'SR', 3: 'SSR' };
+const TYPE: Record<string, string> = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
 
 // Event entry: [nameId, choices, strId, ...history]. choices: [[choiceId, [rewardIds]]] or "no".
-/** @param {unknown[]} evrew @param {unknown[]} entry @param {string} kind @param {number} index */
-function decodeEvent(evrew, entry, kind, index) {
+function decodeEvent(evrew: unknown[], entry: unknown[], kind: string, index: number) {
   entry = staticEventOnGlobal(entry);
   const choicesRaw = Array.isArray(entry[1]) ? entry[1] : [];
   const choices = choicesRaw.map((c) => {
     const rewardIds = Array.isArray(c) && Array.isArray(c[1]) ? c[1] : [];
-    /** @type {Reward[]} */
-    let outcome = [];
+    let outcome: Reward[] = [];
     const outcomes = [outcome];
     for (const rw of rewardIds.flatMap((rid) => decodeRewards(evrew, rid))) {
       if (rw.t === 'di') { outcomes.push(outcome = []); continue; }
@@ -123,11 +115,9 @@ function decodeEvent(evrew, entry, kind, index) {
 }
 
 // Page-format event ({i, n, c: [{o, r: [{t, v, d}]}]}) -> normalized event with outcomes split at 'di'.
-/** @param {Row} ev @param {string} kind @param {number} index */
-function decodePageEvent(ev, kind, index) {
-  const choices = (ev.c ?? []).map((/** @type {Row} */ ch) => {
-    /** @type {Reward[]} */
-    let outcome = [];
+function decodePageEvent(ev: Row, kind: string, index: number) {
+  const choices = (ev.c ?? []).map((ch: Row) => {
+    let outcome: Reward[] = [];
     const outcomes = [outcome];
     for (const r of ch.r ?? []) {
       if (r.t === 'di') { outcomes.push(outcome = []); continue; }
@@ -138,23 +128,19 @@ function decodePageEvent(ev, kind, index) {
   return { kind, index, name: ev.n, choices };
 }
 
-/** @param {RawTables} raw @param {PageSources['eventNames']} eventNames @param {PageSources['palGroupEvents']} palGroupEvents @param {Record<string, string>} [uniqueTexts] */
-function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
+function normalizeCards(raw: RawTables, eventNames: PageSources['eventNames'], palGroupEvents: PageSources['palGroupEvents'], uniqueTexts: Record<string, string> = {}) {
   validateSupportCards(raw['support-cards']);
   const evrew = raw['dict/evrew'];
-  /** @type {Map<number, string[]>} */
-  const randomNamesByChar = new Map();
+  const randomNamesByChar = new Map<number, string[]>();
   for (const c of raw['support-cards']) {
     const n = eventNames[c.support_id];
     if (n?.random?.length && !randomNamesByChar.has(c.char_id)) randomNamesByChar.set(c.char_id, n.random);
   }
-  /** @type {Map<number, unknown[][]>} */
-  const chainByCard = new Map();
-  for (const file of /** @type {const} */ (['training_events/ssr', 'training_events/sr', 'training_events/friend', 'training_events/group'])) {
+  const chainByCard = new Map<number, unknown[][]>();
+  for (const file of ['training_events/ssr', 'training_events/sr', 'training_events/friend', 'training_events/group'] as const) {
     for (const [id, events] of raw[file]) chainByCard.set(id, events);
   }
-  /** @type {Map<number, unknown[][]>} */
-  const randomByChar = new Map(raw['training_events/shared'].map(([id, ev]) => [id, ev]));
+  const randomByChar = new Map<number, unknown[][]>(raw['training_events/shared'].map(([id, ev]) => [id, ev]));
   const cards = [];
   for (const c of raw['support-cards']) {
     if (!c.release_en) continue;
@@ -170,14 +156,12 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
     const rnames = randomNamesByChar.get(c.char_id) ?? [];
     let randomEvents = (randomByChar.get(c.char_id) ?? []).map((e, i) => ({ ...decodeEvent(evrew, e, 'random', i + 1), ...(rnames[i] ? { name: rnames[i] } : {}) }));
     // Pal and Group cards: outings (dates / member outings + finale) and special events come from the page data.
-    /** @type {ReturnType<typeof decodePageEvent>[]} */
-    let recreationEvents = [];
-    /** @type {ReturnType<typeof decodePageEvent>[]} */
-    let specialEvents = [];
+    let recreationEvents: ReturnType<typeof decodePageEvent>[] = [];
+    let specialEvents: ReturnType<typeof decodePageEvent>[] = [];
     const pg = palGroupEvents[c.support_id];
     if (pg) {
-      /** The validated page events of one group, on Global. @param {Row[] | undefined} events @param {string} kind */
-      const pageEvents = (events, kind) => (events ?? []).map(eventOnGlobal).filter((e) => e !== null).map((e, i) => decodePageEvent(e, kind, i + 1));
+      /** The validated page events of one group, on Global. */
+      const pageEvents = (events: Row[] | undefined, kind: string) => (events ?? []).map(eventOnGlobal).filter((e) => e !== null).map((e, i) => decodePageEvent(e, kind, i + 1));
       recreationEvents = pageEvents(pg.dates ?? pg.dates_random, 'recreation');
       specialEvents = pageEvents(pg.special, 'special');
       randomEvents = pageEvents(pg.random, 'random');
@@ -206,8 +190,7 @@ function normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts = {}) {
   return cards.sort((a, b) => a.id - b.id);
 }
 
-/** @param {RawTables} raw */
-function normalizeSkills(raw) {
+function normalizeSkills(raw: RawTables) {
   const out = [];
   for (const s of raw.skills) {
     const en = s.loc?.en ?? {};
@@ -234,13 +217,12 @@ function normalizeSkills(raw) {
 
 const APT_KEYS = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 // The feed occasionally carries a skill id as a string (Super Creek's event skill 201352); ids are numbers here.
-const ids = (/** @type {unknown[] | undefined} */ list) => (list ?? []).map(Number);
+const ids = (list: unknown[] | undefined) => (list ?? []).map(Number);
 
 // ---------- character events (from the per-character page JSON, data/raw/char-events.json) ----------
 
 // Sets of races behind GameTora's crown shorthands, by Global race name and career year.
-/** @type {Record<string, [string, number][]>} */
-const CROWNS = {
+const CROWNS: Record<string, [string, number][]> = {
   triple_crown: [['Satsuki Sho', 2], ['Tokyo Yushun (Japanese Derby)', 2], ['Kikuka Sho', 2]],
   triple_tiara: [['Oka Sho', 2], ['Japanese Oaks', 2], ['Shuka Sho', 2]],
   spring_triple_crown: [['Osaka Hai', 3], ['Tenno Sho (Spring)', 3], ['Takarazuka Kinen', 3]],
@@ -251,16 +233,15 @@ const CROWNS = {
  * optional "|year"; they become { raceId, year? } via the raw races table. Anything else is kept verbatim as
  * { type: 'unknown', raw } so the model can apply its fallback rate.
  */
-/** @param {unknown[]} cond @param {Map<number, Row>} instances @param {Map<string, number>} raceIdByName */
-function normalizeCondition(cond, instances, raceIdByName) {
+function normalizeCondition(cond: unknown[], instances: Map<number, Row>, raceIdByName: Map<string, number>) {
   // Only G1s are on the tool's calendar; a condition naming any other race cannot be scored, so it stays unknown.
-  const ref = (/** @type {unknown} */ v) => {
+  const ref = (v: unknown) => {
     const [id, year] = String(v).split('|');
     const race = instances.get(Number(id));
     if (!race || race.grade !== 100) return null;
     return year ? { raceId: race.race_id, year: Number(year) } : { raceId: race.race_id };
   };
-  const refs = (/** @type {unknown[]} */ list) => { const out = list.map(ref); return out.every(Boolean) ? out : null; };
+  const refs = (list: unknown[]) => { const out = list.map(ref); return out.every(Boolean) ? out : null; };
   const unknown = { type: 'unknown', raw: cond };
   const [type, ...args] = cond;
   switch (type) {
@@ -268,8 +249,8 @@ function normalizeCondition(cond, instances, raceIdByName) {
     case 'participate': { const r = ref(args[0]); return r ? { type: 'participate', race: r } : unknown; }
     case 'do_not_participate': { const r = ref(args[0]); return r ? { type: 'do_not_participate', race: r } : unknown; }
     case 'win_or': { const r = refs(args); return r ? { type: 'win_any', races: r } : unknown; }
-    case 'win_all': { const r = refs(/** @type {unknown[]} */ (args[0] ?? [])); return r ? { type: 'win_all', races: r } : unknown; }
-    case 'win_n_of': { const r = refs(/** @type {unknown[]} */ (args[1] ?? [])); return r ? { type: 'win_n_of', n: Number(args[0]), races: r } : unknown; }
+    case 'win_all': { const r = refs((args[0] ?? []) as unknown[]); return r ? { type: 'win_all', races: r } : unknown; }
+    case 'win_n_of': { const r = refs((args[1] ?? []) as unknown[]); return r ? { type: 'win_n_of', n: Number(args[0]), races: r } : unknown; }
     case 'date': return { type: 'date' }; // a timing condition: always satisfiable
     default: {
       const crown = CROWNS[String(type)];
@@ -281,45 +262,39 @@ function normalizeCondition(cond, instances, raceIdByName) {
     }
   }
 }
-/** @typedef {'story' | 'choice' | 'outing' | 'secret'} CharEventKind */
-/** @type {[string, CharEventKind][]} */
-const PAGE_GROUPS = [['nochoice', 'story'], ['wchoice', 'choice'], ['outings', 'outing'], ['secret', 'secret']];
+type CharEventKind = 'story' | 'choice' | 'outing' | 'secret';
+const PAGE_GROUPS: [string, CharEventKind][] = [['nochoice', 'story'], ['wchoice', 'choice'], ['outings', 'outing'], ['secret', 'secret']];
 /**
  * A character's events on Global, grouped by kind, with skill rewards decoded like card events. The character's
  * page carries the events every outfit shares; each outfit's own page carries that outfit's events under
  * `version` (a story or choice event by its option count), so those come from `outfitPage`.
  */
-/** @param {Row | undefined} pageEvents @param {Row | undefined} outfitPage @param {Map<number, Row>} instances @param {Map<string, number>} raceIdByName */
-function normalizeCharEvents(pageEvents, outfitPage, instances, raceIdByName) {
-  /** @type {(ReturnType<typeof decodePageEvent> & { conditions?: Row[] })[]} */
-  const out = [];
+function normalizeCharEvents(pageEvents: Row | undefined, outfitPage: Row | undefined, instances: Map<number, Row>, raceIdByName: Map<string, number>) {
+  const out: (ReturnType<typeof decodePageEvent> & { conditions?: Row[] })[] = [];
   const counters = { story: 0, choice: 0, outing: 0, secret: 0 };
-  /** @param {Row | null | undefined} raw @param {CharEventKind} kind */
-  const push = (raw, kind) => {
+  const push = (raw: Row | null | undefined, kind: CharEventKind) => {
     if (!raw || typeof raw !== 'object') return;
     const ev = eventOnGlobal(raw);
     if (!ev) return;
     const event = decodePageEvent(ev, kind, ++counters[kind]);
-    out.push(kind === 'secret' ? { ...event, conditions: (ev.conditions ?? []).map((/** @type {unknown[]} */ c) => normalizeCondition(c, instances, raceIdByName)) } : event);
+    out.push(kind === 'secret' ? { ...event, conditions: (ev.conditions ?? []).map((c: unknown[]) => normalizeCondition(c, instances, raceIdByName)) } : event);
   };
   for (const [group, kind] of PAGE_GROUPS) for (const raw of pageEvents?.[group] ?? []) push(raw, kind);
   for (const raw of outfitPage?.version ?? []) push(raw, Array.isArray(raw?.c) && raw.c.length > 1 ? 'choice' : 'story');
   return out;
 }
 
-/** @param {RawTables} raw @param {PageSources['charEvents']} charEvents @param {PageSources['charEventsByCard']} charEventsByCard @param {{ name: string, raceId: number }[]} races */
-function normalizeCharacters(raw, charEvents, charEventsByCard, races) {
+function normalizeCharacters(raw: RawTables, charEvents: PageSources['charEvents'], charEventsByCard: PageSources['charEventsByCard'], races: { name: string; raceId: number }[]) {
   const instances = new Map(raw.races.map((r) => [r.id, r]));
   const raceIdByName = new Map(races.map((r) => [r.name, r.raceId]));
   // Career goals per character: race objectives with their calendar slot (turn 1 = Junior early January).
   const goalsByChar = new Map();
   for (const entry of raw['ura-objectives'] ?? []) {
-    /** @type {{ slot: number, required: number, races: Row[] }[]} */
-    const goals = [];
-    for (const o of /** @type {Row[]} */ (entry.objectives ?? [])) {
+    const goals: { slot: number; required: number; races: Row[] }[] = [];
+    for (const o of (entry.objectives ?? []) as Row[]) {
       if (o.cond_type !== 1 || !o.races?.length || o.turn > 72) continue;
       // cond_value is the placement the objective requires (1 = win, 5 = top five); 0 means taking part is enough
-      goals.push({ slot: o.turn - 1, required: Number(o.cond_value ?? 0), races: o.races.map((/** @type {Row} */ r) => ({ raceId: r.id, name: r.name_en, distance: r.distance, surface: r.terrain === 2 ? 'dirt' : 'turf', grade: r.grade, fansNeeded: r.fans_needed ?? 0, fansGain: r.fans_gained ?? 0 })) });
+      goals.push({ slot: o.turn - 1, required: Number(o.cond_value ?? 0), races: o.races.map((r: Row) => ({ raceId: r.id, name: r.name_en, distance: r.distance, surface: r.terrain === 2 ? 'dirt' : 'turf', grade: r.grade, fansNeeded: r.fans_needed ?? 0, fansGain: r.fans_gained ?? 0 })) });
     }
     // Route variants may repeat the same objective. Preserve distinct race choices, count repeated races once.
     const seen = new Set();
@@ -333,8 +308,7 @@ function normalizeCharacters(raw, charEvents, charEventsByCard, races) {
   const out = [];
   for (const c of raw['character-cards']) {
     if (!c.release_en) continue;
-    /** @type {Record<string, string>} */
-    const aptitudes = {};
+    const aptitudes: Record<string, string> = {};
     APT_KEYS.forEach((k, i) => (aptitudes[k] = c.aptitude[i]));
     out.push({
       cardId: c.card_id,
@@ -362,18 +336,16 @@ function normalizeCharacters(raw, charEvents, charEventsByCard, races) {
   return out.sort((a, b) => a.cardId - b.cardId);
 }
 
-const distanceCategory = (/** @type {number} */ m) => (m <= 1400 ? 'sprint' : m <= 1800 ? 'mile' : m <= 2400 ? 'medium' : 'long');
+const distanceCategory = (m: number) => (m <= 1400 ? 'sprint' : m <= 1800 ? 'mile' : m <= 2400 ? 'medium' : 'long');
 /** Fans a first place gives, by race id, from the objectives data (the calendar's own fans_gain is an index into a fan table, not a count). */
-/** @param {RawTables} raw */
-function fansByRace(raw) {
+function fansByRace(raw: RawTables) {
   const byId = new Map(), byIndex = new Map();
   for (const entry of raw['ura-objectives'] ?? []) for (const o of entry.objectives ?? []) for (const r of o.races ?? []) if (r.fans_gained) byId.set(r.id, r.fans_gained);
   const races = new Map(raw.races.map((r) => [r.id, r]));
   for (const cal of raw['ura-races'] ?? []) { const r = races.get(cal.instance); if (r && byId.has(r.race_id)) byIndex.set(cal.fans_gain, byId.get(r.race_id)); }
   return { byId, byIndex };
 }
-/** @param {RawTables} raw */
-function normalizeRaces(raw) {
+function normalizeRaces(raw: RawTables) {
   const races = new Map(raw.races.map((r) => [r.id, r]));
   const fans = fansByRace(raw);
   const out = [];
@@ -401,8 +373,7 @@ function normalizeRaces(raw) {
 }
 
 const RANK_NAMES = ['G', 'G+', 'F', 'F+', 'E', 'E+', 'D', 'D+', 'C', 'C+', 'B', 'B+', 'A', 'A+', 'S', 'S+', 'SS', 'SS+'];
-/** @param {RawTables} raw */
-function normalizeRanks(raw) {
+function normalizeRanks(raw: RawTables) {
   return raw['en/db-files/single_mode_rank'].map((r, i) => {
     let name;
     if (i < RANK_NAMES.length) name = RANK_NAMES[i];
@@ -419,8 +390,7 @@ function normalizeRanks(raw) {
 // Scenario events whose options are tied to a character: pick a linked option while training that character or
 // carrying one of her cards and the gold skill is hinted; otherwise the normal version. Codes: sl = linked
 // character id, nl/nsl = the not-linked branch.
-/** @param {RawTables} raw */
-function normalizeScenarioEvents(raw) {
+function normalizeScenarioEvents(raw: RawTables) {
   const evrew = raw['dict/evrew'];
   const out = [];
   for (const entry of raw['training_events/scenario']) {
@@ -444,17 +414,16 @@ function normalizeScenarioEvents(raw) {
   return out;
 }
 
-/** @param {RawTables} raw */
-function normalizeScenarios(raw) {
+function normalizeScenarios(raw: RawTables) {
   return raw.scenarios.filter((s) => s.start_en).map((s) => ({
     id: s.id, name: s.name_en, fullName: s.name_en_full ?? s.name_en, urlName: s.url_name,
-    linkedChars: (s.scenario_linked_characters ?? []).map((/** @type {Row} */ c) => ({ charId: c.char_id, name: c.name_en })),
+    linkedChars: (s.scenario_linked_characters ?? []).map((c: Row) => ({ charId: c.char_id, name: c.name_en })),
     startEn: s.start_en,
   }));
 }
 
 async function normalize() {
-  const raw = /** @type {RawTables} */ ({});
+  const raw = {} as RawTables;
   for (const key of STATIC_KEYS) raw[key] = await readJson(rawName(key));
   const namesFile = path.join(RAW, 'event-names.json');
   const eventNames = (await exists(namesFile)) ? await readJson(namesFile) : {};
@@ -501,10 +470,8 @@ async function normalize() {
   return { cards, skills, characters };
 }
 
-/** @param {Awaited<ReturnType<typeof normalize>>} normalized */
-async function fetchImages({ cards, skills, characters }) {
-  /** @type {[string, string][]} */
-  const jobs = [];
+async function fetchImages({ cards, skills, characters }: Awaited<ReturnType<typeof normalize>>) {
+  const jobs: [string, string][] = [];
   for (const c of cards) jobs.push([`/images/umamusume/supports/support_card_s_${c.id}.png`, `supports/${c.id}.png`]);
   for (const c of cards.filter(c => c.rarity !== 'R')) jobs.push([`https://media.gametora.com/umamusume/supports/full/small/${c.id}.png`, path.join(RAW, 'scanner-artwork', `${c.id}.png`)]);
   for (const c of characters) jobs.push([`/images/umamusume/characters/thumb/chara_stand_${c.charId}_${c.cardId}.png`, `characters/${c.cardId}.png`]);
@@ -516,7 +483,7 @@ async function fetchImages({ cards, skills, characters }) {
   // Skill icons only for skills that some Global card or character can give.
   const usedIcons = new Set();
   const skillById = new Map(skills.map((s) => [s.id, s]));
-  const add = (/** @type {number} */ id) => { const s = skillById.get(id); if (s?.iconId) usedIcons.add(s.iconId); };
+  const add = (id: number) => { const s = skillById.get(id); if (s?.iconId) usedIcons.add(s.iconId); };
   for (const c of cards) { c.hintSkills.forEach(add); c.eventSkills.forEach(add); }
   for (const c of characters) { c.innateSkills.forEach(add); c.awakeningSkills.forEach(add); c.eventSkills.forEach(add); }
   for (const s of skills) if (!s.unreleasedEn && s.iconId && isNormalOrGold(s)) usedIcons.add(s.iconId);
@@ -529,7 +496,7 @@ async function fetchImages({ cards, skills, characters }) {
     if (st === 200) done++; else { missing++; console.warn('missing', src, st); }
   }
   console.log(`images: downloaded ${done}, already present ${skipped}, missing ${missing}`);
-  const { buildScannerArtwork } = await import('./scanner-artwork.mjs');
+  const { buildScannerArtwork } = await import('./scanner-artwork.ts');
   await buildScannerArtwork(ROOT);
 }
 
