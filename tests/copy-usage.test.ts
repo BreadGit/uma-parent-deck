@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import ts from 'typescript';
 import { LABEL, TITLE } from '../src/ui/copy.ts';
 
 const root = new URL('..', import.meta.url).pathname;
@@ -28,6 +29,33 @@ for (const [exported, shared] of [['TITLE', TITLE], ['LABEL', LABEL]] as const) 
   });
 }
 
+const unwrap = (node: ts.Expression): ts.Expression =>
+  ts.isAsExpression(node) || ts.isSatisfiesExpression(node) || ts.isParenthesizedExpression(node) ? unwrap(node.expression) : node;
+
+/** The entries of a module's top-level `copy` object, with the keys of each nested table, and the module without it. */
+function copyObject(file: string, text: string) {
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+  const keyOf = (entry: ts.ObjectLiteralElementLike) => {
+    assert.ok(entry.name && (ts.isIdentifier(entry.name) || ts.isStringLiteral(entry.name)), `${file}: every copy entry needs a plain key`);
+    return entry.name.text;
+  };
+  for (const statement of source.statements) {
+    if (!ts.isVariableStatement(statement)) continue;
+    const declaration = statement.declarationList.declarations.find(d => ts.isIdentifier(d.name) && d.name.text === 'copy');
+    if (!declaration) continue;
+    const object = declaration.initializer && unwrap(declaration.initializer);
+    assert.ok(object && ts.isObjectLiteralExpression(object), `${file}: copy must be an object literal`);
+    return {
+      rest: text.slice(0, statement.getStart(source)) + text.slice(statement.end),
+      entries: object.properties.map(entry => {
+        const value = ts.isPropertyAssignment(entry) ? unwrap(entry.initializer) : undefined;
+        return { key: keyOf(entry), nested: value && ts.isObjectLiteralExpression(value) ? value.properties.map(keyOf) : undefined };
+      }),
+    };
+  }
+  return null;
+}
+
 /**
  * A module's own text is the `copy` object it declares at the top level. Each entry must be read in the module; a
  * nested table counts as read when the module indexes it, passes it whole, or reads every entry of it, directly or
@@ -35,17 +63,16 @@ for (const [exported, shared] of [['TITLE', TITLE], ['LABEL', LABEL]] as const) 
  */
 test('every entry of a module\'s copy object is used there', () => {
   const unused = sources.flatMap(({ file, text }) => {
-    const block = /^const copy = \{\n([\s\S]*?)^\} as const;/m.exec(text);
-    if (!block) return [];
-    const rest = text.slice(0, block.index) + text.slice(block.index + block[0].length);
-    const entries = [...block[1]!.matchAll(/^ {2}(\w+)(: \{\n([\s\S]*?)^ {2}\},)?/gm)].map(m => ({ key: m[1]!, nested: m[3] }));
+    const copy = copyObject(file, text);
+    if (!copy) return [];
+    const { rest, entries } = copy;
     return entries.flatMap(({ key, nested }) => {
       if (!reads(rest, `copy.${key}`)) return [`${file}: copy.${key}`];
       if (nested === undefined) return [];
       const alias = new RegExp(`(\\w+) = copy\\.${key}[;,]`, 'g');
       const aliases = [...rest.matchAll(alias)].map(m => m[1]!), others = rest.replace(alias, '');
       if ([`copy\\.${key}`, ...aliases].some(base => new RegExp(`(?<![\\w.])${base}(?![\\w.])`).test(others))) return [];
-      return [...nested.matchAll(/^ {4}(\w+):/gm)].map(m => m[1]!)
+      return nested
         .filter(sub => ![`copy.${key}`, ...aliases].some(base => reads(rest, `${base}.${sub}`)))
         .map(sub => `${file}: copy.${key}.${sub}`);
     });
