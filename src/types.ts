@@ -110,8 +110,7 @@ export const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v &
 export const isGameId = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v > 0;
 /** The valid game IDs of a saved list, first occurrence first; anything else in it is dropped. */
 export const gameIds = (v: unknown): number[] => Array.isArray(v) ? [...new Set(v.filter(isGameId))] : [];
-/** An inventory or lineage key in its canonical decimal form ("030028" becomes "30028"), or null if it names no game ID. */
-export const gameIdKey = (key: string): string | null => /^\d+$/.test(key) && isGameId(Number(key)) ? String(Number(key)) : null;
+export const isGameIdKey = (key: string) => /^[1-9]\d*$/.test(key) && isGameId(Number(key));
 /**
  * A race calendar ID, the key of a schedule override. It is not a game ID: a later year's running of the same calendar
  * entry carries a suffix, so "79_2" is the Senior Japan Cup.

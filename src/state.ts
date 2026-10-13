@@ -1,7 +1,7 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
 import { parseRecommendation, type SavedRecommendation } from './recommendation.ts';
-import { APTITUDE_KEYS, APT_GRADES, RARITIES, gameIdKey, gameIds, isCalendarId, isGameId, isPlainObject, perStat, type Data, type Grade, type Inventory, type StatValues } from './types.ts';
+import { APTITUDE_KEYS, APT_GRADES, RARITIES, gameIds, isCalendarId, isGameId, isGameIdKey, isPlainObject, perStat, type Data, type Grade, type Inventory, type StatValues } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
@@ -113,8 +113,7 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   const lineage = run.targetLineage;
   run.targetLineage = {};
   for (const key of Object.keys(lineage)) {
-    const canonical = gameIdKey(key);
-    const id = canonical === null ? null : savedTargetId(Number(canonical), data, preserveIds);
+    const id = isGameIdKey(key) ? savedTargetId(Number(key), data, preserveIds) : null;
     if (id === null) continue;
     // Inactive targets retain their lineage. Prefer exact white keys over old gold/circle aliases.
     run.targetLineage[String(id)] ??= lineage[String(id)] ?? lineage[key]!;
@@ -155,20 +154,9 @@ function keepLegacyOwnership(state: AppState, savedDefaults: unknown, data: Data
   }
 }
 
-/**
- * Keep only well-formed inventory entries: card ID -> a limit break or null. Keys take their canonical decimal form; an exact
- * key wins over a zero-padded alias of the same card, and the first alias wins over later ones.
- */
 export function sanitizeInventory(raw: unknown): Inventory {
-  const out: Inventory = {};
-  if (!isPlainObject(raw)) return out;
-  for (const [key, v] of Object.entries(raw)) {
-    const k = gameIdKey(key);
-    if (k === null || (k !== key && (k in raw || k in out))) continue;
-    if (v === null) out[k] = null;
-    else if (isLimitBreak(v)) out[k] = v;
-  }
-  return out;
+  if (!isPlainObject(raw)) return {};
+  return Object.fromEntries(Object.entries(raw).filter(([key, lb]) => isGameIdKey(key) && (lb === null || isLimitBreak(lb)))) as Inventory;
 }
 
 /**

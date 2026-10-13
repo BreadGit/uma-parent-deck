@@ -181,16 +181,16 @@ test('saved IDs follow the share-code rule: invalid entries drop, duplicates kee
   assert.deepEqual(s.run.wishlistOrder, [200012, unknown]);
   assert.deepEqual(s.run.wishlistExcluded, [200022]);
   assert.deepEqual(s.run.raceOverrides, { 1011: true, '79_2': false }, 'overrides keep calendar IDs, including a later year\'s running, and drop other keys');
-  assert.deepEqual(s.run.targetLineage, { 201601: [0, 2, 0, 0, 0, 1] }, 'lineage keys follow the inventory key rule: a decimal ID, exact key first');
+  assert.deepEqual(s.run.targetLineage, { 201601: [0, 2, 0, 0, 0, 1] }, 'lineage keys follow the inventory key rule');
   assert.deepEqual([s.missions.eventIds, s.missions.customRaceIds, s.missions.traineeCardId], [[3], [1011], null]);
   assert.deepEqual(migrate({ current: { version: STATE_VERSION, run: { traineeCardId: 100101 } } }, data).run.traineeCardId, 100101);
 });
 
-test('inventory keys take their canonical form in saves and imports, and the exact key wins', async () => {
-  assert.deepEqual(sanitizeInventory({ '030028': 2, '30028': 3, '0030052': 1, '030052': 4, '0': 1, '900719925474099999999': 4 }), { '30028': 3, '30052': 1 });
+test('inventory keys are card IDs as String(id) writes them, in saves and imports', async () => {
+  assert.deepEqual(sanitizeInventory({ '030028': 2, '30028': 3, '30052': 1, '0': 1, '900719925474099999999': 4 }), { '30028': 3, '30052': 1 });
   const file = (value: unknown) => new File([JSON.stringify(value)], 'inventory.json', { type: 'application/json' });
-  assert.deepEqual(await importInventory(file({ '030028': 2, 30052: 'none' })), { '30028': 2, '30052': null });
-  for (const bad of [{ 0: 1 }, { '900719925474099999999': 4 }]) await assert.rejects(importInventory(file(bad)), Error, JSON.stringify(bad));
+  assert.deepEqual(await importInventory(file({ 30028: 2, 30052: 'none' })), { '30028': 2, '30052': null });
+  for (const bad of [{ '030028': 2 }, { 0: 1 }, { '900719925474099999999': 4 }]) await assert.rejects(importInventory(file(bad)), Error, JSON.stringify(bad));
 });
 
 test('the advanced settings panel lays out every advanced setting exactly once', () => {
