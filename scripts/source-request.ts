@@ -15,8 +15,8 @@ export function createThrottle(delayMs: number = GAMETORA.delayMs) {
   let last = 0, count = 0;
   return {
     async wait() {
-      const ms = last + delayMs - Date.now();
-      if (ms > 0) await sleep(ms);
+      // A timer can fire a millisecond early by the clock, so wait until the full delay has passed.
+      for (let ms = last + delayMs - Date.now(); ms > 0; ms = last + delayMs - Date.now()) await sleep(ms);
       last = Date.now();
       count++;
     },
