@@ -5,7 +5,7 @@ import { live } from 'lit-html/directives/live.js';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, SETTING_HELP, type SettingField, type Settings } from '../../settings.ts';
 import { exportInventory, importInventory } from '../../inventory.ts';
 import { downloadText } from '../../download.ts';
-import { RARITIES } from '../../types.ts';
+import { errorMessage, RARITIES } from '../../types.ts';
 import { LIMIT_BREAKS, MAX_LB } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { setSetting } from '../actions.ts';
@@ -73,7 +73,7 @@ async function onImport(e: Event) {
   clearFiles(e); // so importing the same file again fires change
   if (!file) return;
   try { const inv = await importInventory(file); update((s) => { s.inventory = inv; }); }
-  catch (err) { await notice(copy.importFailed(err instanceof Error ? err.message : String(err))); }
+  catch (err) { await notice(copy.importFailed(errorMessage(err))); }
 }
 async function resetInventory() {
   if (await confirmDialog(copy.resetInventoryConfirm, copy.reset)) update((s) => { s.inventory = {}; });

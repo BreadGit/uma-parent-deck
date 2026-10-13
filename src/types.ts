@@ -89,6 +89,8 @@ export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 export const APTITUDE_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 /** Ascending aptitude strength. Starting inheritance stops at A. */
 export const APT_GRADES: Grade[] = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
+/** The message of a thrown value, which need not be an Error. */
+export const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error);
 /** A JSON object as opposed to an array, null or a primitive. Saved state and cached results are checked with it. */
 export const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 /**

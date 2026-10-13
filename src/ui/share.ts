@@ -18,7 +18,8 @@ let generation = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let importRequest = 0;
 
-function errorMessage(error: unknown) {
+/** The notice for a code that could not be loaded. */
+function loadFailure(error: unknown) {
   return error instanceof ShareCodeError && error.reason === 'version' ? copy.unsupported
     : error instanceof ShareCodeError && error.reason === 'size' ? copy.tooLarge : copy.loadFailed;
 }
@@ -63,7 +64,7 @@ async function loadShare(code: string) {
     queueSync(true);
   } catch (error) {
     if (request !== importRequest) return;
-    void notice(errorMessage(error));
+    void notice(loadFailure(error));
   } finally {
     if (request === importRequest) refresh();
   }

@@ -5,7 +5,7 @@ import { importInventory } from '../src/inventory.ts';
 import { planRun } from '../src/model/run.ts';
 import { DEFAULT_SETTINGS, SETTING_SPEC, isValidSetting } from '../src/settings.ts';
 import { decodeShare, shareCode } from '../src/share.ts';
-import { isPlainObject } from '../src/types.ts';
+import { errorMessage, isPlainObject } from '../src/types.ts';
 import { readJson } from './json-file.ts';
 /** @typedef {import('../src/settings.ts').Settings} Settings */
 /** @typedef {import('../src/model/run.ts').RunPlan} RunPlan */
@@ -64,6 +64,6 @@ try {
     settingsSource: values.settings ? 'file' : 'defaults', baselineSettings: settings,
     baselineHintScale: settings.hintScale, baselineDeck: baselineSelection, results }, null, 2));
 } catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
+  console.error(errorMessage(error));
   process.exitCode = 1;
 }

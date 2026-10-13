@@ -1,3 +1,4 @@
+import { errorMessage } from '../types.ts';
 import { createRecognizer, type Pixels, type Reference, type ScanResult } from './recognize.ts';
 
 /** What the page asks: load the references once, then read screenshots one at a time. */
@@ -22,6 +23,6 @@ self.onmessage = ({ data }: MessageEvent<WorkerRequest>) => {
     const result = recognize(data.image, (done, total) => reply({ kind: 'progress', done, total }));
     reply({ kind: 'result', result });
   } catch (error) {
-    reply({ kind: 'error', message: error instanceof Error ? error.message : String(error) });
+    reply({ kind: 'error', message: errorMessage(error) });
   }
 };

@@ -6,6 +6,7 @@ import { BUILD_VERSION } from 'virtual:build-version';
 import { planningKey } from '../recommendation.ts';
 import { loadData } from '../data.ts';
 import { loadState, saveState, saveRecommendation, storedIfChanged, watchSavedState, type AppState } from '../state.ts';
+import { errorMessage } from '../types.ts';
 import { planRun, isLegalRunSelection, type RunPlan, type DeckSelection } from '../model/run.ts';
 import type { PlanWorkerRequest, PlanWorkerResponse } from './plan-worker.ts';
 import defaultInventory from '../../inventory.json' with { type: 'json' };
@@ -200,10 +201,10 @@ export function plan(): RunPlan {
             saveRecommendation(store, { build: BUILD_VERSION, key, selection: response.selection, summary: response.summary });
           }
           renderer();
-        } catch (error) { fail(error instanceof Error ? error.message : String(error)); }
+        } catch (error) { fail(errorMessage(error)); }
       };
       worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory } satisfies PlanWorkerRequest);
-    } catch (error) { fail(error instanceof Error ? error.message : String(error)); }
+    } catch (error) { fail(errorMessage(error)); }
   }, 400);
   return value;
 }

@@ -3,7 +3,7 @@
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
-import type { Inventory } from '../types.ts';
+import { errorMessage, type Inventory } from '../types.ts';
 import { LIMIT_BREAKS, MAX_LB } from '../model/rules.ts';
 import { LABEL, TITLE } from '../ui/copy.ts';
 import { chosenFiles, clearFiles, inputValue, isOpen, matchesWords, numbered, options, queryWords, selectValue } from '../ui/form.ts';
@@ -298,7 +298,7 @@ export function createScanner(host: ScannerHost): Scanner {
       // Stop and New inventory settle the batch themselves.
       if (signal.aborted) return;
       if (!(e instanceof WorkerFailure)) console.error(e);
-      error = loading ? copy.referencesFailed : copy.scannerFailed(e instanceof Error ? e.message : String(e));
+      error = loading ? copy.referencesFailed : copy.scannerFailed(errorMessage(e));
       interrupt('failed');
     } finally {
       if (!signal.aborted) { busy = false; status = ''; paint(); }
