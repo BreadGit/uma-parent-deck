@@ -1,7 +1,7 @@
 // The app's persisted state: one object under one localStorage key, with one migration path from every shape
 // this tool has ever saved. Nothing else reads or writes localStorage.
 import { parseRecommendation, type SavedRecommendation } from './recommendation.ts';
-import { STATS, APTITUDE_KEYS, APT_GRADES, gameIdKey, gameIds, isCalendarId, isGameId, isPlainObject, type Data, type Grade, type Inventory } from './types.ts';
+import { STATS, APTITUDE_KEYS, APT_GRADES, RARITIES, gameIdKey, gameIds, isCalendarId, isGameId, isPlainObject, type Data, type Grade, type Inventory } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
 import type { RunInput } from './model/run.ts';
 import { DEFAULT_GOAL, emptyPinkLineage, savedTargetId, sanitizeGoal, sanitizeTargets, sanitizePinkLineage } from './model/goal-input.ts';
@@ -137,6 +137,18 @@ function migrateSettings(raw: Json): Settings {
   const saved: Json = { ...raw };
   delete saved.version;
   if (version < 2 && isPlainObject(saved.defaultLb)) saved.defaultLb = { ...saved.defaultLb, SSR: 4 }; // v2 changed the old SSR default
+  return settingsOf(saved);
+}
+/**
+ * Settings from any save. Rarity defaults (`defaultLb`, v24) became inventory overrides (v25). The old defaults were
+ * always 4, so a changed level becomes that rarity's override and the rest take today's defaults, which use scanned
+ * SR/SSR ownership. The inventory itself stays intact, so disabling an override restores it.
+ */
+function settingsOf(raw: Json): Settings {
+  const { defaultLb, ...saved } = raw;
+  if (saved.inventoryOverrides === undefined && isPlainObject(defaultLb) && RARITIES.every((r) => isLimitBreak(defaultLb[r]))) {
+    saved.inventoryOverrides = Object.fromEntries(RARITIES.map((r) => [r, defaultLb[r] === 4 ? DEFAULT_SETTINGS.inventoryOverrides[r] : defaultLb[r]]));
+  }
   return sanitizeSettings(saved);
 }
 
@@ -169,7 +181,7 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
       ...(recommendation ? { recommendation } : {}),
       version: STATE_VERSION,
       run: isPlainObject(c.run) ? migrateRun(c.run, data, typeof c.version === 'number' && c.version >= 21) : base.run,
-      settings: isPlainObject(c.settings) ? sanitizeSettings(c.settings as Partial<Record<keyof Settings, unknown>>) : base.settings,
+      settings: isPlainObject(c.settings) ? settingsOf(c.settings) : base.settings,
       inventory: sanitizeInventory(c.inventory),
       missions: migrateMissions(c.missions),
       ui: { sortKey: isPlainObject(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isPlainObject(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,

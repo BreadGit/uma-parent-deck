@@ -182,20 +182,11 @@ export function parseSetting(key: keyof Settings, raw: string | boolean): Settin
 }
 
 /** Merge saved settings over the defaults, dropping any saved value that fails its spec. */
-export function sanitizeSettings(saved: Partial<Record<keyof Settings | 'defaultLb', unknown>>): Settings {
+export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>): Settings {
   const out: Settings = { ...DEFAULT_SETTINGS };
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
     const v = saved[key];
     if (v !== undefined && isValidSetting(key, v)) (out as unknown as Record<string, unknown>)[key] = v;
-  }
-  // The old missing-card defaults were always 4. Preserve custom levels as explicit overrides, while the new
-  // defaults use scanned SR/SSR ownership. Keep the inventory itself intact so disabling an override restores it.
-  if (saved.inventoryOverrides === undefined && saved.defaultLb && typeof saved.defaultLb === 'object') {
-    const old = saved.defaultLb as Record<string, unknown>;
-    if (RARITIES.every((r) => isLimitBreak(old[r]))) {
-      out.inventoryOverrides = { ...DEFAULT_SETTINGS.inventoryOverrides };
-      for (const rarity of RARITIES) if (old[rarity] !== 4) out.inventoryOverrides[rarity] = old[rarity] as number;
-    }
   }
   return structuredClone(out);
 }
