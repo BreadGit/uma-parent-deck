@@ -7,7 +7,7 @@ import { buildSchedule, goalRaces, slotOf, type ScheduledRace } from '../../mode
 import { racePopularityMap } from '../../model/run.ts';
 import { data, plan, refresh, store, update, view } from '../context.ts';
 import { LABEL, TITLE } from '../copy.ts';
-import { isOpen, options, selectValue } from '../fields.ts';
+import { isOpen, options, selectValue } from '../form.ts';
 import { int, num, pct } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';

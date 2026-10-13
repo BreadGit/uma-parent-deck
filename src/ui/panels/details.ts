@@ -5,7 +5,7 @@ import { html, nothing } from 'lit-html';
 import type { RunPlan } from '../../model/run.ts';
 import { refresh, view } from '../context.ts';
 import { TITLE } from '../copy.ts';
-import { isOpen } from '../fields.ts';
+import { isOpen } from '../form.ts';
 import { panel, sub } from '../panel.ts';
 import { coverageTable } from './coverage.ts';
 import { deckBuild } from './deck.ts';

@@ -111,7 +111,7 @@ that mirrors state (inputs the user types into and every `<select>`) binds `.val
 the user has changed ignores later `?selected` changes on its options, so one that lit reuses for a different
 card or stat keeps a stale value (the deck LB dropdowns did). Render a list whose rows carry fields with
 `repeat()` keyed by identity, so a row that changes identity gets a new element. Build `<option>` lists with
-`options()` from `src/ui/fields.ts`: it keys options by value, so a placeholder that disappears does not shift the
+`options()` from `src/ui/form.ts`: it keys options by value, so a placeholder that disappears does not shift the
 selected index onto a different entry. Read event values through `selectValue()`, `inputValue()` and `isChecked()`
 rather than casting `e.target`. Panels in `src/ui/app.ts` use `trackedPanel()` from `src/ui/context.ts`, which records the `view`
 fields a panel reads and re-renders it only when one of them, the plan or the persisted state changes; no

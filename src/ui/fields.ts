@@ -8,9 +8,7 @@ import type { RunPlan } from '../model/run.ts';
 import { LABEL, TITLE } from './copy.ts';
 import { refresh, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
-import { options, numbered, selectValue, inputValue, inputNumber, isChecked, isComposing, isOpen, chosenFiles, clearFiles, queryWords, matchesWords, type Option } from './form.ts';
-
-export { options, numbered, selectValue, inputValue, inputNumber, isChecked, isComposing, isOpen, chosenFiles, clearFiles, queryWords, matchesWords, type Option };
+import { options, selectValue, inputValue, isComposing, type Option } from './form.ts';
 
 const copy = {
   notOwned: 'not owned',

@@ -8,7 +8,7 @@ import { APTITUDE_LABELS, sanitizeGoal, type ParentGoal, type PinkGoal } from '.
 import type { RunPlan } from '../../model/run.ts';
 import { store, update } from '../context.ts';
 import { LABEL, TITLE } from '../copy.ts';
-import { isChecked, numbered, options, selectValue } from '../fields.ts';
+import { isChecked, numbered, options, selectValue } from '../form.ts';
 import { capitalize } from '../format.ts';
 import { panel } from '../panel.ts';
 import { renderGoalTemplates } from './goal-templates.ts';

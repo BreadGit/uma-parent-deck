@@ -12,7 +12,7 @@ import { setSetting } from '../actions.ts';
 import { LABEL, TITLE } from '../copy.ts';
 import { openScanner } from './scanner.ts';
 import { confirmDialog, notice } from '../dialog.ts';
-import { chosenFiles, clearFiles, inputValue, isOpen, options, selectValue } from '../fields.ts';
+import { chosenFiles, clearFiles, inputValue, isOpen, options, selectValue } from '../form.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 

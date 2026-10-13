@@ -6,7 +6,7 @@ import { APTITUDE_LABELS } from '../../model/goal-input.ts';
 import { lineageCount, lineageSide, lineageStars, resolveTarget } from '../../model/sparks.ts';
 import { data, refresh, update, view } from '../context.ts';
 import { confirmDialog } from '../dialog.ts';
-import { options, selectValue } from '../fields.ts';
+import { options, selectValue } from '../form.ts';
 import { capitalize } from '../format.ts';
 import { tip } from '../tooltip.ts';
 

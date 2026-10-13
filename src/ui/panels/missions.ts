@@ -7,7 +7,8 @@ import { eventStatus, hasRaceAptitude, missionAgenda, missionRaceFit, parsePaste
   type Mission, type MissionAgendaEntry, type MissionCatalog, type MissionEvent, type MissionRaceFit } from '../../model/missions.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { agendaGrid, slotLabel } from '../agenda.ts';
-import { inputValue, isChecked, matchesWords, options, queryWords, searchBox, selectValue } from '../fields.ts';
+import { inputValue, isChecked, matchesWords, options, queryWords, selectValue } from '../form.ts';
+import { searchBox } from '../fields.ts';
 import { charImg } from '../format.ts';
 import { about, panel } from '../panel.ts';
 

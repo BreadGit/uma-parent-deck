@@ -12,7 +12,7 @@ import { defaultParentSparks, inheritedFromGain, START_GAINS, UMA_LABELS, withPa
 import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
 import { data, refresh, store, update, view } from '../context.ts';
 import { TITLE } from '../copy.ts';
-import { numbered, options, selectValue } from '../fields.ts';
+import { numbered, options, selectValue } from '../form.ts';
 import { capitalize, num, statIcon } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
