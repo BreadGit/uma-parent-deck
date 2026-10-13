@@ -407,13 +407,13 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     await page.waitForFunction(() => window.searchWorkers.length === 2);
     await page.evaluate((result) => {
       const worker = window.searchWorkers[0];
-      worker.onmessage({ data: { id: worker.request.id, kind: 'result', selection: result.selection, summary: result.summary } });
+      worker.onmessage({ data: { kind: 'result', selection: result.selection, summary: result.summary } });
     }, finished.recommendation);
     assert.equal((await state(page)).recommendation, undefined, 'an obsolete result cannot repopulate the cache after A to B to A');
     assert.equal(await page.locator('[data-plan-pending]').count(), 1);
     await page.evaluate((result) => {
       const worker = window.searchWorkers[1];
-      worker.onmessage({ data: { id: worker.request.id, kind: 'result', selection: result.selection, summary: result.summary } });
+      worker.onmessage({ data: { kind: 'result', selection: result.selection, summary: result.summary } });
     }, finished.recommendation);
     await assertFieldsMatchState(page, 'after publishing the current result');
     assert.deepEqual((await state(page)).recommendation, finished.recommendation);

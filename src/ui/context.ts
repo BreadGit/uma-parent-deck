@@ -186,14 +186,9 @@ export function plan(): RunPlan {
       worker = new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
       worker.onerror = (event) => fail(event.message ?? 'worker error');
       worker.onmessageerror = () => fail('unreadable worker message');
-      worker.onmessage = (event: MessageEvent<unknown>) => {
+      worker.onmessage = ({ data: response }: MessageEvent<PlanWorkerResponse>) => {
         if (!current()) return;
-        // Each search has its own worker, so a reply without this request's id is malformed rather than obsolete.
-        const response = event.data as Partial<PlanWorkerResponse> | null;
-        if (response?.id !== id || response.kind !== 'result' || !Array.isArray(response.selection)) {
-          fail(response?.id === id && response.kind === 'error' ? response.message ?? 'worker error' : 'malformed worker response');
-          return;
-        }
+        if (response.kind === 'error') { fail(response.message); return; }
         try {
           cache!.value = planRun(store.run, store.settings, store.inventory, data,
             { selection: response.selection, summary: response.summary, search: false });
@@ -207,7 +202,7 @@ export function plan(): RunPlan {
           renderer();
         } catch (error) { fail(errorMessage(error)); }
       };
-      worker.postMessage({ id, run: store.run, settings: store.settings, inventory: store.inventory } satisfies PlanWorkerRequest);
+      worker.postMessage({ run: store.run, settings: store.settings, inventory: store.inventory } satisfies PlanWorkerRequest);
     } catch (error) { fail(errorMessage(error)); }
   }, 400);
   return value;

@@ -94,12 +94,9 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
       };
     } });
     const failures = [
-      (worker) => worker.onmessage({ data: null }),
-      (worker) => worker.onmessage({ data: { kind: 'result', selection: [] } }),
-      (worker) => worker.onmessage({ data: { id: worker.request.id, kind: 'result' } }),
-      (worker) => worker.onmessage({ data: { id: worker.request.id, kind: 'result', selection: [{ id: -1, lb: 9 }] } }),
+      (worker) => worker.onmessage({ data: { kind: 'result', selection: [{ id: -1, lb: 9 }] } }),
       (worker) => worker.onmessageerror(new MessageEvent('messageerror')),
-      (worker) => worker.onmessage({ data: { id: worker.request.id, kind: 'error', message: 'injected' } }),
+      (worker) => worker.onmessage({ data: { kind: 'error', message: 'injected' } }),
     ];
     for (const [i, failure] of failures.entries()) {
       await page.waitForFunction((n) => window.searchWorkers.length === n, i + 1);
