@@ -10,8 +10,6 @@ export const STAT_INDEXES = [0, 1, 2, 3, 4] as const satisfies readonly StatInde
 export function perStat<T>(value: (stat: Stat, index: StatIndex) => T): PerStat<T> {
   return [value(STATS[0], 0), value(STATS[1], 1), value(STATS[2], 2), value(STATS[3], 3), value(STATS[4], 4)];
 }
-/** Whether a list read from outside the typed data, such as a test fixture, has one number per stat. */
-export const isStatValues = (values: readonly number[]): values is StatValues => values.length === STATS.length;
 export type CardType = Stat | 'pal' | 'group';
 export type Rarity = 'R' | 'SR' | 'SSR';
 export const RARITIES = ['R', 'SR', 'SSR'] as const satisfies readonly Rarity[];
