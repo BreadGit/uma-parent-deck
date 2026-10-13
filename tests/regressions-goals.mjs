@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test, after, suite } from 'node:test';
-import { defaultState, STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState } from './browser-fields.mjs';
+import { defaultState } from '../src/state.ts';
+import { assertFieldsMatchState, writeMissedSave } from './browser-fields.mjs';
 import { data, editor, state, trainee, target, coverage, predictions, confirmDialog, openAgenda, openDetails } from './browser-fixtures.mjs';
 
 suite('goals browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONCURRENCY ?? 2) }, () => {
@@ -417,12 +417,8 @@ suite('goals browser regressions', { concurrency: Number(process.env.BROWSER_TES
     await page.waitForSelector('[data-lineage-parents="201601"]');
     assert.equal(await page.getAttribute('[data-action="toggle-lineage-parents"]', 'aria-pressed'), 'true');
     assert.deepEqual(await page.$$eval('[data-lineage-uma]', (els) => els.map((s) => [s.value, s.classList.contains('set')])), [['3', true], ['3', true], ['0', false], ['0', false], ['0', false], ['2', true]]);
-    // Another tab sets a different slot, and this page misses its storage event (a page's own writes raise none).
-    await page.evaluate((key) => {
-      const other = JSON.parse(localStorage.getItem(key));
-      other.run.targetLineage[201601][3] = 2;
-      localStorage.setItem(key, JSON.stringify(other));
-    }, STATE_KEY);
+    // Another tab sets a different slot.
+    await writeMissedSave(page, (other) => { other.run.targetLineage[201601][3] = 2; });
     await page.selectOption('[data-lineage-uma="201601-0"]', '0');
     assert.deepEqual((await state(page)).run.targetLineage[201601], [0, 3, 0, 2, 0, 2], 'the edit keeps the other tab\'s slot');
     assert.equal(await page.locator('[data-lineage-summary="201601"]').innerText(), '3 copies · 7★ total');

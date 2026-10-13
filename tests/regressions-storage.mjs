@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test, suite } from 'node:test';
 import { defaultState, STATE_KEY, UNREADABLE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, BASE_URL as url } from './browser-fields.mjs';
+import { assertFieldsMatchState, BASE_URL as url, writeMissedSave } from './browser-fields.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
 import { RARITIES } from '../src/types.ts';
 import { encodeShare, decodeShare, shareCode, sharedChoices, shareUrl } from '../src/share.ts';
@@ -18,12 +18,8 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     const extras = await page.locator('.wishlist li[data-wl-role="extra"]').evaluateAll((els) => els.map((el) => Number(el.dataset.wlKey)));
     assert.ok(extras.length >= 3, 'the fixture shows at least three extras');
     const [a, b, c, ...rest] = extras;
-    // Another tab moves the third extra to the top; a page's own localStorage writes raise no storage event, so this one misses it.
-    await page.evaluate(({ key, order }) => {
-      const other = JSON.parse(localStorage.getItem(key));
-      other.run.wishlistOrder = order;
-      localStorage.setItem(key, JSON.stringify(other));
-    }, { key: STATE_KEY, order: [c, a, b, ...rest] });
+    // Another tab moves the third extra to the top.
+    await writeMissedSave(page, (other) => { other.run.wishlistOrder = [c, a, b, ...rest]; });
     await page.click(`[data-action="wl-down"][data-id="${a}"]`);
     assert.deepEqual((await state(page)).run.wishlistOrder.slice(0, 3), [c, b, a], 'the move applies to the other tab\'s order');
     assert.deepEqual(await page.locator('.wishlist li[data-wl-role="extra"]').evaluateAll((els) => els.slice(0, 3).map((el) => Number(el.dataset.wlKey))), [c, b, a]);
@@ -89,14 +85,11 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
       const slot = '[data-slot="22"]';
       const previous = await page.inputValue(slot);
       assert.notEqual(previous, scenario.choice, 'the user changes the displayed choice');
-      // A same-page write models another tab's save without delivering its storage event to this page.
-      await page.evaluate(({ key, threshold, mile }) => {
-        const other = JSON.parse(localStorage.getItem(key));
-        other.settings.winThreshold = threshold;
-        if (mile) other.run.aptOverrides.mile = mile;
+      await writeMissedSave(page, (other) => {
+        other.settings.winThreshold = scenario.latestThreshold;
+        if (scenario.mile) other.run.aptOverrides.mile = scenario.mile;
         other.run.raceOverrides[625] = true;
-        localStorage.setItem(key, JSON.stringify(other));
-      }, { key: STATE_KEY, threshold: scenario.latestThreshold, mile: scenario.mile });
+      });
       assert.equal(await page.inputValue(slot), previous, 'the missed event leaves the displayed choice stale');
       await page.selectOption(slot, scenario.choice);
       assert.equal(await page.inputValue(slot), scenario.choice, 'the agenda keeps the requested choice');
@@ -126,13 +119,7 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
       await control.waitFor();
       assert.equal(await control.isChecked(), !scenario.checked, 'the user changes the displayed selection');
       await assertFieldsMatchState(page, 'before a mission event edit');
-      // A same-page write models another tab's save without delivering its storage event to this page.
-      await page.evaluate(({ key, eventIds }) => {
-        const other = JSON.parse(localStorage.getItem(key));
-        other.missions.eventIds = eventIds;
-        other.settings.focus = 'balanced';
-        localStorage.setItem(key, JSON.stringify(other));
-      }, { key: STATE_KEY, eventIds: scenario.latest });
+      await writeMissedSave(page, (other) => { other.missions.eventIds = scenario.latest; other.settings.focus = 'balanced'; });
       assert.equal(await control.isChecked(), !scenario.checked, 'the missed event leaves the displayed selection stale');
       await control.setChecked(scenario.checked);
       const current = await state(page);
@@ -300,12 +287,8 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     await page.selectOption('[data-spark-stat="0-0"]', 'speed');
     await page.click('[data-action="toggle-pink-sparks"]');
     await page.selectOption('[data-pink-lineage="3"]', 'turf');
-    // Another tab edits the same sparks; a page's own localStorage writes raise no storage event, so this one misses it.
-    const otherTab = (edit) => page.evaluate(({ key, edit }) => {
-      const saved = JSON.parse(localStorage.getItem(key));
-      (0, eval)(edit)(saved.run);
-      localStorage.setItem(key, JSON.stringify(saved));
-    }, { key: STATE_KEY, edit: edit.toString() });
+    // Another tab edits the same sparks.
+    const otherTab = (edit) => writeMissedSave(page, (saved) => edit(saved.run));
     await otherTab((run) => { run.parentSparks[0][0].stars = 1; run.parentSparks[0][1] = { stat: 'power', stars: 2 }; });
     await page.selectOption('[data-spark-stat="0-0"]', 'stamina');
     assert.deepEqual((await state(page)).run.parentSparks[0], [{ stat: 'stamina', stars: 1 }, { stat: 'power', stars: 2 }, null], 'a stat edit keeps the other tab\'s stars and sparks');

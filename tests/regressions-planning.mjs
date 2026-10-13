@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test, suite } from 'node:test';
 import { defaultState, STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, settled, waitForPlan } from './browser-fields.mjs';
 import { data, fresh, editor, state, trainee, target, pin, coverage, inventoryFile, noCards, predictions, openDetails, fujiState, fujiReferencePercent } from './browser-fixtures.mjs';
 
 suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONCURRENCY ?? 2) }, () => {
@@ -194,16 +194,16 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     const anchorBefore = await retainedControl.evaluate((el) => ({ viewport: el.getBoundingClientRect().top, document: el.getBoundingClientRect().top + scrollY }));
     await page.evaluate((selection) => window.searchWorkers[1].deliver(selection), alternative);
     await waitForPlan(page);
-    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await settled(page);
     const anchorAfter = await retainedControl.evaluate((el) => ({ viewport: el.getBoundingClientRect().top, document: el.getBoundingClientRect().top + scrollY }));
     assert.ok(Math.abs(anchorAfter.document - anchorBefore.document) > 20, 'the final deck changes the content height above the skill');
     assert.ok(Math.abs(anchorAfter.viewport - anchorBefore.viewport) <= 1, 'the skill control stays at the same screen position');
     assert.notDeepEqual(await cards(), original, 'the final result replaces the cards once');
     assert.equal(await page.locator('.deck .slot').count(), 6);
     assert.equal(await page.locator('[data-wl-locked]').count(), 0, 'the list unlocks once the search publishes');
-    const settled = await position();
+    const published = await position();
     await page.locator('[data-action="wl-down"]:not([disabled])').first().click();
-    assert.ok(Math.abs(await position() - settled) <= 1, 'reordering does not collapse the content above the editor');
+    assert.ok(Math.abs(await position() - published) <= 1, 'reordering does not collapse the content above the editor');
     assert.equal(await page.evaluate(() => window.searchWorkers.length), 2, 'arranging the extras starts no search');
     await assertFieldsMatchState(page, 'after debounced search and skill reordering');
   });
