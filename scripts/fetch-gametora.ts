@@ -94,6 +94,8 @@ async function normalizeMissions() {
 const RARITY: Record<number, string> = { 1: 'R', 2: 'SR', 3: 'SSR' };
 /** GameTora's grade code of a G1 race, the only grade on the tool's calendar. */
 const G1_GRADE = 100;
+/** GameTora's `cond_type` of a career objective to place in a race. */
+const RACE_OBJECTIVE = 1;
 const TYPE: Record<string, string> = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
 
 // Event entry: [nameId, choices, strId, ...history]. choices: [[choiceId, [rewardIds]]] or "no".
@@ -290,7 +292,7 @@ function normalizeCharacters(raw: RawTables, charEvents: PageSources['charEvents
   for (const entry of raw['ura-objectives'] ?? []) {
     const goals: { slot: number; required: number; races: Row[] }[] = [];
     for (const o of (entry.objectives ?? []) as Row[]) {
-      if (o.cond_type !== 1 || !o.races?.length || o.turn > SLOT_COUNT) continue;
+      if (o.cond_type !== RACE_OBJECTIVE || !o.races?.length || o.turn > SLOT_COUNT) continue;
       goals.push({ slot: o.turn - 1, required: Number(o.cond_value ?? 0), races: o.races.map((r: Row) => ({ raceId: r.id, name: r.name_en, distance: r.distance, surface: r.terrain === 2 ? 'dirt' : 'turf', grade: r.grade, fansNeeded: r.fans_needed ?? 0, fansGain: r.fans_gained ?? 0 })) });
     }
     // Route variants may repeat the same objective. Preserve distinct race choices, count repeated races once.

@@ -137,12 +137,7 @@ export interface Character {
 }
 export interface GoalRace { raceId: number; name: string; distance: number; surface: 'turf' | 'dirt'; grade: number; fansNeeded: number; fansGain: number }
 /** slot 0 = Junior early January; `required` is the placement the objective needs (1 = win, 5 = top five), 0 for participation only. */
-export interface CareerGoal {
-  slot: number;
-  races: GoalRace[];
-  /** The placing GameTora's objective needs (1 = win, 5 = top five); 0 means taking part is enough. */
-  required: number;
-}
+export interface CareerGoal { slot: number; races: GoalRace[]; required: number }
 
 export interface Race {
   calendarId: string;
