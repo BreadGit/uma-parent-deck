@@ -18,7 +18,7 @@ export interface AppState { version: number; run: RunInput; settings: Settings; 
 
 export const STATE_VERSION = 25;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
-/** The last save this app could not read, kept until the user removes it. */
+/** Where a save this app could not read is moved when the page loads, kept until the user removes it. */
 export const UNREADABLE_KEY = `${STATE_KEY}.unreadable`;
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -224,25 +224,13 @@ const readStored = (key: string): string | null => {
 const parseJson = (raw: string | null): unknown => { try { return raw ? JSON.parse(raw) : undefined; } catch { return undefined; } };
 const readJson = (key: string): unknown => parseJson(readStored(key));
 
-/** An unreadable save whose copy could not be written, so this page holds the only copy. */
-let uncopiedUnreadable: string | null = null;
-function keepUnreadable(raw: string) {
-  try {
-    localStorage.setItem(UNREADABLE_KEY, raw);
-    uncopiedUnreadable = null;
-  } catch { uncopiedUnreadable = raw; }
-}
-export const hasUncopiedUnreadable = () => uncopiedUnreadable !== null;
-export const unreadableSave = (): string | null => uncopiedUnreadable ?? readStored(UNREADABLE_KEY);
-/**
- * Remove the unreadable save: its copy, and the original too when this page has not saved over it yet. A save another
- * tab wrote since is left for the storage watcher.
- */
-export function removeUnreadableSave(state: AppState) {
-  uncopiedUnreadable = null;
+const copyUnreadable = (raw: string): boolean => {
+  try { localStorage.setItem(UNREADABLE_KEY, raw); return true; }
+  catch { return false; }
+};
+export const unreadableSave = (): string | null => readStored(UNREADABLE_KEY);
+export function removeUnreadableSave() {
   try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
-  const stored = readStored(STATE_KEY);
-  if (stored !== null && stored === lastRaw && !isSave(parseJson(stored))) saveState(state);
 }
 
 /** The save as this page last read or wrote it. A write from another tab since then makes the stored text differ. */
@@ -255,13 +243,15 @@ let lastRaw: string | null = null;
 export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   const raw = lastRaw = readStored(STATE_KEY);
   const current = parseJson(raw);
-  if (raw !== null && !isSave(current)) keepUnreadable(raw);
   newerSave = isSave(current) && current.version > STATE_VERSION;
   const legacy = { state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) };
   const state = migrate({ current, ...legacy }, data, raw === null ? fallbackInventory : {});
   // Migration reads today's data, so save its result once rather than let a later data update reinterpret the old
   // save. If storage is read-only or full, the migrated state still works in memory.
   if (isSave(current) && current.version < STATE_VERSION) saveState(state);
+  // An unreadable save is moved aside for the user to download. Without room for the copy it stays in place until the
+  // first edit replaces it.
+  if (raw !== null && !isSave(current) && copyUnreadable(raw)) saveState(state);
   return state;
 }
 export function saveState(state: AppState) {
@@ -279,42 +269,30 @@ export function saveState(state: AppState) {
 }
 
 /**
- * The save another tab wrote since this page last read or wrote one: null when there is none, 'unusable' when it is
- * from a newer version (`hasNewerSave()` turns true) or unreadable (it is copied aside).
+ * The save another tab wrote since this page last read or wrote one, to take over before writing the whole state: its
+ * storage event can arrive late, or never reach a page restored from the back-forward cache. A save from a newer
+ * version is not taken over and turns `hasNewerSave()` true; an unreadable one is not taken over either.
  */
-function changedSave(data: Data): AppState | 'unusable' | null {
+export function storedIfChanged(data: Data): AppState | null {
   const raw = readStored(STATE_KEY);
   if (raw === null || raw === lastRaw) return null;
   const current = parseJson(raw);
   lastRaw = raw;
-  newerSave = false;
-  if (!isSave(current)) { keepUnreadable(raw); return 'unusable'; }
-  if (current.version > STATE_VERSION) { newerSave = true; return 'unusable'; }
-  return migrate({ current }, data);
-}
-/**
- * The save another tab wrote, to take over before writing the whole state: its storage event can arrive late, or
- * never reach a page restored from the back-forward cache.
- */
-export function storedIfChanged(data: Data): AppState | null {
-  const saved = changedSave(data);
-  return saved === 'unusable' ? null : saved;
+  newerSave = isSave(current) && current.version > STATE_VERSION;
+  return isSave(current) && !newerSave ? migrate({ current }, data) : null;
 }
 
 /**
  * Keep open planner and mission tabs from overwriting each other's newer choices. `accept` takes over another tab's
- * save; otherwise `notice` refreshes the storage warnings, which may concern a save another tab wrote or removed.
+ * save; otherwise `notice` refreshes the storage warnings, which may concern a newer save another tab wrote.
  */
 export function watchSavedState(data: Data, accept: (state: AppState) => void, notice: () => void) {
   const check = () => {
-    const saved = changedSave(data);
-    if (saved && saved !== 'unusable') accept(saved);
+    const saved = storedIfChanged(data);
+    if (saved) accept(saved);
     else notice();
   };
-  window.addEventListener('storage', (event) => {
-    if (event.key === STATE_KEY) check();
-    else if (event.key === UNREADABLE_KEY) notice();
-  });
+  window.addEventListener('storage', (event) => { if (event.key === STATE_KEY) check(); });
   window.addEventListener('pageshow', (event) => { if (event.persisted) check(); });
 }
 

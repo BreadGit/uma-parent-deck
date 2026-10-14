@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test, suite } from 'node:test';
-import { defaultState, STATE_KEY, UNREADABLE_KEY } from '../src/state.ts';
+import { defaultState, STATE_KEY } from '../src/state.ts';
 import { assertFieldsMatchState, BASE_URL as url, writeMissedSave } from './browser-fields.mjs';
 import { defaultParentSparks } from '../src/model/inherit.ts';
 import { RARITIES } from '../src/types.ts';
@@ -62,34 +62,6 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     assert.equal(await page.evaluate(() => window.beforeReset), true, 'a reset that was not saved does not reload');
     assert.equal((await state(page)).run.traineeCardId, 100101, 'the newer save is left intact');
   });
-
-  test('Reset all keeps the page instead of reloading while it holds the only copy of an unreadable save', async (t) => {
-    const unreadable = '{broken save';
-    // The copy cannot be written, as when storage is full, so the page holds the only copy.
-    const init = `
-      if (!sessionStorage.getItem('seeded')) {
-        localStorage.setItem(${JSON.stringify(STATE_KEY)}, ${JSON.stringify(unreadable)});
-        sessionStorage.setItem('seeded', '1');
-      }
-      const setItem = Storage.prototype.setItem;
-      Storage.prototype.setItem = function (key, value) {
-        if (key === ${JSON.stringify(UNREADABLE_KEY)}) throw new DOMException('Full', 'QuotaExceededError');
-        return setItem.call(this, key, value);
-      };`;
-    const page = await fresh(t, undefined, { held: true, init });
-    await page.waitForSelector('[data-unreadable-save]');
-    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), null);
-    await page.evaluate(() => { window.beforeReset = true; });
-    await page.click('[data-action="reset-all"]');
-    await confirmDialog(page);
-    await page.waitForTimeout(500);
-    assert.equal(await page.evaluate(() => window.beforeReset), true, 'the reset does not reload');
-    assert.deepEqual((await state(page)).run, defaultState(data).run, 'the reset is saved');
-    const downloading = page.waitForEvent('download');
-    await page.locator('[data-action="download-unreadable"]').click();
-    assert.equal(await readFile(await (await downloading).path(), 'utf8'), unreadable, 'the only copy is still offered');
-  });
-
 
   test('manual agenda choices use the latest save after a missed storage event', async (t) => {
     for (const scenario of [
@@ -467,59 +439,25 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
   });
 
 
-  test('unreadable saves from another tab are copied aside and offered without resetting the current run', async (t) => {
-    const saved = shareFixture(), page = await editor(t, saved);
-    const otherTab = await page.context().newPage();
-    await otherTab.goto(new URL('missions.html', url).href);
-    const first = '{first broken save', second = '{second broken save';
-    await otherTab.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: STATE_KEY, raw: first });
-    await page.locator('[data-action="remove-unreadable"]').waitFor();
-    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), first);
-    assert.equal(await page.locator('[data-action="clear-trainee"]').count(), 1, 'the current trainee stays on the page');
-    await page.locator('[data-theme-pick="dark"]').click();
-    assert.deepEqual((await state(page)).run, saved.run, 'an edit saves the current run over the unreadable save');
-    await assertFieldsMatchState(page, 'after replacing an unreadable save from another tab');
-    await otherTab.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: STATE_KEY, raw: second });
-    await page.waitForFunction(({ key, raw }) => localStorage.getItem(key) === raw, { key: UNREADABLE_KEY, raw: second });
+  test('an unreadable save is moved aside on load and offered for download until removed', async (t) => {
+    const unreadable = '{broken save';
+    const init = `
+      if (!sessionStorage.getItem('seeded')) {
+        localStorage.setItem(${JSON.stringify(STATE_KEY)}, ${JSON.stringify(unreadable)});
+        sessionStorage.setItem('seeded', '1');
+      }`;
+    const page = await fresh(t, undefined, { held: true, init });
+    await page.waitForSelector('[data-unreadable-save]');
+    assert.deepEqual((await state(page)).run, defaultState(data).run, 'the page saves a readable state in its place');
     const downloading = page.waitForEvent('download');
     await page.locator('[data-action="download-unreadable"]').click();
-    assert.equal(await readFile(await (await downloading).path(), 'utf8'), second, 'the latest unreadable save is offered');
+    assert.equal(await readFile(await (await downloading).path(), 'utf8'), unreadable);
     await page.locator('[data-action="remove-unreadable"]').click();
     await confirmDialog(page);
     await page.locator('[data-unreadable-save]').waitFor({ state: 'detached' });
-    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), null);
-    await page.locator('[data-theme-pick="light"]').click();
-    assert.equal((await state(page)).ui.theme, 'light');
-    assert.deepEqual((await state(page)).run, saved.run);
-    await assertFieldsMatchState(page, 'after removing the unreadable save and editing again');
-    await otherTab.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: STATE_KEY, raw: '{third broken save' });
-    await page.locator('[data-unreadable-save]').waitFor();
-    await otherTab.evaluate((key) => localStorage.removeItem(key), UNREADABLE_KEY);
-    await page.locator('[data-unreadable-save]').waitFor({ state: 'detached' });
-  });
-
-
-  test('an edit after a missed unreadable storage event copies it aside and saves the current run', async (t) => {
-    const saved = shareFixture();
-    saved.inventory = { 30028: 2 };
-    const page = await editor(t, saved);
-    const unreadable = '{missed broken save';
-    // A same-page write models a change from another tab whose storage event was missed.
-    await page.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: STATE_KEY, raw: unreadable });
-    assert.equal(await page.locator('[data-unreadable-save]').count(), 0, 'the change has not been observed yet');
-    await page.locator('[data-theme-pick="dark"]').click();
-    await page.locator('[data-action="remove-unreadable"]').waitFor();
-    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), unreadable);
-    assert.deepEqual((await state(page)).run, saved.run);
-    assert.deepEqual((await state(page)).inventory, saved.inventory);
-    assert.equal((await state(page)).ui.theme, 'dark');
-    await assertFieldsMatchState(page, 'after an edit following a missed unreadable storage event');
-    // A page restored from the back-forward cache missed the storage event of a copy another page removed meanwhile.
-    await page.evaluate((key) => {
-      localStorage.removeItem(key);
-      dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
-    }, UNREADABLE_KEY);
-    await page.locator('[data-unreadable-save]').waitFor({ state: 'detached' });
+    await page.reload();
+    await page.waitForSelector('[data-action="reset-all"]');
+    assert.equal(await page.locator('[data-unreadable-save]').count(), 0, 'a reload finds nothing unreadable');
   });
 
 
