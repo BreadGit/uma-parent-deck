@@ -1,6 +1,3 @@
-// Root template and mount: renders the whole page from the run plan and keeps the theme in sync. The left column
-// is the input flow in step order and scrolls on its own; it can be hidden so the results take the full width, with a
-// one-line run summary keeping the context. The right column is every result, most useful first.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
 import { resetRun } from '../state.ts';

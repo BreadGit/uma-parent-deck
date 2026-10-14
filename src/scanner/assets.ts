@@ -1,5 +1,4 @@
-// The scanner's images under the public directory. The page prefixes the base URL; the catalog build checks which
-// references exist (scripts/scanner-catalog.ts) and copies them into the standalone app.
+// Paths under the public directory; the page prefixes the base URL.
 import { RARITIES } from '../types.ts';
 import type { ScanCard } from './recognize.ts';
 

@@ -89,13 +89,12 @@ function pack({ run: r, settings: s }: SharedChoices, version = FORMAT): unknown
       .map(([key, included]) => [calendarId(key), typeof included === 'boolean' ? Number(included) : invalid()]),
     r.ignoredIds, r.borrowIgnored ? 1 : 0];
 }
-/** How many top-level slots each positional format has. */
-const SLOTS: Record<number, number> = { 2: 14, 3: 15, 4: 17, 5: 17, 6: 17 };
+const SLOT_COUNT_BY_FORMAT: Record<number, number> = { 2: 14, 3: 15, 4: 17, 5: 17, 6: 17 };
 const PACKED_DEFAULTS = pack(DEFAULTS);
 
 function unpack(raw: unknown, version = FORMAT): SharedChoices {
   const entries = list(raw);
-  if (entries.length > (SLOTS[version] ?? invalid())) invalid();
+  if (entries.length > (SLOT_COUNT_BY_FORMAT[version] ?? invalid())) invalid();
   const a = PACKED_DEFAULTS.map((fallback, i) => entries[i] === undefined || entries[i] === null ? structuredClone(fallback) : entries[i]);
   const goal = tuple(a[2], 3), mask = integer(goal[0], 0, 31);
   const pink = unique(list(goal[2]).map((v) => {
@@ -109,7 +108,7 @@ function unpack(raw: unknown, version = FORMAT): SharedChoices {
   }), (t) => t.id);
   const lineage = unique(list(a[4]).map((v) => {
     if (version >= 5) { const l = tuple(v, 7); return { id: id(l[0]), value: l.slice(1).map((s) => integer(s, 0, 3)) }; }
-    // Older formats stored copies and a star total per parent side; a partial save could leave the total unentered.
+    // A partial save could leave the total unentered.
     const l = tuple(v, 5);
     return { id: id(l[0]), value: lineageFromSides(integer(l[1], 0, 3), integer(l[3], 0, 9), integer(l[2], 0, 3), integer(l[4], 0, 9)) };
   }), (l) => l.id);
@@ -225,7 +224,6 @@ export function shareUrl(href: string, code: string | null): string {
   url.hash = parts.join('&');
   return url.href;
 }
-/** The share code an address carries: in the fragment, or in the query of an older link. */
 export function shareCode(href: string): string | null {
   const url = new URL(href);
   return fragmentParts(url).find((part) => part.startsWith(RUN))?.slice(RUN.length) ?? url.searchParams.get('run');

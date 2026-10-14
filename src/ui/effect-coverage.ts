@@ -18,15 +18,12 @@ export function basisLabel(card: Card, lb: number, source: Contribution['source'
   return source === 'observed' ? `Observed · LB${lb}` : `Adjusted · from LB${observed?.lb ?? lb}`;
 }
 
-/** The status shown next to an effect. A recorded contribution already includes an omitted effect, so it is "not
- * separately modelled" there rather than "not in formula". */
+/** A recorded contribution already includes an omitted effect, so it is "not separately modelled" there. */
 function statusLabel(effect: EffectCoverage, source: Contribution['source']) {
   return source !== 'model' && effect.status === 'omitted' && affectsContribution(effect) ? OBSERVED_OMITTED : STATUS_LABELS[effect.status];
 }
 
-/** The per-card facts behind a Basis label, as tooltip text: the source of the estimate, then one line per status
- * listing the effects the formula leaves out, the unmeasured team effect, and deck-dependent effects a recorded
- * contribution keeps fixed. Effects covered by the formula are not listed; the panel notes explain the shared rules. */
+/** Effects covered by the formula are not listed; the panel notes explain the shared rules. */
 export function basisTip(card: Card, lb: number, source: Contribution['source'], effects: EffectCoverage[]) {
   const observed = source === 'model' ? undefined : referenceObservation(card, lb, data.model);
   const lines = observed

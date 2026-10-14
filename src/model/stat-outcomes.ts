@@ -42,7 +42,6 @@ function computeStatMasses(mean: number, sd: number, cap: number, rawUnits: bool
   let lower = -Infinity, lowerTail = 0;
   for (let value = 0; value <= maximum; value++) {
     const upper = value === maximum ? Infinity : ((rawUnits ? rawStat(value + 1) : value + 1) - .5 - mean) / sd;
-    // The normal tail underflows to exactly zero this far out, so these outcomes have no mass.
     if (upper < -UNDERFLOW_Z) { lower = upper; continue; }
     // Adjacent outcomes share a boundary. Calculate its tail once and reuse it.
     const upperTail = phi(upper > 0 ? -upper : upper);

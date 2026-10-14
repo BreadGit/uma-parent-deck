@@ -1,4 +1,3 @@
-// The app's shared context: the loaded data, the persisted store, transient view state, and the memoized run plan.
 // Panels change the store through update(), which saves and renders at once. Writing a view field schedules a render
 // after the current handler; call renderNow() when the next statement needs the updated DOM.
 import { guard } from 'lit-html/directives/guard.js';
@@ -19,12 +18,8 @@ let revision = 0;
 /** Changes whenever the persisted state does, including a save another tab wrote. */
 export const stateRevision = () => revision;
 
-/** The view fields that hold a search box's text. */
 export type SearchField = 'requiredQuery' | 'preferredQuery' | 'traineeQuery' | 'cardQuery' | 'ignoreQuery' | 'missionTraineeQuery';
-/**
- * State that is not persisted: search boxes, open panels, the highlighted suggestion, drag state, the deck search.
- * Panels memoize by the identity of each field they read, so object and list fields are readonly: replace them.
- */
+/** Panels memoize by the identity of each field they read, so object and list fields are readonly: replace them. */
 const viewState = {
   requiredQuery: '',
   preferredQuery: '',
@@ -66,7 +61,6 @@ export type View = typeof viewState;
 let renderer: () => void = () => {};
 let renderQueued = false;
 export function onRender(fn: () => void) { renderer = fn; }
-/** Render immediately instead of after the current handler, for code that reads the DOM a view change updates. */
 export function renderNow() {
   renderQueued = false;
   renderer();
@@ -77,8 +71,6 @@ function queueRender() {
   queueMicrotask(() => { if (renderQueued) renderNow(); });
 }
 
-// Each panel is rendered inside trackedPanel(), which records the view fields it reads and their values, so the
-// panel re-renders only when the plan, the persisted state or one of those fields changed.
 interface PanelMemo { token: object; plan: RunPlan; revision: number; values: Map<keyof View, unknown> }
 const panels = new Map<string, PanelMemo>();
 let renderingPanel: string | null = null;

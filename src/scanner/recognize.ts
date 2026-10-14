@@ -26,12 +26,10 @@ const CARD = { width: 128, height: 174 };
 /** The five-column grid, as fractions of the screenshot width: each card spans `cardWidth`. */
 const GRID = {
   columns: 5,
-  /** The first column's left edge. */
   left: .039,
-  /** From one column's left edge to the next. */
   columnPitch: .1895,
   cardWidth: .17,
-  /** From one row's top edge to the next, to place a first row whose badges are scrolled off. */
+  /** To place a first row whose badges are scrolled off. */
   rowPitch: .254,
 };
 const columnX = (image: Pixels, column: number) => image.width * (GRID.left + column * GRID.columnPitch);
@@ -62,7 +60,6 @@ const COARSE_WIDTHS = { min: 31, count: 7 };
 const COARSE_SAMPLE_DIVISOR = 10;
 /** How far, as fractions of the tile, the artwork may sit from its expected position. */
 const SEARCH_MARGIN = { x: .05, y: .06 };
-/** The best coarse matches that are compared again at full tile size. */
 const FINE_CANDIDATES = 4;
 /** Fine match error under which the best card is confident, if it also beats the runner-up by `margin`. */
 const CONFIDENT = { error: .018, margin: .6 };
@@ -131,8 +128,7 @@ function search(image: Pixels, patch: Template, limit: number): number {
 }
 
 function findSlots(image: Pixels, references: Reference[]): Slot[] {
-  // Portrait support-card lists use five columns. Coordinates are discovered from the rarity badges;
-  // width determines their scale, so both supplied phone sizes and resized screenshots use the same path.
+  // Positions come from the rarity badges and scale from the width, so every phone size and resized screenshot works.
   const scale = image.width * GRID.cardWidth / CARD.width;
   const found: { box: Box; rarity: Rarity; error: number }[] = [];
   for (const rarity of ['SSR', 'SR', 'R'] as const) {
@@ -239,7 +235,6 @@ export function readLimitBreak(tile: Pixels): number | null {
 }
 
 function artworkPatch(artwork: Pixels, width: number): Pixels {
-  // Keep the full composition, excluding the frame, rarity/type badges and level/diamond strip.
   const box = { x: artwork.width * ARTWORK_REGION.x, y: artwork.height * ARTWORK_REGION.y,
     width: artwork.width * ARTWORK_REGION.width, height: artwork.height * ARTWORK_REGION.height };
   return resizeCrop(artwork, box, width, Math.round(width * box.height / box.width));
@@ -314,8 +309,7 @@ export function createRecognizer(references: Reference[]) {
       detections.push({ box: slot.box, candidates, lb, confident });
     }
     progress?.(slots.length, slots.length);
-    // The fixed game toolbar can cover the entire bottom row. Keep isolated uncertain readings, but
-    // leave an unreadable row to an overlapping screenshot rather than suggesting cards from toolbar art.
+    // Leave a row the game toolbar covers to an overlapping screenshot rather than suggest cards from toolbar art.
     const visible = detections.filter(d => {
       const row = detections.filter(other => Math.abs(other.box.y - d.box.y) < ROW_TOLERANCE);
       return !(row.length >= COVERED_ROW.cards && row.filter(other => other.lb === null).length >= COVERED_ROW.unread

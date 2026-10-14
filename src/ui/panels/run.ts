@@ -1,4 +1,3 @@
-// Run setup: the scenario, the training focus, the race win threshold, and the cards the deck must include.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { FOCUSES, type Card } from '../../types.ts';

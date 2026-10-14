@@ -50,7 +50,6 @@ async function chooseCard(key, id) {
   // A row that becomes complete moves out of the decisions, so only check a row that is still there.
   if (await input.count()) assert.equal(await input.getAttribute('data-card-id'), String(id));
 }
-/** Expands a read card's editor, which opens in the grid right under its tile. */
 async function openTile(id) {
   const tile = page.locator(`[data-tile="c${id}"]`);
   if (!await page.locator('[data-ready]').evaluate(details => details.open)) await page.locator('[data-ready] > summary').click();
@@ -78,7 +77,6 @@ async function alteredScreenshot(name, changes) {
   return { name: `${name}.png`, mimeType: 'image/png', buffer: Buffer.from(encoded, 'base64') };
 }
 const theme = () => page.evaluate(() => document.documentElement.dataset.theme);
-/** Every width the main smoke test checks, in both themes, chosen through the page's own theme control. */
 const pickTheme = name => page.locator(`[data-theme-pick="${name}"]`).click();
 async function assertNoOverflow(state, open = async () => {}, close = async () => {}, pick = pickTheme) {
   for (const name of ['light', 'dark']) {

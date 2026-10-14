@@ -8,7 +8,6 @@ import ranksJson from '../data/ranks.json' with { type: 'json' };
 import scenarioEventsJson from '../data/scenario-events.json' with { type: 'json' };
 import modelJson from '../data/stat-model.json' with { type: 'json' };
 
-/** The bundled game data with lookup maps. */
 export function loadData(): Data {
   const cards = cardsJson as unknown as Card[];
   const ratings: Record<string, { base: number }> = ratingsJson.ratings;

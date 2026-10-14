@@ -1,6 +1,3 @@
-// The parent goal estimate: the headline chance and the attempts needed at three confidence levels. What limits the
-// estimate and the per-requirement breakdown go to the prediction details panel; anything that needs the user's
-// attention goes to the warnings panel.
 import { html, nothing } from 'lit-html';
 import { APTITUDE_LABELS } from '../../model/goal-input.ts';
 import { attemptsFor } from '../../model/goal.ts';

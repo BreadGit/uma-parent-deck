@@ -1,14 +1,10 @@
-// Custom tooltips: one floating box positioned next to the hovered, focused or clicked ⓘ. The box lives outside the lit
-// root, like the dialogs, so writing its text and position directly is allowed.
+// The box lives outside the lit root, like the dialogs, so writing its text and position directly is allowed.
 import { html } from 'lit-html';
 
-/** Info icon that opens the tooltip on hover or focus; a click pins it until the next click elsewhere. Any element
- * with a data-tip attribute shows the same box; dedicated icons and non-interactive elements pin on click. */
 export const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
 
 const tipOf = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]');
-/** Buttons and links carry a tip for hover and focus only; a click on them must reach their own handler, and it
- * closes the box, which otherwise stays open on the focused control (and its text goes stale once the label changes). */
+/** A click on a control must reach its own handler, and closes the box, whose text would go stale once the label changes. */
 const interactive = (el: HTMLElement) => !!el.closest('button, a, select, input, summary, label');
 
 export function installTooltips(root: HTMLElement) {

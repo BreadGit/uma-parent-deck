@@ -1,8 +1,5 @@
-// The prioritized-skill list to enter in independent training. Target rows follow Parent goal and are fixed; the
-// extras below them are the user's to reorder, hide, add and swap. The run takes one option per event, so an extra
-// that takes a shared event carries the options it displaced as swap chips; one click puts that option in its place.
-// While a deck search runs the extras are locked, since the deck found may offer different ones. The choice conflicts
-// are listed in the warnings panel.
+// Target rows follow Parent goal and are fixed; the extras are the user's to arrange. While a deck search runs the
+// extras are locked, since the deck found may offer different ones.
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import type { RunPlan } from '../../model/run.ts';
@@ -24,9 +21,8 @@ const LOST_EVENT_MARK = { label: 'lost event', tip: `Another target listed highe
 
 const isExtra = (w: WishlistEntry) => w.role === 'extra';
 /**
- * Rewrite the saved order from the extras as shown, so an edit pins every visible extra. The edit runs inside
- * `update()`, where the plan reflects another tab's save taken over since this page rendered, so it rearranges
- * that tab's order rather than replacing it. An edit returns nothing when its keys are no longer shown.
+ * An edit pins every visible extra. It runs inside `update()`, so it rearranges the order of another tab's save taken
+ * over since this page rendered rather than replacing it. An edit returns nothing when its keys are no longer shown.
  */
 const editOrder = (edit: (shown: number[]) => number[] | void) => update((s) => {
   const next = edit(plan().wl.filter(isExtra).map((w) => w.key));
@@ -43,14 +39,12 @@ function restoreSkill(key: number) {
 function addSkill(key: number) {
   editOrder((cur) => [key, ...cur.filter((x) => x !== key)]);
 }
-/** Move the extra at index i to index j of the shown extras. */
 function moveIn(cur: number[], i: number, j: number) {
   if (i < 0 || j < 0 || j >= cur.length || i === j) return; // stale key after a re-render, or a target row
   const next = [...cur];
   next.splice(j, 0, ...next.splice(i, 1));
   return next;
 }
-/** Move an extra to another extra's place; the drag handlers end up here. */
 function moveSkill(from: number, to: number) {
   editOrder((cur) => moveIn(cur, cur.indexOf(from), cur.indexOf(to)));
 }

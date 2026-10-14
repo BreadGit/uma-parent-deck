@@ -1,6 +1,5 @@
-// Prediction details: the reasoning behind the result panels, for checking the tool's work. The panel opens on request
-// and its sections are built only while it is open; each section leads with its numbers, and the method sits behind a
-// disclosure at the section's end. Each section is rendered by the panel it explains, so the numbers cannot drift apart.
+// Sections are built only while the panel is open. Each is rendered by the panel it explains, so the numbers cannot
+// drift apart.
 import { html, nothing } from 'lit-html';
 import type { RunPlan } from '../../model/run.ts';
 import { view } from '../context.ts';

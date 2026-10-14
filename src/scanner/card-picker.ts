@@ -10,8 +10,7 @@ const title = (card: ScanCard) =>
   card.name.endsWith(card.charName) ? card.name.slice(0, -card.charName.length).trim() : card.name;
 const label = (card: ScanCard) => `${card.charName} · ${card.rarity} · ${title(card)} · ${card.type}`;
 
-// Search is temporary: only choosing a result changes the reviewed inventory.
-// Keep this state separate from the planner's persisted store and search fields.
+// Only choosing a result changes the reviewed inventory, so the search state stays out of the planner's store.
 export function createCardPicker(catalog: ScanCard[], change: () => void) {
   let active: number | null = null, query = '', index = -1;
   const close = () => { active = null; query = ''; index = -1; };

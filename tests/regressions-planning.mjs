@@ -167,7 +167,6 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     const heading = page.locator('h2').filter({ hasText: 'Prioritized skills' });
     await heading.scrollIntoViewIfNeeded();
     const position = () => heading.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
-    // the deck found may offer other extras, so the extras cannot be arranged while the search runs
     assert.equal(await page.locator('[data-wl-locked]').count(), 1, 'the list is marked as updating');
     assert.equal(await page.locator('[data-action="wl-down"]:not([disabled]), [data-action="wl-exclude"]:not([disabled]), [data-action="wl-swap"]:not([disabled])').count(), 0, 'extras controls are disabled while a search runs');
     await page.evaluate(() => {
@@ -331,7 +330,6 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
       await page.setInputFiles('#import-file', inventoryFile(inventory));
       await page.waitForFunction(({ key, n }) => Object.values(JSON.parse(localStorage.getItem(key)).inventory).filter((v) => v !== null).length === n, { key: STATE_KEY, n });
       assert.equal(await predictions(page).count(), n === 5 ? 1 : 0);
-      // an incomplete deck has no run to show beside the estimate, so the estimate takes the whole width
       assert.equal(await page.locator('.results-split').count(), n === 5 ? 1 : 0, 'the two-column split appears only with a complete deck');
       const detailsSub = page.locator('section.panel').filter({ has: page.locator('details[data-prediction-details]') }).locator('[data-panel-sub]');
       assert.equal(await detailsSub.innerText(), n === 5 ? 'goal estimate · stat sources · target coverage · deck search' : 'goal estimate · deck search');

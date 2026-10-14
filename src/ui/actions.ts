@@ -1,4 +1,3 @@
-// Actions more than one panel triggers: settings, pins, ignores, and opening the pink spark editor.
 import { parseSetting, SETTING_SPEC, type Settings } from '../settings.ts';
 import { renderNow, store, update, view } from './context.ts';
 
@@ -47,7 +46,6 @@ export function unignoreCard(id: number) {
   update((s) => { s.run.ignoredIds = s.run.ignoredIds.filter((x) => x !== id); });
 }
 
-/** Open the pink spark editor in Legacy, showing the input column if it is hidden, and move focus to its first field. */
 export function openPinkSparks() {
   view.showPinkSparks = true;
   if (store.ui.inputsHidden) update((s) => { s.ui.inputsHidden = false; });

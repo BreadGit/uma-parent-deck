@@ -1,6 +1,3 @@
-// Target white sparks: the skills the finished parent should carry, in a collapsible group per role. Each group has
-// its own search box that adds to that role, an inline list of names, and the editor for the selected name on a full
-// row under that name's line.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
@@ -28,8 +25,7 @@ const ROLE_LABELS = { required: 'Required', preferred: 'Preferred' };
 type Role = 'required' | 'preferred';
 const ROLES: readonly Role[] = ['required', 'preferred'];
 const QUERY_FIELD = { required: 'requiredQuery', preferred: 'preferredQuery' } as const;
-/** How many names a closed group previews in its summary. */
-const PEEK = 4;
+const CLOSED_GROUP_PREVIEW_NAMES = 4;
 
 const targetable = data.skills.filter((s) => !s.unreleasedEn && isNormalOrGold(s) && goalFamily(s.id, data) === resolveTarget(s.id, data)?.id);
 
@@ -85,7 +81,6 @@ const UMAS = Array.from({ length: UMAS_PER_PARENT_SIDE }, (_, i) => i);
 const COPY_CHOICES = numbered(Array.from({ length: LINEAGE_SLOTS + 1 }, (_, n) => n), (n) => `${n}×`);
 const UMA_STAR_CHOICES = [{ value: '0', label: '—' }, ...numbered(SPARK_STARS, (n) => `${n}★`)];
 
-/** The copy count and star total; the total's choices run from one star per copy to the maximum, and it is disabled without copies. */
 function lineageTotals(id: number, l: Lineage) {
   const n = lineageCount(l), stars = lineageStars(l);
   const starChoices = numbered(Array.from({ length: STARS_PER_SPARK_MAX * n - n + 1 }, (_, i) => n + i), (i) => `${i}★`);
@@ -143,9 +138,8 @@ function search(role: Role) {
 }
 
 /**
- * One role as a <details>, open by default. A group holding the selected target is always open, so a skill just added
- * or moved between roles is visible; the toggle event then records that. Closing a group also closes its editor.
- * An empty group still renders, for its search box.
+ * A group holding the selected target is always open, so a skill just added or moved between roles is visible; the
+ * toggle event then records that. An empty group still renders, for its search box.
  */
 function group(c: RunPlan, role: Role) {
   const targets = c.targets.filter((t) => entryOf(t.id)?.role === role);
@@ -159,7 +153,7 @@ function group(c: RunPlan, role: Role) {
   };
   return html`<details class="target-group" data-target-group=${role} ?open=${stored || holdsSelected} @toggle=${onToggle}>
     <summary><span class="sub-note" data-target-count=${role}>${targets.length}</span>${ROLE_LABELS[role]}
-      <span class="target-peek">${targets.slice(0, PEEK).map((t) => t.name).join(', ')}${targets.length > PEEK ? ', …' : ''}</span></summary>
+      <span class="target-peek">${targets.slice(0, CLOSED_GROUP_PREVIEW_NAMES).map((t) => t.name).join(', ')}${targets.length > CLOSED_GROUP_PREVIEW_NAMES ? ', …' : ''}</span></summary>
     <div class="target-search">${search(role)}</div>
     ${targets.length ? html`<div class="target-list">${repeat(targets, (t) => t.id, (t) => html`${nameButton(t)}${isSelected(t) ? editor(c, t) : nothing}`)}</div>` : nothing}
   </details>`;

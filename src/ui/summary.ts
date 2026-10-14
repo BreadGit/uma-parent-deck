@@ -1,5 +1,4 @@
-// One line of what the run is, shown while the input column is hidden so the results, and a screenshot of them, keep
-// their context: the trainee, the blue and pink goal, and the target sparks.
+// Shown while the input column is hidden, so the results and a screenshot of them keep their context.
 import { html, nothing } from 'lit-html';
 import type { RunPlan } from '../model/run.ts';
 import { store } from './context.ts';

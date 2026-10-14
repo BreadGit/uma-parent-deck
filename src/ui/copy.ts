@@ -1,5 +1,3 @@
-// Panel titles and control labels that other modules' text names, defined once so renaming one updates every mention.
-
 export const TITLE = {
   details: 'Prediction details', goal: 'Parent goal', legacy: 'Legacy', run: 'Run', deck: 'Suggested deck',
   coverage: 'Target coverage', ranking: 'Card ranking', prediction: 'Predicted run', missions: 'Mission races',

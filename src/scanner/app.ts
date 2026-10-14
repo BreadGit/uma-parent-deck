@@ -1,4 +1,3 @@
-// The standalone scanner page: a header with the theme control around one scanner session that ends in a download.
 import { html, render } from 'lit-html';
 import { cards } from 'virtual:scanner-catalog';
 import type { Theme } from '../state.ts';

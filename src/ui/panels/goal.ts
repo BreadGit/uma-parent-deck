@@ -1,5 +1,3 @@
-// Parent goal: templates, target white sparks, and the blue and pink requirements. The estimate is a result panel
-// on the other side of the page.
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { live } from 'lit-html/directives/live.js';

@@ -1,5 +1,3 @@
-// One scanner session: the chosen screenshots, their readings and the review of them. The standalone page and the
-// planner both host it; the host decides where the result goes (a download, or the planner's own inventory).
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
@@ -51,7 +49,6 @@ const changeSummary = (owned: number, unowned: number, changed: number, unchange
 
 export interface ScannerHost {
   cards: ScanCard[];
-  /** Called after every change so the host renders again. */
   onChange: () => void;
   /** Set when the planner embeds the scanner: readings are applied to its inventory instead of downloaded. */
   apply?: {
@@ -63,7 +60,7 @@ export interface ScannerHost {
      */
     onApply: (edit: (current: Inventory) => Inventory) => void;
   };
-  /** Set on the standalone page: where the planner lives, for the import instructions. */
+  /** Set on the standalone page, for the import instructions. */
   plannerUrl?: string;
 }
 /** Lives as long as its page: both hosts keep the session, so closing the planner's sheet keeps the review. */
@@ -81,9 +78,7 @@ type SourceStatus = keyof typeof STATUS_CAPTION | 'read';
 const NOT_READ: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed', 'stopped']);
 const FAILED_TO_READ: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed']);
 class WorkerFailure extends Error {}
-/** The answer each worker request settles with. */
 interface Answer { references: void; scan: ScanResult }
-/** The pixel buffers a request hands over to the worker instead of copying. */
 function transferables(request: WorkerRequest): Transferable[] {
   const images = request.kind === 'references' ? request.references.flatMap(r => [r.image, r.artwork]) : [request.image];
   return [...new Set(images.flatMap(image => image ? [image.data.buffer] : []))];
@@ -125,10 +120,7 @@ export function createScanner(host: ScannerHost): Scanner {
     console.error('Scanner worker failed:', detail);
     current.terminate(); worker = null; failure = detail;
   }
-  /**
-   * Sends one request and settles with its answer: nothing for references, the readings for a scan. The promise
-   * rejects when the worker fails or replies with an error (and the worker is dropped), or when `signal` aborts.
-   */
+  /** Rejects when the worker fails or replies with an error (dropping the worker), or when `signal` aborts. */
   function call<K extends WorkerRequest['kind']>(current: Worker, request: Extract<WorkerRequest, { kind: K }>,
     { progress, signal }: { progress?: (done: number, total: number) => void; signal?: AbortSignal } = {}): Promise<Answer[K]> {
     return new Promise((resolve, reject) => {
@@ -233,13 +225,11 @@ export function createScanner(host: ScannerHost): Scanner {
     sources = []; rows = []; query = ''; status = ''; error = ''; notice = ''; openKey = null; paint();
   }
   async function newInventory() { if (await confirmDialog('Start a new inventory? This clears the current screenshots and review results.', 'New inventory')) reset(); }
-  /** A card the user adds by hand, searched for in a new row at the top of the decisions. */
   function addManual() {
     const row: ReviewRow = { key: nextKey++, source: '', crop: '', detection: null, cardId: null, lb: null, reviewed: false, excluded: false };
     rows.unshift(row); query = ''; paint();
     document.querySelector<HTMLElement>(`[data-row="${row.key}"] [data-card]`)?.focus();
   }
-  /** A card picked from the unseen grid with its limit break: it is complete at once. */
   function addOwned(cardId: number, lb: number) {
     rows.unshift({ key: nextKey++, source: '', crop: '', detection: null, cardId, lb, reviewed: true, excluded: false });
     openKey = null; paint();
@@ -357,7 +347,6 @@ export function createScanner(host: ScannerHost): Scanner {
       </div>
     </article>`;
   }
-  /** Screenshots that disagree: each reading is shown with its crop, and one tap settles the card. */
   function conflictCard(group: Group, sourceById: Map<string, Source>) {
     return html`<article class="scan-card scan-pending scan-conflict" data-row=${group.rows[0]!.key} data-conflict=${group.cardId}>
       <div class="scan-pictures"><img class="scan-artwork" src=${artworkUrl(group.cardId)} alt=${`Reference artwork: ${group.card.name}`} /></div>
@@ -373,7 +362,6 @@ export function createScanner(host: ScannerHost): Scanner {
       </div>
     </article>`;
   }
-  /** A compact card in the read, excluded and unseen grids. Its editor opens in the grid right under it. */
   function tile(card: ScanCard, lb: number | null, key: string, box?: Box, cls = '') {
     return html`<button class="scan-tile ${cls}" data-tile=${key} data-card-id=${card.id} data-lb=${lb ?? ''} data-box=${boxAttr(box)}
       aria-pressed=${openKey === key} aria-expanded=${openKey === key} title=${card.name} @click=${() => toggle(key)}>
@@ -382,7 +370,6 @@ export function createScanner(host: ScannerHost): Scanner {
       <span class="scan-tile-name">${card.charName}</span>
     </button>`;
   }
-  /** The editor for an unseen card: choosing its limit break adds it as a reading. */
   function unseenEditor(card: ScanCard) {
     return html`<div class="scan-tile-editor scan-unseen-editor" data-add-card=${card.id}>
       <img class="scan-artwork" src=${artworkUrl(card.id)} alt="" />
@@ -409,7 +396,6 @@ export function createScanner(host: ScannerHost): Scanner {
       <button data-add @click=${addManual} ?disabled=${busy}>Add a card</button>
       ${rows.length || sources.length ? html`<button data-new @click=${newInventory} ?disabled=${busy}>New inventory</button>` : nothing}
     </div>`;
-    // Steps after the first stay dimmed until a batch has finished reading.
     const waiting = busy || !rows.length ? 'scan-waiting' : '';
     if (!rows.length) return html`<section class="panel scan-review ${waiting}">${stepHead(2, 'Check readings', note, toolbar)}<p class="muted">Add screenshots or cards to create an inventory.</p></section>`;
     const editor = (key: string, target: ReviewRow[]) => openKey === key ? reviewCard(target, result, sourceById, 'scan-tile-editor') : nothing;

@@ -228,9 +228,8 @@ test('setting specs: inventory overrides accept use-inventory or a whole LB from
 });
 
 /**
- * Before v25 a card without an inventory entry was owned at its rarity's default, which is also how a card set to it was
- * stored. A migrated save shows that ownership with its own overrides and with every rarity using the inventory, as
- * today's SR and SSR defaults do after Reset.
+ * Before v25 a card without an inventory entry was owned at its rarity's default. Every card keeps that ownership both
+ * with the migrated overrides and with every rarity reading the inventory.
  */
 function assertOldOwnership(state: AppState, inventory: Inventory, defaultLb: Record<Rarity, number>, what: string) {
   for (const overrides of [state.settings.inventoryOverrides, { R: null, SR: null, SSR: null }]) {

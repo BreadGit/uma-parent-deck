@@ -474,7 +474,6 @@ suite('goals browser regressions', { concurrency: Number(process.env.BROWSER_TES
     await openDetails(page);
     const limits = page.locator('[data-goal-limits]');
     assert.match(await page.locator('[data-goal-probability]').innerText(), /Chance per final spark roll/);
-    // Skill availability assumes obtainable forms are bought; it is not a check against the SP budget.
     assert.match(await page.locator('[data-goal-availability]').textContent(), /assume every obtainable target form is bought; they do not check the SP budget/);
     // Any 1-star blue is certain. Any 3-star pink is 10%, so pink is the limiting individual roll.
     assert.match(await limits.innerText(), /Lowest individual chance is Any pink aptitude at 3★ or better at 10\.0%/);

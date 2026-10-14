@@ -1,5 +1,3 @@
-// The scanner embedded in the planner: loaded on first use, shown as a sheet over the page, and ending in the
-// store's inventory. The session outlives the sheet, so closing and reopening keeps the screenshots and the review.
 import { html, nothing } from 'lit-html';
 import type { Scanner } from '../../scanner/session.ts';
 import { renderNow, store, update, view } from '../context.ts';

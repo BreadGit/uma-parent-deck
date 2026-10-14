@@ -1,5 +1,4 @@
-// Warnings: everything that limits or changes the results, gathered above the deck so nothing important hides inside a
-// panel. Shown only when there is something to say.
+// Everything that limits or changes the results, gathered above the deck so nothing important hides inside a panel.
 import { html, nothing } from 'lit-html';
 import type { RunPlan } from '../../model/run.ts';
 import { retrySearch, view } from '../context.ts';

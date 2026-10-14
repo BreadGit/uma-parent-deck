@@ -8,37 +8,29 @@ export const isAtLeastB = (g: Grade | undefined) => g === 'S' || g === 'A' || g 
 
 export type Aptitudes = Record<AptKey, Grade>;
 
-/**
- * Independent training win score from aptitudes alone: 110% for A/A (S counts as A) minus the surface and distance
- * penalties. Stats, skills and mood play no part. Not clamped: an A/A score of 110% absorbs the first 10 points
- * of the streak penalty. Use winChance() for the displayed probability.
- */
+/** Stats, skills and mood play no part. Not clamped, so an A/A score of 110% absorbs the first 10 points of the streak penalty. */
 export function rawWinScore(race: Race, apt: Aptitudes): number {
   return RACE_WIN_BASE - (SURFACE_PENALTY[apt[race.surface]] ?? 0.9) - (DISTANCE_PENALTY[apt[race.category]] ?? 0.9);
 }
 /** Penalty for the n-th race of a streak of consecutive half-month slots (n = 1 for a fresh race). */
 export const streakPenalty = (n: number) => STREAK_PENALTY[Math.min(STREAK_PENALTY.length - 1, Math.max(0, n))] ?? 0;
-/** Displayed win probability: the raw score minus the streak penalty, clamped to 0..100%. */
 export const winChance = (raw: number, streak = 1) => Math.max(0, Math.min(1, raw - streakPenalty(streak)));
-/**
- * Win chance from aptitudes alone, clamped, as the game would display it for a fresh race. The agenda uses the
- * start-of-run aptitudes for the whole run; a mid-run pink inspiration increase counts for spark eligibility only.
- */
+/** The agenda uses the start-of-run aptitudes for the whole run; a mid-run pink inspiration counts for spark eligibility only. */
 export const baseWinChance = (race: Race, apt: Aptitudes) => winChance(rawWinScore(race, apt), 1);
 
-/** Turn index of a calendar slot: year (1..3), month, half. 0 = Junior early January, 71 = Senior late December. */
+/** 0 = Junior early January, 71 = Senior late December. */
 export const slotOf = (r: Pick<Race, 'year' | 'month' | 'half'>) => (r.year - 1) * SLOTS_PER_YEAR + (r.month - 1) * 2 + (r.half - 1);
 
 export interface ScheduledRace {
   race: Race;
   slot: number;
-  base: number;        // win chance from aptitudes alone, clamped for display
+  base: number;        // win chance as a fresh race
   pWin: number;        // after the consecutive-race penalty in the final schedule (1 for an objective the run cannot afford to lose)
   consecutive: number; // position in a streak when selected (1 = fresh), 0 when not selected
   selected: boolean;
   goal: boolean;       // career objective: always run
-  reason: string;      // why it is or is not in the schedule
-  popularity: number;  // how many Global umas could run it comfortably (tiebreak between races in one slot)
+  reason: string;
+  popularity: number;
 }
 
 /**
@@ -87,10 +79,8 @@ export function goalRaces(trainee: Character | null): Race[] {
 }
 
 /**
- * Build the G1 agenda: one race per half-month slot, each G1 at most once (a win only needs to happen once for
- * affinity), races above the win-chance threshold, ties within a slot broken by popularity, and duplicate
- * G1s (Classic and Senior runnings) placed in whichever year costs fewer expected losses.
- * `forced` overrides by calendar id: true = always run, false = never.
+ * One race per half-month slot, each G1 at most once (a win only needs to happen once for affinity). A G1 run in both
+ * Classic and Senior years goes in whichever costs fewer expected losses. `forced`: true = always run, false = never.
  */
 export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, forced: Map<string, boolean>, popularity: Map<number, number> = new Map(), goals: Race[] = []): ScheduledRace[] {
   const goalSlots = new Set(goals.map(slotOf));
@@ -103,7 +93,6 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
   const bySlot = new Map<number, Race[]>();
   for (const r of all) bySlot.set(slotOf(r), [...(bySlot.get(slotOf(r)) ?? []), r]);
 
-  // First pass: pick a race per slot in calendar order, skipping G1s already taken.
   const chosen = new Map<number, Race>();
   const taken = new Set<number>();
   const pick = (s: number, skip: Set<number>) => {
@@ -122,13 +111,12 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
   }
   let kept = settle(chosen, raws, threshold, forced);
 
-  // Repair pass: for each G1 that also runs in a later slot, try the later running instead if it costs fewer losses.
+  // Try each G1's later running instead, if it costs fewer losses.
   for (const [s, race] of [...chosen]) {
     if (forced.get(race.calendarId) === true || race.goal) continue;
     const later = all.filter((r) => r.raceId === race.raceId && slotOf(r) > s && !chosen.has(slotOf(r)) && forced.get(r.calendarId) !== false && fresh(r) >= threshold);
     for (const alt of later) {
       const trial = new Map(chosen); trial.delete(s); trial.set(slotOf(alt), alt);
-      // the freed slot may now take another race
       const freed = pick(s, new Set([...trial.values()].map((r) => r.raceId)));
       if (freed) trial.set(s, freed);
       const settled = settle(trial, raws, threshold, forced);
@@ -140,7 +128,6 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
     }
   }
 
-  // Report every calendar race with its status.
   const usedRaceIds = new Set([...kept.values()].map((k) => k.race.raceId));
   const out: ScheduledRace[] = [];
   let lastSlot = -10, streak = 0;

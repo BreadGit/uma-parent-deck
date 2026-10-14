@@ -1,4 +1,3 @@
-// Inventory import/export and advanced assumptions used by the planner.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, SETTING_HELP, type SettingField, type Settings } from '../../settings.ts';
@@ -68,8 +67,7 @@ function resetAdvanced() {
   update((s) => { const keep = Object.fromEntries(MAIN_PAGE_SETTINGS.map((k) => [k, s.settings[k]])); s.settings = { ...structuredClone(DEFAULT_SETTINGS), ...keep }; });
 }
 
-// The inventory sits above the numbered steps: screenshots are the main way to set it up, and the file buttons keep
-// the export format of the repo's inventory.json; dropping an export there makes it the default for a fresh browser.
+// An exported file dropped in as the repo's inventory.json becomes the default for a fresh browser.
 export function renderInventory() {
   return panel({ title: TITLE.inventory, tip: `Import screenshots or an inventory file, then adjust individual cards in the ranking. R cards are assumed MLB by default; rarity overrides live in ${TITLE.advanced}. Export saves your inventory values.` }, html`
     <button class="primary inventory-scan" data-action="open-scanner" ?disabled=${view.scannerLoading} @click=${() => void openScanner()}>${view.scannerLoading ? 'Loading…' : TITLE.scanner}</button>

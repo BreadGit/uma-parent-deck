@@ -1,5 +1,3 @@
-// The predicted run: rank, SP and final stats with their blue-spark band chances. Where every stat point comes from
-// is rendered by the prediction details panel through statBreakdown().
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { perStat, STATS, type StatValues } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';

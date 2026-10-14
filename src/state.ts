@@ -1,5 +1,3 @@
-// The app's persisted state: one object under one localStorage key, with one migration path from every shape
-// this tool has ever saved. Nothing else reads or writes localStorage.
 import { parseRecommendation, type SavedRecommendation } from './recommendation.ts';
 import { APTITUDE_KEYS, APT_GRADES, RARITIES, gameIds, isCalendarId, isGameId, isGameIdKey, isPlainObject, perStat, type Data, type Grade, type Inventory, type StatValues } from './types.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings.ts';
@@ -18,7 +16,7 @@ export interface AppState { version: number; run: RunInput; settings: Settings; 
 
 export const STATE_VERSION = 25;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
-/** Where a save this app could not read is moved when the page loads, kept until the user removes it. */
+/** A save this app could not read is moved here when the page loads, until the user removes it. */
 export const UNREADABLE_KEY = `${STATE_KEY}.unreadable`;
 /** Keys used before the single-object store; read once by migrate(), never written again. */
 const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck.settings', inventory: 'uma-parent-deck.inventory', theme: 'uma-parent-deck.theme' };
@@ -61,7 +59,6 @@ const savedStats = (raw: unknown): StatValues => perStat((_, i) => {
   return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : 0;
 });
 
-/** Older shapes of the run state and what they turn into. */
 function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   const run: RunInput = { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) };
   for (const k of ['wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = gameIds(raw[k]);
@@ -85,8 +82,8 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   if (Array.isArray(raw.ignoredIds)) run.ignoredIds = gameIds(raw.ignoredIds).filter((id) => !run.pinnedIds.includes(id));
   if (typeof raw.borrowIgnored === 'boolean') run.borrowIgnored = raw.borrowIgnored;
   // blue sparks: one combined blueStars list (v1) became stars per parent (v2), then the start gain per parent as
-  // the legacy screen shows it (v5), then the spark each of the side's three umas carries (v6). Gains decode into
-  // sparks; a side the screen could not show becomes empty. Partial and empty sides are kept.
+  // the legacy screen shows it (v5), then the spark of each of the side's three umas (v6). A side whose gains no set
+  // of sparks produces becomes empty.
   const starsToGains = (stars: StatValues): StatValues => perStat((_, i) => gainOfSparks(sparksFromStars(stars[i])));
   const sideFromGains = (gains: StatValues): ParentSparks => parentSparksFromGains(gains) ?? defaultParentSparks();
   let gains: StatValues[] | null = null;
@@ -135,10 +132,9 @@ function legacyBlobDefaultLb(raw: Json): unknown {
 
 /**
  * Before v25 a card without an inventory entry counted as owned at its rarity's default LB (`defaultLb`, MAX_LB unless
- * changed), and choosing that default for a card removed its entry. Today a card without an entry is not owned, so an
- * older save keeps the ownership it showed: each card without an entry is written in at its rarity's default, which
- * survives resetting or turning off the overrides. A rarity whose cards all sat at the default also keeps it as the
- * rarity's override, which, as before, covers cards added later.
+ * changed), and choosing that default for a card removed its entry. Now a missing entry means not owned, so each such
+ * card is written in at its rarity's default. A rarity whose cards all sat at the default keeps it as an override,
+ * which covers cards added later.
  */
 function keepLegacyOwnership(state: AppState, savedDefaults: unknown, data: Data) {
   const valid = isPlainObject(savedDefaults) && RARITIES.every((r) => isLimitBreak(savedDefaults[r]));
@@ -157,9 +153,8 @@ export function sanitizeInventory(raw: unknown): Inventory {
 }
 
 /**
- * Build the current state from whatever was saved: the v4 object, or the three legacy blobs (run state, settings,
- * inventory) plus the theme key. Anything malformed falls back to its default. `fallbackInventory` stands in for a
- * legacy inventory blob that was never saved.
+ * `current` is the v4+ object; the others are the legacy blobs and theme key. Anything malformed falls back to its
+ * default. `fallbackInventory` stands in for a legacy inventory blob that was never saved.
  */
 export function migrate(saved: { current?: unknown; state?: unknown; settings?: unknown; inventory?: unknown; theme?: unknown }, data: Data, fallbackInventory: Inventory = {}): AppState {
   const base = defaultState(data);
@@ -206,11 +201,7 @@ const isTheme = (v: unknown): v is Theme => v === 'system' || v === 'light' || v
 
 let storageUnavailable = false;
 export const isStorageUnavailable = () => storageUnavailable;
-/**
- * The save comes from a newer version of the app, such as a tab left open across a release. This version reads it as
- * well as it can, but saving would drop the choices only the newer version understands, so nothing is written until
- * the user chooses to replace it.
- */
+/** Saving over a newer version's save would drop choices only it understands, so nothing is written until the user replaces it. */
 let newerSave = false;
 export const hasNewerSave = () => newerSave;
 export function replaceNewerSave(state: AppState) {
@@ -236,10 +227,7 @@ export function removeUnreadableSave() {
 /** The save as this page last read or wrote it. A write from another tab since then makes the stored text differ. */
 let lastRaw: string | null = null;
 
-/**
- * Load from localStorage, migrating older keys on the way. `fallbackInventory` is the repo's inventory.json, the
- * starting inventory of a fresh browser; a browser whose save could not be read is not fresh and does not get it.
- */
+/** `fallbackInventory` is the starting inventory of a fresh browser; one whose save could not be read is not fresh. */
 export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   const raw = lastRaw = readStored(STATE_KEY);
   const current = parseJson(raw);
@@ -282,10 +270,7 @@ export function storedIfChanged(data: Data): AppState | null {
   return isSave(current) && !newerSave ? migrate({ current }, data) : null;
 }
 
-/**
- * Keep open planner and mission tabs from overwriting each other's newer choices. `accept` takes over another tab's
- * save; otherwise `notice` refreshes the storage warnings, which may concern a newer save another tab wrote.
- */
+/** Keeps open planner and mission tabs from overwriting each other's newer choices. */
 export function watchSavedState(data: Data, accept: (state: AppState) => void, notice: () => void) {
   const check = () => {
     const saved = storedIfChanged(data);
@@ -303,7 +288,6 @@ export function applySharedChoices(state: AppState, choices: SharedChoices) {
   state.settings = { ...state.settings, ...incoming.settings };
   delete state.recommendation;
 }
-/** Start over: a fresh run and the run-level settings (training focus, win threshold) back at their defaults. */
 export function resetRun(state: AppState, data: Data): AppState {
   const reset = {
     ...state,

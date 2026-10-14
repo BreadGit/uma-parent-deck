@@ -1,5 +1,3 @@
-// The suggested deck: the six cards with their spark chances. How the search chose them and what the model leaves out
-// per card are rendered by the prediction details panel through deckBuild().
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import type { RunPlan } from '../../model/run.ts';
@@ -46,7 +44,6 @@ export function deckBuild(c: RunPlan) {
   return html`<ol class="small">${c.deckResult.steps.map((s) => html`<li>${s}</li>`)}</ol>${limitations(c)}`;
 }
 
-/** Slots left to right: pins as pinned, the other owned cards by their own target chances, then the friend's card. */
 export function deckOrder(c: RunPlan): CardScore[] {
   const chances = new Map(c.deckResult.deck.map((cs) => [cs.card.id, cardTargetChances(cs, store.run.targets, c.ctx)]));
   return deckDisplayOrder(c.deckResult.deck, store.run.pinnedIds, (a, b) => compareTargetChances(chances.get(a.card.id)!, chances.get(b.card.id)!));

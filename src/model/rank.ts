@@ -99,12 +99,10 @@ export interface RankMoments { score: number; sd: number; ssMin: number; uniqueL
 
 export interface RankEstimate extends RankMoments { pSS: number }
 
-/** Skill points in the rank score: estimated SP spending plus the trainee's unique skill at its level. */
 export function skillPointsOf(purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number): number {
   return purchasedScore + (trainee ? uniqueSkillScore(stars, uniqueLevel) : 0);
 }
 
-/** Rank moments from displayed stats and an estimated skill-spending rating. */
 export function rankMoments(masses: PerStat<readonly StatMass[]>, purchasedScore: number, trainee: Character | null, stars: number, uniqueLevel: number, data: Data, settings: Settings): RankMoments {
   const ratingMeans = perStat((_, i) => masses[i].reduce((sum, x) => sum + statScore(x.value) * x.probability, 0));
   const statPts = ratingMeans.reduce((sum, v) => sum + v, 0);

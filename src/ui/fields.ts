@@ -1,5 +1,3 @@
-// Fields shared by several panels: the search box with its suggestion list, and the limit-break select the deck and the
-// ranking share.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import type { Card } from '../types.ts';
@@ -10,7 +8,6 @@ import { renderNow, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
 import { options, selectValue, inputValue, isComposing, type Option } from './form.ts';
 
-/** The most matches a search list shows. */
 export const SUGGESTION_LIMIT = 12;
 
 interface SearchBox<T> {
@@ -48,11 +45,7 @@ function revealSuggestion(listId: string) {
   if (column) scrollToShow(column, (active ?? list).getBoundingClientRect());
 }
 
-/**
- * A search input with a suggestion list under it. Arrow keys move the highlight, Enter picks the highlighted item
- * (or the first match), Escape clears the query, and a click outside the box closes it. Keys that belong to text an
- * input method is composing are left to it.
- */
+/** Keys that belong to text an input method is composing are left to it. */
 export function searchBox<T>(box: SearchBox<T>) {
   const query = view[box.field];
   const open = box.items.length > 0 && view.activeSearch === box.field;

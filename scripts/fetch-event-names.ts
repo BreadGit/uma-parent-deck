@@ -118,7 +118,7 @@ console.log('outfits done', Object.keys(byCard).length);
 // on the card page from the same payload. Keep that rendered text per card so the tool can show and decode it.
 const UNIQUE_OUT = path.join(RAW, 'unique-effect-texts.json');
 const uniqueTexts: Record<number, string> = await readJsonOr(UNIQUE_OUT, {});
-// an earlier version of this script kept the UNLOCK_LINE as the text, so a cached entry that is only that line is refetched
+// Older caches can hold only the UNLOCK_LINE as the text; refetch those.
 const compound = cards.filter((c) => {
   const text = uniqueTexts[c.support_id];
   return c.release_en && c.unique?.effects.some((u) => isCompoundUniqueEffect(u.type)) && (!text || UNLOCK_LINE.test(text) || !current(`unique:${c.support_id}`, c, text));

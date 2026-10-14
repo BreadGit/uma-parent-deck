@@ -1,5 +1,3 @@
-// Target coverage: which target hints the deck can hand over, through which sources, and what buying them costs.
-// Rendered as a section of the prediction details panel.
 import { html, nothing } from 'lit-html';
 import type { RunPlan } from '../../model/run.ts';
 import type { SkillSource } from '../../model/sparks.ts';

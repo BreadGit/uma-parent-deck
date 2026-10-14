@@ -7,7 +7,7 @@ import type { RaceWins } from './races.ts';
 import type { PreparedRunSources } from './run-sources.ts';
 import { hasWhiteSpark, isDebuff, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type ScenarioOption, type SkillSource, type Target } from './sparks.ts';
 
-/** Everything a run evaluation needs besides the cards: the data, the settings and the run's fixed choices. */
+/** Everything a run evaluation needs besides the cards. */
 export interface Ctx {
   data: Data;
   settings: Settings;
@@ -15,9 +15,9 @@ export interface Ctx {
   totalTurns: number;
   trainee: Character | null;
   raceWins: RaceWins;            // win chance per agenda race, for the trainee's secret events
-  lineage: Map<number, Lineage>; // target.id -> existing lineage sparks
+  lineage: Map<number, Lineage>; // by target id
   priority: number[] | null;     // listed skill ids in order, including every family form. Null: no list calculated yet; []: no listed skills.
-  fansBefore?: (slot: number) => number; // the agenda's expected fans before a slot, for fan-scaled unique effects
+  fansBefore?: (slot: number) => number; // for fan-scaled unique effects
   sources?: PreparedRunSources; // shared only by candidates of the same plan
 }
 /** A Ctx with no agenda, lineage or priority unless given; for tests and scripts. */
@@ -35,7 +35,7 @@ function addInPlace(e: Existing, add: Map<number, SkillSource[]>, card: Card, lb
   return e;
 }
 const addTo = (e: Existing, add: Map<number, SkillSource[]>, card: Card, lb: number): Existing => addInPlace(cloneExisting(e), add, card, lb);
-/** Non-target choice-gated options in the run (scenario options and card event options) that could outrank a target in the prioritized list. */
+/** Non-target choice-gated options that could outrank a target in the prioritized list. */
 function blockersOf(e: Existing, targets: Target[], ctx: Ctx, options: ScenarioOption[]): Blocker[] {
   const { families, traineeBlockers } = memoOf(ctx, targets);
   const out: Blocker[] = [];
@@ -45,10 +45,7 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx, options: ScenarioO
   return out;
 }
 
-/**
- * Evaluate a run state: add the scenario's options and completion reward, enforce one option per event (by
- * prioritized order), and give each target's spark chance.
- */
+/** Adds the scenario's options and completion reward, and enforces one option per event by prioritized order. */
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const { full, map, conflicts } = resolveCoverage(e, targets, ctx);
   const sparks = new Map(targets.map((t) => [t.id, hasWhiteSpark(t) ? sparkChance(purchasedOwnership(t, combineSources(map.get(t.id) ?? [])), ctx.settings, lineageCount(ctx.lineage.get(t.id) ?? [])) : 0]));
@@ -76,7 +73,7 @@ export interface CardScore {
   sparkValue: number;   // Σ spark chance over targets (card alone)
   marginalValue: number; // Σ spark gain over what is already covered
   score: number;
-  borrowed?: boolean;    // this slot is the friend's card, assumed at LB4
+  borrowed?: boolean;    // the friend's card
   mine: Map<number, SkillSource[]>; // the card's own non-scenario sources per target
 }
 
@@ -103,10 +100,7 @@ function memoOf(ctx: Ctx, targets: Target[]): CtxMemo {
   }
   return m;
 }
-/**
- * The card's own sources per target (fixed for a card and limit break within one context). Prepared arrays are
- * stored by reference and reach the plan through each deck entry's `mine`, so readers spread them rather than mutate.
- */
+/** The arrays are shared through each deck entry's `mine`, so readers spread them rather than mutate. */
 function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<number, SkillSource[]> {
   const memo = memoOf(ctx, targets);
   const key = `${card.id}:${lb}`;
@@ -120,7 +114,7 @@ function minesOf(card: Card, lb: number, targets: Target[], ctx: Ctx): Map<numbe
   memo.mines.set(key, mine);
   return mine;
 }
-/** Stat contribution at the run's race count (compound unique effects evaluated against the other cards in the run and the agenda), and its value under the chosen training focus. */
+/** Unique effects that depend on the deck or the agenda are evaluated against `others` and `ctx.fansBefore`. */
 function statsOf(card: Card, lb: number, ctx: Ctx, others: { card: Card; lb: number }[]): { contrib: Contribution; stats: StatValues; statPower: number; sp: number } {
   const extra = uniqueExtras(card, lb, ctx.data.model, { deck: [...others, { card, lb }], fansBefore: ctx.fansBefore });
   const contrib = cardContribution(card, lb, ctx.data.model, extra);
@@ -166,7 +160,6 @@ export function purchaseCoverage(entries: { card: Card; lb: number }[], targets:
   const sources = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx) }));
   return resolveCoverage(stateOf(sources, targets, ctx), targets, ctx).map;
 }
-/** Focus-weighted deck contribution without per-card coverage details. */
 export function deckStatPower(entries: { card: Card; lb: number }[], ctx: Ctx): number {
   return entries.reduce((sum, e, i) => sum + statsOf(e.card, e.lb, ctx, entries.filter((_, j) => i !== j)).statPower, 0);
 }
@@ -176,13 +169,11 @@ export function describeDeck(entries: { card: Card; lb: number; borrowed?: boole
   const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);
   return { deck, coverage, sparks, conflicts, steps: [] };
 }
-/** Run state for a set of cards on top of the trainee. */
 function stateOf(entries: Entry[], targets: Target[], ctx: Ctx): Existing {
   const e = traineeCoverage(targets, ctx);
   for (const x of entries) addInPlace(e, x.mine, x.card, x.lb);
   return e;
 }
-/** Total expected sparks over the targets for a set of cards, plus their focus-weighted stat power. */
 function deckValue(entries: Entry[], targets: Target[], ctx: Ctx): { sparks: number; stats: number } {
   const stats = deckStatPower(entries, ctx);
   return { sparks: total(evaluate(stateOf(entries, targets, ctx), targets, ctx).sparks), stats };
@@ -200,24 +191,14 @@ const why = (cs: CardScore) => (cs.marginalValue > 0
   : `no uncovered targets left; best stat stick (+${cs.statPower.toFixed(0)} focus-weighted stats)`);
 
 export interface BuildOptions {
-  pinnedIds: number[];        // owned pins shortlist the owned slots; unowned pins ask for the friend's slot
-  borrowPool?: { card: Card; lb: number }[]; // every card at the borrowed limit break; empty means no friend's slot
-  borrowFromAll?: boolean;    // with owned pins left over, borrow the best card overall instead of the best leftover pin
+  pinnedIds: number[];
+  borrowPool?: { card: Card; lb: number }[]; // empty means no friend's slot
+  borrowFromAll?: boolean;
 }
 type Slot = 'owned' | 'borrow';
 type PinReason = 'same character' | 'outscored' | 'trainee';
 
-/**
- * Deck builder: five owned slots and the friend's slot.
- * 1. Pins first, best marginal spark gain first, one per character. An owned pin goes to an owned slot at its own
- *    limit break; an unowned pin can only be the friend's card, so it competes for that slot at the borrowed LB.
- *    Once the owned slots are full, leftover owned pins compete for the friend's slot too unless `borrowFromAll`.
- *    When one character has both an owned and an unowned pin, whichever scores higher takes its slot.
- * 2. A friend's slot still open takes the best card overall from `borrowPool`.
- * 3. Owned slots still open fill greedily from the rest of the pool.
- * 4. If a deck card's higher-LB version would serve better as the borrow (freeing its slot for the next best owned
- *    card), swap; a pinned borrow is never evicted.
- */
+/** Greedy deck builder for the owned slots and the friend's slot. */
 export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, options: BuildOptions): DeckResult {
   const { pinnedIds, borrowPool = [], borrowFromAll = false } = options;
   const ownedSlots = borrowPool.length ? DECK_SIZE - BORROWED_SLOTS : DECK_SIZE;
@@ -236,7 +217,8 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   const free = (p: { card: Card }) => !usedChars.has(p.card.charId);
   const score = (p: { card: Card; lb: number }, borrowed: boolean): CardScore => ({ ...scoreCard(p.card, p.lb, targets, existing, ctx), borrowed });
 
-  // 1. pins
+  // 1. Pins, best marginal gain first. An unowned pin can only be the friend's card; once the owned slots are full,
+  // leftover owned pins compete for it too unless `borrowFromAll`.
   const owned = new Map(pool.map((p) => [p.card.id, p]));
   const borrowable = new Map(borrowPool.map((p) => [p.card.id, p]));
   const pins = pinnedIds.map((id) => owned.get(id) ?? borrowable.get(id)).filter((x): x is { card: Card; lb: number } => !!x);
@@ -265,7 +247,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     steps.push(`${p.card.name} (LB${p.lb})${isOwnedPin(p) ? '' : ', not owned'}: pinned but not chosen, ${detail}`);
   }
 
-  // 2. the friend's card, if no pin took the slot
+  // 2. The friend's card, if no pin took the slot.
   if (borrowPool.length) {
     const current = deck.find((d) => d.borrowed);
     if (!current) {
@@ -279,7 +261,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
     }
   }
 
-  // 3. fill the owned slots left from the rest of the pool
+  // 3. The owned slots left.
   while (ownedOpen()) {
     const pick = pool.filter((p) => free(p) && !chosen.has(p.card.id)).map((p) => score(p, false)).sort(cmp)[0];
     if (!pick) break;
@@ -287,7 +269,7 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   }
   refreshStats(deck, ctx);
 
-  // 4. upgrade: a deck card's higher-LB version as the borrow instead (replacing the borrow, if any), its slot refilled
+  // 4. Borrow a deck card's higher-LB version instead and refill its slot. A pinned borrow is never evicted.
   if (borrowPool.length && !pinnedBorrow) {
     const base = deckValue(deck, targets, ctx);
     let bestSwap: { entries: CardScore[]; value: { sparks: number; stats: number }; from: CardScore; to: CardScore; refill: CardScore | undefined } | null = null;
@@ -319,7 +301,6 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
   return { deck, steps, coverage, sparks, conflicts };
 }
 
-/** What an entry is for in the goal: a required target, a preferred target, or an extra skill the run's events offer. */
 export type EntryRole = 'required' | 'preferred' | 'extra';
 /**
  * `events` are the choice events that offer the skill (one per event, whichever options), empty for a skill given
@@ -334,11 +315,7 @@ function sourceReasons(sources: SkillSource[], ctx: Ctx): string {
   }))].join('; ');
 }
 
-/**
- * Candidates for the prioritized-skills list, by weight: targets gated behind an event choice, then other
- * choice-gated skills the deck's events offer, then targets given without a choice (fillers). `required` names the
- * targets with that goal role; the other targets are preferred.
- */
+/** Candidates for the prioritized-skills list, by weight. Targets not in `required` are preferred. */
 export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: Target[], ctx: Ctx, required: ReadonlySet<number> = new Set()): WishlistEntry[] {
   const entries: WishlistEntry[] = [];
   const roleOf = (t: Target): EntryRole => required.has(t.id) ? 'required' : 'preferred';

@@ -71,7 +71,7 @@ const openAgenda = (page) => page.click('details[data-agenda] > summary');
 /** Prediction details opens on request; open it before reading or clicking anything inside. */
 const openDetails = async (page) => { await page.waitForSelector('.results'); const closed = page.locator('details[data-prediction-details]:not([open]) > summary'); if (await closed.count()) await closed.click(); };
 
-// A Fuji Kiseki player reported this six-card deck, Maruzensky borrowed, for a required Groundwork spark. Evaluating it
+// A Fuji Kiseki player reported this six-card deck, Smart Falcon borrowed, for a required Groundwork spark. Evaluating it
 // as a fixed selection gives the displayed chance the search must reach without being told to pin Maruzensky.
 const FUJI_DECK = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
 

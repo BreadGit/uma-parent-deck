@@ -55,10 +55,8 @@ export function targetSpCost(targets: Target[], coverage: Map<number, SkillSourc
 }
 
 /**
- * What the run buys: every required and preferred target, and every listed extra the run has a source for. A skill
- * can only be bought once the run has it (a hint or an event option), so the forms come from the sources under the
- * context's list. The cost is the worst case, every obtainable family at full price, to check against the estimated
- * SP; it reads the resolved sources directly, so rare outcomes the joint form sampling misses still count.
+ * A skill can only be bought once the run has a hint or event for it, so the forms come from the sources under the
+ * context's list. The cost reads the resolved sources directly, so rare outcomes the joint form sampling misses count.
  */
 export function estimatePurchases(deck: { card: Card; lb: number }[], goalTargets: Target[], ctx: Ctx): Purchases {
   const families = new Map(goalTargets.map((t) => [t.id, t]));
@@ -102,11 +100,7 @@ function spendingSegments(options: SpendingPoint[], probability: number): Spendi
 
 interface Reference { rate: number; unverified: number[] }
 const referenceCache = new WeakMap<Skill[], Map<string, Reference>>();
-/**
- * Rating per SP over every released, priced, purchasable white skill (no ◎ form, no debuff), at the trainee's
- * aptitudes. Independent of the deck, so it is computed once per skill list and aptitude set: the deck search
- * evaluates thousands of candidates against it.
- */
+/** Rating per SP over every purchasable white skill. Cached because the deck search evaluates thousands of candidates against it. */
 function referenceRate(skills: Skill[], apt: Aptitudes): Reference {
   const key = JSON.stringify(apt);
   const byApt = referenceCache.get(skills) ?? new Map<string, Reference>();

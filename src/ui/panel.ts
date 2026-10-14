@@ -1,14 +1,9 @@
-// Standard panel chrome so every panel reads the same: a title, an optional step number, an optional muted subtitle,
-// an optional info tip, and actions aligned to the right. Sub-sections inside a panel use sub(); longer explanations
-// go in about().
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { tip } from './tooltip.ts';
 
 export interface PanelHead {
   title: string;
-  /** Position in the input flow, shown before the title. */
   step?: number;
-  /** A result panel: distinct surface so output reads differently from input. */
   kind?: 'input' | 'result';
   subtitle?: string;
   tip?: string;
@@ -28,7 +23,6 @@ export function panel(head: PanelHead, body: TemplateResult | typeof nothing) {
   </section>`;
 }
 
-/** A sub-section heading inside a panel, with an optional info tip. */
 export function sub(title: string, help?: string) {
   return html`<div class="sub-head"><h3>${title}</h3>${help ? tip(help) : nothing}</div>`;
 }

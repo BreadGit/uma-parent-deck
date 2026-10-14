@@ -1,5 +1,3 @@
-// Shape and referential checks on data/*.json: the fields the model reads must exist with the expected types,
-// and every skill or character id one file points at must resolve. Run after `npm run fetch` or `npm run fit`.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';

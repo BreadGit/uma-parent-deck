@@ -48,10 +48,9 @@ export function referenceObservation(card: Card, lb: number, model: StatModel): 
 }
 
 /**
- * Best estimate of a card's contribution at the reference race count: observed where available, model otherwise.
- * `extra` (compound unique passives from uniqueExtras) only reaches the model: an observed row already contains the
- * effect at the deck it was logged with. LB shifts use the ordinary inputs only, so changes
- * to a guessed deck bonus cannot move a recorded reference through a formula clamp.
+ * `extra` (compound unique passives) only reaches the model: an observed row already contains the effect at the deck it
+ * was logged with. LB shifts use the ordinary inputs only, so a guessed deck bonus cannot move a recorded reference
+ * through a formula clamp.
  */
 export function cardContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): Contribution {
   const near = referenceObservation(card, lb, model);

@@ -1,4 +1,3 @@
-// The trainee: who is being trained, at how many stars, and what she brings to the run herself.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { perStat } from '../../types.ts';

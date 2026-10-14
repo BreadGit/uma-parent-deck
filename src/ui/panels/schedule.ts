@@ -1,5 +1,3 @@
-// The G1 agenda: three career years of half-month slots and the race picked in each. The grid mirrors the game's
-// layout and is collapsed by default; the summary line and fan estimate stay visible.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import type { RunPlan } from '../../model/run.ts';

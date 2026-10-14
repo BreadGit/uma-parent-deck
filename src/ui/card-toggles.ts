@@ -1,5 +1,3 @@
-// The pin and ignore buttons a card carries in the suggested deck and the card ranking. Both read the persisted
-// run, so the same card shows the same state everywhere it appears.
 import { html, type TemplateResult } from 'lit-html';
 import type { Card } from '../types.ts';
 import { store } from './context.ts';

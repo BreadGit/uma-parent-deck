@@ -118,7 +118,6 @@ for (const q of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) {
   await page.click('li[data-action="add-target"]');
 }
 await savedState('st.run.targets.length === 3');
-// Pin a card by search and check its ranking control and deck slot.
 await page.fill('#card-search', 'kitasan');
 await page.waitForSelector('li[data-action="pin-card"]');
 await page.click('li[data-action="pin-card"]');
@@ -240,7 +239,6 @@ await savedState('st.run.pinnedIds.includes(30028)');
 await rankingPin.click();
 await savedState('!st.run.pinnedIds.includes(30028)');
 await assertOrdering('after the inventory edits are undone');
-// Prediction details builds its sections only once opened.
 assert.equal(await page.locator('[data-stat-breakdown]').count(), 0, 'the closed details panel renders no sections');
 await page.click('details[data-prediction-details] > summary');
 // Native details toggles dispatch asynchronously, after the click's default action.
@@ -560,7 +558,6 @@ await assertFieldsMatchState(page, 'with both advanced legacy forms open');
 await releaseSearch(page);
 await waitForPlan(page);
 await assertFieldsMatchState(page, 'after the native worker publishes the completed deck');
-// layout check: no horizontal overflow at common widths, both themes
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: scheme });

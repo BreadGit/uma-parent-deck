@@ -4,9 +4,7 @@ export const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'] as const;
 export type PerStat<T> = [T, T, T, T, T];
 export type StatValues = PerStat<number>;
 export type StatIndex = 0 | 1 | 2 | 3 | 4;
-/** Every stat index in STATS order, for a loop that needs the index but builds no vector. */
 export const STAT_INDEXES = [0, 1, 2, 3, 4] as const satisfies readonly StatIndex[];
-/** Build a per-stat vector in the one order used by the model, the data and the forms. */
 export function perStat<T>(value: (stat: Stat, index: StatIndex) => T): PerStat<T> {
   return [value(STATS[0], 0), value(STATS[1], 1), value(STATS[2], 2), value(STATS[3], 3), value(STATS[4], 4)];
 }
@@ -86,6 +84,7 @@ export interface Skill {
   eventChars: number[];
   desc: string;
 }
+// Rarity tests live with the Skill type so the data scripts can use them without loading the model.
 /** A normal-rarity skill: a white, ○, ◎ or × form, or a negative event skill. */
 export const isNormal = (s: Pick<Skill, 'rarity'>) => s.rarity === 1;
 export const isGold = (s: Pick<Skill, 'rarity'>) => s.rarity === 2;
@@ -97,22 +96,13 @@ export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 export const APTITUDE_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 /** Ascending aptitude strength. Starting inheritance stops at A. */
 export const APT_GRADES: Grade[] = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
-/** The message of a thrown value, which need not be an Error. */
 export const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error);
-/** A JSON object as opposed to an array, null or a primitive. */
 export const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
-/**
- * A game ID (card, character, skill, race): a positive safe integer. Saved state, inventory files and share codes all
- * use this rule. An ID the installed data does not know is still valid and is kept.
- */
+/** An ID the installed data does not know is still valid and is kept. */
 export const isGameId = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v > 0;
-/** The valid game IDs of a saved list, first occurrence first; anything else in it is dropped. */
 export const gameIds = (v: unknown): number[] => Array.isArray(v) ? [...new Set(v.filter(isGameId))] : [];
 export const isGameIdKey = (key: string) => /^[1-9]\d*$/.test(key) && isGameId(Number(key));
-/**
- * A race calendar ID, the key of a schedule override. It is not a game ID: a later year's running of the same calendar
- * entry carries a suffix, so "79_2" is the Senior Japan Cup.
- */
+/** Not a game ID: a later year's running of the same calendar entry carries a suffix, so "79_2" is the Senior Japan Cup. */
 export const isCalendarId = (key: string) => /^[1-9]\d*(?:_[1-9]\d*)?$/.test(key);
 
 export interface Character {

@@ -1,4 +1,3 @@
-// Every card scored against the targets, with the limit-break dropdowns that make up the inventory.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
@@ -26,8 +25,7 @@ const SCORING_METHOD = [
   'Observed and adjusted stat estimates come from recorded runs, so they already include effects the formula cannot separate, and they stay fixed when deck-dependent effects change. Model estimates use only the effects the formula covers. The suggested deck\'s estimate limitations list what is left out for each deck card.',
 ];
 
-// The Basis label keeps the row one line tall: the per-card facts live in the info icon's tooltip, like every other
-// tip on the page, and the rules shared by every card are in the column header tip and the panel notes.
+// Per-card facts go in the tooltip so the row stays one line tall.
 function basis(x: CardScore) {
   const effects = cardEffectCoverage(x.card, x.lb, data.model);
   const flag = coverageFlag(effects);
@@ -38,7 +36,6 @@ const SORT_KEYS: Record<string, (x: CardScore) => number> = {
   stats: (x) => x.statPower, sp: (x) => x.sp,
   speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
 };
-/** Target chances a row shows before "+N more". */
 const SHOWN_TARGETS = 4;
 const targetLabel = (x: TargetSparkChance) => `${x.target.name}${x.role === 'required' ? ` ${x.stars}★+` : ''}`;
 const sourceDetails = (x: TargetSparkChance) => x.sources.length

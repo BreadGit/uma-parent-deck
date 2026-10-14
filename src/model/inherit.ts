@@ -42,15 +42,13 @@ export interface BlueSpark { stat: Stat; stars: number }
  */
 export type ParentSparks = (BlueSpark | null)[];
 export const UMA_LABELS = ['Parent', 'Grandparent', 'Grandparent'];
-/** A fresh side has no entered sparks, so every stat starts at +0. */
 export const defaultParentSparks = (): ParentSparks => Array(UMAS_PER_PARENT_SIDE).fill(null);
 export const isValidSpark = (v: unknown): v is BlueSpark => isPlainObject(v) && STATS.includes(v.stat as Stat) && isSparkStars(v.stars);
-/** A saved side, or the default when it is not exactly three slots of a spark or null. */
 export function sanitizeParentSparks(raw: unknown): ParentSparks {
   if (!Array.isArray(raw) || raw.length !== UMAS_PER_PARENT_SIDE || !raw.every((v) => v === null || isValidSpark(v))) return defaultParentSparks();
   return raw.map((v: BlueSpark | null) => (v ? { stat: v.stat, stars: v.stars } : null));
 }
-/** The "+XX" one side shows above each stat: the sum of its umas' sparks on that stat. */
+/** The "+XX" one side shows above each stat on the legacy screen. */
 export const gainsOfParentSparks = (sparks: ParentSparks): StatValues => perStat((st) => gainOfSparks(sparks.filter((s) => s?.stat === st).map((s) => s!.stars)));
 /** Sparks from the legacy screen's five gains, in stat order, strongest first; null when they need more than three umas. */
 export function parentSparksFromGains(gains: StatValues): ParentSparks | null {
@@ -123,7 +121,6 @@ export function inheritedFromSparks(sparks: number[], settings: Settings): Inher
   }
   return { start, inspiration: insp, inspirationMax: max, total: start + insp, uncap, variance };
 }
-/** Inheritance from one parent side's start gain for a stat, as the legacy screen shows it. */
 export const inheritedFromGain = (gain: number, settings: Settings) => inheritedFromSparks(sparksFromGain(gain), settings);
 
 export function inheritedFromParents(parentGains: readonly StatValues[], statIndex: StatIndex, settings: Settings): Inheritance {

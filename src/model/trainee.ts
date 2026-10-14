@@ -24,20 +24,16 @@ export function statsAtStars(ch: Character, stars: number): StatValues {
   const f = (stars - lo[0]) / (hi[0] - lo[0]);
   return perStat((_, i) => Math.round(lo[1][i] + (hi[1][i] - lo[1][i]) * f));
 }
-/** True when the stats at this star count come from a listed table rather than interpolation. */
 export const hasExactStarTable = (ch: Character, stars: number) => knownStarTables(ch).some(([k]) => k === stars);
 
 export const STARS_MAX = 5;
-/**
- * A star count the trainee can have: her base rarity up to five. The stars determine the unique skill's initial level and
- * its rating rate, so a count left over from another trainee must not reach the rank estimate.
- */
+/** A count left over from another trainee must not reach the rank estimate, since stars set the unique skill's level. */
 export function clampStars(ch: Character | null, stars: number): number {
   const lo = ch?.rarity ?? 1;
   return Number.isFinite(stars) ? Math.max(lo, Math.min(STARS_MAX, Math.round(stars))) : Math.max(lo, 3);
 }
 
-/** The trainee as run: the character card with its base stats at the chosen star count. Potential level is assumed maxed. */
+/** Potential level is assumed maxed. */
 export function traineeAt(ch: Character, stars: number): Character {
   return { ...ch, baseStats: statsAtStars(ch, stars) };
 }

@@ -1,4 +1,3 @@
-// URL import and synchronization.
 import { decodeShare, encodeShare, shareCode, sharedChoices, shareKey, shareUrl, ShareCodeError } from '../share.ts';
 import { applySharedChoices, defaultState } from '../state.ts';
 import { data, onUpdate, stateRevision, store, update, view } from './context.ts';

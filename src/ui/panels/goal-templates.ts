@@ -1,4 +1,3 @@
-// Template picker inside Parent goal: preview a curated goal, then load it over the current one.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { GOAL_TEMPLATES, type GoalTemplate } from '../../model/goal-templates.ts';

@@ -47,10 +47,8 @@ const servedVersions = new Map();
 let ourVersion;
 
 /**
- * Loads the app and checks that the server at `url` serves this checkout. A dev server for another worktree answers
- * on the default port with other code, and its failures then read as bugs in this tree. Vite exposes the build hash
- * the app itself reads, so the comparison costs one fetch per server; a preview build has no such module and is
- * accepted as is. A server that does not answer fails with the command that starts one.
+ * A dev server for another worktree answers on the default port with other code, so this fails unless the server's
+ * build hash matches this checkout. A preview build has no such module and is accepted as is.
  */
 export async function openApp(page, url) {
   try {
@@ -80,11 +78,7 @@ export async function waitForPlan(page) {
   assert.equal(await page.locator('[data-action="retry-search"]').count(), 0, 'search completed successfully');
 }
 
-/**
- * Every form field that mirrors persisted state must show that state. A <select> the user has changed ignores later
- * `selected` attribute changes on its options, so a field that lit reuses for a different card or stat would keep a
- * stale value unless its value is bound live; this catches that whatever the field.
- */
+/** Catches a field that lit reuses for a different card or stat without a live value binding (see AGENTS.md). */
 export async function assertFieldsMatchState(page, where) {
   await page.waitForSelector('.results');
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), STATE_KEY);

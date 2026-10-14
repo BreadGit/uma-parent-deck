@@ -32,7 +32,5 @@ function open(message: string, confirmLabel: string, cancel: boolean): Promise<b
   });
 }
 
-/** Ask before a change that discards user input. Resolves true when confirmed. */
 export const confirmDialog = (message: string, confirmLabel = 'OK') => open(message, confirmLabel, true);
-/** Tell the user something went wrong. */
 export const notice = (message: string) => open(message, 'OK', false).then(() => undefined);

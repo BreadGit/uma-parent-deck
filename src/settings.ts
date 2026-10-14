@@ -145,7 +145,6 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
 
 const inRange = (v: unknown, min: number, max: number): v is number => typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
 
-/** True when `value` satisfies the setting's spec. */
 export function isValidSetting(key: keyof Settings, value: unknown): boolean {
   const spec = SETTING_SPEC[key];
   switch (spec.kind) {
@@ -160,7 +159,7 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
   }
 }
 
-/** Parse a form value for a setting. Returns undefined when it does not satisfy the spec, so the caller keeps the current value. */
+/** Undefined when the value fails the spec. */
 export function parseSetting(key: keyof Settings, raw: string): Settings[keyof Settings] | undefined {
   const spec = SETTING_SPEC[key];
   let value: unknown;
@@ -174,7 +173,6 @@ export function parseSetting(key: keyof Settings, raw: string): Settings[keyof S
   return isValidSetting(key, value) ? (value as Settings[keyof Settings]) : undefined;
 }
 
-/** Merge saved settings over the defaults, dropping any saved value that fails its spec. */
 export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>): Settings {
   const out: Settings = { ...DEFAULT_SETTINGS };
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
@@ -225,7 +223,6 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   totalTurnsOverride: `Total career turns used to scale card stats and SP by races run, as (T - races) / (T - ${RACES_REFERENCE}). Blank uses the value fitted from the 28-race and 23-race measurements. Values of ${RACES_REFERENCE} or less are rejected because they would divide by zero or flip the sign.`,
 };
 
-/** How the advanced panel lays out a setting: a number, a list or per-rarity inventory overrides. */
 export interface SettingField { key: keyof Settings; label: string; kind: 'number' | 'list' | 'inventory-overrides'; step?: number }
 export interface SettingGroup { title: string; fields: SettingField[] }
 const n = (key: keyof Settings, label: string, step = 0.01): SettingField => ({ key, label, kind: 'number', step });

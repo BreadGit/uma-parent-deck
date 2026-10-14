@@ -161,7 +161,6 @@ function normalizeCards(raw: RawTables, eventNames: PageSources['eventNames'], p
     let specialEvents: ReturnType<typeof decodePageEvent>[] = [];
     const pg = palGroupEvents[c.support_id];
     if (pg) {
-      /** The validated page events of one group, on Global. */
       const pageEvents = (events: Row[] | undefined, kind: string) => (events ?? []).map(eventOnGlobal).filter((e) => e !== null).map((e, i) => decodePageEvent(e, kind, i + 1));
       recreationEvents = pageEvents(pg.dates ?? pg.dates_random, 'recreation');
       specialEvents = pageEvents(pg.special, 'special');
@@ -219,8 +218,6 @@ function normalizeSkills(raw: RawTables) {
 const APT_KEYS = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 // The feed occasionally carries a skill id as a string (Super Creek's event skill 201352); ids are numbers here.
 const ids = (list: unknown[] | undefined) => (list ?? []).map(Number);
-
-// ---------- character events (from the per-character page JSON, data/raw/char-events.json) ----------
 
 // Sets of races behind GameTora's crown shorthands, by Global race name and career year.
 const CROWNS: Record<string, [string, number][]> = {

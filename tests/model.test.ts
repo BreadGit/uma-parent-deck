@@ -25,8 +25,6 @@ const sw = must(characters.find((c) => c.name === 'Special Week'));
 const ctxOf = (extra: Partial<Ctx> = {}): Ctx => makeCtx({ data, settings, races: 20, totalTurns: T, trainee: null, ...extra });
 const all4 = cards.map((card) => ({ card, lb: 4 }));
 
-// ----- skills and the stat model -----
-
 test('skill families resolve gold and white forms', () => {
   const t = resolveTarget(200352, data)!; // Corner Recovery ○
   assert.equal(t.gold?.name, 'Swinging Maestro');
@@ -107,8 +105,6 @@ test('event interpolation uses its measured race counts rather than fixed 23/28 
   assert.deepEqual(predictDeck([], null, 15, 'balanced', 0, one, settings).eventStats, [100, 200, 300, 400, 500]);
 });
 
-// ----- sources: hints and events -----
-
 test('cached event rates follow scalar edits, nested array edits, replacements and restored values', () => {
   const current = structuredClone(settings);
   const fine = must(data.cardById.get(30010));
@@ -170,7 +166,6 @@ test('event outcomes: outcomes of one option are equally likely, a gold/white ra
   const pFire = settings.randomEventRate * Math.min(1, 2 / riko.randomEvents.length);
   assert.ok(Math.abs(rampUp.pObtain - pFire / 2) < 1e-9 && rampUp.detail.includes('one of 2 outcomes'), `Ramp Up ${rampUp.pObtain} is half the event chance and says so`);
   assert.ok(Math.abs(maverick.pObtain - pFire / 2) < 1e-9 && rampUp.event.optionIndex === maverick.event.optionIndex, `Maverick ○ ${maverick.pObtain} shares the option`);
-  // the documented gold roll by the stat of the card's type
   assert.deepEqual([399, 400, 600, 700, 800, 1000, 1200].map(goldRollChance), [0.3, 0.6, 0.65, 0.75, 0.8, 0.9, 0.9]);
   const fine = must(data.cardById.get(30010)); // chain 3: Speed Star (gold) or Prepared to Pass (its white form), by the Wit stat
   const shared = eventSources(fine, settings, data).filter((s) => s.event.key.endsWith(':chain:3'));
@@ -225,7 +220,6 @@ test('ownership odds combine sources the way the game runs them: duplicates in o
   assert.deepEqual(kept.map.get(risky.id)!.map((s) => (s as EventSource).event.optionIndex), [1, 1], 'the second option gives the gold at the same chance plus the white form');
   assert.equal(kept.conflicts.length, 0, 'one target on the event: nothing was contested');
   assert.ok(Math.abs(combineSources(kept.map.get(risky.id)!).pAny - 2 * date3[0]!.pObtain) < 1e-9, 'the kept option is worth twice the single option chance');
-  // spark rates by form
   assert.ok(Math.abs(sparkChance({ pGold: 1, pWhite: 0 }, settings, 0) - settings.goldSparkRate) < 1e-9);
   assert.ok(Math.abs(sparkChance({ pGold: 0, pCircle: 1, pWhite: 0 }, settings, 0) - settings.circleSparkRate) < 1e-9);
   assert.ok(Math.abs(sparkChance({ pGold: 0, pWhite: 1 }, settings, 2) - settings.whiteSparkRate * 1.21) < 1e-9, 'each lineage copy multiplies by 1.1');
@@ -273,8 +267,6 @@ test('lineage totals: copies fill the parents first at 3★, alternating sides, 
   assert.deepEqual(sanitizeLineage([0, 2, 0, 3, 0, 1]), [0, 2, 0, 3, 0, 1]);
   for (const bad of [[1, 2, 3], [0, 0, 0, 0, 0, 4], [0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0, 1.5], [0, 0, 0, 0, 0, '1'], { k1: 1 }, null]) assert.equal(sanitizeLineage(bad), null, JSON.stringify(bad));
 });
-
-// ----- scenario and event choices -----
 
 test("Our Grand Concert's Senior November event: a linked character in the run (as trainee or card) turns her option gold, every option is a prioritized-skill candidate", () => {
   const focus = target('Focus');
@@ -364,8 +356,6 @@ test('a non-target option ranked above a target takes the event and is reported,
   assert.equal(r.conflicts[0]!.taken.skillId, allIveGot.white!.id);
 });
 
-// ----- the agenda -----
-
 const raceAt = (surface: Race['surface'], category: Race['category']): Race => ({ calendarId: 't', raceInstanceId: 0, raceId: 1, name: 't', distance: 2000, category, surface, year: 2, month: 5, half: 1, fansNeeded: 0, fansGain: 0, unreleasedEn: false });
 const aptOf = (turf: Aptitudes['turf'], medium: Aptitudes['medium']): Aptitudes => traineeAptitudes(null, { turf, medium });
 
@@ -422,8 +412,6 @@ test('career goals are fixed in the agenda: a placement objective is won automat
   assert.equal(must(us.find((s) => s.selected && s.goal && s.race.name === 'JBC Sprint')).pWin, 1);
 });
 
-// ----- rating -----
-
 test('rating: the UmaTools stat table exactly (values computed from its code), skills by form and aptitude bucket, the unique skill by stars and level', () => {
   for (const [v, pts] of [[0, 0], [-5, 0], [400, 577], [600, 1143], [1000, 2635], [1199, 3835], [1200, 3841], [1201, 3849], [1249, 4240], [1250, 4249], [1500, 6773], [1999, 14261], [2000, 14280], [2001, 14298]] as const) assert.equal(statScore(v), pts, `stat ${v}`);
   assert.equal(skillScore(byName('Groundwork'), null), 217);
@@ -444,8 +432,6 @@ test('rating: the UmaTools stat table exactly (values computed from its code), s
   assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot >= 72 ? 120000 : 50000), settings), 1, 'fans from Arima Kinen in slot 71 arrive after the Christmas check');
   assert.equal(uniqueSkillLevel(3, traineeAptitudes(null, { turf: 'G', dirt: 'A' }), () => 45000, { ...settings, uniqueAprilBondRate: 1 }), 2, 'a dirt trainee clears the 40,000-fan February check');
 });
-
-// ----- inheritance -----
 
 test('blue sparks: 20 distinct start gains each decoding to one star combination, fixed start gains, uncaps, and an assumed mean roll per inspiration proc at the affinity setting', () => {
   assert.equal(START_GAINS.length, 20);
@@ -528,8 +514,6 @@ test('setting a start gain replaces that stat\'s umas first, then empty slots, t
   assert.deepEqual(withParentGain(side, 0, 0), [null, { stat: 'stamina', stars: 1 }, null], '+0 frees the stat and leaves the rest');
   assert.deepEqual(withParentGain(defaultParentSparks(), 4, 63), Array(3).fill({ stat: 'wit', stars: 3 }));
 });
-
-// ----- the deck builder -----
 
 test('deck: six distinct characters, one borrowed slot at the borrowed limit break, the trainee excluded', () => {
   const ctx = ctxOf({ trainee: sw });

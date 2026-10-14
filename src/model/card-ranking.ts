@@ -50,11 +50,7 @@ export function deckDisplayOrder<T extends { card: Pick<Card, 'id'>; borrowed?: 
     || (group(a) === 0 ? pinnedIds.indexOf(a.card.id) - pinnedIds.indexOf(b.card.id) : group(a) === 1 ? compare(a, b) || a.card.id - b.card.id : 0));
 }
 
-/**
- * Ranking rows: every pin first, as pinned, then the rest of the suggested deck in the order the deck shows it,
- * then the other cards under the selected sort. Pins and the deck stay on top whatever the sort, so a card edited
- * in the inventory does not move away from the rows being worked on.
- */
+/** Pins and the deck stay on top whatever the sort, so a card edited in the inventory stays near the rows being worked on. */
 export function rankingRows<T extends { card: Pick<Card, 'id'> }>(ranking: T[], pinnedIds: number[], deckOrder: { card: Pick<Card, 'id'> }[], compare: (a: T, b: T) => number): T[] {
   const top = [...pinnedIds, ...deckOrder.map((e) => e.card.id).filter((id) => !pinnedIds.includes(id))];
   const position = (e: T) => { const i = top.indexOf(e.card.id); return i < 0 ? top.length : i; };
