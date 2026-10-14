@@ -1,5 +1,5 @@
 import type { Inventory } from '../types.ts';
-import { isLimitBreak } from '../model/rules.ts';
+import { isLimitBreak, MAX_LB } from '../model/rules.ts';
 import type { Detection, ScanCard } from './recognize.ts';
 
 export interface ReviewRow {
@@ -15,15 +15,8 @@ export interface ReviewRow {
 
 export type Summary = ReturnType<typeof summarize>;
 
-const indexes = new WeakMap<ScanCard[], Map<number, ScanCard>>();
-export function cardIndex(cards: ScanCard[]) {
-  let byId = indexes.get(cards);
-  if (!byId) indexes.set(cards, byId = new Map(cards.map(c => [c.id, c])));
-  return byId;
-}
-
 export function summarize(rows: ReviewRow[], cards: ScanCard[]) {
-  const cardById = cardIndex(cards);
+  const cardById = new Map(cards.map(c => [c.id, c]));
   const included = rows.filter(r => !r.excluded);
   const invalid = new Set(included.filter(r => !r.reviewed || r.cardId === null || !cardById.has(r.cardId)
     || cardById.get(r.cardId)?.rarity === 'R' || !isLimitBreak(r.lb)));
@@ -55,7 +48,7 @@ export interface Triage {
 }
 const byName = (a: ScanCard, b: ScanCard) => a.charName.localeCompare(b.charName) || a.id - b.id;
 export function triage(rows: ReviewRow[], cards: ScanCard[], result: Summary = summarize(rows, cards)): Triage {
-  const cardById = cardIndex(cards);
+  const cardById = new Map(cards.map(c => [c.id, c]));
   const groups = new Map<number, Group>();
   const attention: ReviewRow[] = [], excluded: ReviewRow[] = [];
   const seen = new Set<number>();
@@ -79,7 +72,7 @@ export function triage(rows: ReviewRow[], cards: ScanCard[], result: Summary = s
 export function inventoryFromReview(rows: ReviewRow[], cards: ScanCard[], result: Summary = summarize(rows, cards)): Inventory {
   if (result.pending.size) throw new Error('unresolved-inventory');
   return Object.fromEntries(cards.slice().sort((a, b) => a.id - b.id).map(c => [
-    String(c.id), c.rarity === 'R' ? 4 : result.values.get(c.id)?.values().next().value ?? null,
+    String(c.id), c.rarity === 'R' ? MAX_LB : result.values.get(c.id)?.values().next().value ?? null,
   ]));
 }
 

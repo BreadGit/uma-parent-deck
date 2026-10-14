@@ -5,8 +5,8 @@
 // data/raw/char-events.json. Source revisions invalidate stale page caches.
 import path from 'node:path';
 import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
-import { exists, readJson, writeJson } from './json-file.ts';
-import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, uniqueEffectText, UNLOCK_LINE, type PageRevision } from './page-cache.ts';
+import { readJson, readJsonOr, writeJson } from './json-file.ts';
+import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, PAGE_SOURCE_FILES, uniqueEffectText, UNLOCK_LINE, type PageRevision } from './page-cache.ts';
 
 // The rows of GameTora's static feed this script reads, and the validated event data of a page.
 interface RawSupport { support_id: number; char_id: number; type: string; url_name: string; release_en?: string; unique?: { effects: { type: number }[] } }
@@ -14,36 +14,27 @@ interface RawCharacterCard { card_id: number; char_id: number; url_name: string;
 type PageEvents = ReturnType<typeof pageEvents>;
 
 const BASE = GAMETORA.base;
-const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
+const ROOT = path.resolve(import.meta.dirname, '..');
 const RAW = path.join(ROOT, 'data', 'raw');
 const OUT = path.join(RAW, 'event-names.json');
 const FORCE = process.argv.includes('--force');
 const REVISION_OUT = path.join(RAW, 'page-source-revisions.json');
-const revisions: Record<string, PageRevision> = (await exists(REVISION_OUT)) ? await readJson(REVISION_OUT) : {};
-const sourceFiles = ['training_events__ssr', 'training_events__sr', 'training_events__friend', 'training_events__group',
-  'training_events__shared', 'training_events__char', 'training_events__char_card', 'dict__evrew'];
-const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async (key) => [key, fingerprint(await readJson(path.join(RAW, `${key}.json`)))])));
+const revisions: Record<string, PageRevision> = await readJsonOr(REVISION_OUT, {});
+const sourceHashes = Object.fromEntries(await Promise.all(PAGE_SOURCE_FILES.map(async (key) => [key, fingerprint(await readJson(path.join(RAW, `${key}.json`)))])));
 const inputFor = (key: string, card: unknown) => pageInput(key, card, sourceHashes);
 const current = (key: string, card: unknown, payload: unknown) => !FORCE && pageCacheMatches(revisions[key], inputFor(key, card), payload);
 const remember = (key: string, card: unknown, payload: unknown) => { revisions[key] = pageRevision(inputFor(key, card), payload); };
 
 const throttle = createThrottle();
-async function getJson(url: string) {
+async function fetchPage(url: string) {
   const res = await requestSource(url, throttle.wait, GAMETORA.userAgent);
   if (!res.ok) throw new Error(`Page fetch ${res.status}: ${url}`);
-  return res.json();
-}
-
-/** A page's HTML, throttled like getJson. */
-async function getText(url: string) {
-  const res = await requestSource(url, throttle.wait, GAMETORA.userAgent);
-  if (!res.ok) throw new Error(`Page fetch ${res.status}: ${url}`);
-  return res.text();
+  return res;
 }
 
 async function buildId() {
   await new Promise((r) => setTimeout(r, GAMETORA.delayMs));
-  const html = await getText(`${BASE}/umamusume/supports`);
+  const html = await (await fetchPage(`${BASE}/umamusume/supports`)).text();
   const m = html.match(/"buildId":"([^"]+)"/);
   if (!m) throw new Error('buildId not found');
   return m[1];
@@ -52,8 +43,8 @@ async function buildId() {
 const FULL = path.join(RAW, 'event-data-friend-group.json'); // full event data for Pal and Group cards (their outings are not in the static feed)
 const supports: RawSupport[] = await readJson(path.join(RAW, 'support-cards.json'));
 const cards = supports.filter((c) => c.release_en);
-const names: Record<number, { chain: string[]; random: string[]; special: string[]; dates: string[] }> = (await exists(OUT)) ? await readJson(OUT) : {};
-const full: Record<number, PageEvents> = (await exists(FULL)) ? await readJson(FULL) : {};
+const names: Record<number, { chain: string[]; random: string[]; special: string[]; dates: string[] }> = await readJsonOr(OUT, {});
+const full: Record<number, PageEvents> = await readJsonOr(FULL, {});
 const isPalGroup = (c: RawSupport) => c.type === 'friend' || c.type === 'group';
 const supportPayload = (c: RawSupport) => ({ names: names[c.support_id], ...(isPalGroup(c) ? { full: full[c.support_id] } : {}) });
 const todo = cards.filter((c) => !names[c.support_id] || (isPalGroup(c) && !full[c.support_id]) || !current(`support:${c.support_id}`, c, supportPayload(c)));
@@ -63,7 +54,7 @@ if (todo.length) {
   const id = await buildId();
   let n = 0;
   for (const c of todo) {
-    const d = await getJson(`${BASE}/_next/data/${id}/umamusume/supports/${c.url_name}.json`);
+    const d = await (await fetchPage(`${BASE}/_next/data/${id}/umamusume/supports/${c.url_name}.json`)).json();
     const en = pageEvents(d.pageProps?.eventData?.en, 'support', `support ${c.support_id}`);
     // pageEvents has checked that every event group is a list of named events.
     const pick = (events: unknown) => ((events ?? []) as { n: string }[]).map((e) => e.n);
@@ -84,14 +75,14 @@ const characterCards: RawCharacterCard[] = await readJson(path.join(RAW, 'charac
 const charCards = characterCards.filter((c) => c.release_en).sort((a, b) => a.card_id - b.card_id);
 const firstOutfit = new Map<number, RawCharacterCard>();
 for (const c of charCards) if (!firstOutfit.has(c.char_id)) firstOutfit.set(c.char_id, c);
-const charEvents: Record<number, PageEvents> = (await exists(CHAR_OUT)) ? await readJson(CHAR_OUT) : {};
+const charEvents: Record<number, PageEvents> = await readJsonOr(CHAR_OUT, {});
 const charTodo = [...firstOutfit.values()].filter((c) => !current(`character:${c.char_id}`, c, charEvents[c.char_id]));
 console.log(`${charTodo.length} characters to fetch (${firstOutfit.size - charTodo.length} cached)`);
 if (charTodo.length) {
   const id = await buildId();
   let n = 0;
   for (const c of charTodo) {
-    const d = await getJson(`${BASE}/_next/data/${id}/umamusume/characters/${c.url_name}.json`);
+    const d = await (await fetchPage(`${BASE}/_next/data/${id}/umamusume/characters/${c.url_name}.json`)).json();
     const en = pageEvents(d.pageProps?.eventData?.en, 'character', `character ${c.char_id}`);
     charEvents[c.char_id] = en;
     remember(`character:${c.char_id}`, c, en);
@@ -104,14 +95,14 @@ console.log('characters done', Object.keys(charEvents).length);
 
 // Alternate outfits: their own page carries the outfit's events, which the base page lacks. Keyed by card id.
 const CARD_OUT = path.join(RAW, 'char-events-by-card.json');
-const byCard: Record<number, PageEvents> = (await exists(CARD_OUT)) ? await readJson(CARD_OUT) : {};
+const byCard: Record<number, PageEvents> = await readJsonOr(CARD_OUT, {});
 const altTodo = charCards.filter((c) => firstOutfit.get(c.char_id) !== c && !current(`outfit:${c.card_id}`, c, byCard[c.card_id]));
 console.log(`${altTodo.length} alternate outfits to fetch (${charCards.length - firstOutfit.size - altTodo.length} cached)`);
 if (altTodo.length) {
   const id = await buildId();
   let n = 0;
   for (const c of altTodo) {
-    const d = await getJson(`${BASE}/_next/data/${id}/umamusume/characters/${c.url_name}.json`);
+    const d = await (await fetchPage(`${BASE}/_next/data/${id}/umamusume/characters/${c.url_name}.json`)).json();
     const en = pageEvents(d.pageProps?.eventData?.en, 'character', `outfit ${c.card_id}`);
     byCard[c.card_id] = en;
     remember(`outfit:${c.card_id}`, c, en);
@@ -125,7 +116,7 @@ console.log('outfits done', Object.keys(byCard).length);
 // Compound unique effects (types 100 and up) have no definition in the static feed; GameTora renders their text
 // on the card page from the same payload. Keep that rendered text per card so the tool can show and decode it.
 const UNIQUE_OUT = path.join(RAW, 'unique-effect-texts.json');
-const uniqueTexts: Record<number, string> = (await exists(UNIQUE_OUT)) ? await readJson(UNIQUE_OUT) : {};
+const uniqueTexts: Record<number, string> = await readJsonOr(UNIQUE_OUT, {});
 // an earlier version of this script kept the UNLOCK_LINE as the text, so a cached entry that is only that line is refetched
 const compound = cards.filter((c) => {
   const text = uniqueTexts[c.support_id];
@@ -133,7 +124,7 @@ const compound = cards.filter((c) => {
 });
 console.log(`${compound.length} compound unique effects to fetch (${Object.keys(uniqueTexts).length} cached)`);
 for (const c of compound) {
-  const page = await getText(`${BASE}/umamusume/supports/${c.url_name}`);
+  const page = await (await fetchPage(`${BASE}/umamusume/supports/${c.url_name}`)).text();
   uniqueTexts[c.support_id] = uniqueEffectText(page);
   remember(`unique:${c.support_id}`, c, uniqueTexts[c.support_id]);
 }

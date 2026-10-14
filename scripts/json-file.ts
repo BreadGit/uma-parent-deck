@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 
 export const exists = (file: string) => fs.access(file).then(() => true, () => false);
 export const readJson = async (file: string) => JSON.parse(await fs.readFile(file, 'utf8'));
+export const readJsonOr = async <T>(file: string, fallback: T): Promise<T> => (await exists(file)) ? readJson(file) : fallback;
 
 /** Writes through a temporary file, so an interrupted run leaves the previous file whole. */
 export async function writeFileAtomic(file: string, data: string | Uint8Array) {

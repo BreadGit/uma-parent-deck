@@ -14,19 +14,20 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
-import { exists, readJson, writeFileAtomic, writeJson } from './json-file.ts';
+import { exists, readJson, readJsonOr, writeFileAtomic, writeJson } from './json-file.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables, type PageSources, type Row } from './source-validation.ts';
 import { normalizeMissionCatalog } from './mission-import.ts';
 import { isNormalOrGold } from '../src/types.ts';
+import { SLOT_COUNT } from '../src/model/rules.ts';
 
 /** GameTora's static feed tables by key. Each has its own schema, so their rows stay untyped, as in source-validation.ts. */
 type RawTables = Record<(typeof STATIC_KEYS)[number], any[]>;
 type Reward = ReturnType<typeof normalizeReward>;
 
 const BASE = GAMETORA.base;
-const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
+const ROOT = path.resolve(import.meta.dirname, '..');
 const RAW = path.join(ROOT, 'data', 'raw');
 const OUT = path.join(ROOT, 'data');
 const ASSETS = path.join(ROOT, 'public', 'assets');
@@ -67,10 +68,9 @@ async function fetchStatic(keys: readonly string[] = STATIC_KEYS) {
   const manifest = await readJson(manifestFile);
   for (const key of keys) if (typeof manifest[key] !== 'string' || !manifest[key]) throw new Error(`manifest has no valid hash for required source ${key}`);
   const hashesFile = path.join(RAW, 'hashes.json');
-  const hashes = (await exists(hashesFile)) ? await readJson(hashesFile) : {};
+  const hashes: Record<string, string> = await readJsonOr(hashesFile, {});
   for (const key of keys) {
     const hash = manifest[key];
-    if (typeof hash !== 'string' || !hash) throw new Error(`manifest has no valid hash for required source ${key}`);
     const file = rawName(key);
     if (!FORCE && hashes[key] === hash && (await exists(file))) continue;
     console.log('fetch', key, hash);
@@ -91,9 +91,9 @@ async function normalizeMissions() {
   console.log(`mission sets ${catalog.events.length}, mission calendar entries ${catalog.races.length}`);
 }
 
-// ---------- normalization ----------
-
 const RARITY: Record<number, string> = { 1: 'R', 2: 'SR', 3: 'SSR' };
+/** GameTora's grade code of a G1 race, the only grade on the tool's calendar. */
+const G1_GRADE = 100;
 const TYPE: Record<string, string> = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
 
 // Event entry: [nameId, choices, strId, ...history]. choices: [[choiceId, [rewardIds]]] or "no".
@@ -233,11 +233,11 @@ const CROWNS: Record<string, [string, number][]> = {
  * { type: 'unknown', raw } so the model can apply its fallback rate.
  */
 function normalizeCondition(cond: unknown[], instances: Map<number, Row>, raceIdByName: Map<string, number>) {
-  // Only G1s are on the tool's calendar; a condition naming any other race cannot be scored, so it stays unknown.
+  // A condition naming a race off the calendar cannot be scored, so it stays unknown.
   const ref = (v: unknown) => {
     const [id, year] = String(v).split('|');
     const race = instances.get(Number(id));
-    if (!race || race.grade !== 100) return null;
+    if (!race || race.grade !== G1_GRADE) return null;
     return year ? { raceId: race.race_id, year: Number(year) } : { raceId: race.race_id };
   };
   const refs = (list: unknown[]) => { const out = list.map(ref); return out.every(Boolean) ? out : null; };
@@ -286,13 +286,11 @@ function normalizeCharEvents(pageEvents: Row | undefined, outfitPage: Row | unde
 function normalizeCharacters(raw: RawTables, charEvents: PageSources['charEvents'], charEventsByCard: PageSources['charEventsByCard'], races: { name: string; raceId: number }[]) {
   const instances = new Map(raw.races.map((r) => [r.id, r]));
   const raceIdByName = new Map(races.map((r) => [r.name, r.raceId]));
-  // Career goals per character: race objectives with their calendar slot (turn 1 = Junior early January).
   const goalsByChar = new Map();
   for (const entry of raw['ura-objectives'] ?? []) {
     const goals: { slot: number; required: number; races: Row[] }[] = [];
     for (const o of (entry.objectives ?? []) as Row[]) {
-      if (o.cond_type !== 1 || !o.races?.length || o.turn > 72) continue;
-      // cond_value is the placement the objective requires (1 = win, 5 = top five); 0 means taking part is enough
+      if (o.cond_type !== 1 || !o.races?.length || o.turn > SLOT_COUNT) continue;
       goals.push({ slot: o.turn - 1, required: Number(o.cond_value ?? 0), races: o.races.map((r: Row) => ({ raceId: r.id, name: r.name_en, distance: r.distance, surface: r.terrain === 2 ? 'dirt' : 'turf', grade: r.grade, fansNeeded: r.fans_needed ?? 0, fansGain: r.fans_gained ?? 0 })) });
     }
     // Route variants may repeat the same objective. Preserve distinct race choices, count repeated races once.
@@ -350,7 +348,7 @@ function normalizeRaces(raw: RawTables) {
   const out = [];
   for (const cal of raw['ura-races']) {
     const r = races.get(cal.instance);
-    if (!r || r.grade !== 100) continue;
+    if (!r || r.grade !== G1_GRADE) continue;
     out.push({
       calendarId: cal.id,
       raceInstanceId: r.id,
@@ -424,19 +422,13 @@ function normalizeScenarios(raw: RawTables) {
 async function normalize() {
   const raw = {} as RawTables;
   for (const key of STATIC_KEYS) raw[key] = await readJson(rawName(key));
-  const namesFile = path.join(RAW, 'event-names.json');
-  const eventNames = (await exists(namesFile)) ? await readJson(namesFile) : {};
-  const pgFile = path.join(RAW, 'event-data-friend-group.json');
-  const palGroupEvents = (await exists(pgFile)) ? await readJson(pgFile) : {};
-  const utFile = path.join(RAW, 'unique-effect-texts.json');
-  const uniqueTexts = (await exists(utFile)) ? await readJson(utFile) : {};
-  const ceFile = path.join(RAW, 'char-events.json');
-  const charEvents = (await exists(ceFile)) ? await readJson(ceFile) : {};
-  const ceCardFile = path.join(RAW, 'char-events-by-card.json');
-  const charEventsByCard = (await exists(ceCardFile)) ? await readJson(ceCardFile) : {};
+  const eventNames = await readJsonOr(path.join(RAW, 'event-names.json'), {});
+  const palGroupEvents = await readJsonOr(path.join(RAW, 'event-data-friend-group.json'), {});
+  const uniqueTexts = await readJsonOr(path.join(RAW, 'unique-effect-texts.json'), {});
+  const charEvents = await readJsonOr(path.join(RAW, 'char-events.json'), {});
+  const charEventsByCard = await readJsonOr(path.join(RAW, 'char-events-by-card.json'), {});
   const pages = { eventNames, palGroupEvents, charEvents, charEventsByCard };
-  const revisionFile = path.join(RAW, 'page-source-revisions.json');
-  validatePageRevisions(raw, pages, uniqueTexts, (await exists(revisionFile)) ? await readJson(revisionFile) : undefined);
+  validatePageRevisions(raw, pages, uniqueTexts, await readJsonOr(path.join(RAW, 'page-source-revisions.json'), undefined));
   validateGlobalPeriod(raw.scenarios, raw.skills);
   validateSourceTables(raw, pages);
   const cards = normalizeCards(raw, eventNames, palGroupEvents, uniqueTexts);
@@ -476,7 +468,6 @@ async function fetchImages({ cards, skills, characters }: Awaited<ReturnType<typ
   for (const c of characters) jobs.push([`/images/umamusume/characters/thumb/chara_stand_${c.charId}_${c.cardId}.png`, `characters/${c.cardId}.png`]);
   for (const r of [1, 2, 3]) jobs.push([`/images/umamusume/icons/utx_txt_rarity_0${r}.png`, `icons/rarity_${r}.png`]);
   jobs.push(['/images/umamusume/icons/hint.png', 'icons/hint.png']);
-  // support card type icons: 00 speed, 01 stamina, 02 power, 03 guts, 04 wit, 05 pal, 06 group
   for (const [i, t] of ['speed', 'stamina', 'power', 'guts', 'wit', 'pal', 'group'].entries()) jobs.push([`/images/umamusume/icons/utx_ico_obtain_0${i}.png`, `icons/type_${t}.png`]);
   jobs.push(['/images/umamusume/ui/sp.png', 'icons/sp.png']);
   // Skill icons only for skills that some Global card or character can give.
@@ -499,7 +490,7 @@ async function fetchImages({ cards, skills, characters }: Awaited<ReturnType<typ
   await buildScannerArtwork(ROOT);
 }
 
-if (process.argv[1] && await fs.realpath(path.resolve(process.argv[1])) === new URL(import.meta.url).pathname) {
+if (import.meta.main) {
   if ([OFFLINE, DOWNLOAD_ONLY, NORMALIZE_ONLY].filter(Boolean).length > 1) throw new Error('Choose only one of --offline, --download-only and --normalize-only.');
   if (!OFFLINE && !NORMALIZE_ONLY) await fetchStatic(MISSIONS_ONLY ? ['en/missions/limited', 'races', 'ura-races'] : STATIC_KEYS);
   if (!DOWNLOAD_ONLY) {

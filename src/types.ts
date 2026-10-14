@@ -87,7 +87,6 @@ export interface Skill {
 }
 /** A normal-rarity skill: a white, ○, ◎ or × form, or a negative event skill. */
 export const isNormal = (s: Pick<Skill, 'rarity'>) => s.rarity === 1;
-/** A gold (rare) skill. */
 export const isGold = (s: Pick<Skill, 'rarity'>) => s.rarity === 2;
 /** A normal or gold skill, as opposed to a unique or evolved one. Skill families and white sparks hold only these. */
 export const isNormalOrGold = (s: Pick<Skill, 'rarity'>) => isNormal(s) || isGold(s);
@@ -99,7 +98,7 @@ export const APTITUDE_KEYS: AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'mediu
 export const APT_GRADES: Grade[] = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
 /** The message of a thrown value, which need not be an Error. */
 export const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error);
-/** A JSON object as opposed to an array, null or a primitive. Saved state and cached results are checked with it. */
+/** A JSON object as opposed to an array, null or a primitive. */
 export const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 /**
  * A game ID (card, character, skill, race): a positive safe integer. Saved state, inventory files and share codes all
@@ -138,7 +137,12 @@ export interface Character {
 }
 export interface GoalRace { raceId: number; name: string; distance: number; surface: 'turf' | 'dirt'; grade: number; fansNeeded: number; fansGain: number }
 /** slot 0 = Junior early January; `required` is the placement the objective needs (1 = win, 5 = top five), 0 for participation only. */
-export interface CareerGoal { slot: number; races: GoalRace[]; required: number }
+export interface CareerGoal {
+  slot: number;
+  races: GoalRace[];
+  /** The placing GameTora's objective needs (1 = win, 5 = top five); 0 means taking part is enough. */
+  required: number;
+}
 
 export interface Race {
   calendarId: string;

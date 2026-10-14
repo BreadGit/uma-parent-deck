@@ -45,8 +45,8 @@ export async function buildScannerArtwork(root: string, { force = false }: { for
   return { generated: jobs.length, missing };
 }
 
-if (process.argv[1] && await fs.realpath(path.resolve(process.argv[1])).catch(() => null) === new URL(import.meta.url).pathname) {
+if (import.meta.main) {
   if (process.argv.includes('--help')) {
     console.log('Generate compact scanner references from data/raw/scanner-artwork into public/assets/supports/scanner.\nSkips references newer than their source; --force regenerates every one.\nRuns offline using Playwright Chromium; install it with npx playwright install chromium if needed.');
-  } else await buildScannerArtwork(path.resolve(new URL('..', import.meta.url).pathname), { force: process.argv.includes('--force') });
+  } else await buildScannerArtwork(path.resolve(import.meta.dirname, '..'), { force: process.argv.includes('--force') });
 }

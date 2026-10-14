@@ -1,9 +1,9 @@
 import { appendFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { NOTICE_FEED, REFRESH_PATHS, RELEASE_TITLE, RELEASE_WINDOW_HOURS, WEEKLY_CHECK, noticesFrom, refreshDue, snapshotDigest } from './data-refresh.ts';
 
-const root = fileURLToPath(new URL('..', import.meta.url));
+const root = resolve(import.meta.dirname, '..');
 async function output(key: string, value: boolean) {
   console.log(`${key}=${value}`);
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);

@@ -8,7 +8,7 @@ import ranksJson from '../data/ranks.json' with { type: 'json' };
 import scenarioEventsJson from '../data/scenario-events.json' with { type: 'json' };
 import modelJson from '../data/stat-model.json' with { type: 'json' };
 
-/** The bundled game data with lookup maps. Shared by the app, the tests and the inspect script. */
+/** The bundled game data with lookup maps. */
 export function loadData(): Data {
   const cards = cardsJson as unknown as Card[];
   const ratings: Record<string, { base: number }> = ratingsJson.ratings;
@@ -27,7 +27,6 @@ export function loadData(): Data {
   };
 }
 
-/** One Character per charId: the first outfit listed, which is the base one. */
 function firstOutfitById(characters: Character[]): Map<number, Character> {
   const out = new Map<number, Character>();
   for (const c of characters) if (!out.has(c.charId)) out.set(c.charId, c);

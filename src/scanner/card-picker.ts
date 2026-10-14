@@ -6,9 +6,6 @@ import { inputValue, isComposing, matchesWords, queryWords } from '../ui/form.ts
 import { artworkUrl } from './images.ts';
 import type { ScanCard } from './recognize.ts';
 
-/** Names both the search field and its list of results. */
-const PICKER_LABEL = 'Card';
-
 const title = (card: ScanCard) =>
   card.name.endsWith(card.charName) ? card.name.slice(0, -card.charName.length).trim() : card.name;
 const label = (card: ScanCard) => `${card.charName} · ${card.rarity} · ${title(card)} · ${card.type}`;
@@ -60,7 +57,7 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
       }
     };
     return html`<div class="suggest scan-card-picker" @focusout=${onFocusOut}>
-      <label for=${id}>${PICKER_LABEL}</label>
+      <label for=${id}>Card</label>
       <input id=${id} data-card=${key} data-card-id=${selected?.id ?? ''} type="search" role="combobox" class="wide"
         title=${selected ? label(selected) : LABEL.selectCard} placeholder="Search name, title, or type" autocomplete="off"
         .value=${live(open ? query : selected ? label(selected) : '')}
@@ -68,7 +65,7 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
         aria-activedescendant=${open && index >= 0 ? `${listId}-${matches[index]?.id}` : ''}
         @focus=${show} @click=${show} @keydown=${onKey}
         @input=${(event: Event) => { active = key; query = inputValue(event); index = -1; change(); }} />
-      ${open ? html`<ul id=${listId} role="listbox" aria-label=${PICKER_LABEL} tabindex="-1">
+      ${open ? html`<ul id=${listId} role="listbox" aria-label="Card" tabindex="-1">
         ${repeat(matches, card => card.id, (card, i) => html`<li id=${`${listId}-${card.id}`} role="option"
           aria-selected=${i === index} class=${i === index ? 'active' : ''} data-id=${card.id}
           @mousedown=${keepFocus} @click=${() => choose(card)}>

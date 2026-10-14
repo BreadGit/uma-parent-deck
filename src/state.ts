@@ -13,7 +13,7 @@ import { clampStars } from './model/trainee.ts';
 import { defaultMissionState, type MissionState } from './model/missions.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
-export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean; /** The input column is hidden so the results take the full width. */ inputsHidden: boolean }
+export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean; inputsHidden: boolean }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; missions: MissionState; recommendation?: SavedRecommendation }
 
 export const STATE_VERSION = 25;
@@ -64,7 +64,6 @@ const savedStats = (raw: unknown): StatValues => perStat((_, i) => {
 /** Older shapes of the run state and what they turn into. */
 function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   const run: RunInput = { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) };
-  // IDs follow the rule share codes use, so every saved choice can be shared; unknown but valid IDs are kept.
   for (const k of ['wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = gameIds(raw[k]);
   if (isGameId(raw.traineeCardId)) run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
@@ -85,13 +84,6 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   // ignored cards: a card is pinned or ignored, never both; the pin wins
   if (Array.isArray(raw.ignoredIds)) run.ignoredIds = gameIds(raw.ignoredIds).filter((id) => !run.pinnedIds.includes(id));
   if (typeof raw.borrowIgnored === 'boolean') run.borrowIgnored = raw.borrowIgnored;
-  // lineage: {n, stars} (v1) became per-side counts and star totals {k1, k2, p1, p2} (v2), then the stars on each
-  // of the six umas (v23). Older totals place their copies the way the form does.
-  run.targetLineage = {};
-  if (isPlainObject(raw.targetLineage)) for (const [k, v] of Object.entries(raw.targetLineage)) {
-    const l = migrateLineage(v);
-    if (l) run.targetLineage[k] = l;
-  }
   // blue sparks: one combined blueStars list (v1) became stars per parent (v2), then the start gain per parent as
   // the legacy screen shows it (v5), then the spark each of the side's three umas carries (v6). Gains decode into
   // sparks; a side the screen could not show becomes empty. Partial and empty sides are kept.
@@ -110,8 +102,13 @@ function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   if (gains) run.parentSparks = gains.map(sideFromGains);
   run.goal = sanitizeGoal(raw.goal);
   run.targets = sanitizeTargets(raw.targets, data, raw.goal, preserveIds);
-  const lineage = run.targetLineage;
-  run.targetLineage = {};
+  // lineage: {n, stars} (v1) became per-side counts and star totals {k1, k2, p1, p2} (v2), then the stars on each
+  // of the six umas (v23). Older totals place their copies the way the form does.
+  const lineage: Record<string, Lineage> = {};
+  if (isPlainObject(raw.targetLineage)) for (const [k, v] of Object.entries(raw.targetLineage)) {
+    const l = migrateLineage(v);
+    if (l) lineage[k] = l;
+  }
   for (const key of Object.keys(lineage)) {
     const id = isGameIdKey(key) ? savedTargetId(Number(key), data, preserveIds) : null;
     if (id === null) continue;
@@ -168,20 +165,25 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
   const base = defaultState(data);
   if (isSave(saved.current)) {
     const c = saved.current;
+    const ui: Json = isPlainObject(c.ui) ? c.ui : {};
+    const settings: Json = isPlainObject(c.settings) ? c.settings : {};
     const recommendation = c.version === STATE_VERSION ? parseRecommendation(c.recommendation) : undefined;
     const state: AppState = {
       ...(recommendation ? { recommendation } : {}),
       version: STATE_VERSION,
       run: isPlainObject(c.run) ? migrateRun(c.run, data, c.version >= 21) : base.run,
-      settings: isPlainObject(c.settings) ? sanitizeSettings(c.settings) : base.settings,
+      settings: sanitizeSettings(settings),
       inventory: sanitizeInventory(c.inventory),
       missions: migrateMissions(c.missions),
-      ui: { sortKey: isPlainObject(c.ui) && typeof c.ui.sortKey === 'string' ? c.ui.sortKey : DEFAULT_UI.sortKey, theme: isPlainObject(c.ui) && isTheme(c.ui.theme) ? c.ui.theme : DEFAULT_UI.theme,
-        showUnowned: isPlainObject(c.ui) && typeof c.ui.showUnowned === 'boolean' ? c.ui.showUnowned
-          : isPlainObject(c.settings) && typeof c.settings.showUnowned === 'boolean' ? c.settings.showUnowned : DEFAULT_UI.showUnowned,
-        inputsHidden: isPlainObject(c.ui) && typeof c.ui.inputsHidden === 'boolean' ? c.ui.inputsHidden : DEFAULT_UI.inputsHidden },
+      ui: {
+        sortKey: typeof ui.sortKey === 'string' ? ui.sortKey : DEFAULT_UI.sortKey,
+        theme: isTheme(ui.theme) ? ui.theme : DEFAULT_UI.theme,
+        showUnowned: typeof ui.showUnowned === 'boolean' ? ui.showUnowned
+          : typeof settings.showUnowned === 'boolean' ? settings.showUnowned : DEFAULT_UI.showUnowned,
+        inputsHidden: typeof ui.inputsHidden === 'boolean' ? ui.inputsHidden : DEFAULT_UI.inputsHidden,
+      },
     };
-    if (c.version < 25) keepLegacyOwnership(state, isPlainObject(c.settings) ? c.settings.defaultLb : undefined, data);
+    if (c.version < 25) keepLegacyOwnership(state, settings.defaultLb, data);
     return state;
   }
   const state: AppState = {
@@ -202,13 +204,15 @@ export function migrate(saved: { current?: unknown; state?: unknown; settings?: 
 }
 const isTheme = (v: unknown): v is Theme => v === 'system' || v === 'light' || v === 'dark';
 
-export let storageUnavailable = false;
+let storageUnavailable = false;
+export const isStorageUnavailable = () => storageUnavailable;
 /**
- * Set when the save comes from a newer version of the app, such as a tab left open across a release. This version reads
- * it as well as it can, but saving would drop the choices only the newer version understands, so nothing is written
- * until the user chooses to replace it.
+ * The save comes from a newer version of the app, such as a tab left open across a release. This version reads it as
+ * well as it can, but saving would drop the choices only the newer version understands, so nothing is written until
+ * the user chooses to replace it.
  */
-export let newerSave = false;
+let newerSave = false;
+export const hasNewerSave = () => newerSave;
 export function replaceNewerSave(state: AppState) {
   newerSave = false;
   return saveState(state);
@@ -245,11 +249,9 @@ export function loadState(data: Data, fallbackInventory: Inventory): AppState {
   newerSave = isSave(current) && current.version > STATE_VERSION;
   const legacy = { state: readJson(LEGACY_KEYS.state), settings: readJson(LEGACY_KEYS.settings), inventory: readJson(LEGACY_KEYS.inventory), theme: readStored(LEGACY_KEYS.theme) };
   const state = migrate({ current, ...legacy }, data, raw === null ? fallbackInventory : {});
-  // Retire historical family aliases once, before another data update can reinterpret the old save.
-  // If storage is read-only or full, the migrated in-memory state still remains usable.
-  if (isSave(current) && current.version < STATE_VERSION) {
-    saveState(state);
-  }
+  // Migration reads today's data, so save its result once rather than let a later data update reinterpret the old
+  // save. If storage is read-only or full, the migrated state still works in memory.
+  if (isSave(current) && current.version < STATE_VERSION) saveState(state);
   return state;
 }
 export function saveState(state: AppState) {
@@ -267,19 +269,26 @@ export function saveState(state: AppState) {
 }
 
 /**
- * The save another tab wrote since this page last read or wrote one, or null. Its storage event can arrive late, or
- * never reach a page restored from the back-forward cache, so an edit checks here before writing the whole state.
- * A save from a newer version sets `newerSave` instead of being taken over; an unreadable one is copied aside.
+ * The save another tab wrote since this page last read or wrote one: null when there is none, 'unusable' when it is
+ * from a newer version (`hasNewerSave()` turns true) or unreadable (it is copied aside).
  */
-export function storedIfChanged(data: Data): AppState | null {
+function changedSave(data: Data): AppState | 'unusable' | null {
   const raw = readStored(STATE_KEY);
   if (raw === null || raw === lastRaw) return null;
   const current = parseJson(raw);
   lastRaw = raw;
   newerSave = false;
-  if (!isSave(current)) { keepUnreadable(raw); return null; }
-  if (current.version > STATE_VERSION) { newerSave = true; return null; }
+  if (!isSave(current)) { keepUnreadable(raw); return 'unusable'; }
+  if (current.version > STATE_VERSION) { newerSave = true; return 'unusable'; }
   return migrate({ current }, data);
+}
+/**
+ * The save another tab wrote, to take over before writing the whole state: its storage event can arrive late, or
+ * never reach a page restored from the back-forward cache.
+ */
+export function storedIfChanged(data: Data): AppState | null {
+  const saved = changedSave(data);
+  return saved === 'unusable' ? null : saved;
 }
 
 /**
@@ -288,10 +297,9 @@ export function storedIfChanged(data: Data): AppState | null {
  */
 export function watchSavedState(data: Data, accept: (state: AppState) => void, notice: () => void) {
   const check = () => {
-    const previousRaw = lastRaw;
-    const saved = storedIfChanged(data);
-    if (saved) accept(saved);
-    else if (lastRaw !== previousRaw) notice();
+    const saved = changedSave(data);
+    if (saved === 'unusable') notice();
+    else if (saved) accept(saved);
   };
   window.addEventListener('storage', (event) => { if (event.key === STATE_KEY) check(); });
   window.addEventListener('pageshow', (event) => { if (event.persisted) check(); });
@@ -315,14 +323,15 @@ export function resetRun(state: AppState, data: Data): AppState {
   return reset;
 }
 
-/** Optional cached results must not prevent the current recommendation from appearing if storage is full. */
+/**
+ * The cache is optional: it never writes the whole state over a save from another tab that this page has not taken
+ * over, and when storage is full it is dropped so the user's smaller choices still save.
+ */
 export function saveRecommendation(state: AppState, recommendation: SavedRecommendation) {
   state.recommendation = recommendation;
-  // The cache is optional: it never writes the whole state over a save from another tab that this page has not taken over.
   if (readStored(STATE_KEY) !== lastRaw) return;
   if (!saveState(state)) {
     delete state.recommendation;
-    // A large optional cache must not prevent saving the user's smaller choices.
     saveState(state);
   }
 }

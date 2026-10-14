@@ -15,7 +15,7 @@ export function settingRange(key: keyof Settings): string {
 }
 
 /** Apply a form value to a setting. Keep rejected drafts in the view, with the accepted range. */
-export function setSetting(key: keyof Settings, raw: string | boolean): boolean {
+export function setSetting(key: keyof Settings, raw: string): boolean {
   const v = parseSetting(key, raw);
   if (v === undefined) {
     view.settingErrors = { ...view.settingErrors, [key]: { value: String(raw), message: settingRange(key) } };

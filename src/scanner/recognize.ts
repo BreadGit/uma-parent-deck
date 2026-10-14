@@ -84,7 +84,7 @@ const COVERED_ROW = { cards: 3, unread: 2 };
 const FINE_WIDTHS = 4;
 
 /** Area sampling makes matching insensitive to JPEG noise and small differences in screenshot scale. */
-export function sample(image: Pixels, x: number, y: number, width = 1, height = 1): number[] {
+function sample(image: Pixels, x: number, y: number, width = 1, height = 1): number[] {
   const rgb = [0, 0, 0];
   let count = 0;
   for (let iy = Math.max(0, Math.floor(y)); iy < Math.min(image.height, Math.ceil(y + height)); iy++) {
@@ -97,7 +97,7 @@ export function sample(image: Pixels, x: number, y: number, width = 1, height = 
   return rgb.map(v => v / Math.max(1, count));
 }
 
-export function resizeCrop(image: Pixels, box: Box, width: number, height: number): Pixels {
+function resizeCrop(image: Pixels, box: Box, width: number, height: number): Pixels {
   const data = new Uint8ClampedArray(width * height * 4);
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const rgb = sample(image, box.x + x * box.width / width, box.y + y * box.height / height, box.width / width, box.height / height);
@@ -130,7 +130,7 @@ function search(image: Pixels, patch: Template, limit: number): number {
   return found ? best / (from.length * 3 * 255 * 255) : Infinity;
 }
 
-function badges(image: Pixels, references: Reference[]): Slot[] {
+function findSlots(image: Pixels, references: Reference[]): Slot[] {
   // Portrait support-card lists use five columns. Coordinates are discovered from the rarity badges;
   // width determines their scale, so both supplied phone sizes and resized screenshots use the same path.
   const scale = image.width * GRID.cardWidth / CARD.width;
@@ -269,7 +269,7 @@ export function createRecognizer(references: Reference[]) {
     fine: new Map(),
   }));
   return (image: Pixels, progress?: (done: number, total: number) => void): ScanResult => {
-    const slots = badges(image, references);
+    const slots = findSlots(image, references);
     const detections: Detection[] = [];
     let ignoredR = 0;
     for (const [index, slot] of slots.entries()) {
@@ -284,7 +284,7 @@ export function createRecognizer(references: Reference[]) {
       for (const entry of prepared) {
         const ref = entry.reference;
         const compatibleType = !type || ref.type === type || (['pal', 'power'].includes(type) && ['pal', 'power', 'group'].includes(ref.type));
-        if (!ref.artwork || (slot.rarity && ref.rarity !== slot.rarity) || !compatibleType) continue;
+        if ((slot.rarity && ref.rarity !== slot.rarity) || !compatibleType) continue;
         let error = Infinity;
         let width = 0;
         for (const patch of entry.coarse) {

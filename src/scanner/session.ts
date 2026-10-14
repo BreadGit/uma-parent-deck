@@ -12,27 +12,21 @@ import { downloadText } from '../download.ts';
 import { createCardPicker } from './card-picker.ts';
 import { artworkUrl, cropUrl, loadReferences, pixels, screenshotCanvas } from './images.ts';
 import {
-  applyReadings, cardIndex, inventoryFromReview, summarize, triage,
+  applyReadings, inventoryFromReview, summarize, triage,
   type ApplyMode, type Group, type InventoryChange, type ReviewRow, type Summary, type Triage,
 } from './results.ts';
 import type { Box, Reference, ScanCard, ScanResult } from './recognize.ts';
 import type { WorkerRequest, WorkerResponse } from './worker.ts';
 import './style.css';
 
-/** A limit break as the game's card list shows it. */
 const lbBadge = (lb: number) => lb === MAX_LB ? 'MLB' : `${lb}LB`;
 
 const PRIVACY_NOTE = 'Screenshots stay in this browser. No account, upload, or API key.';
 const SCREENSHOT_GUIDANCE = 'Use full-width, five-column Support Card List screenshots. Include all your SR and SSR cards, with some overlap between screenshots. Keep each person’s inventory in a separate batch.';
 const BUSY_NOTICE = 'Still reading. Add more screenshots when this batch finishes, or stop reading first.';
-const NEW_INVENTORY = 'New inventory';
-const EXCLUDE = 'Exclude';
 const CONFLICT_STATUS = 'Different LB readings. Correct or exclude one.';
-const ADDED_MANUALLY = 'Added manually';
 const EXPORT_BLOCKED = 'Resolve uncertain matches, unreadable diamonds, and conflicting readings before downloading.';
-const REVIEW_STEP = 'Check readings';
 const APPLY_BLOCKED = 'Decide the remaining readings first.';
-/** A screenshot's caption, and the message listed for one that was not read. */
 const STATUS_CAPTION = {
   queued: 'Waiting to be read',
   reading: 'Reading…',
@@ -42,7 +36,6 @@ const STATUS_CAPTION = {
   stopped: 'Not read because reading was stopped. Add this screenshot again.',
 };
 const readingStatus = (name: string, done: number, total: number) => `Reading ${name}${total ? ` · ${done} / ${total} cards` : '…'}`;
-const referenceAlt = (name: string) => `Reference artwork: ${name}`;
 const batchSummary = (files: number, readings: number, rare: number) => [
   `${files} screenshot${files === 1 ? '' : 's'}`, `${readings} reading${readings === 1 ? '' : 's'}`,
   ...rare ? [`${rare} R card${rare === 1 ? '' : 's'} ignored`] : [],
@@ -80,14 +73,13 @@ export interface Scanner {
 
 /**
  * One chosen screenshot, listed as soon as its batch starts so an interrupted batch names every file it did not read.
- * Its caption comes from `status` (`STATUS_CAPTION`); `count` and `rare` are its readings once `read`.
+ * `count` and `rare` are its readings once `read`.
  */
 interface Source { id: string; name: string; image: string; count: number; rare: number; status: SourceStatus }
 type SourceStatus = keyof typeof STATUS_CAPTION | 'read';
 /** Statuses of a file that was not read, which adding it again replaces. */
 const NOT_READ: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed', 'stopped']);
-const PROBLEMS: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed']);
-const unfinished = (s: Source) => s.status === 'queued' || s.status === 'reading';
+const FAILED_TO_READ: ReadonlySet<SourceStatus> = new Set(['unreadable', 'noCards', 'failed']);
 class WorkerFailure extends Error {}
 /** The answer each worker request settles with. */
 interface Answer { references: void; scan: ScanResult }
@@ -109,12 +101,11 @@ const boxAttr = (box: Box | undefined) => box ? [box.x, box.y, box.width, box.he
 
 export function createScanner(host: ScannerHost): Scanner {
   const { cards, onChange: paint } = host;
-  const cardById = cardIndex(cards);
+  const cardById = new Map(cards.map(c => [c.id, c]));
   const catalog = cards.filter(c => c.rarity !== 'R').sort((a, b) => a.charName.localeCompare(b.charName) || a.id - b.id);
   const cardPicker = createCardPicker(catalog, paint);
   const lbOptions = [{ value: '', label: 'Not read' }, ...numbered(LIMIT_BREAKS, lb => lb === MAX_LB ? `${lb} (MLB)` : String(lb))];
 
-  // Nothing here persists: closing the page discards the screenshots and the review.
   let sources: Source[] = [], rows: ReviewRow[] = [];
   let busy = false, status = '', error = '', notice = '';
   let query = '', previewOpen = false, dragging = false, sourcesOpen = false, readyOpen = false;
@@ -122,7 +113,6 @@ export function createScanner(host: ScannerHost): Scanner {
   /** The one tile expanded into an editor: `c<cardId>` for a read card, `r<rowKey>` for an excluded row, `u<cardId>` for an unseen card. */
   let openKey: string | null = null;
   let nextKey = 1;
-  /** Aborted by Stop and New inventory: the batch being read stops where it is. */
   let batch: AbortController | null = null;
 
   // One worker keeps the loaded references and matching templates between batches. The decoded references move to
@@ -182,8 +172,7 @@ export function createScanner(host: ScannerHost): Scanner {
     for (const s of sources) if (replaced(s) && s.image) URL.revokeObjectURL(s.image);
     sources = sources.filter(s => !replaced(s));
   }
-  /** Ends every file of the interrupted batch that was not read yet with the reason. */
-  function interrupt(reason: 'failed' | 'stopped') { for (const s of sources) if (unfinished(s)) s.status = reason; }
+  function interrupt(reason: 'failed' | 'stopped') { for (const s of sources) if (s.status === 'queued' || s.status === 'reading') s.status = reason; }
   async function addFiles(files: File[]) {
     if (!files.length) return;
     if (busy) { notice = BUSY_NOTICE; paint(); return; }
@@ -196,11 +185,11 @@ export function createScanner(host: ScannerHost): Scanner {
     busy = true; error = ''; notice = ''; status = 'Loading card artwork…'; paint();
     let loading = !worker;
     try {
-      let scanner = worker;
-      if (!scanner) {
+      let scanWorker = worker;
+      if (!scanWorker) {
         const loaded = await step(loadReferences(cards, signal));
         loading = false;
-        scanner = await startWorker(loaded, signal);
+        scanWorker = await startWorker(loaded, signal);
       }
       for (const { file, source } of queue) {
         source.status = 'reading';
@@ -209,7 +198,7 @@ export function createScanner(host: ScannerHost): Scanner {
         if (!canvas) { source.status = 'unreadable'; paint(); continue; }
         const blob = await step(new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .8)));
         if (blob) source.image = URL.createObjectURL(blob);
-        const result = await call(scanner, { kind: 'scan', image: pixels(canvas) }, { signal,
+        const result = await call(scanWorker, { kind: 'scan', image: pixels(canvas) }, { signal,
           progress: (done, total) => { status = readingStatus(file.name, done, total); paint(); } });
         Object.assign(source, { count: result.detections.length, rare: result.ignoredR,
           status: result.detections.length || result.ignoredR ? 'read' : 'noCards' });
@@ -243,7 +232,7 @@ export function createScanner(host: ScannerHost): Scanner {
     stop();
     sources = []; rows = []; query = ''; status = ''; error = ''; notice = ''; openKey = null; paint();
   }
-  async function newInventory() { if (await confirmDialog('Start a new inventory? This clears the current screenshots and review results.', NEW_INVENTORY)) reset(); }
+  async function newInventory() { if (await confirmDialog('Start a new inventory? This clears the current screenshots and review results.', 'New inventory')) reset(); }
   /** A card the user adds by hand, searched for in a new row at the top of the decisions. */
   function addManual() {
     const row: ReviewRow = { key: nextKey++, source: '', crop: '', detection: null, cardId: null, lb: null, reviewed: false, excluded: false };
@@ -282,9 +271,6 @@ export function createScanner(host: ScannerHost): Scanner {
   }
   const toggled = (set: (value: boolean) => void) => (e: Event) => { set(isOpen(e)); paint(); };
 
-  // ---- Step 1: screenshots -------------------------------------------------------------------------------------
-
-  /** The planner's panel chrome: a numbered heading, a muted note beside it and actions on the right. */
   const stepHead = (step: number, title: string, note: string | TemplateResult | typeof nothing = nothing,
     actions: TemplateResult | typeof nothing = nothing) =>
     html`<div class="panel-head"><h2 data-step=${step}>${title}</h2>
@@ -303,7 +289,7 @@ export function createScanner(host: ScannerHost): Scanner {
     </figure>`)}</div><p class="muted">Cropped or covered rows may be missed. Include them fully in another screenshot, or add the card manually.</p>`;
   }
   function uploadStep() {
-    const failed = sources.filter(s => PROBLEMS.has(s.status)), stopped = sources.filter(s => s.status === 'stopped');
+    const failed = sources.filter(s => FAILED_TO_READ.has(s.status)), stopped = sources.filter(s => s.status === 'stopped');
     const readings = sources.reduce((n, s) => n + s.count, 0), rare = sources.reduce((n, s) => n + s.rare, 0);
     const started = sources.length > 0 || busy;
     return html`<section class="panel scan-upload ${dragging ? 'scan-dragging' : ''}" data-dropzone
@@ -323,8 +309,6 @@ export function createScanner(host: ScannerHost): Scanner {
       ${stopped.length ? html`<div class="scan-messages">${stopped.map(s => html`<p>${s.name}: ${sourceCaption(s)}</p>`)}</div>` : nothing}
     </section>`;
   }
-
-  // ---- Step 2: review ------------------------------------------------------------------------------------------
 
   function label(row: ReviewRow, conflicts: Set<number>) {
     if (row.excluded) return 'Excluded';
@@ -349,12 +333,12 @@ export function createScanner(host: ScannerHost): Scanner {
     const row = target[0]!;
     const card = row.cardId !== null ? cardById.get(row.cardId) : null;
     const lb = row.lb === null ? '' : String(row.lb);
-    const where = target.length > 1 ? `Seen in ${target.length} screenshots` : sourceById.get(row.source)?.name ?? ADDED_MANUALLY;
+    const where = target.length > 1 ? `Seen in ${target.length} screenshots` : sourceById.get(row.source)?.name ?? 'Added manually';
     return html`<article class="scan-card ${cls} ${result.pending.has(row.key) ? 'scan-pending' : ''} ${row.excluded ? 'scan-excluded' : ''}"
       data-row=${row.key}>
       <div class="scan-pictures">
         ${row.crop ? html`<img class="scan-crop" src=${row.crop} alt="Screenshot crop" data-box=${boxAttr(row.detection?.box)} />` : nothing}
-        ${card ? html`<img class="scan-artwork" src=${artworkUrl(card.id)} alt=${referenceAlt(card.name)} />` : nothing}
+        ${card ? html`<img class="scan-artwork" src=${artworkUrl(card.id)} alt=${`Reference artwork: ${card.name}`} />` : nothing}
       </div>
       <div class="scan-card-fields">
         <div class="scan-row-head"><span class="scan-source">${where}</span>
@@ -367,7 +351,7 @@ export function createScanner(host: ScannerHost): Scanner {
           ${!row.excluded && !row.reviewed ? html`<button class="primary" data-confirm=${row.key}
             ?disabled=${row.cardId === null || row.lb === null} @click=${() => edit(target, { reviewed: true })}>Confirm</button>` : nothing}
           <button data-exclude=${row.key} @click=${() => edit(target, { excluded: !row.excluded })}>
-            ${row.excluded ? 'Restore' : EXCLUDE}</button>
+            ${row.excluded ? 'Restore' : 'Exclude'}</button>
         </div>
         ${candidates(row)}
       </div>
@@ -376,16 +360,16 @@ export function createScanner(host: ScannerHost): Scanner {
   /** Screenshots that disagree: each reading is shown with its crop, and one tap settles the card. */
   function conflictCard(group: Group, sourceById: Map<string, Source>) {
     return html`<article class="scan-card scan-pending scan-conflict" data-row=${group.rows[0]!.key} data-conflict=${group.cardId}>
-      <div class="scan-pictures"><img class="scan-artwork" src=${artworkUrl(group.cardId)} alt=${referenceAlt(group.card.name)} /></div>
+      <div class="scan-pictures"><img class="scan-artwork" src=${artworkUrl(group.cardId)} alt=${`Reference artwork: ${group.card.name}`} /></div>
       <div class="scan-card-fields">
         <div class="scan-row-head"><span class="scan-source">${group.card.name}</span>
           <span class="scan-result-label" data-row-status>${CONFLICT_STATUS}</span></div>
         <div class="scan-conflict-options">${group.rows.map(row => html`<div class="scan-conflict-option">
-          ${row.crop ? html`<img class="scan-crop" src=${row.crop} alt=${sourceById.get(row.source)?.name ?? ADDED_MANUALLY} />` : nothing}
-          <span class="scan-source">${sourceById.get(row.source)?.name ?? ADDED_MANUALLY}</span>
+          ${row.crop ? html`<img class="scan-crop" src=${row.crop} alt=${sourceById.get(row.source)?.name ?? 'Added manually'} />` : nothing}
+          <span class="scan-source">${sourceById.get(row.source)?.name ?? 'Added manually'}</span>
           <button class="primary small" data-use=${row.key} @click=${() => edit(group.rows, { lb: row.lb })}>Use ${lbBadge(row.lb!)}</button>
         </div>`)}</div>
-        <div class="scan-row-actions"><button data-exclude=${group.rows[0]!.key} @click=${() => edit(group.rows, { excluded: true })}>${EXCLUDE}</button></div>
+        <div class="scan-row-actions"><button data-exclude=${group.rows[0]!.key} @click=${() => edit(group.rows, { excluded: true })}>Exclude</button></div>
       </div>
     </article>`;
   }
@@ -423,14 +407,14 @@ export function createScanner(host: ScannerHost): Scanner {
       : html`<span data-summary role="status">${rows.length ? reviewSummary(result.owned, decide, result.duplicates, t.excluded.length) : status}</span>`;
     const toolbar = html`<div class="scan-toolbar">
       <button data-add @click=${addManual} ?disabled=${busy}>Add a card</button>
-      ${rows.length || sources.length ? html`<button data-new @click=${newInventory} ?disabled=${busy}>${NEW_INVENTORY}</button>` : nothing}
+      ${rows.length || sources.length ? html`<button data-new @click=${newInventory} ?disabled=${busy}>New inventory</button>` : nothing}
     </div>`;
     // Steps after the first stay dimmed until a batch has finished reading.
     const waiting = busy || !rows.length ? 'scan-waiting' : '';
-    if (!rows.length) return html`<section class="panel scan-review ${waiting}">${stepHead(2, REVIEW_STEP, note, toolbar)}<p class="muted">Add screenshots or cards to create an inventory.</p></section>`;
+    if (!rows.length) return html`<section class="panel scan-review ${waiting}">${stepHead(2, 'Check readings', note, toolbar)}<p class="muted">Add screenshots or cards to create an inventory.</p></section>`;
     const editor = (key: string, target: ReviewRow[]) => openKey === key ? reviewCard(target, result, sourceById, 'scan-tile-editor') : nothing;
     return html`<section class="panel scan-review ${waiting}">
-      ${stepHead(2, REVIEW_STEP, note, toolbar)}
+      ${stepHead(2, 'Check readings', note, toolbar)}
       <div class="scan-filters">
         <input type="search" aria-label="Filter by card or screenshot name" placeholder="Filter cards" .value=${live(query)}
           @input=${(e: Event) => { query = inputValue(e); paint(); }} />
@@ -463,12 +447,9 @@ export function createScanner(host: ScannerHost): Scanner {
     </section>`;
   }
 
-  // ---- Step 3: finish ------------------------------------------------------------------------------------------
-
   const canFinish = (result: Summary) => !busy && (rows.length > 0 || sources.some(s => s.rare > 0)) && result.pending.size === 0;
   const inventoryJson = (result: Summary) => JSON.stringify(inventoryFromReview(rows, cards, result), null, 1);
   const download = (result: Summary) => downloadText('inventory.json', inventoryJson(result) + '\n', 'application/json');
-  const change = (result: Summary) => host.apply && canFinish(result) ? applyReadings(host.apply.current(), cards, result, mode) : null;
   function apply(result: Summary) {
     if (!host.apply || !canFinish(result)) return;
     let applied = null as InventoryChange | null;
@@ -489,7 +470,7 @@ export function createScanner(host: ScannerHost): Scanner {
           <summary>Preview JSON</summary>${previewOpen ? html`<pre data-json>${inventoryJson(result)}</pre>` : nothing}</details>` : nothing}
       </section>`;
     }
-    const planned = change(result);
+    const planned = canFinish(result) ? applyReadings(host.apply.current(), cards, result, mode) : null;
     const changes = planned ? planned.owned.length + planned.unowned.length + planned.changed.length : 0;
     const names = (list: ScanCard[]) => list.map(c => c.name).join(', ');
     return html`<section class="panel scan-export ${planned ? '' : 'scan-waiting'}">${stepHead(3, 'Apply to inventory')}
@@ -518,7 +499,6 @@ export function createScanner(host: ScannerHost): Scanner {
     </div>`;
   }
 
-  // Prototype flow: three numbered steps, a decision-first review, and a bar that keeps the finish action in view.
   function render() {
     const result = summarize(rows, cards);
     const t = triage(rows, cards, result);

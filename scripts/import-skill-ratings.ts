@@ -1,10 +1,10 @@
 // Import only direct GameWith evaluation values from UmaTools' full export, never its cost fallbacks.
-import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { readJson, writeJson } from './json-file.ts';
 import { isGold, isNormalOrGold, type Skill } from '../src/types.ts';
 
 interface ExportedSkill { skill_jp?: string; is_evo: boolean; skill_type: string; base_value: unknown }
-const data = (name: string) => fileURLToPath(new URL(`../data/${name}`, import.meta.url));
+const data = (name: string) => path.join(import.meta.dirname, '..', 'data', name);
 const exportFile = process.argv[2];
 if (!exportFile) throw new Error('Usage: node scripts/import-skill-ratings.ts <UmaTools full export.json>');
 const source: { metadata: { source_url: string; scraped_at_utc: string }; skills: ExportedSkill[] } = await readJson(exportFile);

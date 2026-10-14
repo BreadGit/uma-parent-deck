@@ -1,5 +1,5 @@
 import { html, nothing } from 'lit-html';
-import { newerSave, removeUnreadableSave, replaceNewerSave, storageUnavailable, unreadableSave } from '../state.ts';
+import { hasNewerSave, isStorageUnavailable, removeUnreadableSave, replaceNewerSave, unreadableSave } from '../state.ts';
 import { downloadText } from '../download.ts';
 import { refresh, store } from './context.ts';
 import { confirmDialog } from './dialog.ts';
@@ -24,9 +24,9 @@ function unreadableNotice() {
     <button class="small" data-action="remove-unreadable" @click=${removeCopy}>Remove it</button></div>`;
 }
 
-export const storageNotice = () => html`${newerSave
+export const storageNotice = () => html`${hasNewerSave()
   ? html`<div class="banner" data-newer-save role="status"><p>The choices in this browser were saved by a newer version of this page, so this older page does not save changes. Reload to get the newer version.</p>
     <button class="small" data-action="replace-newer-save" @click=${replaceNewer}>Save changes here anyway</button></div>`
-  : nothing}${storageUnavailable
+  : nothing}${isStorageUnavailable()
   ? html`<p class="banner" data-storage-warning role="status">This browser cannot save your changes. You can keep using this page, but changes may be lost when you leave. Copy the run URL and export your inventory before leaving; advanced settings are not included in the run URL.</p>`
   : nothing}${unreadableNotice()}`;

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { effectiveLb } from '../src/model/run.ts';
-import { defaultState, loadState, newerSave, removeUnreadableSave, replaceNewerSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storageUnavailable, storedIfChanged, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
+import { defaultState, hasNewerSave, isStorageUnavailable, loadState, removeUnreadableSave, replaceNewerSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storedIfChanged, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
 
 test('storage failures preserve in-memory edits and an existing save, then recover', () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
@@ -26,7 +26,7 @@ test('storage failures preserve in-memory edits and an existing save, then recov
     full = true;
     loaded.ui.theme = 'dark';
     assert.equal(saveState(loaded), false);
-    assert.equal(storageUnavailable, true);
+    assert.equal(isStorageUnavailable(), true);
     assert.equal(loaded.ui.theme, 'dark');
     assert.deepEqual(JSON.parse(saved.get(STATE_KEY)!), original);
     blocked = true;
@@ -34,7 +34,7 @@ test('storage failures preserve in-memory edits and an existing save, then recov
     assert.equal(saveState(loaded), false);
     blocked = full = false;
     assert.equal(saveState(loaded), true);
-    assert.equal(storageUnavailable, false);
+    assert.equal(isStorageUnavailable(), false);
     assert.deepEqual(loadState(data, {}).ui, loaded.ui);
   } finally {
     if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor);
@@ -147,14 +147,14 @@ test('a save from a newer version is read but never replaced until the user choo
   const saved = new Map([[STATE_KEY, raw]]);
   withStorage(saved, () => {
     const loaded = loadState(data, {});
-    assert.equal(newerSave, true);
+    assert.equal(hasNewerSave(), true);
     assert.deepEqual(loaded.inventory, { 30028: 2 }, 'the choices this version understands are shown');
     loaded.ui.theme = 'dark';
     assert.equal(saveState(loaded), false);
     assert.equal(saved.get(STATE_KEY), raw, 'ordinary edits leave the newer save intact');
-    assert.equal(storageUnavailable, false, 'a newer save is not reported as unavailable storage');
+    assert.equal(isStorageUnavailable(), false, 'a newer save is not reported as unavailable storage');
     assert.equal(replaceNewerSave(loaded), true, 'the user can choose to replace it');
-    assert.equal(newerSave, false);
+    assert.equal(hasNewerSave(), false);
     assert.equal(JSON.parse(saved.get(STATE_KEY)!).version, STATE_VERSION);
     assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
   });
@@ -166,12 +166,12 @@ test('a page blocked by a newer save saves again once another tab replaces it wi
   const saved = new Map([[STATE_KEY, JSON.stringify(future)]]);
   withStorage(saved, () => {
     const page = loadState(data, {});
-    assert.equal(newerSave, true);
+    assert.equal(hasNewerSave(), true);
     const other = defaultState(data);
     other.settings.focus = 'balanced';
     saved.set(STATE_KEY, JSON.stringify(other));
     assert.equal(storedIfChanged(data)?.settings.focus, 'balanced');
-    assert.equal(newerSave, false);
+    assert.equal(hasNewerSave(), false);
     page.ui.sortKey = 'speed';
     assert.equal(saveState(page), true);
   });

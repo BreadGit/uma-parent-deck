@@ -1,47 +1,46 @@
 import { isPlainObject, RARITIES, type Focus, type Rarity } from './types.ts';
 import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
 
+/** Per rarity: null uses the inventory; a number assumes every card of that rarity is owned at that LB. */
 export type InventoryOverrides = Record<Rarity, number | null>;
 
 export interface Settings {
-  goalTieTolerance: number;     // relative required-goal window in which preferred extras can decide
-  // main page
+  goalTieTolerance: number;
   winThreshold: number;          // include a G1 when P(win) >= this
   focus: Focus;
-  inventoryOverrides: InventoryOverrides; // null uses inventory; a number assumes every card of that rarity is owned at that LB
-  // advanced: independent-training rates the game does not publish
-  affinity: number;              // individual affinity score assumed for every uma in the lineage; each spark procs at (1 + affinity/100)
-  hintBase: number;              // per-card per-turn hint chance before Hint Frequency, manual-run measurement
-  hintScale: number;             // multiplier applied to the hint model (independent training is unmeasured)
-  hintTurnsShare: number;        // fraction of turns a card is on the trained facility
-  chainRatesSSR: number[];       // completion chance of chain event 1..3 for SSR
-  chainRatesSR: number[];        // chain 1..2 for SR
-  randomEventRate: number;       // chance a given random event fires during a run (cards with more than 2 random events are scaled so 2 fire on average)
-  palChainRate: number;          // Pal card date chain completes (every date, incl. the finale skill)
-  groupOutingRate: number;       // Group card member outing happens
-  groupFinaleRate: number;       // Group card finale (gold skill) happens
-  specialEventRate: number;      // assumed rate for Pal/Group unlock and New Year events
-  scenarioPickRate: number;      // the scenario's linked-skill event fires and the prioritized option is taken
-  scenarioSongsRate: number;     // the run learns enough songs for the scenario's gold completion skill
-  concertGreatSuccessRate: number; // promotional and ordinary final concerts reach great success
-  charStoryEventRate: number;    // the trainee's own story and choice events play during the run
-  charOutingRate: number;        // one of the trainee's own outing events happens
-  charUndecodedEventRate: number; // a skill GameTora lists for the trainee's events without a decoded event behind it (outfit-specific events)
-  charConditionFallbackRate: number; // a secret-event condition the tool cannot evaluate (rival results, streaks) is met
-  scenarioId: number;            // career scenario (3 = Our Grand Concert)
-  goldRollStat: number;          // the stat of a card's type assumed when its final chain event rolls gold against white
-  goldSparkRate: number;         // white spark chance at run end when the gold skill is owned
-  circleSparkRate: number;       // ... when the ◎ form is owned
-  whiteSparkRate: number;        // ... when the white skill is owned
-  pinkInspirationRates: number[]; // per-event activation rates for 1/2/3-star pink sparks at zero affinity
-  whiteStarsBelowB: number[];    // approximate 1/2/3-star distribution below rank B
-  whiteStarsUE: number[];        // approximate 1/2/3-star distribution at UE and above
-  whiteSparkInheritRates: number[]; // chance per inspiration event that a 1/2/3★ white spark in the lineage gives its hint, at 0 affinity
-  lineageSparkMultiplier: number;   // spark generation chance multiplier per lineage occurrence of the same spark
-  blueInspirationGainMean: number[]; // assumed mean stat roll when a 1/2/3★ blue spark procs at an inspiration event
-  uniqueAprilBondRate: number;   // the April unique-skill level-up's chairperson bond check passes
-  lossPenalty: number;           // total stat points lost per expected race loss
-  skillScoreSd: number;          // uncertainty of the skill part of the rank score
+  inventoryOverrides: InventoryOverrides;
+  affinity: number;
+  hintBase: number;
+  hintScale: number;
+  hintTurnsShare: number;
+  chainRatesSSR: number[];
+  chainRatesSR: number[];
+  randomEventRate: number;
+  palChainRate: number;
+  groupOutingRate: number;
+  groupFinaleRate: number;
+  specialEventRate: number;
+  scenarioPickRate: number;
+  scenarioSongsRate: number;
+  concertGreatSuccessRate: number;
+  charStoryEventRate: number;
+  charOutingRate: number;
+  charUndecodedEventRate: number;
+  charConditionFallbackRate: number;
+  scenarioId: number;
+  goldRollStat: number;
+  goldSparkRate: number;
+  circleSparkRate: number;
+  whiteSparkRate: number;
+  pinkInspirationRates: number[];
+  whiteStarsBelowB: number[];
+  whiteStarsUE: number[];
+  whiteSparkInheritRates: number[];
+  lineageSparkMultiplier: number;
+  blueInspirationGainMean: number[];
+  uniqueAprilBondRate: number;
+  lossPenalty: number;
+  skillScoreSd: number;
   totalTurnsOverride: number | null;
 }
 
@@ -94,7 +93,6 @@ export type SettingSpec =
   | { kind: 'number-or-null'; min: number; max: number }
   | { kind: 'list'; length: number; min: number; max: number; sum?: number; nonIncreasing?: boolean; bounds?: readonly (readonly [number, number])[] } // bounds: each entry's own range, inside min..max
   | { kind: 'enum'; values: readonly (string | number)[] }   // the saved value must be one of these, same type included
-  | { kind: 'boolean' }
   | { kind: 'inventory-overrides' };
 const rate: SettingSpec = { kind: 'number', min: 0, max: 1 };
 const odds: SettingSpec = { kind: 'list', length: 3, min: 0, max: 1 };
@@ -158,24 +156,19 @@ export function isValidSetting(key: keyof Settings, value: unknown): boolean {
       && (!spec.nonIncreasing || value.every((v, i) => i === 0 || v <= value[i - 1]!))
       && (!spec.bounds || value.every((v, i) => inRange(v, spec.bounds![i]![0], spec.bounds![i]![1])));
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
-    case 'boolean': return typeof value === 'boolean';
     case 'inventory-overrides': return isPlainObject(value) && RARITIES.every((r) => value[r] === null || isLimitBreak(value[r]));
   }
 }
 
-/**
- * Parse a form value (text or checkbox state) for a setting. Returns undefined when it does not satisfy the spec,
- * so the caller keeps the current value.
- */
-export function parseSetting(key: keyof Settings, raw: string | boolean): Settings[keyof Settings] | undefined {
+/** Parse a form value for a setting. Returns undefined when it does not satisfy the spec, so the caller keeps the current value. */
+export function parseSetting(key: keyof Settings, raw: string): Settings[keyof Settings] | undefined {
   const spec = SETTING_SPEC[key];
   let value: unknown;
   switch (spec.kind) {
-    case 'boolean': value = typeof raw === 'boolean' ? raw : raw === 'true'; break;
-    case 'enum': value = spec.values.find((v) => String(v) === String(raw)); break; // the spec's own value, so a numeric enum parses to a number
+    case 'enum': value = spec.values.find((v) => String(v) === raw); break; // the spec's own value, so a numeric enum parses to a number
     case 'number-or-null': value = raw === '' ? null : Number(raw); break;
     case 'number': value = Number(raw); break;
-    case 'list': value = String(raw).split(/[,\s]+/).filter(Boolean).map(Number); break;
+    case 'list': value = raw.split(/[,\s]+/).filter(Boolean).map(Number); break;
     case 'inventory-overrides': return undefined; // each rarity has its own select
   }
   return isValidSetting(key, value) ? (value as Settings[keyof Settings]) : undefined;
