@@ -7,6 +7,7 @@ import path from 'node:path';
 import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
 import { readJson, readJsonOr, writeJson } from './json-file.ts';
 import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, PAGE_SOURCE_FILES, uniqueEffectText, UNLOCK_LINE, type PageRevision } from './page-cache.ts';
+import { isCompoundUniqueEffect } from '../src/model/rules.ts';
 
 // The rows of GameTora's static feed this script reads, and the validated event data of a page.
 interface RawSupport { support_id: number; char_id: number; type: string; url_name: string; release_en?: string; unique?: { effects: { type: number }[] } }
@@ -120,7 +121,7 @@ const uniqueTexts: Record<number, string> = await readJsonOr(UNIQUE_OUT, {});
 // an earlier version of this script kept the UNLOCK_LINE as the text, so a cached entry that is only that line is refetched
 const compound = cards.filter((c) => {
   const text = uniqueTexts[c.support_id];
-  return c.release_en && c.unique?.effects.some((u) => u.type >= 100) && (!text || UNLOCK_LINE.test(text) || !current(`unique:${c.support_id}`, c, text));
+  return c.release_en && c.unique?.effects.some((u) => isCompoundUniqueEffect(u.type)) && (!text || UNLOCK_LINE.test(text) || !current(`unique:${c.support_id}`, c, text));
 });
 console.log(`${compound.length} compound unique effects to fetch (${Object.keys(uniqueTexts).length} cached)`);
 for (const c of compound) {

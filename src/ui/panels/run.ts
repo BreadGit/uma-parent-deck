@@ -1,7 +1,7 @@
 // Run setup: the scenario, the training focus, the race win threshold, and the cards the deck must include.
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
-import type { Card } from '../../types.ts';
+import { FOCUSES, type Card } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { effectiveLb } from '../../model/run.ts';
 import { data, store, update, view } from '../context.ts';
@@ -17,7 +17,7 @@ import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE } from '../../model/rules.ts';
 const OWNED_SLOTS = DECK_SIZE - BORROWED_SLOTS;
 
 const LIGHT_HELLO_IDS = data.cards.filter((c) => c.charName === 'Light Hello').map((c) => c.id);
-const FOCUS_CHOICES = (['balanced', 'stamina', 'sprint'] as const).map((f) => ({ value: f, label: capitalize(f) }));
+const FOCUS_CHOICES = FOCUSES.map((f) => ({ value: f, label: capitalize(f) }));
 
 function matches(query: string, listed: number[]): Card[] {
   const words = queryWords(query);

@@ -9,7 +9,7 @@ import { APTITUDE_LABELS, emptyPinkLineage, type PinkSpark } from '../../model/g
 import { pinkAptitudeGrades, withPinkAptitude, withPinkLineage } from '../../model/pink-inherit.ts';
 import type { RunPlan } from '../../model/run.ts';
 import { defaultParentSparks, inheritedFromGain, START_GAINS, UMA_LABELS, withParentGain, type BlueSpark } from '../../model/inherit.ts';
-import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
+import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE, isSparkStars, SPARK_STARS } from '../../model/rules.ts';
 import { data, store, update, view } from '../context.ts';
 import { TITLE } from '../copy.ts';
 import { numbered, options, selectValue } from '../form.ts';
@@ -29,8 +29,7 @@ const GRADES_AND_PINK_SPARKS = [
 const BLUE_PER_PARENT = 'Blue per parent';
 const PARENTS = [0, 1] as const;
 const UMAS = Array.from({ length: UMAS_PER_PARENT_SIDE }, (_, i) => i);
-const STAR_OPTIONS = [1, 2, 3];
-const STAR_CHOICES = numbered(STAR_OPTIONS, (n) => `${n}★`);
+const STAR_CHOICES = numbered(SPARK_STARS, (n) => `${n}★`);
 const STAT_CHOICES = STATS.map((st) => ({ value: st, label: capitalize(st) }));
 const ROWS: [string, AptKey[]][] = [['Track', ['turf', 'dirt']], ['Distance', ['sprint', 'mile', 'medium', 'long']], ['Style', ['front', 'pace', 'late', 'end']]];
 /** Stars a uma gets when her spark is picked in the form; rental parents on the databases are mostly 3★. */
@@ -49,7 +48,7 @@ function setSpark(pi: number, ui: number, patch: { stat?: Stat; stars?: number }
     const cur = s.run.parentSparks[pi]![ui] ?? null;
     const stat = patch.stat ?? cur?.stat;
     const stars = patch.stars ?? cur?.stars ?? NEW_SPARK_STARS;
-    if (!STATS.includes(stat as Stat) || !STAR_OPTIONS.includes(stars)) return;
+    if (!STATS.includes(stat as Stat) || !isSparkStars(stars)) return;
     const next: BlueSpark = { stat: stat as Stat, stars };
     s.run.parentSparks = s.run.parentSparks.map((p, j) => (j === pi ? p.map((u, k) => (k === ui ? next : u)) : p));
   });

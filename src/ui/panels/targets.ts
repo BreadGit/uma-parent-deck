@@ -10,7 +10,7 @@ import type { Target } from '../../model/sparks.ts';
 import { emptyLineage, hasWhiteSpark, lineageCount, lineageStars, resolveTarget, withLineageCopies, withLineageStars, type Lineage } from '../../model/sparks.ts';
 import { goalFamily, sanitizePriority, type WhiteTarget } from '../../model/goal-input.ts';
 import { UMA_LABELS } from '../../model/inherit.ts';
-import { LINEAGE_SLOTS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
+import { LINEAGE_SLOTS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE, SPARK_STARS } from '../../model/rules.ts';
 import { data, store, update, view } from '../context.ts';
 import { LABEL } from '../copy.ts';
 import { inputNumber, isOpen, matchesWords, numbered, options, queryWords, selectValue } from '../form.ts';
@@ -69,7 +69,7 @@ function editLineage(id: number, edit: (l: Lineage) => Lineage) {
 const lineageOf = (id: number): Lineage => store.run.targetLineage[String(id)] ?? emptyLineage();
 const toggleLineageParents = () => { view.showLineageParents = !view.showLineageParents; };
 
-const STAR_CHOICES = numbered([1, 2, 3], (n) => `${n}★+`);
+const STAR_CHOICES = numbered(SPARK_STARS, (n) => `${n}★+`);
 const isSelected = (t: Target) => view.targetEditorId === t.id;
 
 function nameButton(t: Target) {
@@ -83,7 +83,7 @@ function nameButton(t: Target) {
 const SIDES = [0, 1] as const;
 const UMAS = Array.from({ length: UMAS_PER_PARENT_SIDE }, (_, i) => i);
 const COPY_CHOICES = numbered(Array.from({ length: LINEAGE_SLOTS + 1 }, (_, n) => n), (n) => `${n}×`);
-const UMA_STAR_CHOICES = [{ value: '0', label: '—' }, ...numbered([1, 2, 3], (n) => `${n}★`)];
+const UMA_STAR_CHOICES = [{ value: '0', label: '—' }, ...numbered(SPARK_STARS, (n) => `${n}★`)];
 
 /** The copy count and star total; the total's choices run from one star per copy to the maximum, and it is disabled without copies. */
 function lineageTotals(id: number, l: Lineage) {

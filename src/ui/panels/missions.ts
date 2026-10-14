@@ -12,6 +12,8 @@ import { searchBox, SUGGESTION_LIMIT } from '../fields.ts';
 import { charImg } from '../format.ts';
 import { about, panel } from '../panel.ts';
 
+const SUGGESTED_TRAINEES = 5;
+
 const RANKING_METHOD = 'Ranked by how many different remaining mission races fit in one career, then by overlap with career goals. Uses base surface and distance grades B or better and the standard career goals; inheritance, win chances, fan requirements and other mission conditions are not evaluated.';
 const fitSummary = (fit: MissionRaceFit) => `${fit.schedule.size} / ${fit.total} remaining races fit · ${fit.goalMatches} also career goals`;
 const date = (time: number) => new Date(time).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -92,7 +94,7 @@ function traineePicker(recommendations: MissionRaceFit[], chosen: MissionRaceFit
       key: (item) => item.cardId, action: 'pick-mission-trainee', pick: (item) => pickTrainee(item.cardId),
       row: (item) => html`${item.name}<span class="suggest-r">${item.title}</span>` })}
     ${recommendations[0]?.total ? html`<h3>Suggested trainees</h3><div class="mission-recommendations">
-      ${recommendations.slice(0, 5).map((fit) => html`<button class="mission-recommendation ${fit.trainee.cardId === trainee?.cardId ? 'active' : ''}"
+      ${recommendations.slice(0, SUGGESTED_TRAINEES).map((fit) => html`<button class="mission-recommendation ${fit.trainee.cardId === trainee?.cardId ? 'active' : ''}"
         data-mission-recommend=${fit.trainee.cardId} aria-pressed=${fit.trainee.cardId === trainee?.cardId} @click=${() => pickTrainee(fit.trainee.cardId)}>
         <strong>${fit.trainee.name}</strong><span class="small">${fit.trainee.title}</span>
         <span class="small">${fitSummary(fit)}</span>

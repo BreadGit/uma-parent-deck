@@ -20,6 +20,7 @@ export const PARENTS = 2;
 export const UMAS_PER_PARENT_SIDE = 3;       // the parent plus her two grandparents
 export const STARS_PER_SPARK_MAX = 3;
 export const isSparkStars = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= STARS_PER_SPARK_MAX;
+export const SPARK_STARS: readonly number[] = Array.from({ length: STARS_PER_SPARK_MAX }, (_, i) => i + 1);
 export const MAX_PARENT_STARS = UMAS_PER_PARENT_SIDE * STARS_PER_SPARK_MAX;   // 9 blue stars per side
 export const MAX_BLUE_STARS = PARENTS * MAX_PARENT_STARS;                     // 18 across the lineage
 export const LINEAGE_MAX_PER_SIDE = UMAS_PER_PARENT_SIDE;                     // copies of one white spark per side
@@ -119,6 +120,10 @@ export const WHITE_GENERATION_BANDS = [
   { min: 6500, rates: [0.5, 0.45, 0.05], approximate: false },
   { min: 17500, rates: [0.2, 0.7, 0.1], approximate: false },
 ] as const;
+/** The rank score where UE begins (data/ranks.json); white stars from there on use an advanced setting. */
+export const UE_RANK_MIN_SCORE = 28800;
+/** GameTora numbers compound unique effects from 100; the static feed has no definition for them, only the card page's text. */
+export const isCompoundUniqueEffect = (type: number) => type >= 100;
 /** Rating multiplier by the trainee's aptitude for a skill's condition (UmaTools buckets: S/A, B/C, D/E/F, G). */
 export const APTITUDE_BUCKET_MULTIPLIER = { good: 1.1, average: 0.9, bad: 0.8, terrible: 0.7 };
 

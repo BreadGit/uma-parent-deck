@@ -2,7 +2,7 @@
 import type { AppState } from './state.ts';
 import type { RunInput } from './model/run.ts';
 import type { Settings } from './settings.ts';
-import { isCalendarId, isGameId, isPlainObject, type AptKey, type Grade, type Stat } from './types.ts';
+import { FOCUSES, isCalendarId, isGameId, isPlainObject, type AptKey, type Grade, type Stat } from './types.ts';
 import { lineageFromSides, type Lineage } from './model/sparks.ts';
 
 export interface SharedChoices {
@@ -17,7 +17,6 @@ const FORMAT = 6;
 const STATS: readonly Stat[] = ['speed', 'stamina', 'power', 'guts', 'wit'];
 const APTITUDES: readonly AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 const GRADES: readonly Grade[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-const FOCUSES: readonly Settings['focus'][] = ['balanced', 'stamina', 'sprint'];
 const DEFAULTS: SharedChoices = {
   run: {
     traineeCardId: null, traineeStars: 3,

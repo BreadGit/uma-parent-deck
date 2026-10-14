@@ -27,7 +27,7 @@ function slot(c: RunPlan, cs: CardScore) {
 }
 
 function limitations(c: RunPlan) {
-  const cards = c.deckResult.deck.map((cs) => ({ cs, effects: cardEffectCoverage(cs.card, cs.lb, data.model, { deck: c.deckResult.deck, fansBefore: c.ctx.fansBefore })
+  const cards = c.deckResult.deck.map((cs) => ({ cs, effects: cardEffectCoverage(cs.card, cs.lb, data.model)
     .filter((effect) => missingEffect(effect) || effect.reason === 'teamBond' || (cs.source !== 'model' && observedDeckEffect(effect))) }))
     .filter(({ effects }) => effects.length > 0);
   if (!cards.length) return nothing;

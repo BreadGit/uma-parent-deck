@@ -28,8 +28,8 @@ const SCORING_METHOD = [
 
 // The Basis label keeps the row one line tall: the per-card facts live in the info icon's tooltip, like every other
 // tip on the page, and the rules shared by every card are in the column header tip and the panel notes.
-function basis(c: RunPlan, x: CardScore) {
-  const effects = cardEffectCoverage(x.card, x.lb, data.model, { fansBefore: c.ctx.fansBefore });
+function basis(x: CardScore) {
+  const effects = cardEffectCoverage(x.card, x.lb, data.model);
   const flag = coverageFlag(effects);
   return html`<span class="basis-label" data-basis=${x.card.id}><span data-basis-label>${basisLabel(x.card, x.lb, x.source)}</span>${flag ? html` <span class="tag warn" data-formula-coverage>${flag}</span>` : nothing}${tip(basisTip(x.card, x.lb, x.source, effects))}</span>`;
 }
@@ -72,7 +72,7 @@ function row(c: RunPlan, x: CardScore, chances: TargetSparkChance[], focusMul: S
     ${targetChancesCell(x.card.id, chances)}
     ${perStat((stat, i) => html`<td class="num" data-card-stat="${stat}">${num(x.stats[i] * focusMul[i])}</td>`)}
     <td class="num" data-card-stat-total><b>${num(x.statPower)}</b></td><td class="num">${num(x.sp)}</td>
-    <td class="basis small">${basis(c, x)}</td>
+    <td class="basis small">${basis(x)}</td>
   </tr>`;
 }
 
@@ -81,7 +81,7 @@ export function renderRanking(c: RunPlan) {
   const sortKey = fn ? store.ui.sortKey : 'score';
   const chances = new Map(c.ranking.map((x) => [x.card.id, cardTargetChances(x, store.run.targets, c.ctx)]));
   // per-stat cells carry the training focus multipliers, like the Total column (their focus-weighted sum)
-  const focusMul: StatValues = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
+  const focusMul = data.model.focus[store.settings.focus];
   const rows = rankingRows(c.ranking.filter((x) => store.ui.showUnowned || !c.unowned.has(x.card.id)), store.run.pinnedIds, deckOrder(c), (a, b) =>
     fn ? fn(b) - fn(a) : compareTargetChances(chances.get(a.card.id)!, chances.get(b.card.id)!));
   // A native button makes each header sortable from the keyboard; the info tip stays beside it, outside the button.

@@ -2,7 +2,6 @@ import { STATS, perStat, type Card, type Character, type Focus, type StatModel, 
 import type { Settings } from '../settings.ts';
 import { BLUE_GENERATION_BANDS } from './rules.ts';
 
-export { EFFECT, passives, uniqueExtras } from './support-effects.ts';
 import { EFFECT, passives, uniqueExtras, spModelFor } from './support-effects.ts';
 
 /** Total career turns for the race scaling. SETTING_SPEC keeps an override above the reference race count. */

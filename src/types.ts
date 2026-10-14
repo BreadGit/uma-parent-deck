@@ -13,7 +13,8 @@ export function perStat<T>(value: (stat: Stat, index: StatIndex) => T): PerStat<
 export type CardType = Stat | 'pal' | 'group';
 export type Rarity = 'R' | 'SR' | 'SSR';
 export const RARITIES = ['R', 'SR', 'SSR'] as const satisfies readonly Rarity[];
-export type Focus = 'balanced' | 'stamina' | 'sprint';
+export const FOCUSES = ['balanced', 'stamina', 'sprint'] as const;
+export type Focus = (typeof FOCUSES)[number];
 
 export interface Reward { t: string; v?: string; d?: number | { d: number; v: string }[]; r?: boolean }
 export interface EventChoice { outcomes: Reward[][] }

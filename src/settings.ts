@@ -1,5 +1,5 @@
-import { isPlainObject, RARITIES, type Focus, type Rarity } from './types.ts';
-import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
+import { FOCUSES, isPlainObject, RARITIES, type Focus, type Rarity } from './types.ts';
+import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS, UE_RANK_MIN_SCORE } from './model/rules.ts';
 
 /** Per rarity: null uses the inventory; a number assumes every card of that rarity is owned at that LB. */
 export type InventoryOverrides = Record<Rarity, number | null>;
@@ -105,7 +105,7 @@ const starDistribution: SettingSpec = { ...odds, sum: 1 };
 export const RACES_REFERENCE = 28;
 export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   winThreshold: rate,
-  focus: { kind: 'enum', values: ['balanced', 'stamina', 'sprint'] },
+  focus: { kind: 'enum', values: FOCUSES },
   inventoryOverrides: { kind: 'inventory-overrides' },
   affinity: { kind: 'number', min: 0, max: 1000 },
   hintBase: rate,
@@ -252,6 +252,6 @@ export function whiteGenerationBands(settings: Settings) {
   return [
     { min: 0, rates: settings.whiteStarsBelowB, approximate: true },
     ...WHITE_GENERATION_BANDS,
-    { min: 28800, rates: settings.whiteStarsUE, approximate: true },
+    { min: UE_RANK_MIN_SCORE, rates: settings.whiteStarsUE, approximate: true },
   ];
 }

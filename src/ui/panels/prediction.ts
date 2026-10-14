@@ -3,7 +3,8 @@
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { perStat, STATS, type StatValues } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
-import { BLUE_STAR_BANDS, cardContribution, EFFECT, passives, raceScale, uniqueExtras } from '../../model/stats.ts';
+import { BLUE_STAR_BANDS, cardContribution, raceScale } from '../../model/stats.ts';
+import { EFFECT, passives, uniqueExtras } from '../../model/support-effects.ts';
 import { data, store } from '../context.ts';
 import { TITLE } from '../copy.ts';
 import { basisLabel } from '../effect-coverage.ts';
@@ -14,7 +15,7 @@ import { tip } from '../tooltip.ts';
 export function statBreakdown(c: RunPlan) {
   const d = c.deckResult, p = c.pred;
   const scale = raceScale(c.ctx.races, data.model, store.settings);
-  const focusMul: StatValues = data.model.focus[store.settings.focus] ?? [1, 1, 1, 1, 1];
+  const focusMul = data.model.focus[store.settings.focus];
   const row = (label: TemplateResult | string, vals: StatValues, cls = '') => html`<tr class="${cls}"><td>${label}</td>${vals.map((v) => html`<td class="num">${num(v)}</td>`)}<td class="num">${num(vals.reduce((a, b) => a + b, 0))}</td></tr>`;
   const cardRows = d.deck.map((cs) => {
     const cc = cardContribution(cs.card, cs.lb, data.model, uniqueExtras(cs.card, cs.lb, data.model, { deck: d.deck, fansBefore: c.ctx.fansBefore }));

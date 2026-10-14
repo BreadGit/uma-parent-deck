@@ -1,6 +1,7 @@
 import { isGold, perStat, STAT_INDEXES, type Card, type Character, type Data, type StatValues } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { cardContribution, raceScale, uniqueExtras, type Contribution } from './stats.ts';
+import { cardContribution, raceScale, type Contribution } from './stats.ts';
+import { uniqueExtras } from './support-effects.ts';
 import { BORROWED_SLOTS, DECK_SIZE } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import type { PreparedRunSources } from './run-sources.ts';

@@ -1,6 +1,6 @@
 import effectsJson from '../../data/effects.json' with { type: 'json' };
 import { perStat, STAT_INDEXES, STATS, type Card, type StatModel, type UniqueEffect } from '../types.ts';
-import { FACILITY_LEVEL_MAX, MAX_LB, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP } from './rules.ts';
+import { FACILITY_LEVEL_MAX, MAX_LB, SLOT_COUNT, UNIQUE_TOTAL_BOND_CAP, isCompoundUniqueEffect } from './rules.ts';
 
 export const EFFECT = {
   friendship: 1, mood: 2, statBonus: 3, trainingEff: 8, initialStat: 9, initialGauge: 14,
@@ -177,7 +177,7 @@ function baseTreatment(id: number, card: Card): Treatment {
 }
 
 /** Coverage of active effects, independent of whether a card uses recorded or formula-based contributions. */
-export function cardEffectCoverage(card: Card, lb: number, model: StatModel, _ctx: UniqueContext = {}): EffectCoverage[] {
+export function cardEffectCoverage(card: Card, lb: number, model: StatModel): EffectCoverage[] {
   const entries: EffectCoverage[] = [];
   if ([...card.chainEvents, ...card.randomEvents, ...card.recreationEvents, ...card.specialEvents]
     .some((event) => event.choices.some((choice) => choice.outcomes.some((outcome) => outcome.some((reward) => reward.r && ['sk', 'sr'].includes(reward.t)))))) {
@@ -207,7 +207,7 @@ export function cardEffectCoverage(card: Card, lb: number, model: StatModel, _ct
   if (!unique.effects.length && unique.text) entries.push({ key: 'unique:text', name: 'Unique effect', description: unique.text, status: 'unrecognized', reason: 'unknown', outcomes: ['unknown'], deckDependent: false });
   unique.effects.forEach((effect, index) => {
     const key = `unique:${index}`;
-    if (effect.type < 100) {
+    if (!isCompoundUniqueEffect(effect.type)) {
       if (effect.value !== 0) {
         if (hasUnknownPayload(effect, [])) entries.push({ ...ordinary(effect.type, key, unique.text), status: 'unrecognized', reason: 'unknownPayload' });
         else entries.push(...ordinaryEntries(effect.type, key, unique.text));

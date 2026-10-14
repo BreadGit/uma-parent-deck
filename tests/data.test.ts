@@ -8,6 +8,7 @@ import { isCalendarId, RARITIES, STATS, type AptKey } from '../src/types.ts';
 import { uniqueExtras } from '../src/model/support-effects.ts';
 import { RACES_REFERENCE } from '../src/settings.ts';
 import fixtureJson from '../data/unique-extras-fixture.json' with { type: 'json' };
+import { UE_RANK_MIN_SCORE } from '../src/model/rules.ts';
 const fixture = fixtureJson as { uniqueRampShare: number; rows: { cardId: number; lb: number; extras: Record<string, number> }[] };
 
 const data = loadData();
@@ -148,13 +149,14 @@ test('trainee events are decoded with resolvable skills and race references', ()
   assert.ok(secrets > 100 && choiceEvents > 200, `secret ${secrets}, choice ${choiceEvents}`);
 });
 
-test('races sit on the three-year calendar and ranks include SS', () => {
+test('races sit on the three-year calendar and ranks include SS and UE where the white bands expect it', () => {
   for (const r of data.races) {
     assert.ok(r.year >= 1 && r.year <= 3 && r.month >= 1 && r.month <= 12 && (r.half === 1 || r.half === 2), `${r.name} calendar`);
     assert.ok(['turf', 'dirt'].includes(r.surface) && ['sprint', 'mile', 'medium', 'long'].includes(r.category), `${r.name} surface/category`);
     assert.ok(isCalendarId(r.calendarId), `${r.name} calendar ID ${r.calendarId} is one a saved schedule override keeps`);
   }
   assert.ok(data.ranks.some((r) => r.name === 'SS'), 'the SS rank is listed');
+  assert.equal(data.ranks.find((r) => r.name === 'UE')?.min, UE_RANK_MIN_SCORE);
 });
 
 test('scenario events reference known skills and characters', () => {

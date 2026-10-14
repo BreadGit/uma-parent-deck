@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal } from './event-import.ts';
 import { fingerprint, pageCacheMatches, pageInput, PAGE_SOURCE_FILES, type PageRevision } from './page-cache.ts';
 import { isPlainObject } from '../src/types.ts';
+import { isCompoundUniqueEffect } from '../src/model/rules.ts';
 
 // Source JSON has several unrelated schemas. Checks below validate values before normalization or comparison.
 export type Row = Record<string, any>;
@@ -79,7 +80,7 @@ export function validatePageRevisions(raw: SourceTables, pages: PageSources, uni
   const current = (key: string, card: Row, payload: unknown) => check(pageCacheMatches(revisions[key], pageInput(key, card, sources), payload), `${key} page cache does not match its source revision; finish npm run fetch before normalizing`);
   for (const card of global(raw['support-cards']!)) {
     current(`support:${card.support_id}`, card, { names: pages.eventNames[card.support_id], ...(['friend', 'group'].includes(card.type) ? { full: pages.palGroupEvents[card.support_id] } : {}) });
-    if (card.unique?.effects.some((effect: Row) => effect.type >= 100)) current(`unique:${card.support_id}`, card, uniqueTexts[card.support_id]);
+    if (card.unique?.effects.some((effect: Row) => isCompoundUniqueEffect(effect.type))) current(`unique:${card.support_id}`, card, uniqueTexts[card.support_id]);
   }
   const seen = new Set();
   for (const card of global(raw['character-cards']!).sort((a, b) => a.card_id - b.card_id)) {
@@ -171,7 +172,7 @@ export function reconcileSources(raw: SourceTables, pages: PageSources, out: Nor
     const maxLevels = source.rarity === 1 ? [20, 25, 30, 35, 40] : source.rarity === 2 ? [25, 30, 35, 40, 45] : [30, 35, 40, 45, 50];
     levels.forEach((levelIndex, lb) => {
       const expected = Object.fromEntries(Object.entries(card.effects).filter(([, values]) => (values as number[])[levelIndex] !== 0).map(([key, values]) => [key, (values as number[])[levelIndex]]));
-      if (source.unique && maxLevels[lb]! >= source.unique.level) for (const effect of source.unique.effects) if (effect.type < 100) expected[`u${effect.type}`] = effect.value;
+      if (source.unique && maxLevels[lb]! >= source.unique.level) for (const effect of source.unique.effects) if (!isCompoundUniqueEffect(effect.type)) expected[`u${effect.type}`] = effect.value;
       equal(card.effectsByLb[lb], expected, `support ${card.id} limit break ${lb} passives/unlocks`);
     });
     if (source.unique) {

@@ -1,4 +1,5 @@
 import { isPlainObject } from '../src/types.ts';
+import { isCompoundUniqueEffect } from '../src/model/rules.ts';
 
 type SourceObject = Record<string, unknown>;
 type UniquePayload = { type: number; value: number; [key: string]: unknown };
@@ -69,7 +70,7 @@ function validateCard(value: unknown, index: number): asserts value is SourceCar
     for (const [i, effect] of value.unique.effects.entries()) {
       if (!isPlainObject(effect) || !id(effect.type) || !number(effect.value)) fail(`${path}.unique.effects[${i}]`, 'must contain a numeric type and value');
       for (const [key, parameter] of Object.entries(effect)) {
-        if (effect.type < 100 && !['type', 'value'].includes(key) && !descriptiveField(key, parameter)) {
+        if (!isCompoundUniqueEffect(effect.type) && !['type', 'value'].includes(key) && !descriptiveField(key, parameter)) {
           fail(`${path}.unique.effects[${i}].${key}`, 'cannot be folded into an ordinary passive without evaluating this parameter');
         }
         if (/^value_\d+$/.test(key) && !number(parameter)) fail(`${path}.unique.effects[${i}].${key}`, 'must be numeric');
@@ -128,7 +129,7 @@ export function normalizeSupportMechanics(source: unknown, cachedText?: string) 
     const values: Record<string, number> = {};
     for (const [type, perLevel] of Object.entries(effects)) if (perLevel[index] !== 0) values[type] = perLevel[index]!;
     if (source.unique && level >= source.unique.level) {
-      for (const effect of source.unique.effects) if (effect.type < 100) values[`u${effect.type}`] = effect.value;
+      for (const effect of source.unique.effects) if (!isCompoundUniqueEffect(effect.type)) values[`u${effect.type}`] = effect.value;
     }
     return values;
   });

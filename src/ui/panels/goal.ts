@@ -13,9 +13,10 @@ import { capitalize, pinkAptitudeName } from '../format.ts';
 import { panel } from '../panel.ts';
 import { renderGoalTemplates } from './goal-templates.ts';
 import { renderTargets } from './targets.ts';
+import { SPARK_STARS } from '../../model/rules.ts';
 
 const change = (fn: (goal: ParentGoal) => void) => update((s) => { fn(s.run.goal); s.run.goal = sanitizeGoal(s.run.goal); });
-const STAR_CHOICES = numbered([1, 2, 3], (n) => `${n}★ or better`);
+const STAR_CHOICES = numbered(SPARK_STARS, (n) => `${n}★ or better`);
 
 function blueGroup(g: ParentGoal) {
   return html`<fieldset class="goal-group"><legend>Required blue spark</legend>
