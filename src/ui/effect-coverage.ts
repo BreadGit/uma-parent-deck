@@ -1,7 +1,7 @@
 import { html, nothing } from 'lit-html';
 import type { Card } from '../types.ts';
 import { referenceObservation, type Contribution } from '../model/stats.ts';
-import type { EffectCoverage } from '../model/support-effects.ts';
+import { EFFECT_COVERAGE_REASONS, type EffectCoverage } from '../model/support-effects.ts';
 import { data } from './context.ts';
 
 const OBSERVED_OMITTED = 'Not separately modelled';
@@ -66,6 +66,6 @@ export function effectList(effects: EffectCoverage[], source: Contribution['sour
   return html`<ul class="effect-coverage">${effects.map((effect) => html`<li data-effect-coverage=${effect.key} data-effect-status=${effect.status}>
     <span>${effect.name}</span><span class="tag ${missingEffect(effect) ? 'warn' : ''}">${statusLabel(effect, source)}</span>
     ${(effect.key.startsWith('unique:') || effect.status === 'unrecognized') && effect.description && effect.description !== effect.name ? html`<p>${effect.description}</p>` : nothing}
-    <p class="muted">${effect.reason === 'teamBond' ? 'Estimates the team bonus using the fitted starting-bond relationship. The team effect has not been measured directly.' : nothing} Affects ${effect.outcomes.map((outcome) => OUTCOME_LABELS[outcome]).join(', ')}.</p>
+    <p class="muted">${effect.reason === 'teamBond' ? EFFECT_COVERAGE_REASONS.teamBond : nothing} Affects ${effect.outcomes.map((outcome) => OUTCOME_LABELS[outcome]).join(', ')}.</p>
   </li>`)}</ul>`;
 }

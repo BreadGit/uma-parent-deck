@@ -8,9 +8,32 @@ export const EFFECT = {
 } as const;
 
 export interface UniqueContext { deck?: { card: Card; lb?: number }[]; fansBefore?: (slot: number) => number }
-export type EffectCoverageReason = 'direct' | 'fitted' | 'bondShare' | 'deckTypes' | 'deckInitialStats' | 'fans'
-  | 'friendshipCount' | 'totalBond' | 'facilityLevel' | 'initialBond' | 'raceBonus' | 'notFitted'
-  | 'unsupported' | 'unknown' | 'unknownPayload' | 'hints' | 'hintLevels' | 'fanBonus' | 'teamBond' | 'notRetained' | 'insufficientData' | 'rewardFlag';
+/** How the model treats an effect, by the reason an EffectCoverage gives. */
+export const EFFECT_COVERAGE_REASONS = {
+  direct: 'Applied directly to its related estimate.',
+  fitted: 'Included through a fitted relationship with recorded results.',
+  hints: 'Used to estimate how often the card offers skill hints.',
+  hintLevels: 'Hint levels do not change the current skill-cost estimate.',
+  fanBonus: "Added to the deck's Fan Bonus for the fan estimate.",
+  bondShare: "Assumes the bond threshold is reached for the model's assumed share of the run.",
+  deckTypes: 'The formula checks the number of support types in the deck.',
+  deckInitialStats: 'The formula counts support types in the deck to determine starting stats.',
+  fans: "Uses the agenda's estimated fans when available, otherwise the model's assumed active share.",
+  friendshipCount: "Assumes the friendship-training threshold is reached for the model's assumed share of the run.",
+  totalBond: "Uses the model's total-bond assumption for its assumed share of the run.",
+  facilityLevel: "Assumes maximum facility level for the model's assumed share of the run.",
+  initialBond: 'The formula does not adjust these estimates for starting bond.',
+  teamBond: 'Estimates the team bonus using the fitted starting-bond relationship. The team effect has not been measured directly.',
+  raceBonus: "The stat and SP reward baseline does not adjust for this deck's Race Bonus.",
+  notFitted: 'This effect has no fitted contribution in the current formula.',
+  notRetained: 'Tested as an extra input, but not selected for this estimate. That does not mean the effect has no impact.',
+  insufficientData: 'There are too few suitable measurements to judge this effect for this estimate.',
+  unsupported: 'This effect is recognized but is not included in the formula.',
+  unknown: 'This effect has not been evaluated by the model.',
+  unknownPayload: 'The imported effect contains parameters the model does not yet understand.',
+  rewardFlag: 'Some skill rewards carry a source flag whose meaning has not been verified. Their probabilities are not adjusted for that flag.',
+} as const;
+export type EffectCoverageReason = keyof typeof EFFECT_COVERAGE_REASONS;
 export interface EffectCoverage {
   key: string;
   name: string;
