@@ -1,7 +1,7 @@
 import { html, render } from 'lit-html';
 import catalogJson from '../../data/missions.json' with { type: 'json' };
 import type { MissionCatalog } from '../model/missions.ts';
-import { onRender, store, update } from './context.ts';
+import { onRender, renderNow, store, update } from './context.ts';
 import { TITLE } from './copy.ts';
 import { applyTheme, followTheme, themeToggle } from './theme.ts';
 import { installTooltips } from './tooltip.ts';
@@ -31,7 +31,7 @@ onRender(draw);
 followTheme(() => store.ui.theme);
 installTooltips(root);
 installSuggestDismiss(root);
-draw();
+renderNow();
 // Re-evaluate event windows when a page remains open through a mission deadline.
-setInterval(draw, 60_000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) draw(); });
+setInterval(renderNow, 60_000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) renderNow(); });

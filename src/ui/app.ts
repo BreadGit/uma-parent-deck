@@ -4,7 +4,7 @@
 import { html, nothing, type TemplateResult } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
 import { resetRun } from '../state.ts';
-import { data, onRender, plan, renderTracked, store, trackedPanel, update, view } from './context.ts';
+import { data, onRender, plan, renderNow, renderTracked, store, trackedPanel, update, view } from './context.ts';
 import { TITLE } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
 import { installSuggestDismiss } from './fields.ts';
@@ -139,7 +139,7 @@ export function mount(root: HTMLElement) {
   followTheme(() => store.ui.theme);
   installTooltips(root);
   installSuggestDismiss(root);
-  draw();
+  renderNow();
   // lit keeps the same <header> across renders; its height sizes the pinned input column below it
   const header = root.querySelector('header')!;
   new ResizeObserver(() => document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`)).observe(header);
