@@ -189,6 +189,7 @@ test('model coefficients, reference conditions and observed provenance are usabl
     vector(m.eventBase[races]!, `event stats at ${races} races`);
     assert.ok(isNum(m.eventSp[races]) && m.eventSp[races]! >= 0, `event SP at ${races} races`);
   }
+  assert.deepEqual(Object.keys(m.eventSp).sort(), Object.keys(m.eventBase).sort(), 'event stats and SP are measured at the same race counts');
   const seen = new Set<string>();
   for (const observation of m.observed) {
     const key = `${observation.cardId}:${observation.lb}`;
