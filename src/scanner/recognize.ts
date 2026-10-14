@@ -204,7 +204,7 @@ function findSlots(image: Pixels, references: Reference[]): Slot[] {
       result.unshift({ box: { ...first, x, y }, rarity: null, needsArtworkMatch: true });
     }
   }
-  return result.sort((a, b) => Math.abs(a.box.y - b.box.y) < COLUMN_TOLERANCE ? a.box.x - b.box.x : a.box.y - b.box.y);
+  return result.sort((a, b) => Math.abs(a.box.y - b.box.y) < ROW_TOLERANCE ? a.box.x - b.box.x : a.box.y - b.box.y);
 }
 
 /** The type icon's colour per card type, sampled from the fixtures. */
