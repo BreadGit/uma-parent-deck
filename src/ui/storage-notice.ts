@@ -19,7 +19,7 @@ async function replaceNewer() {
 function unreadableNotice() {
   const raw = unreadableSave();
   if (raw === null) return nothing;
-  return html`<div class="banner" data-unreadable-save role="status"><p>A save in this browser could not be read, so this page saves your choices in its place. Download the unreadable save if you want to keep it.</p>
+  return html`<div class="banner" data-unreadable-save role="status"><p>A save in this browser could not be read. Download it if you want to keep it.</p>
     <button class="small" data-action="download-unreadable" @click=${() => downloadText('uma-parent-deck-unreadable-save.txt', raw)}>Download the unreadable save</button>
     <button class="small" data-action="remove-unreadable" @click=${removeCopy}>Remove it</button></div>`;
 }

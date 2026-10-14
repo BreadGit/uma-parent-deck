@@ -303,13 +303,13 @@ export function storedIfChanged(data: Data): AppState | null {
 
 /**
  * Keep open planner and mission tabs from overwriting each other's newer choices. `accept` takes over another tab's
- * save; `notice` refreshes warnings for a save this version cannot read or an unreadable copy another tab removed.
+ * save; otherwise `notice` refreshes the storage warnings, which may concern a save another tab wrote or removed.
  */
 export function watchSavedState(data: Data, accept: (state: AppState) => void, notice: () => void) {
   const check = () => {
     const saved = changedSave(data);
-    if (saved === 'unusable') notice();
-    else if (saved) accept(saved);
+    if (saved && saved !== 'unusable') accept(saved);
+    else notice();
   };
   window.addEventListener('storage', (event) => {
     if (event.key === STATE_KEY) check();

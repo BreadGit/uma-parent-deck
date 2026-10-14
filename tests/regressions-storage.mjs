@@ -514,6 +514,12 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     assert.deepEqual((await state(page)).inventory, saved.inventory);
     assert.equal((await state(page)).ui.theme, 'dark');
     await assertFieldsMatchState(page, 'after an edit following a missed unreadable storage event');
+    // A page restored from the back-forward cache missed the storage event of a copy another page removed meanwhile.
+    await page.evaluate((key) => {
+      localStorage.removeItem(key);
+      dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    }, UNREADABLE_KEY);
+    await page.locator('[data-unreadable-save]').waitFor({ state: 'detached' });
   });
 
 
