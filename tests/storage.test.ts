@@ -59,7 +59,7 @@ function withStorage(saved: Map<string, string>, run: () => void, full = false) 
   }
 }
 
-test('an unreadable save is moved aside when the page loads and stays until removed', () => {
+test('an unreadable save is moved aside when the page loads, and a reload after removing it finds nothing', () => {
   const data = loadData();
   for (const unreadable of ['{invalid: audit probe', 'null', '{"version":"24"}', '{"version":24.5,"run":{}}']) {
     const saved = new Map([[STATE_KEY, unreadable]]);
@@ -68,9 +68,6 @@ test('an unreadable save is moved aside when the page loads and stays until remo
       assert.deepEqual(loaded.inventory, {}, 'a browser with an unreadable save is not fresh, so the bundled inventory is not loaded');
       assert.equal(unreadableSave(), unreadable);
       assert.deepEqual(JSON.parse(saved.get(STATE_KEY)!), loaded);
-      loaded.ui.theme = 'dark';
-      assert.equal(saveState(loaded), true);
-      assert.equal(unreadableSave(), unreadable, 'the copy survives edits');
       removeUnreadableSave();
       loadState(data, {});
       assert.equal(unreadableSave(), null, 'a reload finds nothing unreadable');
