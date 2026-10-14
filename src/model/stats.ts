@@ -55,7 +55,7 @@ export function referenceObservation(card: Card, lb: number, model: StatModel): 
  */
 export function cardContribution(card: Card, lb: number, model: StatModel, extra: Record<number, number> = {}): Contribution {
   const near = referenceObservation(card, lb, model);
-  if (near?.lb === lb) return { stats: perStat((_, i) => near.stats[i]), sp: near.sp, source: 'observed', runs: near.runs };
+  if (near?.lb === lb) return { stats: [...near.stats], sp: near.sp, source: 'observed', runs: near.runs };
   const m = modelContribution(card, lb, model, near ? {} : extra);
   if (near) {
     const mNear = modelContribution(card, near.lb, model);
@@ -106,7 +106,7 @@ export function predictDeck(deck: DeckInput[], trainee: Character | null, races:
   const focusMul = model.focus[focus];
   const penalty = settings.lossPenalty * expectedLosses;
   const mean = perStat((_, i) => Math.max(0, (cardStats[i] + eventStats[i]) * focusMul[i] - penalty / STATS.length));
-  const sd = perStat((_, i) => model.sigma[i]);
+  const sd: StatValues = [...model.sigma];
   const sp = cardSp + mix(model.eventSp[low]!, model.eventSp[high]!);
   const base: StatValues = trainee?.baseStats ?? [0, 0, 0, 0, 0];
   const out = { mean, sd, cardStats, eventStats, sp, cardSp, finalMean: perStat((_, i) => mean[i] + base[i]) };

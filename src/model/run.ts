@@ -362,9 +362,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const lb = e.borrowed ? BORROWED_LB : effectiveLb(inventory, card, settings.inventoryOverrides);
     return lb === null ? [] : [{ card, lb, borrowed: e.borrowed }];
   });
-  let legality: ReturnType<typeof goalDeckConstraints> | undefined;
-  const deckRules = () => legality === undefined ? (legality = goalDeckConstraints({ owned: deckPool, borrows: borrowPool,
-    pinnedIds, borrowFromAll: input.borrowFromAll, traineeId: trainee?.charId ?? null })) : legality;
+  const deckRules = () => goalDeckConstraints({ owned: deckPool, borrows: borrowPool, pinnedIds, borrowFromAll: input.borrowFromAll,
+    traineeId: trainee?.charId ?? null });
   const retained = options.search === false && trainee && goal.blueStats.length > 0 && previous && deckRules()?.legal(previous) ? previous : undefined;
   const complete = (deck: { borrowed?: boolean }[]) => deck.filter((d) => !d.borrowed).length === DECK_SIZE - BORROWED_SLOTS && deck.filter((d) => d.borrowed).length === BORROWED_SLOTS;
   let initial = options.selection ? describeDeck(options.selection.map((e) => ({ card: data.cardById.get(e.id)!, lb: e.lb, borrowed: e.borrowed })), targets, baseCtx)
