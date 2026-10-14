@@ -1,7 +1,8 @@
 // The app's shared context: the loaded data, the persisted store, transient view state, and the memoized run plan.
-// Panels mutate the store through update(), which persists and re-renders; view-only changes go through refresh().
+// Panels change the store through update(), which saves and renders at once. Writing a view field schedules a render
+// after the current handler; call renderNow() when the next statement needs the updated DOM.
 import { guard } from 'lit-html/directives/guard.js';
-import type { TemplateResult } from 'lit-html';
+import { render, type TemplateResult } from 'lit-html';
 import { BUILD_VERSION } from 'virtual:build-version';
 import { planningKey } from '../recommendation.ts';
 import { loadData } from '../data.ts';
@@ -14,7 +15,9 @@ import defaultInventory from '../../inventory.json' with { type: 'json' };
 export const data = loadData();
 export const store: AppState = loadState(data, defaultInventory);
 let inputKey = planningKey(store.run, store.settings, store.inventory);
-export let stateRevision = 0;
+let revision = 0;
+/** Changes whenever the persisted state does, including a save another tab wrote. */
+export const stateRevision = () => revision;
 
 /** The view fields that hold a search box's text. */
 export type SearchField = 'requiredQuery' | 'preferredQuery' | 'traineeQuery' | 'cardQuery' | 'ignoreQuery' | 'missionTraineeQuery';
@@ -23,11 +26,9 @@ export type SearchField = 'requiredQuery' | 'preferredQuery' | 'traineeQuery' | 
  * Panels memoize by the identity of each field they read, so object and list fields are readonly: replace them.
  */
 const viewState = {
-  /** Each target group has its own search box. */
   requiredQuery: '',
   preferredQuery: '',
   targetEditorId: null as number | null,
-  /** The target groups start open; one holding the selected target is shown open regardless. */
   targetGroupsOpen: { required: true, preferred: true } as Readonly<Record<'required' | 'preferred', boolean>>,
   goalTemplateId: '',
   traineeQuery: '',
@@ -51,26 +52,34 @@ const viewState = {
   settingErrors: {} as Readonly<Record<string, Readonly<{ value: string; message: string }>>>,
   /** The prioritized-skill row being dragged and the row under the pointer. */
   drag: { key: null, over: null } as Readonly<{ key: number | null; over: number | null }>,
-  /** The skill candidates below the prioritized list are clamped to three lines unless expanded. */
   showAllCandidates: false,
-  /** Observed after layout by app.ts: whether the clamped candidates hide any. */
+  /** Measured after layout by app.ts: whether the clamped candidates hide any. */
   candidatesOverflow: false,
-  /** The white lineage editor takes each parent and grandparent instead of totals. */
   showLineageParents: false,
-  /** The screenshot scanner is shown over the page; its module loads on first use. */
   scannerOpen: false,
   scannerLoading: false,
-  /** A deck search is running; the deck shown keeps its checked estimates meanwhile. */
   searchPending: false,
-  /** The last deck search failed; the warnings panel offers a retry. */
   searchFailed: false,
 };
 export type View = typeof viewState;
 
+let renderer: () => void = () => {};
+let renderQueued = false;
+export function onRender(fn: () => void) { renderer = fn; }
+/** Render immediately instead of after the current handler, for code that reads the DOM a view change updates. */
+export function renderNow() {
+  renderer();
+  renderQueued = false;
+}
+function queueRender() {
+  if (renderQueued) return;
+  renderQueued = true;
+  queueMicrotask(() => { if (renderQueued) renderNow(); });
+}
+
 // Each panel is rendered inside trackedPanel(), which records the view fields it reads and their values, so the
-// panel re-renders only when the plan, the persisted state or one of those fields changed. Adding a view field never
-// needs a dependency list updated by hand.
-interface PanelMemo { token: object; deps: unknown[]; values: Map<keyof View, unknown> }
+// panel re-renders only when the plan, the persisted state or one of those fields changed.
+interface PanelMemo { token: object; plan: RunPlan; revision: number; values: Map<keyof View, unknown> }
 const panels = new Map<string, PanelMemo>();
 let renderingPanel: string | null = null;
 export const view: View = new Proxy(viewState, {
@@ -79,32 +88,43 @@ export const view: View = new Proxy(viewState, {
     if (renderingPanel) panels.get(renderingPanel)?.values.set(k, target[k]);
     return target[k];
   },
-}) as View;
+  set(target, key, value) {
+    const k = key as keyof View;
+    if (!Object.is(target[k], value)) {
+      (target as Record<keyof View, unknown>)[k] = value;
+      queueRender();
+    }
+    return true;
+  },
+});
 
 /**
  * lit commits a template's children before moving to the next sibling, so every view read during this panel's
- * render, including inside repeat() item templates, lands in its own memo. The guard token only changes when a
- * dependency or a recorded view value changed, so an unchanged panel is skipped without walking its bindings.
+ * render, including inside repeat() item templates, lands in its own memo. The guard token only changes when the
+ * plan, the persisted state or a recorded view value changed, so an unchanged panel is skipped without walking its
+ * bindings.
  */
-export function trackedPanel(name: string, deps: unknown[], render: () => TemplateResult) {
+export function trackedPanel(name: string, shown: RunPlan, build: () => TemplateResult) {
   let memo = panels.get(name);
-  const stale = !memo || memo.deps.length !== deps.length || memo.deps.some((d, i) => d !== deps[i])
-    || [...memo.values].some(([k, v]) => viewState[k] !== v);
-  if (stale) { memo = { token: {}, deps, values: new Map() }; panels.set(name, memo); }
-  return guard([memo!.token], () => { renderingPanel = name; return render(); });
+  if (!memo || memo.plan !== shown || memo.revision !== revision || [...memo.values].some(([k, v]) => viewState[k] !== v)) {
+    memo = { token: {}, plan: shown, revision, values: new Map() };
+    panels.set(name, memo);
+  }
+  return guard([memo.token], () => { renderingPanel = name; return build(); });
 }
-export function endPanelTracking() { renderingPanel = null; }
+/** Render a page of trackedPanel()s, so view reads after it are not recorded for its last panel. */
+export function renderTracked(page: TemplateResult, container: HTMLElement) {
+  try { render(page, container); } finally { renderingPanel = null; }
+}
 
-let renderer: () => void = () => {};
 let updated: () => void = () => {};
-export function onRender(fn: () => void) { renderer = fn; }
 /** Observe successful user edits, excluding recommendation-cache writes and view-only changes. */
 export function onUpdate(fn: () => void) { updated = fn; }
 /** Take over a save another tab wrote. The caller re-renders. */
 function adopt(saved: AppState) {
   delete store.recommendation;
   Object.assign(store, saved);
-  stateRevision++;
+  revision++;
   inputKey = planningKey(store.run, store.settings, store.inventory);
 }
 /** Take over the latest save before writing the whole state, so another tab's change is not lost. */
@@ -115,10 +135,8 @@ function adoptLatest() {
 watchSavedState(data, (saved) => {
   adopt(saved);
   updated();
-  renderer();
-}, () => renderer());
-/** Re-render after a view-only change. */
-export function refresh() { renderer(); }
+  renderNow();
+}, renderNow);
 /**
  * Apply a change to the persisted state, save it and re-render. Returns whether the save was written. A save another tab
  * wrote since this page rendered is taken over first, so `fn` reads what it changes from `s`, not from values the page
@@ -127,13 +145,13 @@ export function refresh() { renderer(); }
 export function update(fn: (s: AppState) => void): boolean {
   adoptLatest();
   fn(store);
-  stateRevision++;
+  revision++;
   const nextKey = planningKey(store.run, store.settings, store.inventory);
   if (nextKey !== inputKey) delete store.recommendation;
   inputKey = nextKey;
   const saved = saveState(store);
   updated();
-  renderer();
+  renderNow();
   return saved;
 }
 
@@ -143,12 +161,13 @@ let cache: { searchKey: string; displayKey: string; value: RunPlan } | null = nu
 let worker: Worker | null = null, requestId = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let previous: DeckSelection | undefined;
+const SEARCH_DELAY_MS = 400;
 export function retrySearch() {
   adoptLatest();
   delete store.recommendation;
   saveState(store);
   cache = null;
-  renderer();
+  renderNow();
 }
 /**
  * Keep the displayed cards while updating their estimates and searching after a pause in editing. An edit to the
@@ -180,7 +199,7 @@ export function plan(): RunPlan {
       view.searchPending = false;
       view.searchFailed = true;
       worker?.terminate(); worker = null;
-      renderer();
+      renderNow();
     };
     try {
       worker = new Worker(new URL('./plan-worker.ts', import.meta.url), { type: 'module' });
@@ -199,11 +218,11 @@ export function plan(): RunPlan {
           if (response.summary && isLegalRunSelection(response.selection, store.run, store.settings, store.inventory, data)) {
             saveRecommendation(store, { build: BUILD_VERSION, key, selection: response.selection, summary: response.summary });
           }
-          renderer();
+          renderNow();
         } catch (error) { fail(errorMessage(error)); }
       };
       worker.postMessage({ run: store.run, settings: store.settings, inventory: store.inventory } satisfies PlanWorkerRequest);
     } catch (error) { fail(errorMessage(error)); }
-  }, 400);
+  }, SEARCH_DELAY_MS);
   return value;
 }

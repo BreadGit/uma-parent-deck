@@ -7,7 +7,7 @@ import { BLUE_STAR_BANDS, cardContribution, EFFECT, passives, raceScale, uniqueE
 import { data, store } from '../context.ts';
 import { TITLE } from '../copy.ts';
 import { basisLabel } from '../effect-coverage.ts';
-import { capitalize, cardLink, cardThumb, num, pill } from '../format.ts';
+import { capitalize, cardLink, cardThumb, estimatedProbability, num, pill } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
@@ -53,12 +53,12 @@ export function renderPrediction(c: RunPlan) {
   return panel({ title: TITLE.prediction, kind: 'result', subtitle, tip: `Means with the run-to-run spread (±1 sd) from an empirical fit of logged independent-training runs. ≥${BLUE_STAR_BANDS.mid} and ≥${BLUE_STAR_BANDS.high} are the chances of the stat reaching the 2★ and 3★ blue spark bands.` }, html`
     <div class="stats">
       <div class="stat outcome">
-        <div class="outcome-item"><div class="stat-k">SS or better${tip("Chance the final rank is SS or above, which improves white spark star odds. An estimate: the rank score is the game's stat table plus estimated skill terms, and its spread comes from the fitted stat model.")}</div><div class="stat-v">${pill(c.rank.pSS, '', true)}</div></div>
+        <div class="outcome-item"><div class="stat-k">SS or better${tip("Chance the final rank is SS or above, which improves white spark star odds. An estimate: the rank score is the game's stat table plus estimated skill terms, and its spread comes from the fitted stat model.")}</div><div class="stat-v">${pill(estimatedProbability(c.rank.pSS))}</div></div>
         <div class="outcome-item"><div class="stat-k">Rank score</div><div class="stat-v">${num(c.rank.score)} <span class="sd">±${num(c.rank.sd)}</span></div></div>
         <div class="outcome-item"><div class="stat-k">Estimated SP</div><div class="stat-v">${num(p.sp)}</div></div>
       </div>
       ${perStat((s, i) => html`
       <div class="stat"><div class="stat-k">${s}</div><div class="stat-v">${num(c.finalMean[i])} <span class="sd">±${num(c.finalSd[i])}</span></div>
-        <div class="stat-s"><span class="band">≥${BLUE_STAR_BANDS.mid} ${pill(c.statChances[i].mid, '', true)}</span> <span class="band">≥${BLUE_STAR_BANDS.high} ${pill(c.statChances[i].high, '', true)}</span></div></div>`)}
+        <div class="stat-s"><span class="band">≥${BLUE_STAR_BANDS.mid} ${pill(estimatedProbability(c.statChances[i].mid))}</span> <span class="band">≥${BLUE_STAR_BANDS.high} ${pill(estimatedProbability(c.statChances[i].high))}</span></div></div>`)}
     </div>`);
 }

@@ -8,34 +8,32 @@ import { data, store, update, view } from '../context.ts';
 import { ignoreCard, pinCard, setSetting, unignoreCard, unpinCard } from '../actions.ts';
 import { LABEL, TITLE } from '../copy.ts';
 import { inputValue, isChecked, matchesWords, options, queryWords, selectValue } from '../form.ts';
-import { searchBox } from '../fields.ts';
+import { searchBox, SUGGESTION_LIMIT } from '../fields.ts';
 import { capitalize, cardImg, cardThumb, cardUrl, pct, typeIcon } from '../format.ts';
 import { panel, sub } from '../panel.ts';
 import { tip } from '../tooltip.ts';
-import { BORROWED_SLOTS, DECK_SIZE } from '../../model/rules.ts';
+import { BORROWED_LB, BORROWED_SLOTS, DECK_SIZE } from '../../model/rules.ts';
 
 const OWNED_SLOTS = DECK_SIZE - BORROWED_SLOTS;
 
 const LIGHT_HELLO_IDS = data.cards.filter((c) => c.charName === 'Light Hello').map((c) => c.id);
 const FOCUS_CHOICES = (['balanced', 'stamina', 'sprint'] as const).map((f) => ({ value: f, label: capitalize(f) }));
 
-/** Cards matching a search box's words, minus those already in the list it feeds. */
 function matches(query: string, listed: number[]): Card[] {
   const words = queryWords(query);
   if (!words.length) return [];
   return data.cards.filter((card) => !listed.includes(card.id) && matchesWords(words, `${card.name} ${card.rarity} ${card.type}`))
-    .sort((a, b) => b.rarity.length - a.rarity.length || a.charName.localeCompare(b.charName) || a.id - b.id).slice(0, 12);
+    .sort((a, b) => b.rarity.length - a.rarity.length || a.charName.localeCompare(b.charName) || a.id - b.id).slice(0, SUGGESTION_LIMIT);
 }
-const searchRow = (card: Card) => { const lb = lbOf(card); return html`<img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="suggest-r">${lb == null ? 'not owned · borrow' : `LB${lb}`}</span>`; };
 const lbOf = (card: Card) => effectiveLb(store.inventory, card, store.settings.inventoryOverrides);
+const searchRow = (card: Card) => { const lb = lbOf(card); return html`<img src="${cardImg(card)}" alt="" /><span class="two-line"><span>${card.charName} <span class="muted">(${card.rarity} ${capitalize(card.type)})</span></span><span class="muted small">${card.title}</span></span><span class="suggest-r">${lb == null ? 'not owned · borrow' : `LB${lb}`}</span>`; };
 
-/** A pinned or ignored card: art, name, its limit break (or that it would be borrowed) and the button that removes it from the list. */
 function cardRow(id: number, action: 'unpin-card' | 'unignore-card') {
   const card = data.cardById.get(id); if (!card) return nothing;
   const lb = lbOf(card);
   const label = action === 'unpin-card' ? LABEL.unpin(card.charName) : LABEL.unignore(card.charName);
   const remove = action === 'unpin-card' ? unpinCard : unignoreCard;
-  return html`<span class="chip pin-row">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} <span class="muted">${card.title}</span></a><span class="pin-lb">${lb == null ? html`<span class="tag borrow">borrow</span>${action === 'unpin-card' ? tip("Not in your inventory, so it takes the friend's slot at LB4.") : nothing}` : `LB${lb}`}</span><button data-action=${action} data-id="${id}" aria-label=${label} @click=${() => remove(id)}>✕</button></span>`;
+  return html`<span class="chip pin-row">${cardThumb(card, 'chip-art')}${typeIcon(card)}<a class="card-link" href="${cardUrl(card)}" target="_blank" rel="noopener">${card.charName} <span class="muted">${card.title}</span></a><span class="pin-lb">${lb == null ? html`<span class="tag borrow">borrow</span>${action === 'unpin-card' ? tip(`Not in your inventory, so it takes the friend's slot at LB${BORROWED_LB}.`) : nothing}` : `LB${lb}`}</span><button data-action=${action} data-id="${id}" aria-label=${label} @click=${() => remove(id)}>✕</button></span>`;
 }
 
 /** The range input stays mounted while dragged, so its live value is written to the output directly. */
@@ -55,7 +53,7 @@ export function renderRun(c: RunPlan) {
     <label class="row"><span class="row-k">Training focus${tip('The training focus you will set in independent training. It shifts how the run splits its stat gains.')}</span>
       <select data-setting="focus" .value=${live(store.settings.focus)} @change=${(e: Event) => setSetting('focus', selectValue(e))}>${options(FOCUS_CHOICES, store.settings.focus)}</select></label>
     ${threshold()}
-    ${sub('Pinned cards', { tip: `Cards the deck must include. An owned pin takes one of the ${OWNED_SLOTS} owned slots; a pin you do not own is borrowed at LB4 and takes the friend's slot.` })}
+    ${sub('Pinned cards', `Cards the deck must include. An owned pin takes one of the ${OWNED_SLOTS} owned slots; a pin you do not own is borrowed at LB${BORROWED_LB} and takes the friend's slot.`)}
     ${searchBox<Card>({
       id: 'card-search', label: 'Search support cards to pin', placeholder: 'Search a support card to pin…', field: 'cardQuery', items: matches(view.cardQuery, store.run.pinnedIds), key: (card) => card.id, action: 'pin-card',
       row: searchRow, pick: (card) => pinCard(card.id),
@@ -64,7 +62,7 @@ export function renderRun(c: RunPlan) {
     ${c.ownedPinIds.length > OWNED_SLOTS ? html`<div class="small muted">${c.ownedPinIds.length} owned cards pinned: the ${OWNED_SLOTS} with the best added spark chance stay.</div>
       <label class="row"><span class="row-k">Borrow the best card overall, not the best leftover pin</span><input type="checkbox" data-run="borrowFromAll" .checked=${live(store.run.borrowFromAll)} @change=${(e: Event) => update((s) => { s.run.borrowFromAll = isChecked(e); })} /></label>` : nothing}
     ${!lhOptions.length ? html`<div class="small warn">No Light Hello card is marked owned. Our Grand Concert needs one.</div>` : nothing}
-    ${sub('Ignored cards', { tip: `Cards this run never suggests for an owned slot, nor for the friend's slot unless allowed below. Ignore a card here or with the button beside it in ${TITLE.deck} or ${TITLE.ranking}.` })}
+    ${sub('Ignored cards', `Cards this run never suggests for an owned slot, nor for the friend's slot unless allowed below. Ignore a card here or with the button beside it in ${TITLE.deck} or ${TITLE.ranking}.`)}
     ${searchBox<Card>({
       id: 'ignore-search', label: 'Search support cards to ignore', placeholder: 'Search a support card to ignore…', field: 'ignoreQuery', items: matches(view.ignoreQuery, store.run.ignoredIds), key: (card) => card.id, action: 'ignore-card',
       row: searchRow, pick: (card) => ignoreCard(card.id),

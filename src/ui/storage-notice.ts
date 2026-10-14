@@ -1,19 +1,19 @@
 import { html, nothing } from 'lit-html';
 import { hasNewerSave, isStorageUnavailable, removeUnreadableSave, replaceNewerSave, unreadableSave } from '../state.ts';
 import { downloadText } from '../download.ts';
-import { refresh, store } from './context.ts';
+import { renderNow, store } from './context.ts';
 import { confirmDialog } from './dialog.ts';
 
 async function removeCopy() {
   if (!await confirmDialog('Remove the unreadable save? It cannot be recovered afterwards.', 'Remove')) return;
   removeUnreadableSave();
-  refresh();
+  renderNow();
 }
 
 async function replaceNewer() {
   if (!await confirmDialog('Saving here replaces the newer save with this older format. Choices only the newer version understands are lost. Continue?', 'Save here')) return;
   replaceNewerSave(store);
-  refresh();
+  renderNow();
 }
 
 function unreadableNotice() {

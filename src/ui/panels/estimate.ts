@@ -10,20 +10,16 @@ import type { RunPlan } from '../../model/run.ts';
 import { store } from '../context.ts';
 import { openPinkSparks } from '../actions.ts';
 import { TITLE } from '../copy.ts';
-import { capitalize, estimatedProbability, int, probability } from '../format.ts';
+import { blueStatsLabel, estimatedProbability, int, pinkGoalLabel, probability } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
-const NEEDS_FINAL_A = 'Needs final A/S';
-const pinkLabel = (aptitude: 'any' | keyof typeof APTITUDE_LABELS) => aptitude === 'any' ? 'Any' : APTITUDE_LABELS[aptitude];
 const range = (low: number, high: number) => low === high ? probability(low) : `${probability(low)} to ${probability(high)}`;
 
 /** Why the estimate is what it is: an impossibility if there is one, otherwise the weakest requirement. */
 function goalLimits(c: RunPlan): string[] {
   const r = c.goalEstimate, g = store.run.goal;
   if (r.probability === null) return [];
-  // Skill availability is the chance the run can obtain a skill; the estimate assumes every obtainable target form is
-  // then bought, and compares the full-price cost with estimated SP only in Target coverage.
   const pinkName = g.pink.length > 1 ? 'Accepted pink alternatives' : g.pink[0]!.aptitude === 'any' ? 'Any pink aptitude' : `${APTITUDE_LABELS[g.pink[0]!.aptitude]} pink`;
   const limits: string[] = [];
   if (r.blue === 0) limits.push(`Required blue spark has no estimated chance with this deck at ${g.blueStars}★ or better. Check the accepted stats and their predicted values in ${TITLE.prediction}.`);
@@ -58,12 +54,10 @@ function fallback(c: RunPlan) {
     <p class="small muted">Your original requirements remain selected. ${selected.subsetApproximate ? 'The search also limits how many requirement subsets it checks. ' : ''}The complete-goal estimate and attempts still refer to every requirement.</p></div>`;
 }
 
-/** Whether goalWarnings() has anything to show. */
 export function hasGoalWarnings(c: RunPlan) {
   const r = c.goalEstimate;
   return r.issues.length > 0 || r.pink.warnings.length > 0 || r.upperProbability === 0 || hasFallback(c);
 }
-/** Missing inputs, pink sparks worth entering, a zero estimate and a partial search result, for the warnings panel. */
 export function goalWarnings(c: RunPlan) {
   const r = c.goalEstimate;
   return html`
@@ -76,18 +70,14 @@ export function goalWarnings(c: RunPlan) {
 function breakdown(c: RunPlan) {
   const result = c.goalEstimate, g = store.run.goal, required = result.required.length;
   return html`<div class="scroll-x"><table class="goal-breakdown"><thead><tr><th>Required spark</th><th class="num">Available</th><th class="num">Spark chance</th></tr></thead><tbody>
-    <tr><td>Blue (${g.blueStats.length === 5 ? 'any stat' : g.blueStats.map(capitalize).join(', ') || 'none selected'})</td><td class="num">Always</td><td class="num">${probability(result.blue)}</td></tr>
-    <tr><td>Pink (${g.pink.map((p) => `${pinkLabel(p.aptitude)} ${p.stars}★+`).join(' or ')})</td><td class="num">${NEEDS_FINAL_A}</td><td class="num">${range(result.pink.probability, result.pink.upperProbability)}</td></tr>
-    ${g.pink.length > 1 ? result.pink.alternatives?.map((p) => html`<tr><td>${pinkLabel(p.aptitude)} ${p.stars}★+ contribution</td><td class="num">${NEEDS_FINAL_A}</td><td class="num">${range(p.probability, p.upperProbability)}</td></tr>`) : nothing}
+    <tr><td>Blue (${blueStatsLabel(g.blueStats)})</td><td class="num">Always</td><td class="num">${probability(result.blue)}</td></tr>
+    <tr><td>Pink (${g.pink.map(pinkGoalLabel).join(' or ')})</td><td class="num">Needs final A/S</td><td class="num">${range(result.pink.probability, result.pink.upperProbability)}</td></tr>
+    ${g.pink.length > 1 ? result.pink.alternatives?.map((p) => html`<tr><td>${pinkGoalLabel(p)} contribution</td><td class="num">Needs final A/S</td><td class="num">${range(p.probability, p.upperProbability)}</td></tr>`) : nothing}
     ${result.required.map((w) => html`<tr><td>${w.target.name}</td><td class="num">${probability(w.available)}</td><td class="num">${probability(w.probability)}</td></tr>`)}
   </tbody></table></div>
   <p class="small muted">${required ? `All ${required} required white skill${required === 1 ? '' : 's'} available ${probability(result.allAvailable)}` : 'No required white sparks'} · SS or better ${estimatedProbability(result.pSS)}.</p>`;
 }
 
-/**
- * For the details panel: what limits the estimate, the per-requirement breakdown and the preferred sparks, with the
- * assumptions and the search's preferred score behind a disclosure.
- */
 export function goalDetails(c: RunPlan) {
   const result = c.goalEstimate, limits = goalLimits(c), selected = c.search?.score, g = store.run.goal;
   const eligibility = result.pink.eligibility.filter((e) => e.probability === null || (e.probability > 0 && e.probability < 1));

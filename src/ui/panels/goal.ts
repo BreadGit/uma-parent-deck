@@ -9,14 +9,13 @@ import type { RunPlan } from '../../model/run.ts';
 import { store, update } from '../context.ts';
 import { LABEL, TITLE } from '../copy.ts';
 import { isChecked, numbered, options, selectValue } from '../form.ts';
-import { capitalize } from '../format.ts';
+import { capitalize, pinkAptitudeName } from '../format.ts';
 import { panel } from '../panel.ts';
 import { renderGoalTemplates } from './goal-templates.ts';
 import { renderTargets } from './targets.ts';
 
 const change = (fn: (goal: ParentGoal) => void) => update((s) => { fn(s.run.goal); s.run.goal = sanitizeGoal(s.run.goal); });
 const STAR_CHOICES = numbered([1, 2, 3], (n) => `${n}★ or better`);
-const pinkLabel = (k: PinkGoal['aptitude']) => k === 'any' ? 'Any' : APTITUDE_LABELS[k];
 
 function blueGroup(g: ParentGoal) {
   return html`<fieldset class="goal-group"><legend>Required blue spark</legend>
@@ -32,8 +31,8 @@ function pinkRow(g: ParentGoal, p: PinkGoal) {
   const row = (fn: (r: PinkGoal) => void) => change((g) => { const r = g.pink.find((r) => r.aptitude === p.aptitude); if (r) fn(r); });
   return html`<div class="pink-goal-fields" data-pink-goal-row=${p.aptitude}>
     <label class="goal-field"><select aria-label="Aptitude" data-goal-pink=${p.aptitude} .value=${live(p.aptitude)} @change=${(e: Event) => row((r) => { r.aptitude = selectValue(e) as PinkGoal['aptitude']; })}>${options(aptitudes, p.aptitude)}</select></label>
-    <label class="goal-field"><select aria-label="Minimum stars" data-goal-stars="pink" data-pink-aptitude=${p.aptitude} .value=${live(String(p.stars))} @change=${(e: Event) => row((r) => { r.stars = Number(selectValue(e)); })}>${options(STAR_CHOICES, String(p.stars))}</select></label>
-    ${p.aptitude !== 'any' ? html`<button class="small" data-action="remove-pink-goal" data-aptitude=${p.aptitude} aria-label=${`Remove ${pinkLabel(p.aptitude)}`} @click=${() => change((g) => { g.pink = g.pink.filter((r) => r.aptitude !== p.aptitude); })}>×</button>` : nothing}
+    <label class="goal-field"><select aria-label=${LABEL.minimumStars} data-goal-stars="pink" data-pink-aptitude=${p.aptitude} .value=${live(String(p.stars))} @change=${(e: Event) => row((r) => { r.stars = Number(selectValue(e)); })}>${options(STAR_CHOICES, String(p.stars))}</select></label>
+    ${p.aptitude !== 'any' ? html`<button class="small" data-action="remove-pink-goal" data-aptitude=${p.aptitude} aria-label=${`Remove ${pinkAptitudeName(p.aptitude)}`} @click=${() => change((g) => { g.pink = g.pink.filter((r) => r.aptitude !== p.aptitude); })}>×</button>` : nothing}
   </div>`;
 }
 

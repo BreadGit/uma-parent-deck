@@ -7,14 +7,14 @@ import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
 import { cardTargetChances, compareTargetChances, rankingRows, type TargetSparkChance } from '../../model/card-ranking.ts';
 import { cardEffectCoverage } from '../../model/support-effects.ts';
-import { data, refresh, store, update, view } from '../context.ts';
+import { data, store, update, view } from '../context.ts';
 import { ignoreToggle, pinToggle } from '../card-toggles.ts';
 import { LABEL, TITLE } from '../copy.ts';
 import { deckOrder } from './deck.ts';
 import { basisLabel, basisTip, coverageFlag } from '../effect-coverage.ts';
 import { isChecked } from '../form.ts';
 import { lbSelect } from '../fields.ts';
-import { cardThumb, cardUrl, num, probability, skillName, typeIcon } from '../format.ts';
+import { cardThumb, cardUrl, num, pill, probability, skillName, typeIcon } from '../format.ts';
 import { about, panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
@@ -38,22 +38,23 @@ const SORT_KEYS: Record<string, (x: CardScore) => number> = {
   stats: (x) => x.statPower, sp: (x) => x.sp,
   speed: (x) => x.stats[0]!, stamina: (x) => x.stats[1]!, power: (x) => x.stats[2]!, guts: (x) => x.stats[3]!, wit: (x) => x.stats[4]!,
 };
+/** Target chances a row shows before "+N more". */
+const SHOWN_TARGETS = 4;
 const targetLabel = (x: TargetSparkChance) => `${x.target.name}${x.role === 'required' ? ` ${x.stars}★+` : ''}`;
 const sourceDetails = (x: TargetSparkChance) => x.sources.length
   ? x.sources.map((s) => `${skillName(s.skillId)} via ${s.detail}: ${probability(s.pObtain)} skill acquisition`).join('\n')
   : 'No available source on this card under the current skill priorities.';
-const targetChance = (x: TargetSparkChance) => html`<div class="target-spark" data-target-spark=${x.target.id}><span>${targetLabel(x)}</span> <span class="target-spark-value"><span class="pill">${probability(x.probability)}</span>${tip(sourceDetails(x))}</span></div>`;
+const targetChance = (x: TargetSparkChance) => html`<div class="target-spark" data-target-spark=${x.target.id}><span>${targetLabel(x)}</span> <span class="target-spark-value">${pill(probability(x.probability))}${tip(sourceDetails(x))}</span></div>`;
 function toggleTargets(cardId: number) {
   view.expandedRankingCards = view.expandedRankingCards.includes(cardId)
     ? view.expandedRankingCards.filter((id) => id !== cardId) : [...view.expandedRankingCards, cardId];
-  refresh();
 }
 function targetChancesCell(cardId: number, targets: TargetSparkChance[]) {
   const available = targets.filter((x) => x.probability > 0);
-  const hidden = available.slice(4);
+  const hidden = available.slice(SHOWN_TARGETS);
   const expanded = view.expandedRankingCards.includes(cardId), detailsId = `card-targets-${cardId}`;
   return html`<td class="cover target-chances" data-target-chances>
-    ${available.slice(0, 4).map(targetChance)}
+    ${available.slice(0, SHOWN_TARGETS).map(targetChance)}
     ${hidden.length ? html`<button type="button" class="target-more" data-target-more aria-expanded=${expanded} aria-controls=${detailsId} @click=${() => toggleTargets(cardId)}>${expanded ? 'Show fewer' : `+${hidden.length} more`}</button>
       <div id=${detailsId} ?hidden=${!expanded}>${expanded ? hidden.map(targetChance) : nothing}</div>` : nothing}
   </td>`;

@@ -2,7 +2,7 @@
 // store's inventory. The session outlives the sheet, so closing and reopening keeps the screenshots and the review.
 import { html, nothing } from 'lit-html';
 import type { Scanner } from '../../scanner/session.ts';
-import { refresh, store, update, view } from '../context.ts';
+import { renderNow, store, update, view } from '../context.ts';
 import { TITLE } from '../copy.ts';
 import { notice } from '../dialog.ts';
 
@@ -11,13 +11,13 @@ let scanner: Scanner | null = null;
 export async function openScanner() {
   if (!scanner) {
     if (view.scannerLoading) return;
-    view.scannerLoading = true; refresh();
+    view.scannerLoading = true;
     try {
       // The scanner's own catalog, as on the standalone page: it knows which cards have a matching reference.
       const [{ createScanner }, { cards }] = await Promise.all([import('../../scanner/session.ts'), import('virtual:scanner-catalog')]);
       scanner = createScanner({
         cards,
-        onChange: refresh,
+        onChange: renderNow,
         apply: {
           current: () => store.inventory,
           onApply: (edit) => { update((s) => { s.inventory = edit(s.inventory); }); closeScanner(); },
@@ -27,11 +27,11 @@ export async function openScanner() {
       console.error('Scanner could not load:', error);
       void notice('Could not open screenshot import. Check your connection and try again. If it keeps failing, reload the page.');
       return;
-    } finally { view.scannerLoading = false; refresh(); }
+    } finally { view.scannerLoading = false; }
   }
   view.scannerOpen = true;
   document.body.classList.add('scanner-open');
-  refresh();
+  renderNow();
   document.querySelector<HTMLDialogElement>('[data-scanner]')?.showModal();
   document.querySelector<HTMLElement>('[data-action="close-scanner"]')?.focus();
 }
@@ -46,12 +46,11 @@ function onClosed() {
   if (!view.scannerOpen) return;
   view.scannerOpen = false;
   document.body.classList.remove('scanner-open');
-  refresh();
+  renderNow();
   document.querySelector<HTMLElement>('[data-action="open-scanner"]')?.focus();
 }
 
-/** Wrap Tab at the first and last visible enabled controls. */
-function onKeyDown(e: KeyboardEvent) {
+function wrapTabFocus(e: KeyboardEvent) {
   if (e.key !== 'Tab' || e.defaultPrevented) return;
   const sheet = e.currentTarget as HTMLDialogElement;
   const controls = [...sheet.querySelectorAll<HTMLElement>('button, input, select, summary, a[href], [tabindex]')]
@@ -65,7 +64,7 @@ function onKeyDown(e: KeyboardEvent) {
 export function renderScannerOverlay() {
   if (!view.scannerOpen || !scanner) return nothing;
   return html`<dialog class="scanner-sheet" aria-label=${TITLE.scanner} data-scanner
-    @keydown=${onKeyDown}
+    @keydown=${wrapTabFocus}
     @close=${onClosed}
     @click=${(e: MouseEvent) => {
       if (e.target !== e.currentTarget) return;

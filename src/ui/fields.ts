@@ -1,16 +1,19 @@
-// Form field helpers shared by the panels: option lists for live-bound selects, event value readers, the search
-// box with its suggestion list, and the limit-break select the deck and the ranking share.
+// Fields shared by several panels: the search box with its suggestion list, and the limit-break select the deck and the
+// ranking share.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import type { Card } from '../types.ts';
 import { LIMIT_BREAKS } from '../model/rules.ts';
 import type { RunPlan } from '../model/run.ts';
 import { LABEL, TITLE } from './copy.ts';
-import { refresh, store, update, view } from './context.ts';
+import { renderNow, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
 import { options, selectValue, inputValue, isComposing, type Option } from './form.ts';
 
-export interface SearchBox<T> {
+/** The most matches a search list shows. */
+export const SUGGESTION_LIMIT = 12;
+
+interface SearchBox<T> {
   id: string;
   /** The input's accessible name; the placeholder disappears once the user types. */
   label: string;
@@ -60,10 +63,10 @@ export function searchBox<T>(box: SearchBox<T>) {
   const focus = () => {
     if (view.activeSearch === box.field) return;
     view.activeSearch = box.field;
-    refresh();
+    renderNow();
     revealSuggestion(listId);
   };
-  const setQuery = (q: string) => { view[box.field] = q; view.activeSearch = box.field; setIndex(-1); refresh(); revealSuggestion(listId); };
+  const setQuery = (q: string) => { view[box.field] = q; view.activeSearch = box.field; setIndex(-1); renderNow(); revealSuggestion(listId); };
   const choose = (item: T) => { setIndex(-1); view.activeSearch = null; box.pick(item); };
   const onKey = (e: KeyboardEvent) => {
     if (!open || isComposing(e)) return;
@@ -71,7 +74,7 @@ export function searchBox<T>(box: SearchBox<T>) {
       e.preventDefault();
       const n = box.items.length;
       setIndex(index < 0 ? (e.key === 'ArrowDown' ? 0 : n - 1) : (index + (e.key === 'ArrowDown' ? 1 : -1) + n) % n);
-      refresh();
+      renderNow();
       revealSuggestion(listId);
     } else if (e.key === 'Enter') {
       e.preventDefault();
@@ -90,14 +93,12 @@ export function searchBox<T>(box: SearchBox<T>) {
   </div>`;
 }
 
-/** Close any open suggestion list when the user clicks outside its box. */
 export function installSuggestDismiss(root: HTMLElement) {
   root.ownerDocument.addEventListener('pointerdown', (e) => {
     if ((e.target as Element).closest('.suggest')) return;
     if (view.activeSearch === null) return;
     view.activeSearch = null;
     view.suggestIndexes = Object.fromEntries(Object.keys(view.suggestIndexes).map((field) => [field, -1])) as Record<SearchField, number>;
-    refresh();
   });
 }
 
@@ -109,7 +110,6 @@ function setLb(card: Card, value: string) {
     else s.inventory[id] = Number(value);
   });
 }
-/** The LB dropdown shared by the deck slots and the ranking table. */
 export function lbSelect(c: RunPlan, card: Card, lb: number, cls = '') {
   const owned = !c.unowned.has(card.id);
   const overridden = store.settings.inventoryOverrides[card.rarity] !== null;

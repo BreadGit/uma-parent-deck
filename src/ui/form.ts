@@ -17,11 +17,8 @@ export const selectValue = (e: Event) => (e.target as HTMLSelectElement).value;
 export const inputValue = (e: Event) => (e.target as HTMLInputElement).value;
 export const inputNumber = (e: Event) => (e.target as HTMLInputElement).valueAsNumber;
 export const isChecked = (e: Event) => (e.target as HTMLInputElement).checked;
-/** The words of a search box's query, lowercased; an empty list means nothing to search for. */
 export const queryWords = (query: string) => query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-/** Every search box matches the same way: each word appears somewhere in the text, in any order. */
 export const matchesWords = (words: readonly string[], text: string) => { const hay = text.toLowerCase(); return words.every((w) => hay.includes(w)); };
-/** Whether a <details> is open after its toggle event. */
 export const isOpen = (e: Event) => (e.target as HTMLDetailsElement).open;
 /** The files a file input holds after its change event; clear them with `clearFiles` to accept the same file again. */
 export const chosenFiles = (e: Event): File[] => Array.from((e.target as HTMLInputElement).files ?? []);

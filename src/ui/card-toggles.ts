@@ -1,6 +1,6 @@
 // The pin and ignore buttons a card carries in the suggested deck and the card ranking. Both read the persisted
 // run, so the same card shows the same state everywhere it appears.
-import { html } from 'lit-html';
+import { html, type TemplateResult } from 'lit-html';
 import type { Card } from '../types.ts';
 import { store } from './context.ts';
 import { ignoreCard, pinCard, unignoreCard, unpinCard } from './actions.ts';
@@ -12,7 +12,7 @@ const IGNORE_ICON = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 
 const cardName = (card: Card) => `${card.charName} [${card.title}]`;
 
-function toggle(action: string, card: Card, active: boolean, label: string, icon: unknown, onClick: () => void) {
+function toggleButton(action: string, card: Card, active: boolean, label: string, icon: TemplateResult, onClick: () => void) {
   return html`<button type="button" class="card-toggle ${active ? 'active' : ''}" data-action=${action} data-id=${card.id}
     aria-label=${label} aria-pressed=${active} data-tip=${label} @click=${onClick}>${icon}</button>`;
 }
@@ -20,11 +20,11 @@ function toggle(action: string, card: Card, active: boolean, label: string, icon
 export function pinToggle(card: Card) {
   const pinned = store.run.pinnedIds.includes(card.id);
   const label = pinned ? LABEL.unpin(cardName(card)) : `Pin ${cardName(card)}`;
-  return toggle('toggle-card-pin', card, pinned, label, PIN_ICON, () => (pinned ? unpinCard(card.id) : pinCard(card.id)));
+  return toggleButton('toggle-card-pin', card, pinned, label, PIN_ICON, () => (pinned ? unpinCard(card.id) : pinCard(card.id)));
 }
 
 export function ignoreToggle(card: Card) {
   const ignored = store.run.ignoredIds.includes(card.id);
   const label = ignored ? LABEL.unignore(cardName(card)) : `Ignore ${cardName(card)}`;
-  return toggle('toggle-card-ignore', card, ignored, label, IGNORE_ICON, () => (ignored ? unignoreCard(card.id) : ignoreCard(card.id)));
+  return toggleButton('toggle-card-ignore', card, ignored, label, IGNORE_ICON, () => (ignored ? unignoreCard(card.id) : ignoreCard(card.id)));
 }

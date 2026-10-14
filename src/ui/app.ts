@@ -1,14 +1,13 @@
 // Root template and mount: renders the whole page from the run plan and keeps the theme in sync. The left column
 // is the input flow in step order and scrolls on its own; it can be hidden so the results take the full width, with a
 // one-line run summary keeping the context. The right column is every result, most useful first.
-import { html, nothing, render } from 'lit-html';
+import { html, nothing, type TemplateResult } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
 import { resetRun } from '../state.ts';
-import { data, endPanelTracking, onRender, plan, refresh, stateRevision, store, trackedPanel, update, view } from './context.ts';
+import { data, onRender, plan, renderTracked, store, trackedPanel, update, view } from './context.ts';
 import { TITLE } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
 import { installSuggestDismiss } from './fields.ts';
-import { panel } from './panel.ts';
 import { installTooltips } from './tooltip.ts';
 import { applyTheme, followTheme, themeToggle } from './theme.ts';
 import { installScrollAnchor } from './scroll-anchor.ts';
@@ -31,10 +30,8 @@ import { clearSharedUrl } from './share.ts';
 import { unavailableRunChoices } from '../model/run.ts';
 import { storageNotice } from './storage-notice.ts';
 
-const RESET_ALL = 'Reset all';
-
 async function resetAll() {
-  if (!await confirmDialog(`${RESET_ALL}? This clears the trainee, parent goal, targets, legacy screen, pinned and ignored cards, agenda picks, prioritized order, training focus and win threshold. Your inventory and advanced settings are kept.`, RESET_ALL)) return;
+  if (!await confirmDialog('Reset all? This clears the trainee, parent goal, targets, legacy screen, pinned and ignored cards, agenda picks, prioritized order, training focus and win threshold. Your inventory and advanced settings are kept.', 'Reset all')) return;
   const saved = update((state) => Object.assign(state, resetRun(state, data)));
   clearSharedUrl();
   // A reload reads the save back, so it would restore the old run if the reset was not written.
@@ -64,7 +61,7 @@ function page() {
   // the column can only be hidden once there is a run to show; until then the inputs are the page
   const inputsHidden = ready && store.ui.inputsHidden;
   const complete = !c.issues.length;
-  const section = (name: string, render: () => ReturnType<typeof panel>) => trackedPanel(name, [c, stateRevision], render);
+  const section = (name: string, build: () => TemplateResult) => trackedPanel(name, c, build);
   return html`
     <header>
       <h1>Uma parent deck</h1>
@@ -72,7 +69,7 @@ function page() {
       <span class="header-actions">
         <a class="button" href="./missions.html" data-page="missions">${TITLE.missions}</a>
         ${themeToggle(store.ui.theme, (theme) => update((s) => { s.ui.theme = theme; }))}
-        <button class="danger" data-action="reset-all" data-tip="Start over: clears every choice except your inventory and advanced settings" @click=${resetAll}>${RESET_ALL}</button>
+        <button class="danger" data-action="reset-all" data-tip="Start over: clears every choice except your inventory and advanced settings" @click=${resetAll}>Reset all</button>
       </span>
     </header>
     ${storageNotice()}
@@ -119,7 +116,6 @@ function watchCandidates(root: HTMLElement) {
     if (overflow === view.candidatesOverflow && (overflow || !view.showAllCandidates)) return;
     view.candidatesOverflow = overflow;
     if (!overflow) view.showAllCandidates = false;
-    refresh();
   };
   const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
   const observer = new ResizeObserver(schedule);
@@ -137,7 +133,7 @@ function watchCandidates(root: HTMLElement) {
 export function mount(root: HTMLElement) {
   const preserveScroll = installScrollAnchor(root);
   const watch = watchCandidates(root);
-  const draw = () => { applyTheme(store.ui.theme); preserveScroll(() => render(page(), root)); endPanelTracking(); watch(); };
+  const draw = () => { applyTheme(store.ui.theme); preserveScroll(() => renderTracked(page(), root)); watch(); };
   onRender(draw);
   followTheme(() => store.ui.theme);
   installTooltips(root);

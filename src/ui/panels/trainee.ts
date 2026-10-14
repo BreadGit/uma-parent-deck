@@ -7,7 +7,7 @@ import type { RunPlan } from '../../model/run.ts';
 import { clampStars, hasExactStarTable, STARS_MAX } from '../../model/trainee.ts';
 import { data, store, update, view } from '../context.ts';
 import { matchesWords, numbered, options, queryWords, selectValue } from '../form.ts';
-import { searchBox } from '../fields.ts';
+import { searchBox, SUGGESTION_LIMIT } from '../fields.ts';
 import { capitalize, charImg, skillName, statIcon } from '../format.ts';
 import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
@@ -16,7 +16,7 @@ function matches(): Character[] {
   const words = queryWords(view.traineeQuery);
   if (!words.length) return [];
   return data.characters.filter((ch) => matchesWords(words, `${ch.name} ${ch.title}`))
-    .sort((a, b) => a.name.localeCompare(b.name) || a.cardId - b.cardId).slice(0, 12);
+    .sort((a, b) => a.name.localeCompare(b.name) || a.cardId - b.cardId).slice(0, SUGGESTION_LIMIT);
 }
 function pickTrainee(cardId: number | null) {
   view.traineeQuery = '';
@@ -32,7 +32,7 @@ const skills = (ids: number[]) => ids.length ? ids.map(skillName).join(', ') : '
 
 function chosen(c: RunPlan) {
   const t = c.trainee!;
-  const rarity = data.charByCardId.get(t.cardId)?.rarity ?? 1;
+  const rarity = t.rarity;
   const starOptions = numbered(Array.from({ length: STARS_MAX }, (_, i) => i + 1).filter((k) => k >= rarity || k === store.run.traineeStars), (k) => `${k}★`);
   return html`
     <div class="trainee-card">

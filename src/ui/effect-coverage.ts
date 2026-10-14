@@ -7,30 +7,6 @@ import { data } from './context.ts';
 const OBSERVED_OMITTED = 'Not separately modelled';
 const STATUS_LABELS = { calculated: 'Calculated', approximated: 'Approximated', omitted: 'Not in formula', unrecognized: 'Not evaluated' };
 const OUTCOME_LABELS = { stats: 'stats', sp: 'SP', fans: 'fans', skills: 'skills', unknown: 'an outcome not yet evaluated' };
-const EFFECT_REASONS = {
-  direct: 'Applied directly to its related estimate.',
-  fitted: 'Included through a fitted relationship with recorded results.',
-  hints: 'Used to estimate how often the card offers skill hints.',
-  hintLevels: 'Hint levels do not change the current skill-cost estimate.',
-  fanBonus: 'Added to the deck\'s Fan Bonus for the fan estimate.',
-  bondShare: (share: number) => `Assumes the bond threshold is reached for ${share}% of the run.`,
-  deckTypes: 'The formula checks the number of support types in the deck.',
-  deckInitialStats: 'The formula counts support types in the deck to determine starting stats.',
-  fans: 'Uses the agenda\'s estimated fans when available, otherwise the model\'s assumed active share.',
-  friendshipCount: (share: number) => `Assumes the friendship-training threshold is reached for ${share}% of the run.`,
-  totalBond: (share: number) => `Uses the model\'s total-bond assumption for ${share}% of the run.`,
-  facilityLevel: (share: number) => `Assumes maximum facility level for ${share}% of the run.`,
-  initialBond: 'The formula does not adjust these estimates for starting bond.',
-  teamBond: 'Estimates the team bonus using the fitted starting-bond relationship. The team effect has not been measured directly.',
-  raceBonus: 'The stat and SP reward baseline does not adjust for this deck\'s Race Bonus.',
-  notFitted: 'This effect has no fitted contribution in the current formula.',
-  notRetained: 'Tested as an extra input, but not selected for this estimate. That does not mean the effect has no impact.',
-  insufficientData: 'There are too few suitable measurements to judge this effect for this estimate.',
-  unsupported: 'This effect is recognized but is not included in the formula.',
-  unknown: 'This effect has not been evaluated by the model.',
-  unknownPayload: 'The imported effect contains parameters the model does not yet understand.',
-  rewardFlag: 'Some skill rewards carry a source flag whose meaning has not been verified. Their probabilities are not adjusted for that flag.',
-};
 export const missingEffect = (effect: EffectCoverage) => effect.status === 'omitted' || effect.status === 'unrecognized';
 const affectsContribution = (effect: EffectCoverage) => effect.outcomes.some((outcome) => outcome === 'stats' || outcome === 'sp' || outcome === 'unknown');
 export const observedDeckEffect = (effect: EffectCoverage) => effect.deckDependent && affectsContribution(effect);
@@ -68,7 +44,6 @@ export function basisTip(card: Card, lb: number, source: Contribution['source'],
     else if (effect.reason === 'teamBond') add('Team effect estimated from starting bond, not measured directly', effect);
     else if (source !== 'model' && observedDeckEffect(effect)) add('Fixed at the recorded deck conditions', effect);
   }
-  // One line per coverage status: the effects the formula leaves out, each with the outcomes it affects.
   return [...lines, ...[...groups].map(([label, entries]) => `${label}: ${entries.join(', ')}.`)].join('\n');
 }
 
@@ -87,15 +62,10 @@ export function coverageFlag(effects: EffectCoverage[]) {
   return undefined;
 }
 
-function effectReason(effect: EffectCoverage): string {
-  const reason = EFFECT_REASONS[effect.reason];
-  return typeof reason === 'function' ? reason(Math.round(data.model.uniqueRampShare * 100)) : reason;
-}
-
-export function effectList(effects: EffectCoverage[], { compact = false, source = 'model' }: { compact?: boolean; source?: Contribution['source'] } = {}) {
+export function effectList(effects: EffectCoverage[], source: Contribution['source']) {
   return html`<ul class="effect-coverage">${effects.map((effect) => html`<li data-effect-coverage=${effect.key} data-effect-status=${effect.status}>
     <span>${effect.name}</span><span class="tag ${missingEffect(effect) ? 'warn' : ''}">${statusLabel(effect, source)}</span>
-    ${(!compact || effect.key.startsWith('unique:') || effect.status === 'unrecognized') && effect.description && effect.description !== effect.name ? html`<p>${effect.description}</p>` : nothing}
-    <p class="muted">${!compact || effect.reason === 'teamBond' ? effectReason(effect) : nothing} Affects ${effect.outcomes.map((outcome) => OUTCOME_LABELS[outcome]).join(', ')}.</p>
+    ${(effect.key.startsWith('unique:') || effect.status === 'unrecognized') && effect.description && effect.description !== effect.name ? html`<p>${effect.description}</p>` : nothing}
+    <p class="muted">${effect.reason === 'teamBond' ? 'Estimates the team bonus using the fitted starting-bond relationship. The team effect has not been measured directly.' : nothing} Affects ${effect.outcomes.map((outcome) => OUTCOME_LABELS[outcome]).join(', ')}.</p>
   </li>`)}</ul>`;
 }

@@ -114,8 +114,8 @@ card or stat keeps a stale value (the deck LB dropdowns did). Render a list whos
 `options()` from `src/ui/form.ts`: it keys options by value, so a placeholder that disappears does not shift the
 selected index onto a different entry. Read event values through `selectValue()`, `inputValue()` and `isChecked()`
 rather than casting `e.target`. Panels in `src/ui/app.ts` use `trackedPanel()` from `src/ui/context.ts`, which records the `view`
-fields a panel reads and re-renders it only when one of them, the plan or the persisted state changes; no
-dependency list is kept by hand, but a view change made without `refresh()` leaves that panel's memo stale.
+fields a panel reads and re-renders it only when one of them, the plan or the persisted state changes. Writing a
+`view` field schedules that render; see `src/ui/context.ts` for when to render at once.
 Write user-facing text where it is shown. `src/ui/copy.ts` holds the panel titles and control labels that
 other modules' text names, so renaming one updates every mention. Confirmations and notices use `src/ui/dialog.ts`, not
 `window.confirm` or `alert`. Interactive elements may carry `data-tip` for hover and focus help, and only

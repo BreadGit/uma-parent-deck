@@ -5,18 +5,13 @@ import type { Character } from '../../types.ts';
 import { distanceCategory, goalRaces, slotOf } from '../../model/races.ts';
 import { eventStatus, hasRaceAptitude, missionAgenda, missionRaceFit, parsePastedMissions, recommendMissionTrainees, selectedMissionEvents,
   type Mission, type MissionAgendaEntry, type MissionCatalog, type MissionEvent, type MissionRaceFit } from '../../model/missions.ts';
-import { data, refresh, store, update, view } from '../context.ts';
+import { data, store, update, view } from '../context.ts';
 import { agendaGrid, slotLabel } from '../agenda.ts';
 import { inputValue, isChecked, matchesWords, options, queryWords, selectValue } from '../form.ts';
-import { searchBox } from '../fields.ts';
+import { searchBox, SUGGESTION_LIMIT } from '../fields.ts';
 import { charImg } from '../format.ts';
 import { about, panel } from '../panel.ts';
 
-const ADD_RACE_LABEL = 'Add a race';
-const REMOVE_LABEL = 'Remove';
-const CAREER_GOAL_LABEL = 'Career goal';
-const DONE_LABEL = 'Done';
-const SAME_DATE_LABEL = 'Same date';
 const RANKING_METHOD = 'Ranked by how many different remaining mission races fit in one career, then by overlap with career goals. Uses base surface and distance grades B or better and the standard career goals; inheritance, win chances, fan requirements and other mission conditions are not evaluated.';
 const fitSummary = (fit: MissionRaceFit) => `${fit.schedule.size} / ${fit.total} remaining races fit · ${fit.goalMatches} also career goals`;
 const date = (time: number) => new Date(time).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -53,7 +48,7 @@ function eventPicker(catalog: MissionCatalog, selected: MissionEvent[], now: num
     <details class="about"><summary>Paste missions from GameTora</summary>
       <p class="small">Copy the mission list, including rewards if you like. Recognized race names appear on the grid; other requirements stay in the checklist.</p>
       <label class="goal-field">Mission text<textarea data-mission-paste rows="7" placeholder="Mile Ch.: Win the Fuji Stakes in Career" .value=${live(view.missionPaste)}
-        @input=${(event: Event) => { view.missionPaste = inputValue(event); view.missionImportNotice = ''; refresh(); }}></textarea></label>
+        @input=${(event: Event) => { view.missionPaste = inputValue(event); view.missionImportNotice = ''; }}></textarea></label>
       <button class="small gap-top" data-action="import-missions" ?disabled=${!view.missionPaste.trim()} @click=${() => {
         const lines = parsePastedMissions(view.missionPaste, catalog.races).map((mission) => mission.text);
         view.missionPaste = '';
@@ -65,9 +60,9 @@ function eventPicker(catalog: MissionCatalog, selected: MissionEvent[], now: num
       }}>Add pasted missions</button>
       <p class="small" role="status">${view.missionImportNotice}</p>
     </details>
-    <details class="about"><summary>${ADD_RACE_LABEL}</summary>
-      <input type="search" class="wide gap-top" data-mission-race-search aria-label=${ADD_RACE_LABEL} placeholder="Search race names…" .value=${live(view.missionRaceQuery)}
-        @input=${(event: Event) => { view.missionRaceQuery = inputValue(event); refresh(); }}>
+    <details class="about"><summary>Add a race</summary>
+      <input type="search" class="wide gap-top" data-mission-race-search aria-label="Add a race" placeholder="Search race names…" .value=${live(view.missionRaceQuery)}
+        @input=${(event: Event) => { view.missionRaceQuery = inputValue(event); }}>
       ${manualMatches(catalog)}
     </details>`);
 }
@@ -76,7 +71,7 @@ function manualMatches(catalog: MissionCatalog) {
   const words = queryWords(view.missionRaceQuery);
   if (!words.length) return nothing;
   const matches = [...new Map(catalog.races.map((race) => [race.raceId, race])).values()]
-    .filter((race) => !store.missions.customRaceIds.includes(race.raceId) && matchesWords(words, race.name)).slice(0, 12);
+    .filter((race) => !store.missions.customRaceIds.includes(race.raceId) && matchesWords(words, race.name)).slice(0, SUGGESTION_LIMIT);
   return html`<div class="mission-race-search">${matches.length ? matches.map((race) => html`<button class="small" data-add-mission-race=${race.raceId}
     @click=${() => { view.missionRaceQuery = ''; update((state) => { state.missions.customRaceIds = toggle(state.missions.customRaceIds, race.raceId, true); }); }}>${race.name} · ${race.grade}</button>`) : html`<p class="small muted">No matching races.</p>`}</div>`;
 }
@@ -84,13 +79,13 @@ function manualMatches(catalog: MissionCatalog) {
 function traineePicker(recommendations: MissionRaceFit[], chosen: MissionRaceFit | null, now: number) {
   const words = queryWords(view.missionTraineeQuery);
   const matches = words.length ? data.characters.filter((trainee) => Date.parse(trainee.releaseEn) <= now && matchesWords(words, `${trainee.name} ${trainee.title}`))
-    .sort((a, b) => a.name.localeCompare(b.name) || a.cardId - b.cardId).slice(0, 12) : [];
+    .sort((a, b) => a.name.localeCompare(b.name) || a.cardId - b.cardId).slice(0, SUGGESTION_LIMIT) : [];
   const trainee = chosen?.trainee;
   return panel({ title: 'Trainee' }, html`
     ${trainee ? html`<div class="trainee-card">
       <img class="thumb thumb-lg" src=${charImg(trainee)} alt="">
       <div class="trainee-id"><span class="trainee-k">${trainee.title}</span><span class="trainee-v">${trainee.name}</span></div>
-      <button class="small" data-action="clear-mission-trainee" @click=${() => pickTrainee(null)}>${REMOVE_LABEL}</button>
+      <button class="small" data-action="clear-mission-trainee" @click=${() => pickTrainee(null)}>Remove</button>
     </div><p class="small" data-mission-fit>${fitSummary(chosen)}</p>
       ${chosen.total && !chosen.schedule.size ? html`<p class="small warn">No remaining races fit this trainee at base grades B or better. You can still use the grid to plan with improved aptitudes or another career.</p>` : nothing}` : html`<p class="small muted">Choose a trainee to see career goals, conflicts and a suggested schedule.</p>`}
     ${searchBox<Character>({ id: 'mission-trainee-search', field: 'missionTraineeQuery', label: 'Search trainees', placeholder: 'Search Global trainees…', items: matches,
@@ -116,7 +111,7 @@ function checklistItem(mission: Mission, catalog: MissionCatalog, now: number, p
       <span>${mission.text}${!matched && (mission.raceInstanceIds.length || (pasted && /\b(win|place|run in|participate in|enter)\b/i.test(mission.text))) ? html`<span class="mission-date">No fixed race date matched — check the requirement in the game.</span>` : nothing}
         ${now < mission.start || now > mission.end ? html`<span class="mission-date">${now < mission.start ? 'Upcoming' : 'Ended'}</span>` : nothing}</span>
     </label>
-    ${pasted ? html`<button class="small" data-remove-pasted-mission=${mission.id} aria-label="${REMOVE_LABEL}: ${mission.text}"
+    ${pasted ? html`<button class="small" data-remove-pasted-mission=${mission.id} aria-label="Remove: ${mission.text}"
       @click=${() => update((state) => { state.missions.pastedLines = state.missions.pastedLines.filter((line) => line !== mission.text); })}>×</button>` : nothing}
   </div>`;
 }
@@ -134,7 +129,7 @@ function checklist(events: MissionEvent[], pasted: Mission[], catalog: MissionCa
       <label class="mission-check"><input type="checkbox" data-custom-race-complete=${id} .checked=${live(store.missions.completedCustomRaceIds.includes(id))}
         @change=${(event: Event) => update((state) => { state.missions.completedCustomRaceIds = toggle(state.missions.completedCustomRaceIds, id, isChecked(event)); })}>
         ${catalog.races.find((race) => race.raceId === id)?.name ?? `#${id}`}</label>
-      <button class="small" data-remove-mission-race=${id} aria-label="${REMOVE_LABEL}: ${catalog.races.find((race) => race.raceId === id)?.name ?? id}"
+      <button class="small" data-remove-mission-race=${id} aria-label="Remove: ${catalog.races.find((race) => race.raceId === id)?.name ?? id}"
         @click=${() => update((state) => { state.missions.customRaceIds = state.missions.customRaceIds.filter((raceId) => raceId !== id); })}>×</button>
     </div>`)}` : nothing}`);
 }
@@ -143,7 +138,7 @@ function missionGrid(bySlot: Map<number, MissionAgendaEntry[]>, chosen: MissionR
   const goals = new Map(goalRaces(chosen?.trainee ?? null).map((goal) => [slotOf(goal), goal]));
   return panel({ title: 'Mission agenda', kind: 'result' }, html`
     <p class="small muted">Every available running is shown. Repeated appearances are alternatives. Only one race can be run per half-month; use another year or career for clashes. Check the full requirement below before marking it done.</p>
-    <div class="mission-legend small"><span class="tag">Mission race</span><span class="tag goal">${CAREER_GOAL_LABEL}</span><span class="tag ok">${DONE_LABEL}</span><span class="tag warn">${SAME_DATE_LABEL}</span></div>
+    <div class="mission-legend small"><span class="tag">Mission race</span><span class="tag goal">Career goal</span><span class="tag ok">Done</span><span class="tag warn">Same date</span></div>
     ${!bySlot.size ? html`<p class="banner">Select a mission set, paste requirements or add a race to fill the grid.</p>` : nothing}
     <div class="mission-agenda">${agendaGrid((slot) => {
       const entries = bySlot.get(slot) ?? [];
@@ -151,8 +146,8 @@ function missionGrid(bySlot: Map<number, MissionAgendaEntry[]>, chosen: MissionR
       const conflict = new Set(entries.filter((entry) => !entry.complete).map((entry) => entry.race.raceId)).size > 1;
       return html`<div class="agenda-cell ${entries.length || goal ? '' : 'empty'} ${goal ? 'goal' : ''}" data-mission-slot=${slot}>
         <div class="agenda-body">
-          ${goal && !entries.some((entry) => entry.race.raceId === goal.raceId) ? html`<div class="mission-goal"><span class="tag goal">${CAREER_GOAL_LABEL}</span><div class="agenda-race">${goal.name}</div></div>` : nothing}
-          ${conflict ? html`<span class="tag warn" data-tip="These remaining races share this date. Use different years or careers.">${SAME_DATE_LABEL}</span>` : nothing}
+          ${goal && !entries.some((entry) => entry.race.raceId === goal.raceId) ? html`<div class="mission-goal"><span class="tag goal">Career goal</span><div class="agenda-race">${goal.name}</div></div>` : nothing}
+          ${conflict ? html`<span class="tag warn" data-tip="These remaining races share this date. Use different years or careers.">Same date</span>` : nothing}
           ${repeat(entries, (entry) => entry.race.calendarId, (entry) => {
             const { race } = entry;
             const suggested = chosen?.schedule.get(slot)?.raceId === race.raceId;
@@ -163,14 +158,14 @@ function missionGrid(bySlot: Map<number, MissionAgendaEntry[]>, chosen: MissionR
               <div class="agenda-race ${race.surface}">${race.name}</div>
               <div class="mission-race-meta">${race.grade} · ${race.surface} · ${race.distance} m</div>
               <div class="mission-race-meta">${race.fansNeeded.toLocaleString()} fans</div>
-              ${goal?.raceId === race.raceId ? html`<span class="tag goal">${CAREER_GOAL_LABEL}</span>` : nothing}
+              ${goal?.raceId === race.raceId ? html`<span class="tag goal">Career goal</span>` : nothing}
               ${suggested ? html`<span class="tag">Suggested</span>` : nothing}
-              ${entry.complete ? html`<span class="tag ok">${DONE_LABEL}</span>` : nothing}
+              ${entry.complete ? html`<span class="tag ok">Done</span>` : nothing}
               ${blocked ? html`<span class="tag warn" data-mission-goal-conflict data-tip=${`Career goal: ${goal.name} occupies this date.`}>Goal conflict</span>` : nothing}
               ${poor ? html`<span class="tag warn" data-tip=${`Base grades: ${chosen.trainee.aptitudes[race.surface]} surface / ${chosen.trainee.aptitudes[distanceCategory(race.distance)]} distance`}>Low base aptitude</span>` : nothing}
               ${repeat(quick, (mission) => mission.id, (mission) => html`<label class="mission-quick-check" data-tip=${mission.text}>
                 <input type="checkbox" data-mission-complete=${mission.id} aria-label=${mission.text} .checked=${live(store.missions.completedMissionIds.includes(mission.id))}
-                  @change=${(event: Event) => completeMission(mission.id, isChecked(event))}>${DONE_LABEL}
+                  @change=${(event: Event) => completeMission(mission.id, isChecked(event))}>Done
               </label>`)}
             </div>`;
           })}

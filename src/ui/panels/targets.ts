@@ -8,17 +8,16 @@ import { isGold, isNormalOrGold, type Skill } from '../../types.ts';
 import type { RunPlan } from '../../model/run.ts';
 import type { Target } from '../../model/sparks.ts';
 import { emptyLineage, hasWhiteSpark, lineageCount, lineageStars, resolveTarget, withLineageCopies, withLineageStars, type Lineage } from '../../model/sparks.ts';
-import { goalFamily, sanitizePriority } from '../../model/goal-input.ts';
+import { goalFamily, sanitizePriority, type WhiteTarget } from '../../model/goal-input.ts';
 import { UMA_LABELS } from '../../model/inherit.ts';
 import { LINEAGE_SLOTS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from '../../model/rules.ts';
-import { data, refresh, store, update, view } from '../context.ts';
+import { data, store, update, view } from '../context.ts';
 import { LABEL } from '../copy.ts';
 import { inputNumber, isOpen, matchesWords, numbered, options, queryWords, selectValue } from '../form.ts';
-import { searchBox } from '../fields.ts';
+import { searchBox, SUGGESTION_LIMIT } from '../fields.ts';
 import { probability, skillIcon } from '../format.ts';
 import { tip } from '../tooltip.ts';
 
-const PER_PARENT = 'Per parent';
 const WHITE_TARGETS_TIP = 'The white skills you want the finished parent to carry as sparks. A card that gives the skill or its gold form counts as a source. Each group adds through its own search. Select a name to edit its goal and lineage, and select it again to close. Closing a group also closes its editor.';
 const SEARCH_PLACEHOLDERS = { required: 'Add a required skill…', preferred: 'Add a preferred skill…' };
 const SEARCH_LABELS = { required: 'Search skills to add as required', preferred: 'Search skills to add as preferred' };
@@ -33,12 +32,12 @@ const PEEK = 4;
 const targetable = data.skills.filter((s) => !s.unreleasedEn && isNormalOrGold(s) && goalFamily(s.id, data) === resolveTarget(s.id, data)?.id);
 
 /** Skills whose official or GameTora name holds every word of the query. */
-export function matchTargets(query: string): Skill[] {
+function matchTargets(query: string): Skill[] {
   const words = queryWords(query);
-  return words.length ? targetable.filter((s) => matchesWords(words, s.name) || matchesWords(words, s.altName ?? '')).slice(0, 12) : [];
+  return words.length ? targetable.filter((s) => matchesWords(words, s.name) || matchesWords(words, s.altName ?? '')).slice(0, SUGGESTION_LIMIT) : [];
 }
 /** Add a skill's family to a role and open its editor; a target already listed moves to that role instead. */
-export function addTarget(id: number, role: Role) {
+function addTarget(id: number, role: Role) {
   const base = goalFamily(id, data);
   if (base === null) return;
   view[QUERY_FIELD[role]] = ''; view.targetEditorId = base;
@@ -47,20 +46,18 @@ export function addTarget(id: number, role: Role) {
     if (existing) existing.role = role; else s.run.targets.push({ id: base, role, stars: 2, priority: 0 });
   });
 }
-export function removeTarget(id: number) {
+function removeTarget(id: number) {
   if (view.targetEditorId === id) view.targetEditorId = null;
   update((s) => {
     s.run.targets = s.run.targets.filter((t) => t.id !== id);
     delete s.run.targetLineage[String(id)];
   });
 }
-export function selectTarget(id: number) {
+function selectTarget(id: number) {
   view.targetEditorId = view.targetEditorId === id ? null : id;
-  refresh();
 }
 const entryOf = (id: number) => store.run.targets.find((t) => t.id === id);
-const editTarget = (id: number, fn: (t: NonNullable<ReturnType<typeof entryOf>>) => void) => update((s) => { const t = s.run.targets.find((r) => r.id === id); if (t) fn(t); });
-/** Edit one target's lineage; an entry with no copies is dropped. */
+const editTarget = (id: number, fn: (t: WhiteTarget) => void) => update((s) => { const t = s.run.targets.find((r) => r.id === id); if (t) fn(t); });
 function editLineage(id: number, edit: (l: Lineage) => Lineage) {
   update((s) => {
     const next = edit(s.run.targetLineage[String(id)] ?? emptyLineage());
@@ -68,12 +65,11 @@ function editLineage(id: number, edit: (l: Lineage) => Lineage) {
   });
 }
 const lineageOf = (id: number): Lineage => store.run.targetLineage[String(id)] ?? emptyLineage();
-const toggleLineageParents = () => { view.showLineageParents = !view.showLineageParents; refresh(); };
+const toggleLineageParents = () => { view.showLineageParents = !view.showLineageParents; };
 
 const STAR_CHOICES = numbered([1, 2, 3], (n) => `${n}★+`);
 const isSelected = (t: Target) => view.targetEditorId === t.id;
 
-/** A target's name with its icon and either the star minimum, the priority, or a warning that it has no white spark. */
 function nameButton(t: Target) {
   const entry = entryOf(t.id)!;
   const suffix = !hasWhiteSpark(t) ? html`<span class="tag warn">No white spark</span>`
@@ -96,7 +92,6 @@ function lineageTotals(id: number, l: Lineage) {
     <label>Total stars <select data-lineage-stars=${id} aria-label="Total stars in lineage" ?disabled=${!n} .value=${live(String(stars))} @change=${(e: Event) => editLineage(id, (current) => withLineageStars(current, Number(selectValue(e))))}>${options(starChoices, String(stars))}</select></label>
   </div>`;
 }
-/** The stars on each parent and grandparent, one column per side, with the totals they add up to underneath. */
 function lineageParents(id: number, l: Lineage) {
   const copies = lineageCount(l);
   return html`<div class="per-parent white" id="target-lineage-parents" data-lineage-parents=${id}>
@@ -113,7 +108,7 @@ function editor(c: RunPlan, t: Target) {
   const required = entry.role === 'required';
   const l = lineageOf(t.id), perParent = view.showLineageParents;
   const own = (c.existing.sources.get(t.id) ?? []).filter((s) => s.kind !== 'lineage');
-  const lineageTip = `Copies of this white spark already in the lineage: how many of the six umas (each parent and her two grandparents) carry it, and their star total. Each copy rolls for the hint at both inspiration events, and each copy multiplies the spark chance by ×${store.settings.lineageSparkMultiplier}. Totals fill the parents first, then the grandparents; "${PER_PARENT}" sets each uma instead.`;
+  const lineageTip = `Copies of this white spark already in the lineage: how many of the six umas (each parent and her two grandparents) carry it, and their star total. Each copy rolls for the hint at both inspiration events, and each copy multiplies the spark chance by ×${store.settings.lineageSparkMultiplier}. Totals fill the parents first, then the grandparents; "Per parent" sets each uma instead.`;
   const goalControl = required
     ? html`<label class="target-stars">${LABEL.minimumStars} <select data-target-stars=${t.id} .value=${live(String(entry.stars))} @change=${(e: Event) => editTarget(t.id, (r) => { r.stars = Number(selectValue(e)); })}>${options(STAR_CHOICES, String(entry.stars))}</select></label>`
     : html`<label class="target-stars">Priority ${tip('Lower numbers give more weight: priority 0 = 1, priority 1 = 0.5, priority 2 = 0.25. Preferred white sparks count at any star level. Several lower-weight sparks can outweigh one higher-weight spark. This does not change the prioritized-skills list.')}
@@ -130,13 +125,12 @@ function editor(c: RunPlan, t: Target) {
     </div>
     <div class="target-editor-lineage">
       <div class="target-lineage-head"><h3>White sparks in lineage${tip(lineageTip)}</h3>
-        <button class="small ${perParent ? 'active' : ''}" data-action="toggle-lineage-parents" aria-pressed=${perParent} aria-expanded=${perParent} aria-controls="target-lineage-parents" data-tip="Enter the stars on each parent and grandparent instead of the totals" @click=${toggleLineageParents}>${PER_PARENT}</button></div>
+        <button class="small ${perParent ? 'active' : ''}" data-action="toggle-lineage-parents" aria-pressed=${perParent} aria-expanded=${perParent} aria-controls="target-lineage-parents" data-tip="Enter the stars on each parent and grandparent instead of the totals" @click=${toggleLineageParents}>Per parent</button></div>
       ${perParent ? lineageParents(t.id, l) : lineageTotals(t.id, l)}
     </div>
   </div>`;
 }
 
-/** The search box that adds to one role; the suggestion rows name the gold form a white skill upgrades into. */
 function search(role: Role) {
   const field = QUERY_FIELD[role];
   return searchBox<Skill>({
@@ -160,7 +154,6 @@ function group(c: RunPlan, role: Role) {
     if (open === stored) return;
     if (!open && holdsSelected) view.targetEditorId = null;
     view.targetGroupsOpen = { ...view.targetGroupsOpen, [role]: open };
-    refresh();
   };
   return html`<details class="target-group" data-target-group=${role} ?open=${stored || holdsSelected} @toggle=${onToggle}>
     <summary><span class="sub-note" data-target-count=${role}>${targets.length}</span>${ROLE_LABELS[role]}

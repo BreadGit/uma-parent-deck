@@ -5,6 +5,7 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import type { RunPlan } from '../../model/run.ts';
 import type { CardScore } from '../../model/deck.ts';
 import { cardEffectCoverage } from '../../model/support-effects.ts';
+import { BORROWED_LB } from '../../model/rules.ts';
 import { compareTargetChances, cardTargetChances, deckDisplayOrder } from '../../model/card-ranking.ts';
 import { data, store, view } from '../context.ts';
 import { ignoreToggle, pinToggle } from '../card-toggles.ts';
@@ -20,8 +21,8 @@ function slot(c: RunPlan, cs: CardScore) {
     <div class="slot-top">${pinToggle(cs.card)}${ignoreToggle(cs.card)}${cs.borrowed ? html`<span class="tag borrow">borrow</span>` : nothing}</div>
     ${cardThumb(cs.card, 'slot-art')}
     <div class="name">${typeIcon(cs.card)}${cardLink(cs.card, html`${cs.card.charName}<span class="muted title">${cs.card.title}</span>`)}</div>
-    <div class="lb">${cs.borrowed ? "LB4 (friend's)" : html`LB ${lbSelect(c, cs.card, cs.lb, 'small')}`}</div>
-    <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} <span class="n"><span class="muted">spark</span> ${pill(x.spark)}${tip(x.sources.map((s) => `${s.detail}: ${probability(s.pObtain)}`).join('\n'))}</span></span>`)}</div>
+    <div class="lb">${cs.borrowed ? `LB${BORROWED_LB} (friend's)` : html`LB ${lbSelect(c, cs.card, cs.lb, 'small')}`}</div>
+    <div class="cover">${cs.coverage.filter((x) => x.marginal > 0 || x.spark > 0).map((x) => html`<span class="t">${x.target.name} <span class="n"><span class="muted">spark</span> ${pill(probability(x.spark))}${tip(x.sources.map((s) => `${s.detail}: ${probability(s.pObtain)}`).join('\n'))}</span></span>`)}</div>
   </div>`;
 }
 
@@ -36,12 +37,11 @@ function limitations(c: RunPlan) {
     ${cards.map(({ cs, effects }) => html`<div class="estimate-limitations-card" data-card-limitations=${cs.card.id}>
       <b>${cardLink(cs.card)}</b> <span class="muted">${basisLabel(cs.card, cs.lb, cs.source)}</span>
       ${observedCaveat(cs.source, effects)}
-      ${effectList(effects, { compact: true, source: cs.source })}
+      ${effectList(effects, cs.source)}
     </div>`)}
   </details>`;
 }
 
-/** The search steps and the per-card model limitations, for the prediction details panel. */
 export function deckBuild(c: RunPlan) {
   return html`<ol class="small">${c.deckResult.steps.map((s) => html`<li>${s}</li>`)}</ol>${limitations(c)}`;
 }

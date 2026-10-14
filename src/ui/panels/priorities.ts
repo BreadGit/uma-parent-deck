@@ -1,19 +1,18 @@
 // The prioritized-skill list to enter in independent training. Target rows follow Parent goal and are fixed; the
 // extras below them are the user's to reorder, hide, add and swap. The run takes one option per event, so an extra
 // that takes a shared event carries the options it displaced as swap chips; one click puts that option in its place.
-// While a deck search runs the extras are locked, since the deck found may offer different ones. Each skill's
-// tooltip ends with the event or card that gives it; the choice conflicts are listed in the warnings panel.
+// While a deck search runs the extras are locked, since the deck found may offer different ones. The choice conflicts
+// are listed in the warnings panel.
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import type { RunPlan } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
-import { plan, refresh, store, update, view } from '../context.ts';
+import { plan, store, update, view } from '../context.ts';
 import { TITLE } from '../copy.ts';
 import { skillTipText, skillWithTip } from '../format.ts';
 import { panel } from '../panel.ts';
 
-const SOURCE_LABEL = 'Source';
 const TARGETS_FIXED = `Target skills cannot be removed from the prioritized skills list. Change targets and their order in ${TITLE.goal}.`;
 const ROLE_TAGS = {
   required: { label: 'required', tip: 'A required target of the parent goal.' },
@@ -56,7 +55,7 @@ function moveSkill(from: number, to: number) {
   editOrder((cur) => moveIn(cur, cur.indexOf(from), cur.indexOf(to)));
 }
 function nudgeSkill(key: number, delta: number) {
-  editOrder((cur) => { const i = cur.indexOf(key); return i < 0 ? undefined : moveIn(cur, i, i + delta); });
+  editOrder((cur) => { const i = cur.indexOf(key); return moveIn(cur, i, i + delta); });
 }
 /** Put `sibling` in `winner`'s place so it takes their shared event; the winner moves behind it. */
 function swapSkill(sibling: number, winner: number) {
@@ -75,7 +74,6 @@ const dragItem = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>(
 const setDrag = (key: number | null, over: number | null) => {
   if (view.drag.key === key && view.drag.over === over) return;
   view.drag = { key, over };
-  refresh();
 };
 const drag = {
   dragstart: (ev: DragEvent) => { const li = dragItem(ev); if (!li) return; const key = Number(li.dataset.wlKey); ev.dataTransfer?.setData('text/plain', String(key)); setDrag(key, null); },
@@ -93,7 +91,6 @@ function siblingsOf(c: RunPlan, key: number): WishlistEntry[] {
 const listedAt = (c: RunPlan, key: number) => { const i = c.wl.findIndex((w) => w.key === key); return i < 0 ? null : i + 1; };
 const entryName = (w: WishlistEntry) => w.form ? `${w.name} (for ${w.form})` : w.name;
 
-/** The role tag every row carries, and a status mark only when a target has something to say. */
 function tags(c: RunPlan, w: WishlistEntry) {
   const role = ROLE_TAGS[w.role];
   const cls = w.role === 'required' ? 'gold' : w.role === 'preferred' ? 'ok' : '';
@@ -105,7 +102,7 @@ function tags(c: RunPlan, w: WishlistEntry) {
 /** A chip that swaps `sibling` in for `winner` at their shared event. Only extras take events from extras. */
 function swapChip(c: RunPlan, sibling: WishlistEntry, winner: WishlistEntry, locked: boolean) {
   const at = listedAt(c, sibling.key);
-  const tipText = skillTipText(sibling.skillId, `${SOURCE_LABEL}: ${sibling.reason}`);
+  const tipText = skillTipText(sibling.skillId, `Source: ${sibling.reason}`);
   return html`<button class="wl-swap" data-action="wl-swap" data-id="${sibling.key}" data-for="${winner.key}" ?disabled=${locked} data-tip=${tipText} @click=${() => swapSkill(sibling.key, winner.key)}>${entryName(sibling)}${at ? html` <span class="muted">(currently #${at})</span>` : nothing}</button>`;
 }
 
@@ -117,7 +114,7 @@ function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
     .filter((s) => s.skillId === w.skillId && s.kind !== 'lineage' && s.kind !== 'innate' && s.kind !== 'awakening') : [];
   const hintCards = [...new Set(sources.flatMap((s) => s.kind === 'hint' && s.cardName ? [s.cardName] : []))];
   const source = hintCards.length && sources.every((s) => s.kind === 'hint') ? `Available as a hint on ${hintCards.length === 1 ? 'this card' : 'these cards'} in the deck: ${hintCards.join('; ')}.` : w.reason;
-  const name = skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `${SOURCE_LABEL}: ${source}`);
+  const name = skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `Source: ${source}`);
   const sibs = extra ? siblingsOf(c, w.key) : [];
   return html`<li draggable="${extra && !locked ? 'true' : 'false'}" data-wl-key="${w.key}" data-wl-role="${w.role}" class="${extra ? 'wl-extra' : 'wl-target'} ${view.drag.key === w.key ? 'dragging' : ''} ${view.drag.over === w.key && view.drag.key !== w.key ? 'drop-target' : ''}">
     <span class="wl-num">${i + 1}.</span><span class="grip ${extra ? '' : 'grip-disabled'}" aria-hidden="true">⋮⋮</span>
@@ -125,7 +122,7 @@ function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
     <span class="wl-actions ${extra ? '' : 'wl-fixed'}" tabindex=${extra ? nothing : 0} role=${extra ? nothing : 'group'} aria-label=${extra ? nothing : TARGETS_FIXED} data-tip=${extra ? nothing : TARGETS_FIXED}>
       <button class="small wl-move" data-action="wl-up" data-id="${w.key}" aria-label="Move ${w.name} up" data-tip="Move up" ?disabled=${!canMove(-1)} @click=${() => nudgeSkill(w.key, -1)}>▲</button>
       <button class="small wl-move" data-action="wl-down" data-id="${w.key}" aria-label="Move ${w.name} down" data-tip="Move down" ?disabled=${!canMove(1)} @click=${() => nudgeSkill(w.key, 1)}>▼</button>
-      <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Hide ${w.name}" data-tip="Hide from the list" ?disabled=${!extra || locked} @click=${() => { if (extra) hideSkill(w.key); }}>✕</button>
+      <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Hide ${w.name}" data-tip="Hide from the list" ?disabled=${!extra || locked} @click=${() => hideSkill(w.key)}>✕</button>
     </span>
     ${sibs.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">or instead:</span>${sibs.map((s) => swapChip(c, s, w, locked))}</div>` : nothing}</li>`;
 }
@@ -141,7 +138,7 @@ function candidates(c: RunPlan, locked: boolean) {
       ${c.wlRest.length ? html`<span>Not listed:</span> ${c.wlRest.map((w) => html`<span class="chip small">${w.name}${isExtra(w) ? html` <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" ?disabled=${locked} @click=${() => addSkill(w.key)}>+</button>` : nothing}</span>`)}` : nothing}
       ${c.wlHidden.length ? html`<span>Hidden:</span> ${c.wlHidden.map((w) => html`<span class="chip small">${w.name} <button data-action="wl-restore" data-id="${w.key}" aria-label="Put ${w.name} back" ?disabled=${locked} @click=${() => restoreSkill(w.key)}>+</button></span>`)}` : nothing}
     </div>
-    ${view.candidatesOverflow ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; refresh(); }}>${expanded ? 'Show fewer' : 'Show all candidates'}</button>` : nothing}`;
+    ${view.candidatesOverflow ? html`<button class="small wl-candidates-toggle" data-action="wl-candidates" aria-expanded=${expanded} @click=${() => { view.showAllCandidates = !expanded; }}>${expanded ? 'Show fewer' : 'Show all candidates'}</button>` : nothing}`;
 }
 
 export function renderPriorities(c: RunPlan) {

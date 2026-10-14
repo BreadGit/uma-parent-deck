@@ -2,7 +2,6 @@
 // panel. Shown only when there is something to say.
 import { html, nothing } from 'lit-html';
 import type { RunPlan } from '../../model/run.ts';
-import type { Conflict } from '../../model/sparks.ts';
 import { retrySearch, view } from '../context.ts';
 import { TITLE } from '../copy.ts';
 import { skillName, skillWithTip } from '../format.ts';
@@ -18,12 +17,11 @@ export function hasWarnings(c: RunPlan) {
 function conflicts(c: RunPlan) {
   const d = c.deckResult;
   if (!d.conflicts.length) return nothing;
-  const opts = (cf: Conflict) => [cf.taken, ...cf.dropped];
-  return html`<div class="conflicts-box" data-choice-conflicts>${sub('Choice conflicts', { tip: CONFLICTS_TIP })}
+  return html`<div class="conflicts-box" data-choice-conflicts>${sub('Choice conflicts', CONFLICTS_TIP)}
     <p class="small muted">The run takes one option per event and the target listed higher takes it. To change which one, change the priorities or the targets in ${TITLE.goal}.</p>
     <div class="scroll-x"><table class="small conflicts"><thead><tr><th>Event</th><th>Options</th><th>Taken</th><th>Not taken</th></tr></thead><tbody>
       ${d.conflicts.map((cf) => html`<tr><td class="wrap">${cf.label}</td>
-        <td class="wrap">${opts(cf).map((o) => html`<div>${skillWithTip(o.skillId)}${o.option ? html` <span class="muted">${o.option}</span>` : nothing}</div>`)}</td>
+        <td class="wrap">${[cf.taken, ...cf.dropped].map((o) => html`<div>${skillWithTip(o.skillId)}${o.option ? html` <span class="muted">${o.option}</span>` : nothing}</div>`)}</td>
         <td><b>${skillName(cf.taken.skillId)}</b>${cf.taken.target != null ? nothing : html` <span class="muted">(not a target)</span>`}</td><td>${cf.dropped.map((o) => skillName(o.skillId)).join(', ')}</td></tr>`)}
     </tbody></table></div></div>`;
 }
