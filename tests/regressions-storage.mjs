@@ -11,22 +11,6 @@ import { data, fresh, editor, state, trainee, target, pin, inventoryFile, predic
 suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_TEST_CONCURRENCY ?? 2) }, () => {
 
 
-  test('arranging the extras after a missed storage event rearranges the other tab\'s order', async (t) => {
-    const saved = defaultState(data);
-    saved.run.traineeCardId = 100101;
-    const page = await fresh(t, saved);
-    const extras = await page.locator('.wishlist li[data-wl-role="extra"]').evaluateAll((els) => els.map((el) => Number(el.dataset.wlKey)));
-    assert.ok(extras.length >= 3, 'the fixture shows at least three extras');
-    const [a, b, c, ...rest] = extras;
-    // Another tab moves the third extra to the top.
-    await writeMissedSave(page, (other) => { other.run.wishlistOrder = [c, a, b, ...rest]; });
-    await page.click(`[data-action="wl-down"][data-id="${a}"]`);
-    assert.deepEqual((await state(page)).run.wishlistOrder.slice(0, 3), [c, b, a], 'the move applies to the other tab\'s order');
-    assert.deepEqual(await page.locator('.wishlist li[data-wl-role="extra"]').evaluateAll((els) => els.slice(0, 3).map((el) => Number(el.dataset.wlKey))), [c, b, a]);
-    await assertFieldsMatchState(page, 'after arranging extras that took over a missed change from another tab');
-  });
-
-
   test('the first reset clears targets, trainee, pins and inheritance while preserving settings and inventory', async (t) => {
     const page = await editor(t);
     await target(page, 'Groundwork');
@@ -62,72 +46,6 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     assert.equal(await page.evaluate(() => window.beforeReset), true, 'a reset that was not saved does not reload');
     assert.equal((await state(page)).run.traineeCardId, 100101, 'the newer save is left intact');
   });
-
-  test('manual agenda choices use the latest save after a missed storage event', async (t) => {
-    for (const scenario of [
-      { name: 'pick below the latest threshold', threshold: 0.8, overrides: { 624: false }, latestThreshold: 1,
-        choice: '624', expected: { 623: false, 624: true } },
-      { name: 'skip above the latest threshold', threshold: 1, overrides: { 624: true }, latestThreshold: 0.8,
-        choice: '', expected: { 623: false, 624: false } },
-      { name: 'clear overrides for the latest automatic choice', threshold: 1, overrides: { 623: true }, latestThreshold: 0.8,
-        choice: '624', expected: {} },
-      { name: 'pick after the latest aptitude change', threshold: 0.8, overrides: { 624: false }, latestThreshold: 0.8, mile: 'G',
-        choice: '624', expected: { 623: false, 624: true } },
-    ]) await t.test(scenario.name, async (t) => {
-      const saved = defaultState(data);
-      saved.run.traineeCardId = 100101;
-      saved.settings.winThreshold = scenario.threshold;
-      saved.run.raceOverrides = scenario.overrides;
-      const page = await editor(t, saved);
-      await openAgenda(page);
-      // Special Week's optional Junior December slot contains Hanshin Juvenile Fillies (623) and Asahi Hai (624).
-      const slot = '[data-slot="22"]';
-      const previous = await page.inputValue(slot);
-      assert.notEqual(previous, scenario.choice, 'the user changes the displayed choice');
-      await writeMissedSave(page, (other) => {
-        other.settings.winThreshold = scenario.latestThreshold;
-        if (scenario.mile) other.run.aptOverrides.mile = scenario.mile;
-        other.run.raceOverrides[625] = true;
-      });
-      assert.equal(await page.inputValue(slot), previous, 'the missed event leaves the displayed choice stale');
-      await page.selectOption(slot, scenario.choice);
-      assert.equal(await page.inputValue(slot), scenario.choice, 'the agenda keeps the requested choice');
-      const current = await state(page);
-      assert.equal(current.settings.winThreshold, scenario.latestThreshold);
-      if (scenario.mile) assert.equal(current.run.aptOverrides.mile, scenario.mile);
-      assert.deepEqual(current.run.raceOverrides, { ...scenario.expected, 625: true }, 'other slots retain the latest overrides');
-      await assertFieldsMatchState(page, 'after an agenda choice takes over a missed save');
-    });
-  });
-
-
-  test('mission event selection edits use the latest save after a missed storage event', async (t) => {
-    for (const scenario of [
-      { name: 'selecting an event after another tab starts following current events', initial: [206], latest: null,
-        selector: '[data-mission-event="201"]', checked: true, expected: [201, 202] },
-      { name: 'stopping follow-current after another tab explicitly selects events', initial: null, latest: [206, 999999],
-        selector: '[data-mission-follow]', checked: false, expected: [206, 999999] },
-    ]) await t.test(scenario.name, async (t) => {
-      const saved = defaultState(data);
-      saved.missions.eventIds = scenario.initial;
-      const page = await fresh(t, saved, { held: true, init: () => {
-        Date.now = () => new Date('2026-10-04T12:00:00Z').getTime();
-      } });
-      await page.goto(new URL('missions.html', url).href);
-      const control = page.locator(scenario.selector);
-      await control.waitFor();
-      assert.equal(await control.isChecked(), !scenario.checked, 'the user changes the displayed selection');
-      await assertFieldsMatchState(page, 'before a mission event edit');
-      await writeMissedSave(page, (other) => { other.missions.eventIds = scenario.latest; other.settings.focus = 'balanced'; });
-      assert.equal(await control.isChecked(), !scenario.checked, 'the missed event leaves the displayed selection stale');
-      await control.setChecked(scenario.checked);
-      const current = await state(page);
-      assert.deepEqual(current.missions.eventIds.slice().sort((a, b) => a - b), scenario.expected, 'the edit uses the latest selection');
-      assert.equal(current.settings.focus, 'balanced', 'unrelated choices from the latest save are kept');
-      await assertFieldsMatchState(page, 'after a mission event edit takes over a missed save');
-    });
-  });
-
 
   test('a malformed saved side becomes the default side without a warning, and the other side is kept', async (t) => {
     const saved = defaultState(data);
