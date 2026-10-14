@@ -72,7 +72,7 @@ test('an unreadable save is copied aside, the page saves normally, and the copy 
       assert.equal(saveState(loaded), true);
       assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
       assert.equal(saved.get(UNREADABLE_KEY), unreadable, 'the copy survives the first edit');
-      removeUnreadableSave();
+      removeUnreadableSave(loaded);
       assert.equal(unreadableSave(), null);
       assert.equal(saved.has(UNREADABLE_KEY), false);
     });
@@ -97,9 +97,22 @@ test('the latest unreadable save replaces an earlier copy', () => {
   const data = loadData(), unreadable = '{new broken save';
   const saved = new Map([[STATE_KEY, unreadable], [UNREADABLE_KEY, '{older broken save']]);
   withStorage(saved, () => {
-    loadState(data, {});
+    const loaded = loadState(data, {});
     assert.equal(saved.get(UNREADABLE_KEY), unreadable);
-    removeUnreadableSave();
+    removeUnreadableSave(loaded);
+  });
+});
+
+test('removing an unreadable save before any edit replaces the original too', () => {
+  const data = loadData(), unreadable = '{broken save';
+  const saved = new Map([[STATE_KEY, unreadable]]);
+  withStorage(saved, () => {
+    const loaded = loadState(data, {});
+    removeUnreadableSave(loaded);
+    assert.equal(saved.has(UNREADABLE_KEY), false);
+    assert.deepEqual(JSON.parse(saved.get(STATE_KEY)!), loaded);
+    loadState(data, {});
+    assert.equal(unreadableSave(), null, 'a reload finds nothing unreadable');
   });
 });
 
@@ -113,7 +126,7 @@ test('an unreadable save without room for a copy is still offered for download i
     loaded.ui.theme = 'dark';
     assert.equal(saveState(loaded), true);
     assert.equal(unreadableSave(), unreadable, 'replacing the save keeps the download');
-    removeUnreadableSave();
+    removeUnreadableSave(loaded);
     assert.equal(unreadableSave(), null);
   }, true);
 });
@@ -133,7 +146,7 @@ test('an unreadable save from another tab is copied aside and the choices on thi
       loaded.ui.theme = 'dark';
       assert.equal(saveState(loaded), true);
       assert.deepEqual(JSON.parse(saved.get(STATE_KEY)!).inventory, original.inventory);
-      removeUnreadableSave();
+      removeUnreadableSave(loaded);
     });
   }
 });

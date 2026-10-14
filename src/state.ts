@@ -230,9 +230,12 @@ function keepUnreadable(raw: string) {
   try { localStorage.setItem(UNREADABLE_KEY, raw); } catch { /* still offered for download from unreadableFound */ }
 }
 export const unreadableSave = (): string | null => unreadableFound ?? readStored(UNREADABLE_KEY);
-export function removeUnreadableSave() {
+/** Remove the unreadable save: its copy, and the original too when this page has not saved over it yet. */
+export function removeUnreadableSave(state: AppState) {
   unreadableFound = null;
   try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
+  const stored = readStored(STATE_KEY);
+  if (stored !== null && !isSave(parseJson(stored))) saveState(state);
 }
 
 /** The save as this page last read or wrote it. A write from another tab since then makes the stored text differ. */

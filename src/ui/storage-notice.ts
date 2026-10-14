@@ -6,7 +6,7 @@ import { confirmDialog } from './dialog.ts';
 
 async function removeCopy() {
   if (!await confirmDialog('Remove the unreadable save? It cannot be recovered afterwards.', 'Remove')) return;
-  removeUnreadableSave();
+  removeUnreadableSave(store);
   renderNow();
 }
 
