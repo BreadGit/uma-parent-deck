@@ -234,12 +234,15 @@ function keepUnreadable(raw: string) {
 }
 export const hasUncopiedUnreadable = () => uncopiedUnreadable !== null;
 export const unreadableSave = (): string | null => uncopiedUnreadable ?? readStored(UNREADABLE_KEY);
-/** Remove the unreadable save: its copy, and the original too when this page has not saved over it yet. */
+/**
+ * Remove the unreadable save: its copy, and the original too when this page has not saved over it yet. A save another
+ * tab wrote since is left for the storage watcher.
+ */
 export function removeUnreadableSave(state: AppState) {
   uncopiedUnreadable = null;
   try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
   const stored = readStored(STATE_KEY);
-  if (stored !== null && !isSave(parseJson(stored))) saveState(state);
+  if (stored !== null && stored === lastRaw && !isSave(parseJson(stored))) saveState(state);
 }
 
 /** The save as this page last read or wrote it. A write from another tab since then makes the stored text differ. */
@@ -300,7 +303,7 @@ export function storedIfChanged(data: Data): AppState | null {
 
 /**
  * Keep open planner and mission tabs from overwriting each other's newer choices. `accept` takes over another tab's
- * save; `notice` refreshes warnings for a save this version cannot read.
+ * save; `notice` refreshes warnings for a save this version cannot read or an unreadable copy another tab removed.
  */
 export function watchSavedState(data: Data, accept: (state: AppState) => void, notice: () => void) {
   const check = () => {
@@ -308,7 +311,10 @@ export function watchSavedState(data: Data, accept: (state: AppState) => void, n
     if (saved === 'unusable') notice();
     else if (saved) accept(saved);
   };
-  window.addEventListener('storage', (event) => { if (event.key === STATE_KEY) check(); });
+  window.addEventListener('storage', (event) => {
+    if (event.key === STATE_KEY) check();
+    else if (event.key === UNREADABLE_KEY) notice();
+  });
   window.addEventListener('pageshow', (event) => { if (event.persisted) check(); });
 }
 

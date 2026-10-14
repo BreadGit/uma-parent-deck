@@ -63,6 +63,33 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     assert.equal((await state(page)).run.traineeCardId, 100101, 'the newer save is left intact');
   });
 
+  test('Reset all keeps the page instead of reloading while it holds the only copy of an unreadable save', async (t) => {
+    const unreadable = '{broken save';
+    // The copy cannot be written, as when storage is full, so the page holds the only copy.
+    const init = `
+      if (!sessionStorage.getItem('seeded')) {
+        localStorage.setItem(${JSON.stringify(STATE_KEY)}, ${JSON.stringify(unreadable)});
+        sessionStorage.setItem('seeded', '1');
+      }
+      const setItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === ${JSON.stringify(UNREADABLE_KEY)}) throw new DOMException('Full', 'QuotaExceededError');
+        return setItem.call(this, key, value);
+      };`;
+    const page = await fresh(t, undefined, { held: true, init });
+    await page.waitForSelector('[data-unreadable-save]');
+    assert.equal(await page.evaluate((key) => localStorage.getItem(key), UNREADABLE_KEY), null);
+    await page.evaluate(() => { window.beforeReset = true; });
+    await page.click('[data-action="reset-all"]');
+    await confirmDialog(page);
+    await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.beforeReset), true, 'the reset does not reload');
+    assert.deepEqual((await state(page)).run, defaultState(data).run, 'the reset is saved');
+    const downloading = page.waitForEvent('download');
+    await page.locator('[data-action="download-unreadable"]').click();
+    assert.equal(await readFile(await (await downloading).path(), 'utf8'), unreadable, 'the only copy is still offered');
+  });
+
 
   test('manual agenda choices use the latest save after a missed storage event', async (t) => {
     for (const scenario of [
@@ -465,6 +492,10 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     assert.equal((await state(page)).ui.theme, 'light');
     assert.deepEqual((await state(page)).run, saved.run);
     await assertFieldsMatchState(page, 'after removing the unreadable save and editing again');
+    await otherTab.evaluate(({ key, raw }) => localStorage.setItem(key, raw), { key: STATE_KEY, raw: '{third broken save' });
+    await page.locator('[data-unreadable-save]').waitFor();
+    await otherTab.evaluate((key) => localStorage.removeItem(key), UNREADABLE_KEY);
+    await page.locator('[data-unreadable-save]').waitFor({ state: 'detached' });
   });
 
 

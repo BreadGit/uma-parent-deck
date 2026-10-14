@@ -109,6 +109,20 @@ test('the latest unreadable save replaces an earlier copy', () => {
   });
 });
 
+test('removing an unreadable save leaves one another tab wrote since for the watcher', () => {
+  const data = loadData();
+  const saved = new Map([[STATE_KEY, '{first broken']]);
+  withStorage(saved, () => {
+    const page = loadState(data, {});
+    saved.set(STATE_KEY, '{second broken');
+    removeUnreadableSave(page);
+    assert.equal(saved.get(STATE_KEY), '{second broken', 'a save this page never read is not replaced');
+    assert.equal(storedIfChanged(data), null);
+    assert.equal(unreadableSave(), '{second broken');
+    removeUnreadableSave(page);
+  });
+});
+
 test('removing an unreadable save before any edit replaces the original too', () => {
   const data = loadData(), unreadable = '{broken save';
   const saved = new Map([[STATE_KEY, unreadable]]);
