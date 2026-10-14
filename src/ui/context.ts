@@ -66,12 +66,10 @@ export type View = typeof viewState;
 let renderer: () => void = () => {};
 let renderQueued = false;
 export function onRender(fn: () => void) { renderer = fn; }
-/**
- * Render immediately instead of after the current handler, for code that reads the DOM a view change updates. View
- * writes made while rendering belong to this render and queue no other.
- */
+/** Render immediately instead of after the current handler, for code that reads the DOM a view change updates. */
 export function renderNow() {
-  try { renderer(); } finally { renderQueued = false; }
+  renderQueued = false;
+  renderer();
 }
 function queueRender() {
   if (renderQueued) return;
