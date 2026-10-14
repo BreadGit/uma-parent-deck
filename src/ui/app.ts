@@ -3,7 +3,7 @@
 // one-line run summary keeping the context. The right column is every result, most useful first.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
-import { resetRun } from '../state.ts';
+import { hasUncopiedUnreadable, resetRun } from '../state.ts';
 import { data, onRender, plan, renderNow, renderTracked, store, trackedPanel, update, view } from './context.ts';
 import { TITLE } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
@@ -35,8 +35,9 @@ async function resetAll() {
   if (!await confirmDialog(`${RESET_ALL}? This clears the trainee, parent goal, targets, legacy screen, pinned and ignored cards, agenda picks, prioritized order, training focus and win threshold. Your inventory and advanced settings are kept.`, RESET_ALL)) return;
   const saved = update((state) => Object.assign(state, resetRun(state, data)));
   clearSharedUrl();
-  // A reload reads the save back, so it would restore the old run if the reset was not written.
-  if (saved) location.reload();
+  // A reload reads the save back, so it would restore the old run if the reset was not written, and it would drop an
+  // unreadable save this page holds the only copy of.
+  if (saved && !hasUncopiedUnreadable()) location.reload();
 }
 
 function unavailableChoices() {

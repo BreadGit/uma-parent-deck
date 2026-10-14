@@ -224,15 +224,19 @@ const readStored = (key: string): string | null => {
 const parseJson = (raw: string | null): unknown => { try { return raw ? JSON.parse(raw) : undefined; } catch { return undefined; } };
 const readJson = (key: string): unknown => parseJson(readStored(key));
 
-let unreadableFound: string | null = null;
+/** An unreadable save whose copy could not be written, so this page holds the only copy. */
+let uncopiedUnreadable: string | null = null;
 function keepUnreadable(raw: string) {
-  unreadableFound = raw;
-  try { localStorage.setItem(UNREADABLE_KEY, raw); } catch { /* still offered for download from unreadableFound */ }
+  try {
+    localStorage.setItem(UNREADABLE_KEY, raw);
+    uncopiedUnreadable = null;
+  } catch { uncopiedUnreadable = raw; }
 }
-export const unreadableSave = (): string | null => unreadableFound ?? readStored(UNREADABLE_KEY);
+export const hasUncopiedUnreadable = () => uncopiedUnreadable !== null;
+export const unreadableSave = (): string | null => uncopiedUnreadable ?? readStored(UNREADABLE_KEY);
 /** Remove the unreadable save: its copy, and the original too when this page has not saved over it yet. */
 export function removeUnreadableSave(state: AppState) {
-  unreadableFound = null;
+  uncopiedUnreadable = null;
   try { localStorage.removeItem(UNREADABLE_KEY); } catch { /* nothing to remove when storage is unavailable */ }
   const stored = readStored(STATE_KEY);
   if (stored !== null && !isSave(parseJson(stored))) saveState(state);

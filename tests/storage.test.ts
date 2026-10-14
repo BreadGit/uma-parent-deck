@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../src/data.ts';
 import { effectiveLb } from '../src/model/run.ts';
-import { defaultState, hasNewerSave, isStorageUnavailable, loadState, removeUnreadableSave, replaceNewerSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storedIfChanged, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
+import { defaultState, hasNewerSave, hasUncopiedUnreadable, isStorageUnavailable, loadState, removeUnreadableSave, replaceNewerSave, saveRecommendation, saveState, STATE_KEY, STATE_VERSION, storedIfChanged, UNREADABLE_KEY, unreadableSave } from '../src/state.ts';
 
 test('storage failures preserve in-memory edits and an existing save, then recover', () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
@@ -72,11 +72,17 @@ test('an unreadable save is copied aside, the page saves normally, and the copy 
       assert.equal(saveState(loaded), true);
       assert.equal(JSON.parse(saved.get(STATE_KEY)!).ui.theme, 'dark');
       assert.equal(saved.get(UNREADABLE_KEY), unreadable, 'the copy survives the first edit');
+      assert.equal(hasUncopiedUnreadable(), false);
       removeUnreadableSave(loaded);
       assert.equal(unreadableSave(), null);
       assert.equal(saved.has(UNREADABLE_KEY), false);
     });
   }
+  withStorage(new Map([[STATE_KEY, '{broken']]), () => {
+    loadState(data, {});
+    localStorage.removeItem(UNREADABLE_KEY);
+    assert.equal(unreadableSave(), null, 'a copy another tab removed is no longer offered');
+  });
   const fresh = new Map<string, string>();
   withStorage(fresh, () => {
     assert.deepEqual(loadState(data, { 30028: 3 }).inventory, { 30028: 3 }, 'a fresh browser starts from the bundled inventory');
@@ -122,12 +128,14 @@ test('an unreadable save without room for a copy is still offered for download i
   withStorage(saved, () => {
     const loaded = loadState(data, {});
     assert.equal(saved.has(UNREADABLE_KEY), false, 'there is no room for the copy');
+    assert.equal(hasUncopiedUnreadable(), true);
     assert.equal(unreadableSave(), unreadable);
     loaded.ui.theme = 'dark';
     assert.equal(saveState(loaded), true);
     assert.equal(unreadableSave(), unreadable, 'replacing the save keeps the download');
     removeUnreadableSave(loaded);
     assert.equal(unreadableSave(), null);
+    assert.equal(hasUncopiedUnreadable(), false);
   }, true);
 });
 
