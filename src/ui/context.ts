@@ -68,8 +68,7 @@ let renderQueued = false;
 export function onRender(fn: () => void) { renderer = fn; }
 /** Render immediately instead of after the current handler, for code that reads the DOM a view change updates. */
 export function renderNow() {
-  renderer();
-  renderQueued = false;
+  try { renderer(); } finally { renderQueued = false; }
 }
 function queueRender() {
   if (renderQueued) return;
