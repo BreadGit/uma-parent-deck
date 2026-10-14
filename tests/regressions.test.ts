@@ -5,7 +5,8 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/settings.ts';
 import { defaultState, migrate, resetRun, DEFAULT_RUN } from '../src/state.ts';
 import { importInventory } from '../src/inventory.ts';
-import { planRun, targetSpCost } from '../src/model/run.ts';
+import { planRun } from '../src/model/run.ts';
+import { targetSpCost } from '../src/model/skill-purchases.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { combineSources, pruneConflicts, purchasedOwnership, resolveTarget, sparkChance, type SkillSource } from '../src/model/sparks.ts';
 import { defaultParentSparks } from '../src/model/inherit.ts';
@@ -161,7 +162,7 @@ test('borrow gain uses the final five owned cards as its baseline', () => {
   const owned = traineeCoverage(p.targets, p.ctx);
   for (const entry of p.deckResult.deck.filter((c) => !c.borrowed)) {
     owned.chars.add(entry.card.charId);
-    owned.cards.push(entry.card);
+    owned.cards.push({ card: entry.card, lb: entry.lb });
     for (const [id, sources] of entry.mine) owned.sources.set(id, [...(owned.sources.get(id) ?? []), ...sources]);
   }
   const sum = (v: Map<number, number>) => [...v.values()].reduce((a, b) => a + b, 0);

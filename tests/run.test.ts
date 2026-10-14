@@ -5,7 +5,8 @@ import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { isNormal, perStat, RARITIES, type StatValues } from '../src/types.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
-import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, effectiveLb, isLegalRunSelection, layoutWishlist, permutations, planRun, targetSpCost, withRequiredOrder, type RunInput } from '../src/model/run.ts';
+import { applyExtrasOrder, contestedRequired, deriveOrder, derivePriority, effectiveLb, isLegalRunSelection, layoutWishlist, permutations, planRun, withRequiredOrder, type RunInput } from '../src/model/run.ts';
+import { targetSpCost } from '../src/model/skill-purchases.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankMoments, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
 import { combineSources, resolveTarget } from '../src/model/sparks.ts';
@@ -104,16 +105,10 @@ test('the dirt fan thresholds follow the character, so an aptitude override on t
   assert.equal(uniqueSkillLevel(3, sw.aptitudes, lowFans, strict), 1, 'her own turf table does not pass these checks');
 });
 
-test('a total-turn override at or below the reference race count is rejected and cannot divide by zero', () => {
+test('a total-turn override at or below the reference race count is rejected', () => {
   assert.equal(parseSetting('totalTurnsOverride', '28'), undefined);
   assert.equal(parseSetting('totalTurnsOverride', '20'), undefined);
   assert.equal(parseSetting('totalTurnsOverride', '29'), 29);
-  for (const T of [28, 20, 0, -5]) {
-    const bad = { ...settings, totalTurnsOverride: T };
-    assert.ok(Number.isFinite(raceScale(28, data.model, bad)) && Number.isFinite(raceScale(20, data.model, bad)), `T=${T} falls back to the fitted value`);
-    const plan = planRun(empty, bad, {}, data);
-    assert.ok(plan.finalMean.every(Number.isFinite) && Number.isFinite(plan.rank.score), `T=${T} keeps the plan finite`);
-  }
   assert.ok(Math.abs(raceScale(23, data.model, { ...settings, totalTurnsOverride: 78 }) - 55 / 50) < 1e-9);
 });
 

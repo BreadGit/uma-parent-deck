@@ -1,13 +1,12 @@
-import { APTITUDE_KEYS, APT_GRADES as GRADES, type AptKey, type Grade } from '../types.ts';
+import { APTITUDE_KEYS, APT_GRADES, type AptKey, type Grade } from '../types.ts';
 import type { PinkSpark } from './goal-input.ts';
+import type { Aptitudes } from './races.ts';
 import { PINK_SPARK_START_STARS, STARS_PER_SPARK_MAX } from './rules.ts';
-
-type Aptitudes = Record<AptKey, Grade>;
 
 /** Starting inheritance can add at most four grades, ending at A. */
 export function pinkAptitudeGrades(base: Grade): Grade[] {
-  const from = Math.min(GRADES.indexOf(base), GRADES.indexOf('A'));
-  return GRADES.slice(from, Math.min(GRADES.indexOf('A'), from + PINK_SPARK_START_STARS.length - 1) + 1).reverse();
+  const from = Math.min(APT_GRADES.indexOf(base), APT_GRADES.indexOf('A'));
+  return APT_GRADES.slice(from, Math.min(APT_GRADES.indexOf('A'), from + PINK_SPARK_START_STARS.length - 1) + 1).reverse();
 }
 
 /** Known sparks determine starting grades. Out-of-range overrides remain explicit planning inputs. */
@@ -31,13 +30,13 @@ export function withPinkLineage(base: Aptitudes, entered: Partial<Aptitudes>, cu
 const starsFor = (lineage: (PinkSpark | null)[], key: AptKey) => lineage.reduce((n, spark) => n + (spark?.aptitude === key ? spark.stars : 0), 0);
 const gradeFromStars = (base: Grade, stars: number): Grade => {
   const steps = PINK_SPARK_START_STARS.filter((minimum) => stars >= minimum).length - 1;
-  return GRADES[Math.min(GRADES.indexOf('A'), GRADES.indexOf(base) + steps)]!;
+  return APT_GRADES[Math.min(APT_GRADES.indexOf('A'), APT_GRADES.indexOf(base) + steps)]!;
 };
 
 /** Allocate one aptitude's sparks; reclaim the weakest other sparks only after using free slots. */
 function allocateGrade(base: Grade, current: (PinkSpark | null)[], key: AptKey, grade: Grade) {
   if (gradeFromStars(base, starsFor(current, key)) === grade) return { lineage: [...current], reclaimed: false };
-  const steps = GRADES.indexOf(grade) - GRADES.indexOf(base);
+  const steps = APT_GRADES.indexOf(grade) - APT_GRADES.indexOf(base);
   const minimum = PINK_SPARK_START_STARS[steps]!;
   const existing = current.filter((spark) => spark?.aptitude === key).map((spark) => spark!.stars);
   const total = existing.reduce((n, stars) => n + stars, 0);
@@ -74,7 +73,7 @@ export interface PinkAptitudeChange { lineage: (PinkSpark | null)[]; aptitudes: 
 
 /** Honor the chosen grade, then derive every starting grade from the rebalanced six-spark lineage. */
 export function withPinkAptitude(base: Aptitudes, entered: Aptitudes, current: (PinkSpark | null)[], key: AptKey, grade: Grade): PinkAptitudeChange | null {
-  if (grade === 'S' || !GRADES.includes(grade)) return null;
+  if (grade === 'S' || !APT_GRADES.includes(grade)) return null;
   if (!pinkAptitudeGrades(base[key]).includes(grade)) {
     return { lineage: [...current], aptitudes: { ...startingAptitudes(base, entered, current), [key]: grade }, adjustsOthers: false };
   }

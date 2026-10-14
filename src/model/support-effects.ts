@@ -24,7 +24,7 @@ type Treatment = Pick<EffectCoverage, 'status' | 'reason' | 'outcomes' | 'deckDe
 type Metadata = { id: number; name: string; description?: string };
 const metadata = new Map<number, Metadata>((effectsJson as Metadata[]).map((e) => [e.id, e]));
 
-/** Sparse support types retain the previous SP formula. Coverage follows the same choice. */
+/** Support types too sparse for the full SP fit use its baseline formula, `sp.fallback`. */
 export const spModelFor = (card: Card, model: StatModel): StatModel['sp'] =>
   model.sp.fittedTypes && !model.sp.fittedTypes.includes(card.type) ? model.sp.fallback ?? model.sp : model.sp;
 
@@ -40,6 +40,9 @@ export function passives(card: Card, lb: number, extra: Record<number, number> =
 }
 
 export const uniqueUnlocked = (card: Card, lb: number) => !!card.unique && lb >= card.unique.fromLb;
+const hasStatType = (card: Card) => STATS.some((stat) => stat === card.type);
+/** Whether the fit uses starting bond, which a team bond unique effect raises for every support. */
+const teamBondFitted = (model: StatModel) => !!(model.effectSlopes?.[EFFECT.initialGauge] || model.sp.effectSlopes?.[EFFECT.initialGauge]);
 
 function hasUnknownPayload(effect: UniqueEffect, fields: readonly string[]): boolean {
   return Object.entries(effect).some(([key, value]) => !['type', 'value', ...fields].includes(key)
@@ -75,7 +78,6 @@ interface UniqueRule {
   fields: string[];
   outputs: (effect: UniqueEffect) => number[];
   apply: (effect: UniqueEffect, share: number, context: UniqueContext, add: Add) => void;
-  note: (effect: UniqueEffect, share: string, context: UniqueContext) => string;
 }
 
 /** Calculation and coverage use the same definitions, including nested passive IDs. */
@@ -84,17 +86,14 @@ const UNIQUE_RULES: Readonly<Record<number, UniqueRule>> = {
     reason: 'bondShare', status: 'approximated', deckDependent: false, fields: ['value_1', 'value_2', 'value_3', 'value_4'],
     outputs: (u) => [u.value_1, u.value_3].filter((id): id is number => id != null),
     apply: (u, share, _ctx, add) => { add(u.value_1, (u.value_2 ?? 0) * share); add(u.value_3, (u.value_4 ?? 0) * share); },
-    note: (u, share) => `bond ${u.value} assumed reached for ${share}`,
   },
   103: {
     reason: 'deckTypes', status: 'calculated', deckDependent: true, fields: ['value_1'], outputs: () => [EFFECT.trainingEff],
     apply: (u, _share, ctx, add) => { if (new Set((ctx.deck ?? []).map((d) => d.card.type)).size >= u.value) add(EFFECT.trainingEff, u.value_1 ?? 0); },
-    note: (u, _share, ctx) => ctx.deck ? `the deck has ${new Set(ctx.deck.map((d) => d.card.type)).size} card types (needs ${u.value})` : 'counted from the deck once it is built',
   },
   104: {
     reason: 'fans', status: 'approximated', deckDependent: true, fields: ['value_1'], outputs: () => [EFFECT.trainingEff],
     apply: (u, share, ctx, add) => add(EFFECT.trainingEff, (u.value_1 ?? 0) * (ctx.fansBefore ? fanRampShare(ctx.fansBefore, u.value, u.value_1 ?? 0) : share)),
-    note: (u, share, ctx) => ctx.fansBefore ? `run average +${((u.value_1 ?? 0) * fanRampShare(ctx.fansBefore, u.value, u.value_1 ?? 0)).toFixed(1)} of ${u.value_1} from the agenda's fans` : `${share} of the fan cap (the agenda's fans once it is built)`,
   },
   105: {
     reason: 'deckInitialStats', status: 'calculated', deckDependent: true, fields: ['value_1'], outputs: () => perStat((_, i) => EFFECT.initialStat + i),
@@ -102,29 +101,25 @@ const UNIQUE_RULES: Readonly<Record<number, UniqueRule>> = {
       const deck = ctx.deck ?? [];
       for (const i of STAT_INDEXES) add(EFFECT.initialStat + i, u.value * deck.filter((d) => d.card.type === STATS[i]).length + (u.value_1 ?? 0) * deck.filter((d) => d.card.type === 'pal' || d.card.type === 'group').length);
     },
-    note: () => 'initial stats per card in the deck once it is built',
   },
   106: {
     reason: 'friendshipCount', status: 'approximated', deckDependent: false, fields: ['value_1', 'value_2'], outputs: () => [EFFECT.friendship],
     apply: (u, share, _ctx, add) => add(EFFECT.friendship, u.value * (u.value_2 ?? 0) * share),
-    note: (u, share) => `the ${u.value} friendship trainings assumed done for ${share}`,
   },
   109: {
     reason: 'totalBond', status: 'approximated', deckDependent: true, fields: ['value_1'], outputs: () => [EFFECT.trainingEff],
     apply: (u, share, _ctx, add) => add(EFFECT.trainingEff, (u.value_1 ? UNIQUE_TOTAL_BOND_CAP / u.value_1 : 0) * share),
-    note: (_u, share) => `${UNIQUE_TOTAL_BOND_CAP} total bond assumed reached for ${share}`,
   },
   111: {
     reason: 'facilityLevel', status: 'approximated', deckDependent: false, fields: ['value_1'], outputs: () => [EFFECT.trainingEff],
     apply: (u, share, _ctx, add) => add(EFFECT.trainingEff, (u.value_1 ?? 0) * FACILITY_LEVEL_MAX * share),
-    note: (_u, share) => `facility level ${FACILITY_LEVEL_MAX} assumed for ${share}`,
   },
 };
 
 export function uniqueExtras(card: Card, lb: number, model: StatModel, ctx: UniqueContext = {}): Record<number, number> {
   const out: Record<number, number> = {};
   const add: Add = (id, value) => { if (id != null && Number.isFinite(value) && value !== 0) out[id] = (out[id] ?? 0) + value; };
-  if (ctx.deck && (model.effectSlopes?.[EFFECT.initialGauge] || model.sp.effectSlopes?.[EFFECT.initialGauge])) add(EFFECT.initialGauge, teamInitialBond(ctx.deck));
+  if (ctx.deck && teamBondFitted(model)) add(EFFECT.initialGauge, teamInitialBond(ctx.deck));
   if (!uniqueUnlocked(card, lb)) return out;
   for (const effect of card.unique!.effects) {
     const rule = UNIQUE_RULES[effect.type];
@@ -133,22 +128,9 @@ export function uniqueExtras(card: Card, lb: number, model: StatModel, ctx: Uniq
   return out;
 }
 
-/** Legacy text used by inspect tools; the UI formats coverage reasons in src/ui/effect-coverage.ts. */
-export function uniqueNote(card: Card, model: StatModel, ctx: UniqueContext = {}): string {
-  const share = `${Math.round(model.uniqueRampShare * 100)}% of the run`;
-  return (card.unique?.effects ?? []).map((u) => {
-    const bond = teamBondEffect(u);
-    if (bond !== undefined) return model.effectSlopes?.[EFFECT.initialGauge] || model.sp.effectSlopes?.[EFFECT.initialGauge]
-      ? `+${bond} starting bond for each support, approximated from the fitted starting-bond relationship; the team effect has not been measured directly`
-      : `+${bond} starting bond for each support, left out of the current formula`;
-    const rule = UNIQUE_RULES[u.type];
-    return rule && !hasUnknownPayload(u, rule.fields) ? rule.note(u, share, ctx) : u.type >= 100 ? 'not evaluated, left out' : '';
-  }).filter(Boolean).join('; ');
-}
-
 function ordinaryTreatment(id: number, card: Card, model: StatModel): Treatment {
   const original = baseTreatment(id, card);
-  const stats = model.effectSlopes?.[id] && STATS.some((stat) => stat === card.type);
+  const stats = model.effectSlopes?.[id] && hasStatType(card);
   const sp = spModelFor(card, model).effectSlopes?.[id];
   if (!stats && !sp) return original;
   const wasIncluded = original.status === 'calculated' || original.status === 'approximated';
@@ -160,7 +142,7 @@ function ordinaryTreatment(id: number, card: Card, model: StatModel): Treatment 
 function baseTreatment(id: number, card: Card): Treatment {
   const base = { deckDependent: false, outcomes: ['stats'] as EffectCoverage['outcomes'] };
   if (id >= EFFECT.initialStat && id < EFFECT.initialGauge) return { ...base, status: 'calculated', reason: 'direct' };
-  if (id >= EFFECT.friendship && id <= EFFECT.trainingEff) return { ...base, status: STATS.some((s) => s === card.type) ? 'approximated' : 'omitted', reason: STATS.some((s) => s === card.type) ? 'fitted' : 'notFitted' };
+  if (id >= EFFECT.friendship && id <= EFFECT.trainingEff) return { ...base, status: hasStatType(card) ? 'approximated' : 'omitted', reason: hasStatType(card) ? 'fitted' : 'notFitted' };
   if (id === EFFECT.skillPointBonus) return { ...base, status: 'approximated', reason: 'fitted', outcomes: ['sp'] };
   if (id === EFFECT.fanBonus) return { ...base, status: 'calculated', reason: 'fanBonus', outcomes: ['fans'], deckDependent: true };
   if (id === EFFECT.hintFreq) return { ...base, status: 'approximated', reason: 'hints', outcomes: ['skills'] };
@@ -212,7 +194,7 @@ export function cardEffectCoverage(card: Card, lb: number, model: StatModel, _ct
     const rule = UNIQUE_RULES[effect.type];
     const base = { key, name: 'Unique effect', description: unique.text ?? `Support effect ${effect.type}`, deckDependent: rule?.deckDependent ?? effect.type === 115 };
     if (teamBondEffect(effect) !== undefined) {
-      const included = !!(model.effectSlopes?.[EFFECT.initialGauge] || model.sp.effectSlopes?.[EFFECT.initialGauge]);
+      const included = teamBondFitted(model);
       entries.push({ ...base, status: included ? 'approximated' : 'omitted', reason: included ? 'teamBond' : 'initialBond', outcomes: ['stats', 'sp'] });
       return;
     }
@@ -221,8 +203,8 @@ export function cardEffectCoverage(card: Card, lb: number, model: StatModel, _ct
       return;
     }
     if (!rule || hasUnknownPayload(effect, rule.fields)) {
-      const known = [102, 107, 108, 110, 112, 113, 114, 115, 9991].includes(effect.type);
-      entries.push({ ...base, status: rule || !known ? 'unrecognized' : 'omitted', reason: rule ? 'unknownPayload' : effect.type === 115 ? 'initialBond' : known ? 'unsupported' : 'unknown', outcomes: known || rule ? ['stats', 'sp'] : ['unknown'] });
+      const known = [102, 107, 108, 110, 112, 113, 114, 9991].includes(effect.type);
+      entries.push({ ...base, status: rule || !known ? 'unrecognized' : 'omitted', reason: rule ? 'unknownPayload' : known ? 'unsupported' : 'unknown', outcomes: known || rule ? ['stats', 'sp'] : ['unknown'] });
       return;
     }
     const outputs = [...new Set(rule.outputs(effect))];

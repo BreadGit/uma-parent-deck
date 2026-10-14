@@ -1,8 +1,8 @@
 import type { Card } from '../types.ts';
 import type { CardScore, Ctx } from './deck.ts';
 import { preferredWeight, type WhiteTarget } from './goal-input.ts';
-import { starChance } from './goal.ts';
-import { thresholdFor } from './rank.ts';
+import { atLeastStarsChance } from './goal.ts';
+import { ssThreshold } from './rank.ts';
 import { whiteGenerationBands } from '../settings.ts';
 import { combineSources, hasWhiteSpark, lineageCount, purchasedOwnership, resolveTarget, sparkChance, type SkillSource, type Target } from './sparks.ts';
 
@@ -20,7 +20,7 @@ export interface CardTargetChances { targets: TargetSparkChance[]; required: num
  * Lineage still boosts generation, but trainee, lineage hints and other cards do not supply skills here.
  */
 export function cardTargetChances(card: CardScore, goals: WhiteTarget[], ctx: Ctx): CardTargetChances {
-  const ss = thresholdFor('SS', ctx.data.ranks);
+  const ss = ssThreshold(ctx.data.ranks);
   const rates = whiteGenerationBands(ctx.settings).filter((band) => band.min <= ss).at(-1)!.rates;
   const targets: TargetSparkChance[] = [];
   let required = 0, preferred = 0;
@@ -29,9 +29,8 @@ export function cardTargetChances(card: CardScore, goals: WhiteTarget[], ctx: Ct
     if (!target) continue;
     const sources = (card.coverage.find((c) => c.target.id === target.id)?.sources ?? []).filter((s) => s.kind !== 'scenario');
     const stars = goal.role === 'required' ? goal.stars : 1;
-    const lineage = ctx.lineage.get(target.id);
     const probability = hasWhiteSpark(target)
-      ? sparkChance(purchasedOwnership(target, combineSources(sources)), ctx.settings, lineage ? lineageCount(lineage) : 0) * starChance(rates, stars) : 0;
+      ? sparkChance(purchasedOwnership(target, combineSources(sources)), ctx.settings, lineageCount(ctx.lineage.get(target.id) ?? [])) * atLeastStarsChance(rates, stars) : 0;
     targets.push({ target, role: goal.role, stars, probability, sources });
     if (goal.role === 'required') required += probability;
     else preferred += probability * preferredWeight(goal.priority);

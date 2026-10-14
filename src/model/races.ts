@@ -1,12 +1,10 @@
 import type { AptKey, Character, Grade, Race } from '../types.ts';
-import { DISTANCE_PENALTY, FAN_PAYOUT_BY_PLACE, LOSS_PLACE_BY_WIN_CHANCE, RACE_WIN_BASE, SLOT_COUNT, STREAK_PENALTY, SURFACE_PENALTY } from './rules.ts';
-export { SLOT_COUNT };
+import { DISTANCE_PENALTY, FAN_PAYOUT_BY_PLACE, LOSS_PLACE_BY_WIN_CHANCE, RACE_WIN_BASE, SLOT_COUNT, SLOTS_PER_YEAR, STREAK_PENALTY, SURFACE_PENALTY } from './rules.ts';
 
 /** Race distance category by metres, the same bands the game uses for distance aptitude. */
 export const distanceCategory = (m: number): Race['category'] => (m <= 1400 ? 'sprint' : m <= 1800 ? 'mile' : m <= 2400 ? 'medium' : 'long');
 
-const GRADE_ORDER: Grade[] = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
-const gradeIndex = (g: Grade | undefined) => { const i = GRADE_ORDER.indexOf(g ?? 'G'); return i < 0 ? 7 : i; };
+export const isAtLeastB = (g: Grade | undefined) => g === 'S' || g === 'A' || g === 'B';
 
 export type Aptitudes = Record<AptKey, Grade>;
 
@@ -29,7 +27,7 @@ export const winChance = (raw: number, streak = 1) => Math.max(0, Math.min(1, ra
 export const baseWinChance = (race: Race, apt: Aptitudes) => winChance(rawWinScore(race, apt), 1);
 
 /** Turn index of a calendar slot: year (1..3), month, half. 0 = Junior early January, 71 = Senior late December. */
-export const slotOf = (r: Pick<Race, 'year' | 'month' | 'half'>) => (r.year - 1) * 24 + (r.month - 1) * 2 + (r.half - 1);
+export const slotOf = (r: Pick<Race, 'year' | 'month' | 'half'>) => (r.year - 1) * SLOTS_PER_YEAR + (r.month - 1) * 2 + (r.half - 1);
 
 export interface ScheduledRace {
   race: Race;
@@ -48,7 +46,7 @@ export interface ScheduledRace {
  * A rough stand-in for how common the race is on parents, used only to break ties between races that share a slot.
  */
 export function racePopularity(race: Race, characters: Character[]): number {
-  return characters.filter((c) => gradeIndex(c.aptitudes[race.surface]) <= 2 && gradeIndex(c.aptitudes[race.category]) <= 2).length;
+  return characters.filter((c) => isAtLeastB(c.aptitudes[race.surface]) && isAtLeastB(c.aptitudes[race.category])).length;
 }
 
 /**
@@ -82,7 +80,7 @@ export function goalRaces(trainee: Character | null): Race[] {
     const r = g.races[0]; // objectives with several race options are rare; take the first
     if (!r) continue;
     out.push({ calendarId: `goal:${g.slot}:${r.raceId}`, raceInstanceId: 0, raceId: r.raceId, name: r.name, distance: r.distance, category: distanceCategory(r.distance),
-      surface: r.surface, year: Math.floor(g.slot / 24) + 1, month: Math.floor((g.slot % 24) / 2) + 1, half: (g.slot % 2) + 1, fansNeeded: r.fansNeeded, fansGain: r.fansGain ?? 0, unreleasedEn: false,
+      surface: r.surface, year: Math.floor(g.slot / SLOTS_PER_YEAR) + 1, month: Math.floor((g.slot % SLOTS_PER_YEAR) / 2) + 1, half: (g.slot % 2) + 1, fansNeeded: r.fansNeeded, fansGain: r.fansGain ?? 0, unreleasedEn: false,
       goal: true, autoWin: (g.required ?? 0) > 0 });
   }
   return out;
@@ -177,14 +175,15 @@ export function buildSchedule(races: Race[], apt: Aptitudes, threshold: number, 
  * for any running (a G1 run in two years counts if either is won). Races not in the agenda are absent.
  */
 export type RaceWins = Map<string, number>;
+export const raceWinKey = (raceId: number, year?: number) => year != null ? `${raceId}|${year}` : String(raceId);
 export function raceWinChances(sched: ScheduledRace[]): RaceWins {
   const out: RaceWins = new Map();
   for (const s of sched) {
     if (!s.selected) continue;
     const p = Math.min(1, s.pWin);
-    out.set(`${s.race.raceId}|${s.race.year}`, Math.max(out.get(`${s.race.raceId}|${s.race.year}`) ?? 0, p));
-    const any = out.get(String(s.race.raceId)) ?? 0;
-    out.set(String(s.race.raceId), 1 - (1 - any) * (1 - p));
+    const running = raceWinKey(s.race.raceId, s.race.year), anyRunning = raceWinKey(s.race.raceId);
+    out.set(running, Math.max(out.get(running) ?? 0, p));
+    out.set(anyRunning, 1 - (1 - (out.get(anyRunning) ?? 0)) * (1 - p));
   }
   return out;
 }

@@ -1,5 +1,6 @@
 import { STATS, APTITUDE_KEYS, isGameId, isPlainObject, type AptKey, type Data, type Stat } from '../types.ts';
 import { isDebuff, resolveTarget } from './sparks.ts';
+import { isSparkStars, LINEAGE_SLOTS } from './rules.ts';
 
 export const APTITUDE_LABELS: Record<AptKey, string> = { turf: 'Turf', dirt: 'Dirt', sprint: 'Sprint', mile: 'Mile', medium: 'Medium', long: 'Long', front: 'Front Runner', pace: 'Pace Chaser', late: 'Late Surger', end: 'End Closer' };
 export interface WhiteGoal { id: number; stars: number }
@@ -21,9 +22,9 @@ export function goalWithTargets(goal: ParentGoal, targets: WhiteTarget[]): Resol
 export interface PinkSpark { aptitude: AptKey; stars: number; inferred?: true }
 export const DEFAULT_GOAL: ParentGoal = { blueStats: [...STATS], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] };
 /** Null slots represent zero entered sparks and contribute no aptitude increases to the estimate. */
-export const emptyPinkLineage = (): (PinkSpark | null)[] => Array.from({ length: 6 }, () => null);
-const object = (v: unknown): Record<string, unknown> => isPlainObject(v) ? v : {};
-const stars = (v: unknown) => typeof v === 'number' && [1, 2, 3].includes(v) ? v : 2;
+export const emptyPinkLineage = (): (PinkSpark | null)[] => Array.from({ length: LINEAGE_SLOTS }, () => null);
+const asRecord = (v: unknown): Record<string, unknown> => isPlainObject(v) ? v : {};
+const stars = (v: unknown) => isSparkStars(v) ? v : 2;
 export const goalFamily = (id: unknown, data: Data): number | null => {
   if (typeof id !== 'number') return null;
   const t = resolveTarget(id, data);
@@ -31,7 +32,7 @@ export const goalFamily = (id: unknown, data: Data): number | null => {
   return skill && !skill.unreleasedEn && !isDebuff(skill) ? t!.id : null;
 };
 export function sanitizeGoal(raw: unknown): ParentGoal {
-  const v = object(raw);
+  const v = asRecord(raw);
   return {
     blueStats: Array.isArray(v.blueStats) ? STATS.filter((s) => (v.blueStats as unknown[]).includes(s)) : [...STATS],
     blueStars: stars(v.blueStars),
@@ -43,7 +44,7 @@ export function sanitizeGoal(raw: unknown): ParentGoal {
 export function sanitizePinkGoals(raw: unknown): PinkGoal[] {
   const entries = new Map<PinkGoal['aptitude'], PinkGoal>();
   for (const value of Array.isArray(raw) ? raw : []) {
-    const v = object(value), aptitude = v.aptitude as PinkGoal['aptitude'];
+    const v = asRecord(value), aptitude = v.aptitude as PinkGoal['aptitude'];
     if ((aptitude === 'any' || APTITUDE_KEYS.includes(aptitude)) && !entries.has(aptitude)) entries.set(aptitude, { aptitude, stars: stars(v.stars) });
   }
   if (entries.size > 1) entries.delete('any');
@@ -60,18 +61,18 @@ export function savedTargetId(id: unknown, data: Data, preserveIds = false): num
 export function sanitizeTargets(raw: unknown, data: Data, oldGoal?: unknown, preserveIds = false): WhiteTarget[] {
   const targets = new Map<number, WhiteTarget>();
   for (const value of Array.isArray(raw) ? raw : []) {
-    const entry = typeof value === 'number' ? { id: value } : object(value);
+    const entry = typeof value === 'number' ? { id: value } : asRecord(value);
     const id = savedTargetId(entry.id, data, preserveIds);
     if (id !== null && !targets.has(id)) targets.set(id, { id, role: entry.role === 'required' ? 'required' : 'preferred', stars: stars(entry.stars), priority: sanitizePriority(entry.priority) });
   }
-  const goal = object(oldGoal), required = new Set<number>();
+  const goal = asRecord(oldGoal), required = new Set<number>();
   for (const value of Array.isArray(goal.required) ? goal.required : []) {
-    const entry = object(value), id = savedTargetId(entry.id, data, preserveIds);
+    const entry = asRecord(value), id = savedTargetId(entry.id, data, preserveIds);
     if (id === null || required.has(id)) continue;
     required.add(id); targets.set(id, { id, role: 'required', stars: stars(entry.stars), priority: sanitizePriority(entry.priority) });
   }
   for (const value of Array.isArray(goal.preferred) ? goal.preferred : []) {
-    const entry = typeof value === 'number' ? { id: value } : object(value);
+    const entry = typeof value === 'number' ? { id: value } : asRecord(value);
     const id = savedTargetId(entry.id, data, preserveIds);
     if (id !== null && !targets.has(id)) targets.set(id, { id, role: 'preferred', stars: 2, priority: sanitizePriority(entry.priority) });
   }
@@ -79,8 +80,8 @@ export function sanitizeTargets(raw: unknown, data: Data, oldGoal?: unknown, pre
 }
 export function sanitizePinkLineage(raw: unknown): (PinkSpark | null)[] {
   return emptyPinkLineage().map((_, i) => {
-    const v = object(Array.isArray(raw) ? raw[i] : undefined);
-    return APTITUDE_KEYS.includes(v.aptitude as AptKey) && typeof v.stars === 'number' && [1, 2, 3].includes(v.stars)
+    const v = asRecord(Array.isArray(raw) ? raw[i] : undefined);
+    return APTITUDE_KEYS.includes(v.aptitude as AptKey) && isSparkStars(v.stars)
       ? { aptitude: v.aptitude as AptKey, stars: v.stars, ...(v.inferred === true ? { inferred: true as const } : {}) } : null;
   });
 }

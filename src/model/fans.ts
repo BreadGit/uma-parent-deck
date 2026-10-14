@@ -2,7 +2,7 @@ import type { Card } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { expectedRaceFans, type ScheduledRace } from './races.ts';
 import { CONCERT_FANS, GRAND_CONCERT_FANS, OUR_GRAND_CONCERT, SCENARIO_FINALE_FANS, SLOT_COUNT } from './rules.ts';
-import { EFFECT, passives } from './stats.ts';
+import { EFFECT, passives } from './support-effects.ts';
 
 export interface FanEstimate {
   bonus: number;       // percentage points from the selected deck

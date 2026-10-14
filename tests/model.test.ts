@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, isValidSetting, SETTING_SPEC, type Settings } from '../src/settings.ts';
-import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
+import { cardContribution, modelContribution, predictDeck, raceScale } from '../src/model/stats.ts';
+import { EFFECT, passives, uniqueExtras, uniqueUnlocked } from '../src/model/support-effects.ts';
 import { isGold, isNormal, isNormalOrGold, STATS, type Card, type Race, type Skill, type StatModel } from '../src/types.ts';
 import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, isCircle, isDebuff, isWhite, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
-import { buildDeck, describeDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
+import { buildDeck, describeDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
 import { affinityMultiplier, defaultParentSparks, inheritedFromSparks, gainOfSparks, gainsOfParentSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, parentSparksFromGains, sparksFromGain, sparksFromStars, START_GAINS, withParentGain, type ParentSparks } from '../src/model/inherit.ts';
@@ -74,7 +75,6 @@ test('compound unique effects are evaluated at run time: deck-dependent ones fro
   assert.deepEqual(uniqueExtras(topRoad, 4, m, { fansBefore: () => 0 }), {}, 'no fans, no effect');
   const ramp = uniqueExtras(topRoad, 4, m, { fansBefore: (slot) => slot * 200000 / 72 })[EFFECT.trainingEff]!;
   assert.ok(ramp > 9 && ramp < 11, `fans rising linearly to the cap give about half of it on average, got ${ramp}`);
-  assert.ok(uniqueNote(topRoad, m, { fansBefore: () => 200000 }).includes('+20.0 of 20') && uniqueNote(must(data.cardById.get(30083)), m).includes('left out'), 'the tooltip says what was done');
   const obs = must(data.model.observed.find((o) => o.wellTested && o.lb === 4));
   const card = must(data.cardById.get(obs.cardId));
   assert.deepEqual(cardContribution(card, 4, data.model, { [EFFECT.trainingEff]: 15 }).stats, obs.stats, 'an observed row already contains its deck effects');
@@ -207,7 +207,7 @@ test('ownership odds combine sources the way the game runs them: duplicates in o
   assert.ok(combineSources(turbo).pAny < 1 - (1 - r2 * q2) * (1 - r3 * q3), 'less than independent stages');
   // a target offered by two options of one event counts one option
   const twoOptions: SkillSource[] = [0, 1].map((optionIndex) => ({ kind: 'chain', skillId: 1, gold: false, circle: false, pObtain: 0.5, isChoice: false, detail: '', event: { key: 'x:chain:1', label: '', option: `option ${optionIndex + 1}`, optionIndex } }));
-  const pruned = pruneConflicts(new Map([[1, twoOptions]]), [1]).map.get(1)!;
+  const pruned = pruneConflicts(new Map([[1, twoOptions]]), [1], [], settings, []).map.get(1)!;
   assert.equal(pruned.length, 1);
   assert.ok(Math.abs(combineSources(pruned).pAny - 0.5) < 1e-9, `${combineSources(pruned).pAny} != 0.5`);
   // left unpruned, a second option on the same chain stage adds to the stage rather than replacing it
@@ -221,7 +221,7 @@ test('ownership odds combine sources the way the game runs them: duplicates in o
   const date3 = cardSourcesForTarget(sasami, 4, risky, 20, T, data, settings).filter((s) => eventKeyOf(s) === `${sasami.id}:recreation:3`);
   assert.equal(date3.length, 3);
   assert.ok(date3.some((s) => s.gold && (s as EventSource).event.optionIndex === 0) && date3.some((s) => s.gold && (s as EventSource).event.optionIndex === 1), 'both options offer the gold');
-  const kept = pruneConflicts(new Map([[risky.id, date3]]), null, [], settings);
+  const kept = pruneConflicts(new Map([[risky.id, date3]]), null, [], settings, []);
   assert.deepEqual(kept.map.get(risky.id)!.map((s) => (s as EventSource).event.optionIndex), [1, 1], 'the second option gives the gold at the same chance plus the white form');
   assert.equal(kept.conflicts.length, 0, 'one target on the event: nothing was contested');
   assert.ok(Math.abs(combineSources(kept.map.get(risky.id)!).pAny - 2 * date3[0]!.pObtain) < 1e-9, 'the kept option is worth twice the single option chance');
@@ -531,7 +531,7 @@ test('setting a start gain replaces that stat\'s umas first, then empty slots, t
 
 // ----- the deck builder -----
 
-test('deck: six distinct characters, one borrowed slot at the borrowed limit break, the trainee excluded, a wishlist of at most ten', () => {
+test('deck: six distinct characters, one borrowed slot at the borrowed limit break, the trainee excluded', () => {
   const ctx = ctxOf({ trainee: sw });
   const targets = [200352, 200762].map((id) => resolveTarget(id, data)!);
   const pool = cards.filter((c) => c.rarity === 'SSR').map((card) => ({ card, lb: 4 }));
@@ -544,7 +544,6 @@ test('deck: six distinct characters, one borrowed slot at the borrowed limit bre
   assert.ok(!d.deck.some((x) => x.card.charId === sw.charId), "the trainee's own character is excluded");
   const p = predictDeck(d.deck.map((x) => ({ card: x.card, lb: x.lb })), sw, 20, 'stamina', 1, data.model, settings);
   assert.ok(p.mean.every((v) => v > 300 && v < 1600), JSON.stringify(p.mean));
-  assert.ok(wishlist(d.deck, targets, ctx).length <= 10);
   const srPool = cards.filter((c) => c.rarity === 'SR').map((card) => ({ card, lb: 2 }));
   const e = buildDeck(srPool, [resolveTarget(200352, data)!, resolveTarget(201601, data)!], ctx, { pinnedIds: [], borrowPool: all4 });
   assert.equal(e.deck.filter((x) => x.borrowed).length, 1);

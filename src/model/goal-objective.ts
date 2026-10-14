@@ -1,5 +1,5 @@
 import { preferredWeight, type ResolvedGoal } from './goal-input.ts';
-import { starChance, type GoalRankBands, type PinkEstimate } from './goal.ts';
+import { atLeastStarsChance, type GoalRankBands, type PinkEstimate } from './goal.ts';
 import { subsetGeneration, type FormDistribution } from './goal-skills.ts';
 import { lineageCount, resolveTarget } from './sparks.ts';
 import { whiteGenerationBands, type Settings } from '../settings.ts';
@@ -36,8 +36,12 @@ export function chooseGoal<T extends { score: GoalScore; key: string; statPower:
 export interface GoalSources { forms: FormDistribution; copies: number[] }
 export function goalSources(goal: ResolvedGoal, forms: FormDistribution, ctx: Ctx): GoalSources {
   const targets = [...goal.required.map((r) => r.id), ...goal.preferred.map((p) => p.id)].map((id) => resolveTarget(id, ctx.data)!);
-  return { forms, copies: targets.map((t) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; }) };
+  return { forms, copies: targets.map((t) => lineageCount(ctx.lineage.get(t.id) ?? [])) };
 }
+
+const SUBSET_VISITS = 192;
+const SUBSET_FRONTIER = 64;
+const GREEDY_SUBSET_CHECKS = 64;
 
 /** Score complete success first; bounded subset exploration supplies a useful fallback for zero goals. */
 export function scoreGoal(goal: ResolvedGoal, sources: GoalSources, basis: GoalRankBands, pink: PinkEstimate, settings: Settings): GoalScore {
@@ -51,7 +55,7 @@ export function scoreGoal(goal: ResolvedGoal, sources: GoalSources, basis: GoalR
   };
   const quality = (indices: number[], blue: boolean) => {
     if (indices.every((i) => goal.required[i]!.stars === 1)) return blue ? basis.blue : 1;
-    return (blue ? basis.blueRank : basis.rank).reduce((p, weight, band) => p + weight * indices.reduce((v, i) => v * starChance(bands[band]!.rates, goal.required[i]!.stars), 1), 0);
+    return (blue ? basis.blueRank : basis.rank).reduce((p, weight, band) => p + weight * indices.reduce((v, i) => v * atLeastStarsChance(bands[band]!.rates, goal.required[i]!.stars), 1), 0);
   };
   const approximate = forms.components.some((c) => c.distribution.approximate);
   const make = (indices: number[], blue: boolean): GoalScore => {
@@ -79,7 +83,7 @@ export function scoreGoal(goal: ResolvedGoal, sources: GoalSources, basis: GoalR
       const key = `${Number(blue)}:${indices.join(',')}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      if (++visited > 192) { bounded = true; break; }
+      if (++visited > SUBSET_VISITS) { bounded = true; break; }
       const score = make(indices, blue);
       if (score.comparison > 0) successes.push({ score, key, statPower: 0 });
       else {
@@ -87,16 +91,15 @@ export function scoreGoal(goal: ResolvedGoal, sources: GoalSources, basis: GoalR
         if (blue) next.push({ indices, blue: false });
       }
     }
-    if (successes.length || visited > 192) break;
-    if (next.length > 64) bounded = true;
-    frontier = next.slice(0, 64);
+    if (successes.length || visited > SUBSET_VISITS) break;
+    if (next.length > SUBSET_FRONTIER) bounded = true;
+    frontier = next.slice(0, SUBSET_FRONTIER);
   }
-  // Reserve 64 checks to construct a useful subset if the breadth-first search ran out of room.
   if (!successes.length) {
     bounded = true;
     const blue = basis.blue > 0;
     let retained: number[] = [], score = make(retained, blue);
-    for (const i of possible.slice(0, 64)) {
+    for (const i of possible.slice(0, GREEDY_SUBSET_CHECKS)) {
       const next = make([...retained, i], blue);
       if (next.comparison > 0) { retained = [...retained, i]; score = next; }
     }

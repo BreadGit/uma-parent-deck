@@ -10,7 +10,7 @@ import { parentSparksFromGains } from '../src/model/inherit.ts';
 import type { StatValues } from '../src/types.ts';
 import { planRun, type RunInput } from '../src/model/run.ts';
 import { uniqueSkillLevel } from '../src/model/rank.ts';
-import { EFFECT, uniqueExtras } from '../src/model/stats.ts';
+import { EFFECT, uniqueExtras } from '../src/model/support-effects.ts';
 import { OUR_GRAND_CONCERT } from '../src/model/rules.ts';
 import observations from '../docs/umamusume/fuji-independent-training-runs.json' with { type: 'json' };
 

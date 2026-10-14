@@ -19,6 +19,7 @@ export const PRIORITIZED_SKILLS_MAX = 10;    // Cygames: "Up to ten skills can b
 export const PARENTS = 2;
 export const UMAS_PER_PARENT_SIDE = 3;       // the parent plus her two grandparents
 export const STARS_PER_SPARK_MAX = 3;
+export const isSparkStars = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= STARS_PER_SPARK_MAX;
 export const MAX_PARENT_STARS = UMAS_PER_PARENT_SIDE * STARS_PER_SPARK_MAX;   // 9 blue stars per side
 export const MAX_BLUE_STARS = PARENTS * MAX_PARENT_STARS;                     // 18 across the lineage
 export const LINEAGE_MAX_PER_SIDE = UMAS_PER_PARENT_SIDE;                     // copies of one white spark per side
@@ -54,7 +55,8 @@ export const UNIQUE_TOTAL_BOND_CAP = 600;
 export const FACILITY_LEVEL_MAX = 5;
 
 // --- career calendar ---
-export const SLOT_COUNT = 72;                // 3 years x 12 months x 2 halves; turn 1 = Junior early January
+export const SLOTS_PER_YEAR = 24;           // 12 months x 2 halves
+export const SLOT_COUNT = 3 * SLOTS_PER_YEAR; // turn 1 = Junior early January
 
 // --- independent training race odds (Shoppo_ura's July 2026 data, linked from Crazyfellow's guide) ---
 /** Win chance starts at 110% for A/A (Cygames) and loses these amounts per aptitude grade; S counts as A. Surface E is 50, distance E is 40. */
@@ -122,3 +124,5 @@ export const APTITUDE_BUCKET_MULTIPLIER = { good: 1.1, average: 0.9, bad: 0.8, t
 
 /** Highest displayed stat represented by the evaluation table. */
 export const MAX_STAT_VALUE = 2500;
+/** Above this raw stat, every two raw points display as one. */
+export const STAT_HALVING_START = 1200;

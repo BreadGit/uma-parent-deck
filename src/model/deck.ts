@@ -1,10 +1,10 @@
 import { isGold, perStat, STAT_INDEXES, type Card, type Character, type Data, type StatValues } from '../types.ts';
 import type { Settings } from '../settings.ts';
 import { cardContribution, raceScale, uniqueExtras, type Contribution } from './stats.ts';
-import { BORROWED_SLOTS, DECK_SIZE, PRIORITIZED_SKILLS_MAX } from './rules.ts';
+import { BORROWED_SLOTS, DECK_SIZE } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import type { PreparedRunSources } from './run-sources.ts';
-import { hasWhiteSpark, isDebuff, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type SkillSource, type Target } from './sparks.ts';
+import { hasWhiteSpark, isDebuff, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type ScenarioOption, type SkillSource, type Target } from './sparks.ts';
 
 /** Everything a run evaluation needs besides the cards: the data, the settings and the run's fixed choices. */
 export interface Ctx {
@@ -23,25 +23,23 @@ export interface Ctx {
 export function makeCtx(base: Pick<Ctx, 'data' | 'settings' | 'races' | 'totalTurns' | 'trainee'> & Partial<Ctx>): Ctx {
   return { raceWins: new Map(), lineage: new Map(), priority: null, ...base };
 }
-/** Everything already in play for the run: non-scenario sources per target, and which characters are present. */
-export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: Card[]; limitBreaks?: Map<number, number> }
-const lineageN = (ctx: Ctx, t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
-const cloneExisting = (e: Existing): Existing => ({ sources: new Map([...e.sources].map(([k, v]) => [k, v.slice()])), chars: new Set(e.chars), cards: e.cards.slice(), limitBreaks: new Map(e.limitBreaks) });
+/** Everything already in play for the run: non-scenario sources per target, which characters are present, and the cards. */
+export interface Existing { sources: Map<number, SkillSource[]>; chars: Set<number>; cards: { card: Card; lb: number }[] }
+const cloneExisting = (e: Existing): Existing => ({ sources: new Map([...e.sources].map(([k, v]) => [k, v.slice()])), chars: new Set(e.chars), cards: e.cards.slice() });
 /** Mutates `e`, which must own its source arrays. */
 function addInPlace(e: Existing, add: Map<number, SkillSource[]>, card: Card, lb: number): Existing {
   for (const [t, ss] of add) e.sources.set(t, [...(e.sources.get(t) ?? []), ...ss]);
   e.chars.add(card.charId);
-  e.cards.push(card);
-  e.limitBreaks!.set(card.id, lb);
+  e.cards.push({ card, lb });
   return e;
 }
 const addTo = (e: Existing, add: Map<number, SkillSource[]>, card: Card, lb: number): Existing => addInPlace(cloneExisting(e), add, card, lb);
 /** Non-target choice-gated options in the run (scenario options and card event options) that could outrank a target in the prioritized list. */
-function blockersOf(e: Existing, targets: Target[], ctx: Ctx, options = scenarioOptions(ctx.data, ctx.settings, e.chars)): Blocker[] {
+function blockersOf(e: Existing, targets: Target[], ctx: Ctx, options: ScenarioOption[]): Blocker[] {
   const { families, traineeBlockers } = memoOf(ctx, targets);
   const out: Blocker[] = [];
   for (const o of options) if (!families.has(o.skillId)) out.push({ skillId: o.skillId, event: o.event });
-  for (const card of e.cards) for (const s of eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
+  for (const { card } of e.cards) for (const s of eventSources(card, ctx.settings, ctx.data)) if (isChoiceSource(s) && !families.has(s.skillId)) out.push({ skillId: s.skillId, event: s.event });
   out.push(...traineeBlockers);
   return out;
 }
@@ -52,13 +50,13 @@ function blockersOf(e: Existing, targets: Target[], ctx: Ctx, options = scenario
  */
 export function evaluate(e: Existing, targets: Target[], ctx: Ctx): { full: Map<number, SkillSource[]>; map: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] } {
   const { full, map, conflicts } = resolveCoverage(e, targets, ctx);
-  const sparks = new Map(targets.map((t) => [t.id, hasWhiteSpark(t) ? sparkChance(purchasedOwnership(t, combineSources(map.get(t.id) ?? [])), ctx.settings, lineageN(ctx, t)) : 0]));
+  const sparks = new Map(targets.map((t) => [t.id, hasWhiteSpark(t) ? sparkChance(purchasedOwnership(t, combineSources(map.get(t.id) ?? [])), ctx.settings, lineageCount(ctx.lineage.get(t.id) ?? [])) : 0]));
   return { full, map, sparks, conflicts };
 }
 function resolveCoverage(e: Existing, targets: Target[], ctx: Ctx) {
   const full = new Map<number, SkillSource[]>();
   const options = scenarioOptions(ctx.data, ctx.settings, e.chars);
-  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, ctx.data, ctx.settings, e.chars, options), ...(ctx.sources?.completion(t) ?? scenarioCompletionSources(t, ctx.data, ctx.settings))]);
+  for (const t of targets) full.set(t.id, [...(e.sources.get(t.id) ?? []), ...scenarioSources(t, options, ctx.data, ctx.settings), ...(ctx.sources?.completion(t) ?? scenarioCompletionSources(t, ctx.data, ctx.settings))]);
   const { map, conflicts } = pruneConflicts(full, ctx.priority, blockersOf(e, targets, ctx, options), ctx.settings, targets);
   return { full, map, conflicts };
 }
@@ -87,7 +85,7 @@ export function traineeCoverage(targets: Target[], ctx: Ctx): Existing {
     ...(ctx.trainee ? traineeSources(ctx.trainee, t, ctx.data, ctx.settings, ctx.raceWins) : []),
     ...lineageSources(t, ctx.lineage.get(t.id), ctx.settings),
   ]);
-  return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [], limitBreaks: new Map() };
+  return { sources, chars: new Set(ctx.trainee ? [ctx.trainee.charId] : []), cards: [] };
 }
 
 /** Per-context memo of what does not change within one plan: each card's sources per target, and the trainee's blockers. */
@@ -127,16 +125,16 @@ function statsOf(card: Card, lb: number, ctx: Ctx, others: { card: Card; lb: num
   const contrib = cardContribution(card, lb, ctx.data.model, extra);
   const scale = raceScale(ctx.races, ctx.data.model, ctx.settings);
   const stats = perStat((_, i) => contrib.stats[i] * scale);
-  const focusMul: StatValues = ctx.data.model.focus[ctx.settings.focus] ?? [1, 1, 1, 1, 1];
+  const focusMul = ctx.data.model.focus[ctx.settings.focus];
   let statPower = 0;
   for (const i of STAT_INDEXES) statPower += stats[i] * focusMul[i];
   return { contrib, stats, statPower, sp: contrib.sp * scale };
 }
 
 export function scoreCard(card: Card, lb: number, targets: Target[], existing: Existing, ctx: Ctx): CardScore {
-  const { contrib, stats, statPower, sp } = statsOf(card, lb, ctx, existing.cards.map((c) => ({ card: c, lb: existing.limitBreaks?.get(c.id) ?? 0 })));
+  const { contrib, stats, statPower, sp } = statsOf(card, lb, ctx, existing.cards);
   const mine = minesOf(card, lb, targets, ctx);
-  const alone = evaluate({ sources: mine, chars: new Set([card.charId]), cards: [card] }, targets, ctx);
+  const alone = evaluate({ sources: mine, chars: new Set([card.charId]), cards: [{ card, lb }] }, targets, ctx);
   const before = evaluate(existing, targets, ctx);
   const after = evaluate(addTo(existing, mine, card, lb), targets, ctx);
   const coverage: Coverage[] = [];
@@ -161,11 +159,10 @@ export function rankCards(pool: { card: Card; lb: number }[], targets: Target[],
 
 export interface DeckResult { deck: CardScore[]; steps: string[]; coverage: Map<number, SkillSource[]>; sparks: Map<number, number>; conflicts: Conflict[] }
 
-/** The cards of a deck entry that matter to a run state: its sources and character. */
-type Entry = Pick<CardScore, 'card' | 'lb' | 'mine' | 'statPower' | 'borrowed'>;
+type Entry = Pick<CardScore, 'card' | 'lb' | 'mine'>;
 /** Resolve purchase sources once, without computing a card ranking for every available skill. */
 export function purchaseCoverage(entries: { card: Card; lb: number }[], targets: Target[], ctx: Ctx): Map<number, SkillSource[]> {
-  const sources = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
+  const sources = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx) }));
   return resolveCoverage(stateOf(sources, targets, ctx), targets, ctx).map;
 }
 /** Focus-weighted deck contribution without per-card coverage details. */
@@ -173,7 +170,7 @@ export function deckStatPower(entries: { card: Card; lb: number }[], ctx: Ctx): 
   return entries.reduce((sum, e, i) => sum + statsOf(e.card, e.lb, ctx, entries.filter((_, j) => i !== j)).statPower, 0);
 }
 export function describeDeck(entries: { card: Card; lb: number; borrowed?: boolean }[], targets: Target[], ctx: Ctx): DeckResult {
-  const sourceEntries = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
+  const sourceEntries = entries.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx) }));
   const deck = sourceEntries.map((e, i) => ({ ...scoreCard(e.card, e.lb, targets, stateOf(sourceEntries.filter((_, j) => i !== j), targets, ctx), ctx), borrowed: e.borrowed }));
   const { map: coverage, sparks, conflicts } = evaluate(stateOf(deck, targets, ctx), targets, ctx);
   return { deck, coverage, sparks, conflicts, steps: [] };
@@ -346,7 +343,7 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
   const roleOf = (t: Target): EntryRole => required.has(t.id) ? 'required' : 'preferred';
   const seen = new Set<number>();
   const targetFamilies = new Set(targets.flatMap((t) => [...t.familyIds]));
-  const sourceEntries = deck.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx), statPower: 0 }));
+  const sourceEntries = deck.map((e) => ({ ...e, mine: minesOf(e.card, e.lb, targets, ctx) }));
   const state = stateOf(sourceEntries, targets, ctx);
   const ev = evaluate(state, targets, ctx);
   for (const t of targets) {
@@ -394,9 +391,4 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
       reason: offers.map((o) => `${o.owner}: ${o.src.detail}`).join('; '), events: uniqueEvents(offers.map((o) => o.src.event)) });
   }
   return entries.sort((a, b) => b.weight - a.weight);
-}
-
-/** Up to 10 prioritized skills in the default order. */
-export function wishlist(deck: CardScore[], targets: Target[], ctx: Ctx, max = PRIORITIZED_SKILLS_MAX): WishlistEntry[] {
-  return wishlistCandidates(deck, targets, ctx).slice(0, max);
 }

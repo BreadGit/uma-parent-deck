@@ -4,7 +4,6 @@ import type { Aptitudes } from './races.ts';
 import { APTITUDE_BUCKET_MULTIPLIER, MAX_STAT_VALUE, SKILL_SCORE, UNIQUE_LEVEL_CHECKS, UNIQUE_SKILL_LEVEL_MAX, UNIQUE_SKILL_SCORE_PER_LEVEL, UNIQUE_SKILL_START_LEVEL_BY_STARS } from './rules.ts';
 import type { StatMass } from './stat-outcomes.ts';
 import { isCircle } from './sparks.ts';
-export { MAX_STAT_VALUE } from './rules.ts';
 
 /**
  * Rating points per stat value, the game's table as reproduced by UmaTools (umakonga formula): per-point rates in
@@ -72,7 +71,6 @@ export function skillScore(skill: Skill, apt: Aptitudes | null = null): number {
   return Math.round(base * aptitudeMultiplier(skill, apt));
 }
 
-/** Rating of the trainee's unique skill: 120 per level for a 1★ or 2★ trainee, 170 per level from 3★ (UmaTools, GameWith). */
 export function uniqueSkillScore(stars: number, level: number): number {
   return (stars <= 2 ? UNIQUE_SKILL_SCORE_PER_LEVEL.lowStar : UNIQUE_SKILL_SCORE_PER_LEVEL.highStar) * level;
 }
@@ -93,8 +91,8 @@ export function uniqueSkillLevel(stars: number, apt: Aptitudes, fansBefore: (slo
 }
 
 const SS_FALLBACK_MIN = 17500;           // used only if ranks.json lacks an SS row
-export function thresholdFor(name: string, ranks: Data['ranks']): number {
-  return ranks.find((r) => r.name === name)?.min ?? SS_FALLBACK_MIN;
+export function ssThreshold(ranks: Data['ranks']): number {
+  return ranks.find((r) => r.name === 'SS')?.min ?? SS_FALLBACK_MIN;
 }
 
 export interface RankMoments { score: number; sd: number; ssMin: number; uniqueLevel: number; uniquePts: number; statPts: number; skillPts: number }
@@ -116,6 +114,6 @@ export function rankMoments(masses: PerStat<readonly StatMass[]>, purchasedScore
   const skillPts = skillPointsOf(purchasedScore, trainee, stars, uniqueLevel);
   const score = statPts + skillPts;
   const sdScore = Math.sqrt(statVariance + settings.skillScoreSd ** 2);
-  const ssMin = thresholdFor('SS', data.ranks);
+  const ssMin = ssThreshold(data.ranks);
   return { score, sd: sdScore, ssMin, uniqueLevel, uniquePts, statPts, skillPts };
 }

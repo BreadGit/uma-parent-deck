@@ -8,10 +8,10 @@ import { chooseGoal, goalSources, scoreGoal, type GoalScore } from './goal-objec
 import { EXPLORE_SAMPLES, SCREENED_DECKS, SCREEN_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
 import { lineageCount, resolveTarget, type Lineage, type Target } from './sparks.ts';
-import { predictDeck, totalTurns, type Prediction } from './stats.ts';
+import { BLUE_STAR_BANDS, predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
-import { rankMoments, skillPointsOf, thresholdFor, uniqueSkillLevel, type RankEstimate } from './rank.ts';
+import { rankMoments, skillPointsOf, ssThreshold, uniqueSkillLevel, type RankEstimate } from './rank.ts';
 import { displayedStat, statMasses, statMoments } from './stat-outcomes.ts';
 import { estimatePurchases, estimateSkillRating, type Purchases, type SkillRating, type SpCost } from './skill-purchases.ts';
 import { projectForms } from './goal-skills.ts';
@@ -39,8 +39,6 @@ export interface RunInput {
   parentSparks: ParentSparks[];            // [parent 1, parent 2], the blue spark each of the side's three umas carries
 }
 
-/** The worst-case target cost lives with the purchase estimate; panels and tests still reach it from here. */
-export { targetSpCost, type SpCost } from './skill-purchases.ts';
 /** Scenario stat caps after the blue sparks' start-of-run uncaps, and whether the prediction hit them. */
 export interface StatCaps { cap: StatValues; uncap: StatValues; capped: PerStat<boolean> }
 
@@ -305,7 +303,7 @@ function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input
   const masses = perStat((_, i) => statMasses(rawFinalMean[i], rawFinalSd[i], statCaps?.cap[i], true));
   const moments = perStat((_, i) => statMoments(masses[i]));
   const finalMean = perStat((_, i) => moments[i].mean), finalSd = perStat((_, i) => moments[i].sd);
-  const statChances = perStat((_, i) => ({ mid: Math.min(1, moments[i].above(600)), high: Math.min(1, moments[i].above(1100)) }));
+  const statChances = perStat((_, i) => ({ mid: Math.min(1, moments[i].above(BLUE_STAR_BANDS.mid)), high: Math.min(1, moments[i].above(BLUE_STAR_BANDS.high)) }));
   const rank = { ...rankMoments(masses, skillRating.score, trainee, clampStars(trainee, input.traineeStars), uniqueLevel, data, settings), pSS };
   return { ...base, finalMean, finalSd, statChances, rank };
 }
@@ -314,7 +312,7 @@ function finishPrediction(prediction: ReturnType<typeof predictCandidate>, input
 export function predictRunDeck(deck: { card: Card; lb: number }[], input: RunInput, ctx: Ctx, apt: Aptitudes, expectedLosses: number, prepared = preparePrediction(input, ctx)): DeckPrediction {
   const canonical = canonicalDeck(deck);
   const prediction = predictCandidate(canonical, input, ctx, apt, predictCandidateStats(canonical, ctx, expectedLosses), prepared);
-  const basis = goalRankBands(goalStatsOf(prediction, ctx.settings), input.goal, thresholdFor('SS', ctx.data.ranks), ctx.settings);
+  const basis = goalRankBands(goalStatsOf(prediction, ctx.settings), input.goal, ssThreshold(ctx.data.ranks), ctx.settings);
   return finishPrediction(prediction, input, ctx, basis.pSS);
 }
 
@@ -333,8 +331,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   for (const t of targets) { const l = input.targetLineage[String(t.id)]; if (l && lineageCount(l) > 0) lineage.set(t.id, l); }
   const baseFans = estimateFans(schedule, [], settings);
   const fansBefore = (slot: number) => fansBeforeSlot(baseFans, slot);
-  const baseCtx: Ctx = { data, settings, races: sum.count + (SCENARIO_FINALE_FANS[settings.scenarioId]?.length ?? 0), totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage, priority: null, fansBefore };
-  baseCtx.sources = prepareRunSources(baseCtx);
+  const runFields = { data, settings, races: sum.count + (SCENARIO_FINALE_FANS[settings.scenarioId]?.length ?? 0), totalTurns: turns, trainee, raceWins: raceWinChances(schedule), lineage };
+  const baseCtx: Ctx = { ...runFields, priority: null, fansBefore, sources: prepareRunSources(runFields) };
   const preparedPrediction = preparePrediction(input, baseCtx);
   const { pool, unowned, ignoredIds, deckPool, borrowPool, pinnedIds } = selectablePools(input, settings, inventory, data);
   const ownedPinIds = pinnedIds.filter((id) => deckPool.some((p) => p.card.id === id));
@@ -394,7 +392,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       const ctx: Ctx = { ...candidateCtx, priority };
       const prediction = predictCandidate(scoringEntries, input, ctx, apt, pred, preparedPrediction);
       const goalStats = goalStatsOf(prediction, settings);
-      const basis = goalRankBands(goalStats, goal, thresholdFor('SS', data.ranks), settings, sampleCount);
+      const basis = goalRankBands(goalStats, goal, ssThreshold(data.ranks), settings, sampleCount);
       const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
       const sources = goalSources(goal, forms, ctx);
       const score = scoreGoal(goal, sources, basis, pink, settings);
@@ -436,7 +434,6 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const { entries, ctx, fans, goalStats, basis, sources, candidates, layout } = chosen.value;
   const prediction = finishPrediction(chosen.value.prediction, input, ctx, basis.pSS);
   const deckResult = describeDeck(entries, targets, ctx);
-  sum.expectedFans = fans.total;
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);
   const goalEstimate = evaluateParentGoal(goal, input.pinkLineage, apt, deckResult, ctx, goalStats, issues, basis, sources.forms);
   const hidden = candidates.filter((w) => w.role === 'extra' && input.wishlistExcluded.includes(w.key));
@@ -445,10 +442,9 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       `Required goals come first. Preferred sparks on successful parents can decide within ${(settings.goalTieTolerance * 100).toLocaleString()}% of the best required chance found.`,
       ...pinnedIds.filter((id) => !deckResult.deck.some((e) => e.card.id === id)).map((id) => `${data.cardById.get(id)!.name} was not selected. Pins compete when slots or character restrictions prevent including them together.`)];
   } else deckResult.steps = retained ? ['Kept the displayed cards and updated their estimates for your current inputs.'] : initial.steps;
-  // The goal's share of the purchase estimate: a target the deck cannot give cannot be bought, so it costs nothing.
-  const spCost = prediction.purchases.goalCost;
   return {
-    search, goalEstimate, issues, trainee, apt, schedule, sum, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, ignoredIds, existing, ranking, deckResult, ...prediction, spCost,
+    search, goalEstimate, issues, trainee, apt, schedule, sum: { ...sum, expectedFans: fans.total }, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, ignoredIds, existing, ranking, deckResult,
+    ...prediction, spCost: prediction.purchases.goalCost,
     wl: layout.live.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: layout.live.slice(PRIORITIZED_SKILLS_MAX), wlHidden: hidden, wlLayout: layout,
   };
 }

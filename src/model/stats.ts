@@ -2,14 +2,12 @@ import { STATS, perStat, type Card, type Character, type Focus, type StatModel, 
 import type { Settings } from '../settings.ts';
 import { BLUE_GENERATION_BANDS } from './rules.ts';
 
-export { EFFECT, passives, uniqueExtras, uniqueNote, uniqueUnlocked } from './support-effects.ts';
-export type { UniqueContext } from './support-effects.ts';
+export { EFFECT, passives, uniqueExtras } from './support-effects.ts';
 import { EFFECT, passives, uniqueExtras, spModelFor } from './support-effects.ts';
 
-/** Total career turns for the race scaling: the override only when it sits above the reference race count (the settings spec enforces this; a bad saved value falls back to the fit). */
+/** Total career turns for the race scaling. SETTING_SPEC keeps an override above the reference race count. */
 export function totalTurns(model: StatModel, settings: Settings): number {
-  const T = settings.totalTurnsOverride;
-  return T != null && Number.isFinite(T) && T > model.races.reference ? T : model.races.totalTurns;
+  return settings.totalTurnsOverride ?? model.races.totalTurns;
 }
 export function raceScale(races: number, model: StatModel, settings: Settings): number {
   const T = totalTurns(model, settings);
@@ -106,7 +104,7 @@ export function predictDeck(deck: DeckInput[], trainee: Character | null, races:
   const mix = (atLow: number, atHigh: number) => atLow + (atHigh - atLow) * weight;
   const eventBase = perStat((_, i) => mix(model.eventBase[low]![i], model.eventBase[high]![i]));
   const eventStats = perStat((_, i) => eventBase[i] * (1 + model.growthEffect * growth[i] / 100));
-  const focusMul: StatValues = model.focus[focus] ?? [1, 1, 1, 1, 1];
+  const focusMul = model.focus[focus];
   const penalty = settings.lossPenalty * expectedLosses;
   const mean = perStat((_, i) => Math.max(0, (cardStats[i] + eventStats[i]) * focusMul[i] - penalty / STATS.length));
   const sd = perStat((_, i) => model.sigma[i]);

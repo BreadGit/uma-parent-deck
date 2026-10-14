@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { cardEffectCoverage, teamInitialBond, uniqueExtras, uniqueNote } from '../src/model/support-effects.ts';
+import { cardEffectCoverage, teamInitialBond, uniqueExtras } from '../src/model/support-effects.ts';
 import { cardContribution, modelContribution, referenceObservation } from '../src/model/stats.ts';
 import { describeDeck, makeCtx } from '../src/model/deck.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
@@ -107,8 +107,7 @@ test('descriptive unique metadata does not change coverage or calculations, but 
   Object.assign(donor.unique!.effects[0]!, { description: 'Team starting bond', name_en: 'Team effect' });
   assert.equal(teamInitialBond([{ card: donor, lb: 4 }]), 5);
   assert.equal(cardEffectCoverage(donor, 4, data.model).find((e) => e.key === 'unique:0')?.reason, 'teamBond');
-  assert.match(uniqueNote(donor, data.model), /\+5 starting bond.*approximated/);
-  assert.match(uniqueNote(donor, plainModel), /left out/);
+  assert.equal(cardEffectCoverage(donor, 4, plainModel).find((e) => e.key === 'unique:0')?.reason, 'initialBond');
   Object.assign(donor.unique!.effects[0]!, { multiplier: 2 });
   assert.equal(teamInitialBond([{ card: donor, lb: 4 }]), 0);
   assert.equal(cardEffectCoverage(donor, 4, data.model).find((e) => e.key === 'unique:0')?.reason, 'unknownPayload');

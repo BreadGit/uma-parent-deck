@@ -24,13 +24,12 @@ export interface Purchases {
   extrasCost: SpCost;       // the same for the listed extras the run can obtain
 }
 
-/** A form the run can buy: released and not a debuff. */
-const usable = (s: Skill | null | undefined): s is Skill => !!s && !s.unreleasedEn && !isDebuff(s);
+const isPurchasable = (s: Skill | null | undefined): s is Skill => !!s && !s.unreleasedEn && !isDebuff(s);
 /** A family's forms in purchase order; form n of a state string is the nth of these. */
 const formsOf = (t: Target) => [t.white, t.circle, t.gold] as const;
 /** Full price of a form with its prerequisites, or null when a price is unknown. */
 function costAt(t: Target, form: number): number | null {
-  const needed = formsOf(t).slice(0, form).filter(usable);
+  const needed = formsOf(t).slice(0, form).filter(isPurchasable);
   if (!needed.length || needed.some((s) => s.cost == null)) return null;
   return needed.reduce((a, s) => a + s.cost!, 0);
 }
@@ -44,9 +43,9 @@ export function targetSpCost(targets: Target[], coverage: Map<number, SkillSourc
   let total = 0, incomplete = false;
   for (const t of new Map(targets.map((t) => [t.id, t])).values()) {
     const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
-    const circle = usable(t.circle) ? t.circle : null;
-    const skill = own.pGold > 1e-9 && usable(t.gold) ? t.gold : circle ?? t.white ?? t.gold;
-    const purchases = [...new Map([t.white, circle, skill].filter(usable).map((s) => [s.id, s])).values()];
+    const circle = isPurchasable(t.circle) ? t.circle : null;
+    const skill = own.pGold > 1e-9 && isPurchasable(t.gold) ? t.gold : circle ?? t.white ?? t.gold;
+    const purchases = [...new Map([t.white, circle, skill].filter(isPurchasable).map((s) => [s.id, s])).values()];
     if (!purchases.length) continue; // nothing of this family can be bought (a debuff, or only unreleased forms)
     const cost = purchases.some((s) => s.cost == null) ? null : purchases.reduce((a, s) => a + s.cost!, 0);
     if (cost == null) incomplete = true; else total += cost;
@@ -117,7 +116,7 @@ function referenceRate(skills: Skill[], apt: Aptitudes): Reference {
   let points = 0, cost = 0;
   const unverified: number[] = [];
   for (const skill of skills) {
-    if (!usable(skill) || !isWhite(skill) || skill.cost == null || skill.cost <= 0) continue;
+    if (!isPurchasable(skill) || !isWhite(skill) || skill.cost == null || skill.cost <= 0) continue;
     points += skillScore(skill, apt); cost += skill.cost;
     if (skill.rating === undefined) unverified.push(skill.id);
   }
@@ -139,7 +138,7 @@ export function ratingFromCoverage(targets: Target[], coverage: Map<number, Skil
     const options: SpendingPoint[] = [];
     [own.pWhite, own.pCircle, own.pGold].forEach((probability, i) => {
       const skill = formsOf(t)[i], cost = costAt(t, i + 1);
-      if (usable(skill) && cost !== null && cost > 0) {
+      if (isPurchasable(skill) && cost !== null && cost > 0) {
         options.push({ cost, points: skillScore(skill, apt), unverified: skill.rating === undefined ? [skill.id] : [] });
       }
       if (probability > 0) segments.push(...spendingSegments(options, probability));

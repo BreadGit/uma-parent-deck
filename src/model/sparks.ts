@@ -1,7 +1,7 @@
 import { isGold, isNormal, type Card, type CardEvent, type Character, type Data, type EventCondition, type RaceRef, type Reward, type Skill, type TraineeEvent } from '../types.ts';
-import { DEFAULT_SETTINGS, type Settings } from '../settings.ts';
-import { EFFECT, passives } from './stats.ts';
-import type { RaceWins } from './races.ts';
+import type { Settings } from '../settings.ts';
+import { EFFECT, passives } from './support-effects.ts';
+import { raceWinKey, type RaceWins } from './races.ts';
 import { GOLD_ROLL_BY_STAT, INSPIRATION_EVENTS, LINEAGE_MAX_PER_SIDE, LINEAGE_SLOTS, PARENTS, SCENARIO_COMPLETION_SKILLS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from './rules.ts';
 import { affinityMultiplier } from './inherit.ts';
 
@@ -225,7 +225,6 @@ function computeEventSources(card: Card, settings: Settings, data: Data): EventS
   const out: EventSource[] = [];
   const chainRates = card.rarity === 'SSR' ? settings.chainRatesSSR : card.rarity === 'SR' ? settings.chainRatesSR : [];
   const scan = (ev: CardEvent, pFire: number, label: string, chain?: ChainRef) => out.push(...scanEvent(ev, pFire, label, card.name, String(card.id), settings, data, { cardName: card.name, ...(chain ? { chain } : {}) }));
-  // chain stages are nested: stage k needs every stage before it
   card.chainEvents.forEach((ev) => { const pReach = chainRates[ev.index - 1] ?? 0; scan(ev, pReach, EVENT_LABEL.chain, { key: `${card.id}:chain`, stage: ev.index, pReach }); });
   const randomScale = Math.min(1, 2 / Math.max(1, card.randomEvents.length));
   card.randomEvents.forEach((ev) => scan(ev, settings.randomEventRate * randomScale, EVENT_LABEL.random));
@@ -257,8 +256,8 @@ export function cardSourcesForTarget(card: Card, lb: number, target: Target, rac
 
 // ----- the trainee's own events -----
 
-const winOf = (r: RaceRef, wins: RaceWins) => wins.get(r.year != null ? `${r.raceId}|${r.year}` : String(r.raceId)) ?? 0;
-const scheduled = (r: RaceRef, wins: RaceWins) => wins.has(r.year != null ? `${r.raceId}|${r.year}` : String(r.raceId));
+const winOf = (r: RaceRef, wins: RaceWins) => wins.get(raceWinKey(r.raceId, r.year)) ?? 0;
+const scheduled = (r: RaceRef, wins: RaceWins) => wins.has(raceWinKey(r.raceId, r.year));
 /** P(at least n of independent events with chances ps). */
 function atLeast(n: number, ps: number[]): number {
   let dist = [1]; // dist[k] = P(exactly k so far)
@@ -377,15 +376,14 @@ export function lineageSources(target: Target, lineage: Lineage | undefined, set
   let miss = 1;
   const parts: string[] = [];
   for (const stars of lineageSparks(lineage)) {
-    const rate = settings.whiteSparkInheritRates[Math.max(0, Math.min(2, stars - 1))] ?? 0.03;
+    const rate = settings.whiteSparkInheritRates[stars - 1] ?? 0;
     const pOnce = Math.min(1, rate * affinityMultiplier(settings));
     miss *= Math.pow(1 - pOnce, INSPIRATION_EVENTS);
-    parts.push(`${stars}★ ${pct1(pOnce)}/event`);
+    parts.push(`${stars}★ ${(pOnce * 100).toFixed(0)}%/event`);
   }
   return [{ kind: 'lineage', skillId: target.white?.id ?? target.id, gold: false, circle: false, pObtain: 1 - miss, isChoice: false,
     detail: `Lineage: ${lineageCount(lineage)} spark${lineageCount(lineage) === 1 ? '' : 's'} (${parts.join(', ')}) over two inspiration events` }];
 }
-const pct1 = (x: number) => `${(x * 100).toFixed(0)}%`;
 
 const SCENARIO_EVENT_LABEL = "Our Grand Concert's scenario skill event (Senior November)";
 /**
@@ -441,8 +439,7 @@ function computeScenarioOptions(data: Data, settings: Settings, present: Set<num
   return out;
 }
 
-/** `options` lets a caller resolving many targets for one set of characters look the options up once. */
-export function scenarioSources(target: Target, data: Data, settings: Settings, present: Set<number>, options = scenarioOptions(data, settings, present)): SkillSource[] {
+export function scenarioSources(target: Target, options: ScenarioOption[], data: Data, settings: Settings): SkillSource[] {
   return options.filter((o) => target.familyIds.has(o.skillId))
     .map((o) => ({ kind: 'scenario' as const, skillId: o.skillId, ...formOf(o.skillId, data), pObtain: settings.scenarioPickRate, isChoice: true, event: o.event, detail: o.detail, roll: decodeEventRoll({ pFire: settings.scenarioPickRate, outcomes: [[{ t: 'sk', d: o.skillId }]] }, data, settings), ...(o.linkedCharId != null ? { linkedCharId: o.linkedCharId } : {}) }));
 }
@@ -496,7 +493,7 @@ function bestOption(ss: EventSource[], settings: Settings, target?: Target): Eve
  * Every target keeps only its sources on the taken option, so a target offered by two options counts one of them,
  * and an option that gives two targets keeps both. `settings` gives the spark rates the options are valued by.
  */
-export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[] | null, blockers: Blocker[] = [], settings: Settings = DEFAULT_SETTINGS, targets: Target[] = []): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
+export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[] | null, blockers: Blocker[], settings: Settings, targets: Target[]): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
   for (const [tid, sources] of map) for (const s of sources) if (isEventSource(s)) {
     const tids = byEvent.get(s.event.key);

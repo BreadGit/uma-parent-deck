@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { isCalendarId, RARITIES, STATS, type AptKey } from '../src/types.ts';
-import { uniqueExtras } from '../src/model/stats.ts';
+import { uniqueExtras } from '../src/model/support-effects.ts';
 import { RACES_REFERENCE } from '../src/settings.ts';
 import fixtureJson from '../data/unique-extras-fixture.json' with { type: 'json' };
 const fixture = fixtureJson as { uniqueRampShare: number; rows: { cardId: number; lb: number; extras: Record<string, number> }[] };

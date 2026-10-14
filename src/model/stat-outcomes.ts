@@ -1,17 +1,18 @@
 import { phi } from './stats.ts';
-import { MAX_STAT_VALUE } from './rules.ts';
+import { MAX_STAT_VALUE, STAT_HALVING_START } from './rules.ts';
 
 /** Convert the full raw total once, after base stats and inheritance. */
-export const displayedStat = (raw: number) => Math.floor(raw > 1200 ? 1200 + (Math.round(raw) - 1200) / 2 : Math.round(raw));
-export const rawStat = (displayed: number) => displayed > 1200 ? 1200 + 2 * (displayed - 1200) : displayed;
+export const displayedStat = (raw: number) =>
+  Math.floor(raw > STAT_HALVING_START ? STAT_HALVING_START + (Math.round(raw) - STAT_HALVING_START) / 2 : Math.round(raw));
+export const rawStat = (displayed: number) => displayed > STAT_HALVING_START ? STAT_HALVING_START + 2 * (displayed - STAT_HALVING_START) : displayed;
 
 export interface StatMass { readonly value: number; readonly probability: number }
-/** Rounded normal outcomes, with the tails folded into zero and the cap. */
 const massCache = new Map<string, readonly StatMass[]>();
 let cachedOutcomes = 0;
 const MAX_CACHED_DISTRIBUTIONS = 512;
 const MAX_CACHED_OUTCOMES = 250_000;
 
+/** Rounded normal outcomes, with the tails folded into zero and the cap. */
 export function statMasses(mean: number, sd: number, cap = Infinity, rawUnits = false): readonly StatMass[] {
   const key = `${mean}:${sd}:${cap}:${rawUnits}`;
   const hit = massCache.get(key);

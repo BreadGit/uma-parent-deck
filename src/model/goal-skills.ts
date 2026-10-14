@@ -29,6 +29,7 @@ const add = (d: Map<string, number>, state: string, p: number) => { if (p > 0) d
 const fixed = (state: string): Distribution => ({ states: new Map([[state, 1]]), approximate: false });
 const empty = (count: number) => fixed('0'.repeat(count));
 const clamp = (p: number) => Math.max(0, Math.min(1, p));
+const sparkRateByForm = (settings: Settings) => [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];
 /** Each family's better form. Joint distributions merge millions of state pairs, so this avoids an array per pair. */
 function merge(a: string, b: string): string {
   if (a === b) return a;
@@ -150,7 +151,7 @@ export function jointSkillForms(targets: Target[], coverage: Map<number, SkillSo
   return { count: targets.length, components: [...groups.values()].map((indices) => ({ indices, distribution: componentForms(indices.map((i) => targets[i]!), coverage, data) })) };
 }
 export function whiteGenerationMoments(forms: FormDistribution, lineageCopies: number[], settings: Settings): { all: number; each: number[]; available: number[]; allAvailable: number; approximate: boolean } {
-  const rates = [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];
+  const rates = sparkRateByForm(settings);
   const each = Array<number>(forms.count).fill(0), available = [...each];
   let all = 1, allAvailable = 1, approximate = false;
   for (const { indices, distribution } of forms.components) {
@@ -174,7 +175,7 @@ export function whiteGenerationMoments(forms: FormDistribution, lineageCopies: n
 
 /** Joint generation for a subset, projected from the same shared event outcomes. */
 export function subsetGeneration(forms: FormDistribution, copies: number[], selected: number[], settings: Settings): number {
-  const wanted = new Set(selected), rates = [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];
+  const wanted = new Set(selected), rates = sparkRateByForm(settings);
   let probability = 1;
   for (const { indices, distribution } of forms.components) {
     const members = indices.flatMap((index, position) => wanted.has(index) ? [{ index, position }] : []);

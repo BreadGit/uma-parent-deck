@@ -1,23 +1,17 @@
-import { STATS, STAT_INDEXES, APTITUDE_KEYS, perStat, type AptKey, type Grade, type StatValues } from '../types.ts';
+import { STATS, STAT_INDEXES, APTITUDE_KEYS, perStat, type AptKey, type StatValues } from '../types.ts';
 import type { Ctx, DeckResult } from './deck.ts';
 import { DEFAULT_SETTINGS, whiteGenerationBands, type Settings } from '../settings.ts';
 import { affinityMultiplier } from './inherit.ts';
 import { APTITUDE_LABELS, type ParentGoal, type PinkGoal, type ResolvedGoal, type PinkSpark } from './goal-input.ts';
-import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES, INSPIRATION_EVENTS } from './rules.ts';
+import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES, INSPIRATION_EVENTS, LINEAGE_SLOTS } from './rules.ts';
+import type { Aptitudes } from './races.ts';
 import { hasWhiteSpark, lineageCount, resolveTarget, type Target } from './sparks.ts';
 import { jointSkillForms, projectForms, whiteGenerationMoments, type FormDistribution } from './goal-skills.ts';
 import { phi } from './stats.ts';
 import { statMasses, type StatMass } from './stat-outcomes.ts';
-import { statScore, thresholdFor } from './rank.ts';
+import { ssThreshold, statScore } from './rank.ts';
 
-export const starChance = (rates: readonly number[], stars: number, exact = false) => exact ? rates[stars - 1] ?? 0 : rates.slice(stars - 1).reduce((a, p) => a + p, 0);
-export function blueChance(stats: StatValues, accepted: string[], stars: number): number {
-  return perStat((stat, i) => {
-    if (!accepted.includes(stat)) return 0;
-    const band = [...BLUE_GENERATION_BANDS].reverse().find((b) => stats[i] >= b.min) ?? BLUE_GENERATION_BANDS[0];
-    return starChance(band.rates, stars) / STATS.length;
-  }).reduce((p, chance) => p + chance, 0);
-}
+export const atLeastStarsChance = (rates: readonly number[], stars: number) => rates.slice(stars - 1).reduce((a, p) => a + p, 0);
 export function attemptsFor(p: number, confidence: number): number {
   if (p <= 0) return Infinity;
   if (p >= 1) return 1;
@@ -25,12 +19,12 @@ export function attemptsFor(p: number, confidence: number): number {
 }
 
 export interface PinkEstimate { probability: number; upperProbability: number; warnings: string[]; eligibility: { aptitude: AptKey; probability: number | null }[]; alternatives?: (PinkGoal & { probability: number; upperProbability: number })[] }
-export function pinkEstimate(apt: Record<AptKey, Grade>, target: PinkGoal['aptitude'], stars: number, lineage: (PinkSpark | null)[], affinity: number, rates = DEFAULT_SETTINGS.pinkInspirationRates): PinkEstimate {
+export function pinkEstimate(apt: Aptitudes, target: PinkGoal['aptitude'], stars: number, lineage: (PinkSpark | null)[], affinity: number, rates = DEFAULT_SETTINGS.pinkInspirationRates): PinkEstimate {
   return pinkGoalsEstimate(apt, [{ aptitude: target, stars }], lineage, affinity, rates);
 }
 
 /** Enumerate shared eligibility scenarios so alternatives with different thresholds have consistent bounds. */
-export function pinkGoalsEstimate(apt: Record<AptKey, Grade>, goals: PinkGoal[], lineage: (PinkSpark | null)[], affinity: number, rates = DEFAULT_SETTINGS.pinkInspirationRates): PinkEstimate {
+export function pinkGoalsEstimate(apt: Aptitudes, goals: PinkGoal[], lineage: (PinkSpark | null)[], affinity: number, rates = DEFAULT_SETTINGS.pinkInspirationRates): PinkEstimate {
   const eligibility = APTITUDE_KEYS.map((key) => {
     if (apt[key] === 'A' || apt[key] === 'S') return { aptitude: key, probability: 1 };
     const matching = lineage.filter((p): p is PinkSpark => p?.aptitude === key);
@@ -56,7 +50,7 @@ export function pinkGoalsEstimate(apt: Record<AptKey, Grade>, goals: PinkGoal[],
       if (!selected.length) return;
       goals.forEach((g, j) => {
         const share = g.aptitude === 'any' ? 1 : Number(selected.some((k) => eligibility[k]!.aptitude === g.aptitude)) / selected.length;
-        contributions[j]! += mass * share * starChance(PINK_GENERATION_RATES, g.stars);
+        contributions[j]! += mass * share * atLeastStarsChance(PINK_GENERATION_RATES, g.stars);
       });
     };
     visit(0, 1, []);
@@ -79,10 +73,10 @@ function halton(index: number, base: number): number {
   while (index > 0) { value += fraction * (index % base); index = Math.floor(index / base); fraction /= base; }
   return value;
 }
-const samples = new Map<number, number[][]>();
+const haltonDraws = new Map<number, number[][]>();
 function statSamples(count: number): number[][] {
-  if (!samples.has(count)) samples.set(count, Array.from({ length: count }, (_, i) => [2, 3, 5, 7, 11].map((base) => halton(i + 1, base))));
-  return samples.get(count)!;
+  if (!haltonDraws.has(count)) haltonDraws.set(count, Array.from({ length: count }, (_, i) => [2, 3, 5, 7, 11].map((base) => halton(i + 1, base))));
+  return haltonDraws.get(count)!;
 }
 
 /** Scratch space for one distribution's running totals, reused because deck search samples thousands of them. */
@@ -119,7 +113,7 @@ function ratingSamples(outcomes: readonly StatMass[], dimension: number, count: 
 /** Integrate blue bands analytically; sample rank conditional on each selected stat and blue band. */
 export function statGoalMoments(input: GoalStats, goal: ResolvedGoal, ssThreshold: number, settings: Settings = DEFAULT_SETTINGS, basis = goalRankBands(input, goal, ssThreshold, settings)): StatGoalMoments {
   const bands = whiteGenerationBands(settings);
-  const quality = (stars: number[]) => bands.map((band) => stars.reduce((p, n) => p * starChance(band.rates, n), 1));
+  const quality = (stars: number[]) => bands.map((band) => stars.reduce((p, n) => p * atLeastStarsChance(band.rates, n), 1));
   const mean = (weights: number[], rates: number[]) => weights.reduce((p, w, i) => p + w * rates[i]!, 0);
   return { blue: basis.blue, whiteStars: goal.required.map((r) => mean(basis.rank, quality([r.stars]))),
     blueAllWhiteStars: goal.required.every((r) => r.stars === 1) ? basis.blue : mean(basis.blueRank, quality(goal.required.map((r) => r.stars))),
@@ -152,8 +146,7 @@ export function goalRankBands(input: GoalStats, goal: ParentGoal, ssThreshold: n
   for (const i of STAT_INDEXES) {
     if (!goal.blueStats.includes(STATS[i])) continue;
     BLUE_GENERATION_BANDS.forEach((band, b) => {
-      // A band the star requirement rules out adds nothing, so its draws are never needed.
-      const chance = starChance(band.rates, goal.blueStars) / STATS.length;
+      const chance = atLeastStarsChance(band.rates, goal.blueStars) / STATS.length;
       if (chance === 0) return;
       const samples = ratingSamples(masses[i], i, count, b);
       const blue = samples.mass * chance;
@@ -187,7 +180,7 @@ export interface GoalEstimate {
   allAvailable: number;
   pSS: number;
 }
-export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark | null)[], apt: Record<AptKey, Grade>, deck: Pick<DeckResult, 'coverage' | 'conflicts'>, ctx: Ctx, stats: GoalStats, runIssues: string[], basis?: GoalRankBands, forms?: FormDistribution): GoalEstimate {
+export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark | null)[], apt: Aptitudes, deck: Pick<DeckResult, 'coverage' | 'conflicts'>, ctx: Ctx, stats: GoalStats, runIssues: string[], basis?: GoalRankBands, forms?: FormDistribution): GoalEstimate {
   const issues = [...runIssues];
   if (!ctx.trainee) issues.push('Choose the trainee to estimate the parent goal.');
   if (!goal.blueStats.length) issues.push('Choose at least one acceptable blue stat.');
@@ -196,13 +189,13 @@ export function evaluateParentGoal(goal: ResolvedGoal, pinkLineage: (PinkSpark |
   const preferred = goal.preferred.map(({ id }) => resolveTarget(id, ctx.data)).filter((t): t is Target => !!t && !required.some((r) => r.id === t.id));
   const coverage = deck.coverage;
   const joint = forms ? projectForms(forms, required.map((_, i) => i)) : jointSkillForms(required, coverage, ctx.data);
-  const copies = (t: Target) => { const l = ctx.lineage.get(t.id); return l ? lineageCount(l) : 0; };
+  const copies = (t: Target) => lineageCount(ctx.lineage.get(t.id) ?? []);
   const skills = whiteGenerationMoments(joint, required.map(copies), ctx.settings);
-  const moments = statGoalMoments(stats, goal, thresholdFor('SS', ctx.data.ranks), ctx.settings, basis);
+  const moments = statGoalMoments(stats, goal, ssThreshold(ctx.data.ranks), ctx.settings, basis);
   const pink = pinkGoalsEstimate(apt, goal.pink, pinkLineage, ctx.settings.affinity, ctx.settings.pinkInspirationRates);
   const notes = ['Known pink lineage determines starting aptitude grades. Grades outside the starting-inheritance range remain planning overrides. Inspiration estimates additional mid-run increases.', 'Goal spark chances assume every obtainable target form is bought. The full-price target and prioritized skill cost is checked against estimated SP separately. Rank estimates useful skill purchases and values remaining SP at a reference rate derived from released white skills, so the entire SP budget contributes. Skill ownership is approximated independently of stat and rank outcomes.'];
   for (const target of [...required, ...preferred]) if (!hasWhiteSpark(target)) notes.push(`${target.name} has no released white form and cannot generate a white spark. Its saved target and lineage are retained for review.`);
-  if (pinkLineage.length < 6 || pinkLineage.some((spark) => spark === null)) notes.push('Empty pink slots count as zero sparks for this estimate. Only entered or estimated sparks contribute additional aptitude increases.');
+  if (pinkLineage.length < LINEAGE_SLOTS || pinkLineage.some((spark) => spark === null)) notes.push('Empty pink slots count as zero sparks for this estimate. Only entered or estimated sparks contribute additional aptitude increases.');
   if (goal.pink[0]?.aptitude === 'any') notes.push('Any pink aptitude counts toward the goal. With an A/S aptitude already eligible, only the minimum stars affect its chance.');
   if (pinkLineage.some((spark) => spark?.inferred)) notes.push('Some pink sparks are minimum-star estimates inferred from starting aptitude increases. Other lineages can produce the same grades. Refine them in Legacy > Pink sparks.');
   if (skills.approximate) notes.push('A large group of linked skill sources uses a fixed sample approximation. Very rare joint outcomes may be missed.');
