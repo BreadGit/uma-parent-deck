@@ -18,6 +18,8 @@ import { searchBox, SUGGESTION_LIMIT } from '../fields.ts';
 import { probability, skillIcon } from '../format.ts';
 import { tip } from '../tooltip.ts';
 
+const PER_PARENT = 'Per parent';
+
 const WHITE_TARGETS_TIP = 'The white skills you want the finished parent to carry as sparks. A card that gives the skill or its gold form counts as a source. Each group adds through its own search. Select a name to edit its goal and lineage, and select it again to close. Closing a group also closes its editor.';
 const SEARCH_PLACEHOLDERS = { required: 'Add a required skill…', preferred: 'Add a preferred skill…' };
 const SEARCH_LABELS = { required: 'Search skills to add as required', preferred: 'Search skills to add as preferred' };
@@ -108,7 +110,7 @@ function editor(c: RunPlan, t: Target) {
   const required = entry.role === 'required';
   const l = lineageOf(t.id), perParent = view.showLineageParents;
   const own = (c.existing.sources.get(t.id) ?? []).filter((s) => s.kind !== 'lineage');
-  const lineageTip = `Copies of this white spark already in the lineage: how many of the six umas (each parent and her two grandparents) carry it, and their star total. Each copy rolls for the hint at both inspiration events, and each copy multiplies the spark chance by ×${store.settings.lineageSparkMultiplier}. Totals fill the parents first, then the grandparents; "Per parent" sets each uma instead.`;
+  const lineageTip = `Copies of this white spark already in the lineage: how many of the six umas (each parent and her two grandparents) carry it, and their star total. Each copy rolls for the hint at both inspiration events, and each copy multiplies the spark chance by ×${store.settings.lineageSparkMultiplier}. Totals fill the parents first, then the grandparents; "${PER_PARENT}" sets each uma instead.`;
   const goalControl = required
     ? html`<label class="target-stars">${LABEL.minimumStars} <select data-target-stars=${t.id} .value=${live(String(entry.stars))} @change=${(e: Event) => editTarget(t.id, (r) => { r.stars = Number(selectValue(e)); })}>${options(STAR_CHOICES, String(entry.stars))}</select></label>`
     : html`<label class="target-stars">Priority ${tip('Lower numbers give more weight: priority 0 = 1, priority 1 = 0.5, priority 2 = 0.25. Preferred white sparks count at any star level. Several lower-weight sparks can outweigh one higher-weight spark. This does not change the prioritized-skills list.')}
@@ -125,7 +127,7 @@ function editor(c: RunPlan, t: Target) {
     </div>
     <div class="target-editor-lineage">
       <div class="target-lineage-head"><h3>White sparks in lineage${tip(lineageTip)}</h3>
-        <button class="small ${perParent ? 'active' : ''}" data-action="toggle-lineage-parents" aria-pressed=${perParent} aria-expanded=${perParent} aria-controls="target-lineage-parents" data-tip="Enter the stars on each parent and grandparent instead of the totals" @click=${toggleLineageParents}>Per parent</button></div>
+        <button class="small ${perParent ? 'active' : ''}" data-action="toggle-lineage-parents" aria-pressed=${perParent} aria-expanded=${perParent} aria-controls="target-lineage-parents" data-tip="Enter the stars on each parent and grandparent instead of the totals" @click=${toggleLineageParents}>${PER_PARENT}</button></div>
       ${perParent ? lineageParents(t.id, l) : lineageTotals(t.id, l)}
     </div>
   </div>`;

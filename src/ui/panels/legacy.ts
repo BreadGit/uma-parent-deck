@@ -26,6 +26,7 @@ const GRADES_AND_PINK_SPARKS = [
   'Parent goals use the pink sparks to estimate mid-run increases. Unknown below-B eligibility produces a probability range. S is reached only during a career.',
 ];
 
+const BLUE_PER_PARENT = 'Blue per parent';
 const PARENTS = [0, 1] as const;
 const UMAS = Array.from({ length: UMAS_PER_PARENT_SIDE }, (_, i) => i);
 const STAR_OPTIONS = [1, 2, 3];
@@ -159,7 +160,7 @@ function body(c: RunPlan) {
 
 export function renderLegacy(c: RunPlan) {
   const actions = c.trainee ? html`
-    <button class="small ${view.showSparks ? 'active' : ''}" data-action="toggle-sparks" aria-expanded="${view.showSparks}" data-tip="Enter the blue spark of each parent and grandparent instead of the +XX" @click=${toggleSparks}>Blue per parent</button>
+    <button class="small ${view.showSparks ? 'active' : ''}" data-action="toggle-sparks" aria-expanded="${view.showSparks}" data-tip="Enter the blue spark of each parent and grandparent instead of the +XX" @click=${toggleSparks}>${BLUE_PER_PARENT}</button>
     <button class="small" data-action="reset-legacy" data-tip="Clear every gain to +0 and restore the trainee's own aptitudes" @click=${resetLegacy}>Reset</button>` : nothing;
-  return panel({ title: TITLE.legacy, step: 3, tip: `Copy the game's legacy screen, shown before the run starts: the "+XX" each parent adds above every stat, and the aptitudes after inheritance. "Blue per parent" enters the blue spark of each uma instead, for a parent found on a database.`, actions }, c.trainee ? body(c) : html`<div class="small muted">Pick a trainee first.</div>`);
+  return panel({ title: TITLE.legacy, step: 3, tip: `Copy the game's legacy screen, shown before the run starts: the "+XX" each parent adds above every stat, and the aptitudes after inheritance. "${BLUE_PER_PARENT}" enters the blue spark of each uma instead, for a parent found on a database.`, actions }, c.trainee ? body(c) : html`<div class="small muted">Pick a trainee first.</div>`);
 }

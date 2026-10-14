@@ -30,8 +30,9 @@ import { clearSharedUrl } from './share.ts';
 import { unavailableRunChoices } from '../model/run.ts';
 import { storageNotice } from './storage-notice.ts';
 
+const RESET_ALL = 'Reset all';
 async function resetAll() {
-  if (!await confirmDialog('Reset all? This clears the trainee, parent goal, targets, legacy screen, pinned and ignored cards, agenda picks, prioritized order, training focus and win threshold. Your inventory and advanced settings are kept.', 'Reset all')) return;
+  if (!await confirmDialog(`${RESET_ALL}? This clears the trainee, parent goal, targets, legacy screen, pinned and ignored cards, agenda picks, prioritized order, training focus and win threshold. Your inventory and advanced settings are kept.`, RESET_ALL)) return;
   const saved = update((state) => Object.assign(state, resetRun(state, data)));
   clearSharedUrl();
   // A reload reads the save back, so it would restore the old run if the reset was not written.
@@ -69,7 +70,7 @@ function page() {
       <span class="header-actions">
         <a class="button" href="./missions.html" data-page="missions">${TITLE.missions}</a>
         ${themeToggle(store.ui.theme, (theme) => update((s) => { s.ui.theme = theme; }))}
-        <button class="danger" data-action="reset-all" data-tip="Start over: clears every choice except your inventory and advanced settings" @click=${resetAll}>Reset all</button>
+        <button class="danger" data-action="reset-all" data-tip="Start over: clears every choice except your inventory and advanced settings" @click=${resetAll}>${RESET_ALL}</button>
       </span>
     </header>
     ${storageNotice()}
