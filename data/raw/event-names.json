@@ -854,6 +854,15 @@
   "special": [],
   "dates": []
  },
+ "10086": {
+  "chain": [],
+  "random": [
+   "Free and Unconstrained",
+   "A Gale that Blows Endlessly"
+  ],
+  "special": [],
+  "dates": []
+ },
  "20001": {
   "chain": [
    "Abracadabra",
@@ -1489,6 +1498,18 @@
   "random": [
    "A Thorough Inspection",
    "A Diligent Effort"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "20054": {
+  "chain": [
+   "The Ever-Prepared T.M. Opera O",
+   "Everyone's T.M. Opera O"
+  ],
+  "random": [
+   "Etude to Victory",
+   "Beyond Our Limited Time"
   ],
   "special": [],
   "dates": []
@@ -3087,6 +3108,19 @@
   "random": [
    "Stay Positive at All Times!",
    "Stay Positive in All Situations!"
+  ],
+  "special": [],
+  "dates": []
+ },
+ "30126": {
+  "chain": [
+   "Where the Wind Calls",
+   "An Evocative Flavor",
+   "The Dream I Saw"
+  ],
+  "random": [
+   "Free and Unconstrained",
+   "A Gale that Blows Endlessly"
   ],
   "special": [],
   "dates": []

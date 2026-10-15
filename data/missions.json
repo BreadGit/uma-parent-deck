@@ -1,6 +1,152 @@
 {
- "fetchedAt": "2026-10-04T07:29:59.485Z",
+ "fetchedAt": "2026-10-15T02:45:07.238Z",
  "events": [
+  {
+   "id": 209,
+   "name": "Fall G1 Celebration Missions, Part 3: Tokyo Daishoten",
+   "start": 1794322800000,
+   "end": 1794927599000,
+   "missions": [
+    {
+     "id": "1001451",
+     "text": "Tokyo Daishoten: Complete a Career playthrough having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1794322800000,
+     "end": 1794927599000
+    },
+    {
+     "id": "1001452",
+     "text": "Tokyo Daishoten: Complete 2 Career playthroughs having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1794322800000,
+     "end": 1794927599000
+    },
+    {
+     "id": "1001453",
+     "text": "Tokyo Daishoten: Win 10 G1 races in Career",
+     "raceInstanceIds": [],
+     "start": 1794322800000,
+     "end": 1794927599000
+    },
+    {
+     "id": "1001454",
+     "text": "Tokyo Daishoten: Win the Tokyo Daishoten in Career",
+     "raceInstanceIds": [
+      110601
+     ],
+     "start": 1794322800000,
+     "end": 1794927599000
+    },
+    {
+     "id": "1001455",
+     "text": "Tokyo Daishoten: Complete all special missions",
+     "raceInstanceIds": [],
+     "start": 1794322800000,
+     "end": 1794927599000
+    }
+   ]
+  },
+  {
+   "id": 208,
+   "name": "Fall G1 Celebration Missions, Part 3: Hopeful Stakes",
+   "start": 1793890800000,
+   "end": 1794495599000,
+   "missions": [
+    {
+     "id": "1001441",
+     "text": "Hopeful S.: Complete a Career playthrough having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1793890800000,
+     "end": 1794495599000
+    },
+    {
+     "id": "1001442",
+     "text": "Hopeful S.: Complete 2 Career playthroughs having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1793890800000,
+     "end": 1794495599000
+    },
+    {
+     "id": "1001443",
+     "text": "Hopeful S.: Win the Tokyo Sports Hai Junior Stakes in Career",
+     "raceInstanceIds": [
+      306401
+     ],
+     "start": 1793890800000,
+     "end": 1794495599000
+    },
+    {
+     "id": "1001444",
+     "text": "Hopeful S.: Win the Kyoto Junior Stakes in Career",
+     "raceInstanceIds": [
+      306501
+     ],
+     "start": 1793890800000,
+     "end": 1794495599000
+    },
+    {
+     "id": "1001445",
+     "text": "Hopeful S.: Win the Hopeful Stakes in Career",
+     "raceInstanceIds": [
+      102401
+     ],
+     "start": 1793890800000,
+     "end": 1794495599000
+    },
+    {
+     "id": "1001446",
+     "text": "Hopeful S.: Complete all special missions",
+     "raceInstanceIds": [],
+     "start": 1793890800000,
+     "end": 1794495599000
+    }
+   ]
+  },
+  {
+   "id": 207,
+   "name": "Fall G1 Celebration Missions, Part 3: Arima Kinen",
+   "start": 1793286000000,
+   "end": 1793890799000,
+   "missions": [
+    {
+     "id": "1001431",
+     "text": "Arima Kinen: Complete a Career playthrough having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1793286000000,
+     "end": 1793890799000
+    },
+    {
+     "id": "1001432",
+     "text": "Arima Kinen: Complete 2 Career playthroughs having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1793286000000,
+     "end": 1793890799000
+    },
+    {
+     "id": "1001433",
+     "text": "Arima Kinen: Obtain 1,000,000 fans in Career during the event period",
+     "raceInstanceIds": [],
+     "start": 1793286000000,
+     "end": 1793890799000
+    },
+    {
+     "id": "1001434",
+     "text": "Arima Kinen: Win the Arima Kinen in Career",
+     "raceInstanceIds": [
+      102301
+     ],
+     "start": 1793286000000,
+     "end": 1793890799000
+    },
+    {
+     "id": "1001435",
+     "text": "Arima Kinen: Complete all special missions",
+     "raceInstanceIds": [],
+     "start": 1793286000000,
+     "end": 1793890799000
+    }
+   ]
+  },
   {
    "id": 206,
    "name": "Fall G1 Celebration Missions, Part 3: Asahi Hai Futurity Stakes",

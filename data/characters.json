@@ -33210,6 +33210,1192 @@
   ]
  },
  {
+  "cardId": 101602,
+  "charId": 1016,
+  "name": "Narita Brian",
+  "title": "[Ravenous Wolf]",
+  "rarity": 3,
+  "releaseEn": "2026-10-14",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "F",
+   "mile": "B",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   10,
+   10,
+   0,
+   10,
+   0
+  ],
+  "baseStats": [
+   93,
+   98,
+   82,
+   97,
+   80
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   103,
+   109,
+   92,
+   108,
+   88
+  ],
+  "fiveStarStats": [
+   113,
+   120,
+   101,
+   118,
+   98
+  ],
+  "innateSkills": [
+   200172,
+   202472,
+   202482
+  ],
+  "awakeningSkills": [
+   200742,
+   202471,
+   202192,
+   202481
+  ],
+  "eventSkills": [
+   201202,
+   200562,
+   202012
+  ],
+  "uniqueSkills": [
+   110161
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "Hold Back",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "Now",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "Peak",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "Proposition",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "Challenge",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "Autumn",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Trust",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "Sister",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "It's Not Easy Being a Lone Wolf",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "st",
+         "v": "-5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "Together",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "Looking Over My Shoulder",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 13,
+    "name": "Green Redemption",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 14,
+    "name": "Eye-Opener",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 15,
+    "name": "Perfect Weather",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "Aspiration",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "po",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "Transcendence",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "Ability",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+15"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201202
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "Starving Warriors",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+25"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+25"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "po",
+         "v": "+25"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Carnivore",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "A Lone Wolf's Diet",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "Caught by Brian!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "Digging In",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "A Lone Wolf Hunts Alone",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "Breakthrough",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "Public Appearance",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "brian_tryhard"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "no"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win_all",
+      "races": [
+       {
+        "raceId": 1005,
+        "year": 2
+       },
+       {
+        "raceId": 1010,
+        "year": 2
+       },
+       {
+        "raceId": 1015,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "brian_five"
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 2,
+    "name": "After the Takarazuka Kinen: Talent",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-15"
+        },
+        {
+         "t": "rs",
+         "v": "+10",
+         "d": 1
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "beat_rival",
+       "101201|2",
+       1023
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 3,
+    "name": "After the Takarazuka Kinen: Composure",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-15"
+        },
+        {
+         "t": "rs",
+         "v": "+8",
+         "d": 1
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "lose_to_rival",
+       "101201|2",
+       1023
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 16,
+    "name": "Mochi-vation",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+20"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200562
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "Forever by Your Side",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 7,
+    "name": "Not-So-Lone Wolf",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 202012
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9395,
+      "name": "Junior Make Debut",
+      "distance": 1800,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 22,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1022,
+      "name": "Asahi Hai Futurity Stakes",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 1000,
+      "fansGain": 7000
+     }
+    ]
+   },
+   {
+    "slot": 30,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1005,
+      "name": "Satsuki Sho",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 4500,
+      "fansGain": 11000
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1010,
+      "name": "Tokyo Yushun (Japanese Derby)",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 6000,
+      "fansGain": 20000
+     }
+    ]
+   },
+   {
+    "slot": 43,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1015,
+      "name": "Kikuka Sho",
+      "distance": 3000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 7500,
+      "fansGain": 12000
+     }
+    ]
+   },
+   {
+    "slot": 47,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 53,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 2009,
+      "name": "Hanshin Daishoten",
+      "distance": 3000,
+      "surface": "turf",
+      "grade": 200,
+      "fansNeeded": 2000,
+      "fansGain": 6700
+     }
+    ]
+   },
+   {
+    "slot": 55,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1006,
+      "name": "Tenno Sho (Spring)",
+      "distance": 3200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 67,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1016,
+      "name": "Tenno Sho (Autumn)",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 69,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1019,
+      "name": "Japan Cup",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   }
+  ]
+ },
+ {
   "cardId": 101701,
   "charId": 1017,
   "name": "Symboli Rudolf",
@@ -83444,6 +84630,929 @@
       "grade": 100,
       "fansNeeded": 12000,
       "fansGain": 8000
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "cardId": 104701,
+  "charId": 1047,
+  "name": "Zenno Rob Roy",
+  "title": "[Heroic Author]",
+  "rarity": 3,
+  "releaseEn": "2026-10-07",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "E",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "A",
+   "late": "A",
+   "end": "E"
+  },
+  "growth": [
+   0,
+   10,
+   0,
+   0,
+   20
+  ],
+  "baseStats": [
+   88,
+   97,
+   91,
+   74,
+   100
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   98,
+   108,
+   101,
+   82,
+   111
+  ],
+  "fiveStarStats": [
+   108,
+   118,
+   111,
+   91,
+   122
+  ],
+  "innateSkills": [
+   200192,
+   200572,
+   201112
+  ],
+  "awakeningSkills": [
+   201322,
+   200571,
+   201172,
+   201113
+  ],
+  "eventSkills": [
+   200012,
+   200022,
+   202412
+  ],
+  "uniqueSkills": [
+   100471
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "Her Blade's Black Sheen",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "The Hero's Sword",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "What I Really Wanted to Be",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "The Hero's Late Arrival",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 23
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "Is It Okay to Pet You?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "po",
+         "v": "-5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "The Chronicle of Zenno Rob Roy",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "Today's the Day!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "Since No One's Around...",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "Dancing Nightmare",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "A Talk of Rain and Hail",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "The Magic Glasses",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "Experiment at the Library",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "Teatime for Two",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200012
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200022
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "The Hero and the Overlord",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+15"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 202412
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "How Many Calories Are in a Page?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "She Who Lurks Within Shadows",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "She Who Guides the Way",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "She Who Wields Flames of Courage",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "This! And This! And That Too!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "Outside My Comfort Zone",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "Heroes Live Through Their Tales",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 7,
+    "name": "If Struck by My Blade",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 8,
+    "name": "Hero Qualifications",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9093,
+      "name": "Junior Make Debut",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 31,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 2016,
+      "name": "Aoba Sho",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 200,
+      "fansNeeded": 1800,
+      "fansGain": 5400
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1010,
+      "name": "Tokyo Yushun (Japanese Derby)",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 6000,
+      "fansGain": 20000
+     }
+    ]
+   },
+   {
+    "slot": 43,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1015,
+      "name": "Kikuka Sho",
+      "distance": 3000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 7500,
+      "fansGain": 12000
+     }
+    ]
+   },
+   {
+    "slot": 47,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 55,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1006,
+      "name": "Tenno Sho (Spring)",
+      "distance": 3200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 59,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1012,
+      "name": "Takarazuka Kinen",
+      "distance": 2200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 67,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1016,
+      "name": "Tenno Sho (Autumn)",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 69,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1019,
+      "name": "Japan Cup",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
      }
     ]
    }
