@@ -4,29 +4,31 @@ import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, whiteGenerationBands } from '../src/settings.ts';
 import { DEFAULT_RUN, migrate, defaultState, STATE_VERSION } from '../src/state.ts';
-import { DEFAULT_GOAL as BASE_GOAL, emptyPinkLineage, sanitizePinkLineage, sanitizeGoal, goalFamily, goalWithTargets, type ResolvedGoal } from '../src/model/goal-input.ts';
-import { goalRankBands, attemptsFor, blueChance, pinkEstimate, pinkGoalsEstimate, starChance, statGoalMoments as integrateStats, evaluateParentGoal as evaluateGoal, type GoalStats } from '../src/model/goal.ts';
+import { DEFAULT_GOAL, emptyPinkLineage, sanitizePinkLineage, sanitizeGoal, goalFamily, goalWithTargets, type ResolvedGoal } from '../src/model/goal-input.ts';
+import { goalRankBands, attemptsFor, pinkEstimate, pinkGoalsEstimate, atLeastStarsChance, statGoalMoments, evaluateParentGoal, type GoalStats } from '../src/model/goal.ts';
 import { jointSkillForms, whiteGenerationMoments } from '../src/model/goal-skills.ts';
 import { decodeEventRoll, hasWhiteSpark, isDebuff, lineageSources, resolveTarget, pruneConflicts, type EventSource, type SkillSource } from '../src/model/sparks.ts';
 import { BLUE_GENERATION_BANDS, PINK_GENERATION_RATES } from '../src/model/rules.ts';
-import { statScore, thresholdFor } from '../src/model/rank.ts';
+import { ssThreshold, statScore } from '../src/model/rank.ts';
 import { phi } from '../src/model/stats.ts';
 import { planRun, predictRunDeck, unavailableRunChoices } from '../src/model/run.ts';
 import { makeCtx, evaluate, traineeCoverage, type Ctx } from '../src/model/deck.ts';
-import { APTITUDE_KEYS, type AptKey, type Grade } from '../src/types.ts';
+import { APTITUDE_KEYS, perStat, type AptKey, type Grade, type Stat, type StatValues } from '../src/types.ts';
 
 const data = loadData(), settings = structuredClone(DEFAULT_SETTINGS);
-const DEFAULT_GOAL = goalWithTargets(BASE_GOAL, []);
+const RESOLVED_DEFAULT_GOAL = goalWithTargets(DEFAULT_GOAL, []);
 const WHITE_GENERATION_BANDS = whiteGenerationBands(settings);
-const statGoalMoments = (stats: GoalStats, goal: ResolvedGoal) => integrateStats(stats, goal, thresholdFor('SS', data.ranks));
+const momentsAtSS = (stats: GoalStats, goal: ResolvedGoal) => statGoalMoments(stats, goal, ssThreshold(data.ranks));
+const blueChance = (rawMean: StatValues, blueStats: Stat[], blueStars: number) =>
+  momentsAtSS({ rawMean, sd: perStat(() => 0), skillPoints: 0, skillSd: 0 }, { ...RESOLVED_DEFAULT_GOAL, blueStats, blueStars }).blue;
 const migrateGoal = (raw: unknown, data: Parameters<typeof migrate>[1]) => {
   const { run } = migrate({ current: { version: 13, run: { goal: raw } } }, data);
   return goalWithTargets(run.goal, run.targets);
 };
-function evaluateTraineeGoal(goal: ResolvedGoal, lineage: Parameters<typeof evaluateGoal>[1], apt: Parameters<typeof evaluateGoal>[2], ctx: Ctx, stats: GoalStats, issues: string[]) {
+function evaluateTraineeGoal(goal: ResolvedGoal, lineage: Parameters<typeof evaluateParentGoal>[1], apt: Parameters<typeof evaluateParentGoal>[2], ctx: Ctx, stats: GoalStats, issues: string[]) {
   const targets = [...goal.required.map((r) => r.id), ...goal.preferred.map((p) => p.id)].map((id) => resolveTarget(id, ctx.data)!);
   const result = evaluate(traineeCoverage(targets, ctx), targets, ctx);
-  return evaluateGoal(goal, lineage, apt, { coverage: result.map, conflicts: result.conflicts }, ctx, stats, issues);
+  return evaluateParentGoal(goal, lineage, apt, { coverage: result.map, conflicts: result.conflicts }, ctx, stats, issues);
 }
 const target = (name: string) => resolveTarget(must(data.skills.find((s) => s.name === name), `skill ${name}`).id, data)!;
 const a = target('Groundwork'), b = target('Corner Recovery ○');
@@ -70,10 +72,9 @@ test('negative skills cannot generate or inherit white sparks, and saved targets
 
 test('generation defaults use audited star tables and inclusive blue boundaries', () => {
   assert.deepEqual(BLUE_GENERATION_BANDS.map((b) => b.rates), [[.9, .1, 0], [.5, .45, .05], [.2, .7, .1]]);
-  close(starChance(PINK_GENERATION_RATES, 2), .8);
-  close(starChance(PINK_GENERATION_RATES, 2, true), .7);
-  close(starChance(WHITE_GENERATION_BANDS[1]!.rates, 2), .5);
-  close(starChance(WHITE_GENERATION_BANDS[2]!.rates, 2), .8);
+  close(atLeastStarsChance(PINK_GENERATION_RATES, 2), .8);
+  close(atLeastStarsChance(WHITE_GENERATION_BANDS[1]!.rates, 2), .5);
+  close(atLeastStarsChance(WHITE_GENERATION_BANDS[2]!.rates, 2), .8);
   for (const [stat, expected] of [[599, .02], [600, .1], [1099, .1], [1100, .16]]) close(blueChance([stat!, 0, 0, 0, 0], ['speed'], 2), expected!);
   close(blueChance([1100, 1100, 1100, 1100, 1100], ['speed', 'power'], 2), .32);
   close(blueChance([1100, 1100, 1100, 1100, 1100], ['speed', 'stamina', 'power', 'guts', 'wit'], 2), .8);
@@ -118,9 +119,9 @@ test('Any pink counts all eligible types and needs no ancestry when one is alrea
 
 test('Any pink contributes its star chance to the complete goal', () => {
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
-  const stats = { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 3000, skillSd: 0 };
+  const stats: GoalStats = { rawMean: perStat(() => 1100), sd: perStat(() => 0), skillPoints: 3000, skillSd: 0 };
   for (const [pinkStars, expected] of [[2, .64], [3, .08]]) {
-    const result = evaluateTraineeGoal({ ...DEFAULT_GOAL, pink: [{ aptitude: 'any', stars: pinkStars! }] }, emptyPinkLineage(), apt(), ctx, stats, []);
+    const result = evaluateTraineeGoal({ ...RESOLVED_DEFAULT_GOAL, pink: [{ aptitude: 'any', stars: pinkStars! }] }, emptyPinkLineage(), apt(), ctx, stats, []);
     assert.deepEqual(result.issues, []);
     close(result.probability!, expected!);
   }
@@ -152,8 +153,8 @@ test('empty pink slots count as zero sparks and partial lineage gives an estimat
   assert.deepEqual(pinkEstimate(grades, 'end', 2, lineage(), 150).warnings, []);
   assert.deepEqual(pinkEstimate(grades, 'any', 2, partial, 150).warnings, []);
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee: data.characters[0]! });
-  const stats = { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 3000, skillSd: 0 };
-  const goal = { ...DEFAULT_GOAL, pink: [{ aptitude: 'turf' as const, stars: 2 }] };
+  const stats: GoalStats = { rawMean: perStat(() => 1100), sd: perStat(() => 0), skillPoints: 3000, skillSd: 0 };
+  const goal = { ...RESOLVED_DEFAULT_GOAL, pink: [{ aptitude: 'turf' as const, stars: 2 }] };
   const result = evaluateTraineeGoal(goal, emptyPinkLineage(), grades, ctx, stats, []);
   close(result.probability!, .64);
   assert.deepEqual(result.issues, []);
@@ -246,29 +247,29 @@ test('gold-or-white outcome and duplicate prerequisite rewards yield one family 
 });
 
 test('rank bands share a stat outcome with blue and both required white stars', () => {
-  const goal = { ...structuredClone(DEFAULT_GOAL), required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] };
-  const means = [1090, 1000, 1000, 1000, 1000];
+  const goal = { ...structuredClone(RESOLVED_DEFAULT_GOAL), required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] };
+  const means: StatValues = [1090, 1000, 1000, 1000, 1000];
   goal.blueStats = ['speed'];
   const points = 17500 - means.reduce((p, v) => p + statScore(v), 0);
-  const shared = statGoalMoments({ rawMean: means, sd: [120, 0, 0, 0, 0], skillPoints: points, skillSd: 0 }, goal);
+  const shared = momentsAtSS({ rawMean: means, sd: [120, 0, 0, 0, 0], skillPoints: points, skillSd: 0 }, goal);
   assert.ok(shared.blueAllWhiteStars > shared.blue * shared.whiteStars[0]! * shared.whiteStars[1]!, 'strong stat outcomes improve both blue and white star odds');
-  const fixed = (score: number) => statGoalMoments({ rawMean: [1100, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], skillPoints: score - statScore(1100), skillSd: 0 }, goal);
+  const fixed = (score: number) => momentsAtSS({ rawMean: [1100, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], skillPoints: score - statScore(1100), skillSd: 0 }, goal);
   close(fixed(17499).blueAllWhiteStars, .16 * .5 ** 2);
   close(fixed(17500).blueAllWhiteStars, .16 * .8 ** 2);
   close(fixed(6500).whiteStars[0]!, .5);
   close(fixed(6499).whiteStars[0]!, .1);
   close(fixed(28800).whiteStars[0]!, .825);
-  const capped = statGoalMoments({ rawMean: [2000, 0, 0, 0, 0], caps: [1099, 1200, 1200, 1200, 1200], sd: [0, 0, 0, 0, 0], skillPoints: 0, skillSd: 0 }, goal);
+  const capped = momentsAtSS({ rawMean: [2000, 0, 0, 0, 0], caps: [1099, 1200, 1200, 1200, 1200], sd: [0, 0, 0, 0, 0], skillPoints: 0, skillSd: 0 }, goal);
   close(capped.blue, .1);
 });
 
 test('rare blue thresholds retain finite attempts and their shared white-rank outcome', () => {
-  const goal = { ...structuredClone(DEFAULT_GOAL), blueStats: ['stamina' as const], blueStars: 3, pink: [{ aptitude: 'any' as const, stars: 2 }] };
+  const goal = { ...structuredClone(RESOLVED_DEFAULT_GOAL), blueStats: ['stamina' as const], blueStars: 3, pink: [{ aptitude: 'any' as const, stars: 2 }] };
   const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
-  const stats = { rawMean: [1100, 490, 1100, 1100, 1100], sd: [0, 32, 0, 0, 0], skillPoints: 17500 - 4 * statScore(1100) - statScore(600), skillSd: 0 };
+  const stats: GoalStats = { rawMean: [1100, 490, 1100, 1100, 1100], sd: [0, 32, 0, 0, 0], skillPoints: 17500 - 4 * statScore(1100) - statScore(600), skillSd: 0 };
   const expectedBlue = .01 * (phi((490 - 599.5) / 32) + phi((490 - 1099.5) / 32));
-  const estimate = (required = goal.required, caps?: number[]) => evaluateTraineeGoal({ ...goal, required }, emptyPinkLineage(), apt(), ctx, { ...stats, caps }, []);
+  const estimate = (required = goal.required, caps?: StatValues) => evaluateTraineeGoal({ ...goal, required }, emptyPinkLineage(), apt(), ctx, { ...stats, caps }, []);
   const blueOnly = estimate();
   close(blueOnly.blue / expectedBlue, 1);
   close(blueOnly.probability! / (expectedBlue * .8), 1);
@@ -283,21 +284,21 @@ test('rare blue thresholds retain finite attempts and their shared white-rank ou
 });
 
 test('blue marginals integrate rounding, capped tails, and multiple acceptable stats', () => {
-  const stats = { rawMean: [590, 1090, 500, 590, 1090], sd: [32, 32, 0, 32, 32], caps: [599, 1099, 1200, 600, 1100], skillPoints: 3000, skillSd: 400 };
-  const goal = structuredClone(DEFAULT_GOAL);
+  const stats: GoalStats = { rawMean: [590, 1090, 500, 590, 1090], sd: [32, 32, 0, 32, 32], caps: [599, 1099, 1200, 600, 1100], skillPoints: 3000, skillSd: 400 };
+  const goal = structuredClone(RESOLVED_DEFAULT_GOAL);
   const middleTail = phi((590 - 599.5) / 32), highTail = phi((1090 - 1099.5) / 32);
-  close(statGoalMoments(stats, { ...goal, blueStars: 1 }).blue, 1);
-  close(statGoalMoments({ ...stats, rawMean: Array(5).fill(599.5), sd: Array(5).fill(32) }, { ...goal, blueStars: 1 }).blue, 1);
-  close(statGoalMoments(stats, goal).blue, (.1 + .5 + .1 + (.1 + .4 * middleTail) + (.5 + .3 * highTail)) / 5);
-  close(statGoalMoments(stats, { ...goal, blueStars: 3 }).blue, (.05 + .05 * middleTail + .05 + .05 * highTail) / 5);
-  const extreme = { ...stats, rawMean: [0, 0, 0, 0, 0], sd: [70, 0, 0, 0, 0], caps: [1200, 1200, 1200, 1200, 1200] };
-  const rare = statGoalMoments(extreme, { ...goal, blueStats: ['speed'], blueStars: 3 });
+  close(momentsAtSS(stats, { ...goal, blueStars: 1 }).blue, 1);
+  close(momentsAtSS({ ...stats, rawMean: perStat(() => 599.5), sd: perStat(() => 32) }, { ...goal, blueStars: 1 }).blue, 1);
+  close(momentsAtSS(stats, goal).blue, (.1 + .5 + .1 + (.1 + .4 * middleTail) + (.5 + .3 * highTail)) / 5);
+  close(momentsAtSS(stats, { ...goal, blueStars: 3 }).blue, (.05 + .05 * middleTail + .05 + .05 * highTail) / 5);
+  const extreme: GoalStats = { ...stats, rawMean: [0, 0, 0, 0, 0], sd: [70, 0, 0, 0, 0], caps: [1200, 1200, 1200, 1200, 1200] };
+  const rare = momentsAtSS(extreme, { ...goal, blueStats: ['speed'], blueStars: 3 });
   close(rare.blue / (.01 * (phi(-599.5 / 70) + phi(-1099.5 / 70))), 1);
   assert.ok(rare.blueAllWhiteStars > 0, 'upper tails smaller than machine epsilon remain reachable');
 });
 
 test('goal evaluation runs by default and ignores the retired toggle in saved goals', () => {
-  const goals = [undefined, { ...BASE_GOAL, enabled: false, pink: 'turf', pinkStars: 3 }, { ...BASE_GOAL, enabled: true }];
+  const goals = [undefined, { ...DEFAULT_GOAL, enabled: false, pink: 'turf', pinkStars: 3 }, { ...DEFAULT_GOAL, enabled: true }];
   for (const goal of goals) {
     const saved = migrate({ current: { version: 14, run: { traineeCardId: 100101, goal } } }, data);
     assert.ok(!('enabled' in saved.run.goal), 'the retired toggle is dropped');
@@ -329,7 +330,7 @@ test('goal editing drives selection while supplied-deck prediction stays consist
   input.targets = [a.id, b.id].map((id) => ({ id, role: 'preferred', stars: 2, priority: 0 }));
   // A small budget: the assertions compare the two searches, not their best decks.
   const before = planRun(input, settings, {}, data, { budget: 8 });
-  input.goal = { ...structuredClone(BASE_GOAL), pink: [{ aptitude: 'turf', stars: 2 }] };
+  input.goal = { ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf', stars: 2 }] };
   input.targets.forEach((t) => { t.role = 'required'; });
   input.pinkLineage = lineage();
   const after = planRun(input, settings, {}, data, { budget: 8 });
@@ -342,25 +343,25 @@ test('goal editing drives selection while supplied-deck prediction stays consist
 });
 
 test('unavailable required skills give zero; incomplete inputs give no complete estimate', () => {
-  const goal = { ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
+  const goal = { ...structuredClone(RESOLVED_DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: [{ id: a.id, stars: 2 }, { id: b.id, stars: 2 }] as ParentGoalRequired };
   const trainee = { ...data.characters[0]!, innateSkills: [], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings: { ...settings, scenarioPickRate: 0 }, races: 0, totalTurns: 72, trainee });
-  const stats = { rawMean: [1000, 1000, 1000, 1000, 1000], sd: [0, 0, 0, 0, 0], skillPoints: 3000, skillSd: 0 };
+  const stats: GoalStats = { rawMean: [1000, 1000, 1000, 1000, 1000], sd: [0, 0, 0, 0, 0], skillPoints: 3000, skillSd: 0 };
   const result = evaluateTraineeGoal(goal, lineage(), apt(), ctx, stats, []);
   assert.equal(result.probability, 0);
   assert.equal(evaluateTraineeGoal({ ...goal, blueStats: [] }, lineage(), apt(), ctx, stats, []).probability, null);
 });
-type ParentGoalRequired = typeof DEFAULT_GOAL.required;
+type ParentGoalRequired = typeof RESOLVED_DEFAULT_GOAL.required;
 
 test('zero, one, and many required whites use a product within each shared rank outcome; preferred extras do not constrain success', () => {
   const c = target('Right-Handed ○');
   const trainee = { ...data.characters[0]!, innateSkills: [a.id, b.id, c.id], awakeningSkills: [], eventSkills: [], events: [] };
   const ctx = makeCtx({ data, settings, races: 0, totalTurns: 72, trainee });
   const grades = Object.fromEntries(APTITUDE_KEYS.map((k) => [k, 'A'])) as Record<AptKey, Grade>;
-  const stats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
+  const stats: GoalStats = { rawMean: [1100, 1100, 1100, 1100, 1100], sd: [0, 0, 0, 0, 0], skillPoints: 17500 - 5 * statScore(1100), skillSd: 0 };
   const requirements = [{ id: a.id, stars: 2 }, { id: b.id, stars: 3 }, { id: c.id, stars: 1 }];
   const each = [.2 * .8, .2 * .1, .25];
-  const goal = (n: number) => ({ ...structuredClone(DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: requirements.slice(0, n), preferred: [] });
+  const goal = (n: number) => ({ ...structuredClone(RESOLVED_DEFAULT_GOAL), pink: [{ aptitude: 'turf' as const, stars: 2 }], required: requirements.slice(0, n), preferred: [] });
   for (const n of [0, 1, 2, 3]) {
     const result = evaluateTraineeGoal(goal(n), emptyPinkLineage(), grades, ctx, stats, []);
     close(result.probability!, .8 * .08 * each.slice(0, n).reduce((all, p) => all * p, 1));
@@ -430,17 +431,18 @@ test('v7 required slots become a variable list and old goal-only skills join the
 
 
 test('warm stat distributions respect changed means, spread, caps and blue requirements', () => {
-  const stats = { rawMean: [600, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], caps: [1200, 0, 0, 0, 0], skillPoints: 0, skillSd: 0 };
-  const goal = { ...structuredClone(DEFAULT_GOAL), blueStats: ['speed' as const], blueStars: 3 };
+  const caps: StatValues = [1200, 0, 0, 0, 0];
+  const stats: GoalStats = { rawMean: [600, 0, 0, 0, 0], sd: [0, 0, 0, 0, 0], caps, skillPoints: 0, skillSd: 0 };
+  const goal = { ...structuredClone(RESOLVED_DEFAULT_GOAL), blueStats: ['speed' as const], blueStars: 3 };
   const estimate = () => goalRankBands(stats, goal, 17500).blue;
   close(estimate(), .01);
   stats.rawMean[0] = 599;
   close(estimate(), 0);
   stats.rawMean[0] = 600; stats.sd[0] = 32;
   close(estimate(), .01 * (phi(.5 / 32) + phi(-499.5 / 32)));
-  stats.caps[0] = 599;
+  caps[0] = 599;
   close(estimate(), 0);
-  stats.caps[0] = 1200; stats.sd[0] = 0;
+  caps[0] = 1200; stats.sd[0] = 0;
   close(estimate(), .01);
   goal.blueStars = 2;
   close(estimate(), .1);
@@ -449,29 +451,29 @@ test('warm stat distributions respect changed means, spread, caps and blue requi
 });
 
 test('shared stat distributions retain separate sample dimensions and sample counts', () => {
-  const stats = { rawMean: Array(5).fill(1000), sd: Array(5).fill(120), skillPoints: 3000, skillSd: 250 };
+  const stats: GoalStats = { rawMean: perStat(() => 1000), sd: perStat(() => 120), skillPoints: 3000, skillSd: 250 };
   // Recorded with the uncached sampler. Identical distributions still use five different Halton dimensions.
   const expected = [
     { count: 32, pSS: .09053644696617877, blueSS: .07722426755514515 },
     { count: 64, pSS: .15565609273757156, blueSS: .10959656453644886 },
   ];
   for (const { count, pSS, blueSS } of [...expected, ...expected].reverse()) {
-    const result = goalRankBands(stats, DEFAULT_GOAL, 17500, settings, count);
+    const result = goalRankBands(stats, RESOLVED_DEFAULT_GOAL, 17500, settings, count);
     close(result.pSS, pSS);
     close(result.blueRank[2]!, blueSS);
     close(result.blue, .5608824045267831);
   }
   // Cached stat draws must not retain a previous deck's purchased skill rating or SS threshold.
-  const low = goalRankBands(stats, DEFAULT_GOAL, 17500, settings, 32);
-  const high = goalRankBands({ ...stats, skillPoints: 13000 }, DEFAULT_GOAL, 17500, settings, 32);
+  const low = goalRankBands(stats, RESOLVED_DEFAULT_GOAL, 17500, settings, 32);
+  const high = goalRankBands({ ...stats, skillPoints: 13000 }, RESOLVED_DEFAULT_GOAL, 17500, settings, 32);
   close(high.pSS, 1);
-  close(goalRankBands({ ...stats, skillPoints: 13000 }, DEFAULT_GOAL, 27500, settings, 32).pSS, low.pSS);
+  close(goalRankBands({ ...stats, skillPoints: 13000 }, RESOLVED_DEFAULT_GOAL, 27500, settings, 32).pSS, low.pSS);
 });
 
 test('a stat with no outcomes fails loudly instead of yielding an empty rank basis', () => {
-  const stats = { rawMean: Array(5).fill(800), sd: [50, 50, 50, NaN, 50], skillPoints: 3000, skillSd: 250 };
-  assert.throws(() => goalRankBands(stats, DEFAULT_GOAL, 17500, settings, 32), /guts has no stat outcomes/);
-  assert.throws(() => goalRankBands({ ...stats, sd: [NaN, 50, 50, 50, 50] }, DEFAULT_GOAL, 17500, settings, 32), /speed has no stat outcomes/);
+  const stats: GoalStats = { rawMean: perStat(() => 800), sd: [50, 50, 50, NaN, 50], skillPoints: 3000, skillSd: 250 };
+  assert.throws(() => goalRankBands(stats, RESOLVED_DEFAULT_GOAL, 17500, settings, 32), /guts has no stat outcomes/);
+  assert.throws(() => goalRankBands({ ...stats, sd: [NaN, 50, 50, 50, 50] }, RESOLVED_DEFAULT_GOAL, 17500, settings, 32), /speed has no stat outcomes/);
 });
 
 test('pink alternatives add exclusive outcomes and share uncertainty scenarios', () => {
@@ -514,7 +516,7 @@ test('preferred targets migrate priority zero and count one-star sparks without 
   const trainee = { ...data.characters[0]!, innateSkills: [a.id], awakeningSkills: [], eventSkills: [], events: [] };
   const oneStar = { ...settings, whiteSparkRate: .2, whiteStarsBelowB: [1, 0, 0] };
   const ctx = makeCtx({ data, settings: oneStar, races: 0, totalTurns: 72, trainee });
-  const stats = { rawMean: Array(5).fill(0), sd: Array(5).fill(0), skillPoints: 0, skillSd: 0 };
+  const stats: GoalStats = { rawMean: perStat(() => 0), sd: perStat(() => 0), skillPoints: 0, skillSd: 0 };
   const result = evaluateTraineeGoal(goal, [], apt(), ctx, stats, []);
   close(result.preferred[0]!.probability, .2);
   close(result.probability!, evaluateTraineeGoal({ ...goal, preferred: [] }, [], apt(), ctx, stats, []).probability!);

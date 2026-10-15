@@ -218,7 +218,7 @@ inventory and settings that the app uses. In Inventory & settings, open Advanced
 choose **Export settings** to download the complete `settings.json` snapshot:
 
 ```sh
-node scripts/hint-sensitivity.mjs --run '<share URL or code>' --inventory /path/to/inventory.json --settings /path/to/settings.json
+node scripts/hint-sensitivity.ts --run '<share URL or code>' --inventory /path/to/inventory.json --settings /path/to/settings.json
 ```
 
 Share codes include training focus and win threshold, but no advanced settings. The script requires
@@ -255,7 +255,7 @@ would hide those differences. No completed-run hint dataset is currently used to
 The import matches Japanese names and rarity against direct GameWith rows from UmaTools'
 full export. It does not use UmaTools' cost-based fallback values. The JSON records the source,
 extraction date and extractor revision. After generating a full export with that revision,
-run `node scripts/import-skill-ratings.mjs /path/to/gamewith_skills_enriched.json` to rebuild it.
+run `node scripts/import-skill-ratings.ts /path/to/gamewith_skills_enriched.json` to rebuild it.
 Unmatched purchased skills retain the older rarity estimate and the prediction discloses them.
 
 Rank assumes the entire estimated SP budget is spent. It values optional purchases from obtainable

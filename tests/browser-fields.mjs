@@ -1,21 +1,54 @@
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
+import playwright from 'playwright';
 import { buildVersion, BUILD_VERSION_PATH, parseBuildVersion } from '../scripts/build-version.ts';
 import { BLUE_SPARK_START_GAIN_BY_STARS } from '../src/model/rules.ts';
 import { loadData } from '../src/data.ts';
 import { startingAptitudes } from '../src/model/pink-inherit.ts';
+import { effectiveLb } from '../src/model/run.ts';
 import { migrate, STATE_KEY } from '../src/state.ts';
 import missionCatalog from '../data/missions.json' with { type: 'json' };
 const data = loadData();
+
+/** The server the browser suites test; set URL for a server on another port. */
+export const BASE_URL = process.env.URL ?? 'http://localhost:5173/';
+
+/**
+ * Launches the engine named by TEST_BROWSER (chromium, firefox or webkit), Chromium by default. Not BROWSER: desktops
+ * and editor terminals set that to the user's own browser or a helper script.
+ */
+export function launchBrowser(options) {
+  const name = process.env.TEST_BROWSER ?? 'chromium';
+  if (!['chromium', 'firefox', 'webkit'].includes(name)) throw new Error(`TEST_BROWSER must be chromium, firefox or webkit, not ${name}`);
+  return playwright[name].launch(options);
+}
+
+/** Resolves after the next two animation frames, once layout and paint have caught up. */
+export const settled = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+
+/**
+ * Change the save as another tab would. A page gets no storage event for its own writes, so it misses this one the
+ * way a frozen or back-forward-cached tab does; `edit` changes the stored state in place.
+ */
+export async function writeMissedSave(page, edit) {
+  const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
+  edit(saved);
+  await page.evaluate(({ key, saved }) => localStorage.setItem(key, JSON.stringify(saved)), { key: STATE_KEY, saved });
+}
+
+/** The scanner's exported inventory. The JSON is built only while the preview is open, so open it before reading. */
+export async function previewJson(page) {
+  const preview = page.locator('[data-preview]');
+  if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
+  return JSON.parse(await page.locator('[data-json]').textContent());
+}
 const root = fileURLToPath(new URL('..', import.meta.url));
 const servedVersions = new Map();
 let ourVersion;
 
 /**
- * Loads the app and checks that the server at `url` serves this checkout. A dev server for another worktree answers
- * on the default port with other code, and its failures then read as bugs in this tree. Vite exposes the build hash
- * the app itself reads, so the comparison costs one fetch per server; a preview build has no such module and is
- * accepted as is. A server that does not answer fails with the command that starts one.
+ * A dev server for another worktree answers on the default port with other code, so this fails unless the server's
+ * build hash matches this checkout. A preview build has no such module and is accepted as is.
  */
 export async function openApp(page, url) {
   try {
@@ -45,23 +78,20 @@ export async function waitForPlan(page) {
   assert.equal(await page.locator('[data-action="retry-search"]').count(), 0, 'search completed successfully');
 }
 
-/**
- * Every form field that mirrors persisted state must show that state. A <select> the user has changed ignores later
- * `selected` attribute changes on its options, so a field that lit reuses for a different card or stat would keep a
- * stale value unless its value is bound live; this catches that whatever the field.
- */
+/** Catches a field that lit reuses for a different card or stat without a live value binding (see AGENTS.md). */
 export async function assertFieldsMatchState(page, where) {
   await page.waitForSelector('.results');
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), STATE_KEY);
   const saved = migrate({ current }, data);
   const trainee = data.charByCardId.get(saved.run?.traineeCardId);
   const expectedAptitudes = trainee ? startingAptitudes(trainee.aptitudes, saved.run.aptOverrides, saved.run.pinkLineage) : null;
-  const bad = await page.evaluate(({ gainByStars, expectedAptitudes, st, missionEvents }) => {
+  const expectedLb = Object.fromEntries(data.cards.map((card) => [card.id, effectiveLb(saved.inventory, card, saved.settings.inventoryOverrides)]));
+  const bad = await page.evaluate(({ gainByStars, expectedAptitudes, expectedLb, st, missionEvents }) => {
     const out = [];
     const STATS = ['speed', 'stamina', 'power', 'guts', 'wit'];
     for (const el of document.querySelectorAll('select[data-lb]')) {
-      const v = st.inventory?.[el.dataset.lb];
-      const want = v === null ? 'none' : String(v ?? 4);
+      const lb = expectedLb[el.dataset.lb];
+      const want = lb === null ? 'none' : String(lb);
       if (el.value !== want) out.push(`LB select for ${el.dataset.lb} shows ${el.value}, state ${want}`);
     }
     for (const el of document.querySelectorAll('select[data-gain]')) {
@@ -88,6 +118,10 @@ export async function assertFieldsMatchState(page, where) {
     for (const el of document.querySelectorAll('[data-setting]')) {
       const v = st.settings?.[el.dataset.setting];
       if (el.tagName === 'SELECT' && v !== undefined && el.value !== String(v)) out.push(`setting ${el.dataset.setting} shows ${el.value}, state ${v}`);
+    }
+    for (const el of document.querySelectorAll('[data-inventory-override]')) {
+      const lb = st.settings.inventoryOverrides[el.dataset.inventoryOverride];
+      if (el.value !== (lb === null ? '' : String(lb))) out.push(`inventory override ${el.dataset.inventoryOverride} differs from state`);
     }
     for (const el of document.querySelectorAll('[data-action="toggle-card-pin"], [data-action="toggle-card-ignore"]')) {
       const list = el.dataset.action === 'toggle-card-pin' ? st.run.pinnedIds : st.run.ignoredIds;
@@ -148,6 +182,6 @@ export async function assertFieldsMatchState(page, where) {
       if (el.getAttribute('aria-pressed') !== String(st.missions.traineeCardId === Number(el.dataset.missionRecommend))) out.push('mission trainee differs from state');
     }
     return out;
-  }, { gainByStars: BLUE_SPARK_START_GAIN_BY_STARS, expectedAptitudes, st: saved, missionEvents: missionCatalog.events });
+  }, { gainByStars: BLUE_SPARK_START_GAIN_BY_STARS, expectedAptitudes, expectedLb, st: saved, missionEvents: missionCatalog.events });
   assert.deepEqual(bad, [], `fields out of step with the state ${where}: ${bad.join('; ')}`);
 }

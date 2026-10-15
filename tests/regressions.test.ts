@@ -5,7 +5,8 @@ import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/settings.ts';
 import { defaultState, migrate, resetRun, DEFAULT_RUN } from '../src/state.ts';
 import { importInventory } from '../src/inventory.ts';
-import { planRun, targetSpCost } from '../src/model/run.ts';
+import { planRun } from '../src/model/run.ts';
+import { targetSpCost } from '../src/model/skill-purchases.ts';
 import { buildSchedule, expectedFansBefore, goalRaces, scheduleSummary, traineeAptitudes } from '../src/model/races.ts';
 import { combineSources, pruneConflicts, purchasedOwnership, resolveTarget, sparkChance, type SkillSource } from '../src/model/sparks.ts';
 import { defaultParentSparks } from '../src/model/inherit.ts';
@@ -41,7 +42,7 @@ test('migrated states and sanitized settings own their mutable values', () => {
   const b = migrate({ current: { version: 5, run: {}, settings: {} } }, data);
   assert.notEqual(a.run.targets, b.run.targets);
   assert.notEqual(a.settings.chainRatesSSR, b.settings.chainRatesSSR);
-  assert.notEqual(a.settings.defaultLb, DEFAULT_SETTINGS.defaultLb);
+  assert.notEqual(a.settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides);
   const saved = { chainRatesSSR: [0.5, 0.3, 0.1] };
   assert.notEqual(sanitizeSettings(saved).chainRatesSSR, saved.chainRatesSSR);
 });
@@ -161,12 +162,13 @@ test('borrow gain uses the final five owned cards as its baseline', () => {
   const owned = traineeCoverage(p.targets, p.ctx);
   for (const entry of p.deckResult.deck.filter((c) => !c.borrowed)) {
     owned.chars.add(entry.card.charId);
-    owned.cards.push(entry.card);
+    owned.cards.push({ card: entry.card, lb: entry.lb });
     for (const [id, sources] of entry.mine) owned.sources.set(id, [...(owned.sources.get(id) ?? []), ...sources]);
   }
   const sum = (v: Map<number, number>) => [...v.values()].reduce((a, b) => a + b, 0);
   const gain = sum(p.deckResult.sparks) - sum(evaluate(owned, p.targets, p.ctx).sparks);
-  assert.ok(Math.abs(p.deckResult.borrow!.gain - gain) < 1e-9, `${p.deckResult.borrow!.gain} != ${gain}`);
+  const borrowed = p.deckResult.deck.find((entry) => entry.borrowed)!;
+  assert.ok(Math.abs(borrowed.marginalValue - gain) < 1e-9, `${borrowed.marginalValue} != ${gain}`);
 });
 
 test('inventory import rejects invalid structure and invalid entries atomically', async () => {
@@ -182,7 +184,7 @@ test('plans with fewer than five usable owned characters are explicitly incomple
   for (let n = 0; n <= 5; n++) {
     const inventory: Inventory = Object.fromEntries(data.cards.map((c) => [c.id, null]));
     candidates.slice(0, n).forEach((id) => { inventory[id] = 4; });
-    const p = planRun(input(), settings(), inventory, data, { search: false });
+    const p = planRun(input(), { ...settings(), inventoryOverrides: { R: null, SR: null, SSR: null } }, inventory, data, { search: false });
     assert.equal(p.issues.length > 0, n < 5, `${n} owned cards`);
     if (n === 5) assert.equal(p.deckResult.deck.length, 6);
   }

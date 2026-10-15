@@ -6,14 +6,17 @@ aptitude and white skill sparks) and what you know about her lineage. The tool s
 inventory for the deck most likely to produce that parent and predicts the run: stats, rank, G1
 schedule, skill points and the skills to prioritize.
 
-Saved choices, inventory and settings stay in the browser. Nothing is sent to a server.
+Saved choices, inventory and settings stay in the browser, and screenshots are read on your device.
+The page address carries a share code of your run choices (not your inventory or advanced settings)
+in its fragment, which browsers do not send to the server. Older links with the code in the query
+send it when opened.
 
 ## Using the tool
 
 The left column is the input flow, the right column the results.
 
-1. **Inventory**: every card counts as owned at the default limit break until you change it. Import
-   screenshots of your support-card list, or set limit breaks in the Card ranking table.
+1. **Inventory**: import screenshots of your support-card list, or set limit breaks in the Card
+   ranking table. Rarity-wide ownership assumptions live in Advanced settings.
 2. **Trainee**: her cards are excluded from the deck, her innate and awakening skills count as
    covered, and her growth rates, aptitudes and events feed the stat, race and skill models.
 3. **Parent goal**: the blue stats, pink aptitudes and white skill sparks the finished parent must

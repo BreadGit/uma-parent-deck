@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { chromium } from 'playwright';
 import { importInventory } from '../src/inventory.ts';
 import { loadData } from '../src/data.ts';
 import { STATE_KEY } from '../src/state.ts';
-import { assertFieldsMatchState, assertServesThisTree } from './browser-fields.mjs';
+import { assertFieldsMatchState, assertServesThisTree, BASE_URL as base, launchBrowser, previewJson, writeMissedSave } from './browser-fields.mjs';
 
-const base = process.env.URL ?? 'http://localhost:5173/';
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const page = await browser.newPage();
 const errors = [], uploads = [], referenceRequests = [];
 page.on('pageerror', error => errors.push(String(error)));
@@ -40,12 +38,6 @@ async function expectConfident(expected, label) {
   }
   return read;
 }
-/** The JSON is built only while the preview is open, so open it before reading. */
-async function previewJson() {
-  const preview = page.locator('[data-preview]');
-  if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
-  return JSON.parse(await page.locator('[data-json]').textContent());
-}
 async function newInventory() {
   await page.locator('[data-new]').click(); await page.locator('[data-dialog-confirm]').click();
   // The dialog's close event is queued; wait for reset before choosing the next file.
@@ -58,7 +50,6 @@ async function chooseCard(key, id) {
   // A row that becomes complete moves out of the decisions, so only check a row that is still there.
   if (await input.count()) assert.equal(await input.getAttribute('data-card-id'), String(id));
 }
-/** Expands a read card's editor, which opens in the grid right under its tile. */
 async function openTile(id) {
   const tile = page.locator(`[data-tile="c${id}"]`);
   if (!await page.locator('[data-ready]').evaluate(details => details.open)) await page.locator('[data-ready] > summary').click();
@@ -86,7 +77,6 @@ async function alteredScreenshot(name, changes) {
   return { name: `${name}.png`, mimeType: 'image/png', buffer: Buffer.from(encoded, 'base64') };
 }
 const theme = () => page.evaluate(() => document.documentElement.dataset.theme);
-/** Every width the main smoke test checks, in both themes, chosen through the page's own theme control. */
 const pickTheme = name => page.locator(`[data-theme-pick="${name}"]`).click();
 async function assertNoOverflow(state, open = async () => {}, close = async () => {}, pick = pickTheme) {
   for (const name of ['light', 'dark']) {
@@ -175,7 +165,7 @@ try {
   await picker.press('Enter');
   assert.equal(await page.locator('[data-tile="c30125"]').count(), 0, 'the reading now belongs to the chosen card');
   assert.equal(await page.locator('[data-tile="c30062"]').getAttribute('data-lb'), '2', 'changing artwork preserves LB');
-  assert.equal((await previewJson())[30062], 2);
+  assert.equal((await previewJson(page))[30062], 2);
   editor = await openTile(30062);
   picker = editor.locator('[data-card]');
   await picker.click();
@@ -203,6 +193,11 @@ try {
   assert.equal((await expectConfident(android, 'Android')).size, 10);
   assert.equal(await page.locator('[data-decide]').count(), 0, 'clear readings need no decision');
   assert.match(await page.locator('[data-all-ready]').textContent(), /All 10 cards read with confidence/);
+  const reviewFilter = page.locator('.scan-filters input[type="search"]');
+  await reviewFilter.fill('suzuka winning');
+  assert.deepEqual(await page.locator('[data-ready] [data-tile]').evaluateAll(els => els.map(e => Number(e.dataset.cardId))), [30062],
+    'the review filter matches words in any order, like every search box');
+  await reviewFilter.fill('');
   assert.equal(await page.locator('[data-download]').isEnabled(), true);
   editor = await openTile(30001);
   await chooseCard(await editor.getAttribute('data-row'), 30001);
@@ -251,7 +246,7 @@ try {
     await scanFile(await alteredScreenshot('android', { covers }));
     const read = await expectConfident(expectedCards, 'isolated artwork');
     assert.equal(read.size, expectedCards.length, 'a complete lone card survives without adjacent cards');
-    const exported = await previewJson();
+    const exported = await previewJson(page);
     for (const [id, lb] of expectedCards) assert.equal(exported[id], lb, `isolated artwork ${id} stays owned`);
     await newInventory();
   }
@@ -275,7 +270,7 @@ try {
   assert.equal(await page.locator('[data-excluded] [data-tile="r"]').count(), 0);
   assert.equal(await page.locator('[data-excluded] [data-tile]').count(), 1, 'excluded readings keep a tile of their own');
   assert.equal(await page.locator('[data-download]').isEnabled(), true, 'an inventory containing only default R cards is usable');
-  const rareOnly = await previewJson();
+  const rareOnly = await previewJson(page);
   assert.equal(rareOnly[20021], null);
   for (const card of loadData().cards) if (card.rarity === 'R') assert.equal(rareOnly[card.id], 4);
   await newInventory();
@@ -312,6 +307,10 @@ try {
   // Inside the planner the same flow ends in the saved inventory instead of a file.
   await page.goto(base);
   await page.waitForSelector('[data-action="open-scanner"]');
+  await page.locator('[data-details="advanced"] > summary').click();
+  await page.locator('[data-inventory-override="SR"]').selectOption('0');
+  await page.locator('[data-inventory-override="SSR"]').selectOption('4');
+  await assertFieldsMatchState(page, 'before importing with active rarity overrides');
   const scannerModule = /\/(?:src\/scanner\/session\.ts|assets\/session-[^/]+\.js)(?:\?|$)/;
   await page.route(scannerModule, route => route.fulfill({ status: 503, body: 'Scanner unavailable' }));
   await page.locator('[data-action="open-scanner"]').click();
@@ -361,16 +360,19 @@ try {
   await page.locator('[data-action="open-scanner"]').click();
   await scan('android');
   assert.equal(await page.locator('[data-apply]').count(), 1, 'the apply button lives in the action bar only');
-  assert.match(await page.locator('[data-change-summary]').textContent(), /\d+ marked not owned · 7 limit breaks changed/, 'replace marks unseen cards not owned');
+  assert.match(await page.locator('[data-change-summary]').textContent(), /^10 newly owned · 0 marked not owned · 0 limit breaks changed/, 'replace compares against stored ownership');
   await page.locator('[data-mode="update"]').check();
-  assert.match(await page.locator('[data-change-summary]').textContent(), /^0 newly owned · 0 marked not owned · 7 limit breaks changed/);
+  assert.match(await page.locator('[data-change-summary]').textContent(), /^10 newly owned · 0 marked not owned · 0 limit breaks changed/);
   // The planner's theme control is behind the sheet; set the theme the way it would.
   await assertNoOverflow('sheet', undefined, undefined, name => page.evaluate(n => { document.documentElement.dataset.theme = n; }, name));
+  // Another tab adds a card after the summary was shown.
+  await writeMissedSave(page, other => { other.inventory[30106] = 3; });
   await page.locator('[data-apply]').click();
   await sheet.waitFor({ state: 'detached' });
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).inventory, STATE_KEY);
   for (const [id, lb] of android) assert.equal(saved[id], lb, `applied ${id}`);
-  assert.equal(Object.keys(saved).length, 10, 'update mode leaves other cards alone');
+  assert.equal(saved[30106], 3, 'the readings apply to the latest save');
+  assert.equal(Object.keys(saved).length, 11, 'update mode leaves other cards alone');
   await assertFieldsMatchState(page, 'after updating inventory from the scanner');
   await page.locator('[data-action="open-scanner"]').click();
   assert.match(await sheet.locator('[data-bar-summary]').textContent(), /10 ready/, 'reopening keeps the session');
@@ -381,6 +383,12 @@ try {
   assert.equal(replaced[20001], null, 'replace mode marks unseen SR cards not owned');
   assert.equal(replaced[30001], 1);
   await assertFieldsMatchState(page, 'after replacing inventory from the scanner');
+  if (!await page.locator('[data-details="advanced"]').evaluate(details => details.open)) await page.locator('[data-details="advanced"] > summary').click();
+  await page.locator('[data-inventory-override="SR"]').selectOption('');
+  await page.locator('[data-inventory-override="SSR"]').selectOption('');
+  assert.equal(await page.locator('select[data-lb="30001"]').first().inputValue(), '1', 'disabling the override reveals the scanned LB');
+  assert.equal(await page.locator('select[data-lb="20001"]').first().inputValue(), 'none', 'unseen SR ownership is restored too');
+  await assertFieldsMatchState(page, 'after restoring scanned ownership beneath rarity overrides');
   assert.deepEqual(errors, []);
   console.log('Scanner: screenshot recognition, decision-first review, overlap/conflicts, unseen cards, export/import, new inventory, both phone sizes, theme control, the planner sheet and overflow at six widths in both themes passed.');
 } finally { await browser.close(); }

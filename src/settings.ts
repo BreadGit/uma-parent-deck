@@ -1,45 +1,46 @@
-import type { Focus } from './types.ts';
-import { OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS } from './model/rules.ts';
+import { FOCUSES, isPlainObject, RARITIES, type Focus, type Rarity } from './types.ts';
+import { BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, isLimitBreak, OUR_GRAND_CONCERT, SUPPORTED_SCENARIOS, WHITE_GENERATION_BANDS, UE_RANK_MIN_SCORE } from './model/rules.ts';
+
+/** Per rarity: null uses the inventory; a number assumes every card of that rarity is owned at that LB. */
+export type InventoryOverrides = Record<Rarity, number | null>;
 
 export interface Settings {
-  goalTieTolerance: number;     // relative required-goal window in which preferred extras can decide
-  // main page
+  goalTieTolerance: number;
   winThreshold: number;          // include a G1 when P(win) >= this
   focus: Focus;
-  defaultLb: { R: number; SR: number; SSR: number }; // assumed limit break for cards without an inventory entry
-  // advanced: independent-training rates the game does not publish
-  affinity: number;              // individual affinity score assumed for every uma in the lineage; each spark procs at (1 + affinity/100)
-  hintBase: number;              // per-card per-turn hint chance before Hint Frequency, manual-run measurement
-  hintScale: number;             // multiplier applied to the hint model (independent training is unmeasured)
-  hintTurnsShare: number;        // fraction of turns a card is on the trained facility
-  chainRatesSSR: number[];       // completion chance of chain event 1..3 for SSR
-  chainRatesSR: number[];        // chain 1..2 for SR
-  randomEventRate: number;       // chance a given random event fires during a run (cards with more than 2 random events are scaled so 2 fire on average)
-  palChainRate: number;          // Pal card date chain completes (every date, incl. the finale skill)
-  groupOutingRate: number;       // Group card member outing happens
-  groupFinaleRate: number;       // Group card finale (gold skill) happens
-  specialEventRate: number;      // assumed rate for Pal/Group unlock and New Year events
-  scenarioPickRate: number;      // the scenario's linked-skill event fires and the prioritized option is taken
-  scenarioSongsRate: number;     // the run learns enough songs for the scenario's gold completion skill
-  concertGreatSuccessRate: number; // promotional and ordinary final concerts reach great success
-  charStoryEventRate: number;    // the trainee's own story and choice events play during the run
-  charOutingRate: number;        // one of the trainee's own outing events happens
-  charUndecodedEventRate: number; // a skill GameTora lists for the trainee's events without a decoded event behind it (outfit-specific events)
-  charConditionFallbackRate: number; // a secret-event condition the tool cannot evaluate (rival results, streaks) is met
-  scenarioId: number;            // career scenario (3 = Our Grand Concert)
-  goldRollStat: number;          // the stat of a card's type assumed when its final chain event rolls gold against white
-  goldSparkRate: number;         // white spark chance at run end when the gold skill is owned
-  circleSparkRate: number;       // ... when the ◎ form is owned
-  whiteSparkRate: number;        // ... when the white skill is owned
-  pinkInspirationRates: number[]; // per-event activation rates for 1/2/3-star pink sparks at zero affinity
-  whiteStarsBelowB: number[];    // approximate 1/2/3-star distribution below rank B
-  whiteStarsUE: number[];        // approximate 1/2/3-star distribution at UE and above
-  whiteSparkInheritRates: number[]; // chance per inspiration event that a 1/2/3★ white spark in the lineage gives its hint, at 0 affinity
-  lineageSparkMultiplier: number;   // spark generation chance multiplier per lineage occurrence of the same spark
-  blueInspirationGainMean: number[]; // assumed mean stat roll when a 1/2/3★ blue spark procs at an inspiration event
-  uniqueAprilBondRate: number;   // the April unique-skill level-up's chairperson bond check passes
-  lossPenalty: number;           // total stat points lost per expected race loss
-  skillScoreSd: number;          // uncertainty of the skill part of the rank score
+  inventoryOverrides: InventoryOverrides;
+  affinity: number;
+  hintBase: number;
+  hintScale: number;
+  hintTurnsShare: number;
+  chainRatesSSR: number[];
+  chainRatesSR: number[];
+  randomEventRate: number;
+  palChainRate: number;
+  groupOutingRate: number;
+  groupFinaleRate: number;
+  specialEventRate: number;
+  scenarioPickRate: number;
+  scenarioSongsRate: number;
+  concertGreatSuccessRate: number;
+  charStoryEventRate: number;
+  charOutingRate: number;
+  charUndecodedEventRate: number;
+  charConditionFallbackRate: number;
+  scenarioId: number;
+  goldRollStat: number;
+  goldSparkRate: number;
+  circleSparkRate: number;
+  whiteSparkRate: number;
+  pinkInspirationRates: number[];
+  whiteStarsBelowB: number[];
+  whiteStarsUE: number[];
+  whiteSparkInheritRates: number[];
+  lineageSparkMultiplier: number;
+  blueInspirationGainMean: number[];
+  uniqueAprilBondRate: number;
+  lossPenalty: number;
+  skillScoreSd: number;
   totalTurnsOverride: number | null;
 }
 
@@ -47,7 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   goalTieTolerance: 0.02,
   winThreshold: 0.8,
   focus: 'stamina',
-  defaultLb: { R: 4, SR: 4, SSR: 4 },
+  inventoryOverrides: { R: 4, SR: null, SSR: null },
   affinity: 150,
   hintBase: 0.07,
   hintScale: 0.75,
@@ -83,33 +84,35 @@ export const DEFAULT_SETTINGS: Settings = {
   totalTurnsOverride: null,
 };
 
-/** Settings kept when the advanced panel is reset: the ones on the main page. */
-export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus', 'defaultLb'] as const satisfies readonly (keyof Settings)[];
+/** Settings edited on the main page, kept when the advanced panel is reset. */
+export const MAIN_PAGE_SETTINGS = ['winThreshold', 'focus'] as const satisfies readonly (keyof Settings)[];
 
 /** What each setting accepts. Values that fail the spec are rejected in favour of the current value. */
 export type SettingSpec =
   | { kind: 'number'; min: number; max: number }
   | { kind: 'number-or-null'; min: number; max: number }
-  | { kind: 'list'; length: number; min: number; max: number; sum?: number }
+  | { kind: 'list'; length: number; min: number; max: number; sum?: number; nonIncreasing?: boolean; bounds?: readonly (readonly [number, number])[] } // bounds: each entry's own range, inside min..max
   | { kind: 'enum'; values: readonly (string | number)[] }   // the saved value must be one of these, same type included
-  | { kind: 'boolean' }
-  | { kind: 'lb-defaults' };
+  | { kind: 'inventory-overrides' };
 const rate: SettingSpec = { kind: 'number', min: 0, max: 1 };
 const odds: SettingSpec = { kind: 'list', length: 3, min: 0, max: 1 };
+/** Chain stage reach chances: reaching a stage needs every stage before it. */
+const chainReach = (length: number): SettingSpec => ({ kind: 'list', length, min: 0, max: 1, nonIncreasing: true });
+/** A blue spark's inspiration roll range for 1, 2 and 3 stars. */
+const BLUE_ROLL_RANGES = BLUE_SPARK_INSPIRATION_RANGE_BY_STARS.slice(1);
 const starDistribution: SettingSpec = { ...odds, sum: 1 };
-/** Overall affinity thresholds the game shows: ◎ above 150, ○ above 50, △ otherwise; the overall value is the sum of the six individual scores. */
 /** The race count the stat model was measured at; a total-turn override below it would scale card stats by zero or a negative number. */
 export const RACES_REFERENCE = 28;
 export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   winThreshold: rate,
-  focus: { kind: 'enum', values: ['balanced', 'stamina', 'sprint'] },
-  defaultLb: { kind: 'lb-defaults' },
+  focus: { kind: 'enum', values: FOCUSES },
+  inventoryOverrides: { kind: 'inventory-overrides' },
   affinity: { kind: 'number', min: 0, max: 1000 },
   hintBase: rate,
   hintScale: { kind: 'number', min: 0, max: 10 },
   hintTurnsShare: rate,
-  chainRatesSSR: odds,
-  chainRatesSR: { kind: 'list', length: 2, min: 0, max: 1 },
+  chainRatesSSR: chainReach(3),
+  chainRatesSR: chainReach(2),
   randomEventRate: rate,
   palChainRate: rate,
   groupOutingRate: rate,
@@ -133,7 +136,7 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
   whiteStarsUE: starDistribution,
   whiteSparkInheritRates: odds,
   lineageSparkMultiplier: { kind: 'number', min: 0, max: 10 },
-  blueInspirationGainMean: { kind: 'list', length: 3, min: 0, max: 30 },
+  blueInspirationGainMean: { kind: 'list', length: 3, min: Math.min(...BLUE_ROLL_RANGES.map(([low]) => low)), max: Math.max(...BLUE_ROLL_RANGES.map(([, high]) => high)), bounds: BLUE_ROLL_RANGES },
   uniqueAprilBondRate: rate,
   lossPenalty: { kind: 'number', min: 0, max: 10000 },
   skillScoreSd: { kind: 'number', min: 0, max: 100000 },
@@ -142,39 +145,34 @@ export const SETTING_SPEC: Record<keyof Settings, SettingSpec> = {
 
 const inRange = (v: unknown, min: number, max: number): v is number => typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
 
-/** True when `value` satisfies the setting's spec. */
 export function isValidSetting(key: keyof Settings, value: unknown): boolean {
   const spec = SETTING_SPEC[key];
   switch (spec.kind) {
     case 'number': return inRange(value, spec.min, spec.max);
     case 'number-or-null': return value === null || inRange(value, spec.min, spec.max);
     case 'list': return Array.isArray(value) && value.length === spec.length && value.every((v) => inRange(v, spec.min, spec.max))
-      && (spec.sum === undefined || Math.abs(value.reduce((sum, p) => sum + p, 0) - spec.sum) < 1e-9);
+      && (spec.sum === undefined || Math.abs(value.reduce((sum, p) => sum + p, 0) - spec.sum) < 1e-9)
+      && (!spec.nonIncreasing || value.every((v, i) => i === 0 || v <= value[i - 1]!))
+      && (!spec.bounds || value.every((v, i) => inRange(v, spec.bounds![i]![0], spec.bounds![i]![1])));
     case 'enum': return (typeof value === 'string' || typeof value === 'number') && spec.values.includes(value);
-    case 'boolean': return typeof value === 'boolean';
-    case 'lb-defaults': return !!value && typeof value === 'object' && (['R', 'SR', 'SSR'] as const).every((r) => inRange((value as Record<string, unknown>)[r], 0, 4));
+    case 'inventory-overrides': return isPlainObject(value) && RARITIES.every((r) => value[r] === null || isLimitBreak(value[r]));
   }
 }
 
-/**
- * Parse a form value (text or checkbox state) for a setting. Returns undefined when it does not satisfy the spec,
- * so the caller keeps the current value.
- */
-export function parseSetting(key: keyof Settings, raw: string | boolean): Settings[keyof Settings] | undefined {
+/** Undefined when the value fails the spec. */
+export function parseSetting(key: keyof Settings, raw: string): Settings[keyof Settings] | undefined {
   const spec = SETTING_SPEC[key];
   let value: unknown;
   switch (spec.kind) {
-    case 'boolean': value = typeof raw === 'boolean' ? raw : raw === 'true'; break;
-    case 'enum': value = spec.values.find((v) => String(v) === String(raw)); break; // the spec's own value, so a numeric enum parses to a number
+    case 'enum': value = spec.values.find((v) => String(v) === raw); break; // the spec's own value, so a numeric enum parses to a number
     case 'number-or-null': value = raw === '' ? null : Number(raw); break;
     case 'number': value = Number(raw); break;
-    case 'list': value = String(raw).split(/[,\s]+/).filter(Boolean).map(Number); break;
-    case 'lb-defaults': return undefined; // not editable from a single field
+    case 'list': value = raw.split(/[,\s]+/).filter(Boolean).map(Number); break;
+    case 'inventory-overrides': return undefined; // each rarity has its own select
   }
   return isValidSetting(key, value) ? (value as Settings[keyof Settings]) : undefined;
 }
 
-/** Merge saved settings over the defaults, dropping any saved value that fails its spec. */
 export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>): Settings {
   const out: Settings = { ...DEFAULT_SETTINGS };
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
@@ -184,8 +182,12 @@ export function sanitizeSettings(saved: Partial<Record<keyof Settings, unknown>>
   return structuredClone(out);
 }
 
+const blueRolls = BLUE_ROLL_RANGES.map(([low, high]) => `${low} and ${high}`);
+const blueRollPhrase = `${blueRolls.slice(0, -1).join(', ')}, and ${blueRolls.at(-1)}`;
+
 /** User-facing note per advanced setting: what it does and where the default comes from. */
 export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
+  inventoryOverrides: 'Use inventory keeps imported or individually entered ownership and limit breaks. An override assumes every card of that rarity is owned at the chosen LB, even cards marked not owned. Stored inventory values stay intact and return when the override is disabled.',
   concertGreatSuccessRate: 'Assumed chance of great success for each promotional concert and an ordinary final concert. Independent-training rates are unmeasured. Fan rewards use mee1080/umasim manual JP observations, without a deck Fan Bonus on concerts. The 18-song setting approximates the chance of the special final concert (9,000 fans); the source also requires two new songs in the final period.',
   goalTieTolerance: 'How much required-goal chance you will trade for more preferred sparks on successful parents. A fraction, not percentage points: for example, 0.02 allows a 2% relative difference. If the best chance found is 10%, decks at 9.8% or above can win on preferred extras. Zero allows only exact ties. Larger values give preferred sparks more influence. This is a preference, not a measure of model accuracy.',
   affinity: "Individual affinity score assumed for each of the six umas in the lineage (two parents, four grandparents). A blue or white spark procs at an inspiration event at its base chance times (1 + score/100), so 150 makes every blue spark proc. The game never shows individual scores, only their sum as ◎ (over 150), ○ (over 50) or △, and a ◎ made of six weak links procs far less than 150 each would; a compatibility calculator (GameTora, umaishow) gives the individual values. The per-uma value is an assumption, not an observed score.",
@@ -214,15 +216,14 @@ export const SETTING_HELP: Partial<Record<keyof Settings, string>> = {
   whiteStarsUE: 'Approximate 1/2/3-star white spark distribution at rank UE and above. Based on Crazyfellow, as recorded in docs/umamusume/refs/hakuraku-spark-generation.md. Values must sum to one.',
   whiteSparkInheritRates: 'Chance, per inspiration event, that a 1/2/3★ white spark already in the lineage gives you its hint, at 0 affinity; scaled by (1 + individual affinity/100) of the uma carrying it. Based on Polaris\'s zero-affinity data via Crazyfellow\'s guide.',
   lineageSparkMultiplier: 'Each time the same white spark already appears in the lineage, the chance of generating it again is multiplied by this. Based on uma.guide, supported by a 26.5-million-trainee dataset.',
-  blueInspirationGainMean: 'Assumed average stat gain when a 1★ / 2★ / 3★ blue spark procs at an inspiration event. The game rolls a random value between 1 and 10, 1 and 16, and 1 and 28 respectively, and higher stars are said to roll near the top more often, but the distribution has not been measured. Defaults are the midpoints of those ranges; they are an assumption, not a game rule.',
+  blueInspirationGainMean: `Assumed average stat gain when a 1★ / 2★ / 3★ blue spark procs at an inspiration event. The game rolls a random value between ${blueRollPhrase} respectively, and higher stars are said to roll near the top more often, but the distribution has not been measured. Defaults are the midpoints of those ranges; they are an assumption, not a game rule.`,
   uniqueAprilBondRate: "The unique skill gains a level at three fan checks: Senior early February (60,000 fans), early April (70,000 fans and a green bond with the chairperson) and late December (120,000 fans); dirt-oriented trainees need 40,000 / 60,000 / 80,000. Fans include earlier calendar placing rewards with the deck Fan Bonus and earlier concerts. Finales arrive too late for these checks. The April bond check is not predicted, so this is the chance it passes. The rate is a placeholder.",
   lossPenalty: 'Total stat points removed per expected race loss, spread over the five stats. The effect of losses and conditions like Skin Outbreak has not been measured.',
   skillScoreSd: 'Uncertainty (standard deviation) of the skill part of the rank score. The initial estimate allowed roughly two skills either way.',
   totalTurnsOverride: `Total career turns used to scale card stats and SP by races run, as (T - races) / (T - ${RACES_REFERENCE}). Blank uses the value fitted from the 28-race and 23-race measurements. Values of ${RACES_REFERENCE} or less are rejected because they would divide by zero or flip the sign.`,
 };
 
-/** How the advanced settings panel lays a setting out: a number field, or a comma-separated list. */
-export interface SettingField { key: keyof Settings; label: string; kind: 'number' | 'list'; step?: number }
+export interface SettingField { key: keyof Settings; label: string; kind: 'number' | 'list' | 'inventory-overrides'; step?: number }
 export interface SettingGroup { title: string; fields: SettingField[] }
 const n = (key: keyof Settings, label: string, step = 0.01): SettingField => ({ key, label, kind: 'number', step });
 const list = (key: keyof Settings, label: string): SettingField => ({ key, label, kind: 'list' });
@@ -231,6 +232,7 @@ const list = (key: keyof Settings, label: string): SettingField => ({ key, label
  * appears here exactly once (state.test.ts checks), except scenarioId, which has one supported value.
  */
 export const ADVANCED_SETTING_GROUPS: SettingGroup[] = [
+  { title: 'Card inventory', fields: [{ key: 'inventoryOverrides', label: 'Rarity overrides', kind: 'inventory-overrides' }] },
   { title: 'Deck search', fields: [n('goalTieTolerance', 'Required-goal tie tolerance (relative)', 0.001)] },
   { title: 'Lineage', fields: [n('affinity', 'Affinity per uma', 1), list('whiteSparkInheritRates', 'White spark hint rate, 1/2/3★'), list('pinkInspirationRates', 'Pink activation rate, 1/2/3★'), n('lineageSparkMultiplier', 'Spark chance × per lineage copy'), list('blueInspirationGainMean', 'Blue spark mean roll, 1/2/3★')] },
   { title: 'Hints', fields: [n('hintBase', 'Hint chance per card-turn'), n('hintScale', 'Hint model scale'), n('hintTurnsShare', 'Turns a card is on its facility')] },
@@ -247,6 +249,6 @@ export function whiteGenerationBands(settings: Settings) {
   return [
     { min: 0, rates: settings.whiteStarsBelowB, approximate: true },
     ...WHITE_GENERATION_BANDS,
-    { min: 28800, rates: settings.whiteStarsUE, approximate: true },
+    { min: UE_RANK_MIN_SCORE, rates: settings.whiteStarsUE, approximate: true },
   ];
 }

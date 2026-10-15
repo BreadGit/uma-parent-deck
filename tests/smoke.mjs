@@ -1,12 +1,11 @@
 // Checks editor flows with search held pending, then completes a real search and checks six widths in both themes.
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
-import { assertFieldsMatchState, openApp, waitForPlan } from './browser-fields.mjs';
+import { assertFieldsMatchState, BASE_URL as url, launchBrowser, openApp, settled, waitForPlan } from './browser-fields.mjs';
 import { holdSearch, releaseSearch } from './browser-search.mjs';
 import { STATE_KEY } from '../src/state.ts';
+import { loadData } from '../src/data.ts';
 import { checkMissions } from './missions-browser.mjs';
-const url = process.env.URL ?? 'http://localhost:5173/';
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const context = await browser.newContext({ viewport: { width: 1500, height: 1100 } });
 const page = await context.newPage();
 await holdSearch(page);
@@ -14,7 +13,6 @@ const errors = [];
 // Edits save and render synchronously, so each wait below names the state the next assertion reads rather than a delay.
 const savedState = (predicate) => page.waitForFunction(({ key, body }) => new Function('st', `return ${body}`)(JSON.parse(localStorage.getItem(key))), { key: STATE_KEY, body: predicate });
 const fieldValue = (selector, value) => page.waitForFunction(({ selector, value }) => document.querySelector(selector)?.value === value, { selector, value });
-const settled = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await openApp(page, url);
@@ -30,6 +28,10 @@ for (const [title, opacity] of dimmed) {
   assert.equal(opacity, live ? '1' : '0.35', `${title} should be ${live ? 'live' : 'dimmed'} before a trainee is picked`);
 }
 assert.ok(dimmed.some(([title]) => title.startsWith('Prioritized skills')) && dimmed.some(([title]) => title.startsWith('Warnings')), 'the nested panels and the warnings are rendered while waiting');
+assert.deepEqual(await page.$$eval('[data-inventory-override]', fields => fields.map(field => [field.dataset.inventoryOverride, field.value])), [['R', '4'], ['SR', ''], ['SSR', '']]);
+// The editor flows below use a full owned inventory, independent of the fresh-browser rarity assumptions.
+await page.setInputFiles('#import-file', { name: 'inventory.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(Object.fromEntries(loadData().cards.map(card => [card.id, 4])))) });
+await assertFieldsMatchState(page, 'after importing the smoke inventory');
 // The pinned input column ends inside the viewport on a fresh page, so its own scrolling reaches the last panel.
 const column = await page.$eval('.inputs', (el) => ({ top: Math.round(el.getBoundingClientRect().top), bottom: Math.round(el.getBoundingClientRect().bottom), headerBottom: Math.round(document.querySelector('header').getBoundingClientRect().bottom) }));
 assert.ok(column.top >= column.headerBottom && column.bottom <= 1100, `input column ${JSON.stringify(column)} should sit under the header and end inside the 1100px viewport`);
@@ -108,13 +110,14 @@ const advancedOverflow = await page.$eval('details[data-details="advanced"]', (d
   return Math.max(0, ...[...details.querySelectorAll('label, input, select')].map((el) => el.getBoundingClientRect().right - panelRight));
 });
 assert.ok(advancedOverflow <= 0.5, `advanced settings overflow their panel by ${advancedOverflow}px`);
+await page.selectOption('[data-inventory-override="R"]', '');
+await assertFieldsMatchState(page, 'after enabling individual edits for the full smoke inventory');
 for (const q of ['Corner Recovery', 'Groundwork', 'Pace Strategy']) {
   await page.fill('#target-search-preferred', q);
   await page.waitForSelector('li[data-action="add-target"]');
   await page.click('li[data-action="add-target"]');
 }
 await savedState('st.run.targets.length === 3');
-// Pin a card by search and check its ranking control and deck slot.
 await page.fill('#card-search', 'kitasan');
 await page.waitForSelector('li[data-action="pin-card"]');
 await page.click('li[data-action="pin-card"]');
@@ -141,10 +144,10 @@ const assertOrdering = async (where) => {
 };
 await assertOrdering('after pinning by search');
 assert.deepEqual((await deckIds()).slice(0, 2), [30052, 30028], 'Light Hello was pinned first, Kitasan second');
-await page.click('th[data-sort="sp"]');
+await page.click('[data-sort="sp"]');
 await savedState('st.ui.sortKey === "sp"');
 await assertOrdering('sorted by SP');
-await page.click('th[data-sort="score"]');
+await page.click('[data-sort="score"]');
 await savedState('st.ui.sortKey === "score"');
 // The deck slot's button unpins too.
 await deckPin.click();
@@ -229,14 +232,13 @@ await savedState('st.run.pinnedIds.includes(30028)');
   await savedState(`st.inventory["${outside}"] === 0`);
   await assertOrdering('after editing a card outside the deck');
   await assertFieldsMatchState(page, 'after one-at-a-time inventory edits');
-  // choosing the default LB removes the entry rather than storing it
+  // Restoring MLB keeps an explicit inventory entry.
   for (const id of [30028, unpinned[0], unpinned[1], outside]) await rankingLb(id).selectOption('4');
-  await savedState(`[30028, ${unpinned[0]}, ${unpinned[1]}, ${outside}].every((id) => st.inventory[id] === undefined)`);
+  await savedState(`[30028, ${unpinned[0]}, ${unpinned[1]}, ${outside}].every((id) => st.inventory[id] === 4)`);
 }
 await rankingPin.click();
 await savedState('!st.run.pinnedIds.includes(30028)');
 await assertOrdering('after the inventory edits are undone');
-// Prediction details builds its sections only once opened.
 assert.equal(await page.locator('[data-stat-breakdown]').count(), 0, 'the closed details panel renders no sections');
 await page.click('details[data-prediction-details] > summary');
 // Native details toggles dispatch asynchronously, after the click's default action.
@@ -267,7 +269,7 @@ if (await swapChip.count()) {
   const [sibling, winner] = await swapChip.evaluate((b) => [b.dataset.id, b.dataset.for]);
   await swapChip.click();
   await savedState(`st.run.wishlistOrder.indexOf(${sibling}) === st.run.wishlistOrder.indexOf(${winner}) - 1`);
-  await settled();
+  await settled(page);
   assert.equal(await page.locator(`.wishlist li[data-wl-key="${sibling}"] [data-action="wl-swap"][data-id="${winner}"]`).count(), 1, 'the displaced entry is a chip under the one that took its place');
   await page.click(`[data-action="wl-swap"][data-id="${winner}"][data-for="${sibling}"]`);
   await savedState(`st.run.wishlistOrder.indexOf(${winner}) === st.run.wishlistOrder.indexOf(${sibling}) - 1`);
@@ -556,12 +558,11 @@ await assertFieldsMatchState(page, 'with both advanced legacy forms open');
 await releaseSearch(page);
 await waitForPlan(page);
 await assertFieldsMatchState(page, 'after the native worker publishes the completed deck');
-// layout check: no horizontal overflow at common widths, both themes
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.setViewportSize({ width, height: 1000 });
-    await settled();
+    await settled(page);
     assert.match(await page.locator('[data-sort="score"]').innerText(), /^Target spark chances.*▾$/);
     assert.equal(await page.getByText('Added spark chance', { exact: true }).count(), 0);
     assert.equal(await page.getByText('Spark chance alone', { exact: true }).count(), 0);

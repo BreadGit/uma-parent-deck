@@ -1,4 +1,5 @@
 import type { Inventory } from '../types.ts';
+import { isLimitBreak, MAX_LB } from '../model/rules.ts';
 import type { Detection, ScanCard } from './recognize.ts';
 
 export interface ReviewRow {
@@ -14,18 +15,11 @@ export interface ReviewRow {
 
 export type Summary = ReturnType<typeof summarize>;
 
-const indexes = new WeakMap<ScanCard[], Map<number, ScanCard>>();
-export function cardIndex(cards: ScanCard[]) {
-  let byId = indexes.get(cards);
-  if (!byId) indexes.set(cards, byId = new Map(cards.map(c => [c.id, c])));
-  return byId;
-}
-
 export function summarize(rows: ReviewRow[], cards: ScanCard[]) {
-  const cardById = cardIndex(cards);
+  const cardById = new Map(cards.map(c => [c.id, c]));
   const included = rows.filter(r => !r.excluded);
   const invalid = new Set(included.filter(r => !r.reviewed || r.cardId === null || !cardById.has(r.cardId)
-    || cardById.get(r.cardId)?.rarity === 'R' || r.lb === null || !Number.isInteger(r.lb) || r.lb < 0 || r.lb > 4));
+    || cardById.get(r.cardId)?.rarity === 'R' || !isLimitBreak(r.lb)));
   const values = new Map<number, Set<number>>();
   for (const row of included) {
     if (invalid.has(row)) continue;
@@ -54,7 +48,7 @@ export interface Triage {
 }
 const byName = (a: ScanCard, b: ScanCard) => a.charName.localeCompare(b.charName) || a.id - b.id;
 export function triage(rows: ReviewRow[], cards: ScanCard[], result: Summary = summarize(rows, cards)): Triage {
-  const cardById = cardIndex(cards);
+  const cardById = new Map(cards.map(c => [c.id, c]));
   const groups = new Map<number, Group>();
   const attention: ReviewRow[] = [], excluded: ReviewRow[] = [];
   const seen = new Set<number>();
@@ -74,11 +68,11 @@ export function triage(rows: ReviewRow[], cards: ScanCard[], result: Summary = s
   return { attention, conflicts: all.filter(g => g.lbs.length > 1), ready: all.filter(g => g.lbs.length === 1), excluded, unseen };
 }
 
-/** List every catalog card explicitly: an omitted ID would inherit the planner's rarity default. */
+/** List every catalog card explicitly so the exported inventory records unseen cards as not owned. */
 export function inventoryFromReview(rows: ReviewRow[], cards: ScanCard[], result: Summary = summarize(rows, cards)): Inventory {
   if (result.pending.size) throw new Error('unresolved-inventory');
   return Object.fromEntries(cards.slice().sort((a, b) => a.id - b.id).map(c => [
-    String(c.id), c.rarity === 'R' ? 4 : result.values.get(c.id)?.values().next().value ?? null,
+    String(c.id), c.rarity === 'R' ? MAX_LB : result.values.get(c.id)?.values().next().value ?? null,
   ]));
 }
 
@@ -86,13 +80,12 @@ export function inventoryFromReview(rows: ReviewRow[], cards: ScanCard[], result
 export type ApplyMode = 'replace' | 'update';
 export interface InventoryChange {
   inventory: Inventory;
-  /** SR and SSR cards whose effective value changes, by kind. */
+  /** SR and SSR cards whose stored value changes, by kind. */
   owned: ScanCard[]; unowned: ScanCard[]; changed: ScanCard[];
   unchanged: number;
 }
-/** The planner's inventory after the readings, plus what the change does to each card's effective limit break. */
-export function applyReadings(current: Inventory, cards: ScanCard[], effective: (card: ScanCard) => number | null,
-  result: Summary, mode: ApplyMode): InventoryChange {
+/** The stored inventory after the readings, plus what they change in it, before any host's planning overrides. */
+export function applyReadings(current: Inventory, cards: ScanCard[], result: Summary, mode: ApplyMode): InventoryChange {
   const inventory: Inventory = { ...current };
   const change: InventoryChange = { inventory, owned: [], unowned: [], changed: [], unchanged: 0 };
   for (const card of cards) {
@@ -100,8 +93,7 @@ export function applyReadings(current: Inventory, cards: ScanCard[], effective: 
     const read = result.values.get(card.id)?.values().next().value;
     if (read !== undefined) inventory[String(card.id)] = read;
     else if (mode === 'replace') inventory[String(card.id)] = null;
-    const stored = inventory[String(card.id)];
-    const before = effective(card), after = stored === undefined ? before : stored;
+    const before = current[String(card.id)] ?? null, after = inventory[String(card.id)] ?? null;
     if (before === after) change.unchanged++;
     else if (before === null) change.owned.push(card);
     else if (after === null) change.unowned.push(card);

@@ -1,4 +1,4 @@
-// The Auto / Light / Dark control shared by the planner and the scanner. Each page owns where the choice is kept.
+// Shared by the planner and the scanner; each page owns where the choice is kept.
 import { html } from 'lit-html';
 import type { Theme } from '../state.ts';
 
@@ -9,7 +9,6 @@ export function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme === 'dark' || (theme === 'system' && systemDark.matches) ? 'dark' : 'light';
 }
 
-/** Apply the current choice now and again whenever the system theme changes. */
 export function followTheme(current: () => Theme) {
   systemDark.addEventListener('change', () => applyTheme(current()));
   applyTheme(current());

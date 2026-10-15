@@ -1,5 +1,5 @@
 import type { Character, Race } from '../types.ts';
-import { distanceCategory, goalRaces, slotOf } from './races.ts';
+import { distanceCategory, goalRaces, isAtLeastB, slotOf } from './races.ts';
 
 export interface MissionRace extends Pick<Race, 'calendarId' | 'raceInstanceId' | 'raceId' | 'name' | 'distance' | 'surface' | 'year' | 'month' | 'half' | 'fansNeeded'> {
   grade: string;
@@ -70,7 +70,7 @@ export function parsePastedMissions(text: string, races: MissionRace[]): Mission
 }
 
 export const hasRaceAptitude = (trainee: Character, race: MissionRace) =>
-  ['S', 'A', 'B'].includes(trainee.aptitudes[race.surface]) && ['S', 'A', 'B'].includes(trainee.aptitudes[distanceCategory(race.distance)]);
+  isAtLeastB(trainee.aptitudes[race.surface]) && isAtLeastB(trainee.aptitudes[distanceCategory(race.distance)]);
 
 export interface MissionRaceFit { trainee: Character; schedule: Map<number, MissionRace>; total: number; goalMatches: number }
 /** Maximum matching assigns each distinct race to one available slot, moving an earlier pick when needed. */

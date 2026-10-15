@@ -1,12 +1,12 @@
-// Shape and referential checks on data/*.json: the fields the model reads must exist with the expected types,
-// and every skill or character id one file points at must resolve. Run after `npm run fetch` or `npm run fit`.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { STATS, type AptKey } from '../src/types.ts';
-import { uniqueExtras } from '../src/model/stats.ts';
+import { isCalendarId, RARITIES, STATS, type AptKey } from '../src/types.ts';
+import { uniqueExtras } from '../src/model/support-effects.ts';
+import { RACES_REFERENCE } from '../src/settings.ts';
 import fixtureJson from '../data/unique-extras-fixture.json' with { type: 'json' };
+import { UE_RANK_MIN_SCORE } from '../src/model/rules.ts';
 const fixture = fixtureJson as { uniqueRampShare: number; rows: { cardId: number; lb: number; extras: Record<string, number> }[] };
 
 const data = loadData();
@@ -41,7 +41,7 @@ test('support effects interpolate with floor rounding between anchors, without u
 test('cards carry the fields the stat and spark models read', () => {
   assert.ok(data.cards.length > 100, `only ${data.cards.length} cards`);
   for (const c of data.cards) {
-    assert.ok(['R', 'SR', 'SSR'].includes(c.rarity), `${c.name} rarity`);
+    assert.ok(RARITIES.includes(c.rarity), `${c.name} rarity`);
     assert.ok([...STATS, 'pal', 'group'].includes(c.type), `${c.name} type ${c.type}`);
     assert.equal(c.effectsByLb.length, 5, `${c.name} effects per limit break`);
     for (const e of c.effectsByLb) for (const v of Object.values(e)) assert.ok(isNum(v), `${c.name} effect value`);
@@ -147,12 +147,14 @@ test('trainee events are decoded with resolvable skills and race references', ()
   assert.ok(secrets > 100 && choiceEvents > 200, `secret ${secrets}, choice ${choiceEvents}`);
 });
 
-test('races sit on the three-year calendar and ranks include SS', () => {
+test('races sit on the three-year calendar and ranks include SS and UE where the white bands expect it', () => {
   for (const r of data.races) {
     assert.ok(r.year >= 1 && r.year <= 3 && r.month >= 1 && r.month <= 12 && (r.half === 1 || r.half === 2), `${r.name} calendar`);
     assert.ok(['turf', 'dirt'].includes(r.surface) && ['sprint', 'mile', 'medium', 'long'].includes(r.category), `${r.name} surface/category`);
+    assert.ok(isCalendarId(r.calendarId), `${r.name} calendar ID ${r.calendarId} is one a saved schedule override keeps`);
   }
   assert.ok(data.ranks.some((r) => r.name === 'SS'), 'the SS rank is listed');
+  assert.equal(data.ranks.find((r) => r.name === 'UE')?.min, UE_RANK_MIN_SCORE);
 });
 
 test('scenario events reference known skills and characters', () => {
@@ -173,6 +175,7 @@ test('model coefficients, reference conditions and observed provenance are usabl
     assert.ok(values.every((v) => isNum(v) && (positive ? v > 0 : v >= 0)), name);
   };
   assert.ok(m.races.totalTurns > m.races.reference && m.races.reference > 0, 'total turns exceed the reference race count');
+  assert.equal(m.races.reference, RACES_REFERENCE, 'the total-turn setting is validated against the race count the model was fitted at');
   assert.ok(m.uniqueRampShare >= 0 && m.uniqueRampShare <= 1, 'uniqueRampShare is a share');
   for (const values of [m.slopes, m.roleConstants, m.effectSlopes ?? {}, m.sp.effectSlopes ?? {}]) {
     for (const value of Object.values(values)) assert.ok(isNum(value), 'finite fitted coefficient');
@@ -186,6 +189,7 @@ test('model coefficients, reference conditions and observed provenance are usabl
     vector(m.eventBase[races]!, `event stats at ${races} races`);
     assert.ok(isNum(m.eventSp[races]) && m.eventSp[races]! >= 0, `event SP at ${races} races`);
   }
+  assert.deepEqual(Object.keys(m.eventSp).sort(), Object.keys(m.eventBase).sort(), 'event stats and SP are measured at the same race counts');
   const seen = new Set<string>();
   for (const observation of m.observed) {
     const key = `${observation.cardId}:${observation.lb}`;

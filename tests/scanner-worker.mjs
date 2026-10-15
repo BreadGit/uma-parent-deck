@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { chromium } from 'playwright';
-import { assertServesThisTree } from './browser-fields.mjs';
+import { assertServesThisTree, BASE_URL as base, launchBrowser, previewJson } from './browser-fields.mjs';
 
-const base = process.env.URL ?? 'http://localhost:5173/';
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const page = await browser.newPage();
 const file = new URL('fixtures/scanner/android.jpg', import.meta.url).pathname;
 const iphone = new URL('fixtures/scanner/iphone.jpg', import.meta.url).pathname;
@@ -30,12 +28,6 @@ async function holdScreenshot(skip = 0) {
     window.releaseScreenshot = () => { Image.prototype.decode = decode; release(); };
   }, skip);
 }
-/** The JSON is built only while the preview is open, so open it before reading. */
-async function previewJson() {
-  const preview = page.locator('[data-preview]');
-  if (!await preview.evaluate(details => details.open)) await preview.locator('summary').click();
-  return JSON.parse(await page.locator('[data-json]').textContent());
-}
 async function start(files = file) {
   await page.locator('[data-files]').setInputFiles(files);
   await page.locator('[data-stop]').waitFor({ state: 'visible' });
@@ -48,7 +40,7 @@ async function scan(count) {
   assert.deepEqual(await page.locator('[role="alert"]').allTextContents(), []);
   assert.equal(await readings(), count);
   assert.equal(await page.locator('[data-download]').isEnabled(), true);
-  assert.equal((await previewJson())[30001], 1);
+  assert.equal((await previewJson(page))[30001], 1);
 }
 async function failed(count) {
   await page.getByRole('alert').waitFor({ timeout: 10000 });
@@ -201,5 +193,24 @@ try {
   await partial.locator('[data-files]').setInputFiles(file);
   await partial.getByRole('alert').waitFor({ timeout: 90000 });
   assert.match(await partial.getByRole('alert').textContent(), /Could not load the card artwork/);
-  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, unread files of an interrupted batch, and unreachable references passed.');
+
+  // Stopping while the references load requests no further image; the ones already requested finish unused.
+  const loading = await browser.newPage();
+  const held = [], late = [];
+  let stopped = false;
+  await loading.route(/\/assets\/supports\//, route => { if (stopped) { late.push(route.request().url()); return route.continue(); } held.push(route); });
+  await loading.goto(new URL('scanner.html', base).href);
+  await loading.locator('[data-files]').setInputFiles(file);
+  for (const start = Date.now(); held.length < 6; await new Promise(resolve => setTimeout(resolve, 50))) {
+    assert.ok(Date.now() - start < 30000, `reference requests started: ${held.length}`);
+  }
+  await loading.locator('[data-stop]').click();
+  stopped = true;
+  for (const route of held) await route.continue();
+  await Promise.all(held.map(async route => (await route.request().response())?.finished()));
+  // Each lane would request its next card as soon as the released image decodes.
+  await loading.waitForTimeout(300);
+  assert.deepEqual(late, [], 'no reference is requested after Stop');
+  await loading.close();
+  console.log('Scanner worker: early, mid-batch and idle failures, retry, reuse, drops, cancellation during startup and decoding, unread files of an interrupted batch, and unreachable references and stopping reference loading passed.');
 } finally { await browser.close(); }

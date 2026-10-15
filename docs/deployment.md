@@ -4,7 +4,7 @@
 the browser suites for pull requests, manual runs and `v*` tags, and deploys a release when a `v*`
 tag is pushed: the tagged build goes to Cloudflare Workers Static Assets.
 [wrangler.jsonc](../wrangler.jsonc) owns the site configuration. The runner image is pinned and
-[Dependabot](../.github/dependabot.yml) opens a monthly pull request for pinned action updates. The site needs no application server; screenshots and saved choices stay in the
+[Dependabot](../.github/dependabot.yml) proposes action, npm and Python updates. The site needs no application server; screenshots and saved choices stay in the
 browser.
 
 ## Releases
@@ -21,11 +21,16 @@ git push --follow-tags
 ```
 
 The page footer shows this version and the data snapshot date, so the live site states what it runs.
-CI validates the tag again and deploys it. The deploy refuses a tag whose commit is not on `main`.
-Each deploy uploads a Worker version labelled with the tag (`node scripts/deploy.mjs --help`), so the
+[CI](../.github/workflows/ci.yml) validates the tag again and deploys it only while it remains the
+newest release tag on origin. Superseded builds finish with a skip summary; they do not replace a
+newer release. The deploy also refuses a tag whose commit is not on `main`. Historical tags whose
+CI definitions predate this guard remain unguarded when their workflows are rerun.
+Each deploy uploads a Worker version labelled with the tag (`node scripts/deploy.ts --help`), so the
 Cloudflare dashboard's version list names releases and data refreshes.
-The tag list is the release history; no GitHub release or release notes are written. To redeploy a release, run the CI workflow manually on its tag. `npx wrangler rollback` returns the
-site to an earlier upload without a new tag.
+The tag list is the release history; no GitHub release or release notes are written. To redeploy the
+latest release, run the CI workflow manually on its tag. For an intentional return to an earlier
+upload, use `npx wrangler rollback` (`npx wrangler rollback --help`) instead of rerunning a historical
+tag's workflow. Future automatic release or data deployments can replace that rollback.
 
 Repository rulesets keep `main` and `v*` tags from being force-pushed, moved or deleted, and the
 `production` environment accepts deployments only from `v*` tags and from `main`, which the data
@@ -52,7 +57,10 @@ failed refresh leaves both `main` and the site unchanged. The data checks are th
 no CI run, so the workflow's own validation stands in for it. The workflow's manual **Run workflow**
 button forces a refresh.
 
-Run `node scripts/refresh-data.mjs --help` for the scheduling and change-detection policy. The
+If a newer release appears during validation or upload, the data deployment skips promotion and
+explains why in its summary. The validated data remains on `main` for the next release or refresh.
+
+Run `node scripts/refresh-data.ts --help` for the scheduling and change-detection policy. The
 schedule follows the game's own release notices ([official notices](umamusume/refs/official-notices.md)),
 so nothing needs to be entered by hand. If the feed changes shape, the run logs a warning and only
 the weekly fallback refreshes until `scripts/data-refresh.ts` is updated.

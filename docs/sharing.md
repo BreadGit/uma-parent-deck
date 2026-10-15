@@ -14,15 +14,20 @@ state. `src/state.ts` applies a validated snapshot to the existing save. `src/ui
 loading and synchronization through the existing context update hook. Sharing uses the browser
 address bar. `src/ui/app.ts` shows a notice only when saved choices are unavailable in the game data.
 
-An incoming `run` URL parameter loads before the first render. Invalid or unsupported codes do not
+The code sits in the URL fragment as `run=<code>` (`shareUrl` and `shareCode` in `src/share.ts`).
+Browsers do not send the fragment to the server, so reloading the page or opening a link keeps the
+choices out of requests and host logs. Links made before this carry the code in the `run` query
+parameter. They still load, and the first write moves the code into the fragment.
+
+An incoming code loads before the first render. Invalid or unsupported codes do not
 change saved choices. Browser history navigation also loads incoming codes and checks that no
 user edit occurred during decoding. Every history navigation invalidates unfinished imports and URL
 writes for the previous location, including navigation to a URL without a share code.
 The address bar updates with `history.replaceState`, so edits do not add browser-history entries.
 Only shared input changes trigger encoding. Compression is debounced by 300 ms and older asynchronous
-results cannot replace newer snapshots. The app removes an outdated parameter immediately on an edit;
+results cannot replace newer snapshots. The app removes an outdated code immediately on an edit;
 reloading during the debounce therefore reads the latest local save. Reset all cancels pending writes
-and removes the parameter before reloading. Other URL parameters and the fragment are preserved.
+and removes the code before reloading. Other URL parameters and other fragment text are preserved.
 
 ## Format contract
 
@@ -33,7 +38,8 @@ loading work.
 
 Format 3 extends format 2 with slot 14, and format 4 extends format 3 with slots 15 and 16. Format 5 keeps
 format 4's slots and changes the white lineage entry in slot 4 from per-side totals to the stars on each uma.
-Formats 2 to 5 use these positional slots; a format's decoder rejects slots past its last.
+Format 6 keeps format 5's slots and changes the schedule overrides in slot 14 from signed numbers to calendar ID
+tuples. Formats 2 to 6 use these positional slots; a format's decoder rejects slots past its last.
 A null or omitted top-level slot has the fixed format default;
 trailing default slots are omitted. Nested tuples have fixed lengths. Empty lists differ from default
 values wherever a default is nonempty.
@@ -54,9 +60,9 @@ values wherever a default is nonempty.
 | 11 | Prioritized exclusions | Game skill IDs of the hidden extras |
 | 12 | Training focus | Fixed focus index |
 | 13 | Win threshold | Number 0–1 |
-| 14 | Schedule overrides, formats 3 and 4 | Signed calendar IDs; positive forces in, negative forces out |
-| 15 | Ignored support cards, format 4 only | Game card IDs in user order; none may also be pinned |
-| 16 | Borrow ignored cards, format 4 only | 0 or 1 |
+| 14 | Schedule overrides, format 3 onward | Format 6: `[calendar ID, flag]` per override; 1 forces the race in, 0 forces it out. Formats 3 to 5: signed calendar IDs; positive forces in, negative forces out |
+| 15 | Ignored support cards, format 4 onward | Game card IDs in user order; none may also be pinned |
+| 16 | Borrow ignored cards, format 4 onward | 0 or 1 |
 
 The fixed stat order is speed, stamina, power, guts, wit. The fixed aptitude order is turf, dirt,
 sprint, mile, medium, long, front, pace, late, end. Pink goals reserve index 0 for any aptitude;
@@ -67,7 +73,7 @@ The flag values are 0 for false and 1 for true. These indexes must never come fr
 The literal defaults in `src/share.ts` are part of the format contract. They must not follow changes
 to application defaults. Format 1 is the original prototype's named-object payload with a leading
 saved-state version of 20. Its decoder retains that payload's defaults and does not check the current
-saved-state version. New shares always use format 5.
+saved-state version. New shares use the newest format, `FORMAT` in `src/share.ts`.
 
 Older per-side lineage totals decode by placing their copies the way the lineage form does: each side's
 parent first at 3★, then her grandparents, and the star total taken from the last-filled copies. A total
@@ -76,9 +82,11 @@ below the copy count gives each copy one star. Format 5 rejects stars outside 0 
 Format 4 defaults ignored cards to an empty list and the borrow-ignored flag to 0, as every older format does
 on decode: a share replaces the ignored cards like the pinned cards. Format 3 defaults schedule overrides to an empty list, which restores automatic scheduling.
 Formats 1 and 2 omit that field on decode, so importing them preserves the receiving device's
-overrides. Calendar IDs must be canonical positive safe integers, independent of dataset row order.
-Each ID appears once; conflicting signs are invalid. Unknown IDs survive loading and data refreshes.
-The sign stores the existing boolean override directly, which also supports future individual
+overrides. Calendar IDs are the dataset's calendar keys, independent of its row order: an entry number,
+with a suffix such as `_2` for a later year's running of the same entry (`isCalendarId` in `src/types.ts`).
+Formats 3 to 5 stored only whole-number IDs, signed by the override, so they could not carry a suffix.
+Each ID appears once; conflicting flags or signs are invalid. Unknown IDs survive loading and data refreshes.
+The flag stores the existing boolean override directly, which also supports future individual
 race exclusions without changing the format. This does not add an exclusion control or change
 mandatory career goals. An override identifies a particular calendar running, not every year of a race.
 

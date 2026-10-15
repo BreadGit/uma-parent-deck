@@ -2,8 +2,10 @@ import { chooseGoal, type GoalScore } from './goal-objective.ts';
 import type { GoalDeckEntry } from './goal-deck.ts';
 
 export const SCREENED_DECKS = 3072;
-export const SEARCH_RANK_SAMPLES = 32;
-export const EXPLORATION_SAMPLES = 128;
+/** Rank samples per deck in population screening, the cheapest and broadest search stage. */
+export const SCREEN_SAMPLES = 32;
+/** Rank samples per deck in local exploration around the best decks. Finalists use FINAL_GOAL_SAMPLES. */
+export const EXPLORE_SAMPLES = 128;
 export const SEARCH_FINALISTS = 16;
 const POPULATION_SIZE = 12;
 

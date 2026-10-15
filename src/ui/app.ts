@@ -1,14 +1,10 @@
-// Root template and mount: renders the whole page from the run plan and keeps the theme in sync. The left column
-// is the input flow in step order and scrolls on its own; it can be hidden so the results take the full width, with a
-// one-line run summary keeping the context. The right column is every result, most useful first.
-import { html, nothing, render } from 'lit-html';
+import { html, nothing, type TemplateResult } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
-import { resetRun, storageUnavailable } from '../state.ts';
-import { data, endPanelTracking, onRender, plan, refresh, searchState, stateRevision, store, trackedPanel, update, view } from './context.ts';
-import { COPY } from './copy.ts';
+import { resetRun } from '../state.ts';
+import { data, onRender, plan, renderNow, renderTracked, store, trackedPanel, update, view } from './context.ts';
+import { TITLE } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
 import { installSuggestDismiss } from './fields.ts';
-import { panel } from './panel.ts';
 import { installTooltips } from './tooltip.ts';
 import { applyTheme, followTheme, themeToggle } from './theme.ts';
 import { installScrollAnchor } from './scroll-anchor.ts';
@@ -31,21 +27,23 @@ import { clearSharedUrl } from './share.ts';
 import { unavailableRunChoices } from '../model/run.ts';
 import { storageNotice } from './storage-notice.ts';
 
+const RESET_ALL = 'Reset all';
 async function resetAll() {
-  if (!await confirmDialog(COPY.app.resetAllConfirm, COPY.app.resetAll)) return;
-  update((state) => Object.assign(state, resetRun(state, data)));
+  if (!await confirmDialog(`${RESET_ALL}? This clears the trainee, parent goal, targets, legacy screen, pinned and ignored cards, agenda picks, prioritized order, training focus and win threshold. Your inventory and advanced settings are kept.`, RESET_ALL)) return;
+  const saved = update((state) => Object.assign(state, resetRun(state, data)));
   clearSharedUrl();
-  if (!storageUnavailable) location.reload();
+  // A reload reads the save back, so it would restore the old run if the reset was not written.
+  if (saved) location.reload();
 }
 
 function unavailableChoices() {
   const missing = unavailableRunChoices(store.run, data);
   if (missing.trainee === null && !missing.cards.length && !missing.skills.length) return nothing;
   return html`<div class="banner small" data-unavailable-choices role="status">
-    <p>${COPY.share.unavailable}</p>
-    ${missing.trainee !== null ? html`<p>${COPY.share.missingTrainee(missing.trainee)}</p>` : nothing}
-    ${missing.cards.length ? html`<p>${COPY.share.missingCards(missing.cards)}</p>` : nothing}
-    ${missing.skills.length ? html`<p>${COPY.share.missingSkills(missing.skills)}</p>` : nothing}
+    <p>Some saved choices are unavailable in this game data. Their IDs are kept in your save and share code, but excluded from calculations. Estimates cover only the available choices.</p>
+    ${missing.trainee !== null ? html`<p>Unavailable trainee: ${missing.trainee}</p>` : nothing}
+    ${missing.cards.length ? html`<p>Unavailable pinned cards: ${missing.cards.join(', ')}</p>` : nothing}
+    ${missing.skills.length ? html`<p>Unavailable skills: ${missing.skills.join(', ')}</p>` : nothing}
   </div>`;
 }
 
@@ -61,21 +59,21 @@ function page() {
   // the column can only be hidden once there is a run to show; until then the inputs are the page
   const inputsHidden = ready && store.ui.inputsHidden;
   const complete = !c.issues.length;
-  const section = (name: string, render: () => ReturnType<typeof panel>, deps: unknown[] = []) => trackedPanel(name, [c, stateRevision, ...deps], render);
+  const section = (name: string, build: () => TemplateResult) => trackedPanel(name, c, build);
   return html`
     <header>
       <h1>Uma parent deck</h1>
-      <span class="meta">${COPY.app.tagline}</span>
+      <span class="meta">Independent-training deck builder for white-spark farming</span>
       <span class="header-actions">
-        <a class="button" href="./missions.html" data-page="missions">${COPY.missions.title}</a>
+        <a class="button" href="./missions.html" data-page="missions">${TITLE.missions}</a>
         ${themeToggle(store.ui.theme, (theme) => update((s) => { s.ui.theme = theme; }))}
-        <button class="danger" data-action="reset-all" data-tip=${COPY.app.resetAllTip} @click=${resetAll}>${COPY.app.resetAll}</button>
+        <button class="danger" data-action="reset-all" data-tip="Start over: clears every choice except your inventory and advanced settings" @click=${resetAll}>${RESET_ALL}</button>
       </span>
     </header>
     ${storageNotice()}
     <main class="${inputsHidden ? 'inputs-hidden' : ''}">
       ${inputsHidden ? nothing : html`<div class="inputs" id="inputs" data-inputs>
-        ${ready ? html`<div class="inputs-head"><button class="small" data-action="hide-inputs" aria-expanded="true" aria-controls="inputs" data-tip=${COPY.app.hideInputsTip} @click=${() => setInputsHidden(true)}>${COPY.app.hideInputs}</button></div>` : nothing}
+        ${ready ? html`<div class="inputs-head"><button class="small" data-action="hide-inputs" aria-expanded="true" aria-controls="inputs" data-tip="Give the results the full width. The summary line keeps the run in view." @click=${() => setInputsHidden(true)}>« Hide inputs</button></div>` : nothing}
         ${unavailableChoices()}
         ${section('inventory', () => renderInventory())}
         ${section('trainee', () => renderTrainee(c))}
@@ -85,16 +83,16 @@ function page() {
         ${section('settings', () => renderSettings())}
       </div>`}
       <div class="results ${ready ? '' : 'waiting'}">
-        ${inputsHidden ? html`<div class="results-head"><button class="small" data-action="show-inputs" aria-expanded="false" aria-controls="inputs" @click=${() => setInputsHidden(false)}>${COPY.app.showInputs}</button>${runSummary(c)}</div>${unavailableChoices()}` : nothing}
-        ${ready ? nothing : html`<p class="banner" data-waiting>${COPY.app.waiting}</p>`}
-        ${hasWarnings(c) ? section('warnings', () => renderWarnings(c), [searchState.error]) : nothing}
-        ${section('deck', () => renderDeck(c), [searchState.pending])}
+        ${inputsHidden ? html`<div class="results-head"><button class="small" data-action="show-inputs" aria-expanded="false" aria-controls="inputs" @click=${() => setInputsHidden(false)}>» Show inputs</button>${runSummary(c)}</div>${unavailableChoices()}` : nothing}
+        ${ready ? nothing : html`<p class="banner" data-waiting>Start with step 1: pick the uma you will train. The deck, estimate and agenda fill in from there. Your card inventory can be set in ${TITLE.ranking} at any time.</p>`}
+        ${hasWarnings(c) ? section('warnings', () => renderWarnings(c)) : nothing}
+        ${section('deck', () => renderDeck(c))}
         ${complete ? html`<div class="results-split">
           <div class="results-col">
             ${section('estimate', () => renderGoalResult(c))}
             ${section('prediction', () => renderPrediction(c))}
           </div>
-          <div class="results-col">${section('priorities', () => renderPriorities(c), [searchState.pending])}</div>
+          <div class="results-col">${section('priorities', () => renderPriorities(c))}</div>
         </div>
         ${section('schedule', () => renderSchedule(c))}` : section('estimate', () => renderGoalResult(c))}
         ${section('details', () => renderPredictionDetails(c))}
@@ -102,7 +100,6 @@ function page() {
       </div>
     </main>
     ${renderScannerOverlay()}
-    <div id="tooltip" role="tooltip"></div>
     <div class="footer">Version ${__APP_VERSION__}. Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
 }
 
@@ -117,7 +114,6 @@ function watchCandidates(root: HTMLElement) {
     if (overflow === view.candidatesOverflow && (overflow || !view.showAllCandidates)) return;
     view.candidatesOverflow = overflow;
     if (!overflow) view.showAllCandidates = false;
-    refresh();
   };
   const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
   const observer = new ResizeObserver(schedule);
@@ -135,12 +131,12 @@ function watchCandidates(root: HTMLElement) {
 export function mount(root: HTMLElement) {
   const preserveScroll = installScrollAnchor(root);
   const watch = watchCandidates(root);
-  const draw = () => { applyTheme(store.ui.theme); preserveScroll(() => render(page(), root)); endPanelTracking(); watch(); };
+  const draw = () => { applyTheme(store.ui.theme); preserveScroll(() => renderTracked(page(), root)); watch(); };
   onRender(draw);
   followTheme(() => store.ui.theme);
   installTooltips(root);
   installSuggestDismiss(root);
-  draw();
+  renderNow();
   // lit keeps the same <header> across renders; its height sizes the pinned input column below it
   const header = root.querySelector('header')!;
   new ResizeObserver(() => document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`)).observe(header);

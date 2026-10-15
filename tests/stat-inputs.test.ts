@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { cardContribution, modelContribution, uniqueExtras } from '../src/model/stats.ts';
+import { cardContribution, modelContribution } from '../src/model/stats.ts';
+import { uniqueExtras } from '../src/model/support-effects.ts';
 import type { StatModel } from '../src/types.ts';
 import modelJson from '../data/stat-model.json' with { type: 'json' };
 
@@ -59,7 +60,7 @@ test('expanded model remains finite and nonnegative for every imported card and 
   }
 });
 
-test('pal/group SP uses the previous formula despite expanded coefficients', () => {
+test('pal/group SP uses the fallback formula, without the expanded coefficients', () => {
   const card = structuredClone(must(data.cards.find((c) => c.type === 'pal')));
   card.effectsByLb = [{ 14: 20, 25: 10, 30: 2 }, {}, {}, {}, {}];
   const model: StatModel = { ...data.model, sp: {

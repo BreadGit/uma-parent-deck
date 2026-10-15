@@ -25,7 +25,7 @@ test('hint sensitivity uses a complete settings export or explicitly chosen defa
   const code = await encodeShare(sharedChoices(saved));
   const settingsPath = join(dir, 'settings.json'), inventoryPath = join(dir, 'inventory.json');
   writeFileSync(inventoryPath, JSON.stringify(saved.inventory));
-  const run = (...args: string[]) => spawnSync(process.execPath, [fileURLToPath(new URL('../scripts/hint-sensitivity.mjs', import.meta.url)),
+  const run = (...args: string[]) => spawnSync(process.execPath, [fileURLToPath(new URL('../scripts/hint-sensitivity.ts', import.meta.url)),
     '--run', code, '--inventory', inventoryPath, '--multipliers', '1', ...args], { encoding: 'utf8', timeout: 30000 });
 
   const missing = run();

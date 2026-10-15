@@ -2,7 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { defaultPins, defaultState, migrate, sanitizeInventory, STATE_VERSION } from '../src/state.ts';
+import { defaultPins, defaultState, migrate, sanitizeInventory, STATE_VERSION, type AppState } from '../src/state.ts';
+import { effectiveLb } from '../src/model/run.ts';
+import type { Inventory, Rarity } from '../src/types.ts';
+import { importInventory } from '../src/inventory.ts';
 import { defaultParentSparks, gainsOfParentSparks } from '../src/model/inherit.ts';
 import { ADVANCED_SETTING_GROUPS, DEFAULT_SETTINGS, MAIN_PAGE_SETTINGS, parseSetting, sanitizeSettings, SETTING_HELP, type Settings } from '../src/settings.ts';
 
@@ -54,7 +57,7 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.deepEqual(s1.run.parentSparks, [Array(3).fill({ stat: 'speed', stars: 1 + 2 }), defaultParentSparks()], 'parent 1 fills first with three 3★ Speed sparks; the rest would need four umas on parent 2, so that side is the default');
   assert.deepEqual(s1.run.targetLineage['200352'], [3, 3, 0, 3, 0, 0], 'three 3★ copies: both parents and a grandparent on parent 1\'s side');
   assert.equal(s1.ui.sortKey, 'stats');
-  const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { a: true, b: 'no' }, traineeStars: 'five' };
+  const v2 = { targets: [200352, 'x'], pinnedIds: [30052, 30028], parentStars: [[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]], targetLineage: { '200352': { k1: 1, k2: 0, p1: 3, p2: 0 } }, raceOverrides: { 1011: true, a: true, b: 'no' }, traineeStars: 'five' };
   const s2 = migrate({ state: v2 }, data);
   assert.deepEqual(s2.run.targets, [{ id: 200352, role: 'preferred', stars: 2, priority: 0 }]);
   assert.deepEqual(s2.run.pinnedIds, [30052, 30028]);
@@ -62,7 +65,7 @@ test('older run shapes migrate: v1 single pin, combined blue stars and {n, stars
   assert.deepEqual(s2.run.targetLineage, { '200352': [3, 0, 0, 0, 0, 0] });
   const v22 = { targets: [200352], targetLineage: { '200352': { k1: 2, k2: 1, p1: 5, p2: 3 }, '201601': [0, 2, 0, 0, 0, 1], '200012': [1, 2, 3], '200022': [0, 0, 0, 0, 0, 4] } };
   assert.deepEqual(migrate({ state: v22 }, data).run.targetLineage, { '200352': [3, 2, 0, 3, 0, 0], '201601': [0, 2, 0, 0, 0, 1] }, 'per-side totals place their copies; six-uma entries are kept and malformed ones dropped');
-  assert.deepEqual(s2.run.raceOverrides, { a: true });
+  assert.deepEqual(s2.run.raceOverrides, { 1011: true }, 'race overrides are keyed by calendar ID; other keys are dropped');
   assert.equal(s2.run.traineeStars, 3);
   const sw = must(data.characters.find((c) => c.name === 'Special Week'));
   assert.equal(migrate({ state: { traineeCardId: sw.cardId, traineeStars: 1 } }, data).run.traineeStars, 3, 'a star count below the trainee\'s rarity is raised to it');
@@ -106,13 +109,13 @@ test('v6 sparks per uma round-trip, a null slot survives, and a malformed slot r
 
 test('legacy settings blobs: version bumps apply and invalid values are dropped', () => {
   const s1 = migrate({ settings: { version: 1, defaultLb: { R: 4, SR: 4, SSR: 0 }, showUnowned: false, chainRatesSSR: [0.5, 0.5], hintBase: 0.1 } }, data);
-  assert.equal(s1.settings.defaultLb.SSR, 4, 'v1 -> SSR default LB becomes 4');
+  assert.deepEqual(s1.settings.inventoryOverrides, { R: 4, SR: 4, SSR: 4 }, 'v1 SSR default became 4, and without an inventory every card kept it');
   assert.equal(s1.ui.showUnowned, true, 'v2 -> unowned shown by default');
   assert.deepEqual(s1.settings.chainRatesSSR, DEFAULT_SETTINGS.chainRatesSSR, 'a two-entry list is rejected');
   assert.equal(s1.settings.hintBase, 0.1);
   const s3 = migrate({ settings: { version: 3, showUnowned: false, defaultLb: { R: 2, SR: 3, SSR: 1 } } }, data);
   assert.equal(s3.ui.showUnowned, false);
-  assert.deepEqual(s3.settings.defaultLb, { R: 2, SR: 3, SSR: 1 });
+  assert.deepEqual(s3.settings.inventoryOverrides, { R: 2, SR: 3, SSR: 1 });
 });
 
 test('the current shape round-trips and wins over legacy keys', () => {
@@ -130,7 +133,6 @@ test('ranking visibility moves from saved settings to UI state without losing th
     assert.equal(restored.ui.showUnowned, showUnowned);
     assert.equal('showUnowned' in restored.settings, false);
     assert.deepEqual(restored.run, saved.run);
-    assert.deepEqual(restored.inventory, saved.inventory);
     assert.deepEqual(migrate({ current: restored }, data), restored);
     assert.equal(migrate({ current: { ...old, ui: { ...old.ui, showUnowned: !showUnowned } } }, data).ui.showUnowned, !showUnowned);
   }
@@ -156,12 +158,39 @@ test('validation: inventory entries are numeric ids with LB 0..4 or null; every 
   assert.equal(parseSetting('totalTurnsOverride', '70'), 70);
   assert.equal(parseSetting('focus', 'sprint'), 'sprint');
   assert.equal(parseSetting('focus', 'fast'), undefined);
-  assert.equal(parseSetting('defaultLb', '4'), undefined);
+  assert.equal(parseSetting('inventoryOverrides', '4'), undefined);
   assert.equal(parseSetting('scenarioId', '5'), undefined, 'only the supported scenario');
   assert.equal(parseSetting('scenarioId', '3'), 3);
   assert.equal(sanitizeSettings({ scenarioId: '3' }).scenarioId, 3, 'a string is not the number the model compares with');
   assert.equal(sanitizeSettings({ focus: 3 }).focus, 'stamina');
   assert.deepEqual(sanitizeSettings({ affinity: -1, hintScale: 2, bigRewardRate: 0.3 } as Record<string, unknown>), { ...DEFAULT_SETTINGS, hintScale: 2 }, 'out-of-range and retired keys are dropped');
+});
+
+test('saved IDs follow the share-code rule: invalid entries drop, duplicates keep their first place, unknown IDs stay', () => {
+  const unknown = 99999999;
+  const current = { version: STATE_VERSION, run: {
+    traineeCardId: 1.5, pinnedIds: [1.5, -1, 0, 30052, unknown, 30052, '30028'], ignoredIds: [30001, 30001, 2 ** 60],
+    wishlistOrder: [200012, NaN, 200012, unknown], wishlistExcluded: [-5, 200022],
+    raceOverrides: { 1011: true, '01011': false, abc: true, '-3': false, 1012: 'yes', '79_2': false, '79_02': true },
+    targetLineage: { '1e3': [3, 0, 0, 0, 0, 0], '0201601': [3, 0, 0, 0, 0, 0], 201601: [0, 2, 0, 0, 0, 1] },
+  }, missions: { eventIds: [3, 3, 0], customRaceIds: [1011, 1.2], traineeCardId: -1 } };
+  const s = migrate({ current }, data);
+  assert.equal(s.run.traineeCardId, null);
+  assert.deepEqual(s.run.pinnedIds, [30052, unknown]);
+  assert.deepEqual(s.run.ignoredIds, [30001]);
+  assert.deepEqual(s.run.wishlistOrder, [200012, unknown]);
+  assert.deepEqual(s.run.wishlistExcluded, [200022]);
+  assert.deepEqual(s.run.raceOverrides, { 1011: true, '79_2': false }, 'overrides keep calendar IDs, including a later year\'s running, and drop other keys');
+  assert.deepEqual(s.run.targetLineage, { 201601: [0, 2, 0, 0, 0, 1] }, 'lineage keys follow the inventory key rule');
+  assert.deepEqual([s.missions.eventIds, s.missions.customRaceIds, s.missions.traineeCardId], [[3], [1011], null]);
+  assert.deepEqual(migrate({ current: { version: STATE_VERSION, run: { traineeCardId: 100101 } } }, data).run.traineeCardId, 100101);
+});
+
+test('inventory keys are card IDs as String(id) writes them, in saves and imports', async () => {
+  assert.deepEqual(sanitizeInventory({ '030028': 2, '30028': 3, '30052': 1, '0': 1, '900719925474099999999': 4 }), { '30028': 3, '30052': 1 });
+  const file = (value: unknown) => new File([JSON.stringify(value)], 'inventory.json', { type: 'application/json' });
+  assert.deepEqual(await importInventory(file({ 30028: 2, 30052: 'none' })), { '30028': 2, '30052': null });
+  for (const bad of [{ '030028': 2 }, { 0: 1 }, { '900719925474099999999': 4 }]) await assert.rejects(importInventory(file(bad)), Error, JSON.stringify(bad));
 });
 
 test('the advanced settings panel lays out every advanced setting exactly once', () => {
@@ -187,4 +216,67 @@ test('current saves keep trainee star choices when current data has a higher rar
   saved.run.traineeCardId = 100101;
   saved.run.traineeStars = 1;
   assert.deepEqual(migrate({ current: saved }, data), saved);
+});
+
+test('setting specs: inventory overrides accept use-inventory or a whole LB from 0 to 4', () => {
+  for (const inventoryOverrides of [{ R: 1.5, SR: null, SSR: 4 }, { R: 0, SR: 2, SSR: 5 }, { R: 4 }, { R: '4', SR: null, SSR: null }]) {
+    assert.deepEqual(sanitizeSettings({ inventoryOverrides }).inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides);
+  }
+  for (const inventoryOverrides of [{ R: 0, SR: 2, SSR: 3 }, { R: null, SR: null, SSR: null }]) {
+    assert.deepEqual(sanitizeSettings({ inventoryOverrides }).inventoryOverrides, inventoryOverrides);
+  }
+});
+
+/**
+ * Before v25 a card without an inventory entry was owned at its rarity's default. Every card keeps that ownership both
+ * with the migrated overrides and with every rarity reading the inventory.
+ */
+function assertOldOwnership(state: AppState, inventory: Inventory, defaultLb: Record<Rarity, number>, what: string) {
+  for (const overrides of [state.settings.inventoryOverrides, { R: null, SR: null, SSR: null }]) {
+    for (const card of data.cards) {
+      const saved = inventory[card.id];
+      assert.equal(effectiveLb(state.inventory, card, overrides), saved === undefined ? defaultLb[card.rarity] : saved, `${what}: card ${card.id} with ${JSON.stringify(overrides)}`);
+    }
+  }
+}
+const first = (rarity: Rarity) => must(data.cards.find((card) => card.rarity === rarity), `an ${rarity} card`).id;
+
+test('saves from before rarity overrides keep the ownership they showed', () => {
+  const defaultLb = { R: 2, SR: 3, SSR: 1 };
+  const inventory: Inventory = { [first('R')]: 0, [first('SR')]: null, [first('SSR')]: 1, 999999: 2 };
+  const migrated = migrate({ current: { version: 24, settings: { defaultLb }, inventory } }, data);
+  assertOldOwnership(migrated, inventory, defaultLb, 'custom defaults');
+  assert.deepEqual(migrated.settings.inventoryOverrides, { R: null, SR: null, SSR: 1 }, 'only the SSR cards all sat at their default');
+  assert.equal(migrated.inventory[999999], 2, 'entries for cards today\'s data lacks stay');
+  assert.equal('defaultLb' in migrated.settings, false);
+  assert.deepEqual(migrate({ current: migrated }, data), migrated);
+
+  const untouched = migrate({ current: { version: 24, settings: {}, inventory: {} } }, data);
+  assertOldOwnership(untouched, {}, { R: 4, SR: 4, SSR: 4 }, 'a save that never set an LB');
+  assert.deepEqual(untouched.settings.inventoryOverrides, { R: 4, SR: 4, SSR: 4 }, 'cards added later are owned at LB4, as before');
+});
+
+test('legacy blobs without an inventory take the bundled inventory before their old defaults fill the rest', () => {
+  const fallback: Inventory = { [first('SR')]: 1, [first('SSR')]: null };
+  const legacy = migrate({ state: {}, settings: { version: 3, defaultLb: { R: 4, SR: 4, SSR: 4 } } }, data, fallback);
+  assertOldOwnership(legacy, fallback, { R: 4, SR: 4, SSR: 4 }, 'legacy blobs');
+  const fresh = migrate({}, data, fallback);
+  assert.deepEqual(fresh.inventory, fallback);
+  assert.deepEqual(fresh.settings.inventoryOverrides, DEFAULT_SETTINGS.inventoryOverrides, 'a fresh browser takes today\'s defaults');
+});
+
+test('setting specs: chain reach chances may not rise from one stage to the next', () => {
+  assert.equal(parseSetting('chainRatesSSR', '1, 0, 1'), undefined, 'stage 3 needs stage 2');
+  assert.equal(parseSetting('chainRatesSR', '0.3, 0.5'), undefined);
+  assert.deepEqual(parseSetting('chainRatesSSR', '0.7, 0.4, 0.4'), [0.7, 0.4, 0.4], 'equal reaches are allowed');
+  assert.deepEqual(sanitizeSettings({ chainRatesSSR: [0, 0.36, 0.12] }).chainRatesSSR, DEFAULT_SETTINGS.chainRatesSSR, 'an impossible saved list falls back to the default');
+});
+
+test('setting specs: each blue spark mean roll stays inside that star count\'s roll range', () => {
+  assert.deepEqual(parseSetting('blueInspirationGainMean', '10, 16, 28'), [10, 16, 28]);
+  assert.deepEqual(parseSetting('blueInspirationGainMean', '1, 1, 1'), [1, 1, 1]);
+  assert.equal(parseSetting('blueInspirationGainMean', '10.5, 8.5, 14.5'), undefined, 'a 1★ spark rolls at most 10');
+  assert.equal(parseSetting('blueInspirationGainMean', '5.5, 8.5, 29'), undefined);
+  assert.equal(parseSetting('blueInspirationGainMean', '0, 8.5, 14.5'), undefined, 'every roll gives at least 1');
+  assert.deepEqual(sanitizeSettings({ blueInspirationGainMean: [30, 30, 30] }).blueInspirationGainMean, DEFAULT_SETTINGS.blueInspirationGainMean);
 });

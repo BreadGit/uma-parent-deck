@@ -7,9 +7,10 @@ import { DEFAULT_GOAL, emptyPinkLineage } from '../src/model/goal-input.ts';
 import { estimateFans, fansBeforeSlot } from '../src/model/fans.ts';
 import { expectedRaceFans, lossPlace, raceFansForPlace, slotOf, type Aptitudes, type ScheduledRace } from '../src/model/races.ts';
 import { parentSparksFromGains } from '../src/model/inherit.ts';
+import type { StatValues } from '../src/types.ts';
 import { planRun, type RunInput } from '../src/model/run.ts';
 import { uniqueSkillLevel } from '../src/model/rank.ts';
-import { EFFECT, uniqueExtras } from '../src/model/stats.ts';
+import { EFFECT, uniqueExtras } from '../src/model/support-effects.ts';
 import { OUR_GRAND_CONCERT } from '../src/model/rules.ts';
 import observations from '../docs/umamusume/fuji-independent-training-runs.json' with { type: 'json' };
 
@@ -24,7 +25,7 @@ const input: RunInput = {
   wishlistOrder: [], wishlistExcluded: [], traineeCardId: shared.traineeCardId, traineeStars: shared.stars,
   aptOverrides: observations.runs[0]!.reportedFinalAptitudes as Aptitudes, raceOverrides: {},
   pinnedIds: selection.map((d) => d.id), borrowFromAll: false, ignoredIds: [], borrowIgnored: false,
-  parentSparks: shared.parentStartingGains.map((gains) => parentSparksFromGains(gains)!),
+  parentSparks: shared.parentStartingGains.map((gains) => must(parentSparksFromGains(gains as StatValues), 'parent sparks from the recorded gains')),
 };
 const chosen = new Map(shared.calendar.map((r) => [r.slot, r.name]));
 input.raceOverrides = Object.fromEntries(data.races.map((r) => [r.calendarId, chosen.get(slotOf(r)) === r.name]));

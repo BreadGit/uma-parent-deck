@@ -12,6 +12,8 @@ import { isLegalRunSelection, planRun, type GoalSearchSummary } from '../src/mod
 
 const data = loadData();
 const state = defaultState(data);
+state.settings.inventoryOverrides = { R: null, SR: null, SSR: null };
+state.inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
 state.run.traineeCardId = 100101;
 const plan = planRun(state.run, state.settings, state.inventory, data, { search: false });
 const selection = plan.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
@@ -46,8 +48,9 @@ test('only well-formed recommendations survive current-state migration, and rese
   assert.equal(migrate({ current: { ...saved, version: STATE_VERSION - 1 } }, data).recommendation, undefined);
   assert.equal(resetRun(saved, data).recommendation, undefined);
   assert.deepEqual(resetRun(saved, data).inventory, state.inventory);
-  for (const raw of [null, {}, { ...recommendation, selection: [{ id: 1, lb: 99 }] },
-    { ...recommendation, summary: {} }, { ...recommendation, summary: { ...summary, score: { ...summary.score, probability: NaN } } }]) {
+  for (const raw of [null, {}, { ...recommendation, selection: [{ id: 1, lb: 99 }] }, { ...recommendation, selection: [{ id: 0, lb: 4 }] },
+    { ...recommendation, summary: {} }, { ...recommendation, summary: { ...summary, score: { ...summary.score, probability: NaN } } },
+    { ...recommendation, summary: { ...summary, unavailableWhiteIds: [0] } }]) {
     assert.equal(parseRecommendation(raw), undefined);
     const migrated = migrate({ current: { ...saved, recommendation: raw } }, data);
     assert.equal(migrated.recommendation, undefined);

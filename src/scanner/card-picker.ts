@@ -1,8 +1,8 @@
 import { html, nothing } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import { repeat } from 'lit-html/directives/repeat.js';
-import { SCANNER_COPY as C } from '../ui/copy.ts';
-import { inputValue } from '../ui/form.ts';
+import { LABEL } from '../ui/copy.ts';
+import { inputValue, isComposing, matchesWords, queryWords } from '../ui/form.ts';
 import { artworkUrl } from './images.ts';
 import type { ScanCard } from './recognize.ts';
 
@@ -10,8 +10,7 @@ const title = (card: ScanCard) =>
   card.name.endsWith(card.charName) ? card.name.slice(0, -card.charName.length).trim() : card.name;
 const label = (card: ScanCard) => `${card.charName} · ${card.rarity} · ${title(card)} · ${card.type}`;
 
-// Search is temporary: only choosing a result changes the reviewed inventory.
-// Keep this state separate from the planner's persisted store and search fields.
+// Only choosing a result changes the reviewed inventory, so the search state stays out of the planner's store.
 export function createCardPicker(catalog: ScanCard[], change: () => void) {
   let active: number | null = null, query = '', index = -1;
   const close = () => { active = null; query = ''; index = -1; };
@@ -27,13 +26,13 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
   const keepFocus = (event: Event) => event.preventDefault();
   function picker(key: number, selected: ScanCard | null | undefined, pick: (id: number) => void) {
     const open = active === key;
-    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    const matches = open ? catalog.filter(card => words.every(word => label(card).toLowerCase().includes(word))) : [];
+    const words = queryWords(query);
+    const matches = open ? catalog.filter(card => matchesWords(words, label(card))) : [];
     const id = `scan-card-${key}`, listId = `${id}-list`;
     const choose = (card: ScanCard) => { close(); pick(card.id); };
     const show = () => { if (!open) { active = key; query = ''; index = -1; change(); } };
     const onKey = (event: KeyboardEvent) => {
-      if (event.isComposing) return;
+      if (isComposing(event)) return;
       if (event.key === 'Escape') { event.preventDefault(); dismiss(); }
       else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
@@ -57,15 +56,15 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
       }
     };
     return html`<div class="suggest scan-card-picker" @focusout=${onFocusOut}>
-      <label for=${id}>${C.card}</label>
+      <label for=${id}>Card</label>
       <input id=${id} data-card=${key} data-card-id=${selected?.id ?? ''} type="search" role="combobox" class="wide"
-        title=${selected ? label(selected) : C.selectCard} placeholder=${C.searchCards} autocomplete="off"
+        title=${selected ? label(selected) : LABEL.selectCard} placeholder="Search name, title, or type" autocomplete="off"
         .value=${live(open ? query : selected ? label(selected) : '')}
         aria-autocomplete="list" aria-expanded=${open} aria-controls=${listId}
         aria-activedescendant=${open && index >= 0 ? `${listId}-${matches[index]?.id}` : ''}
         @focus=${show} @click=${show} @keydown=${onKey}
         @input=${(event: Event) => { active = key; query = inputValue(event); index = -1; change(); }} />
-      ${open ? html`<ul id=${listId} role="listbox" aria-label=${C.card} tabindex="-1">
+      ${open ? html`<ul id=${listId} role="listbox" aria-label="Card" tabindex="-1">
         ${repeat(matches, card => card.id, (card, i) => html`<li id=${`${listId}-${card.id}`} role="option"
           aria-selected=${i === index} class=${i === index ? 'active' : ''} data-id=${card.id}
           @mousedown=${keepFocus} @click=${() => choose(card)}>
@@ -74,7 +73,7 @@ export function createCardPicker(catalog: ScanCard[], change: () => void) {
             <span class="muted small">${title(card)}</span></span>
         </li>`)}
         ${matches.length ? nothing
-          : html`<li role="presentation" class="scan-no-matches" @mousedown=${keepFocus}><span role="status">${C.noCardMatches}</span></li>`}
+          : html`<li role="presentation" class="scan-no-matches" @mousedown=${keepFocus}><span role="status">No cards match. Try another name or title.</span></li>`}
       </ul>` : nothing}
     </div>`;
   }

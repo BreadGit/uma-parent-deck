@@ -1,7 +1,7 @@
 import type { Card, Skill } from '../types.ts';
 import { purchaseCoverage, type Ctx } from './deck.ts';
 import { jointSkillForms, type FormDistribution } from './goal-skills.ts';
-import { combineSources, isDebuff, purchasedOwnership, resolveTarget, type SkillSource, type Target } from './sparks.ts';
+import { combineSources, isDebuff, isWhite, purchasedOwnership, resolveTarget, type SkillSource, type Target } from './sparks.ts';
 import { skillScore } from './rank.ts';
 import type { Aptitudes } from './races.ts';
 import { SCENARIO_COMPLETION_SKILLS } from './rules.ts';
@@ -20,18 +20,16 @@ export interface SpCost { total: number; incomplete: boolean; items: { target: T
 export interface Purchases {
   targets: Target[];        // goal and listed families; unavailable goals retain zero forms for goal evaluation
   forms: FormDistribution;  // the forms the run ends up owning, from its sources. Rank spends SP separately (SkillRating).
-  spent: number;            // worst-case SP: the best obtainable form of every family with its prerequisites, at full price
-  extrasSpent: number;      // the listed extras' share of `spent`; the rest is the goal's targets
-  incomplete: boolean;      // a family's price is unknown, so `spent` is a lower bound
+  goalCost: SpCost;         // worst-case SP for the goal's targets the run can obtain: best form with prerequisites, at full price
+  extrasCost: SpCost;       // the same for the listed extras the run can obtain
 }
 
-/** A form the run can buy: released and not a debuff. */
-const usable = (s: Skill | null | undefined): s is Skill => !!s && !s.unreleasedEn && !isDebuff(s);
+const isPurchasable = (s: Skill | null | undefined): s is Skill => !!s && !s.unreleasedEn && !isDebuff(s);
 /** A family's forms in purchase order; form n of a state string is the nth of these. */
 const formsOf = (t: Target) => [t.white, t.circle, t.gold] as const;
 /** Full price of a form with its prerequisites, or null when a price is unknown. */
 function costAt(t: Target, form: number): number | null {
-  const needed = formsOf(t).slice(0, form).filter(usable);
+  const needed = formsOf(t).slice(0, form).filter(isPurchasable);
   if (!needed.length || needed.some((s) => s.cost == null)) return null;
   return needed.reduce((a, s) => a + s.cost!, 0);
 }
@@ -45,9 +43,9 @@ export function targetSpCost(targets: Target[], coverage: Map<number, SkillSourc
   let total = 0, incomplete = false;
   for (const t of new Map(targets.map((t) => [t.id, t])).values()) {
     const own = purchasedOwnership(t, combineSources(coverage.get(t.id) ?? []));
-    const circle = usable(t.circle) ? t.circle : null;
-    const skill = own.pGold > 1e-9 && usable(t.gold) ? t.gold : circle ?? t.white ?? t.gold;
-    const purchases = [...new Map([t.white, circle, skill].filter(usable).map((s) => [s.id, s])).values()];
+    const circle = isPurchasable(t.circle) ? t.circle : null;
+    const skill = own.pGold > 1e-9 && isPurchasable(t.gold) ? t.gold : circle ?? t.white ?? t.gold;
+    const purchases = [...new Map([t.white, circle, skill].filter(isPurchasable).map((s) => [s.id, s])).values()];
     if (!purchases.length) continue; // nothing of this family can be bought (a debuff, or only unreleased forms)
     const cost = purchases.some((s) => s.cost == null) ? null : purchases.reduce((a, s) => a + s.cost!, 0);
     if (cost == null) incomplete = true; else total += cost;
@@ -57,10 +55,8 @@ export function targetSpCost(targets: Target[], coverage: Map<number, SkillSourc
 }
 
 /**
- * What the run buys: every required and preferred target, and every listed extra the run has a source for. A skill
- * can only be bought once the run has it (a hint or an event option), so the forms come from the sources under the
- * context's list. The cost is the worst case, every obtainable family at full price, to check against the estimated
- * SP; it reads the resolved sources directly, so rare outcomes the joint form sampling misses still count.
+ * A skill can only be bought once the run has a hint or event for it, so the forms come from the sources under the
+ * context's list. The cost reads the resolved sources directly, so rare outcomes the joint form sampling misses count.
  */
 export function estimatePurchases(deck: { card: Card; lb: number }[], goalTargets: Target[], ctx: Ctx): Purchases {
   const families = new Map(goalTargets.map((t) => [t.id, t]));
@@ -76,7 +72,7 @@ export function estimatePurchases(deck: { card: Card; lb: number }[], goalTarget
   const forms = jointSkillForms(targets, coverage, ctx.data);
   const goalCost = targetSpCost(targets.filter((t) => goalIds.has(t.id) && obtainable(t)), coverage);
   const extrasCost = targetSpCost(targets.filter((t) => !goalIds.has(t.id)), coverage);
-  return { targets, forms, spent: goalCost.total + extrasCost.total, extrasSpent: extrasCost.total, incomplete: goalCost.incomplete || extrasCost.incomplete };
+  return { targets, forms, goalCost, extrasCost };
 }
 
 interface SpendingPoint { cost: number; points: number; unverified: number[] }
@@ -104,11 +100,7 @@ function spendingSegments(options: SpendingPoint[], probability: number): Spendi
 
 interface Reference { rate: number; unverified: number[] }
 const referenceCache = new WeakMap<Skill[], Map<string, Reference>>();
-/**
- * Rating per SP over every released, priced, purchasable white skill (no ◎ form, no debuff), at the trainee's
- * aptitudes. Independent of the deck, so it is computed once per skill list and aptitude set: the deck search
- * evaluates thousands of candidates against it.
- */
+/** Rating per SP over every purchasable white skill. Cached because the deck search evaluates thousands of candidates against it. */
 function referenceRate(skills: Skill[], apt: Aptitudes): Reference {
   const key = JSON.stringify(apt);
   const byApt = referenceCache.get(skills) ?? new Map<string, Reference>();
@@ -118,7 +110,7 @@ function referenceRate(skills: Skill[], apt: Aptitudes): Reference {
   let points = 0, cost = 0;
   const unverified: number[] = [];
   for (const skill of skills) {
-    if (!usable(skill) || skill.rarity !== 1 || skill.name.includes('◎') || skill.cost == null || skill.cost <= 0) continue;
+    if (!isPurchasable(skill) || !isWhite(skill) || skill.cost == null || skill.cost <= 0) continue;
     points += skillScore(skill, apt); cost += skill.cost;
     if (skill.rating === undefined) unverified.push(skill.id);
   }
@@ -140,7 +132,7 @@ export function ratingFromCoverage(targets: Target[], coverage: Map<number, Skil
     const options: SpendingPoint[] = [];
     [own.pWhite, own.pCircle, own.pGold].forEach((probability, i) => {
       const skill = formsOf(t)[i], cost = costAt(t, i + 1);
-      if (usable(skill) && cost !== null && cost > 0) {
+      if (isPurchasable(skill) && cost !== null && cost > 0) {
         options.push({ cost, points: skillScore(skill, apt), unverified: skill.rating === undefined ? [skill.id] : [] });
       }
       if (probability > 0) segments.push(...spendingSegments(options, probability));

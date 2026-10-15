@@ -38,7 +38,7 @@ jobs:
           retention-days: 3
           if-no-files-found: error
   deploy:
-    # A release is a v* tag on a main commit. Dispatching this workflow on a tag redeploys that release.
+    # A release is a v* tag on a main commit. Superseded tags are validated but never promoted.
     name: Deploy
     needs: validate
     if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
@@ -47,6 +47,7 @@ jobs:
     environment: production
     concurrency:
       group: production
+      queue: max
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -68,7 +69,7 @@ jobs:
             identical|behind) ;;
             *) echo "::error::$GITHUB_REF_NAME points at a commit that is not on main (compare status: $status)"; exit 1 ;;
           esac
-      - run: npm run deploy -- --tag "$GITHUB_REF_NAME" --message "Release $GITHUB_REF_NAME"
+      - run: npm run deploy -- --require-latest --tag "$GITHUB_REF_NAME" --message "Release $GITHUB_REF_NAME"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

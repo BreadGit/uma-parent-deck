@@ -1,6 +1,6 @@
-import type { Data } from '../types.ts';
+import { isGold, type Data } from '../types.ts';
 import type { Settings } from '../settings.ts';
-import { resolveEventSources, hasWhiteSpark, isEventSource, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
+import { resolveEventSources, hasWhiteSpark, isCircle, isEventSource, lastStageShares, type EventSource, type EventRoll, type SkillSource, type Target } from './sparks.ts';
 
 // Each digit records a family's best available form: none, white, circle, gold.
 interface Distribution { states: Map<string, number>; approximate: boolean }
@@ -29,6 +29,7 @@ const add = (d: Map<string, number>, state: string, p: number) => { if (p > 0) d
 const fixed = (state: string): Distribution => ({ states: new Map([[state, 1]]), approximate: false });
 const empty = (count: number) => fixed('0'.repeat(count));
 const clamp = (p: number) => Math.max(0, Math.min(1, p));
+const sparkRateByForm = (settings: Settings) => [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];
 /** Each family's better form. Joint distributions merge millions of state pairs, so this avoids an array per pair. */
 function merge(a: string, b: string): string {
   if (a === b) return a;
@@ -82,7 +83,7 @@ function skillState(id: number, targets: Target[], data: Data): string {
   return targets.map((t) => {
     if (!hasWhiteSpark(t) || !t.familyIds.has(id)) return '0';
     const skill = data.skillById.get(id);
-    return skill?.rarity === 2 ? '3' : (t.circle && !t.circle.unreleasedEn) || skill?.name.includes('◎') ? '2' : '1';
+    return skill && isGold(skill) ? '3' : (t.circle && !t.circle.unreleasedEn) || (skill && isCircle(skill)) ? '2' : '1';
   }).join('');
 }
 function eventDistribution(roll: EventRoll, targets: Target[], data: Data): Distribution {
@@ -115,16 +116,16 @@ function componentForms(targets: Target[], coverage: Map<number, SkillSource[]>,
     const conditional = eventDistribution(roll, targets, data), pFire = roll.pFire;
     if (!chain) { dist = combine(dist, fires(conditional, pFire, targets.length)); continue; }
     const stages = chains.get(chain.key) ?? [];
-    stages.push({ stage: chain.stage, pReach: clamp(chain.pReach), conditional }); chains.set(chain.key, stages);
+    stages.push({ stage: chain.stage, pReach: chain.pReach, conditional }); chains.set(chain.key, stages);
   }
   for (const stages of chains.values()) {
     stages.sort((a, b) => a.stage - b.stage);
-    for (let i = 1; i < stages.length; i++) stages[i]!.pReach = Math.min(stages[i]!.pReach, stages[i - 1]!.pReach);
-    const states = new Map([['0'.repeat(targets.length), 1 - stages[0]!.pReach]]);
+    const shares = lastStageShares(stages.map((stage) => stage.pReach));
+    const states = new Map([['0'.repeat(targets.length), 1 - shares.reduce((sum, p) => sum + p, 0)]]);
     let reached = empty(targets.length), approximate = false;
     stages.forEach((stage, i) => {
       reached = combine(reached, stage.conditional); approximate ||= reached.approximate;
-      const deepest = stage.pReach - (stages[i + 1]?.pReach ?? 0);
+      const deepest = shares[i]!;
       for (const [state, p] of reached.states) add(states, state, p * deepest);
     });
     dist = combine(dist, bound({ states, approximate }));
@@ -150,7 +151,7 @@ export function jointSkillForms(targets: Target[], coverage: Map<number, SkillSo
   return { count: targets.length, components: [...groups.values()].map((indices) => ({ indices, distribution: componentForms(indices.map((i) => targets[i]!), coverage, data) })) };
 }
 export function whiteGenerationMoments(forms: FormDistribution, lineageCopies: number[], settings: Settings): { all: number; each: number[]; available: number[]; allAvailable: number; approximate: boolean } {
-  const rates = [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];
+  const rates = sparkRateByForm(settings);
   const each = Array<number>(forms.count).fill(0), available = [...each];
   let all = 1, allAvailable = 1, approximate = false;
   for (const { indices, distribution } of forms.components) {
@@ -174,7 +175,7 @@ export function whiteGenerationMoments(forms: FormDistribution, lineageCopies: n
 
 /** Joint generation for a subset, projected from the same shared event outcomes. */
 export function subsetGeneration(forms: FormDistribution, copies: number[], selected: number[], settings: Settings): number {
-  const wanted = new Set(selected), rates = [0, settings.whiteSparkRate, settings.circleSparkRate, settings.goldSparkRate];
+  const wanted = new Set(selected), rates = sparkRateByForm(settings);
   let probability = 1;
   for (const { indices, distribution } of forms.components) {
     const members = indices.flatMap((index, position) => wanted.has(index) ? [{ index, position }] : []);

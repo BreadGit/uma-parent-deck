@@ -2,7 +2,7 @@
 import type { AppState } from './state.ts';
 import type { RunInput } from './model/run.ts';
 import type { Settings } from './settings.ts';
-import type { AptKey, Grade, Stat } from './types.ts';
+import { FOCUSES, isCalendarId, isGameId, isPlainObject, type AptKey, type Grade, type Stat } from './types.ts';
 import { lineageFromSides, type Lineage } from './model/sparks.ts';
 
 export interface SharedChoices {
@@ -11,11 +11,12 @@ export interface SharedChoices {
   settings: Pick<Settings, 'focus' | 'winThreshold'>;
 }
 
-// These tables and defaults are part of formats 1, 2 and 3. Never reorder or derive them from live data.
+/** The format new shares use. docs/sharing.md describes every format the decoder reads. */
+const FORMAT = 6;
+// These tables and defaults are part of every format. Never reorder or derive them from live data.
 const STATS: readonly Stat[] = ['speed', 'stamina', 'power', 'guts', 'wit'];
 const APTITUDES: readonly AptKey[] = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', 'pace', 'late', 'end'];
 const GRADES: readonly Grade[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-const FOCUSES: readonly Settings['focus'][] = ['balanced', 'stamina', 'sprint'];
 const DEFAULTS: SharedChoices = {
   run: {
     traineeCardId: null, traineeStars: 3,
@@ -38,14 +39,22 @@ const list = (v: unknown): unknown[] => Array.isArray(v) ? v : invalid();
 const tuple = (v: unknown, length: number): unknown[] => { const a = list(v); return a.length === length ? a : invalid(); };
 const integer = (v: unknown, min = 0, max = Number.MAX_SAFE_INTEGER): number =>
   typeof v === 'number' && Number.isSafeInteger(v) && v >= min && v <= max ? v : invalid();
-const id = (v: unknown) => integer(v, 1);
+/** The saved state's ID rule; a share code with an invalid ID is rejected rather than repaired. */
+const id = (v: unknown): number => isGameId(v) ? v : invalid();
+/** The saved state's schedule-override key rule, applied the same way. */
+const calendarId = (v: unknown): string => typeof v === 'string' && isCalendarId(v) ? v : invalid();
+/** Calendar IDs by entry, then by the year suffix, so equal override sets pack the same way. */
+const calendarOrder = (a: string, b: string) => {
+  const [entryA = 0, yearA = 0] = a.split('_').map(Number), [entryB = 0, yearB = 0] = b.split('_').map(Number);
+  return entryA - entryB || yearA - yearB;
+};
 const stars = (v: unknown) => integer(v, 1, 3);
 const choice = <T>(v: unknown, options: readonly T[]): T => options[integer(v, 0, options.length - 1)]!;
 const unique = <T>(values: T[], key: (v: T) => unknown = (v) => v): T[] =>
   new Set(values.map(key)).size === values.length ? values : invalid();
 const ids = (v: unknown) => unique(list(v).map(id));
 const sortedEntries = <T>(v: Record<string, T>) => Object.entries(v).sort(([a], [b]) => Number(a) - Number(b));
-const canonical = (v: unknown): string => JSON.stringify(v, (_, value: unknown) => value && typeof value === 'object' && !Array.isArray(value)
+const canonical = (v: unknown): string => JSON.stringify(v, (_, value: unknown) => isPlainObject(value)
   ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b))) : value);
 
 /** Explicitly select the share scope. New RunInput fields require a decision here and in the format. */
@@ -64,8 +73,9 @@ export function sharedChoices(state: AppState): SharedChoices {
 interface SidedLineage { k1: number; k2: number; p1: number; p2: number }
 const packLineage = (l: Lineage | SidedLineage, version: number) => Array.isArray(l) ? (version >= 5 ? l : invalid()) : [l.k1, l.k2, l.p1, l.p2];
 
-// Format 5 slots are documented in docs/sharing.md. Numeric IDs are always the game IDs, never data indexes.
-function pack({ run: r, settings: s }: SharedChoices, version = 5): unknown[] {
+// Slots are documented in docs/sharing.md. Numeric IDs are always the game IDs, never data indexes. Slot 14 is always
+// written in format 6's form; the only older format packed is the prototype check's, which drops that slot.
+function pack({ run: r, settings: s }: SharedChoices, version = FORMAT): unknown[] {
   return [r.traineeCardId, r.traineeStars,
     [r.goal.blueStats.reduce((mask, stat) => mask | 1 << STATS.indexOf(stat), 0), r.goal.blueStars,
       r.goal.pink.map((p) => [p.aptitude === 'any' ? 0 : APTITUDES.indexOf(p.aptitude) + 1, p.stars])],
@@ -75,20 +85,16 @@ function pack({ run: r, settings: s }: SharedChoices, version = 5): unknown[] {
     r.pinkLineage.map((p) => p === null ? 0 : [APTITUDES.indexOf(p.aptitude), p.stars, p.inferred ? 1 : 0]),
     APTITUDES.flatMap((apt, i) => r.aptOverrides[apt] === undefined ? [] : [[i, GRADES.indexOf(r.aptOverrides[apt]!)]]),
     r.pinnedIds, r.borrowFromAll ? 1 : 0, r.wishlistOrder, r.wishlistExcluded, FOCUSES.indexOf(s.focus), s.winThreshold,
-    sortedEntries(r.raceOverrides ?? {}).map(([key, included]) => {
-      const calendarId = id(Number(key));
-      if (String(calendarId) !== key || typeof included !== 'boolean') invalid();
-      return included ? calendarId : -calendarId;
-    }),
+    Object.entries(r.raceOverrides ?? {}).sort(([a], [b]) => calendarOrder(a, b))
+      .map(([key, included]) => [calendarId(key), typeof included === 'boolean' ? Number(included) : invalid()]),
     r.ignoredIds, r.borrowIgnored ? 1 : 0];
 }
-/** How many top-level slots each positional format has. */
-const SLOTS: Record<number, number> = { 2: 14, 3: 15, 4: 17, 5: 17 };
+const SLOT_COUNT_BY_FORMAT: Record<number, number> = { 2: 14, 3: 15, 4: 17, 5: 17, 6: 17 };
 const PACKED_DEFAULTS = pack(DEFAULTS);
 
-function unpack(raw: unknown, version = 5): SharedChoices {
+function unpack(raw: unknown, version = FORMAT): SharedChoices {
   const entries = list(raw);
-  if (entries.length > (SLOTS[version] ?? invalid())) invalid();
+  if (entries.length > (SLOT_COUNT_BY_FORMAT[version] ?? invalid())) invalid();
   const a = PACKED_DEFAULTS.map((fallback, i) => entries[i] === undefined || entries[i] === null ? structuredClone(fallback) : entries[i]);
   const goal = tuple(a[2], 3), mask = integer(goal[0], 0, 31);
   const pink = unique(list(goal[2]).map((v) => {
@@ -102,7 +108,7 @@ function unpack(raw: unknown, version = 5): SharedChoices {
   }), (t) => t.id);
   const lineage = unique(list(a[4]).map((v) => {
     if (version >= 5) { const l = tuple(v, 7); return { id: id(l[0]), value: l.slice(1).map((s) => integer(s, 0, 3)) }; }
-    // Older formats stored copies and a star total per parent side; a partial save could leave the total unentered.
+    // A partial save could leave the total unentered.
     const l = tuple(v, 5);
     return { id: id(l[0]), value: lineageFromSides(integer(l[1], 0, 3), integer(l[3], 0, 9), integer(l[2], 0, 3), integer(l[4], 0, 9)) };
   }), (l) => l.id);
@@ -119,6 +125,8 @@ function unpack(raw: unknown, version = 5): SharedChoices {
     const p = tuple(v, 2); return { aptitude: choice(p[0], APTITUDES), grade: choice(p[1], GRADES) };
   }), (p) => p.aptitude);
   const races = unique(list(a[14]).map((value) => {
+    if (version >= 6) { const r = tuple(value, 2); return [calendarId(r[0]), !!integer(r[1], 0, 1)] as const; }
+    // Formats 3 to 5 signed a whole-number calendar ID, so they could not carry a later year's suffix.
     const signed = integer(value, -Number.MAX_SAFE_INTEGER);
     return [String(id(Math.abs(signed))), signed > 0] as const;
   }), ([key]) => key);
@@ -168,7 +176,7 @@ export async function encodeShare(choices: SharedChoices): Promise<string> {
   const bytes = new TextEncoder().encode(JSON.stringify(entries));
   if (bytes.length > MAX_JSON_BYTES) throw new ShareCodeError('size');
   const compressed = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
-  const code = compressed.length < bytes.length ? `5d${base64(compressed)}` : `5j${base64(bytes)}`;
+  const code = compressed.length < bytes.length ? `${FORMAT}d${base64(compressed)}` : `${FORMAT}j${base64(bytes)}`;
   if (code.length > MAX_CODE_LENGTH) throw new ShareCodeError('size');
   return code;
 }
@@ -178,7 +186,8 @@ export async function decodeShare(code: string): Promise<SharedChoices> {
   try {
     if (code.length > MAX_CODE_LENGTH) throw new ShareCodeError('size');
     if (!/^[0-9][dj][A-Za-z0-9_-]+$/.test(code)) invalid();
-    if (!['1', '2', '3', '4', '5'].includes(code[0]!)) throw new ShareCodeError('version');
+    const version = Number(code[0]);
+    if (version < 1 || version > FORMAT) throw new ShareCodeError('version');
     const bytes = Uint8Array.from(atob(code.slice(2).replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0));
     if (base64(bytes) !== code.slice(2)) invalid();
     const source = new Blob([bytes]).stream();
@@ -196,12 +205,26 @@ export async function decodeShare(code: string): Promise<SharedChoices> {
       }
     } finally { reader.releaseLock(); }
     const raw: unknown = JSON.parse(await new Blob(chunks).text());
-    return code[0] === '1' ? decodePrototype(raw) : unpack(raw, Number(code[0]));
+    return version === 1 ? decodePrototype(raw) : unpack(raw, version);
   } catch (error) { throw error instanceof ShareCodeError ? error : new ShareCodeError(); }
 }
 
+// A code lives in the URL fragment as `run=<code>`, beside any other fragment text. Browsers never send the fragment to
+// the server, so reloading or opening a link does not put the user's choices in a request. Links made before the
+// fragment format carry the code in the `run` query parameter; they still load, and the next write moves the code.
+const RUN = 'run=';
+const fragmentParts = (url: URL) => url.hash.slice(1).split('&').filter((part) => part !== '');
+
+/** The address with this share code, or with none; other query parameters and fragment text are kept. */
 export function shareUrl(href: string, code: string | null): string {
   const url = new URL(href);
-  if (code === null) url.searchParams.delete('run'); else url.searchParams.set('run', code);
+  url.searchParams.delete('run');
+  const parts = fragmentParts(url).filter((part) => !part.startsWith(RUN));
+  if (code !== null) parts.push(RUN + code);
+  url.hash = parts.join('&');
   return url.href;
+}
+export function shareCode(href: string): string | null {
+  const url = new URL(href);
+  return fragmentParts(url).find((part) => part.startsWith(RUN))?.slice(RUN.length) ?? url.searchParams.get('run');
 }

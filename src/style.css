@@ -1,5 +1,5 @@
 /* Colours come from these two blocks only. A theme block sets variables; it never restyles a base class such as
-   .tag, because that override would outrank every variant (this has bitten us twice).
+   .tag, because that override would outrank every variant.
    Sizes come from the scale below: five text sizes plus the headline number, three breakpoints (phone 700,
    one column 1200, wide 1500) and two radii. Add a token before adding a literal. */
 :root {
@@ -9,8 +9,6 @@
   --pill: #e6eaf0; --pill-warn-bg: #fbe6d1; --pill-warn: #8a4a08;
   --tag-gold-bg: #fbf3d6; --tag-gold-fg: #8a6d0b; --tag-warn-bg: #fbe6d1; --tag-warn-fg: #8a4a08; --tag-ok-bg: #d8f0e1; --tag-ok-fg: #1d6b3d; --tag-danger-bg: #f8d7d6; --tag-danger-fg: #8f1f1b;
   --tag-borrow-bg: #c9366c; --tag-borrow-fg: #fff; --tag-goal-bg: #c9a227; --tag-goal-fg: #2b2306; --dirt: #a35a00; --parent1: #2a63d6; --parent2: #c9366c; --stat-head: #2e9e5b;
-  --type-speed-bg: #dceeff; --type-speed-fg: #1a5fb4; --type-stamina-bg: #ffe1e1; --type-stamina-fg: #b42222; --type-power-bg: #ffedd3; --type-power-fg: #a35a00;
-  --type-guts-bg: #ffe0ef; --type-guts-fg: #b02a6a; --type-wit-bg: #dff5e8; --type-wit-fg: #1f7a45; --type-pal-bg: #efe4ff; --type-pal-fg: #6b3fb4;
   --fs-xs: 11px; --fs-sm: 12px; --fs-md: 14px; --fs-lg: 16px; --fs-xl: 18px; --fs-hero: 28px;
   --radius: 6px; --radius-lg: 10px;
   --gap: 16px;
@@ -22,8 +20,6 @@
   --pill: #2c333e; --pill-warn-bg: #3f2e1a; --pill-warn: #f2b56e;
   --tag-gold-bg: #45391a; --tag-gold-fg: #f2d377; --tag-warn-bg: #4a3316; --tag-warn-fg: #ffc37a; --tag-ok-bg: #1f3a2b; --tag-ok-fg: #7fdca4; --tag-danger-bg: #4a1f1e; --tag-danger-fg: #ff9a96;
   --tag-borrow-bg: #ff6fa0; --tag-borrow-fg: #14171c; --tag-goal-bg: #e0b93a; --tag-goal-fg: #14171c; --dirt: #ffc37a; --parent1: #6b9cff; --parent2: #ff6fa0; --stat-head: #2e9e5b;
-  --type-speed-bg: #1e3350; --type-speed-fg: #8fbcff; --type-stamina-bg: #4a2222; --type-stamina-fg: #ff9a9a; --type-power-bg: #4a3316; --type-power-fg: #ffc37a;
-  --type-guts-bg: #4a2238; --type-guts-fg: #ff9ccc; --type-wit-bg: #1e3d2b; --type-wit-fg: #8ee0ad; --type-pal-bg: #352a4d; --type-pal-fg: #c9aeff;
 }
 :root[data-theme="dark"] img.thumb, :root[data-theme="dark"] .deck .slot img { filter: brightness(.92); }
 
@@ -82,7 +78,7 @@ section.panel h3 { font-size: var(--fs-sm); margin: 14px 0 6px; color: var(--mut
    warnings, which say what is missing; the split columns nest panels, so this matches descendants */
 .results.waiting section.panel:not(.panel-live) { opacity: .35; }
 label.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0; }
-.row-k, .fact-k, .kv-k { color: var(--muted); }
+.row-k, .fact-k { color: var(--muted); }
 select, input[type=text], input[type=number], input[type=search] { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--input); color: var(--text); max-width: 200px; }
 select:focus-visible, input:focus-visible, button:focus-visible, a.button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 input[aria-invalid="true"] { border-color: var(--danger); }
@@ -177,8 +173,9 @@ th, td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: lef
 th { color: var(--muted); font-weight: 600; font-size: var(--fs-sm); background: var(--panel); }
 /* only the scrolling ranking table keeps its header in view; a sticky header on an in-flow table would float over the page */
 .scroll th { position: sticky; top: 0; z-index: 2; }
-th.sortable { cursor: pointer; }
-th.sortable:hover { color: var(--text); }
+/* the sort control is a native button that reads as the header text */
+th .sort-button { padding: 0; border: none; border-radius: 0; background: none; color: inherit; font-weight: inherit; text-align: inherit; }
+th .sort-button:hover { color: var(--text); }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tr.dim { color: var(--muted); }
 tr.dim img { opacity: .5; }
@@ -225,12 +222,6 @@ tr.ignored td:not(:first-child):not(:nth-child(2)) { opacity: .45; }
 .tag.danger { --tag-bg: var(--tag-danger-bg); --tag-fg: var(--tag-danger-fg); }
 .tag.borrow { --tag-bg: var(--tag-borrow-bg); --tag-fg: var(--tag-borrow-fg); }
 .tag.goal { --tag-bg: var(--tag-goal-bg); --tag-fg: var(--tag-goal-fg); font-weight: 600; }
-.tag.type-speed { --tag-bg: var(--type-speed-bg); --tag-fg: var(--type-speed-fg); }
-.tag.type-stamina { --tag-bg: var(--type-stamina-bg); --tag-fg: var(--type-stamina-fg); }
-.tag.type-power { --tag-bg: var(--type-power-bg); --tag-fg: var(--type-power-fg); }
-.tag.type-guts { --tag-bg: var(--type-guts-bg); --tag-fg: var(--type-guts-fg); }
-.tag.type-wit { --tag-bg: var(--type-wit-bg); --tag-fg: var(--type-wit-fg); }
-.tag.type-pal, .tag.type-group { --tag-bg: var(--type-pal-bg); --tag-fg: var(--type-pal-fg); }
 .tag[data-tip] { cursor: help; }
 
 /* pills and tooltips */
@@ -273,7 +264,6 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .legacy-apts .cell { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 .legacy-apts .cell select { font-size: var(--fs-xs); padding: 1px 0; width: 36px; }
 .legacy-apts .cell.over select { border-color: var(--warn); }
-/* "By stars" form: each side's three umas with the stat and stars of her blue spark */
 /* the three per-parent forms (blue, pink, white sparks) share one layout: a block per parent side, side by side when
    they fit, each a grid of uma label and selects under a bold head. Blue keeps the parent colours because its
    "+XX" selects above the stats carry them; the pink and white forms are plain. */
@@ -338,7 +328,6 @@ select option.dim, .legacy-stat select.gain option.dim { color: var(--muted); }
 .target-lineage-totals { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--fs-sm); }
 .target-lineage-totals label { display: inline-flex; align-items: center; gap: 6px; }
 .target-lineage-totals select { min-width: 0; }
-/* the two parent sides side by side, each her parent and grandparents as label and stars */
 .target-lineage-summary { margin: 8px 0 0; }
 .target-editor select:disabled { opacity: .45; cursor: not-allowed; }
 
@@ -443,7 +432,7 @@ td.target-chances { min-width: 260px; }
 .settings-grid label.row { margin: 2px 0; align-items: flex-start; }
 .settings-grid input { flex: none; }
 .setting-default { display: block; font-size: var(--fs-xs); color: var(--muted); }
-.setting.modified input { border-color: var(--accent); }
+.setting.modified input, .setting.modified select { border-color: var(--accent); }
 .setting.modified .setting-default { color: var(--accent); }
 .field-error { color: var(--danger); margin: 0 0 6px; }
 

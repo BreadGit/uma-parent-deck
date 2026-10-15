@@ -11,13 +11,7 @@ The shapes of `data/*.json` are the types in `src/types.ts`; `tests/data.test.ts
 complete set, refits the model, and runs `npm run check:data`. A failed stage stops the command.
 Python with NumPy and openpyxl is required for fitting and the measurement checks.
 
-For an offline rebuild of the saved snapshots:
-
-```sh
-node scripts/fetch-gametora.mjs --offline
-npm run fit
-npm run check:data
-```
+For an offline rebuild of the saved snapshots, run `npm run recover:data`.
 
 `npm test` includes the same data checks alongside the model and state tests. Application
 changes still require the repository's browser verification. Data checks do not replace it.
@@ -43,7 +37,7 @@ invalidate a cache entry. Legacy caches remain usable offline after structural r
 their first online refresh establishes revision records. Once those records exist, incomplete
 refreshes cannot be normalized as a complete snapshot. Cache validation does not prove an
 unchanged upstream page is correct. Explicit forced page refreshes remain available with
-`node scripts/fetch-event-names.mjs --force`.
+`node scripts/fetch-event-names.ts --force`.
 
 Offline normalization must preserve the last actual fetch time. Regeneration is not evidence
 that the source was fetched again.

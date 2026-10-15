@@ -78,14 +78,13 @@ test('triage separates decisions from confident readings and merges overlapping 
   assert.deepEqual(conflicted.ready.map(g => g.cardId), [20001]);
   assert.deepEqual(triage([row(1)], cards).unseen.map(c => c.id), [30002, 20001], 'unseen SR and SSR cards, SSR first');
 });
-test('applying readings replaces or updates the planner inventory and reports the difference', () => {
-  const current = { 20001: 0, 30002: null };
-  const effective = (card: ScanCard) => current[card.id as keyof typeof current] === undefined ? 4 : current[card.id as keyof typeof current];
+test('applying readings replaces or updates the stored inventory and reports the difference', () => {
   const result = summarize([row(1), row(2, 20001, 3)], cards);
-  const replaced = applyReadings(current, cards, effective, result, 'replace');
+  const replaced = applyReadings({ 20001: 0, 30002: 1 }, cards, result, 'replace');
   assert.deepEqual(replaced.inventory, { 20001: 3, 30001: 2, 30002: null });
-  assert.deepEqual([replaced.owned, replaced.changed.map(c => c.id), replaced.unowned, replaced.unchanged], [[], [20001, 30001], [], 1]);
-  const updated = applyReadings({ 30001: null, 30002: 1 }, cards, c => c.id === 30001 ? null : c.id === 30002 ? 1 : 4, result, 'update');
+  assert.deepEqual([replaced.owned.map(c => c.id), replaced.changed.map(c => c.id), replaced.unowned.map(c => c.id), replaced.unchanged], [[30001], [20001], [30002], 0],
+    'a card the inventory does not list was not owned');
+  const updated = applyReadings({ 20001: 1, 30001: null, 30002: 1 }, cards, result, 'update');
   assert.deepEqual(updated.inventory, { 20001: 3, 30001: 2, 30002: 1 });
   assert.deepEqual([updated.owned.map(c => c.id), updated.changed.map(c => c.id), updated.unowned, updated.unchanged], [[30001], [20001], [], 1]);
   assert.equal('10001' in updated.inventory, false, 'R cards are never written');
@@ -94,7 +93,7 @@ test('applying readings leaves R cards at their current value in both modes', ()
   const result = summarize([row(1)], cards);
   for (const mode of ['replace', 'update'] as const) {
     for (const current of [{ 10001: 2 }, { 10001: null }, {}] as Inventory[]) {
-      const applied = applyReadings(current, cards, c => c.rarity === 'R' ? 3 : null, result, mode);
+      const applied = applyReadings(current, cards, result, mode);
       assert.equal('10001' in applied.inventory, '10001' in current, `${mode} neither adds nor removes the R card`);
       assert.equal(applied.inventory['10001'], current['10001'], `${mode} keeps the R card's value`);
       assert.equal([...applied.owned, ...applied.unowned, ...applied.changed].some(c => c.rarity === 'R'), false,

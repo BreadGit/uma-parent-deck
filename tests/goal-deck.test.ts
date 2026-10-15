@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { chooseGoal, scoreGoal, type GoalScore } from '../src/model/goal-objective.ts';
 import { searchGoalDeck, goalDeckKey, type GoalDeckEntry } from '../src/model/goal-deck.ts';
-import { goalRankBands, type GoalRankBands } from '../src/model/goal.ts';
+import { goalRankBands, type GoalRankBands, type GoalStats } from '../src/model/goal.ts';
 import { projectForms, subsetGeneration, type FormDistribution } from '../src/model/goal-skills.ts';
 import { DEFAULT_GOAL, type ResolvedGoal } from '../src/model/goal-input.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
@@ -359,7 +359,7 @@ test('screening can exchange competing pins without weakening the pin constraint
 });
 
 test('cheap rank sampling leaves analytic blue odds and subsequent full evaluations intact', () => {
-  const stats = { rawMean: [1000, 900, 800, 700, 600], sd: [50, 50, 50, 50, 50], skillPoints: 5000, skillSd: 400 };
+  const stats: GoalStats = { rawMean: [1000, 900, 800, 700, 600], sd: [50, 50, 50, 50, 50], skillPoints: 5000, skillSd: 400 };
   const full = goalRankBands(stats, goal, 17500, settings);
   const cheap = goalRankBands(stats, goal, 17500, settings, 32);
   assert.equal(cheap.blue, full.blue);
@@ -371,6 +371,7 @@ test('cheap rank sampling leaves analytic blue odds and subsequent full evaluati
 const FUJI_DECK = [30017, 30107, 30052, 30020, 30078, 30083].map((id, i) => ({ id, lb: 4, borrowed: i === 0 }));
 const fujiState = () => {
   const saved = defaultState(data);
+  saved.inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
   saved.run.traineeCardId = 100501;
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }];
   saved.inventory['30017'] = null;
@@ -383,14 +384,8 @@ test('Fuji Kiseki finds a deck at least as good as the reported Maruzensky pin w
   const before = structuredClone(saved);
   const reference = fujiReference(saved);
   assert.ok(reference > 0, 'the reported deck is a legal selection with a positive chance');
-  const progress: number[] = [];
-  const result = planRun(saved.run, saved.settings, saved.inventory, data, { onProgress: (selection, summary) => {
-    const check = planRun(saved.run, saved.settings, saved.inventory, data, { selection });
-    assert.equal(check.goalEstimate.probability, summary.score.probability);
-    progress.push(summary.score.probability);
-  } });
+  const result = planRun(saved.run, saved.settings, saved.inventory, data);
   assert.ok(result.goalEstimate.probability! >= reference, `search reached ${result.goalEstimate.probability} against the reported deck's ${reference}`);
-  assert.ok(progress.length && result.goalEstimate.probability! >= progress[0]!, `progress ${progress} must not exceed the final ${result.goalEstimate.probability}`);
   assert.ok(result.search!.screened > 0, 'the search screened the wider pool');
   assert.ok(!result.deckResult.deck.some((e) => e.card.id === 30017 && !e.borrowed), 'Smart Falcon is not owned, so she cannot fill an owned slot');
   assert.deepEqual(saved, before);

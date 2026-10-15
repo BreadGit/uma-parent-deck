@@ -1,6 +1,10 @@
 import { createHash } from 'node:crypto';
+import { isPlainObject } from '../src/types.ts';
 
 export type PageRevision = { input: string; payload: string };
+/** The static feed files a page's events are checked against: a change to any of them refetches the pages. */
+export const PAGE_SOURCE_FILES = ['training_events__ssr', 'training_events__sr', 'training_events__friend', 'training_events__group',
+  'training_events__shared', 'training_events__char', 'training_events__char_card', 'dict__evrew'];
 export const pageInput = (key: string, card: unknown, sources: Record<string, string>) =>
   ({ card, sources, ...(key.startsWith('unique:') ? { textParser: 1 } : {}) });
 export const fingerprint = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -22,12 +26,10 @@ export function uniqueEffectText(page: string): string {
   return line.replace(/&amp;/g, '&').replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"');
 }
 
-const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
-
 /** Validate before caching. An empty error response must never become a permanent cache hit. */
 export function pageEvents(value: unknown, kind: 'support' | 'character', source: string): Record<string, unknown> {
   const data: unknown = typeof value === 'string' ? JSON.parse(value) : value;
-  if (!object(data)) throw new Error(`${source}: missing English event data`);
+  if (!isPlainObject(data)) throw new Error(`${source}: missing English event data`);
   const groups = kind === 'support' ? ['arrows', 'special', 'random', 'dates', 'dates_random']
     : ['wchoice', 'nochoice', 'version', 'outings', 'secret'];
   const allowed = new Set([...groups, ...(kind === 'character' ? ['nyear', 'dance'] : [])]);
@@ -43,9 +45,9 @@ export function pageEvents(value: unknown, kind: 'support' | 'character', source
     }
     if (!Array.isArray(entries)) throw new Error(`${source}: ${key} must be an event array`);
     for (const event of entries) {
-      if (!object(event) || typeof event.n !== 'string' || !Array.isArray(event.c)) throw new Error(`${source}: invalid ${key} event`);
+      if (!isPlainObject(event) || typeof event.n !== 'string' || !Array.isArray(event.c)) throw new Error(`${source}: invalid ${key} event`);
       for (const choice of event.c) {
-        if (!object(choice) || !Array.isArray(choice.r) || choice.r.some((reward) => !object(reward) || typeof reward.t !== 'string')) {
+        if (!isPlainObject(choice) || !Array.isArray(choice.r) || choice.r.some((reward) => !isPlainObject(reward) || typeof reward.t !== 'string')) {
           throw new Error(`${source}: invalid rewards in ${key}/${event.n}`);
         }
       }

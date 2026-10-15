@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal } from './event-import.ts';
-import { fingerprint, pageCacheMatches, pageInput, type PageRevision } from './page-cache.ts';
+import { fingerprint, pageCacheMatches, pageInput, PAGE_SOURCE_FILES, type PageRevision } from './page-cache.ts';
+import { isPlainObject } from '../src/types.ts';
+import { isCompoundUniqueEffect } from '../src/model/rules.ts';
 
 // Source JSON has several unrelated schemas. Checks below validate values before normalization or comparison.
-type Row = Record<string, any>;
+export type Row = Record<string, any>;
 export type SourceTables = Record<string, Row[]>;
 export interface PageSources { eventNames: Record<string, Row>; palGroupEvents: Record<string, Row>; charEvents: Record<string, Row>; charEventsByCard: Record<string, Row> }
 export interface NormalizedTables { cards: Row[]; skills: Row[]; characters: Row[]; races: Row[]; ranks: Row[]; effects: Row[]; scenarios: Row[]; scenarioEvents: Row[] }
@@ -11,12 +13,11 @@ const global = (rows: Row[]) => rows.filter((row) => row.release_en);
 const equal = (actual: unknown, expected: unknown, label: string) => assert.deepEqual(actual, expected, `Source reconciliation: ${label}`);
 function check(valid: unknown, label: string): asserts valid { assert.ok(valid, `Source validation: ${label}`); }
 const numeric = (value: unknown) => typeof value === 'number' && Number.isFinite(value);
-const object = (value: unknown): value is Row => !!value && typeof value === 'object' && !Array.isArray(value);
 
 /** Validate successful HTTP bodies before a download replaces its cached source file. */
 export function parseSourceDownload(text: string, shape: 'array' | 'object', source: string): unknown {
   const payload: unknown = JSON.parse(text);
-  check(shape === 'array' ? Array.isArray(payload) : object(payload), `${source} did not return the expected JSON ${shape}`);
+  check(shape === 'array' ? Array.isArray(payload) : isPlainObject(payload), `${source} did not return the expected JSON ${shape}`);
   return payload;
 }
 
@@ -24,7 +25,7 @@ function uniqueRows(rows: Row[], key: string, label: string): void {
   check(Array.isArray(rows), `${label} must be an array`);
   const seen = new Set();
   for (const row of rows) {
-    check(object(row) && row[key] != null, `${label} must contain ${key}`);
+    check(isPlainObject(row) && row[key] != null, `${label} must contain ${key}`);
     check(!seen.has(String(row[key])), `${label} duplicates ${key} ${row[key]}`);
     seen.add(String(row[key]));
   }
@@ -36,19 +37,19 @@ function idsMatch(source: Row[], result: Row[], sourceKey: string, key: string, 
 }
 
 function validatePage(page: Row, label: string): void {
-  check(object(page), `${label} is missing; refresh page data before normalizing`);
+  check(isPlainObject(page), `${label} is missing; refresh page data before normalizing`);
   const eventGroups = new Set(['nochoice', 'wchoice', 'outings', 'secret', 'version', 'random', 'dates', 'dates_random', 'special']);
   for (const [group, events] of Object.entries(page)) {
     if (group === 'dance' || group === 'nyear') continue; // Stat selections, not events with skill rewards.
     check(eventGroups.has(group), `${label}.${group} is an unfamiliar event group`);
     check(Array.isArray(events), `${label}.${group} must be an array`);
     for (const [i, source] of events.entries()) {
-      check(object(source), `${label}.${group}[${i}] must be an event`);
+      check(isPlainObject(source), `${label}.${group}[${i}] must be an event`);
       const event = eventOnGlobal(source);
       if (!event) continue;
       check(Array.isArray(event.c), `${label}.${group}[${i}] choices are missing`);
       for (const choice of event.c) {
-        check(object(choice) && Array.isArray(choice.r), `${label}.${group}[${i}] rewards are missing`);
+        check(isPlainObject(choice) && Array.isArray(choice.r), `${label}.${group}[${i}] rewards are missing`);
         choice.r.forEach(normalizeReward);
       }
       if (event.conditions != null) check(Array.isArray(event.conditions) && event.conditions.every(Array.isArray), `${label}.${group}[${i}] conditions must be arrays`);
@@ -75,13 +76,11 @@ function pageRewards(source: Row) {
 /** Legacy snapshots have no revision file. Once revisions exist, an interrupted refresh must not mix source versions. */
 export function validatePageRevisions(raw: SourceTables, pages: PageSources, uniqueTexts: Record<string, string>, revisions?: Record<string, PageRevision>): void {
   if (!revisions) return;
-  const files = ['training_events__ssr', 'training_events__sr', 'training_events__friend', 'training_events__group',
-    'training_events__shared', 'training_events__char', 'training_events__char_card', 'dict__evrew'];
-  const sources = Object.fromEntries(files.map((key) => [key, fingerprint(raw[key.replace('__', '/')])]));
+  const sources = Object.fromEntries(PAGE_SOURCE_FILES.map((key) => [key, fingerprint(raw[key.replace('__', '/')])]));
   const current = (key: string, card: Row, payload: unknown) => check(pageCacheMatches(revisions[key], pageInput(key, card, sources), payload), `${key} page cache does not match its source revision; finish npm run fetch before normalizing`);
   for (const card of global(raw['support-cards']!)) {
     current(`support:${card.support_id}`, card, { names: pages.eventNames[card.support_id], ...(['friend', 'group'].includes(card.type) ? { full: pages.palGroupEvents[card.support_id] } : {}) });
-    if (card.unique?.effects.some((effect: Row) => effect.type >= 100)) current(`unique:${card.support_id}`, card, uniqueTexts[card.support_id]);
+    if (card.unique?.effects.some((effect: Row) => isCompoundUniqueEffect(effect.type))) current(`unique:${card.support_id}`, card, uniqueTexts[card.support_id]);
   }
   const seen = new Set();
   for (const card of global(raw['character-cards']!).sort((a, b) => a.card_id - b.card_id)) {
@@ -110,7 +109,7 @@ export function validateSourceTables(raw: SourceTables, pages: PageSources): voi
     check(knownChars.has(card.char_id), `support ${card.support_id} references unknown character ${card.char_id}`);
     refs(card.hints?.hint_skills ?? [], `support ${card.support_id} hints`);
     refs(card.event_skills_en ?? card.event_skills ?? [], `support ${card.support_id} events`);
-    check(object(pages.eventNames[card.support_id]), `support ${card.support_id} page names are missing`);
+    check(isPlainObject(pages.eventNames[card.support_id]), `support ${card.support_id} page names are missing`);
     if (['friend', 'group'].includes(card.type)) validatePage(pages.palGroupEvents[card.support_id]!, `support ${card.support_id} page`);
   }
   const firstOutfit = new Map<number, number>();
@@ -173,7 +172,7 @@ export function reconcileSources(raw: SourceTables, pages: PageSources, out: Nor
     const maxLevels = source.rarity === 1 ? [20, 25, 30, 35, 40] : source.rarity === 2 ? [25, 30, 35, 40, 45] : [30, 35, 40, 45, 50];
     levels.forEach((levelIndex, lb) => {
       const expected = Object.fromEntries(Object.entries(card.effects).filter(([, values]) => (values as number[])[levelIndex] !== 0).map(([key, values]) => [key, (values as number[])[levelIndex]]));
-      if (source.unique && maxLevels[lb]! >= source.unique.level) for (const effect of source.unique.effects) if (effect.type < 100) expected[`u${effect.type}`] = effect.value;
+      if (source.unique && maxLevels[lb]! >= source.unique.level) for (const effect of source.unique.effects) if (!isCompoundUniqueEffect(effect.type)) expected[`u${effect.type}`] = effect.value;
       equal(card.effectsByLb[lb], expected, `support ${card.id} limit break ${lb} passives/unlocks`);
     });
     if (source.unique) {

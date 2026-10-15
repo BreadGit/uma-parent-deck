@@ -13,6 +13,7 @@ const cases: { name: string; setup: (saved: AppState) => void | Promise<void>; r
   {
     name: 'a three-star required white with only SR cards owned',
     setup(saved) {
+      saved.settings.inventoryOverrides = { R: null, SR: null, SSR: null };
       saved.run.targets = [{ id: 200352, role: 'required', stars: 3, priority: 0 }];
       saved.inventory = Object.fromEntries(data.cards.map((c) => [c.id, c.rarity === 'SR' ? 2 : null]));
     },
@@ -26,7 +27,7 @@ const cases: { name: string; setup: (saved: AppState) => void | Promise<void>; r
       saved.run.goal.blueStats = ['speed'];
       saved.run.goal.blueStars = 3;
       saved.settings.focus = 'balanced';
-      saved.settings.defaultLb = { R: 2, SR: 2, SSR: 1 };
+      saved.settings.inventoryOverrides = { R: 2, SR: 2, SSR: 1 };
     },
     reference: [
       { id: 20009, lb: 2 }, { id: 30052, lb: 1 }, { id: 30101, lb: 1 },

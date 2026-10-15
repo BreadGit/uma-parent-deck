@@ -4,10 +4,8 @@
 // review its diff. Needs the dev server (it imports the scanner modules from /src).
 import assert from 'node:assert/strict';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
-import { chromium } from 'playwright';
-import { assertServesThisTree } from './browser-fields.mjs';
+import { assertServesThisTree, BASE_URL as base, launchBrowser } from './browser-fields.mjs';
 
-const base = process.env.URL ?? 'http://localhost:5173/';
 const fixtures = new URL('fixtures/scanner/', import.meta.url);
 const snapshotFile = new URL('detections.json', fixtures);
 const names = (await readdir(fixtures)).filter(name => name.endsWith('.jpg')).sort();
@@ -21,7 +19,7 @@ const labelled = {
   'inventory-b-4439.jpg': [[20006, 4]],
   'inventory-b-4440.jpg': [[20021, 4]],
 };
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
   const page = await browser.newPage();
   await page.goto(new URL('scanner.html', base).href);

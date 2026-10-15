@@ -7,7 +7,7 @@
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "fetch": "node scripts/fetch-gametora.mjs --download-only && node scripts/fetch-event-names.mjs && node scripts/fetch-gametora.mjs --normalize-only && npm run fit && npm run check:data",
+    "fetch": "node scripts/fetch-gametora.ts --download-only && node scripts/fetch-event-names.ts && node scripts/fetch-gametora.ts --normalize-only && npm run fit && npm run check:data",
     "fit": "python3 analysis/fit_stat_model.py",
     "test": "node --test --test-concurrency=2 tests/*.test.ts",
     "test:quick": "SKIP_ANALYSIS=1 node --test --test-concurrency=2 tests/*.test.ts",
@@ -17,11 +17,12 @@
     "inspect": "node tests/inspect.ts",
     "scratch": "node tests/scratch.mjs",
     "build:scanner": "tsc --noEmit && vite build --config vite.scanner.config.ts",
-    "build:scanner-artwork": "node scripts/scanner-artwork.mjs",
+    "build:scanner-artwork": "node scripts/scanner-artwork.ts",
     "test:scanner": "node --test --test-concurrency=2 tests/scanner-snapshot.mjs tests/scanner.mjs tests/scanner-worker.mjs",
-    "test:browsers": "node scripts/check-browsers.mjs",
-    "deploy": "node scripts/deploy.mjs",
-    "refresh:data": "node scripts/refresh-data.mjs"
+    "test:browsers": "node scripts/check-browsers.ts",
+    "deploy": "node scripts/deploy.ts",
+    "refresh:data": "node scripts/refresh-data.ts",
+    "recover:data": "node scripts/fetch-gametora.ts --offline && npm run fit && npm run check:data"
   },
   "dependencies": {
     "lit-html": "^3.3.3"
@@ -29,8 +30,8 @@
   "devDependencies": {
     "@types/node": "^26.4.1",
     "playwright": "^1.62.1",
-    "typescript": "^5.6.0",
+    "typescript": "^5.8.0",
     "vite": "^6.0.0",
-    "wrangler": "4.147.0"
+    "wrangler": "4.149.0"
   }
 }

@@ -1,17 +1,19 @@
-// Form field helpers shared by the panels: option lists for live-bound selects, event value readers, the search
-// box with its suggestion list, and the limit-break select the deck and the ranking share.
 import { html, nothing, type TemplateResult } from 'lit-html';
 import { live } from 'lit-html/directives/live.js';
 import type { Card } from '../types.ts';
+import { LIMIT_BREAKS } from '../model/rules.ts';
 import type { RunPlan } from '../model/run.ts';
-import { COPY } from './copy.ts';
-import { refresh, store, update, view } from './context.ts';
+import { LABEL, TITLE } from './copy.ts';
+import { renderNow, store, update, view } from './context.ts';
 import type { SearchField } from './context.ts';
-import { options, numbered, selectValue, inputValue, inputNumber, isChecked, type Option } from './form.ts';
-export { options, numbered, selectValue, inputValue, inputNumber, isChecked, type Option };
+import { options, selectValue, inputValue, isComposing, type Option } from './form.ts';
 
-export interface SearchBox<T> {
+export const SUGGESTION_LIMIT = 12;
+
+interface SearchBox<T> {
   id: string;
+  /** The input's accessible name; the placeholder disappears once the user types. */
+  label: string;
   placeholder: string;
   /** Which view field holds the query; the smoke test reads it from data-input. */
   field: SearchField;
@@ -43,10 +45,7 @@ function revealSuggestion(listId: string) {
   if (column) scrollToShow(column, (active ?? list).getBoundingClientRect());
 }
 
-/**
- * A search input with a suggestion list under it. Arrow keys move the highlight, Enter picks the highlighted item
- * (or the first match), Escape clears the query, and a click outside the box closes it.
- */
+/** Keys that belong to text an input method is composing are left to it. */
 export function searchBox<T>(box: SearchBox<T>) {
   const query = view[box.field];
   const open = box.items.length > 0 && view.activeSearch === box.field;
@@ -57,18 +56,18 @@ export function searchBox<T>(box: SearchBox<T>) {
   const focus = () => {
     if (view.activeSearch === box.field) return;
     view.activeSearch = box.field;
-    refresh();
+    renderNow();
     revealSuggestion(listId);
   };
-  const setQuery = (q: string) => { view[box.field] = q; view.activeSearch = box.field; setIndex(-1); refresh(); revealSuggestion(listId); };
+  const setQuery = (q: string) => { view[box.field] = q; view.activeSearch = box.field; setIndex(-1); renderNow(); revealSuggestion(listId); };
   const choose = (item: T) => { setIndex(-1); view.activeSearch = null; box.pick(item); };
   const onKey = (e: KeyboardEvent) => {
-    if (!open) return;
+    if (!open || isComposing(e)) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       const n = box.items.length;
       setIndex(index < 0 ? (e.key === 'ArrowDown' ? 0 : n - 1) : (index + (e.key === 'ArrowDown' ? 1 : -1) + n) % n);
-      refresh();
+      renderNow();
       revealSuggestion(listId);
     } else if (e.key === 'Enter') {
       e.preventDefault();
@@ -80,38 +79,35 @@ export function searchBox<T>(box: SearchBox<T>) {
     }
   };
   return html`<div class="suggest" data-suggest=${box.id}>
-    <input id=${box.id} type="search" role="combobox" placeholder=${box.placeholder} .value=${live(query)} data-input=${box.field} class="wide" autocomplete="off"
+    <input id=${box.id} type="search" role="combobox" aria-label=${box.label} placeholder=${box.placeholder} .value=${live(query)} data-input=${box.field} class="wide" autocomplete="off"
       aria-autocomplete="list" aria-expanded=${open} aria-controls=${listId} aria-activedescendant=${open && index >= 0 ? `${listId}-${index}` : ''}
       @focus=${focus} @input=${(e: Event) => setQuery(inputValue(e))} @keydown=${onKey} />
     ${open ? html`<ul id=${listId} role="listbox">${box.items.map((item, i) => html`<li id=${`${listId}-${i}`} role="option" aria-selected=${i === index} class=${i === index ? 'active' : ''} data-action=${box.action} data-id=${box.key(item)} @mousedown=${(e: Event) => e.preventDefault()} @click=${() => choose(item)}>${box.row(item)}</li>`)}</ul>` : nothing}
   </div>`;
 }
 
-/** Close any open suggestion list when the user clicks outside its box. */
 export function installSuggestDismiss(root: HTMLElement) {
   root.ownerDocument.addEventListener('pointerdown', (e) => {
     if ((e.target as Element).closest('.suggest')) return;
     if (view.activeSearch === null) return;
     view.activeSearch = null;
-    for (const field of Object.keys(view.suggestIndexes) as SearchField[]) view.suggestIndexes[field] = -1;
-    refresh();
+    view.suggestIndexes = Object.fromEntries(Object.keys(view.suggestIndexes).map((field) => [field, -1])) as Record<SearchField, number>;
   });
 }
 
-/** Set a card's limit break, or mark it not owned. The rarity's default LB means "no entry". */
+/** Store a card's limit break explicitly so later rarity overrides cannot erase it. */
 function setLb(card: Card, value: string) {
   update((s) => {
     const id = String(card.id);
     if (value === 'none') s.inventory[id] = null;
-    else if (Number(value) === s.settings.defaultLb[card.rarity]) delete s.inventory[id];
     else s.inventory[id] = Number(value);
   });
 }
-/** The LB dropdown shared by the deck slots and the ranking table. */
 export function lbSelect(c: RunPlan, card: Card, lb: number, cls = '') {
   const owned = !c.unowned.has(card.id);
+  const overridden = store.settings.inventoryOverrides[card.rarity] !== null;
   const explicit = store.inventory[String(card.id)] !== undefined;
   const current = owned ? String(lb) : 'none';
-  const items: Option[] = [{ value: 'none', label: COPY.fields.notOwned }, ...[0, 1, 2, 3, 4].map((l) => ({ value: String(l), label: `${l}${!explicit && lb === l ? ` ${COPY.fields.default}` : ''}` }))];
-  return html`<select data-lb=${card.id} class="${cls} ${explicit ? '' : 'muted'}" aria-label="Limit break" .value=${live(current)} @change=${(e: Event) => setLb(card, selectValue(e))}>${options(items, current)}</select>`;
+  const items: Option[] = [{ value: 'none', label: 'not owned' }, ...LIMIT_BREAKS.map((l) => ({ value: String(l), label: `${l}${overridden && lb === l ? ' (override)' : ''}` }))];
+  return html`<select data-lb=${card.id} class="${cls} ${explicit && !overridden ? '' : 'muted'}" aria-label="Limit break" .value=${live(current)} ?disabled=${overridden} data-tip=${overridden ? `${card.rarity} cards use a rarity override. Choose ${LABEL.useInventory} in ${TITLE.advanced} to edit individual cards.` : nothing} @change=${(e: Event) => setLb(card, selectValue(e))}>${options(items, current)}</select>`;
 }

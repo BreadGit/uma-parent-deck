@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
+import { perStat } from '../src/types.ts';
 import { DEFAULT_SETTINGS, isValidSetting, sanitizeSettings } from '../src/settings.ts';
 import { defaultState, migrate, STATE_VERSION } from '../src/state.ts';
 import { goalFamily, goalWithTargets } from '../src/model/goal-input.ts';
@@ -71,7 +72,7 @@ test('gold-only targets visibly contribute zero white spark chance in both estim
   const coverage = evaluate(traineeCoverage([target], ctx), [target], ctx);
   assert.equal(coverage.sparks.get(target.id), 0);
   const goal = goalWithTargets(defaultState(data).run.goal, [{ id: target.id, role: 'required', stars: 2, priority: 0 }]);
-  const result = evaluateParentGoal(goal, [], trainee.aptitudes, { coverage: coverage.map, conflicts: coverage.conflicts }, ctx, { rawMean: Array(5).fill(1100), sd: Array(5).fill(0), skillPoints: 10000, skillSd: 0 }, []);
+  const result = evaluateParentGoal(goal, [], trainee.aptitudes, { coverage: coverage.map, conflicts: coverage.conflicts }, ctx, { rawMean: perStat(() => 1100), sd: perStat(() => 0), skillPoints: 10000, skillSd: 0 }, []);
   assert.equal(result.probability, 0);
   assert.match(result.notes.join(' '), /no released white form/);
 });
@@ -89,7 +90,7 @@ test('SS probability follows the ranking dataset threshold', () => {
   const state = defaultState(data);
   const trainee = data.characters[0]!;
   const goal = goalWithTargets(state.run.goal, []);
-  const stats = { rawMean: Array(5).fill(0), sd: Array(5).fill(0), skillPoints: 18000, skillSd: 0 };
+  const stats = { rawMean: perStat(() => 0), sd: perStat(() => 0), skillPoints: 18000, skillSd: 0 };
   const estimate = (ss: number) => {
     const changed = { ...data, ranks: data.ranks.map((r) => r.name === 'SS' ? { ...r, min: ss } : r) };
     const ctx = makeCtx({ data: changed, settings: DEFAULT_SETTINGS, trainee, races: 0, totalTurns: 72 });

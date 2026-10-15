@@ -2,15 +2,14 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test, after } from 'node:test';
-import { chromium } from 'playwright';
+import { launchBrowser, settled } from './browser-fields.mjs';
 import ts from 'typescript';
 
 const source = await readFile(new URL('../src/ui/scroll-anchor.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`;
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 after(() => browser.close());
-const settle = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const top = (page, id) => page.locator(`#${id}`).evaluate((el) => el.getBoundingClientRect().top);
 
 async function fixture(t, width, native = true) {
@@ -32,7 +31,7 @@ for (const width of [390, 1440]) for (const native of [true, false]) {
     const before = await top(page, 'control3');
     for (const height of [1150, 650, 950]) {
       await page.evaluate((height) => window.drawAnchored(() => { document.querySelector('#above').style.height = `${height}px`; }), height);
-      await settle(page);
+      await settled(page);
       assert.ok(Math.abs(await top(page, 'control3') - before) <= 1);
     }
     assert.equal(await page.evaluate(() => document.activeElement.id), 'control3');
@@ -43,7 +42,7 @@ test('a removed focused row falls back to a nearby surviving row', async (t) => 
   const page = await fixture(t, 390, false);
   const before = await top(page, 'row4');
   await page.evaluate(() => window.drawAnchored(() => document.querySelector('#row3').remove()));
-  await settle(page);
+  await settled(page);
   assert.ok(Math.abs(await top(page, 'row4') - before) <= 1);
 });
 
@@ -52,7 +51,7 @@ test('an offscreen focused control does not pull the reader back to it', async (
   await page.evaluate(() => document.querySelector('#control14').focus({ preventScroll: true }));
   const before = await top(page, 'control3');
   await page.evaluate(() => window.drawAnchored(() => { document.querySelector('#above').style.height = '1200px'; }));
-  await settle(page);
+  await settled(page);
   assert.ok(Math.abs(await top(page, 'control3') - before) <= 1);
 });
 
@@ -62,12 +61,12 @@ test('manual scrolling suspends correction, then anchoring resumes after scrolli
   await page.waitForTimeout(50);
   const before = await page.evaluate(() => scrollY);
   await page.evaluate(() => window.drawAnchored(() => { document.querySelector('#above').style.height = '1100px'; }));
-  await settle(page);
+  await settled(page);
   assert.ok(Math.abs(await page.evaluate(() => scrollY) - before) <= 1, 'the render does not scroll against wheel input');
   await page.waitForTimeout(220);
   const anchor = await top(page, 'control3');
   await page.evaluate(() => window.drawAnchored(() => { document.querySelector('#above').style.height = '1000px'; }));
-  await settle(page);
+  await settled(page);
   assert.ok(Math.abs(await top(page, 'control3') - anchor) <= 1);
 });
 
@@ -94,7 +93,7 @@ test('a focused control clipped inside another scroll area cannot move the page'
   });
   const before = await page.evaluate(() => scrollY);
   await page.evaluate(() => window.drawAnchored(() => { document.querySelector('#clipped-spacer').style.height = '300px'; }));
-  await settle(page);
+  await settled(page);
   assert.equal(await page.evaluate(() => scrollY), before);
 });
 
@@ -104,6 +103,6 @@ test('reordering rows inside an independent scroll area does not scroll the oute
   await page.waitForTimeout(220);
   const before = await page.evaluate(() => scrollY);
   await page.evaluate(() => window.drawAnchored(() => document.querySelector('ol').append(document.querySelector('#row3'))));
-  await settle(page);
+  await settled(page);
   assert.equal(await page.evaluate(() => scrollY), before);
 });

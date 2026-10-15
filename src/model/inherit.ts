@@ -1,7 +1,6 @@
 import type { Settings } from '../settings.ts';
-import { STATS, type Stat } from '../types.ts';
-import { BLUE_SPARK_INSPIRATION_PROC_BY_STARS, BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_GAIN_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, INSPIRATION_EVENTS, MAX_BLUE_STARS, MAX_PARENT_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from './rules.ts';
-export { MAX_BLUE_STARS, MAX_PARENT_STARS };
+import { isPlainObject, perStat, STATS, type Stat, type StatIndex, type StatValues } from '../types.ts';
+import { BLUE_SPARK_INSPIRATION_PROC_BY_STARS, BLUE_SPARK_INSPIRATION_RANGE_BY_STARS, BLUE_SPARK_START_GAIN_BY_STARS, BLUE_SPARK_START_UNCAP_BY_STARS, INSPIRATION_EVENTS, isSparkStars, MAX_BLUE_STARS, STARS_PER_SPARK_MAX, UMAS_PER_PARENT_SIDE } from './rules.ts';
 
 /** Stars packed into 3-star sparks with one remainder spark (how the old slider state was read). */
 export function sparksFromStars(stars: number): number[] {
@@ -34,10 +33,8 @@ export const START_GAINS: { gain: number; stars: number[] }[] = (() => {
 export const MAX_START_GAIN = START_GAINS[START_GAINS.length - 1]!.gain;
 /** The sparks behind a start gain, or none for a value the screen cannot show. */
 export const sparksFromGain = (gain: number): number[] => START_GAINS.find((g) => g.gain === gain)?.stars ?? [];
-/** The start gain a set of sparks shows. */
 export const gainOfSparks = (sparks: number[]) => sparks.reduce((a, k) => a + (BLUE_SPARK_START_GAIN_BY_STARS[k] ?? 0), 0);
 
-/** One uma's blue spark: the stat it raises and its stars. */
 export interface BlueSpark { stat: Stat; stars: number }
 /**
  * One parent side's umas, the parent and her two grandparents, each with her blue spark. Every trained uma carries
@@ -45,20 +42,18 @@ export interface BlueSpark { stat: Stat; stars: number }
  */
 export type ParentSparks = (BlueSpark | null)[];
 export const UMA_LABELS = ['Parent', 'Grandparent', 'Grandparent'];
-/** A fresh side has no entered sparks, so every stat starts at +0. */
 export const defaultParentSparks = (): ParentSparks => Array(UMAS_PER_PARENT_SIDE).fill(null);
-export const isValidSpark = (v: unknown): v is BlueSpark => !!v && typeof v === 'object' && STATS.includes((v as BlueSpark).stat) && Number.isInteger((v as BlueSpark).stars) && (v as BlueSpark).stars >= 1 && (v as BlueSpark).stars <= STARS_PER_SPARK_MAX;
-/** A saved side, or the default when it is not exactly three slots of a spark or null. */
+export const isValidSpark = (v: unknown): v is BlueSpark => isPlainObject(v) && STATS.includes(v.stat as Stat) && isSparkStars(v.stars);
 export function sanitizeParentSparks(raw: unknown): ParentSparks {
   if (!Array.isArray(raw) || raw.length !== UMAS_PER_PARENT_SIDE || !raw.every((v) => v === null || isValidSpark(v))) return defaultParentSparks();
   return raw.map((v: BlueSpark | null) => (v ? { stat: v.stat, stars: v.stars } : null));
 }
-/** The "+XX" one side shows above each stat: the sum of its umas' sparks on that stat. */
-export const gainsOfParentSparks = (sparks: ParentSparks): number[] => STATS.map((st) => gainOfSparks(sparks.filter((s) => s?.stat === st).map((s) => s!.stars)));
+/** The "+XX" one side shows above each stat on the legacy screen. */
+export const gainsOfParentSparks = (sparks: ParentSparks): StatValues => perStat((st) => gainOfSparks(sparks.filter((s) => s?.stat === st).map((s) => s!.stars)));
 /** Sparks from the legacy screen's five gains, in stat order, strongest first; null when they need more than three umas. */
-export function parentSparksFromGains(gains: number[]): ParentSparks | null {
-  if (gains.length !== STATS.length || gains.some((g) => !START_GAINS.some((v) => v.gain === g))) return null;
-  const out: ParentSparks = gains.flatMap((g, i) => [...sparksFromGain(g)].sort((a, b) => b - a).map((stars) => ({ stat: STATS[i]!, stars })));
+export function parentSparksFromGains(gains: StatValues): ParentSparks | null {
+  if (gains.some((g) => !START_GAINS.some((v) => v.gain === g))) return null;
+  const out: ParentSparks = perStat((stat, i) => [...sparksFromGain(gains[i])].sort((a, b) => b - a).map((stars) => ({ stat, stars }))).flat();
   if (out.length > UMAS_PER_PARENT_SIDE) return null;
   while (out.length < UMAS_PER_PARENT_SIDE) out.push(null);
   return out;
@@ -115,23 +110,21 @@ export function inheritedFromSparks(sparks: number[], settings: Settings): Inher
     start += BLUE_SPARK_START_GAIN_BY_STARS[s] ?? 0;
     uncap += BLUE_SPARK_START_UNCAP_BY_STARS[s] ?? 0;
     const pProc = Math.min(1, (BLUE_SPARK_INSPIRATION_PROC_BY_STARS[s] ?? 0) * mult);
-    insp += INSPIRATION_EVENTS * pProc * (settings.blueInspirationGainMean[s - 1] ?? 0);
     const mean = settings.blueInspirationGainMean[s - 1] ?? 0;
+    insp += INSPIRATION_EVENTS * pProc * mean;
     const [low, high] = BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[s] ?? [0, 0];
     // A uniform integer roll is an estimate. Scale its variance down near a user-set endpoint.
     const rollVariance = high > low ? ((high - low + 1) ** 2 - 1) / 12
       * Math.max(0, 4 * (mean - low) * (high - mean) / (high - low) ** 2) : 0;
     variance += INSPIRATION_EVENTS * (pProc * rollVariance + pProc * (1 - pProc) * mean ** 2);
-    max += INSPIRATION_EVENTS * (BLUE_SPARK_INSPIRATION_RANGE_BY_STARS[s]?.[1] ?? 0);
+    max += INSPIRATION_EVENTS * high;
   }
   return { start, inspiration: insp, inspirationMax: max, total: start + insp, uncap, variance };
 }
-/** Inheritance from one parent side's start gain for a stat, as the legacy screen shows it. */
 export const inheritedFromGain = (gain: number, settings: Settings) => inheritedFromSparks(sparksFromGain(gain), settings);
 
-/** Sum of both parents' inheritance for one stat from their start gains. */
-export function inheritedFromParents(parentGains: number[][], statIndex: number, settings: Settings): Inheritance {
-  const parts = parentGains.map((p) => inheritedFromGain(p[statIndex] ?? 0, settings));
+export function inheritedFromParents(parentGains: readonly StatValues[], statIndex: StatIndex, settings: Settings): Inheritance {
+  const parts = parentGains.map((p) => inheritedFromGain(p[statIndex], settings));
   const sum = (k: keyof Inheritance) => parts.reduce((a, x) => a + x[k], 0);
   return { start: sum('start'), inspiration: sum('inspiration'), inspirationMax: sum('inspirationMax'), total: sum('total'), uncap: sum('uncap'), variance: sum('variance') };
 }

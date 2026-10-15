@@ -17,3 +17,14 @@ export const selectValue = (e: Event) => (e.target as HTMLSelectElement).value;
 export const inputValue = (e: Event) => (e.target as HTMLInputElement).value;
 export const inputNumber = (e: Event) => (e.target as HTMLInputElement).valueAsNumber;
 export const isChecked = (e: Event) => (e.target as HTMLInputElement).checked;
+export const queryWords = (query: string) => query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+export const matchesWords = (words: readonly string[], text: string) => { const hay = text.toLowerCase(); return words.every((w) => hay.includes(w)); };
+export const isOpen = (e: Event) => (e.target as HTMLDetailsElement).open;
+/** The files a file input holds after its change event; clear them with `clearFiles` to accept the same file again. */
+export const chosenFiles = (e: Event): File[] => Array.from((e.target as HTMLInputElement).files ?? []);
+export const clearFiles = (e: Event) => { (e.target as HTMLInputElement).value = ''; };
+/**
+ * Whether a key press belongs to text an input method is still composing, such as the Enter that confirms a kana
+ * conversion. Safari reports the confirming Enter after compositionend, with isComposing false but keyCode 229.
+ */
+export const isComposing = (e: KeyboardEvent) => e.isComposing || e.keyCode === 229;

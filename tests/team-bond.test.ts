@@ -2,11 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { buildDeck, makeCtx } from '../src/model/deck.ts';
+import { describeDeck, makeCtx } from '../src/model/deck.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import type { Card, StatModel } from '../src/types.ts';
 
-test('deck selection and borrow gains include starting bond supplied to teammates', () => {
+test('deck estimates include starting bond supplied to teammates', () => {
   const data = loadData();
   const support = (id: number, passives: Record<string, number> = {}): Card => ({
     ...structuredClone(must(data.cardById.get(10001))), id, charId: id, type: 'speed', unique: null,
@@ -21,19 +21,13 @@ test('deck selection and borrow gains include starting bond supplied to teammate
     sp: { base: 0, wit: 0, friend: 0, skillPointBonus: 0 }, observed: [] };
   const ctx = makeCtx({ data: { ...data, model }, settings: { ...DEFAULT_SETTINGS, focus: 'balanced' }, races: model.races.reference,
     totalTurns: model.races.totalTurns, trainee: null });
-  const build = (lb: number) => buildDeck([{ card: recipient, lb: 0 }], [], ctx, {
-    pinnedIds: [recipient.id], size: 2, borrowPool: [{ card: donor, lb }, { card: alternative, lb: 4 }],
-  });
+  const describe = (card: Card, lb: number) => describeDeck([{ card: recipient, lb: 0 }, { card, lb, borrowed: true }], [], ctx);
+  const power = (card: Card, lb: number) => describe(card, lb).deck.reduce((sum, entry) => sum + entry.statPower, 0);
 
   // Each card supplies 150 before bonuses. The alternative adds 25; the donor adds
   // 5 bond * 2 points * 2 stat roles to both cards, for 40 across the deck.
-  const unlocked = build(2);
-  assert.equal(unlocked.borrow?.card.id, donor.id);
-  assert.equal(unlocked.deck.reduce((sum, entry) => sum + entry.statPower, 0), 340);
-  assert.equal(unlocked.borrow?.statGain, 190);
-  assert.equal(unlocked.borrowAlternatives.find((entry) => entry.card.id === alternative.id)?.statGain, 175);
-  const locked = build(1);
-  assert.equal(locked.borrow?.card.id, alternative.id);
-  assert.equal(locked.deck.reduce((sum, entry) => sum + entry.statPower, 0), 325);
-  assert.equal(locked.borrowAlternatives.find((entry) => entry.card.id === donor.id)?.statGain, 150);
+  assert.equal(power(donor, 2), 340);
+  assert.equal(power(donor, 1), 300);
+  assert.equal(power(alternative, 4), 325);
+  assert.equal(describe(donor, 2).deck.find((entry) => entry.borrowed)?.card.id, donor.id);
 });

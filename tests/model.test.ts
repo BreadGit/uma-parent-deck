@@ -2,15 +2,17 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
-import { DEFAULT_SETTINGS } from '../src/settings.ts';
-import { cardContribution, EFFECT, modelContribution, passives, predictDeck, raceScale, uniqueExtras, uniqueNote, uniqueUnlocked } from '../src/model/stats.ts';
-import { STATS, type Card, type Race } from '../src/types.ts';
-import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
-import { buildDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlist, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
+import { DEFAULT_SETTINGS, isValidSetting, SETTING_SPEC, type Settings } from '../src/settings.ts';
+import { cardContribution, modelContribution, predictDeck, raceScale } from '../src/model/stats.ts';
+import { EFFECT, passives, uniqueExtras, uniqueUnlocked } from '../src/model/support-effects.ts';
+import { isGold, isNormal, isNormalOrGold, STATS, type Card, type Race, type Skill, type StatModel } from '../src/types.ts';
+import { resolveTarget, cardSourcesForTarget, combineSources, eventKeyOf, isCircle, isDebuff, isWhite, lastStageShares, eventSources, expectedHints, goldRollChance, lineageFromSides, lineageFromTotals, lineageSparks, pruneConflicts, sanitizeLineage, scenarioOptions, sparkChance, withLineageCopies, withLineageStars, type EventSource, type SkillSource } from '../src/model/sparks.ts';
+import { buildDeck, describeDeck, evaluate, makeCtx, rankCards, traineeCoverage, wishlistCandidates, type Ctx } from '../src/model/deck.ts';
 import { baseWinChance, buildSchedule, expectedFansBefore, goalRaces, rawWinScore, scheduleSummary, traineeAptitudes, winChance, type Aptitudes } from '../src/model/races.ts';
 import { skillScore, statScore, uniqueSkillLevel, uniqueSkillScore } from '../src/model/rank.ts';
-import { affinityMultiplier, defaultParentSparks, gainOfSparks, gainsOfParentSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, parentSparksFromGains, sparksFromGain, sparksFromStars, START_GAINS, withParentGain, type ParentSparks } from '../src/model/inherit.ts';
+import { affinityMultiplier, defaultParentSparks, inheritedFromSparks, gainOfSparks, gainsOfParentSparks, inheritedFromGain, inheritedFromParents, MAX_START_GAIN, parentSparksFromGains, sparksFromGain, sparksFromStars, START_GAINS, withParentGain, type ParentSparks } from '../src/model/inherit.ts';
 import { SLOT_COUNT } from '../src/model/rules.ts';
+import { jointSkillForms } from '../src/model/goal-skills.ts';
 
 const data = loadData();
 const { cards, skills, characters } = data;
@@ -22,8 +24,6 @@ const target = (n: string) => resolveTarget(byName(n).id, data)!;
 const sw = must(characters.find((c) => c.name === 'Special Week'));
 const ctxOf = (extra: Partial<Ctx> = {}): Ctx => makeCtx({ data, settings, races: 20, totalTurns: T, trainee: null, ...extra });
 const all4 = cards.map((card) => ({ card, lb: 4 }));
-
-// ----- skills and the stat model -----
 
 test('skill families resolve gold and white forms', () => {
   const t = resolveTarget(200352, data)!; // Corner Recovery ○
@@ -73,7 +73,6 @@ test('compound unique effects are evaluated at run time: deck-dependent ones fro
   assert.deepEqual(uniqueExtras(topRoad, 4, m, { fansBefore: () => 0 }), {}, 'no fans, no effect');
   const ramp = uniqueExtras(topRoad, 4, m, { fansBefore: (slot) => slot * 200000 / 72 })[EFFECT.trainingEff]!;
   assert.ok(ramp > 9 && ramp < 11, `fans rising linearly to the cap give about half of it on average, got ${ramp}`);
-  assert.ok(uniqueNote(topRoad, m, { fansBefore: () => 200000 }).includes('+20.0 of 20') && uniqueNote(must(data.cardById.get(30083)), m).includes('left out'), 'the tooltip says what was done');
   const obs = must(data.model.observed.find((o) => o.wellTested && o.lb === 4));
   const card = must(data.cardById.get(obs.cardId));
   assert.deepEqual(cardContribution(card, 4, data.model, { [EFFECT.trainingEff]: 15 }).stats, obs.stats, 'an observed row already contains its deck effects');
@@ -93,7 +92,18 @@ test('prediction: focus multiplies the split, growth raises event stats, race lo
   balanced.mean.forEach((v, i) => assert.ok(Math.abs(v - penalised.mean[i]! - 100 / 5) < 1e-9, 'each expected loss removes lossPenalty points spread over five stats'));
 });
 
-// ----- sources: hints and events -----
+test('event interpolation uses its measured race counts rather than fixed 23/28 anchors', () => {
+  const model: StatModel = { ...data.model, growthEffect: 0, sigma: [0, 0, 0, 0, 0],
+    eventBase: { '10': [100, 200, 300, 400, 500], '20': [200, 400, 600, 800, 1000] },
+    eventSp: { '10': 100, '20': 200 } };
+  for (const [races, expected] of [[10, 100], [15, 150], [20, 200], [30, 300]] as const) {
+    const result = predictDeck([], null, races, 'balanced', 0, model, settings);
+    assert.deepEqual(result.eventStats, [expected, expected * 2, expected * 3, expected * 4, expected * 5]);
+    assert.equal(result.sp, expected);
+  }
+  const one: StatModel = { ...model, eventBase: { '10': [100, 200, 300, 400, 500] }, eventSp: { '10': 100 } };
+  assert.deepEqual(predictDeck([], null, 15, 'balanced', 0, one, settings).eventStats, [100, 200, 300, 400, 500]);
+});
 
 test('cached event rates follow scalar edits, nested array edits, replacements and restored values', () => {
   const current = structuredClone(settings);
@@ -156,7 +166,6 @@ test('event outcomes: outcomes of one option are equally likely, a gold/white ra
   const pFire = settings.randomEventRate * Math.min(1, 2 / riko.randomEvents.length);
   assert.ok(Math.abs(rampUp.pObtain - pFire / 2) < 1e-9 && rampUp.detail.includes('one of 2 outcomes'), `Ramp Up ${rampUp.pObtain} is half the event chance and says so`);
   assert.ok(Math.abs(maverick.pObtain - pFire / 2) < 1e-9 && rampUp.event.optionIndex === maverick.event.optionIndex, `Maverick ○ ${maverick.pObtain} shares the option`);
-  // the documented gold roll by the stat of the card's type
   assert.deepEqual([399, 400, 600, 700, 800, 1000, 1200].map(goldRollChance), [0.3, 0.6, 0.65, 0.75, 0.8, 0.9, 0.9]);
   const fine = must(data.cardById.get(30010)); // chain 3: Speed Star (gold) or Prepared to Pass (its white form), by the Wit stat
   const shared = eventSources(fine, settings, data).filter((s) => s.event.key.endsWith(':chain:3'));
@@ -193,7 +202,7 @@ test('ownership odds combine sources the way the game runs them: duplicates in o
   assert.ok(combineSources(turbo).pAny < 1 - (1 - r2 * q2) * (1 - r3 * q3), 'less than independent stages');
   // a target offered by two options of one event counts one option
   const twoOptions: SkillSource[] = [0, 1].map((optionIndex) => ({ kind: 'chain', skillId: 1, gold: false, circle: false, pObtain: 0.5, isChoice: false, detail: '', event: { key: 'x:chain:1', label: '', option: `option ${optionIndex + 1}`, optionIndex } }));
-  const pruned = pruneConflicts(new Map([[1, twoOptions]]), [1]).map.get(1)!;
+  const pruned = pruneConflicts(new Map([[1, twoOptions]]), [1], [], settings, []).map.get(1)!;
   assert.equal(pruned.length, 1);
   assert.ok(Math.abs(combineSources(pruned).pAny - 0.5) < 1e-9, `${combineSources(pruned).pAny} != 0.5`);
   // left unpruned, a second option on the same chain stage adds to the stage rather than replacing it
@@ -207,11 +216,10 @@ test('ownership odds combine sources the way the game runs them: duplicates in o
   const date3 = cardSourcesForTarget(sasami, 4, risky, 20, T, data, settings).filter((s) => eventKeyOf(s) === `${sasami.id}:recreation:3`);
   assert.equal(date3.length, 3);
   assert.ok(date3.some((s) => s.gold && (s as EventSource).event.optionIndex === 0) && date3.some((s) => s.gold && (s as EventSource).event.optionIndex === 1), 'both options offer the gold');
-  const kept = pruneConflicts(new Map([[risky.id, date3]]), null, [], settings);
+  const kept = pruneConflicts(new Map([[risky.id, date3]]), null, [], settings, []);
   assert.deepEqual(kept.map.get(risky.id)!.map((s) => (s as EventSource).event.optionIndex), [1, 1], 'the second option gives the gold at the same chance plus the white form');
   assert.equal(kept.conflicts.length, 0, 'one target on the event: nothing was contested');
   assert.ok(Math.abs(combineSources(kept.map.get(risky.id)!).pAny - 2 * date3[0]!.pObtain) < 1e-9, 'the kept option is worth twice the single option chance');
-  // spark rates by form
   assert.ok(Math.abs(sparkChance({ pGold: 1, pWhite: 0 }, settings, 0) - settings.goldSparkRate) < 1e-9);
   assert.ok(Math.abs(sparkChance({ pGold: 0, pCircle: 1, pWhite: 0 }, settings, 0) - settings.circleSparkRate) < 1e-9);
   assert.ok(Math.abs(sparkChance({ pGold: 0, pWhite: 1 }, settings, 2) - settings.whiteSparkRate * 1.21) < 1e-9, 'each lineage copy multiplies by 1.1');
@@ -260,8 +268,6 @@ test('lineage totals: copies fill the parents first at 3★, alternating sides, 
   for (const bad of [[1, 2, 3], [0, 0, 0, 0, 0, 4], [0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0, 1.5], [0, 0, 0, 0, 0, '1'], { k1: 1 }, null]) assert.equal(sanitizeLineage(bad), null, JSON.stringify(bad));
 });
 
-// ----- scenario and event choices -----
-
 test("Our Grand Concert's Senior November event: a linked character in the run (as trainee or card) turns her option gold, every option is a prioritized-skill candidate", () => {
   const focus = target('Focus');
   assert.equal(focus.gold?.name, 'Concentration');
@@ -269,7 +275,7 @@ test("Our Grand Concert's Senior November event: a linked character in the run (
   const bourbon = must(cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit'));
   const without = evaluate(traineeCoverage([focus], ctx), [focus], ctx).map.get(focus.id)!.filter((s) => s.kind === 'scenario');
   assert.equal(without.length, 1); assert.ok(!without[0]!.gold, 'Focus (normal) when Bourbon is absent');
-  const d = buildDeck([{ card: bourbon, lb: 4 }], [focus], ctx, [bourbon.id], 1);
+  const d = buildDeck([{ card: bourbon, lb: 4 }], [focus], ctx, { pinnedIds: [bourbon.id] });
   const withCard = d.coverage.get(focus.id)!.filter((s) => s.kind === 'scenario');
   assert.equal(withCard.length, 1); assert.ok(withCard[0]!.gold, 'Concentration when Bourbon is in the deck');
   const bourbonUma = must(characters.find((c) => c.name === 'Mihono Bourbon'));
@@ -279,13 +285,13 @@ test("Our Grand Concert's Senior November event: a linked character in the run (
   // Tachyon as a card: her option is the gold Come What May, listed instead of All I've Got
   const allIveGot = target("All I've Got");
   const tachyon = must(cards.find((c) => c.charName === 'Agnes Tachyon' && c.rarity === 'SSR'));
-  const e = buildDeck([{ card: tachyon, lb: 4 }], [allIveGot], ctx, [tachyon.id], 1);
+  const e = buildDeck([{ card: tachyon, lb: 4 }], [allIveGot], ctx, { pinnedIds: [tachyon.id] });
   assert.ok(e.coverage.get(allIveGot.id)!.filter((s) => s.kind === 'scenario').every((s) => s.gold), 'Tachyon in the deck makes every scenario option gold');
   const wl = wishlistCandidates(e.deck, [allIveGot], ctx).map((w) => w.name);
   assert.ok(wl.includes('Come What May') && !wl.includes("All I've Got"), `list: ${wl.join(', ')}`);
   // with Focus also targeted, both scenario options stay listed even though only one can be taken
   const both = { ...ctx, priority: [focus.id, allIveGot.id] };
-  const names = wishlistCandidates(buildDeck([{ card: tachyon, lb: 4 }], [allIveGot, focus], both, [tachyon.id], 1).deck, [allIveGot, focus], both).map((w) => w.name);
+  const names = wishlistCandidates(buildDeck([{ card: tachyon, lb: 4 }], [allIveGot, focus], both, { pinnedIds: [tachyon.id] }).deck, [allIveGot, focus], both).map((w) => w.name);
   assert.ok(names.includes('Come What May') && names.includes('Focus'), `both options listed: ${names.join(', ')}`);
   // every option is a candidate even with no targets
   const bare = wishlistCandidates([], [], ctx).map((w) => w.name);
@@ -298,12 +304,12 @@ test('one option per event: the prioritized order decides which target takes it,
   const groundwork = resolveTarget(201601, data)!, focus = target('Focus');
   const falcon = must(cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power')); // chain 1 offers Groundwork or Focus
   const targets = [groundwork, focus];
-  const a = buildDeck([{ card: falcon, lb: 4 }], targets, ctxOf({ priority: [groundwork.id, focus.id] }), [], 1);
+  const a = buildDeck([{ card: falcon, lb: 4 }], targets, ctxOf({ priority: [groundwork.id, focus.id] }), { pinnedIds: [] });
   assert.equal(a.conflicts.length, 1);
   assert.equal(a.conflicts[0]!.taken.target, groundwork.id);
   const key = a.conflicts[0]!.eventKey;
   assert.ok(a.coverage.get(groundwork.id)!.some((s) => eventKeyOf(s) === key) && !a.coverage.get(focus.id)!.some((s) => eventKeyOf(s) === key), 'Focus is not counted from the shared event');
-  const b = buildDeck([{ card: falcon, lb: 4 }], targets, ctxOf({ priority: [focus.id, groundwork.id] }), [], 1);
+  const b = buildDeck([{ card: falcon, lb: 4 }], targets, ctxOf({ priority: [focus.id, groundwork.id] }), { pinnedIds: [] });
   assert.equal(b.conflicts[0]!.taken.target, focus.id);
   assert.ok((a.sparks.get(groundwork.id) ?? 0) > (b.sparks.get(groundwork.id) ?? 0), 'Groundwork spark chance rises when it is first');
   const names = wishlistCandidates(a.deck, targets, ctxOf({ priority: [groundwork.id, focus.id] })).map((w) => w.name);
@@ -312,10 +318,10 @@ test('one option per event: the prioritized order decides which target takes it,
   const ines = must(data.cardById.get(20030));
   const straight = target('Medium Straightaways ○'), sympathy = target('Sympathy'), standard = target('Standard Distance ○');
   const ikey = `${ines.id}:chain:2`;
-  const c = buildDeck([{ card: ines, lb: 4 }], [straight, sympathy], ctxOf({ priority: [straight.id, sympathy.id] }), [], 1);
+  const c = buildDeck([{ card: ines, lb: 4 }], [straight, sympathy], ctxOf({ priority: [straight.id, sympathy.id] }), { pinnedIds: [] });
   assert.ok(c.coverage.get(straight.id)!.some((s) => eventKeyOf(s) === ikey) && c.coverage.get(sympathy.id)!.some((s) => eventKeyOf(s) === ikey), 'the same option awards both');
   assert.ok(!c.conflicts.some((x) => x.eventKey === ikey), 'nothing to report');
-  const d = buildDeck([{ card: ines, lb: 4 }], [straight, standard], ctxOf({ priority: [straight.id, standard.id] }), [], 1);
+  const d = buildDeck([{ card: ines, lb: 4 }], [straight, standard], ctxOf({ priority: [straight.id, standard.id] }), { pinnedIds: [] });
   assert.ok(!d.coverage.get(standard.id)!.some((s) => eventKeyOf(s) === ikey), 'Standard Distance ○ loses the option to Medium Straightaways ○');
   assert.equal(d.conflicts.find((x) => x.eventKey === ikey)?.dropped[0]?.target, standard.id);
 });
@@ -349,8 +355,6 @@ test('a non-target option ranked above a target takes the event and is reported,
   assert.equal(r.conflicts.length, 1);
   assert.equal(r.conflicts[0]!.taken.skillId, allIveGot.white!.id);
 });
-
-// ----- the agenda -----
 
 const raceAt = (surface: Race['surface'], category: Race['category']): Race => ({ calendarId: 't', raceInstanceId: 0, raceId: 1, name: 't', distance: 2000, category, surface, year: 2, month: 5, half: 1, fansNeeded: 0, fansGain: 0, unreleasedEn: false });
 const aptOf = (turf: Aptitudes['turf'], medium: Aptitudes['medium']): Aptitudes => traineeAptitudes(null, { turf, medium });
@@ -408,12 +412,10 @@ test('career goals are fixed in the agenda: a placement objective is won automat
   assert.equal(must(us.find((s) => s.selected && s.goal && s.race.name === 'JBC Sprint')).pWin, 1);
 });
 
-// ----- rating -----
-
 test('rating: the UmaTools stat table exactly (values computed from its code), skills by form and aptitude bucket, the unique skill by stars and level', () => {
   for (const [v, pts] of [[0, 0], [-5, 0], [400, 577], [600, 1143], [1000, 2635], [1199, 3835], [1200, 3841], [1201, 3849], [1249, 4240], [1250, 4249], [1500, 6773], [1999, 14261], [2000, 14280], [2001, 14298]] as const) assert.equal(statScore(v), pts, `stat ${v}`);
   assert.equal(skillScore(byName('Groundwork'), null), 217);
-  const sprint = must(skills.find((s) => s.rarity === 1 && s.tags.includes('sho') && !s.unreleasedEn));
+  const sprint = must(skills.find((s) => isNormal(s) && s.tags.includes('sho') && !s.unreleasedEn));
   const apt = (g: Aptitudes['sprint']) => traineeAptitudes(null, { sprint: g });
   assert.deepEqual((['A', 'C', 'E', 'G'] as const).map((g) => skillScore(sprint, apt(g))), [1.1, 0.9, 0.8, 0.7].map((m) => Math.round(217 * m)));
   assert.equal(skillScore(byName('Groundwork'), apt('G')), 217, 'an unconditioned skill ignores aptitudes');
@@ -430,8 +432,6 @@ test('rating: the UmaTools stat table exactly (values computed from its code), s
   assert.equal(uniqueSkillLevel(3, turf, (slot) => (slot >= 72 ? 120000 : 50000), settings), 1, 'fans from Arima Kinen in slot 71 arrive after the Christmas check');
   assert.equal(uniqueSkillLevel(3, traineeAptitudes(null, { turf: 'G', dirt: 'A' }), () => 45000, { ...settings, uniqueAprilBondRate: 1 }), 2, 'a dirt trainee clears the 40,000-fan February check');
 });
-
-// ----- inheritance -----
 
 test('blue sparks: 20 distinct start gains each decoding to one star combination, fixed start gains, uncaps, and an assumed mean roll per inspiration proc at the affinity setting', () => {
   assert.equal(START_GAINS.length, 20);
@@ -515,26 +515,23 @@ test('setting a start gain replaces that stat\'s umas first, then empty slots, t
   assert.deepEqual(withParentGain(defaultParentSparks(), 4, 63), Array(3).fill({ stat: 'wit', stars: 3 }));
 });
 
-// ----- the deck builder -----
-
-test('deck: six distinct characters, one borrowed slot at the borrowed limit break, the trainee excluded, a wishlist of at most ten', () => {
+test('deck: six distinct characters, one borrowed slot at the borrowed limit break, the trainee excluded', () => {
   const ctx = ctxOf({ trainee: sw });
   const targets = [200352, 200762].map((id) => resolveTarget(id, data)!);
   const pool = cards.filter((c) => c.rarity === 'SSR').map((card) => ({ card, lb: 4 }));
   const r = rankCards(pool, targets, traineeCoverage(targets, ctx), ctx);
   assert.ok(r[0]!.marginalValue >= r[r.length - 1]!.marginalValue, 'ranking is ordered by marginal value');
-  const d = buildDeck(pool, targets, ctx, [30052]);
+  const d = buildDeck(pool, targets, ctx, { pinnedIds: [30052] });
   assert.equal(d.deck.length, 6);
   assert.equal(d.deck[0]!.card.id, 30052);
   assert.equal(new Set(d.deck.map((x) => x.card.charId)).size, 6);
   assert.ok(!d.deck.some((x) => x.card.charId === sw.charId), "the trainee's own character is excluded");
   const p = predictDeck(d.deck.map((x) => ({ card: x.card, lb: x.lb })), sw, 20, 'stamina', 1, data.model, settings);
   assert.ok(p.mean.every((v) => v > 300 && v < 1600), JSON.stringify(p.mean));
-  assert.ok(wishlist(d.deck, targets, ctx).length <= 10);
   const srPool = cards.filter((c) => c.rarity === 'SR').map((card) => ({ card, lb: 2 }));
-  const e = buildDeck(srPool, [resolveTarget(200352, data)!, resolveTarget(201601, data)!], ctx, [], 6, all4);
+  const e = buildDeck(srPool, [resolveTarget(200352, data)!, resolveTarget(201601, data)!], ctx, { pinnedIds: [], borrowPool: all4 });
   assert.equal(e.deck.filter((x) => x.borrowed).length, 1);
-  assert.ok(e.borrow && e.borrow.gain >= 0 && must(e.deck.find((x) => x.borrowed)).lb === 4);
+  assert.ok(must(e.deck.find((x) => x.borrowed)).lb === 4);
   assert.equal(new Set(e.deck.map((x) => x.card.charId)).size, 6);
 });
 
@@ -545,7 +542,7 @@ test('pins are a shortlist: the best five owned pins fill the owned slots, a lef
   const pool = cards.map((card) => ({ card, lb: 2 }));
   const seen = new Set<number>(); const pins: number[] = [];
   for (const c of cards.filter((c) => c.rarity === 'SSR')) { if (!seen.has(c.charId)) { seen.add(c.charId); pins.push(c.id); } if (pins.length === 8) break; }
-  const d = buildDeck(pool, targets, ctx, pins, 6, all4);
+  const d = buildDeck(pool, targets, ctx, { pinnedIds: pins, borrowPool: all4 });
   const owned = d.deck.filter((x) => !x.borrowed);
   assert.equal(owned.length, 5);
   assert.ok(owned.every((x) => pins.includes(x.card.id)), 'every owned slot is a pin');
@@ -569,7 +566,7 @@ test('one card per character among pins: the better of two pins of one character
   const ctx = ctxOf();
   const kitas = cards.filter((c) => c.charName === 'Kitasan Black').map((c) => c.id);
   assert.ok(kitas.length >= 2, 'Kitasan Black has at least two cards');
-  const d = buildDeck(all4, [corner], ctx, kitas, 6, all4);
+  const d = buildDeck(all4, [corner], ctx, { pinnedIds: kitas, borrowPool: all4 });
   assert.equal(d.deck.filter((x) => x.card.charName === 'Kitasan Black').length, 1);
   assert.ok(d.steps.some((s) => s.includes('pinned but not chosen, same character as')));
   const kitaSr = must(cards.find((c) => c.charName === 'Kitasan Black' && c.id !== kitasan.id));
@@ -579,13 +576,13 @@ test('one card per character among pins: the better of two pins of one character
   assert.ok(e.steps.some((s) => s.startsWith(kitaSr.name) && s.includes('same character as')), 'the dropped SR says which card replaced her');
   // a pinned card of a character with another card in the pool keeps its own card in the deck
   const bourbon = must(cards.find((c) => c.charName === 'Mihono Bourbon' && c.type === 'wit'));
-  const f = buildDeck(cards.map((card) => ({ card, lb: 2 })), [target('Focus')], ctx, [bourbon.id], 6, all4);
+  const f = buildDeck(cards.map((card) => ({ card, lb: 2 })), [target('Focus')], ctx, { pinnedIds: [bourbon.id], borrowPool: all4 });
   const bourbons = f.deck.filter((x) => x.card.charId === bourbon.charId);
   assert.equal(bourbons.length, 1);
   assert.equal(bourbons[0]!.card.id, bourbon.id);
 });
 
-test("unowned pins ask for the friend's slot: the best one is borrowed over a better free choice (still listed), the rest say where the slot went", () => {
+test("unowned pins ask for the friend's slot: the best one is borrowed over a better free choice, the rest say where the slot went", () => {
   const corner = resolveTarget(200352, data)!;
   const ctx = ctxOf();
   const ownedPool = cards.filter((c) => c.charName !== 'Kitasan Black' && c.rarity !== 'SSR').map((card) => ({ card, lb: 2 }));
@@ -595,8 +592,6 @@ test("unowned pins ask for the friend's slot: the best one is borrowed over a be
   const e = buildDeck(ownedPool, [corner], ctx, { pinnedIds: [palmer.id], borrowPool: all4 });
   const b = must(e.deck.find((x) => x.borrowed));
   assert.ok(b.card.id === palmer.id && b.lb === 4, 'the unowned pin is the borrow');
-  assert.ok(e.borrowAlternatives.length > 0 && !e.borrowAlternatives.some((o) => o.card.id === palmer.id || e.deck.some((x) => !x.borrowed && x.card.charId === o.card.charId)), 'other borrows are listed, never the borrow itself or a character already in the deck');
-  assert.ok(e.borrowAlternatives.every((o, i, arr) => i === 0 || arr[i - 1]!.gain >= o.gain - 1e-9), 'best first');
   const rPool = cards.filter((c) => c.rarity === 'R').map((card) => ({ card, lb: 4 }));
   const unowned = cards.filter((c) => c.rarity === 'SSR').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 3).concat(kitasan).map((c) => c.id);
   const f = buildDeck(rPool, [corner], ctx, { pinnedIds: unowned, borrowPool: all4 });
@@ -609,14 +604,14 @@ test("the upgrade check borrows a deck card's LB4 copy when that frees a slot wo
   const corner = resolveTarget(200352, data)!;
   const ctx = ctxOf();
   // only Kitasan owned (at LB0) and only Kitasan borrowable: the upgrade step swaps the owned copy for the LB4 borrow
-  const d = buildDeck([{ card: kitasan, lb: 0 }], [corner], ctx, [30028], 6, [{ card: kitasan, lb: 4 }]);
+  const d = buildDeck([{ card: kitasan, lb: 0 }], [corner], ctx, { pinnedIds: [30028], borrowPool: [{ card: kitasan, lb: 4 }] });
   const k = must(d.deck.find((x) => x.card.id === 30028));
-  assert.ok(k.borrowed && k.lb === 4 && d.borrow?.replaces?.id === 30028 && d.deck.length === 1, 'the owned LB0 Kitasan is replaced by her LB4 borrow');
+  assert.ok(k.borrowed && k.lb === 4 && d.deck.length === 1, 'the owned LB0 Kitasan is replaced by her LB4 borrow');
   // with borrowFromAll, an owned LB0 pin that is the best card overall ends up as the LB4 borrow
   const others = cards.filter((c) => c.rarity === 'SSR' && c.charName !== 'Kitasan Black').filter((c, i, arr) => arr.findIndex((x) => x.charId === c.charId) === i).slice(0, 5).map((c) => c.id);
   const e = buildDeck(cards.map((card) => ({ card, lb: 0 })), [corner], ctx, { pinnedIds: [...others, 30028], borrowPool: all4, borrowFromAll: true });
   const kita = must(e.deck.find((x) => x.card.id === 30028));
-  assert.ok(kita.borrowed && kita.lb === 4 && e.deck.length === 6 && e.borrow?.replaces?.id === 30028, 'with borrowFromAll the best pin becomes the LB4 borrow');
+  assert.ok(kita.borrowed && kita.lb === 4 && e.deck.length === 6, 'with borrowFromAll the best pin becomes the LB4 borrow');
   // a pinned borrow holds even when the upgrade would prefer Kitasan LB4
   const swCtx = ctxOf({ trainee: sw });
   const palmer = must(cards.find((c) => c.charName === 'Mejiro Palmer' && c.rarity === 'SSR'));
@@ -628,25 +623,9 @@ test("the upgrade check borrows a deck card's LB4 copy when that frees a slot wo
   assert.ok(!g.deck.some((x) => x.card.charId === sw.charId) && g.steps.some((s) => s.includes("the trainee's own card")), "the trainee's own card is excluded and reported");
 });
 
-test('deck swaps preserve full-deck stat value when another card loses a unique effect', () => {
-  // Removing Bourbon's Wit type for Vodka's Power disables Digital's five-type unique.
-  const pool = [30104, 30001, 30039, 30090, 30085, 30066, 30005].map((id) => ({ card: must(data.cardById.get(id)), lb: 4 }));
-  const ctx = ctxOf({ races: 28, settings: { ...settings, focus: 'stamina' } });
-  const focus = data.model.focus.stamina;
-  let previous = -Infinity;
-  for (const swapPasses of [0, 1, 2, 3]) {
-    const result = buildDeck(pool, [], ctx, { pinnedIds: [], borrowPool: pool, swapPasses });
-    const pred = predictDeck(result.deck, null, 28, 'stamina', 0, data.model, ctx.settings);
-    const actual = pred.cardStats.reduce((sum, v, i) => sum + v * focus[i]!, 0);
-    assert.ok(actual >= previous - 1e-6, `pass ${swapPasses} lowers full-deck value from ${previous} to ${actual}`);
-    assert.ok(Math.abs(result.deck.reduce((sum, d) => sum + d.statPower, 0) - actual) < 1e-6, 'stored contributions match the predictor after each pass');
-    previous = actual;
-  }
-});
-
-test('deck card stats include the complete deck even when no swaps run', () => {
+test('deck card stats include the complete deck', () => {
   const ctx = ctxOf({ races: 28 });
-  const result = buildDeck(all4, [], ctx, { pinnedIds: [30090], borrowPool: all4, swapPasses: 0 });
+  const result = buildDeck(all4, [], ctx, { pinnedIds: [30090], borrowPool: all4 });
   for (const d of result.deck) {
     const actual = cardContribution(d.card, d.lb, data.model, uniqueExtras(d.card, d.lb, data.model, { deck: result.deck }));
     assert.deepEqual(d.stats, actual.stats, `card ${d.card.id} must include the other five cards`);
@@ -654,23 +633,9 @@ test('deck card stats include the complete deck even when no swaps run', () => {
   }
 });
 
-test('the swap pass never leaves the deck worse than the greedy build, reports each swap, never touches a pin, and values stats by the training focus', () => {
-  const targets = [200352, 201601, 200762, 200452, 201113].map((id) => resolveTarget(id, data)!);
-  const ctx = ctxOf({ trainee: sw });
+test('deck stat contributions use the training focus', () => {
   const pool = cards.map((card) => ({ card, lb: 2 }));
-  const greedy = buildDeck(pool, targets, ctx, { pinnedIds: [30052], borrowPool: all4, swapPasses: 0 });
-  const improved = buildDeck(pool, targets, ctx, { pinnedIds: [30052], borrowPool: all4 });
-  const value = (d: typeof greedy) => [...d.sparks.values()].reduce((a, b) => a + b, 0);
-  const stats = (d: typeof greedy) => d.deck.reduce((a, x) => a + x.statPower, 0);
-  assert.ok(value(improved) >= value(greedy) - 1e-9, 'swaps never lower the spark value');
-  if (Math.abs(value(improved) - value(greedy)) <= 1e-9) assert.ok(stats(improved) >= stats(greedy) - 1e-6, 'equal spark value: swaps never lower the stats');
-  const swaps = improved.steps.filter((s) => s.startsWith('Swap '));
-  assert.equal(swaps.length > 0, improved.deck.some((d, i) => d.card.id !== greedy.deck[i]?.card.id), 'every change is reported as a swap step');
-  assert.ok(!swaps.some((s) => s.startsWith(`Swap ${must(data.cardById.get(30052)).name}`)), 'a pinned card is never swapped out');
-  assert.equal(new Set(improved.deck.map((x) => x.card.charId)).size, improved.deck.length);
-  const finalBorrow = must(improved.deck.find((x) => x.borrowed));
-  assert.equal(improved.borrow?.card.id, finalBorrow.card.id, 'the borrow named is the one in the deck after the swaps');
-  assert.ok(improved.borrowAlternatives.length > 0 && !improved.borrowAlternatives.some((o) => o.card.id === finalBorrow.card.id || improved.deck.some((x) => !x.borrowed && x.card.charId === o.card.charId)), 'the alternatives follow the final deck');
+  const ctx = ctxOf({ trainee: sw });
   const f = data.model.focus;
   buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'sprint' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v, i) => a + v * f.sprint[i]!, 0)) < 1e-6, 'stat power is focus-weighted'));
   buildDeck(pool, [], { ...ctx, settings: { ...settings, focus: 'balanced' } }, { pinnedIds: [30052], borrowPool: all4 }).deck.forEach((d) => assert.ok(Math.abs(d.statPower - d.stats.reduce((a, v) => a + v, 0)) < 1e-6));
@@ -684,4 +649,88 @@ test('base schedule fans include the placing reward for likely losses', () => {
   assert.equal(sum.expectedFans, expectedFansBefore(sched, SLOT_COUNT));
   const winsOnly = sched.filter((s) => s.selected).reduce((a, s) => a + s.race.fansGain * Math.min(1, s.pWin), 0);
   assert.ok(sum.expectedFans >= winsOnly, 'losses still pay placing fans');
+});
+
+test('chain stages: reach chances nest, so the per-skill odds and the joint forms agree and stay probabilities', () => {
+  const focus = target('Focus');
+  const chain = (reaches: number[], stages = [1, 2, 3]): EventSource[] => stages.map((stage) => ({ kind: 'chain', isChoice: false, skillId: focus.white!.id, pObtain: reaches[stage - 1]!,
+    detail: '', gold: false, circle: false, event: { key: `c:${stage}`, label: '', option: '', optionIndex: 0 }, chain: { key: 'c', stage, pReach: reaches[stage - 1]! },
+    roll: { pFire: reaches[stage - 1]!, outcomes: [[[{ skillId: focus.white!.id, share: 1, rolled: false, gold: false, circle: false }]]] } }));
+  const jointAny = (sources: EventSource[]) => 1 - (jointSkillForms([focus], new Map([[focus.id, sources]]), data).components[0]!.distribution.states.get('0') ?? 0);
+  for (const reaches of [[0.69, 0.36, 0.12], [1, 0.5, 0.5], [0.3, 0, 0]]) {
+    for (const stages of [[1, 2, 3], [1, 3], [2, 3]]) {
+      const sources = chain(reaches, stages);
+      const own = combineSources(sources);
+      assert.ok(Math.abs(own.pAny - reaches[stages[0]! - 1]!) < 1e-9, `${reaches} at stages ${stages}: owned once the first offering stage is reached`);
+      assert.ok(Math.abs(own.pAny - jointAny(sources)) < 1e-9, `${reaches} at stages ${stages}: marginal ${own.pAny}, joint ${jointAny(sources)}`);
+    }
+  }
+  assert.deepEqual(lastStageShares([1, 0, 1]), [1, 0, 0], 'a later stage cannot be reached more often than an earlier one');
+  const impossible = chain([1, 0, 1]);
+  assert.equal(combineSources(impossible).pAny, 1);
+  assert.equal(jointAny(impossible), 1);
+});
+
+test('scenario options: only the linked characters present change them, so other characters share one cached list', () => {
+  const linked = new Set(data.scenarioEvents.filter((ev) => ev.scenarioId === settings.scenarioId).flatMap((ev) => ev.choices.flatMap((ch) => ch.linkedCharId == null ? [] : [ch.linkedCharId])));
+  const [first] = [...linked];
+  const unlinked = characters.map((c) => c.charId).filter((id) => !linked.has(id));
+  assert.ok(first !== undefined && unlinked.length >= 2);
+  const base = scenarioOptions(data, settings, new Set([first!, unlinked[0]!]));
+  assert.equal(scenarioOptions(data, settings, new Set([first!, unlinked[1]!])), base, 'an unlinked character does not change the options');
+  assert.notEqual(scenarioOptions(data, settings, new Set([unlinked[1]!])), base);
+  assert.ok(base.some((o) => o.linkedCharId === first && o.event.option.includes('gold version')), 'the linked character present upgrades her option');
+});
+
+test('skill tiers: gold, ◎, white and debuff forms are told apart in one place', () => {
+  const corner = resolveTarget(200352, data)!; // Corner Recovery ○ / Swinging Maestro
+  // Rarity numbers are the data's own codes (1 normal, 2 gold, 3 to 5 unique, 6 evolved), checked here directly.
+  const tier = (s: Skill) => [isGold(s), isCircle(s), isWhite(s), isDebuff(s), isNormal(s), isNormalOrGold(s)];
+  assert.deepEqual(tier(corner.gold!), [true, false, false, false, false, true]);
+  assert.deepEqual(tier(corner.white!), [false, false, true, false, true, true], 'a ○ skill is the white form');
+  assert.deepEqual(tier(must(skills.find((s) => s.name.includes('◎') && s.rarity === 1))), [false, true, false, false, true, true]);
+  assert.deepEqual(tier(byName('Gatekept')), [false, false, false, true, true, true]);
+  for (const rarity of [3, 4, 5, 6]) {
+    assert.deepEqual(tier(must(skills.find((s) => s.rarity === rarity))), [false, false, false, false, false, false], `rarity ${rarity} is neither normal nor gold`);
+  }
+});
+
+test('settings at the ends of their accepted ranges keep every chance a probability and every inspiration mean below its maximum', () => {
+  const targets = [200352, 201601, byName('Focus').id].map((id) => resolveTarget(id, data)!);
+  const deck = buildDeck(all4, targets, ctxOf({ trainee: sw }), { pinnedIds: [], borrowPool: all4 }).deck;
+  const sources = targets.flatMap((t) => describeDeck(deck, targets, ctxOf({ trainee: sw })).coverage.get(t.id) ?? []);
+  assert.ok(sources.some((src) => 'chain' in src && src.chain) && sources.some((src) => src.kind === 'hint'), 'the deck covers the targets through chain events and hints');
+  const ends = (key: keyof Settings): unknown[] => {
+    const spec = SETTING_SPEC[key];
+    if (spec.kind === 'number' || spec.kind === 'number-or-null') return [spec.min, spec.max];
+    if (spec.kind !== 'list') return [];
+    const unit = (i: number) => Array.from({ length: spec.length }, (_, j) => Number(i === j));
+    return [Array(spec.length).fill(spec.min), Array(spec.length).fill(spec.max), unit(0), unit(spec.length - 1),
+      spec.bounds?.map(([low]) => low), spec.bounds?.map(([, high]) => high)].filter((v) => v && isValidSetting(key, v));
+  };
+  const probability = (p: number, what: string) => assert.ok(p >= -1e-12 && p <= 1 + 1e-12, `${what}: ${p}`);
+  let checked = 0;
+  for (const key of Object.keys(SETTING_SPEC) as (keyof Settings)[]) {
+    for (const value of ends(key)) {
+      const s = { ...settings, [key]: value } as Settings;
+      const ctx = makeCtx({ data, settings: s, races: 20, totalTurns: T, trainee: sw });
+      const result = describeDeck(deck, targets, ctx);
+      for (const t of targets) {
+        const own = combineSources(result.coverage.get(t.id) ?? []);
+        for (const [form, p] of Object.entries(own)) probability(p, `${key}=${JSON.stringify(value)} ${t.name} ${form}`);
+        probability(result.sparks.get(t.id) ?? 0, `${key}=${JSON.stringify(value)} ${t.name} spark`);
+      }
+      const joint = jointSkillForms(targets, result.coverage, data);
+      for (const component of joint.components) {
+        const total = [...component.distribution.states.values()].reduce((a, p) => a + p, 0);
+        assert.ok(Math.abs(total - 1) < 1e-9, `${key}=${JSON.stringify(value)} joint forms sum to ${total}`);
+      }
+      for (const stars of [1, 2, 3]) {
+        const inheritance = inheritedFromSparks([stars], s);
+        assert.ok(inheritance.inspiration <= inheritance.inspirationMax + 1e-9 && inheritance.variance >= 0, `${key}=${JSON.stringify(value)} ${stars}★ inspiration`);
+      }
+      checked++;
+    }
+  }
+  assert.ok(checked > 40, `${checked} setting values checked`);
 });

@@ -9,11 +9,13 @@
     "noUnusedParameters": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "skipLibCheck": true,
     "types": ["node", "vite/client"],
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": ["src", "tests/*.ts"]
+  "include": ["src", "tests/*.ts", "scripts/*.ts", "vite*.config.ts"]
 }
