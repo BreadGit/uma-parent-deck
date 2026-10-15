@@ -1,12 +1,12 @@
 // Layout assertions use real browser geometry, with native anchoring both enabled and disabled.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { stripTypeScriptTypes } from 'node:module';
 import { test, after } from 'node:test';
 import { launchBrowser, settled } from './browser-fields.mjs';
-import ts from 'typescript';
 
 const source = await readFile(new URL('../src/ui/scroll-anchor.ts', import.meta.url), 'utf8');
-const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
+const compiled = stripTypeScriptTypes(source);
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`;
 const browser = await launchBrowser();
 after(() => browser.close());

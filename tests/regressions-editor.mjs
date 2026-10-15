@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { stripTypeScriptTypes } from 'node:module';
 import { test, suite } from 'node:test';
-import { ModuleKind, ScriptTarget, transpileModule } from 'typescript';
 import { defaultState } from '../src/state.ts';
 import { assertFieldsMatchState } from './browser-fields.mjs';
 import { data, browser, fresh, editor, state, target, openDetails, fujiState } from './browser-fixtures.mjs';
@@ -156,7 +156,7 @@ suite('editor browser regressions', { concurrency: Number(process.env.BROWSER_TE
     const page = await browser.newPage();
     t.after(() => page.close());
     const source = await readFile(new URL('../src/ui/dialog.ts', import.meta.url), 'utf8');
-    const { outputText } = transpileModule(source, { compilerOptions: { target: ScriptTarget.ESNext, module: ModuleKind.ESNext } });
+    const outputText = stripTypeScriptTypes(source);
     await page.addScriptTag({ type: 'module', content: `${outputText}\nwindow.confirmDialog = confirmDialog;` });
     await page.evaluate(() => {
       window.answers = [];
