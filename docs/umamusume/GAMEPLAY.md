@@ -67,6 +67,8 @@ Independent training completes a career in the background from the selected deck
 training focus, agenda, and prioritized skills. Its race odds use a separate simplified model;
 do not apply the ordinary-race stat formulas to them. Conversely, do not use independent-training
 win percentages for PvP. The player purchases skills after independent training finishes.
+The run takes each event's top option unless a prioritized skill is offered by another
+([event choices](refs/independent-training-event-choices.md)).
 [Independent-training guidance](refs/umaguide-independent-training.md) and
 [race measurements](refs/shoppo-independent-training-race-odds.md) explain the supported rules.
 Auto-Train, also called Auto-kun in JP research, is a different automation feature.
