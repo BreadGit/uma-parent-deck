@@ -17,18 +17,26 @@ const REWARD_DICTIONARY = 'dict__evrew';
 /** The static feed files a page's events are checked against. */
 export const PAGE_SOURCE_FILES = [...new Set(Object.values(PAGE_EVENT_OWNERS).flatMap((owners) => Object.keys(owners))), REWARD_DICTIONARY];
 
-/** Reward IDs of every choice, `[choice id, reward ids]`, in feed rows, including alternative event versions. */
-function rewardIds(value: unknown, ids = new Set<number>()): Set<number> {
-  if (!Array.isArray(value)) return ids;
-  if (value.length === 2 && Number.isInteger(value[0]) && Array.isArray(value[1]) && value[1].length && value[1].every(Number.isInteger)) {
-    for (const id of value[1]) ids.add(id);
-  } else for (const item of value) rewardIds(item, ids);
-  return ids;
+/** A choice in a feed row: `[choice id, reward ids]`. */
+const isChoice = (value: unknown): value is [number, number[]] =>
+  Array.isArray(value) && value.length === 2 && Number.isInteger(value[0]) && Array.isArray(value[1]) && value[1].every(Number.isInteger);
+/** An event in a feed row: `[event id, choices or "no", event code, ...tags]`. */
+const isEvent = (value: unknown): value is unknown[] => Array.isArray(value) && value.length >= 3 && Number.isInteger(value[0])
+  && (value[1] === 'no' || (Array.isArray(value[1]) && value[1].every(isChoice))) && (typeof value[2] === 'string' || Number.isInteger(value[2]));
+
+/**
+ * Feed rows as their content, without GameTora's event, choice and reward IDs, which are not stable between feed
+ * versions: each event drops its event ID, and each choice becomes the dictionary entries of its rewards, in order.
+ */
+function eventContent(value: unknown, dictionary: unknown[]): unknown {
+  if (!Array.isArray(value)) return value;
+  if (isChoice(value)) return value[1].map((id) => dictionary[id - REWARD_ID_OFFSET] ?? null);
+  return (isEvent(value) ? value.slice(1) : value).map((item) => eventContent(item, dictionary));
 }
 
 /**
- * Builds the input a page cache entry is checked against from the static feed files: the page's card, its own event
- * rows and the reward dictionary entries those rows use. A feed change for another card keeps the page cached.
+ * Builds the input a page cache entry is checked against from the static feed files: the page's card and the content
+ * of its own event rows. A feed change for another card, or a renumbering, keeps the page cached.
  */
 export function pageInputs(files: Record<string, unknown[]>): (key: string, card: PageCard) => unknown {
   const rowsByOwner = new Map(PAGE_SOURCE_FILES.filter((file) => file !== REWARD_DICTIONARY).map((file) => {
@@ -43,9 +51,8 @@ export function pageInputs(files: Record<string, unknown[]>): (key: string, card
     const owners = PAGE_EVENT_OWNERS[kind];
     if (!owners) throw new Error(`Unknown page cache key ${key}`);
     const events = Object.fromEntries(Object.entries(owners)
-      .map(([file, field]) => [file, rowsByOwner.get(file)!.get(card[field]) ?? null]));
-    const rewards = [...rewardIds(Object.values(events))].sort((a, b) => a - b).map((id) => [id, dictionary[id - REWARD_ID_OFFSET] ?? null]);
-    return { card, events, rewards, ...(kind === 'unique' ? { textParser: 1 } : {}) };
+      .map(([file, field]) => [file, eventContent(rowsByOwner.get(file)!.get(card[field]) ?? null, dictionary)]));
+    return { card, events, ...(kind === 'unique' ? { textParser: 1 } : {}) };
   };
 }
 export const fingerprint = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');

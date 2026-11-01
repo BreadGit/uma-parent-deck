@@ -8,7 +8,7 @@ test('unique effect descriptions retain inline values and conditions after an un
   assert.equal(uniqueEffectText(page), 'Gain Training Effectiveness (10) when the bond gauge is at least 80');
   assert.throws(() => uniqueEffectText('<h3>Unique Effect</h3>'));
   const card = { support_id: 30081, char_id: 1081 }, payload = 'Gain Training Effectiveness';
-  assert.equal(pageCacheMatches(pageRevision({ card, events: {}, rewards: [] }, payload), pageInputs(feed())('unique:30081', card), payload), false,
+  assert.equal(pageCacheMatches(pageRevision({ card, events: {} }, payload), pageInputs(feed())('unique:30081', card), payload), false,
     'descriptions cached by the truncating parser must be fetched again');
 });
 
@@ -28,25 +28,34 @@ const changed = (files: Record<string, unknown[]>, file: string, edit: (rows: an
   return copy;
 };
 
-test('a page cache follows its own card events and the rewards they use, not the rest of the feed', () => {
+test('a page cache follows the content of its own card events, not the rest of the feed or GameTora\'s IDs', () => {
   const files = feed();
   const support: PageCard = { support_id: 30001, char_id: 1001 };
   const outfit: PageCard = { card_id: 100101, char_id: 1001 };
   const matches = (key: string, card: PageCard, edited: Record<string, unknown[]>) =>
     pageCacheMatches(pageRevision(pageInputs(files)(key, card), 'payload'), pageInputs(edited)(key, card), 'payload');
   assert.ok(matches('support:30001', support, files));
-  assert.ok(matches('support:30001', support, changed(files, 'training_events__ssr', (rows) => { rows[1][1][0][0] = 601; })), 'another card\'s events');
-  assert.ok(matches('support:30001', support, changed(files, 'training_events__shared', (rows) => { rows[1][1][0][0] = 89; })), 'another character\'s random events');
+  assert.ok(matches('support:30001', support, changed(files, 'training_events__ssr', (rows) => { rows[1][1][0][1][0][1] = [36]; })), 'another card\'s events');
+  assert.ok(matches('support:30001', support, changed(files, 'training_events__shared', (rows) => { rows[1][1][0][1][0][1] = [36]; })), 'another character\'s random events');
   assert.ok(matches('support:30001', support, changed(files, 'dict__evrew', (rows) => { rows[2] = ['gu', '+30']; })), 'a reward only another card uses');
   assert.ok(matches('support:30001', support, changed(files, 'dict__evrew', (rows) => { rows.push(['sk', '+2', 200763]); })), 'a new reward');
   assert.ok(!matches('support:30001', support, changed(files, 'training_events__ssr', (rows) => { rows[0][1].push([558, [[28, [36]]], 830001002]); })), 'its chain events');
-  assert.ok(!matches('support:30001', support, changed(files, 'training_events__shared', (rows) => { rows[0][1][0][0] = 90; })), 'its character\'s random events');
+  assert.ok(!matches('support:30001', support, changed(files, 'training_events__shared', (rows) => { rows[0][1][0][1][0][1] = [36]; })), 'its character\'s random events');
   assert.ok(!matches('support:30001', support, changed(files, 'dict__evrew', (rows) => { rows[1] = ['bo', '+10']; })), 'a reward of an earlier event version');
   assert.ok(!matches('support:30001', support, changed(files, 'training_events__ssr', (rows) => { rows.splice(0, 1); })), 'its events removed from the feed');
-  assert.ok(matches('outfit:100101', outfit, changed(files, 'training_events__char_card', (rows) => { rows[1][1][0][0] = 1660; })), 'another outfit\'s events');
-  assert.ok(!matches('outfit:100101', outfit, changed(files, 'training_events__char', (rows) => { rows[0][2][0][0] = 1647; })), 'its character\'s events');
+  assert.ok(!matches('support:30001', support, changed(files, 'training_events__ssr', (rows) => { rows[0][1][0][2] = 830001009; })), 'its event code');
+  assert.ok(matches('support:30001', support, changed(files, 'training_events__ssr', (rows) => {
+    rows[0][1][0][0] = 571; rows[0][1][0][1][0][0] = 42; rows[0][1][0][3][1][0][1][0] = 571;
+  })), 'GameTora renumbering its event and choice IDs');
+  const renumbered = changed(changed(files, 'dict__evrew', (rows) => { rows.unshift(['sk', '+1', 100001]); }), 'training_events__ssr', (rows) => {
+    rows[0][1][0][1][0][1] = [37]; rows[0][1][0][3][1][0][1][1][0][1] = [38];
+  });
+  assert.ok(matches('support:30001', support, changed(renumbered, 'training_events__shared', (rows) => { rows[0][1][0][1][0][1] = [40]; })),
+    'a reward dictionary entry inserted before its rewards');
+  assert.ok(matches('outfit:100101', outfit, changed(files, 'training_events__char_card', (rows) => { rows[1][1][0][1][0][1] = [36]; })), 'another outfit\'s events');
+  assert.ok(!matches('outfit:100101', outfit, changed(files, 'training_events__char', (rows) => { rows[0][2][0][1][0][1] = [36]; })), 'its character\'s events');
   assert.ok(!matches('character:1001', outfit, changed(files, 'dict__evrew', (rows) => { rows[6] = ['in', '+10']; })), 'a reward of its outfit events');
-  assert.ok(matches('unique:30001', support, changed(files, 'training_events__ssr', (rows) => { rows[0][1][0][0] = 559; })), 'a unique effect text depends on the card alone');
+  assert.ok(matches('unique:30001', support, changed(files, 'training_events__ssr', (rows) => { rows[0][1][0][1][0][1] = [38]; })), 'a unique effect text depends on the card alone');
   assert.throws(() => pageInputs(files)('skill:1', support), /Unknown page cache key/);
 });
 
