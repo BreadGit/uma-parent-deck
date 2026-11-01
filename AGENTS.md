@@ -63,10 +63,12 @@ device on the same local network. At the start of a work session, check for an e
 and reuse it. If none is running, start `npm run dev` from the project root and leave it running after
 the task finishes, unless the user asks otherwise.
 
-A server on port 5173 may belong to another checkout: find its directory with `readlink /proc/<pid>/cwd`
-(the pid is in `ss -ltnp`) before reusing it. In a git worktree, run `npm ci` first (a fresh worktree has
-no `node_modules`), start `npm run dev -- --port <n> --strictPort` on a free port, and pass
-`URL=http://localhost:<n>/` to the browser checks. Start the server detached from the agent session, as in
+Port 5173 is for the main checkout. Each git worktree uses its own port, 5174 or higher: reuse the server
+already running for that worktree, or start one on the lowest free port. Before reusing a server, confirm it
+belongs to the checkout you are working in: find its directory with `readlink /proc/<pid>/cwd` (the pid is
+in `ss -ltnp`). In a worktree, run `npm ci` first (a fresh worktree has no `node_modules`), start
+`npm run dev -- --port <n> --strictPort`, and pass `URL=http://localhost:<n>/` to the browser checks.
+Start the server detached from the agent session, as in
 `setsid nohup npm run dev > /tmp/uma-dev.log 2>&1 < /dev/null &`, and poll it with `curl`: agent harnesses
 stop their own background tasks after a time limit, which took the server down mid-session. Do not `pkill`
 vite, since the running server is the one the user reviews from.
@@ -79,8 +81,8 @@ on a Chrome error page.
 `npm run dev` already uses `vite --host` to listen on all interfaces. Preserve that default. Do not add
 `--host 127.0.0.1` or `--host localhost` unless the user explicitly requests access only from this computer.
 If an existing project server listens only on loopback, restart it with `npm run dev`. Verify an HTTP
-response at the machine's LAN address and report the network URL printed by Vite, normally
-`http://<this machine's LAN IP>:5173`, so the user can open it from another device.
+response at the machine's LAN address and report the network URL printed by Vite,
+`http://<this machine's LAN IP>:<port>`, so the user can open it from another device.
 
 ## Layout
 
