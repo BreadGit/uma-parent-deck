@@ -1,12 +1,53 @@
 import { createHash } from 'node:crypto';
 import { isPlainObject } from '../src/types.ts';
+import { REWARD_ID_OFFSET } from './event-import.ts';
 
 export type PageRevision = { input: string; payload: string };
-/** The static feed files a page's events are checked against: a change to any of them refetches the pages. */
-export const PAGE_SOURCE_FILES = ['training_events__ssr', 'training_events__sr', 'training_events__friend', 'training_events__group',
-  'training_events__shared', 'training_events__char', 'training_events__char_card', 'dict__evrew'];
-export const pageInput = (key: string, card: unknown, sources: Record<string, string>) =>
-  ({ card, sources, ...(key.startsWith('unique:') ? { textParser: 1 } : {}) });
+/** The source row a page belongs to: a support card, or a character card for character and outfit pages. */
+export type PageCard = { char_id?: number; support_id?: number; card_id?: number };
+/** Per page kind, the static feed files listing the page's events, each with the card field that owns its rows there. */
+const PAGE_EVENT_OWNERS: Record<string, Record<string, keyof PageCard>> = {
+  support: { training_events__ssr: 'support_id', training_events__sr: 'support_id', training_events__friend: 'support_id',
+    training_events__group: 'support_id', training_events__shared: 'char_id' },
+  character: { training_events__char: 'char_id', training_events__char_card: 'card_id' },
+  outfit: { training_events__char: 'char_id', training_events__char_card: 'card_id' },
+  unique: {},
+};
+const REWARD_DICTIONARY = 'dict__evrew';
+/** The static feed files a page's events are checked against. */
+export const PAGE_SOURCE_FILES = [...new Set(Object.values(PAGE_EVENT_OWNERS).flatMap((owners) => Object.keys(owners))), REWARD_DICTIONARY];
+
+/** Reward IDs of every choice, `[choice id, reward ids]`, in feed rows, including alternative event versions. */
+function rewardIds(value: unknown, ids = new Set<number>()): Set<number> {
+  if (!Array.isArray(value)) return ids;
+  if (value.length === 2 && Number.isInteger(value[0]) && Array.isArray(value[1]) && value[1].length && value[1].every(Number.isInteger)) {
+    for (const id of value[1]) ids.add(id);
+  } else for (const item of value) rewardIds(item, ids);
+  return ids;
+}
+
+/**
+ * Builds the input a page cache entry is checked against from the static feed files: the page's card, its own event
+ * rows and the reward dictionary entries those rows use. A feed change for another card keeps the page cached.
+ */
+export function pageInputs(files: Record<string, unknown[]>): (key: string, card: PageCard) => unknown {
+  const rowsByOwner = new Map(PAGE_SOURCE_FILES.filter((file) => file !== REWARD_DICTIONARY).map((file) => {
+    const rows = files[file];
+    if (!Array.isArray(rows)) throw new Error(`Page source ${file} is missing`);
+    return [file, new Map(rows.map((row) => [Array.isArray(row) ? row[0] : undefined, row]))];
+  }));
+  const dictionary = files[REWARD_DICTIONARY];
+  if (!Array.isArray(dictionary)) throw new Error(`Page source ${REWARD_DICTIONARY} is missing`);
+  return (key, card) => {
+    const kind = key.slice(0, key.indexOf(':'));
+    const owners = PAGE_EVENT_OWNERS[kind];
+    if (!owners) throw new Error(`Unknown page cache key ${key}`);
+    const events = Object.fromEntries(Object.entries(owners)
+      .map(([file, field]) => [file, rowsByOwner.get(file)!.get(card[field]) ?? null]));
+    const rewards = [...rewardIds(Object.values(events))].sort((a, b) => a - b).map((id) => [id, dictionary[id - REWARD_ID_OFFSET] ?? null]);
+    return { card, events, rewards, ...(kind === 'unique' ? { textParser: 1 } : {}) };
+  };
+}
 export const fingerprint = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export const pageRevision = (input: unknown, payload: unknown): PageRevision => ({ input: fingerprint(input), payload: fingerprint(payload) });
 export function pageCacheMatches(revision: PageRevision | undefined, input: unknown, payload: unknown): boolean {

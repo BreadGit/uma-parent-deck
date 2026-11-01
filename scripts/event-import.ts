@@ -62,7 +62,7 @@ export function normalizeReward(reward: unknown): { t: string; v?: unknown; d?: 
 }
 
 /** Static event reward IDs start this far above their index in the reward dictionary. */
-const REWARD_ID_OFFSET = 36;
+export const REWARD_ID_OFFSET = 36;
 /** Missing references are data errors. */
 export function decodeRewards(dictionary: unknown[], rewardId: number): ReturnType<typeof normalizeReward>[] {
   const reward = dictionary[rewardId - REWARD_ID_OFFSET];

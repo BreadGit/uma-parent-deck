@@ -4,7 +4,7 @@ import { must } from './helpers.ts';
 import { readFileSync } from 'node:fs';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from '../scripts/event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables, type NormalizedTables, type PageSources, type SourceTables } from '../scripts/source-validation.ts';
-import { fingerprint, pageRevision, pageInput, type PageRevision } from '../scripts/page-cache.ts';
+import { pageRevision, pageInputs, PAGE_SOURCE_FILES, type PageRevision } from '../scripts/page-cache.ts';
 
 const read = (name: string) => JSON.parse(readFileSync(new URL(`../data/${name}.json`, import.meta.url), 'utf8'));
 const keys = ['support-cards', 'support_effects', 'skills', 'character-cards', 'characters', 'races', 'ura-races', 'ura-objectives', 'scenarios', 'en/db-files/single_mode_rank',
@@ -87,19 +87,19 @@ test('reward decoding retains source flags, numeric skill references and bundled
 });
 
 test('recorded page revisions reject interrupted refreshes and stale page payloads', () => {
-  const files = ['training_events__ssr', 'training_events__sr', 'training_events__friend', 'training_events__group', 'training_events__shared', 'training_events__char', 'training_events__char_card', 'dict__evrew'];
-  const sources = Object.fromEntries(files.map((key) => [key, fingerprint(raw[key.replace('__', '/')])]));
+  const inputFor = pageInputs(Object.fromEntries(PAGE_SOURCE_FILES.map((key) => [key, raw[key.replace('__', '/')]!])));
   const revisions: Record<string, PageRevision> = {};
   const uniqueTexts = read('raw/unique-effect-texts');
   for (const card of raw['support-cards']!.filter((card) => card.release_en)) {
     const payload = { names: pages.eventNames[card.support_id], ...(['friend', 'group'].includes(card.type) ? { full: pages.palGroupEvents[card.support_id] } : {}) };
-    revisions[`support:${card.support_id}`] = pageRevision({ card, sources }, payload);
-    if (card.unique?.effects.some((effect: { type: number }) => effect.type >= 100)) revisions[`unique:${card.support_id}`] = pageRevision(pageInput(`unique:${card.support_id}`, card, sources), uniqueTexts[card.support_id]);
+    revisions[`support:${card.support_id}`] = pageRevision(inputFor(`support:${card.support_id}`, card), payload);
+    if (card.unique?.effects.some((effect: { type: number }) => effect.type >= 100)) revisions[`unique:${card.support_id}`] = pageRevision(inputFor(`unique:${card.support_id}`, card), uniqueTexts[card.support_id]);
   }
   const seen = new Set();
   for (const card of raw['character-cards']!.filter((card) => card.release_en).sort((a, b) => a.card_id - b.card_id)) {
     const first = !seen.has(card.char_id); seen.add(card.char_id);
-    revisions[`${first ? 'character' : 'outfit'}:${first ? card.char_id : card.card_id}`] = pageRevision({ card, sources }, first ? pages.charEvents[card.char_id] : pages.charEventsByCard[card.card_id]);
+    const key = `${first ? 'character' : 'outfit'}:${first ? card.char_id : card.card_id}`;
+    revisions[key] = pageRevision(inputFor(key, card), first ? pages.charEvents[card.char_id] : pages.charEventsByCard[card.card_id]);
   }
   assert.doesNotThrow(() => validatePageRevisions(raw, pages, uniqueTexts, revisions));
   assert.doesNotThrow(() => validatePageRevisions(raw, pages, uniqueTexts));

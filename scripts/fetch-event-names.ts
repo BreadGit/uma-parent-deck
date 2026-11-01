@@ -2,11 +2,11 @@
 // event data of each Global character from her page JSON (the static feed has neither names nor the grouping
 // into story, choice, outing and secret events, nor the secret events' race conditions).
 // One request per card (~245) and per character (~66), throttled, cached in data/raw/event-names.json and
-// data/raw/char-events.json. Source revisions invalidate stale page caches.
+// data/raw/char-events.json. A page is fetched again when its card or its own static feed events change.
 import path from 'node:path';
 import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
 import { readJson, readJsonOr, writeJson } from './json-file.ts';
-import { fingerprint, pageCacheMatches, pageRevision, pageInput, pageEvents, PAGE_SOURCE_FILES, uniqueEffectText, UNLOCK_LINE, type PageRevision } from './page-cache.ts';
+import { pageCacheMatches, pageRevision, pageInputs, pageEvents, PAGE_SOURCE_FILES, uniqueEffectText, UNLOCK_LINE, type PageCard, type PageRevision } from './page-cache.ts';
 import { isCompoundUniqueEffect } from '../src/model/rules.ts';
 
 // The rows of GameTora's static feed this script reads, and the validated event data of a page.
@@ -21,10 +21,9 @@ const OUT = path.join(RAW, 'event-names.json');
 const FORCE = process.argv.includes('--force');
 const REVISION_OUT = path.join(RAW, 'page-source-revisions.json');
 const revisions: Record<string, PageRevision> = await readJsonOr(REVISION_OUT, {});
-const sourceHashes = Object.fromEntries(await Promise.all(PAGE_SOURCE_FILES.map(async (key) => [key, fingerprint(await readJson(path.join(RAW, `${key}.json`)))])));
-const inputFor = (key: string, card: unknown) => pageInput(key, card, sourceHashes);
-const current = (key: string, card: unknown, payload: unknown) => !FORCE && pageCacheMatches(revisions[key], inputFor(key, card), payload);
-const remember = (key: string, card: unknown, payload: unknown) => { revisions[key] = pageRevision(inputFor(key, card), payload); };
+const inputFor = pageInputs(Object.fromEntries(await Promise.all(PAGE_SOURCE_FILES.map(async (key) => [key, await readJson(path.join(RAW, `${key}.json`))]))));
+const current = (key: string, card: PageCard, payload: unknown) => !FORCE && pageCacheMatches(revisions[key], inputFor(key, card), payload);
+const remember = (key: string, card: PageCard, payload: unknown) => { revisions[key] = pageRevision(inputFor(key, card), payload); };
 
 const throttle = createThrottle();
 async function fetchPage(url: string) {

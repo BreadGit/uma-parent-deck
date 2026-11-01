@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal } from './event-import.ts';
-import { fingerprint, pageCacheMatches, pageInput, PAGE_SOURCE_FILES, type PageRevision } from './page-cache.ts';
+import { pageCacheMatches, pageInputs, PAGE_SOURCE_FILES, type PageRevision } from './page-cache.ts';
 import { isPlainObject } from '../src/types.ts';
 import { isCompoundUniqueEffect } from '../src/model/rules.ts';
 
@@ -76,8 +76,8 @@ function pageRewards(source: Row) {
 /** Legacy snapshots have no revision file. Once revisions exist, an interrupted refresh must not mix source versions. */
 export function validatePageRevisions(raw: SourceTables, pages: PageSources, uniqueTexts: Record<string, string>, revisions?: Record<string, PageRevision>): void {
   if (!revisions) return;
-  const sources = Object.fromEntries(PAGE_SOURCE_FILES.map((key) => [key, fingerprint(raw[key.replace('__', '/')])]));
-  const current = (key: string, card: Row, payload: unknown) => check(pageCacheMatches(revisions[key], pageInput(key, card, sources), payload), `${key} page cache does not match its source revision; finish npm run fetch before normalizing`);
+  const inputFor = pageInputs(Object.fromEntries(PAGE_SOURCE_FILES.map((key) => [key, raw[key.replace('__', '/')]!])));
+  const current = (key: string, card: Row, payload: unknown) => check(pageCacheMatches(revisions[key], inputFor(key, card), payload), `${key} page cache does not match its source revision; finish npm run fetch before normalizing`);
   for (const card of global(raw['support-cards']!)) {
     current(`support:${card.support_id}`, card, { names: pages.eventNames[card.support_id], ...(['friend', 'group'].includes(card.type) ? { full: pages.palGroupEvents[card.support_id] } : {}) });
     if (card.unique?.effects.some((effect: Row) => isCompoundUniqueEffect(effect.type))) current(`unique:${card.support_id}`, card, uniqueTexts[card.support_id]);
