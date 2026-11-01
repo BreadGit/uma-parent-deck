@@ -2,7 +2,7 @@
  "100102": {
   "wchoice": [
    {
-    "i": 4022,
+    "i": 4039,
     "n": "A Beautiful Day for Tennis",
     "c": [
      {
@@ -26,7 +26,7 @@
     ]
    },
    {
-    "i": 4023,
+    "i": 4040,
     "n": "Karaoke Connoisseur ♪",
     "c": [
      {
@@ -50,7 +50,7 @@
     ]
    },
    {
-    "i": 4025,
+    "i": 4042,
     "n": "Early Afternoon Payback",
     "c": [
      {
@@ -79,7 +79,7 @@
     ]
    },
    {
-    "i": 4026,
+    "i": 4043,
     "n": "Special Week's Alter Ego",
     "c": [
      {
@@ -228,7 +228,7 @@
   ],
   "nochoice": [
    {
-    "i": 4016,
+    "i": 4033,
     "n": "Derby Trainer",
     "c": [
      {
@@ -243,7 +243,7 @@
     ]
    },
    {
-    "i": 4017,
+    "i": 4034,
     "n": "Derby Press Conference!",
     "c": [
      {
@@ -258,7 +258,7 @@
     ]
    },
    {
-    "i": 4018,
+    "i": 4035,
     "n": "A Rival Named...",
     "c": [
      {
@@ -273,7 +273,7 @@
     ]
    },
    {
-    "i": 4019,
+    "i": 4036,
     "n": "Bird and the Beast",
     "c": [
      {
@@ -288,7 +288,7 @@
     ]
    },
    {
-    "i": 4020,
+    "i": 4037,
     "n": "Fire in Your Eyes",
     "c": [
      {
@@ -307,7 +307,7 @@
     ]
    },
    {
-    "i": 4024,
+    "i": 4041,
     "n": "A Dangerous Drink",
     "c": [
      {
@@ -480,7 +480,7 @@
   ],
   "version": [
    {
-    "i": 4035,
+    "i": 4052,
     "n": "Swimsuit Power Unlocked!",
     "c": [
      {
@@ -508,7 +508,7 @@
     ]
    },
    {
-    "i": 4036,
+    "i": 4053,
     "n": "Best Summer Ever!",
     "c": [
      {
@@ -540,7 +540,7 @@
     ]
    },
    {
-    "i": 4037,
+    "i": 4054,
     "n": "To My Dear Mama",
     "c": [
      {
@@ -579,7 +579,7 @@
   ],
   "outings": [
    {
-    "i": 4027,
+    "i": 4044,
     "n": "Because It's Special",
     "c": [
      {
@@ -603,7 +603,7 @@
     ]
    },
    {
-    "i": 4028,
+    "i": 4045,
     "n": "A Place I Want to Take You",
     "c": [
      {
@@ -627,7 +627,7 @@
     ]
    },
    {
-    "i": 4029,
+    "i": 4046,
     "n": "Someone I Respect",
     "c": [
      {
@@ -668,7 +668,7 @@
     ]
    },
    {
-    "i": 4030,
+    "i": 4047,
     "n": "Just a Little More",
     "c": [
      {
@@ -694,7 +694,7 @@
     ]
    },
    {
-    "i": 4031,
+    "i": 4048,
     "n": "Research Fanatic",
     "c": [
      {
@@ -722,7 +722,7 @@
   ],
   "secret": [
    {
-    "i": 4021,
+    "i": 4038,
     "n": "Rivals in Arms",
     "c": [
      {
@@ -780,7 +780,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 4021,
+       "i": 4038,
        "n": "Rivals in Arms",
        "c": [
         {
@@ -843,7 +843,7 @@
  "100103": {
   "wchoice": [
    {
-    "i": 4022,
+    "i": 4039,
     "n": "A Beautiful Day for Tennis",
     "c": [
      {
@@ -867,7 +867,7 @@
     ]
    },
    {
-    "i": 4023,
+    "i": 4040,
     "n": "Karaoke Connoisseur ♪",
     "c": [
      {
@@ -891,7 +891,7 @@
     ]
    },
    {
-    "i": 4025,
+    "i": 4042,
     "n": "Early Afternoon Payback",
     "c": [
      {
@@ -920,7 +920,7 @@
     ]
    },
    {
-    "i": 4026,
+    "i": 4043,
     "n": "Special Week's Alter Ego",
     "c": [
      {
@@ -1069,7 +1069,7 @@
   ],
   "nochoice": [
    {
-    "i": 4016,
+    "i": 4033,
     "n": "Derby Trainer",
     "c": [
      {
@@ -1084,7 +1084,7 @@
     ]
    },
    {
-    "i": 4017,
+    "i": 4034,
     "n": "Derby Press Conference!",
     "c": [
      {
@@ -1099,7 +1099,7 @@
     ]
    },
    {
-    "i": 4018,
+    "i": 4035,
     "n": "A Rival Named...",
     "c": [
      {
@@ -1114,7 +1114,7 @@
     ]
    },
    {
-    "i": 4019,
+    "i": 4036,
     "n": "Bird and the Beast",
     "c": [
      {
@@ -1129,7 +1129,7 @@
     ]
    },
    {
-    "i": 4020,
+    "i": 4037,
     "n": "Fire in Your Eyes",
     "c": [
      {
@@ -1148,7 +1148,7 @@
     ]
    },
    {
-    "i": 4024,
+    "i": 4041,
     "n": "A Dangerous Drink",
     "c": [
      {
@@ -1321,7 +1321,7 @@
   ],
   "version": [
    {
-    "i": 4038,
+    "i": 4055,
     "n": "The Days Past and the Days to Come",
     "c": [
      {
@@ -1360,7 +1360,7 @@
     ]
    },
    {
-    "i": 4039,
+    "i": 4056,
     "n": "The Ruler of the Stage",
     "c": [
      {
@@ -1380,7 +1380,7 @@
     ]
    },
    {
-    "i": 4040,
+    "i": 4057,
     "n": "Spe's Impromptu Guided Tour",
     "c": [
      {
@@ -1422,7 +1422,7 @@
   ],
   "outings": [
    {
-    "i": 4027,
+    "i": 4044,
     "n": "Because It's Special",
     "c": [
      {
@@ -1446,7 +1446,7 @@
     ]
    },
    {
-    "i": 4028,
+    "i": 4045,
     "n": "A Place I Want to Take You",
     "c": [
      {
@@ -1470,7 +1470,7 @@
     ]
    },
    {
-    "i": 4029,
+    "i": 4046,
     "n": "Someone I Respect",
     "c": [
      {
@@ -1511,7 +1511,7 @@
     ]
    },
    {
-    "i": 4030,
+    "i": 4047,
     "n": "Just a Little More",
     "c": [
      {
@@ -1537,7 +1537,7 @@
     ]
    },
    {
-    "i": 4031,
+    "i": 4048,
     "n": "Research Fanatic",
     "c": [
      {
@@ -1565,7 +1565,7 @@
   ],
   "secret": [
    {
-    "i": 4021,
+    "i": 4038,
     "n": "Rivals in Arms",
     "c": [
      {
@@ -1623,7 +1623,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 4021,
+       "i": 4038,
        "n": "Rivals in Arms",
        "c": [
         {
@@ -1686,7 +1686,7 @@
  "100302": {
   "wchoice": [
    {
-    "i": 4312,
+    "i": 4329,
     "n": "Empress vs Monarch",
     "c": [
      {
@@ -1710,7 +1710,7 @@
     ]
    },
    {
-    "i": 4313,
+    "i": 4330,
     "n": "Cupcakes for All",
     "c": [
      {
@@ -1742,7 +1742,7 @@
     ]
    },
    {
-    "i": 4315,
+    "i": 4332,
     "n": "Teio's Warrior Training",
     "c": [
      {
@@ -1771,7 +1771,7 @@
     ]
    },
    {
-    "i": 4316,
+    "i": 4333,
     "n": "Karaoke Power?",
     "c": [
      {
@@ -1795,7 +1795,7 @@
     ]
    },
    {
-    "i": 4317,
+    "i": 4334,
     "n": "Teio, an Umadol?!",
     "c": [
      {
@@ -1880,7 +1880,7 @@
   ],
   "nochoice": [
    {
-    "i": 4306,
+    "i": 4323,
     "n": "A Lofty Goal",
     "c": [
      {
@@ -1895,7 +1895,7 @@
     ]
    },
    {
-    "i": 4307,
+    "i": 4324,
     "n": "Pre-Classics Press Conference",
     "c": [
      {
@@ -1910,7 +1910,7 @@
     ]
    },
    {
-    "i": 4308,
+    "i": 4325,
     "n": "Going to the Kikuka Sho!",
     "c": [
      {
@@ -1925,7 +1925,7 @@
     ]
    },
    {
-    "i": 4309,
+    "i": 4326,
     "n": "Earth vs Heaven",
     "c": [
      {
@@ -1944,7 +1944,7 @@
     ]
    },
    {
-    "i": 4310,
+    "i": 4327,
     "n": "The Path Beyond Defeat",
     "c": [
      {
@@ -1959,7 +1959,7 @@
     ]
    },
    {
-    "i": 4311,
+    "i": 4328,
     "n": "What's Lacking",
     "c": [
      {
@@ -1974,7 +1974,7 @@
     ]
    },
    {
-    "i": 4314,
+    "i": 4331,
     "n": "I'm Fine...",
     "c": [
      {
@@ -1993,7 +1993,7 @@
     ]
    },
    {
-    "i": 4318,
+    "i": 4335,
     "n": "You Can't Have It!",
     "c": [
      {
@@ -2175,7 +2175,7 @@
   ],
   "version": [
    {
-    "i": 4329,
+    "i": 4346,
     "n": "Rivals on Paper, Friends in Practice",
     "c": [
      {
@@ -2204,7 +2204,7 @@
     ]
    },
    {
-    "i": 4330,
+    "i": 4347,
     "n": "The Secret to Teio Tenacity",
     "c": [
      {
@@ -2233,7 +2233,7 @@
     ]
    },
    {
-    "i": 4331,
+    "i": 4348,
     "n": "I'm Never Giving Up!",
     "c": [
      {
@@ -2279,7 +2279,7 @@
   ],
   "outings": [
    {
-    "i": 4319,
+    "i": 4336,
     "n": "I Got Praised!",
     "c": [
      {
@@ -2303,7 +2303,7 @@
     ]
    },
    {
-    "i": 4320,
+    "i": 4337,
     "n": "I Got Scolded!",
     "c": [
      {
@@ -2331,7 +2331,7 @@
     ]
    },
    {
-    "i": 4321,
+    "i": 4338,
     "n": "I Figured It Out!",
     "c": [
      {
@@ -2372,7 +2372,7 @@
     ]
    },
    {
-    "i": 4322,
+    "i": 4339,
     "n": "Grown-Up Time",
     "c": [
      {
@@ -2396,7 +2396,7 @@
     ]
    },
    {
-    "i": 4323,
+    "i": 4340,
     "n": "Punny Prez",
     "c": [
      {
@@ -2426,7 +2426,7 @@
   ],
   "secret": [
    {
-    "i": 4324,
+    "i": 4341,
     "n": "After the Kikuka Sho: Triple Crown Champion!",
     "c": [
      {
@@ -2478,7 +2478,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4324,
+       "i": 4341,
        "n": "After the Kikuka Sho: Triple Crown Champion!",
        "c": [
         {
@@ -2510,7 +2510,7 @@
     ]
    },
    {
-    "i": 4325,
+    "i": 4342,
     "n": "A Springtime Celebration",
     "c": [
      {
@@ -2540,7 +2540,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 4325,
+       "i": 4342,
        "n": "A Springtime Celebration",
        "c": [
         {
@@ -2576,7 +2576,7 @@
  "100402": {
   "wchoice": [
    {
-    "i": 2958,
+    "i": 2975,
     "n": "Hot Rod",
     "c": [
      {
@@ -2600,7 +2600,7 @@
     ]
    },
    {
-    "i": 2959,
+    "i": 2976,
     "n": "Let's Play ♪",
     "c": [
      {
@@ -2632,7 +2632,7 @@
     ]
    },
    {
-    "i": 2961,
+    "i": 2978,
     "n": "A Lady's Style ☆",
     "c": [
      {
@@ -2665,7 +2665,7 @@
     ]
    },
    {
-    "i": 2962,
+    "i": 2979,
     "n": "Let's Cook!",
     "c": [
      {
@@ -2695,7 +2695,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2962,
+       "i": 2979,
        "n": "Let's Cook!",
        "c": [
         {
@@ -2722,7 +2722,7 @@
     ]
    },
    {
-    "i": 2963,
+    "i": 2980,
     "n": "The Road to a Rad Victory!",
     "c": [
      {
@@ -2753,7 +2753,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2963,
+       "i": 2980,
        "n": "The Road to a Rad Victory!",
        "c": [
         {
@@ -2780,7 +2780,7 @@
     ]
    },
    {
-    "i": 2964,
+    "i": 2981,
     "n": "Down to Dance!",
     "c": [
      {
@@ -2810,7 +2810,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2964,
+       "i": 2981,
        "n": "Down to Dance!",
        "c": [
         {
@@ -2898,7 +2898,7 @@
   ],
   "nochoice": [
    {
-    "i": 2953,
+    "i": 2970,
     "n": "Feeling Top Gear",
     "c": [
      {
@@ -2913,7 +2913,7 @@
     ]
    },
    {
-    "i": 2954,
+    "i": 2971,
     "n": "Walk the Walk",
     "c": [
      {
@@ -2928,7 +2928,7 @@
     ]
    },
    {
-    "i": 2955,
+    "i": 2972,
     "n": "To New Heights",
     "c": [
      {
@@ -2943,7 +2943,7 @@
     ]
    },
    {
-    "i": 2956,
+    "i": 2973,
     "n": "A Fun Race",
     "c": [
      {
@@ -2958,7 +2958,7 @@
     ]
    },
    {
-    "i": 2957,
+    "i": 2974,
     "n": "Bring It",
     "c": [
      {
@@ -2977,7 +2977,7 @@
     ]
    },
    {
-    "i": 2960,
+    "i": 2977,
     "n": "Virtual Car Race",
     "c": [
      {
@@ -3150,7 +3150,7 @@
   ],
   "version": [
    {
-    "i": 2974,
+    "i": 2991,
     "n": "The Maruzen I Admire",
     "c": [
      {
@@ -3178,7 +3178,7 @@
     ]
    },
    {
-    "i": 2975,
+    "i": 2992,
     "n": "Welcome to Bubblyland",
     "c": [
      {
@@ -3202,7 +3202,7 @@
     ]
    },
    {
-    "i": 2976,
+    "i": 2993,
     "n": "Maruzensky's Treasure",
     "c": [
      {
@@ -3241,7 +3241,7 @@
   ],
   "outings": [
    {
-    "i": 2965,
+    "i": 2982,
     "n": "The Secret to Supporting Each Other",
     "c": [
      {
@@ -3265,7 +3265,7 @@
     ]
    },
    {
-    "i": 2966,
+    "i": 2983,
     "n": "Even Role Models Get Lonely",
     "c": [
      {
@@ -3297,7 +3297,7 @@
     ]
    },
    {
-    "i": 2967,
+    "i": 2984,
     "n": "Take the Wheel",
     "c": [
      {
@@ -3330,7 +3330,7 @@
     ]
    },
    {
-    "i": 2968,
+    "i": 2985,
     "n": "Meeting New People Is Trendy ☆",
     "c": [
      {
@@ -3354,7 +3354,7 @@
     ]
    },
    {
-    "i": 2969,
+    "i": 2986,
     "n": "The Fun Never Stops ♪",
     "c": [
      {
@@ -3388,7 +3388,7 @@
   ],
   "secret": [
    {
-    "i": 2970,
+    "i": 2987,
     "n": "Fukushima in Summer",
     "c": [
      {
@@ -3428,7 +3428,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2970,
+       "i": 2987,
        "n": "Fukushima in Summer",
        "c": [
         {
@@ -3478,7 +3478,7 @@
  "100502": {
   "wchoice": [
    {
-    "i": 2365,
+    "i": 2382,
     "n": "Act 1: Smile",
     "c": [
      {
@@ -3512,7 +3512,7 @@
     ]
    },
    {
-    "i": 2373,
+    "i": 2390,
     "n": "A Gracious Doorkeeper",
     "c": [
      {
@@ -3536,7 +3536,7 @@
     ]
    },
    {
-    "i": 2374,
+    "i": 2391,
     "n": "@DREAM_MAKER",
     "c": [
      {
@@ -3560,7 +3560,7 @@
     ]
    },
    {
-    "i": 2376,
+    "i": 2393,
     "n": "Two Superstars Compete",
     "c": [
      {
@@ -3650,7 +3650,7 @@
   ],
   "nochoice": [
    {
-    "i": 2366,
+    "i": 2383,
     "n": "Act 2: Tonight, the World Is Wild",
     "c": [
      {
@@ -3665,7 +3665,7 @@
     ]
    },
    {
-    "i": 2367,
+    "i": 2384,
     "n": "Act 3: A Rose by Any Other Name",
     "c": [
      {
@@ -3680,7 +3680,7 @@
     ]
    },
    {
-    "i": 2368,
+    "i": 2385,
     "n": "Act 4: You're Beautiful",
     "c": [
      {
@@ -3695,7 +3695,7 @@
     ]
    },
    {
-    "i": 2369,
+    "i": 2386,
     "n": "Act 5: As You Like It",
     "c": [
      {
@@ -3710,7 +3710,7 @@
     ]
    },
    {
-    "i": 2375,
+    "i": 2392,
     "n": "So Sweet It Gives You Heartburn",
     "c": [
      {
@@ -3729,7 +3729,7 @@
     ]
    },
    {
-    "i": 2377,
+    "i": 2394,
     "n": "Intermission: Ready to Love",
     "c": [
      {
@@ -3932,7 +3932,7 @@
   ],
   "version": [
    {
-    "i": 2386,
+    "i": 2403,
     "n": "The Shape of a Miracle",
     "c": [
      {
@@ -3974,7 +3974,7 @@
     ]
    },
    {
-    "i": 2387,
+    "i": 2404,
     "n": "A Proffered Hand",
     "c": [
      {
@@ -4016,7 +4016,7 @@
     ]
    },
    {
-    "i": 2388,
+    "i": 2405,
     "n": "The Way I See You",
     "c": [
      {
@@ -4055,7 +4055,7 @@
   ],
   "outings": [
    {
-    "i": 2378,
+    "i": 2395,
     "n": "No Regrets",
     "c": [
      {
@@ -4079,7 +4079,7 @@
     ]
    },
    {
-    "i": 2379,
+    "i": 2396,
     "n": "For Your Sake Alone",
     "c": [
      {
@@ -4103,7 +4103,7 @@
     ]
    },
    {
-    "i": 2380,
+    "i": 2397,
     "n": "The Greatest Blessing in Life",
     "c": [
      {
@@ -4136,7 +4136,7 @@
     ]
    },
    {
-    "i": 2381,
+    "i": 2398,
     "n": "One Act from the Wings",
     "c": [
      {
@@ -4160,7 +4160,7 @@
     ]
    },
    {
-    "i": 2382,
+    "i": 2399,
     "n": "Stargazing",
     "c": [
      {
@@ -4186,7 +4186,7 @@
   ],
   "secret": [
    {
-    "i": 2370,
+    "i": 2387,
     "n": "Words Do No Justice",
     "c": [
      {
@@ -4233,7 +4233,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2370,
+       "i": 2387,
        "n": "Words Do No Justice",
        "c": [
         {
@@ -4281,7 +4281,7 @@
     ]
    },
    {
-    "i": 2371,
+    "i": 2388,
     "n": "Can't Stop the Beat",
     "c": [
      {
@@ -4326,7 +4326,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2371,
+       "i": 2388,
        "n": "Can't Stop the Beat",
        "c": [
         {
@@ -4372,7 +4372,7 @@
     ]
    },
    {
-    "i": 2372,
+    "i": 2389,
     "n": "My Lucky Star",
     "c": [
      {
@@ -4424,7 +4424,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2372,
+       "i": 2389,
        "n": "My Lucky Star",
        "c": [
         {
@@ -4486,7 +4486,7 @@
  "100602": {
   "wchoice": [
    {
-    "i": 3542,
+    "i": 3559,
     "n": "Lost Umamusume",
     "c": [
      {
@@ -4510,7 +4510,7 @@
     ]
    },
    {
-    "i": 3543,
+    "i": 3560,
     "n": "Field Workout",
     "c": [
      {
@@ -4534,7 +4534,7 @@
     ]
    },
    {
-    "i": 3545,
+    "i": 3562,
     "n": "Running on Full",
     "c": [
      {
@@ -4563,7 +4563,7 @@
     ]
    },
    {
-    "i": 3546,
+    "i": 3563,
     "n": "Oguri's Gluttony Championship",
     "c": [
      {
@@ -4668,7 +4668,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3546,
+       "i": 3563,
        "n": "Oguri's Gluttony Championship",
        "c": [
         {
@@ -4796,7 +4796,7 @@
   ],
   "nochoice": [
    {
-    "i": 3534,
+    "i": 3551,
     "n": "That's Why I'll Win",
     "c": [
      {
@@ -4811,7 +4811,7 @@
     ]
    },
    {
-    "i": 3535,
+    "i": 3552,
     "n": "Spread the Word",
     "c": [
      {
@@ -4826,7 +4826,7 @@
     ]
    },
    {
-    "i": 3536,
+    "i": 3553,
     "n": "A Gathering of Greats",
     "c": [
      {
@@ -4841,7 +4841,7 @@
     ]
    },
    {
-    "i": 3537,
+    "i": 3554,
     "n": "Like a River",
     "c": [
      {
@@ -4856,7 +4856,7 @@
     ]
    },
    {
-    "i": 3538,
+    "i": 3555,
     "n": "The Road Ahead",
     "c": [
      {
@@ -4871,7 +4871,7 @@
     ]
    },
    {
-    "i": 3544,
+    "i": 3561,
     "n": "Familiar Faces in the Clouds",
     "c": [
      {
@@ -5044,7 +5044,7 @@
   ],
   "version": [
    {
-    "i": 3555,
+    "i": 3572,
     "n": "Dashing through the Snow",
     "c": [
      {
@@ -5072,7 +5072,7 @@
     ]
    },
    {
-    "i": 3556,
+    "i": 3573,
     "n": "Everyone's Oguri Cap",
     "c": [
      {
@@ -5113,7 +5113,7 @@
     ]
    },
    {
-    "i": 3557,
+    "i": 3574,
     "n": "A Grown-Up Present",
     "c": [
      {
@@ -5157,7 +5157,7 @@
   ],
   "outings": [
    {
-    "i": 3547,
+    "i": 3564,
     "n": "Oguri Makes a Resolution",
     "c": [
      {
@@ -5189,7 +5189,7 @@
     ]
    },
    {
-    "i": 3548,
+    "i": 3565,
     "n": "Oguri Perseveres",
     "c": [
      {
@@ -5213,7 +5213,7 @@
     ]
    },
    {
-    "i": 3549,
+    "i": 3566,
     "n": "Oguri Matures",
     "c": [
      {
@@ -5246,7 +5246,7 @@
     ]
    },
    {
-    "i": 3550,
+    "i": 3567,
     "n": "Something Smells Good!",
     "c": [
      {
@@ -5270,7 +5270,7 @@
     ]
    },
    {
-    "i": 3551,
+    "i": 3568,
     "n": "High-Level Rival",
     "c": [
      {
@@ -5304,7 +5304,7 @@
   ],
   "secret": [
    {
-    "i": 3539,
+    "i": 3556,
     "n": "At the Tenno Sho (Spring)",
     "c": [
      {
@@ -5338,7 +5338,7 @@
     ]
    },
    {
-    "i": 3540,
+    "i": 3557,
     "n": "At the Tenno Sho (Spring)",
     "c": [
      {
@@ -5359,7 +5359,7 @@
     ]
    },
    {
-    "i": 3541,
+    "i": 3558,
     "n": "Together Forever",
     "c": [
      {
@@ -5421,7 +5421,7 @@
  "100702": {
   "wchoice": [
    {
-    "i": 2486,
+    "i": 2503,
     "n": "Summer Camp (Year 3) Ends",
     "c": [
      {
@@ -5438,7 +5438,7 @@
     "meaningless_choices": true
    },
    {
-    "i": 2487,
+    "i": 2504,
     "n": "Pair Discount Repeat Offender",
     "c": [
      {
@@ -5462,7 +5462,7 @@
     ]
    },
    {
-    "i": 2488,
+    "i": 2505,
     "n": "Which Did You Lose?",
     "c": [
      {
@@ -5490,7 +5490,7 @@
     ]
    },
    {
-    "i": 2490,
+    "i": 2507,
     "n": "My Part-Time Job Is... Crazy?",
     "c": [
      {
@@ -5519,7 +5519,7 @@
     ]
    },
    {
-    "i": 2491,
+    "i": 2508,
     "n": "The Day After, Voices Hoarse",
     "c": [
      {
@@ -5553,7 +5553,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2491,
+       "i": 2508,
        "n": "The Day After, Voices Hoarse",
        "c": [
         {
@@ -5580,7 +5580,7 @@
     ]
    },
    {
-    "i": 2493,
+    "i": 2510,
     "n": "This One's For Keeps!",
     "c": [
      {
@@ -5682,7 +5682,7 @@
   ],
   "nochoice": [
    {
-    "i": 2481,
+    "i": 2498,
     "n": "Moms Over Gods",
     "c": [
      {
@@ -5697,7 +5697,7 @@
     ]
    },
    {
-    "i": 2482,
+    "i": 2499,
     "n": "Aiming for Paris Fashion Week",
     "c": [
      {
@@ -5712,7 +5712,7 @@
     ]
    },
    {
-    "i": 2483,
+    "i": 2500,
     "n": "Aiming for Normiedom",
     "c": [
      {
@@ -5727,7 +5727,7 @@
     ]
    },
    {
-    "i": 2484,
+    "i": 2501,
     "n": "A Serious Battle",
     "c": [
      {
@@ -5742,7 +5742,7 @@
     ]
    },
    {
-    "i": 2485,
+    "i": 2502,
     "n": "Road to Eden",
     "c": [
      {
@@ -5757,7 +5757,7 @@
     ]
    },
    {
-    "i": 2489,
+    "i": 2506,
     "n": "The Seven Wonders of Golshi (Pending)",
     "c": [
      {
@@ -5776,7 +5776,7 @@
     ]
    },
    {
-    "i": 2492,
+    "i": 2509,
     "n": "Golshi the Fickle Maiden ☆",
     "c": [
      {
@@ -5954,7 +5954,7 @@
   ],
   "version": [
    {
-    "i": 2503,
+    "i": 2520,
     "n": "Welcome to Gol-Chateau",
     "c": [
      {
@@ -5978,7 +5978,7 @@
     ]
    },
    {
-    "i": 2504,
+    "i": 2521,
     "n": "The Beach House (Family)",
     "c": [
      {
@@ -5993,7 +5993,7 @@
     ]
    },
    {
-    "i": 2505,
+    "i": 2522,
     "n": "Golshi, Master of Marine Creatures",
     "c": [
      {
@@ -6032,7 +6032,7 @@
   ],
   "outings": [
    {
-    "i": 2494,
+    "i": 2511,
     "n": "Legend of the Left Pinky",
     "c": [
      {
@@ -6056,7 +6056,7 @@
     ]
    },
    {
-    "i": 2495,
+    "i": 2512,
     "n": "Hello From About 1.5 Billion Years Ago",
     "c": [
      {
@@ -6080,7 +6080,7 @@
     ]
    },
    {
-    "i": 2496,
+    "i": 2513,
     "n": "And Then She...",
     "c": [
      {
@@ -6113,7 +6113,7 @@
     ]
    },
    {
-    "i": 2497,
+    "i": 2514,
     "n": "A Lovely Place",
     "c": [
      {
@@ -6137,7 +6137,7 @@
     ]
    },
    {
-    "i": 2498,
+    "i": 2515,
     "n": "Nighttime Park Visit",
     "c": [
      {
@@ -6163,7 +6163,7 @@
   ],
   "secret": [
    {
-    "i": 2499,
+    "i": 2516,
     "n": "After the Takarazuka Kinen: Keyword 2",
     "c": [
      {
@@ -6267,7 +6267,7 @@
  "100802": {
   "wchoice": [
    {
-    "i": 4474,
+    "i": 4491,
     "n": "Like a Kid",
     "c": [
      {
@@ -6291,7 +6291,7 @@
     ]
    },
    {
-    "i": 4475,
+    "i": 4492,
     "n": "Challenging Fate",
     "c": [
      {
@@ -6315,7 +6315,7 @@
     ]
    },
    {
-    "i": 4477,
+    "i": 4494,
     "n": "Showdown by the River!",
     "c": [
      {
@@ -6344,7 +6344,7 @@
     ]
    },
    {
-    "i": 4478,
+    "i": 4495,
     "n": "The Ultimate Choice",
     "c": [
      {
@@ -6457,7 +6457,7 @@
   ],
   "nochoice": [
    {
-    "i": 4468,
+    "i": 4485,
     "n": "Crossroads",
     "c": [
      {
@@ -6472,7 +6472,7 @@
     ]
    },
    {
-    "i": 4469,
+    "i": 4486,
     "n": "Dream Junction",
     "c": [
      {
@@ -6487,7 +6487,7 @@
     ]
    },
    {
-    "i": 4470,
+    "i": 4487,
     "n": "Can't All Be Sunshine",
     "c": [
      {
@@ -6502,7 +6502,7 @@
     ]
    },
    {
-    "i": 4471,
+    "i": 4488,
     "n": "An Outlaw Again",
     "c": [
      {
@@ -6517,7 +6517,7 @@
     ]
    },
    {
-    "i": 4472,
+    "i": 4489,
     "n": "Road of Stardust",
     "c": [
      {
@@ -6536,7 +6536,7 @@
     ]
    },
    {
-    "i": 4476,
+    "i": 4493,
     "n": "This is a Nightmare!",
     "c": [
      {
@@ -6709,7 +6709,7 @@
   ],
   "version": [
    {
-    "i": 4491,
+    "i": 4508,
     "n": "Too Soon for Vodka",
     "c": [
      {
@@ -6743,7 +6743,7 @@
     ]
    },
    {
-    "i": 4492,
+    "i": 4509,
     "n": "The Holidays Hit You Fast",
     "c": [
      {
@@ -6821,7 +6821,7 @@
     ]
    },
    {
-    "i": 4493,
+    "i": 4510,
     "n": "What Bein' Cool Means",
     "c": [
      {
@@ -6860,7 +6860,7 @@
   ],
   "outings": [
    {
-    "i": 4479,
+    "i": 4496,
     "n": "The Standards of Coolness",
     "c": [
      {
@@ -6884,7 +6884,7 @@
     ]
    },
    {
-    "i": 4480,
+    "i": 4497,
     "n": "Ring Out, Passionate Sound!",
     "c": [
      {
@@ -6908,7 +6908,7 @@
     ]
    },
    {
-    "i": 4481,
+    "i": 4498,
     "n": "The Way of Cool",
     "c": [
      {
@@ -6945,7 +6945,7 @@
     ]
    },
    {
-    "i": 4482,
+    "i": 4499,
     "n": "Let's Take a Little Detour",
     "c": [
      {
@@ -6973,7 +6973,7 @@
     ]
    },
    {
-    "i": 4483,
+    "i": 4500,
     "n": "Sugar and Spice",
     "c": [
      {
@@ -6999,7 +6999,7 @@
   ],
   "secret": [
    {
-    "i": 4473,
+    "i": 4490,
     "n": "The Coolest and Number One",
     "c": [
      {
@@ -7078,7 +7078,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 4473,
+       "i": 4490,
        "n": "The Coolest and Number One",
        "c": [
         {
@@ -7148,7 +7148,7 @@
     ]
    },
    {
-    "i": 4484,
+    "i": 4501,
     "n": "After the Queen Elizabeth II Cup: Tyrannical Queen!",
     "c": [
      {
@@ -7183,7 +7183,7 @@
     ]
    },
    {
-    "i": 4485,
+    "i": 4502,
     "n": "After the Queen Elizabeth II Cup: Tsundere Queen",
     "c": [
      {
@@ -7214,7 +7214,7 @@
     ]
    },
    {
-    "i": 4486,
+    "i": 4503,
     "n": "After the Yasuda Kinen: Pedal to the Metal!",
     "c": [
      {
@@ -7239,7 +7239,7 @@
     ]
    },
    {
-    "i": 4487,
+    "i": 4504,
     "n": "After the Yasuda Kinen: Consecutive Celebration",
     "c": [
      {
@@ -7285,7 +7285,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4487,
+       "i": 4504,
        "n": "After the Yasuda Kinen: Consecutive Celebration",
        "c": [
         {
@@ -7337,7 +7337,7 @@
  "100902": {
   "wchoice": [
    {
-    "i": 2107,
+    "i": 2121,
     "n": "Her",
     "c": [
      {
@@ -7371,7 +7371,7 @@
     ]
    },
    {
-    "i": 2111,
+    "i": 2125,
     "n": "Recommended Restaurant",
     "c": [
      {
@@ -7403,7 +7403,7 @@
     ]
    },
    {
-    "i": 2112,
+    "i": 2126,
     "n": "Advice from an Older Student",
     "c": [
      {
@@ -7427,7 +7427,7 @@
     ]
    },
    {
-    "i": 2114,
+    "i": 2128,
     "n": "Enjoying Number One",
     "c": [
      {
@@ -7517,7 +7517,7 @@
   ],
   "nochoice": [
    {
-    "i": 2105,
+    "i": 2119,
     "n": "There Can Only Be One",
     "c": [
      {
@@ -7532,7 +7532,7 @@
     ]
    },
    {
-    "i": 2106,
+    "i": 2120,
     "n": "My Number One",
     "c": [
      {
@@ -7547,7 +7547,7 @@
     ]
    },
    {
-    "i": 2108,
+    "i": 2122,
     "n": "Empty Room",
     "c": [
      {
@@ -7562,7 +7562,7 @@
     ]
    },
    {
-    "i": 2109,
+    "i": 2123,
     "n": "Number-One Rival",
     "c": [
      {
@@ -7581,7 +7581,7 @@
     ]
    },
    {
-    "i": 2113,
+    "i": 2127,
     "n": "A Curious Rumor",
     "c": [
      {
@@ -7600,7 +7600,7 @@
     ]
    },
    {
-    "i": 2115,
+    "i": 2129,
     "n": "Run, Run, Futsal Time!",
     "c": [
      {
@@ -7790,7 +7790,7 @@
   ],
   "version": [
    {
-    "i": 2128,
+    "i": 2142,
     "n": "Planning the Perfect Party",
     "c": [
      {
@@ -7824,7 +7824,7 @@
     ]
    },
    {
-    "i": 2129,
+    "i": 2143,
     "n": "Jingle Bells for Two",
     "c": [
      {
@@ -7902,7 +7902,7 @@
     ]
    },
    {
-    "i": 2130,
+    "i": 2144,
     "n": "The Sun Keeps Rising",
     "c": [
      {
@@ -7945,7 +7945,7 @@
   ],
   "outings": [
    {
-    "i": 2116,
+    "i": 2130,
     "n": "As a Model Student...",
     "c": [
      {
@@ -7969,7 +7969,7 @@
     ]
    },
    {
-    "i": 2117,
+    "i": 2131,
     "n": "Just a Little More",
     "c": [
      {
@@ -7993,7 +7993,7 @@
     ]
    },
    {
-    "i": 2118,
+    "i": 2132,
     "n": "Under the Evening Star",
     "c": [
      {
@@ -8030,7 +8030,7 @@
     ]
    },
    {
-    "i": 2119,
+    "i": 2133,
     "n": "Rained On",
     "c": [
      {
@@ -8054,7 +8054,7 @@
     ]
    },
    {
-    "i": 2120,
+    "i": 2134,
     "n": "How to Spend a Day Off",
     "c": [
      {
@@ -8084,7 +8084,7 @@
   ],
   "secret": [
    {
-    "i": 2110,
+    "i": 2124,
     "n": "Number One and the Coolest",
     "c": [
      {
@@ -8169,7 +8169,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2110,
+       "i": 2124,
        "n": "Number One and the Coolest",
        "c": [
         {
@@ -8247,7 +8247,7 @@
     ]
    },
    {
-    "i": 2121,
+    "i": 2135,
     "n": "The Japanese Derby",
     "c": [
      {
@@ -8271,7 +8271,7 @@
     ]
    },
    {
-    "i": 2122,
+    "i": 2136,
     "n": "After the Shuka Sho: Obviously!",
     "c": [
      {
@@ -8292,7 +8292,7 @@
     ]
    },
    {
-    "i": 2123,
+    "i": 2137,
     "n": "After the Shuka Sho: Aching Legs",
     "c": [
      {
@@ -8313,7 +8313,7 @@
     ]
    },
    {
-    "i": 2124,
+    "i": 2138,
     "n": "After the Tenno Sho (Autumn): They Haven't Changed",
     "c": [
      {
@@ -8347,7 +8347,7 @@
  "101002": {
   "wchoice": [
    {
-    "i": 4191,
+    "i": 4208,
     "n": "Hide-and-Seek",
     "c": [
      {
@@ -8371,7 +8371,7 @@
     ]
    },
    {
-    "i": 4192,
+    "i": 4209,
     "n": "Embracing Guidance",
     "c": [
      {
@@ -8395,7 +8395,7 @@
     ]
    },
    {
-    "i": 4194,
+    "i": 4211,
     "n": "Harvest Festival",
     "c": [
      {
@@ -8424,7 +8424,7 @@
     ]
    },
    {
-    "i": 4195,
+    "i": 4212,
     "n": "Serial Riddler",
     "c": [
      {
@@ -8463,7 +8463,7 @@
     ]
    },
    {
-    "i": 4196,
+    "i": 4213,
     "n": "Taste of Home",
     "c": [
      {
@@ -8563,7 +8563,7 @@
   ],
   "nochoice": [
    {
-    "i": 4185,
+    "i": 4202,
     "n": "Racing Dreams",
     "c": [
      {
@@ -8578,7 +8578,7 @@
     ]
    },
    {
-    "i": 4186,
+    "i": 4203,
     "n": "Frontier Spirit",
     "c": [
      {
@@ -8593,7 +8593,7 @@
     ]
    },
    {
-    "i": 4187,
+    "i": 4204,
     "n": "A Path Forward",
     "c": [
      {
@@ -8608,7 +8608,7 @@
     ]
    },
    {
-    "i": 4188,
+    "i": 4205,
     "n": "Pioneer",
     "c": [
      {
@@ -8623,7 +8623,7 @@
     ]
    },
    {
-    "i": 4189,
+    "i": 4206,
     "n": "Chasing Your Shadow",
     "c": [
      {
@@ -8638,7 +8638,7 @@
     ]
    },
    {
-    "i": 4193,
+    "i": 4210,
     "n": "Outlaw?",
     "c": [
      {
@@ -8817,7 +8817,7 @@
   ],
   "version": [
    {
-    "i": 4209,
+    "i": 4226,
     "n": "Heart to Heart",
     "c": [
      {
@@ -8854,7 +8854,7 @@
     ]
    },
    {
-    "i": 4210,
+    "i": 4227,
     "n": "Beat for Beat",
     "c": [
      {
@@ -8878,7 +8878,7 @@
     ]
    },
    {
-    "i": 4211,
+    "i": 4228,
     "n": "Love and Love",
     "c": [
      {
@@ -8909,7 +8909,7 @@
   ],
   "outings": [
    {
-    "i": 4197,
+    "i": 4214,
     "n": "Rainy Power",
     "c": [
      {
@@ -8933,7 +8933,7 @@
     ]
    },
    {
-    "i": 4198,
+    "i": 4215,
     "n": "Rainy Choice",
     "c": [
      {
@@ -8965,7 +8965,7 @@
     ]
    },
    {
-    "i": 4199,
+    "i": 4216,
     "n": "Rainy Rescue",
     "c": [
      {
@@ -9006,7 +9006,7 @@
     ]
    },
    {
-    "i": 4200,
+    "i": 4217,
     "n": "Let's Patrol!",
     "c": [
      {
@@ -9030,7 +9030,7 @@
     ]
    },
    {
-    "i": 4201,
+    "i": 4218,
     "n": "Going Home Together",
     "c": [
      {
@@ -9064,7 +9064,7 @@
   ],
   "secret": [
    {
-    "i": 4190,
+    "i": 4207,
     "n": "Beyond the Mile",
     "c": [
      {
@@ -9131,7 +9131,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 4190,
+       "i": 4207,
        "n": "Beyond the Mile",
        "c": [
         {
@@ -9194,7 +9194,7 @@
     ]
    },
    {
-    "i": 4202,
+    "i": 4219,
     "n": "Silence Suzuka: Awakening 1",
     "c": [
      {
@@ -9216,7 +9216,7 @@
     ]
    },
    {
-    "i": 4203,
+    "i": 4220,
     "n": "Silence Suzuka: Awakening 2",
     "c": [
      {
@@ -9238,7 +9238,7 @@
     ]
    },
    {
-    "i": 4204,
+    "i": 4221,
     "n": "Silence Suzuka: Awakening 3",
     "c": [
      {
@@ -9260,7 +9260,7 @@
     ]
    },
    {
-    "i": 4205,
+    "i": 4222,
     "n": "Silence Suzuka: Awakening 4",
     "c": [
      {
@@ -9291,7 +9291,7 @@
  "101102": {
   "wchoice": [
    {
-    "i": 2533,
+    "i": 2550,
     "n": "Errands Have Perks",
     "c": [
      {
@@ -9323,7 +9323,7 @@
     ]
    },
    {
-    "i": 2534,
+    "i": 2551,
     "n": "Beauteaful",
     "c": [
      {
@@ -9351,7 +9351,7 @@
     ]
    },
    {
-    "i": 2536,
+    "i": 2553,
     "n": "Tracen Karuta Queen",
     "c": [
      {
@@ -9380,7 +9380,7 @@
     ]
    },
    {
-    "i": 2537,
+    "i": 2554,
     "n": "In Search of Refreshment",
     "c": [
      {
@@ -9456,7 +9456,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2537,
+       "i": 2554,
        "n": "In Search of Refreshment",
        "c": [
         {
@@ -9552,7 +9552,7 @@
   ],
   "nochoice": [
    {
-    "i": 2528,
+    "i": 2545,
     "n": "The Beast's Successor",
     "c": [
      {
@@ -9571,7 +9571,7 @@
     ]
    },
    {
-    "i": 2529,
+    "i": 2546,
     "n": "Gathering of Legends",
     "c": [
      {
@@ -9586,7 +9586,7 @@
     ]
    },
    {
-    "i": 2530,
+    "i": 2547,
     "n": "Out of Reach",
     "c": [
      {
@@ -9601,7 +9601,7 @@
     ]
    },
    {
-    "i": 2531,
+    "i": 2548,
     "n": "Rival Awakening",
     "c": [
      {
@@ -9616,7 +9616,7 @@
     ]
    },
    {
-    "i": 2535,
+    "i": 2552,
     "n": "Flying Car",
     "c": [
      {
@@ -9789,7 +9789,7 @@
   ],
   "version": [
    {
-    "i": 2546,
+    "i": 2563,
     "n": "A Warrior's Spirit",
     "c": [
      {
@@ -9817,7 +9817,7 @@
     ]
    },
    {
-    "i": 2547,
+    "i": 2564,
     "n": "Whimsical Encounter",
     "c": [
      {
@@ -9845,7 +9845,7 @@
     ]
    },
    {
-    "i": 2548,
+    "i": 2565,
     "n": "Everlasting Game",
     "c": [
      {
@@ -9888,7 +9888,7 @@
   ],
   "outings": [
    {
-    "i": 2538,
+    "i": 2555,
     "n": "Yamato Nadeshiko",
     "c": [
      {
@@ -9916,7 +9916,7 @@
     ]
    },
    {
-    "i": 2539,
+    "i": 2556,
     "n": "Childhoods Apart",
     "c": [
      {
@@ -9940,7 +9940,7 @@
     ]
    },
    {
-    "i": 2540,
+    "i": 2557,
     "n": "Nadeshiko Gal",
     "c": [
      {
@@ -9973,7 +9973,7 @@
     ]
    },
    {
-    "i": 2541,
+    "i": 2558,
     "n": "Childhood Dream",
     "c": [
      {
@@ -10005,7 +10005,7 @@
     ]
    },
    {
-    "i": 2542,
+    "i": 2559,
     "n": "Flower Vase",
     "c": [
      {
@@ -10039,7 +10039,7 @@
   ],
   "secret": [
    {
-    "i": 2532,
+    "i": 2549,
     "n": "Beyond the Triple Crown",
     "c": [
      {
@@ -10094,7 +10094,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2532,
+       "i": 2549,
        "n": "Beyond the Triple Crown",
        "c": [
         {
@@ -10155,7 +10155,7 @@
  "101302": {
   "wchoice": [
    {
-    "i": 3186,
+    "i": 3203,
     "n": "Queen of the Island",
     "c": [
      {
@@ -10179,7 +10179,7 @@
     ]
    },
    {
-    "i": 3187,
+    "i": 3204,
     "n": "It's Called a Sea Pineapple!",
     "c": [
      {
@@ -10203,7 +10203,7 @@
     ]
    },
    {
-    "i": 3189,
+    "i": 3206,
     "n": "Cooking Up Memories",
     "c": [
      {
@@ -10228,7 +10228,7 @@
     ]
    },
    {
-    "i": 3190,
+    "i": 3207,
     "n": "The Allure of Racecourse Food",
     "c": [
      {
@@ -10319,7 +10319,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3190,
+       "i": 3207,
        "n": "The Allure of Racecourse Food",
        "c": [
         {
@@ -10443,7 +10443,7 @@
   ],
   "nochoice": [
    {
-    "i": 3181,
+    "i": 3198,
     "n": "Blame Game",
     "c": [
      {
@@ -10458,7 +10458,7 @@
     ]
    },
    {
-    "i": 3182,
+    "i": 3199,
     "n": "Ever Since",
     "c": [
      {
@@ -10473,7 +10473,7 @@
     ]
    },
    {
-    "i": 3183,
+    "i": 3200,
     "n": "Versus Ryan",
     "c": [
      {
@@ -10488,7 +10488,7 @@
     ]
    },
    {
-    "i": 3184,
+    "i": 3201,
     "n": "Hopes for the Tenno Sho",
     "c": [
      {
@@ -10503,7 +10503,7 @@
     ]
    },
    {
-    "i": 3185,
+    "i": 3202,
     "n": "Heir to the Mejiro Family",
     "c": [
      {
@@ -10518,7 +10518,7 @@
     ]
    },
    {
-    "i": 3188,
+    "i": 3205,
     "n": "Calm and Collected?",
     "c": [
      {
@@ -10691,7 +10691,7 @@
   ],
   "version": [
    {
-    "i": 3200,
+    "i": 3217,
     "n": "My Roommate's Concern",
     "c": [
      {
@@ -10720,7 +10720,7 @@
     ]
    },
    {
-    "i": 3201,
+    "i": 3218,
     "n": "My Family Makes a Difficult Decision",
     "c": [
      {
@@ -10756,7 +10756,7 @@
     ]
    },
    {
-    "i": 3202,
+    "i": 3219,
     "n": "My Rival, No Matter the Stage",
     "c": [
      {
@@ -10799,7 +10799,7 @@
   ],
   "outings": [
    {
-    "i": 3191,
+    "i": 3208,
     "n": "Two Tickets for the Silver Screen",
     "c": [
      {
@@ -10827,7 +10827,7 @@
     ]
    },
    {
-    "i": 3192,
+    "i": 3209,
     "n": "An Excited Young Lady",
     "c": [
      {
@@ -10851,7 +10851,7 @@
     ]
    },
    {
-    "i": 3193,
+    "i": 3210,
     "n": "Endless Kingdom",
     "c": [
      {
@@ -10888,7 +10888,7 @@
     ]
    },
    {
-    "i": 3194,
+    "i": 3211,
     "n": "Bargain Find",
     "c": [
      {
@@ -10912,7 +10912,7 @@
     ]
    },
    {
-    "i": 3195,
+    "i": 3212,
     "n": "Three Ramen Bowls' Worth of Temptation",
     "c": [
      {
@@ -10942,7 +10942,7 @@
   ],
   "secret": [
    {
-    "i": 3196,
+    "i": 3213,
     "n": "Autumn Congratulations",
     "c": [
      {
@@ -10983,7 +10983,7 @@
  "101303": {
   "wchoice": [
    {
-    "i": 3186,
+    "i": 3203,
     "n": "Queen of the Island",
     "c": [
      {
@@ -11007,7 +11007,7 @@
     ]
    },
    {
-    "i": 3187,
+    "i": 3204,
     "n": "It's Called a Sea Pineapple!",
     "c": [
      {
@@ -11031,7 +11031,7 @@
     ]
    },
    {
-    "i": 3189,
+    "i": 3206,
     "n": "Cooking Up Memories",
     "c": [
      {
@@ -11056,7 +11056,7 @@
     ]
    },
    {
-    "i": 3190,
+    "i": 3207,
     "n": "The Allure of Racecourse Food",
     "c": [
      {
@@ -11147,7 +11147,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3190,
+       "i": 3207,
        "n": "The Allure of Racecourse Food",
        "c": [
         {
@@ -11271,7 +11271,7 @@
   ],
   "nochoice": [
    {
-    "i": 3181,
+    "i": 3198,
     "n": "Blame Game",
     "c": [
      {
@@ -11286,7 +11286,7 @@
     ]
    },
    {
-    "i": 3182,
+    "i": 3199,
     "n": "Ever Since",
     "c": [
      {
@@ -11301,7 +11301,7 @@
     ]
    },
    {
-    "i": 3183,
+    "i": 3200,
     "n": "Versus Ryan",
     "c": [
      {
@@ -11316,7 +11316,7 @@
     ]
    },
    {
-    "i": 3184,
+    "i": 3201,
     "n": "Hopes for the Tenno Sho",
     "c": [
      {
@@ -11331,7 +11331,7 @@
     ]
    },
    {
-    "i": 3185,
+    "i": 3202,
     "n": "Heir to the Mejiro Family",
     "c": [
      {
@@ -11346,7 +11346,7 @@
     ]
    },
    {
-    "i": 3188,
+    "i": 3205,
     "n": "Calm and Collected?",
     "c": [
      {
@@ -11519,7 +11519,7 @@
   ],
   "version": [
    {
-    "i": 3203,
+    "i": 3220,
     "n": "More than a Photo, a Blueprint",
     "c": [
      {
@@ -11543,7 +11543,7 @@
     ]
    },
    {
-    "i": 3204,
+    "i": 3221,
     "n": "You're My Trainer",
     "c": [
      {
@@ -11581,7 +11581,7 @@
     ]
    },
    {
-    "i": 3205,
+    "i": 3222,
     "n": "I Won't React to Troublemakers!",
     "c": [
      {
@@ -11620,7 +11620,7 @@
   ],
   "outings": [
    {
-    "i": 3191,
+    "i": 3208,
     "n": "Two Tickets for the Silver Screen",
     "c": [
      {
@@ -11648,7 +11648,7 @@
     ]
    },
    {
-    "i": 3192,
+    "i": 3209,
     "n": "An Excited Young Lady",
     "c": [
      {
@@ -11672,7 +11672,7 @@
     ]
    },
    {
-    "i": 3193,
+    "i": 3210,
     "n": "Endless Kingdom",
     "c": [
      {
@@ -11709,7 +11709,7 @@
     ]
    },
    {
-    "i": 3194,
+    "i": 3211,
     "n": "Bargain Find",
     "c": [
      {
@@ -11733,7 +11733,7 @@
     ]
    },
    {
-    "i": 3195,
+    "i": 3212,
     "n": "Three Ramen Bowls' Worth of Temptation",
     "c": [
      {
@@ -11763,7 +11763,7 @@
   ],
   "secret": [
    {
-    "i": 3196,
+    "i": 3213,
     "n": "Autumn Congratulations",
     "c": [
      {
@@ -11804,7 +11804,7 @@
  "101402": {
   "wchoice": [
    {
-    "i": 2260,
+    "i": 2277,
     "n": "A Personalized Mask",
     "c": [
      {
@@ -11828,7 +11828,7 @@
     ]
    },
    {
-    "i": 2261,
+    "i": 2278,
     "n": "Salsa Roja",
     "c": [
      {
@@ -11852,7 +11852,7 @@
     ]
    },
    {
-    "i": 2263,
+    "i": 2280,
     "n": "Go for the Extra-Large Pizza!",
     "c": [
      {
@@ -11942,7 +11942,7 @@
   ],
   "nochoice": [
    {
-    "i": 2254,
+    "i": 2271,
     "n": "Playing Hero",
     "c": [
      {
@@ -11957,7 +11957,7 @@
     ]
    },
    {
-    "i": 2255,
+    "i": 2272,
     "n": "A Fighting Spirit with No Outlet",
     "c": [
      {
@@ -11972,7 +11972,7 @@
     ]
    },
    {
-    "i": 2256,
+    "i": 2273,
     "n": "Unmasked",
     "c": [
      {
@@ -11987,7 +11987,7 @@
     ]
    },
    {
-    "i": 2257,
+    "i": 2274,
     "n": "Carnaval for Tomorrow",
     "c": [
      {
@@ -12002,7 +12002,7 @@
     ]
    },
    {
-    "i": 2258,
+    "i": 2275,
     "n": "Get the Party Started!",
     "c": [
      {
@@ -12021,7 +12021,7 @@
     ]
    },
    {
-    "i": 2262,
+    "i": 2279,
     "n": "Runaway Mambo",
     "c": [
      {
@@ -12040,7 +12040,7 @@
     ]
    },
    {
-    "i": 2264,
+    "i": 2281,
     "n": "Lucha Libre Soul",
     "c": [
      {
@@ -12229,7 +12229,7 @@
   ],
   "version": [
    {
-    "i": 2273,
+    "i": 2290,
     "n": "Passion-filled Outfit",
     "c": [
      {
@@ -12262,7 +12262,7 @@
     ]
    },
    {
-    "i": 2274,
+    "i": 2291,
     "n": "Passion! Connection! Guidance!",
     "c": [
      {
@@ -12290,7 +12290,7 @@
     ]
    },
    {
-    "i": 2275,
+    "i": 2292,
     "n": "A Challenge from the Past",
     "c": [
      {
@@ -12333,7 +12333,7 @@
   ],
   "outings": [
    {
-    "i": 2265,
+    "i": 2282,
     "n": "The Wrestler I Admire",
     "c": [
      {
@@ -12357,7 +12357,7 @@
     ]
    },
    {
-    "i": 2266,
+    "i": 2283,
     "n": "Shocking Retirement",
     "c": [
      {
@@ -12381,7 +12381,7 @@
     ]
    },
    {
-    "i": 2267,
+    "i": 2284,
     "n": "Renewed Resolve",
     "c": [
      {
@@ -12418,7 +12418,7 @@
     ]
    },
    {
-    "i": 2268,
+    "i": 2285,
     "n": "The Academy at Night",
     "c": [
      {
@@ -12446,7 +12446,7 @@
     ]
    },
    {
-    "i": 2269,
+    "i": 2286,
     "n": "Flower Language",
     "c": [
      {
@@ -12476,7 +12476,7 @@
   ],
   "secret": [
    {
-    "i": 2259,
+    "i": 2276,
     "n": "Mile Secrets!",
     "c": [
      {
@@ -12523,7 +12523,7 @@
  "101502": {
   "wchoice": [
    {
-    "i": 4289,
+    "i": 4306,
     "n": "Fantastic Voyeur",
     "c": [
      {
@@ -12547,7 +12547,7 @@
     ]
    },
    {
-    "i": 4290,
+    "i": 4307,
     "n": "Blinding Beauty",
     "c": [
      {
@@ -12575,7 +12575,7 @@
     ]
    },
    {
-    "i": 4292,
+    "i": 4309,
     "n": "Bring Me Your Finest",
     "c": [
      {
@@ -12665,7 +12665,7 @@
   ],
   "nochoice": [
    {
-    "i": 4284,
+    "i": 4301,
     "n": "Year-End Dinner Show",
     "c": [
      {
@@ -12680,7 +12680,7 @@
     ]
    },
    {
-    "i": 4285,
+    "i": 4302,
     "n": "Find a Rival!",
     "c": [
      {
@@ -12695,7 +12695,7 @@
     ]
    },
    {
-    "i": 4286,
+    "i": 4303,
     "n": "Our One-Year War",
     "c": [
      {
@@ -12714,7 +12714,7 @@
     ]
    },
    {
-    "i": 4287,
+    "i": 4304,
     "n": "The Sea God Emerges",
     "c": [
      {
@@ -12729,7 +12729,7 @@
     ]
    },
    {
-    "i": 4288,
+    "i": 4305,
     "n": "Amidst the Applause",
     "c": [
      {
@@ -12744,7 +12744,7 @@
     ]
    },
    {
-    "i": 4291,
+    "i": 4308,
     "n": "An Overlord's Anguish",
     "c": [
      {
@@ -12763,7 +12763,7 @@
     ]
    },
    {
-    "i": 4293,
+    "i": 4310,
     "n": "Mirror, Mirror",
     "c": [
      {
@@ -12938,7 +12938,7 @@
   ],
   "version": [
    {
-    "i": 4303,
+    "i": 4320,
     "n": "New Year's ☆ Home Performance",
     "c": [
      {
@@ -12961,7 +12961,7 @@
     ]
    },
    {
-    "i": 4304,
+    "i": 4321,
     "n": "Sprint! The Lucky Umamusume Race!",
     "c": [
      {
@@ -12996,7 +12996,7 @@
     ]
    },
    {
-    "i": 4305,
+    "i": 4322,
     "n": "A New Allure",
     "c": [
      {
@@ -13035,7 +13035,7 @@
   ],
   "outings": [
    {
-    "i": 4294,
+    "i": 4311,
     "n": "The Princess in Pajamas",
     "c": [
      {
@@ -13059,7 +13059,7 @@
     ]
    },
    {
-    "i": 4295,
+    "i": 4312,
     "n": "What the Mirror Reflects",
     "c": [
      {
@@ -13083,7 +13083,7 @@
     ]
    },
    {
-    "i": 4296,
+    "i": 4313,
     "n": "My Radiance is Yours",
     "c": [
      {
@@ -13116,7 +13116,7 @@
     ]
    },
    {
-    "i": 4297,
+    "i": 4314,
     "n": "Maintaining Magnificence",
     "c": [
      {
@@ -13140,7 +13140,7 @@
     ]
    },
    {
-    "i": 4298,
+    "i": 4315,
     "n": "Evening Opera O Theater",
     "c": [
      {
@@ -13166,7 +13166,7 @@
   ],
   "secret": [
    {
-    "i": 4299,
+    "i": 4316,
     "n": "Senior Autumn Triple Crown Achieved!",
     "c": [
      {
@@ -13204,7 +13204,7 @@
  "101602": {
   "wchoice": [
    {
-    "i": 3350,
+    "i": 3367,
     "n": "Aspiration",
     "c": [
      {
@@ -13232,7 +13232,7 @@
     ]
    },
    {
-    "i": 3351,
+    "i": 3368,
     "n": "Transcendence",
     "c": [
      {
@@ -13260,7 +13260,7 @@
     ]
    },
    {
-    "i": 3353,
+    "i": 3370,
     "n": "Ability",
     "c": [
      {
@@ -13285,7 +13285,7 @@
     ]
    },
    {
-    "i": 3354,
+    "i": 3371,
     "n": "Starving Warriors",
     "c": [
      {
@@ -13449,7 +13449,7 @@
   ],
   "nochoice": [
    {
-    "i": 3341,
+    "i": 3358,
     "n": "Hold Back",
     "c": [
      {
@@ -13464,7 +13464,7 @@
     ]
    },
    {
-    "i": 3342,
+    "i": 3359,
     "n": "Now",
     "c": [
      {
@@ -13479,7 +13479,7 @@
     ]
    },
    {
-    "i": 3343,
+    "i": 3360,
     "n": "Peak",
     "c": [
      {
@@ -13494,7 +13494,7 @@
     ]
    },
    {
-    "i": 3344,
+    "i": 3361,
     "n": "Proposition",
     "c": [
      {
@@ -13509,7 +13509,7 @@
     ]
    },
    {
-    "i": 3345,
+    "i": 3362,
     "n": "Challenge",
     "c": [
      {
@@ -13524,7 +13524,7 @@
     ]
    },
    {
-    "i": 3346,
+    "i": 3363,
     "n": "Autumn",
     "c": [
      {
@@ -13539,7 +13539,7 @@
     ]
    },
    {
-    "i": 3347,
+    "i": 3364,
     "n": "Trust",
     "c": [
      {
@@ -13554,7 +13554,7 @@
     ]
    },
    {
-    "i": 3348,
+    "i": 3365,
     "n": "Sister",
     "c": [
      {
@@ -13569,7 +13569,7 @@
     ]
    },
    {
-    "i": 3352,
+    "i": 3369,
     "n": "It's Not Easy Being a Lone Wolf",
     "c": [
      {
@@ -13742,7 +13742,7 @@
   ],
   "version": [
    {
-    "i": 3365,
+    "i": 3382,
     "n": "Mochi-vation",
     "c": [
      {
@@ -13766,7 +13766,7 @@
     ]
    },
    {
-    "i": 3366,
+    "i": 3383,
     "n": "Forever by Your Side",
     "c": [
      {
@@ -13790,7 +13790,7 @@
     ]
    },
    {
-    "i": 3367,
+    "i": 3384,
     "n": "Not-So-Lone Wolf",
     "c": [
      {
@@ -13829,7 +13829,7 @@
   ],
   "outings": [
    {
-    "i": 3355,
+    "i": 3372,
     "n": "A Lone Wolf's Diet",
     "c": [
      {
@@ -13857,7 +13857,7 @@
     ]
    },
    {
-    "i": 3356,
+    "i": 3373,
     "n": "Caught by Brian!",
     "c": [
      {
@@ -13881,7 +13881,7 @@
     ]
    },
    {
-    "i": 3357,
+    "i": 3374,
     "n": "Digging In",
     "c": [
      {
@@ -13914,7 +13914,7 @@
     ]
    },
    {
-    "i": 3358,
+    "i": 3375,
     "n": "A Lone Wolf Hunts Alone",
     "c": [
      {
@@ -13946,7 +13946,7 @@
     ]
    },
    {
-    "i": 3359,
+    "i": 3376,
     "n": "Breakthrough",
     "c": [
      {
@@ -13972,7 +13972,7 @@
   ],
   "secret": [
    {
-    "i": 3349,
+    "i": 3366,
     "n": "Public Appearance",
     "c": [
      {
@@ -14002,7 +14002,7 @@
     ]
    },
    {
-    "i": 3360,
+    "i": 3377,
     "n": "After the Takarazuka Kinen: Talent",
     "c": [
      {
@@ -14033,7 +14033,7 @@
     ]
    },
    {
-    "i": 3361,
+    "i": 3378,
     "n": "After the Takarazuka Kinen: Composure",
     "c": [
      {
@@ -14073,7 +14073,7 @@
  "101702": {
   "wchoice": [
    {
-    "i": 4160,
+    "i": 4177,
     "n": "Those Who March Forth",
     "c": [
      {
@@ -14105,7 +14105,7 @@
     ]
    },
    {
-    "i": 4161,
+    "i": 4178,
     "n": "The Emperor's Social Studies",
     "c": [
      {
@@ -14141,7 +14141,7 @@
     ]
    },
    {
-    "i": 4163,
+    "i": 4180,
     "n": "The Emperor's Spare Time",
     "c": [
      {
@@ -14170,7 +14170,7 @@
     ]
    },
    {
-    "i": 4164,
+    "i": 4181,
     "n": "At Any Time",
     "c": [
      {
@@ -14205,7 +14205,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4164,
+       "i": 4181,
        "n": "At Any Time",
        "c": [
         {
@@ -14241,7 +14241,7 @@
     ]
    },
    {
-    "i": 4165,
+    "i": 4182,
     "n": "Sudden Kindness",
     "c": [
      {
@@ -14276,7 +14276,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4165,
+       "i": 4182,
        "n": "Sudden Kindness",
        "c": [
         {
@@ -14312,7 +14312,7 @@
     ]
    },
    {
-    "i": 4166,
+    "i": 4183,
     "n": "As Good As My Word",
     "c": [
      {
@@ -14347,7 +14347,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4166,
+       "i": 4183,
        "n": "As Good As My Word",
        "c": [
         {
@@ -14444,7 +14444,7 @@
   ],
   "nochoice": [
    {
-    "i": 4153,
+    "i": 4170,
     "n": "Trusty Aids",
     "c": [
      {
@@ -14459,7 +14459,7 @@
     ]
    },
    {
-    "i": 4154,
+    "i": 4171,
     "n": "Silent Contemplation",
     "c": [
      {
@@ -14474,7 +14474,7 @@
     ]
    },
    {
-    "i": 4155,
+    "i": 4172,
     "n": "Discord",
     "c": [
      {
@@ -14489,7 +14489,7 @@
     ]
    },
    {
-    "i": 4156,
+    "i": 4173,
     "n": "Dark Portents",
     "c": [
      {
@@ -14504,7 +14504,7 @@
     ]
    },
    {
-    "i": 4157,
+    "i": 4174,
     "n": "Blood, Sweat, and Tears",
     "c": [
      {
@@ -14519,7 +14519,7 @@
     ]
    },
    {
-    "i": 4158,
+    "i": 4175,
     "n": "The Emperor Falls",
     "c": [
      {
@@ -14533,7 +14533,7 @@
     ]
    },
    {
-    "i": 4159,
+    "i": 4176,
     "n": "The Fog Lifts",
     "c": [
      {
@@ -14548,7 +14548,7 @@
     ]
    },
    {
-    "i": 4162,
+    "i": 4179,
     "n": "The Emperor's Gloom",
     "c": [
      {
@@ -14721,7 +14721,7 @@
   ],
   "version": [
    {
-    "i": 4179,
+    "i": 4196,
     "n": "The Fire Within",
     "c": [
      {
@@ -14750,7 +14750,7 @@
     ]
    },
    {
-    "i": 4180,
+    "i": 4197,
     "n": "Imparting Wisdom",
     "c": [
      {
@@ -14775,7 +14775,7 @@
     ]
    },
    {
-    "i": 4181,
+    "i": 4198,
     "n": "Vivid Memories",
     "c": [
      {
@@ -14817,7 +14817,7 @@
   ],
   "outings": [
    {
-    "i": 4167,
+    "i": 4184,
     "n": "Birds of a Feather",
     "c": [
      {
@@ -14841,7 +14841,7 @@
     ]
    },
    {
-    "i": 4168,
+    "i": 4185,
     "n": "Well-Earned Respect",
     "c": [
      {
@@ -14865,7 +14865,7 @@
     ]
    },
    {
-    "i": 4169,
+    "i": 4186,
     "n": "A Clear and Beautiful Night",
     "c": [
      {
@@ -14898,7 +14898,7 @@
     ]
    },
    {
-    "i": 4170,
+    "i": 4187,
     "n": "The Emperor's Daily Routine",
     "c": [
      {
@@ -14922,7 +14922,7 @@
     ]
    },
    {
-    "i": 4171,
+    "i": 4188,
     "n": "The Emperor's Path",
     "c": [
      {
@@ -14948,7 +14948,7 @@
   ],
   "secret": [
    {
-    "i": 4172,
+    "i": 4189,
     "n": "After the Kikuka Sho: Three Crowns Attained",
     "c": [
      {
@@ -14988,7 +14988,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4172,
+       "i": 4189,
        "n": "After the Kikuka Sho: Three Crowns Attained",
        "c": [
         {
@@ -15027,7 +15027,7 @@
     ]
    },
    {
-    "i": 4173,
+    "i": 4190,
     "n": "Challenge Met",
     "c": [
      {
@@ -15054,7 +15054,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4173,
+       "i": 4190,
        "n": "Challenge Met",
        "c": [
         {
@@ -15082,7 +15082,7 @@
     ]
    },
    {
-    "i": 4174,
+    "i": 4191,
     "n": "Seven Crowns Attained",
     "c": [
      {
@@ -15114,7 +15114,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4174,
+       "i": 4191,
        "n": "Seven Crowns Attained",
        "c": [
         {
@@ -15143,7 +15143,7 @@
     ]
    },
    {
-    "i": 4175,
+    "i": 4192,
     "n": "Current of Success",
     "c": [
      {
@@ -15175,7 +15175,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4175,
+       "i": 4192,
        "n": "Current of Success",
        "c": [
         {
@@ -15217,7 +15217,7 @@
  "101802": {
   "wchoice": [
    {
-    "i": 1659,
+    "i": 1673,
     "n": "Empress and Monarch",
     "c": [
      {
@@ -15241,7 +15241,7 @@
     ]
    },
    {
-    "i": 1660,
+    "i": 1674,
     "n": "Operation: Flowerbed",
     "c": [
      {
@@ -15277,7 +15277,7 @@
     ]
    },
    {
-    "i": 1662,
+    "i": 1676,
     "n": "Empress and Emperor",
     "c": [
      {
@@ -15306,7 +15306,7 @@
     ]
    },
    {
-    "i": 1663,
+    "i": 1677,
     "n": "Seize Her!",
     "c": [
      {
@@ -15340,7 +15340,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 1663,
+       "i": 1677,
        "n": "Seize Her!",
        "c": [
         {
@@ -15375,7 +15375,7 @@
     ]
    },
    {
-    "i": 1664,
+    "i": 1678,
     "n": "Take Good Care of Your Tail",
     "c": [
      {
@@ -15409,7 +15409,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 1664,
+       "i": 1678,
        "n": "Take Good Care of Your Tail",
        "c": [
         {
@@ -15444,7 +15444,7 @@
     ]
    },
    {
-    "i": 1665,
+    "i": 1679,
     "n": "Suggestion Box of Freedom",
     "c": [
      {
@@ -15478,7 +15478,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 1665,
+       "i": 1679,
        "n": "Suggestion Box of Freedom",
        "c": [
         {
@@ -15574,7 +15574,7 @@
   ],
   "nochoice": [
    {
-    "i": 1654,
+    "i": 1668,
     "n": "To Be a Scepter",
     "c": [
      {
@@ -15589,7 +15589,7 @@
     ]
    },
    {
-    "i": 1655,
+    "i": 1669,
     "n": "Ideals for Whose Benefit?",
     "c": [
      {
@@ -15604,7 +15604,7 @@
     ]
    },
    {
-    "i": 1656,
+    "i": 1670,
     "n": "She Who Races Ahead",
     "c": [
      {
@@ -15619,7 +15619,7 @@
     ]
    },
    {
-    "i": 1657,
+    "i": 1671,
     "n": "Please Rise",
     "c": [
      {
@@ -15634,7 +15634,7 @@
     ]
    },
    {
-    "i": 1658,
+    "i": 1672,
     "n": "Mother and Daughter",
     "c": [
      {
@@ -15649,7 +15649,7 @@
     ]
    },
    {
-    "i": 1661,
+    "i": 1675,
     "n": "Confused by a Joke",
     "c": [
      {
@@ -15822,7 +15822,7 @@
   ],
   "version": [
    {
-    "i": 1675,
+    "i": 1689,
     "n": "Who Will Stand Beside Her?",
     "c": [
      {
@@ -15851,7 +15851,7 @@
     ]
    },
    {
-    "i": 1676,
+    "i": 1690,
     "n": "Never-Ending Road",
     "c": [
      {
@@ -15876,7 +15876,7 @@
     ]
    },
    {
-    "i": 1677,
+    "i": 1691,
     "n": "The Empress and Mom",
     "c": [
      {
@@ -15922,7 +15922,7 @@
   ],
   "outings": [
    {
-    "i": 1666,
+    "i": 1680,
     "n": "A Little Encounter",
     "c": [
      {
@@ -15946,7 +15946,7 @@
     ]
    },
    {
-    "i": 1667,
+    "i": 1681,
     "n": "Sweet Potato Cake",
     "c": [
      {
@@ -15970,7 +15970,7 @@
     ]
    },
    {
-    "i": 1668,
+    "i": 1682,
     "n": "Imprinted Memories",
     "c": [
      {
@@ -16003,7 +16003,7 @@
     ]
    },
    {
-    "i": 1669,
+    "i": 1683,
     "n": "A Blinking Light Means Stop",
     "c": [
      {
@@ -16027,7 +16027,7 @@
     ]
    },
    {
-    "i": 1670,
+    "i": 1684,
     "n": "Smoldering Silently",
     "c": [
      {
@@ -16053,7 +16053,7 @@
   ],
   "secret": [
    {
-    "i": 1671,
+    "i": 1685,
     "n": "After the Shuka Sho: Reign",
     "c": [
      {
@@ -16093,7 +16093,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 1671,
+       "i": 1685,
        "n": "After the Shuka Sho: Reign",
        "c": [
         {
@@ -16143,7 +16143,7 @@
  "101902": {
   "wchoice": [
    {
-    "i": 1606,
+    "i": 1620,
     "n": "The Endless Possibilities of Moe",
     "c": [
      {
@@ -16167,7 +16167,7 @@
     ]
    },
    {
-    "i": 1607,
+    "i": 1621,
     "n": "When Fantasy Becomes Real",
     "c": [
      {
@@ -16199,7 +16199,7 @@
     ]
    },
    {
-    "i": 1609,
+    "i": 1623,
     "n": "The Cafeteria is Basically a Collab Cafe NGL",
     "c": [
      {
@@ -16225,7 +16225,7 @@
     ]
    },
    {
-    "i": 1610,
+    "i": 1624,
     "n": "Umamusume Quiz ☆ –Relationships Arc–",
     "c": [
      {
@@ -16254,7 +16254,7 @@
     ]
    },
    {
-    "i": 1611,
+    "i": 1625,
     "n": "Umamusume Quiz ☆ –Preferences Arc–",
     "c": [
      {
@@ -16283,7 +16283,7 @@
     ]
    },
    {
-    "i": 1612,
+    "i": 1626,
     "n": "Umamusume Quiz ☆ –Roots Arc–",
     "c": [
      {
@@ -16373,7 +16373,7 @@
   ],
   "nochoice": [
    {
-    "i": 1599,
+    "i": 1613,
     "n": "No Backseating!",
     "c": [
      {
@@ -16388,7 +16388,7 @@
     ]
    },
    {
-    "i": 1600,
+    "i": 1614,
     "n": "What Comes of Connecting",
     "c": [
      {
@@ -16403,7 +16403,7 @@
     ]
    },
    {
-    "i": 1601,
+    "i": 1615,
     "n": "Takarazuka Showdown!",
     "c": [
      {
@@ -16417,7 +16417,7 @@
     ]
    },
    {
-    "i": 1602,
+    "i": 1616,
     "n": "First-Rate Terms",
     "c": [
      {
@@ -16432,7 +16432,7 @@
     ]
    },
    {
-    "i": 1603,
+    "i": 1617,
     "n": "I'm Rooting For You!",
     "c": [
      {
@@ -16447,7 +16447,7 @@
     ]
    },
    {
-    "i": 1604,
+    "i": 1618,
     "n": "This Time, Whatever It Takes",
     "c": [
      {
@@ -16462,7 +16462,7 @@
     ]
    },
    {
-    "i": 1608,
+    "i": 1622,
     "n": "Repost to Apply",
     "c": [
      {
@@ -16635,7 +16635,7 @@
   ],
   "version": [
    {
-    "i": 1623,
+    "i": 1637,
     "n": "Halloween Karaoke Party",
     "c": [
      {
@@ -16672,7 +16672,7 @@
     ]
    },
    {
-    "i": 1624,
+    "i": 1638,
     "n": "The Tragic Tale of the Otaku Jiangshi",
     "c": [
      {
@@ -16724,7 +16724,7 @@
     ]
    },
    {
-    "i": 1625,
+    "i": 1639,
     "n": "Love Makes You Stronger",
     "c": [
      {
@@ -16758,7 +16758,7 @@
   ],
   "outings": [
    {
-    "i": 1613,
+    "i": 1627,
     "n": "The Oshi Report –Induction Arc–",
     "c": [
      {
@@ -16782,7 +16782,7 @@
     ]
    },
    {
-    "i": 1614,
+    "i": 1628,
     "n": "The Oshi Report –Peak Arc–",
     "c": [
      {
@@ -16806,7 +16806,7 @@
     ]
    },
    {
-    "i": 1615,
+    "i": 1629,
     "n": "The Oshi Report –Recognition Arc–",
     "c": [
      {
@@ -16839,7 +16839,7 @@
     ]
    },
    {
-    "i": 1616,
+    "i": 1630,
     "n": "The Best Life Is the Simp Life",
     "c": [
      {
@@ -16863,7 +16863,7 @@
     ]
    },
    {
-    "i": 1617,
+    "i": 1631,
     "n": "Oshi Proximity Alert?!",
     "c": [
      {
@@ -16889,7 +16889,7 @@
   ],
   "secret": [
    {
-    "i": 1605,
+    "i": 1619,
     "n": "All-Round Ruler",
     "c": [
      {
@@ -16955,7 +16955,7 @@
     ]
    },
    {
-    "i": 1618,
+    "i": 1632,
     "n": "After the Takarazuka Kinen: On Fire Like No One's Ever Seen",
     "c": [
      {
@@ -16981,7 +16981,7 @@
     ]
    },
    {
-    "i": 1619,
+    "i": 1633,
     "n": "After the Mile Ch. Nambu Hai: This Is Heaven",
     "c": [
      {
@@ -17043,7 +17043,7 @@
  "102002": {
   "wchoice": [
    {
-    "i": 3880,
+    "i": 3897,
     "n": "Is Cat Language Real?",
     "c": [
      {
@@ -17067,7 +17067,7 @@
     ]
    },
    {
-    "i": 3881,
+    "i": 3898,
     "n": "Shady Dealings",
     "c": [
      {
@@ -17091,7 +17091,7 @@
     ]
    },
    {
-    "i": 3883,
+    "i": 3900,
     "n": "Sei's Escape Plan",
     "c": [
      {
@@ -17120,7 +17120,7 @@
     ]
    },
    {
-    "i": 3884,
+    "i": 3901,
     "n": "Sunny Day Standoff",
     "c": [
      {
@@ -17188,7 +17188,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3884,
+       "i": 3901,
        "n": "Sunny Day Standoff",
        "c": [
         {
@@ -17317,7 +17317,7 @@
   ],
   "nochoice": [
    {
-    "i": 3871,
+    "i": 3888,
     "n": "The Ultimate Generation",
     "c": [
      {
@@ -17332,7 +17332,7 @@
     ]
    },
    {
-    "i": 3875,
+    "i": 3892,
     "n": "A Shadow on the Trickster's Path",
     "c": [
      {
@@ -17347,7 +17347,7 @@
     ]
    },
    {
-    "i": 3876,
+    "i": 3893,
     "n": "Zero Bites",
     "c": [
      {
@@ -17361,7 +17361,7 @@
     ]
    },
    {
-    "i": 3877,
+    "i": 3894,
     "n": "Zero Bites +1",
     "c": [
      {
@@ -17376,7 +17376,7 @@
     ]
    },
    {
-    "i": 3878,
+    "i": 3895,
     "n": "Got a Bite",
     "c": [
      {
@@ -17453,7 +17453,7 @@
     ]
    },
    {
-    "i": 3879,
+    "i": 3896,
     "n": "The Sweetest Storm",
     "c": [
      {
@@ -17468,7 +17468,7 @@
     ]
    },
    {
-    "i": 3882,
+    "i": 3899,
     "n": "A Trap Unsprung...",
     "c": [
      {
@@ -17641,7 +17641,7 @@
   ],
   "version": [
    {
-    "i": 3893,
+    "i": 3910,
     "n": "Before the Ligne Droite",
     "c": [
      {
@@ -17675,7 +17675,7 @@
     ]
    },
    {
-    "i": 3894,
+    "i": 3911,
     "n": "Memories Adorned with Flowers",
     "c": [
      {
@@ -17717,7 +17717,7 @@
     ]
    },
    {
-    "i": 3895,
+    "i": 3912,
     "n": "Keep This Secret",
     "c": [
      {
@@ -17756,7 +17756,7 @@
   ],
   "outings": [
    {
-    "i": 3885,
+    "i": 3902,
     "n": "Cat Expert",
     "c": [
      {
@@ -17780,7 +17780,7 @@
     ]
    },
    {
-    "i": 3886,
+    "i": 3903,
     "n": "Cat Patrol",
     "c": [
      {
@@ -17804,7 +17804,7 @@
     ]
    },
    {
-    "i": 3887,
+    "i": 3904,
     "n": "Goodbye, Cat",
     "c": [
      {
@@ -17837,7 +17837,7 @@
     ]
    },
    {
-    "i": 3888,
+    "i": 3905,
     "n": "Nap Master",
     "c": [
      {
@@ -17861,7 +17861,7 @@
     ]
    },
    {
-    "i": 3889,
+    "i": 3906,
     "n": "Cloudy, Followed By...",
     "c": [
      {
@@ -17887,7 +17887,7 @@
   ],
   "secret": [
    {
-    "i": 3872,
+    "i": 3889,
     "n": "East vs. West",
     "c": [
      {
@@ -17907,7 +17907,7 @@
     ]
    },
    {
-    "i": 3873,
+    "i": 3890,
     "n": "Facing the Otherworldly Front-Runner",
     "c": [
      {
@@ -17927,7 +17927,7 @@
     ]
    },
    {
-    "i": 3874,
+    "i": 3891,
     "n": "Landed That Triple Crown!",
     "c": [
      {
@@ -17969,7 +17969,7 @@
  "102102": {
   "wchoice": [
    {
-    "i": 4221,
+    "i": 4238,
     "n": "Real Naniwa Spirit!",
     "c": [
      {
@@ -17997,7 +17997,7 @@
     ]
    },
    {
-    "i": 4222,
+    "i": 4239,
     "n": "Take a Guess!",
     "c": [
      {
@@ -18021,7 +18021,7 @@
     ]
    },
    {
-    "i": 4224,
+    "i": 4241,
     "n": "How to Be an Adult",
     "c": [
      {
@@ -18111,7 +18111,7 @@
   ],
   "nochoice": [
    {
-    "i": 4215,
+    "i": 4232,
     "n": "Operation: Eat Till Ya Drop!",
     "c": [
      {
@@ -18126,7 +18126,7 @@
     ]
    },
    {
-    "i": 4216,
+    "i": 4233,
     "n": "Tragedy on the Green",
     "c": [
      {
@@ -18140,7 +18140,7 @@
     ]
    },
    {
-    "i": 4217,
+    "i": 4234,
     "n": "Our Hope from the Day You Were Born",
     "c": [
      {
@@ -18155,7 +18155,7 @@
     ]
    },
    {
-    "i": 4218,
+    "i": 4235,
     "n": "Those Chosen by Dreams",
     "c": [
      {
@@ -18170,7 +18170,7 @@
     ]
    },
    {
-    "i": 4219,
+    "i": 4236,
     "n": "Betting the Future on a Flash",
     "c": [
      {
@@ -18185,7 +18185,7 @@
     ]
    },
    {
-    "i": 4223,
+    "i": 4240,
     "n": "An Insurmountable Wall",
     "c": [
      {
@@ -18204,7 +18204,7 @@
     ]
    },
    {
-    "i": 4225,
+    "i": 4242,
     "n": "Merchandisin' Mojo!",
     "c": [
      {
@@ -18400,7 +18400,7 @@
   ],
   "version": [
    {
-    "i": 4236,
+    "i": 4253,
     "n": "A Mighty Mikoshi Procession",
     "c": [
      {
@@ -18437,7 +18437,7 @@
     ]
    },
    {
-    "i": 4237,
+    "i": 4254,
     "n": "Mystery on the Mountain",
     "c": [
      {
@@ -18462,7 +18462,7 @@
     ]
    },
    {
-    "i": 4238,
+    "i": 4255,
     "n": "The Quick-Witted Pretty Priest",
     "c": [
      {
@@ -18527,7 +18527,7 @@
   ],
   "outings": [
    {
-    "i": 4226,
+    "i": 4243,
     "n": "Leave it to Tama!",
     "c": [
      {
@@ -18551,7 +18551,7 @@
     ]
    },
    {
-    "i": 4227,
+    "i": 4244,
     "n": "Fun Times at the Farm!",
     "c": [
      {
@@ -18575,7 +18575,7 @@
     ]
    },
    {
-    "i": 4228,
+    "i": 4245,
     "n": "Be There for Each Other",
     "c": [
      {
@@ -18608,7 +18608,7 @@
     ]
    },
    {
-    "i": 4229,
+    "i": 4246,
     "n": "Visit from a Vixen",
     "c": [
      {
@@ -18632,7 +18632,7 @@
     ]
    },
    {
-    "i": 4230,
+    "i": 4247,
     "n": "A Sticky, Scary Situation",
     "c": [
      {
@@ -18658,7 +18658,7 @@
   ],
   "secret": [
    {
-    "i": 4220,
+    "i": 4237,
     "n": "A Special Souvenir",
     "c": [
      {
@@ -18693,7 +18693,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 4220,
+       "i": 4237,
        "n": "A Special Souvenir",
        "c": [
         {
@@ -18729,7 +18729,7 @@
     ]
    },
    {
-    "i": 4231,
+    "i": 4248,
     "n": "After the Kyoto Kimpai: Luck's on Our Side!",
     "c": [
      {
@@ -18773,7 +18773,7 @@
     ]
    },
    {
-    "i": 4232,
+    "i": 4249,
     "n": "After the Nakayama Kimpai: Luck's on Our Side!",
     "c": [
      {
@@ -18826,7 +18826,7 @@
  "102202": {
   "wchoice": [
    {
-    "i": 2335,
+    "i": 2352,
     "n": "Who Shall Be My Escort?",
     "c": [
      {
@@ -18888,7 +18888,7 @@
     ]
    },
    {
-    "i": 2337,
+    "i": 2354,
     "n": "A Noble Pastime",
     "c": [
      {
@@ -18912,7 +18912,7 @@
     ]
    },
    {
-    "i": 2338,
+    "i": 2355,
     "n": "An Invigorating Tea Party",
     "c": [
      {
@@ -18944,7 +18944,7 @@
     ]
    },
    {
-    "i": 2340,
+    "i": 2357,
     "n": "Flowers from a Distant Land",
     "c": [
      {
@@ -18973,7 +18973,7 @@
     ]
    },
    {
-    "i": 2341,
+    "i": 2358,
     "n": "I Love Ramen",
     "c": [
      {
@@ -19096,7 +19096,7 @@
   ],
   "nochoice": [
    {
-    "i": 2330,
+    "i": 2347,
     "n": "This Is Who I Am",
     "c": [
      {
@@ -19111,7 +19111,7 @@
     ]
    },
    {
-    "i": 2331,
+    "i": 2348,
     "n": "My Dear...",
     "c": [
      {
@@ -19125,7 +19125,7 @@
     ]
    },
    {
-    "i": 2332,
+    "i": 2349,
     "n": "Something Special",
     "c": [
      {
@@ -19140,7 +19140,7 @@
     ]
    },
    {
-    "i": 2333,
+    "i": 2350,
     "n": "Fellow Students",
     "c": [
      {
@@ -19155,7 +19155,7 @@
     ]
    },
    {
-    "i": 2334,
+    "i": 2351,
     "n": "Destiny",
     "c": [
      {
@@ -19170,7 +19170,7 @@
     ]
    },
    {
-    "i": 2336,
+    "i": 2353,
     "n": "Such Sweet Sorrow...",
     "c": [
      {
@@ -19184,7 +19184,7 @@
     ]
    },
    {
-    "i": 2339,
+    "i": 2356,
     "n": "A Matter of High Priority",
     "c": [
      {
@@ -19203,7 +19203,7 @@
     ]
    },
    {
-    "i": 2342,
+    "i": 2359,
     "n": "It'll Be More Fun!",
     "c": [
      {
@@ -19382,7 +19382,7 @@
   ],
   "version": [
    {
-    "i": 2359,
+    "i": 2376,
     "n": "A Forest of Fairies?",
     "c": [
      {
@@ -19418,7 +19418,7 @@
     ]
    },
    {
-    "i": 2360,
+    "i": 2377,
     "n": "Can You Solve My Riddle? ♪",
     "c": [
      {
@@ -19443,7 +19443,7 @@
     ]
    },
    {
-    "i": 2361,
+    "i": 2378,
     "n": "Even Though We're Apart",
     "c": [
      {
@@ -19481,7 +19481,7 @@
   ],
   "outings": [
    {
-    "i": 2343,
+    "i": 2360,
     "n": "Nothing Like a Good Mystery!",
     "c": [
      {
@@ -19505,7 +19505,7 @@
     ]
    },
    {
-    "i": 2344,
+    "i": 2361,
     "n": "No Such Thing as a Bad Time Abroad",
     "c": [
      {
@@ -19529,7 +19529,7 @@
     ]
    },
    {
-    "i": 2345,
+    "i": 2362,
     "n": "Official Duties",
     "c": [
      {
@@ -19562,7 +19562,7 @@
     ]
    },
    {
-    "i": 2346,
+    "i": 2363,
     "n": "A \"Bazaar\" Afternoon",
     "c": [
      {
@@ -19586,7 +19586,7 @@
     ]
    },
    {
-    "i": 2347,
+    "i": 2364,
     "n": "Learning the Local \"Oshi\" Culture",
     "c": [
      {
@@ -19612,7 +19612,7 @@
   ],
   "secret": [
    {
-    "i": 2348,
+    "i": 2365,
     "n": "After the Shuka Sho: Beautiful Sky",
     "c": [
      {
@@ -19647,7 +19647,7 @@
     ]
    },
    {
-    "i": 2349,
+    "i": 2366,
     "n": "After the Sapporo Kinen: Home Straight",
     "c": [
      {
@@ -19696,7 +19696,7 @@
     ]
    },
    {
-    "i": 2350,
+    "i": 2367,
     "n": "After the Sapporo Kinen: Home Straight",
     "c": [
      {
@@ -19728,7 +19728,7 @@
     ]
    },
    {
-    "i": 2351,
+    "i": 2368,
     "n": "After the Tenno Sho (Autumn): Ever After",
     "c": [
      {
@@ -19763,7 +19763,7 @@
     ]
    },
    {
-    "i": 2352,
+    "i": 2369,
     "n": "After the Queen Elizabeth II Cup: Respect",
     "c": [
      {
@@ -19798,7 +19798,7 @@
     ]
    },
    {
-    "i": 2353,
+    "i": 2370,
     "n": "After the Mile Ch.: Rival",
     "c": [
      {
@@ -19833,7 +19833,7 @@
     ]
    },
    {
-    "i": 2354,
+    "i": 2371,
     "n": "After the Arima Kinen: Sweet Memories",
     "c": [
      {
@@ -19873,7 +19873,7 @@
     ]
    },
    {
-    "i": 2355,
+    "i": 2372,
     "n": "After the Arima Kinen: Still with You",
     "c": [
      {
@@ -19917,7 +19917,7 @@
  "102302": {
   "wchoice": [
    {
-    "i": 1838,
+    "i": 1852,
     "n": "Memories of Cooking and Sisterhood",
     "c": [
      {
@@ -19945,7 +19945,7 @@
     ]
    },
    {
-    "i": 1839,
+    "i": 1853,
     "n": "A New Side",
     "c": [
      {
@@ -19969,7 +19969,7 @@
     ]
    },
    {
-    "i": 1841,
+    "i": 1855,
     "n": "Battle With a Raging Dragon",
     "c": [
      {
@@ -20059,7 +20059,7 @@
   ],
   "nochoice": [
    {
-    "i": 1832,
+    "i": 1846,
     "n": "A Description of the Present Moment",
     "c": [
      {
@@ -20074,7 +20074,7 @@
     ]
    },
    {
-    "i": 1833,
+    "i": 1847,
     "n": "Principles Beyond Recollection",
     "c": [
      {
@@ -20089,7 +20089,7 @@
     ]
    },
    {
-    "i": 1834,
+    "i": 1848,
     "n": "Fact",
     "c": [
      {
@@ -20104,7 +20104,7 @@
     ]
    },
    {
-    "i": 1835,
+    "i": 1849,
     "n": "The Peer Effect",
     "c": [
      {
@@ -20123,7 +20123,7 @@
     ]
    },
    {
-    "i": 1836,
+    "i": 1850,
     "n": "Authoring the Equation",
     "c": [
      {
@@ -20138,7 +20138,7 @@
     ]
    },
    {
-    "i": 1840,
+    "i": 1854,
     "n": "Emphasis on Nutrition?",
     "c": [
      {
@@ -20311,7 +20311,7 @@
   ],
   "version": [
    {
-    "i": 1852,
+    "i": 1866,
     "n": "One More Star",
     "c": [
      {
@@ -20357,7 +20357,7 @@
     ]
    },
    {
-    "i": 1853,
+    "i": 1867,
     "n": "We Need Your Wisdom!",
     "c": [
      {
@@ -20381,7 +20381,7 @@
     ]
    },
    {
-    "i": 1854,
+    "i": 1868,
     "n": "Here to Help!",
     "c": [
      {
@@ -20424,7 +20424,7 @@
   ],
   "outings": [
    {
-    "i": 1843,
+    "i": 1857,
     "n": "Reading in a Cafe",
     "c": [
      {
@@ -20448,7 +20448,7 @@
     ]
    },
    {
-    "i": 1844,
+    "i": 1858,
     "n": "Sharp Contrast",
     "c": [
      {
@@ -20472,7 +20472,7 @@
     ]
    },
    {
-    "i": 1845,
+    "i": 1859,
     "n": "Emergency Presentation",
     "c": [
      {
@@ -20505,7 +20505,7 @@
     ]
    },
    {
-    "i": 1846,
+    "i": 1860,
     "n": "Hide and Seek Master",
     "c": [
      {
@@ -20529,7 +20529,7 @@
     ]
    },
    {
-    "i": 1847,
+    "i": 1861,
     "n": "Game Theory",
     "c": [
      {
@@ -20555,7 +20555,7 @@
   ],
   "secret": [
    {
-    "i": 1837,
+    "i": 1851,
     "n": "Our Method",
     "c": [
      {
@@ -20606,7 +20606,7 @@
     "did_not_exist": "pre_first_anni"
    },
    {
-    "i": 1842,
+    "i": 1856,
     "n": "Unruly Equation",
     "c": [
      {
@@ -20638,7 +20638,7 @@
     "did_not_exist": "pre_first_anni"
    },
    {
-    "i": 1848,
+    "i": 1862,
     "n": "After the Takarazuka Kinen: The Top",
     "c": [
      {
@@ -20683,7 +20683,7 @@
  "102402": {
   "wchoice": [
    {
-    "i": 3054,
+    "i": 3071,
     "n": "Maya Will Teach You ☆",
     "c": [
      {
@@ -20711,7 +20711,7 @@
     ]
    },
    {
-    "i": 3055,
+    "i": 3072,
     "n": "Tips from a Top Model!",
     "c": [
      {
@@ -20739,7 +20739,7 @@
     ]
    },
    {
-    "i": 3057,
+    "i": 3074,
     "n": "Maya's Race Class ☆",
     "c": [
      {
@@ -20829,7 +20829,7 @@
   ],
   "nochoice": [
    {
-    "i": 3048,
+    "i": 3065,
     "n": "I Wanna Twinkle!",
     "c": [
      {
@@ -20844,7 +20844,7 @@
     ]
    },
    {
-    "i": 3049,
+    "i": 3066,
     "n": "Wanna Go on a Date?",
     "c": [
      {
@@ -20859,7 +20859,7 @@
     ]
    },
    {
-    "i": 3050,
+    "i": 3067,
     "n": "Take Aim",
     "c": [
      {
@@ -20874,7 +20874,7 @@
     ]
    },
    {
-    "i": 3051,
+    "i": 3068,
     "n": "The Twinkle of Youth",
     "c": [
      {
@@ -20889,7 +20889,7 @@
     ]
    },
    {
-    "i": 3052,
+    "i": 3069,
     "n": "Toward the Setting Sun",
     "c": [
      {
@@ -20908,7 +20908,7 @@
     ]
    },
    {
-    "i": 3056,
+    "i": 3073,
     "n": "This Excitement Is Hard to Crack! ☆",
     "c": [
      {
@@ -20927,7 +20927,7 @@
     ]
    },
    {
-    "i": 3058,
+    "i": 3075,
     "n": "Maya's Love Advice?!",
     "c": [
      {
@@ -20948,7 +20948,7 @@
     ]
    },
    {
-    "i": 3059,
+    "i": 3076,
     "n": "Get Me in the Mood ☆",
     "c": [
      {
@@ -20991,7 +20991,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3059,
+       "i": 3076,
        "n": "Get Me in the Mood ☆",
        "c": [
         {
@@ -21177,7 +21177,7 @@
   ],
   "version": [
    {
-    "i": 3068,
+    "i": 3085,
     "n": "You're My Sunshine ☆",
     "c": [
      {
@@ -21201,7 +21201,7 @@
     ]
    },
    {
-    "i": 3069,
+    "i": 3086,
     "n": "Meant to Be ♪",
     "c": [
      {
@@ -21227,7 +21227,7 @@
     ]
    },
    {
-    "i": 3070,
+    "i": 3087,
     "n": "With My Whole Heart!",
     "c": [
      {
@@ -21269,7 +21269,7 @@
   ],
   "outings": [
    {
-    "i": 3060,
+    "i": 3077,
     "n": "Maya's Exciting ☆ Livestream!",
     "c": [
      {
@@ -21297,7 +21297,7 @@
     ]
    },
    {
-    "i": 3061,
+    "i": 3078,
     "n": "Maya's Euphoric ☆ Livestream!",
     "c": [
      {
@@ -21321,7 +21321,7 @@
     ]
    },
    {
-    "i": 3062,
+    "i": 3079,
     "n": "Maya's Twinkly ☆ Determination!",
     "c": [
      {
@@ -21358,7 +21358,7 @@
     ]
    },
    {
-    "i": 3063,
+    "i": 3080,
     "n": "Maya's Special Someone!",
     "c": [
      {
@@ -21382,7 +21382,7 @@
     ]
    },
    {
-    "i": 3064,
+    "i": 3081,
     "n": "Wish on a Star",
     "c": [
      {
@@ -21408,7 +21408,7 @@
   ],
   "secret": [
    {
-    "i": 3053,
+    "i": 3070,
     "n": "The Fruits of My Labor",
     "c": [
      {
@@ -21481,7 +21481,7 @@
  "102602": {
   "wchoice": [
    {
-    "i": 3277,
+    "i": 3294,
     "n": "Operation: Execute Orders",
     "c": [
      {
@@ -21505,7 +21505,7 @@
     ]
    },
    {
-    "i": 3278,
+    "i": 3295,
     "n": "Operation: Extra Classes",
     "c": [
      {
@@ -21533,7 +21533,7 @@
     ]
    },
    {
-    "i": 3280,
+    "i": 3297,
     "n": "Operation: Excursion Trouble",
     "c": [
      {
@@ -21562,7 +21562,7 @@
     ]
    },
    {
-    "i": 3281,
+    "i": 3298,
     "n": "Brutal Training",
     "c": [
      {
@@ -21655,7 +21655,7 @@
   ],
   "nochoice": [
    {
-    "i": 3272,
+    "i": 3289,
     "n": "Mission / Specification",
     "c": [
      {
@@ -21670,7 +21670,7 @@
     ]
    },
    {
-    "i": 3273,
+    "i": 3290,
     "n": "Error / Disarray",
     "c": [
      {
@@ -21685,7 +21685,7 @@
     ]
    },
    {
-    "i": 3274,
+    "i": 3291,
     "n": "Solution / Winning Drive",
     "c": [
      {
@@ -21700,7 +21700,7 @@
     ]
    },
    {
-    "i": 3275,
+    "i": 3292,
     "n": "Record / Courage",
     "c": [
      {
@@ -21715,7 +21715,7 @@
     ]
    },
    {
-    "i": 3276,
+    "i": 3293,
     "n": "Request / Strength",
     "c": [
      {
@@ -21734,7 +21734,7 @@
     ]
    },
    {
-    "i": 3279,
+    "i": 3296,
     "n": "Don't Touch the Machines",
     "c": [
      {
@@ -21907,7 +21907,7 @@
   ],
   "version": [
    {
-    "i": 3292,
+    "i": 3309,
     "n": "Valentine's Day Mission",
     "c": [
      {
@@ -21944,7 +21944,7 @@
     ]
    },
    {
-    "i": 3293,
+    "i": 3310,
     "n": "Not Found",
     "c": [
      {
@@ -21981,7 +21981,7 @@
     ]
    },
    {
-    "i": 3294,
+    "i": 3311,
     "n": "Apply",
     "c": [
      {
@@ -22004,7 +22004,7 @@
   ],
   "outings": [
    {
-    "i": 3282,
+    "i": 3299,
     "n": "Let's Make Memories",
     "c": [
      {
@@ -22028,7 +22028,7 @@
     ]
    },
    {
-    "i": 3283,
+    "i": 3300,
     "n": "Bourbon's Challenge?",
     "c": [
      {
@@ -22052,7 +22052,7 @@
     ]
    },
    {
-    "i": 3284,
+    "i": 3301,
     "n": "You're Irreplaceable to Me",
     "c": [
      {
@@ -22085,7 +22085,7 @@
     ]
    },
    {
-    "i": 3285,
+    "i": 3302,
     "n": "Operation: Dance Fever",
     "c": [
      {
@@ -22117,7 +22117,7 @@
     ]
    },
    {
-    "i": 3286,
+    "i": 3303,
     "n": "Operation: Festival Fun",
     "c": [
      {
@@ -22147,7 +22147,7 @@
   ],
   "secret": [
    {
-    "i": 3287,
+    "i": 3304,
     "n": "After the Japanese Derby: The Second Crown",
     "c": [
      {
@@ -22172,7 +22172,7 @@
     ]
    },
    {
-    "i": 3288,
+    "i": 3305,
     "n": "After the Kikuka Sho: Triple Crown Champion",
     "c": [
      {
@@ -22212,7 +22212,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 3288,
+       "i": 3305,
        "n": "After the Kikuka Sho: Triple Crown Champion",
        "c": [
         {
@@ -22253,7 +22253,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3288,
+       "i": 3305,
        "n": "After the Kikuka Sho: Triple Crown Champion",
        "c": [
         {
@@ -22294,7 +22294,7 @@
  "103002": {
   "wchoice": [
    {
-    "i": 3631,
+    "i": 3648,
     "n": "Training Inspiration",
     "c": [
      {
@@ -22326,7 +22326,7 @@
     ]
    },
    {
-    "i": 3632,
+    "i": 3649,
     "n": "Wonderful New Worlds",
     "c": [
      {
@@ -22354,7 +22354,7 @@
     ]
    },
    {
-    "i": 3634,
+    "i": 3651,
     "n": "Looking on the Bright Side",
     "c": [
      {
@@ -22383,7 +22383,7 @@
     ]
    },
    {
-    "i": 3635,
+    "i": 3652,
     "n": "A Wish to the Goddesses",
     "c": [
      {
@@ -22475,7 +22475,7 @@
   ],
   "nochoice": [
    {
-    "i": 3625,
+    "i": 3642,
     "n": "The Flower that Blooms in Yodo",
     "c": [
      {
@@ -22490,7 +22490,7 @@
     ]
    },
    {
-    "i": 3626,
+    "i": 3643,
     "n": "A Rival's Misfortune",
     "c": [
      {
@@ -22505,7 +22505,7 @@
     ]
    },
    {
-    "i": 3627,
+    "i": 3644,
     "n": "You Can't Bloom Alone",
     "c": [
      {
@@ -22520,7 +22520,7 @@
     ]
    },
    {
-    "i": 3628,
+    "i": 3645,
     "n": "One in a Million Chance",
     "c": [
      {
@@ -22535,7 +22535,7 @@
     ]
    },
    {
-    "i": 3629,
+    "i": 3646,
     "n": "An Unyielding Rose",
     "c": [
      {
@@ -22550,7 +22550,7 @@
     ]
    },
    {
-    "i": 3633,
+    "i": 3650,
     "n": "A Page about Sketching",
     "c": [
      {
@@ -22723,7 +22723,7 @@
   ],
   "version": [
    {
-    "i": 3644,
+    "i": 3661,
     "n": "A Treat from Rice!",
     "c": [
      {
@@ -22748,7 +22748,7 @@
     ]
    },
    {
-    "i": 3645,
+    "i": 3662,
     "n": "Rice's Guide to Vampire Eradication",
     "c": [
      {
@@ -22776,7 +22776,7 @@
     ]
    },
    {
-    "i": 3646,
+    "i": 3663,
     "n": "A Trick from Rice!",
     "c": [
      {
@@ -22815,7 +22815,7 @@
   ],
   "outings": [
    {
-    "i": 3636,
+    "i": 3653,
     "n": "Even When the Ladybugs Are Gone",
     "c": [
      {
@@ -22839,7 +22839,7 @@
     ]
    },
    {
-    "i": 3637,
+    "i": 3654,
     "n": "Even When Clouds Cover the Sky",
     "c": [
      {
@@ -22867,7 +22867,7 @@
     ]
    },
    {
-    "i": 3638,
+    "i": 3655,
     "n": "My Sun",
     "c": [
      {
@@ -22908,7 +22908,7 @@
     ]
    },
    {
-    "i": 3639,
+    "i": 3656,
     "n": "I've Got This!",
     "c": [
      {
@@ -22932,7 +22932,7 @@
     ]
    },
    {
-    "i": 3640,
+    "i": 3657,
     "n": "A Page about Sunsets",
     "c": [
      {
@@ -22966,7 +22966,7 @@
   ],
   "secret": [
    {
-    "i": 3630,
+    "i": 3647,
     "n": "A Tale That Blooms from the Heart",
     "c": [
      {
@@ -23063,7 +23063,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 3630,
+       "i": 3647,
        "n": "A Tale That Blooms from the Heart",
        "c": [
         {
@@ -23162,7 +23162,7 @@
  "103402": {
   "wchoice": [
    {
-    "i": 2689,
+    "i": 2706,
     "n": "Pride of an Edo Girl",
     "c": [
      {
@@ -23190,7 +23190,7 @@
     ]
    },
    {
-    "i": 2690,
+    "i": 2707,
     "n": "Settlin' with Style",
     "c": [
      {
@@ -23218,7 +23218,7 @@
     ]
    },
    {
-    "i": 2692,
+    "i": 2709,
     "n": "Lying's Not My Style!",
     "c": [
      {
@@ -23244,7 +23244,7 @@
     ]
    },
    {
-    "i": 2693,
+    "i": 2710,
     "n": "A Rush of Good Karma",
     "c": [
      {
@@ -23387,7 +23387,7 @@
   ],
   "nochoice": [
    {
-    "i": 2682,
+    "i": 2699,
     "n": "A Festival Needs Prep",
     "c": [
      {
@@ -23402,7 +23402,7 @@
     ]
    },
    {
-    "i": 2683,
+    "i": 2700,
     "n": "Flimsy Words Mean Diddly Squat",
     "c": [
      {
@@ -23416,7 +23416,7 @@
     ]
    },
    {
-    "i": 2684,
+    "i": 2701,
     "n": "You Can't Put on a Festival Alone",
     "c": [
      {
@@ -23431,7 +23431,7 @@
     ]
    },
    {
-    "i": 2685,
+    "i": 2702,
     "n": "Fate and Inevitability",
     "c": [
      {
@@ -23446,7 +23446,7 @@
     ]
    },
    {
-    "i": 2686,
+    "i": 2703,
     "n": "The Soul Behind a Festival's Style",
     "c": [
      {
@@ -23461,7 +23461,7 @@
     ]
    },
    {
-    "i": 2691,
+    "i": 2708,
     "n": "So Much for Classy...",
     "c": [
      {
@@ -23634,7 +23634,7 @@
   ],
   "version": [
    {
-    "i": 2702,
+    "i": 2719,
     "n": "Old Tales, Edo Style!",
     "c": [
      {
@@ -23671,7 +23671,7 @@
     ]
    },
    {
-    "i": 2703,
+    "i": 2720,
     "n": "Sweat It Off at the Bathhouse!",
     "c": [
      {
@@ -23712,7 +23712,7 @@
     ]
    },
    {
-    "i": 2704,
+    "i": 2721,
     "n": "Inari—God of Class!",
     "c": [
      {
@@ -23733,7 +23733,7 @@
   ],
   "outings": [
    {
-    "i": 2694,
+    "i": 2711,
     "n": "With Class in Your Heart",
     "c": [
      {
@@ -23757,7 +23757,7 @@
     ]
    },
    {
-    "i": 2695,
+    "i": 2712,
     "n": "Helpers Exit with Style",
     "c": [
      {
@@ -23781,7 +23781,7 @@
     ]
    },
    {
-    "i": 2696,
+    "i": 2713,
     "n": "A Good Partner",
     "c": [
      {
@@ -23814,7 +23814,7 @@
     ]
    },
    {
-    "i": 2697,
+    "i": 2714,
     "n": "I Don't Mind Takin' Care of Others",
     "c": [
      {
@@ -23838,7 +23838,7 @@
     ]
    },
    {
-    "i": 2698,
+    "i": 2715,
     "n": "Waitin' in Line Isn't So Bad",
     "c": [
      {
@@ -23864,7 +23864,7 @@
   ],
   "secret": [
    {
-    "i": 2687,
+    "i": 2704,
     "n": "Come See the Never-Ending Festival!",
     "c": [
      {
@@ -23905,7 +23905,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2687,
+       "i": 2704,
        "n": "Come See the Never-Ending Festival!",
        "c": [
         {
@@ -23947,7 +23947,7 @@
     ]
    },
    {
-    "i": 2688,
+    "i": 2705,
     "n": "Behold the Thunder, Wind, and Light",
     "c": [
      {
@@ -24000,7 +24000,7 @@
  "103502": {
   "wchoice": [
    {
-    "i": 4524,
+    "i": 4541,
     "n": "Rain or Shine",
     "c": [
      {
@@ -24032,7 +24032,7 @@
     ]
    },
    {
-    "i": 4525,
+    "i": 4542,
     "n": "Overcome the Towering Obstacle!",
     "c": [
      {
@@ -24064,7 +24064,7 @@
     ]
    },
    {
-    "i": 4527,
+    "i": 4544,
     "n": "A Fresh Perspective",
     "c": [
      {
@@ -24093,7 +24093,7 @@
     ]
    },
    {
-    "i": 4528,
+    "i": 4545,
     "n": "Path to Pastries!",
     "c": [
      {
@@ -24208,7 +24208,7 @@
   ],
   "nochoice": [
    {
-    "i": 4518,
+    "i": 4535,
     "n": "Rivals",
     "c": [
      {
@@ -24223,7 +24223,7 @@
     ]
    },
    {
-    "i": 4519,
+    "i": 4536,
     "n": "I Wanna Win!",
     "c": [
      {
@@ -24238,7 +24238,7 @@
     ]
    },
    {
-    "i": 4520,
+    "i": 4537,
     "n": "What Makes a Good Race",
     "c": [
      {
@@ -24253,7 +24253,7 @@
     ]
    },
    {
-    "i": 4521,
+    "i": 4538,
     "n": "Waiting for Progress",
     "c": [
      {
@@ -24272,7 +24272,7 @@
     ]
    },
    {
-    "i": 4522,
+    "i": 4539,
     "n": "BNW Is Back",
     "c": [
      {
@@ -24287,7 +24287,7 @@
     ]
    },
    {
-    "i": 4526,
+    "i": 4543,
     "n": "Lost Umamusume",
     "c": [
      {
@@ -24460,7 +24460,7 @@
   ],
   "version": [
    {
-    "i": 4537,
+    "i": 4554,
     "n": "Tickezo's Delivery Service: The Outset",
     "c": [
      {
@@ -24506,7 +24506,7 @@
     ]
    },
    {
-    "i": 4538,
+    "i": 4555,
     "n": "Tickezo's Delivery Service: Academy Antics",
     "c": [
      {
@@ -24540,7 +24540,7 @@
     ]
    },
    {
-    "i": 4539,
+    "i": 4556,
     "n": "Tickezo's Delivery Service: From the Heart",
     "c": [
      {
@@ -24598,7 +24598,7 @@
   ],
   "outings": [
    {
-    "i": 4529,
+    "i": 4546,
     "n": "Play of the Three Kingdoms",
     "c": [
      {
@@ -24630,7 +24630,7 @@
     ]
    },
    {
-    "i": 4530,
+    "i": 4547,
     "n": "Futsal, Now?!",
     "c": [
      {
@@ -24654,7 +24654,7 @@
     ]
    },
    {
-    "i": 4531,
+    "i": 4548,
     "n": "The Last Ticket",
     "c": [
      {
@@ -24687,7 +24687,7 @@
     ]
    },
    {
-    "i": 4532,
+    "i": 4549,
     "n": "Shake Off Your Blues!",
     "c": [
      {
@@ -24719,7 +24719,7 @@
     ]
    },
    {
-    "i": 4533,
+    "i": 4550,
     "n": "Big Girls Cry Too",
     "c": [
      {
@@ -24753,7 +24753,7 @@
   ],
   "secret": [
    {
-    "i": 4523,
+    "i": 4540,
     "n": "Temporary Truce",
     "c": [
      {
@@ -24856,7 +24856,7 @@
  "103702": {
   "wchoice": [
    {
-    "i": 2229,
+    "i": 2246,
     "n": "Guardians of Nature",
     "c": [
      {
@@ -24880,7 +24880,7 @@
     ]
    },
    {
-    "i": 2230,
+    "i": 2247,
     "n": "How to Educate Effectively",
     "c": [
      {
@@ -24904,7 +24904,7 @@
     ]
    },
    {
-    "i": 2232,
+    "i": 2249,
     "n": "Inspiration to Fly",
     "c": [
      {
@@ -24937,7 +24937,7 @@
     ]
    },
    {
-    "i": 2233,
+    "i": 2250,
     "n": "Flash's Plan Put to the Test",
     "c": [
      {
@@ -25031,7 +25031,7 @@
   ],
   "nochoice": [
    {
-    "i": 2221,
+    "i": 2238,
     "n": "Die Achtung",
     "c": [
      {
@@ -25046,7 +25046,7 @@
     ]
    },
    {
-    "i": 2222,
+    "i": 2239,
     "n": "Das Erlebnis",
     "c": [
      {
@@ -25061,7 +25061,7 @@
     ]
    },
    {
-    "i": 2223,
+    "i": 2240,
     "n": "Das Vorbild",
     "c": [
      {
@@ -25076,7 +25076,7 @@
     ]
    },
    {
-    "i": 2224,
+    "i": 2241,
     "n": "Die Chrysantheme",
     "c": [
      {
@@ -25090,7 +25090,7 @@
     ]
    },
    {
-    "i": 2225,
+    "i": 2242,
     "n": "Die Torschlusspanik",
     "c": [
      {
@@ -25104,7 +25104,7 @@
     ]
    },
    {
-    "i": 2226,
+    "i": 2243,
     "n": "Die Frage",
     "c": [
      {
@@ -25118,7 +25118,7 @@
     ]
    },
    {
-    "i": 2227,
+    "i": 2244,
     "n": "Leichter gesagt als getan",
     "c": [
      {
@@ -25133,7 +25133,7 @@
     ]
    },
    {
-    "i": 2228,
+    "i": 2245,
     "n": "Das Ende...",
     "c": [
      {
@@ -25148,7 +25148,7 @@
     ]
    },
    {
-    "i": 2231,
+    "i": 2248,
     "n": "An Unfamiliar Deck",
     "c": [
      {
@@ -25167,7 +25167,7 @@
     ]
    },
    {
-    "i": 2234,
+    "i": 2251,
     "n": "The Outcome of Flash's Plan",
     "c": [
      {
@@ -25346,7 +25346,7 @@
   ],
   "version": [
    {
-    "i": 2248,
+    "i": 2265,
     "n": "The Pride of a Patissier",
     "c": [
      {
@@ -25383,7 +25383,7 @@
     ]
    },
    {
-    "i": 2249,
+    "i": 2266,
     "n": "Time Is a Gift",
     "c": [
      {
@@ -25420,7 +25420,7 @@
     ]
    },
    {
-    "i": 2250,
+    "i": 2267,
     "n": "Cookies of Joy",
     "c": [
      {
@@ -25443,7 +25443,7 @@
   ],
   "outings": [
    {
-    "i": 2235,
+    "i": 2252,
     "n": "Chasing Trends",
     "c": [
      {
@@ -25467,7 +25467,7 @@
     ]
    },
    {
-    "i": 2236,
+    "i": 2253,
     "n": "Immersing in Japanese Tradition",
     "c": [
      {
@@ -25491,7 +25491,7 @@
     ]
    },
    {
-    "i": 2237,
+    "i": 2254,
     "n": "Acclimating",
     "c": [
      {
@@ -25524,7 +25524,7 @@
     ]
    },
    {
-    "i": 2238,
+    "i": 2255,
     "n": "Conveying Sincerity",
     "c": [
      {
@@ -25548,7 +25548,7 @@
     ]
    },
    {
-    "i": 2239,
+    "i": 2256,
     "n": "Reminiscing at the Freizeitpark",
     "c": [
      {
@@ -25574,7 +25574,7 @@
   ],
   "secret": [
    {
-    "i": 2240,
+    "i": 2257,
     "n": "After the Japanese Derby: Der Sieg",
     "c": [
      {
@@ -25599,7 +25599,7 @@
     ]
    },
    {
-    "i": 2241,
+    "i": 2258,
     "n": "After the Kikuka Sho: Blick nach vorn",
     "c": [
      {
@@ -25629,7 +25629,7 @@
     ]
    },
    {
-    "i": 2242,
+    "i": 2259,
     "n": "Erinnerung an Tokyo",
     "c": [
      {
@@ -25660,7 +25660,7 @@
     ]
    },
    {
-    "i": 2243,
+    "i": 2260,
     "n": "Erinnerung an den Sieg",
     "c": [
      {
@@ -25695,7 +25695,7 @@
     ]
    },
    {
-    "i": 2244,
+    "i": 2261,
     "n": "Der Rekord",
     "c": [
      {
@@ -25745,7 +25745,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2244,
+       "i": 2261,
        "n": "Der Rekord",
        "c": [
         {
@@ -25801,7 +25801,7 @@
  "103802": {
   "wchoice": [
    {
-    "i": 2033,
+    "i": 2047,
     "n": "One, Two, Three, Curren Chan!",
     "c": [
      {
@@ -25825,7 +25825,7 @@
     ]
    },
    {
-    "i": 2034,
+    "i": 2048,
     "n": "Ms. Worldwide",
     "c": [
      {
@@ -25849,7 +25849,7 @@
     ]
    },
    {
-    "i": 2036,
+    "i": 2050,
     "n": "Thanks for the Lesson ♪",
     "c": [
      {
@@ -25939,7 +25939,7 @@
   ],
   "nochoice": [
    {
-    "i": 2029,
+    "i": 2043,
     "n": "My Cute Ambitions",
     "c": [
      {
@@ -25954,7 +25954,7 @@
     ]
    },
    {
-    "i": 2030,
+    "i": 2044,
     "n": "Cute Posts",
     "c": [
      {
@@ -25969,7 +25969,7 @@
     ]
    },
    {
-    "i": 2031,
+    "i": 2045,
     "n": "A Cute Plan?",
     "c": [
      {
@@ -25984,7 +25984,7 @@
     ]
    },
    {
-    "i": 2032,
+    "i": 2046,
     "n": "The Truth Regarding Cuteness",
     "c": [
      {
@@ -26003,7 +26003,7 @@
     ]
    },
    {
-    "i": 2035,
+    "i": 2049,
     "n": "Oh So Lonely!",
     "c": [
      {
@@ -26022,7 +26022,7 @@
     ]
    },
    {
-    "i": 2037,
+    "i": 2051,
     "n": "After My Cute Concert... ♪",
     "c": [
      {
@@ -26043,7 +26043,7 @@
     ]
    },
    {
-    "i": 2038,
+    "i": 2052,
     "n": "#MyNamesCurren #NeverForget",
     "c": [
      {
@@ -26219,7 +26219,7 @@
   ],
   "version": [
    {
-    "i": 2049,
+    "i": 2063,
     "n": "Where Could Curren Be?",
     "c": [
      {
@@ -26251,7 +26251,7 @@
     ]
    },
    {
-    "i": 2050,
+    "i": 2064,
     "n": "Curren in Black",
     "c": [
      {
@@ -26276,7 +26276,7 @@
     ]
    },
    {
-    "i": 2051,
+    "i": 2065,
     "n": "#CuteBakushin",
     "c": [
      {
@@ -26312,7 +26312,7 @@
   ],
   "outings": [
    {
-    "i": 2039,
+    "i": 2053,
     "n": "Making Friends",
     "c": [
      {
@@ -26336,7 +26336,7 @@
     ]
    },
    {
-    "i": 2040,
+    "i": 2054,
     "n": "Making Connections",
     "c": [
      {
@@ -26360,7 +26360,7 @@
     ]
    },
    {
-    "i": 2041,
+    "i": 2055,
     "n": "Universal Cutie",
     "c": [
      {
@@ -26401,7 +26401,7 @@
     ]
    },
    {
-    "i": 2042,
+    "i": 2056,
     "n": "A Nostalgic Flavor",
     "c": [
      {
@@ -26425,7 +26425,7 @@
     ]
    },
    {
-    "i": 2043,
+    "i": 2057,
     "n": "Rattle, Rattle, Clunk",
     "c": [
      {
@@ -26451,7 +26451,7 @@
   ],
   "secret": [
    {
-    "i": 2044,
+    "i": 2058,
     "n": "The Essence of Cuteness",
     "c": [
      {
@@ -26474,7 +26474,7 @@
     ]
    },
    {
-    "i": 2045,
+    "i": 2059,
     "n": "Summer Sprint Series Conquered!",
     "c": [
      {
@@ -26526,7 +26526,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2045,
+       "i": 2059,
        "n": "Summer Sprint Series Conquered!",
        "c": [
         {
@@ -26584,7 +26584,7 @@
  "104002": {
   "wchoice": [
    {
-    "i": 2458,
+    "i": 2475,
     "n": "City's Salon",
     "c": [
      {
@@ -26608,7 +26608,7 @@
     ]
    },
    {
-    "i": 2459,
+    "i": 2476,
     "n": "Never Skip Meals",
     "c": [
      {
@@ -26632,7 +26632,7 @@
     ]
    },
    {
-    "i": 2461,
+    "i": 2478,
     "n": "Dorm Quiz Battle",
     "c": [
      {
@@ -26661,7 +26661,7 @@
     ]
    },
    {
-    "i": 2462,
+    "i": 2479,
     "n": "The Work of a Model",
     "c": [
      {
@@ -26756,7 +26756,7 @@
   ],
   "nochoice": [
    {
-    "i": 2452,
+    "i": 2469,
     "n": "Trust and Awkward Smiles",
     "c": [
      {
@@ -26771,7 +26771,7 @@
     ]
    },
    {
-    "i": 2453,
+    "i": 2470,
     "n": "Support and Expectations",
     "c": [
      {
@@ -26786,7 +26786,7 @@
     ]
    },
    {
-    "i": 2454,
+    "i": 2471,
     "n": "Anger and Frustration",
     "c": [
      {
@@ -26801,7 +26801,7 @@
     ]
    },
    {
-    "i": 2455,
+    "i": 2472,
     "n": "Exaltation and Impatience",
     "c": [
      {
@@ -26816,7 +26816,7 @@
     ]
    },
    {
-    "i": 2456,
+    "i": 2473,
     "n": "Empty",
     "c": [
      {
@@ -26831,7 +26831,7 @@
     ]
    },
    {
-    "i": 2457,
+    "i": 2474,
     "n": "Golden Sunset",
     "c": [
      {
@@ -26846,7 +26846,7 @@
     ]
    },
    {
-    "i": 2460,
+    "i": 2477,
     "n": "Boba Trap",
     "c": [
      {
@@ -26865,7 +26865,7 @@
     ]
    },
    {
-    "i": 2463,
+    "i": 2480,
     "n": "I Overslept!",
     "c": [
      {
@@ -27042,7 +27042,7 @@
   ],
   "version": [
    {
-    "i": 2475,
+    "i": 2492,
     "n": "A City Girl's Mood ♪",
     "c": [
      {
@@ -27066,7 +27066,7 @@
     ]
    },
    {
-    "i": 2476,
+    "i": 2493,
     "n": "What's Prettier than Gold?",
     "c": [
      {
@@ -27107,7 +27107,7 @@
     ]
    },
    {
-    "i": 2477,
+    "i": 2494,
     "n": "A Quiet Talk Before the Show",
     "c": [
      {
@@ -27134,7 +27134,7 @@
   ],
   "outings": [
    {
-    "i": 2464,
+    "i": 2481,
     "n": "Might as Well",
     "c": [
      {
@@ -27162,7 +27162,7 @@
     ]
    },
    {
-    "i": 2465,
+    "i": 2482,
     "n": "Words Unspoken",
     "c": [
      {
@@ -27190,7 +27190,7 @@
     ]
    },
    {
-    "i": 2466,
+    "i": 2483,
     "n": "Barefoot",
     "c": [
      {
@@ -27223,7 +27223,7 @@
     ]
    },
    {
-    "i": 2467,
+    "i": 2484,
     "n": "Wanderlust",
     "c": [
      {
@@ -27247,7 +27247,7 @@
     ]
    },
    {
-    "i": 2468,
+    "i": 2485,
     "n": "Yoga Pose!",
     "c": [
      {
@@ -27273,7 +27273,7 @@
   ],
   "secret": [
    {
-    "i": 2469,
+    "i": 2486,
     "n": "Victory!",
     "c": [
      {
@@ -27305,7 +27305,7 @@
     "note": "G1 / G2-G3 / (Pre-)OP"
    },
    {
-    "i": 2470,
+    "i": 2487,
     "n": "Solid Showing",
     "c": [
      {
@@ -27339,7 +27339,7 @@
     "note": "G1 / G2-G3 / (Pre-)OP"
    },
    {
-    "i": 2471,
+    "i": 2488,
     "n": "Defeat",
     "c": [
      {
@@ -27382,7 +27382,7 @@
  "104502": {
   "wchoice": [
    {
-    "i": 4082,
+    "i": 4099,
     "n": "One-Day Experience ☆ Ceramics Class",
     "c": [
      {
@@ -27410,7 +27410,7 @@
     ]
    },
    {
-    "i": 4083,
+    "i": 4100,
     "n": "Find the Lost Child!",
     "c": [
      {
@@ -27442,7 +27442,7 @@
     ]
    },
    {
-    "i": 4085,
+    "i": 4102,
     "n": "A Dangerous Treat",
     "c": [
      {
@@ -27471,7 +27471,7 @@
     ]
    },
    {
-    "i": 4086,
+    "i": 4103,
     "n": "Sweet Nighttime Temptation",
     "c": [
      {
@@ -27547,7 +27547,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4086,
+       "i": 4103,
        "n": "Sweet Nighttime Temptation",
        "c": [
         {
@@ -27663,7 +27663,7 @@
   ],
   "nochoice": [
    {
-    "i": 4076,
+    "i": 4093,
     "n": "How Many Would You Like?",
     "c": [
      {
@@ -27678,7 +27678,7 @@
     ]
    },
    {
-    "i": 4077,
+    "i": 4094,
     "n": "A Fruitless Spring",
     "c": [
      {
@@ -27693,7 +27693,7 @@
     ]
    },
    {
-    "i": 4078,
+    "i": 4095,
     "n": "True Reason",
     "c": [
      {
@@ -27708,7 +27708,7 @@
     ]
    },
    {
-    "i": 4079,
+    "i": 4096,
     "n": "Birth of a Supervillain",
     "c": [
      {
@@ -27723,7 +27723,7 @@
     ]
    },
    {
-    "i": 4080,
+    "i": 4097,
     "n": "The Winds of Change",
     "c": [
      {
@@ -27738,7 +27738,7 @@
     ]
    },
    {
-    "i": 4084,
+    "i": 4101,
     "n": "I Want to Spoil You!",
     "c": [
      {
@@ -27911,7 +27911,7 @@
   ],
   "version": [
    {
-    "i": 4099,
+    "i": 4116,
     "n": "Search or Story Time",
     "c": [
      {
@@ -27936,7 +27936,7 @@
     ]
    },
    {
-    "i": 4100,
+    "i": 4117,
     "n": "Spook or Fluke",
     "c": [
      {
@@ -27964,7 +27964,7 @@
     ]
    },
    {
-    "i": 4101,
+    "i": 4118,
     "n": "Curse or Comfort",
     "c": [
      {
@@ -28003,7 +28003,7 @@
   ],
   "outings": [
    {
-    "i": 4087,
+    "i": 4104,
     "n": "Is Relaxing Being Spoiled?",
     "c": [
      {
@@ -28027,7 +28027,7 @@
     ]
    },
    {
-    "i": 4088,
+    "i": 4105,
     "n": "Dispel Your Anxieties",
     "c": [
      {
@@ -28055,7 +28055,7 @@
     ]
    },
    {
-    "i": 4089,
+    "i": 4106,
     "n": "Let's Share",
     "c": [
      {
@@ -28088,7 +28088,7 @@
     ]
    },
    {
-    "i": 4090,
+    "i": 4107,
     "n": "Rough Massage!",
     "c": [
      {
@@ -28116,7 +28116,7 @@
     ]
    },
    {
-    "i": 4091,
+    "i": 4108,
     "n": "Stargazing is Better Together",
     "c": [
      {
@@ -28146,7 +28146,7 @@
   ],
   "secret": [
    {
-    "i": 4081,
+    "i": 4098,
     "n": "Our Dream Lives On",
     "c": [
      {
@@ -28186,7 +28186,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 4081,
+       "i": 4098,
        "n": "Our Dream Lives On",
        "c": [
         {
@@ -28226,7 +28226,7 @@
     ]
    },
    {
-    "i": 4092,
+    "i": 4109,
     "n": "After the Sumire S.: Short of Breath",
     "c": [
      {
@@ -28262,7 +28262,7 @@
     ]
    },
    {
-    "i": 4093,
+    "i": 4110,
     "n": "After the Satsuki Sho: A Spring Miracle!",
     "c": [
      {
@@ -28297,7 +28297,7 @@
     ]
    },
    {
-    "i": 4094,
+    "i": 4111,
     "n": "After the Japanese Derby: A Super-Umamusume Feat?!",
     "c": [
      {
@@ -28332,7 +28332,7 @@
     ]
    },
    {
-    "i": 4095,
+    "i": 4112,
     "n": "After the Kikuka Sho: Triumph of Bonds!",
     "c": [
      {
@@ -28381,7 +28381,7 @@
  "104602": {
   "wchoice": [
    {
-    "i": 3972,
+    "i": 3989,
     "n": "Studying Umadols?",
     "c": [
      {
@@ -28405,7 +28405,7 @@
     ]
    },
    {
-    "i": 3973,
+    "i": 3990,
     "n": "Heart-Pounding ☆ Situation",
     "c": [
      {
@@ -28429,7 +28429,7 @@
     ]
    },
    {
-    "i": 3975,
+    "i": 3992,
     "n": "Umadol Spirit ☆ Ignited",
     "c": [
      {
@@ -28519,7 +28519,7 @@
   ],
   "nochoice": [
    {
-    "i": 3968,
+    "i": 3985,
     "n": "Looking to the Otherworldly ☆",
     "c": [
      {
@@ -28534,7 +28534,7 @@
     ]
    },
    {
-    "i": 3969,
+    "i": 3986,
     "n": "The Next Grand Prix ☆ Girl!",
     "c": [
      {
@@ -28549,7 +28549,7 @@
     ]
    },
    {
-    "i": 3970,
+    "i": 3987,
     "n": "Fighting Declaration",
     "c": [
      {
@@ -28564,7 +28564,7 @@
     ]
    },
    {
-    "i": 3971,
+    "i": 3988,
     "n": "Falco's Dream",
     "c": [
      {
@@ -28583,7 +28583,7 @@
     ]
    },
    {
-    "i": 3974,
+    "i": 3991,
     "n": "Failing Grade Frustration",
     "c": [
      {
@@ -28756,7 +28756,7 @@
   ],
   "version": [
    {
-    "i": 3988,
+    "i": 4005,
     "n": "My First Concert",
     "c": [
      {
@@ -28792,7 +28792,7 @@
     ]
    },
    {
-    "i": 3989,
+    "i": 4006,
     "n": "One Hot Stage, Coming Right Up!",
     "c": [
      {
@@ -28820,7 +28820,7 @@
     ]
    },
    {
-    "i": 3990,
+    "i": 4007,
     "n": "The Umadol Road, Far, Far Away",
     "c": [
      {
@@ -28859,7 +28859,7 @@
   ],
   "outings": [
    {
-    "i": 3979,
+    "i": 3996,
     "n": "Test Recovery ☆",
     "c": [
      {
@@ -28883,7 +28883,7 @@
     ]
    },
    {
-    "i": 3980,
+    "i": 3997,
     "n": "A Thank-You Gift for You ♪",
     "c": [
      {
@@ -28907,7 +28907,7 @@
     ]
    },
    {
-    "i": 3981,
+    "i": 3998,
     "n": "Memory ☆ Lane",
     "c": [
      {
@@ -28940,7 +28940,7 @@
     ]
    },
    {
-    "i": 3982,
+    "i": 3999,
     "n": "Sharing ☆ Memories",
     "c": [
      {
@@ -28964,7 +28964,7 @@
     ]
    },
    {
-    "i": 3983,
+    "i": 4000,
     "n": "Location ☆ Scouting",
     "c": [
      {
@@ -28990,7 +28990,7 @@
   ],
   "secret": [
    {
-    "i": 3976,
+    "i": 3993,
     "n": "Coming to a City Near You ☆",
     "c": [
      {
@@ -29049,7 +29049,7 @@
      {
       "period": "pre_nar",
       "data": {
-       "i": 3976,
+       "i": 3993,
        "n": "Coming to a City Near You ☆",
        "c": [
         {
@@ -29101,7 +29101,7 @@
     ]
    },
    {
-    "i": 3977,
+    "i": 3994,
     "n": "Connecting ☆ Inspiration",
     "c": [
      {
@@ -29134,7 +29134,7 @@
     ]
    },
    {
-    "i": 3978,
+    "i": 3995,
     "n": "Center of Everyone's Heart ☆",
     "c": [
      {
@@ -29164,7 +29164,7 @@
     ]
    },
    {
-    "i": 3984,
+    "i": 4001,
     "n": "After the Kawasaki Kinen: Hearts Aflutter!",
     "c": [
      {
@@ -29218,7 +29218,7 @@
  "105002": {
   "wchoice": [
    {
-    "i": 3374,
+    "i": 3391,
     "n": "Report Submitted",
     "c": [
      {
@@ -29246,7 +29246,7 @@
     ]
    },
    {
-    "i": 3375,
+    "i": 3392,
     "n": "Unknown Music",
     "c": [
      {
@@ -29270,7 +29270,7 @@
     ]
    },
    {
-    "i": 3377,
+    "i": 3394,
     "n": "Distance",
     "c": [
      {
@@ -29299,7 +29299,7 @@
     ]
    },
    {
-    "i": 3378,
+    "i": 3395,
     "n": "Extra Training to Blow Off Steam",
     "c": [
      {
@@ -29359,7 +29359,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3378,
+       "i": 3395,
        "n": "Extra Training to Blow Off Steam",
        "c": [
         {
@@ -29420,7 +29420,7 @@
     ]
    },
    {
-    "i": 3379,
+    "i": 3396,
     "n": "Extra Training to De-stress?",
     "c": [
      {
@@ -29480,7 +29480,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3379,
+       "i": 3396,
        "n": "Extra Training to De-stress?",
        "c": [
         {
@@ -29602,7 +29602,7 @@
   ],
   "nochoice": [
    {
-    "i": 3368,
+    "i": 3385,
     "n": "B&W",
     "c": [
      {
@@ -29621,7 +29621,7 @@
     ]
    },
    {
-    "i": 3369,
+    "i": 3386,
     "n": "[W]inner",
     "c": [
      {
@@ -29636,7 +29636,7 @@
     ]
    },
    {
-    "i": 3370,
+    "i": 3387,
     "n": "Don't Say It",
     "c": [
      {
@@ -29658,7 +29658,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 3370,
+       "i": 3387,
        "n": "Don't Say It",
        "c": [
         {
@@ -29681,7 +29681,7 @@
     ]
    },
    {
-    "i": 3371,
+    "i": 3388,
     "n": "I Believe",
     "c": [
      {
@@ -29696,7 +29696,7 @@
     ]
    },
    {
-    "i": 3372,
+    "i": 3389,
     "n": "I Said I'm Fine",
     "c": [
      {
@@ -29711,7 +29711,7 @@
     ]
    },
    {
-    "i": 3376,
+    "i": 3393,
     "n": "Evaluation Meeting",
     "c": [
      {
@@ -29884,7 +29884,7 @@
   ],
   "version": [
    {
-    "i": 3389,
+    "i": 3406,
     "n": "Quest: Help Dismantle the Set!",
     "c": [
      {
@@ -29930,7 +29930,7 @@
     ]
    },
    {
-    "i": 3390,
+    "i": 3407,
     "n": "Quest: Help the Theater Club!",
     "c": [
      {
@@ -29968,7 +29968,7 @@
     ]
    },
    {
-    "i": 3391,
+    "i": 3408,
     "n": "Quest: Help the Boy!",
     "c": [
      {
@@ -30026,7 +30026,7 @@
   ],
   "outings": [
    {
-    "i": 3380,
+    "i": 3397,
     "n": "git gud noob",
     "c": [
      {
@@ -30050,7 +30050,7 @@
     ]
    },
    {
-    "i": 3381,
+    "i": 3398,
     "n": "ggez",
     "c": [
      {
@@ -30074,7 +30074,7 @@
     ]
    },
    {
-    "i": 3382,
+    "i": 3399,
     "n": "ggwp",
     "c": [
      {
@@ -30107,7 +30107,7 @@
     ]
    },
    {
-    "i": 3383,
+    "i": 3400,
     "n": "The Taciturn Two",
     "c": [
      {
@@ -30131,7 +30131,7 @@
     ]
    },
    {
-    "i": 3384,
+    "i": 3401,
     "n": "Open the Cage Door with Your Own Hands",
     "c": [
      {
@@ -30165,7 +30165,7 @@
   ],
   "secret": [
    {
-    "i": 3373,
+    "i": 3390,
     "n": "Forever Fervent",
     "c": [
      {
@@ -30261,7 +30261,7 @@
     "did_not_exist": "pre_first_anni"
    },
    {
-    "i": 3385,
+    "i": 3402,
     "n": "After the Nikkei Sho: Here Is Fine",
     "c": [
      {
@@ -30334,7 +30334,7 @@
  "105202": {
   "wchoice": [
    {
-    "i": 2558,
+    "i": 2575,
     "n": "Arm-Wrestling Contest",
     "c": [
      {
@@ -30358,7 +30358,7 @@
     ]
    },
    {
-    "i": 2559,
+    "i": 2576,
     "n": "Looking for Something Important",
     "c": [
      {
@@ -30386,7 +30386,7 @@
     ]
    },
    {
-    "i": 2561,
+    "i": 2578,
     "n": "Sand Training!",
     "c": [
      {
@@ -30475,7 +30475,7 @@
   ],
   "nochoice": [
    {
-    "i": 2552,
+    "i": 2569,
     "n": "Training, Urara Style",
     "c": [
      {
@@ -30490,7 +30490,7 @@
     ]
    },
    {
-    "i": 2553,
+    "i": 2570,
     "n": "Smiling With Everyone!",
     "c": [
      {
@@ -30505,7 +30505,7 @@
     ]
    },
    {
-    "i": 2554,
+    "i": 2571,
     "n": "Idol of the Shopping District!",
     "c": [
      {
@@ -30520,7 +30520,7 @@
     ]
    },
    {
-    "i": 2555,
+    "i": 2572,
     "n": "Fan Club Running Rampant!",
     "c": [
      {
@@ -30535,7 +30535,7 @@
     ]
    },
    {
-    "i": 2556,
+    "i": 2573,
     "n": "I'll Do My Best",
     "c": [
      {
@@ -30554,7 +30554,7 @@
     ]
    },
    {
-    "i": 2557,
+    "i": 2574,
     "n": "Her First...",
     "c": [
      {
@@ -30581,7 +30581,7 @@
     ]
    },
    {
-    "i": 2560,
+    "i": 2577,
     "n": "Detention Continues...",
     "c": [
      {
@@ -30600,7 +30600,7 @@
     ]
    },
    {
-    "i": 2562,
+    "i": 2579,
     "n": "Plenty of Charm!",
     "c": [
      {
@@ -30774,7 +30774,7 @@
   ],
   "version": [
    {
-    "i": 2572,
+    "i": 2589,
     "n": "C'mon, It's a Snowball Fight!",
     "c": [
      {
@@ -30815,7 +30815,7 @@
     ]
    },
    {
-    "i": 2573,
+    "i": 2590,
     "n": "Look! You Can See the Feelings!",
     "c": [
      {
@@ -30850,7 +30850,7 @@
     ]
    },
    {
-    "i": 2574,
+    "i": 2591,
     "n": "Wait Up, Little Fishies!",
     "c": [
      {
@@ -30874,7 +30874,7 @@
   ],
   "outings": [
    {
-    "i": 2563,
+    "i": 2580,
     "n": "A Little Detour!",
     "c": [
      {
@@ -30898,7 +30898,7 @@
     ]
    },
    {
-    "i": 2564,
+    "i": 2581,
     "n": "Parks Are Fun!",
     "c": [
      {
@@ -30922,7 +30922,7 @@
     ]
    },
    {
-    "i": 2565,
+    "i": 2582,
     "n": "Secret Day Off Plan!",
     "c": [
      {
@@ -30955,7 +30955,7 @@
     ]
    },
    {
-    "i": 2566,
+    "i": 2583,
     "n": "So Cool!",
     "c": [
      {
@@ -30979,7 +30979,7 @@
     ]
    },
    {
-    "i": 2567,
+    "i": 2584,
     "n": "Forgot to Eat!",
     "c": [
      {
@@ -31005,7 +31005,7 @@
   ],
   "secret": [
    {
-    "i": 2568,
+    "i": 2585,
     "n": "After the Arima Kinen: Way, Way Better",
     "c": [
      {
@@ -31042,7 +31042,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 2568,
+       "i": 2585,
        "n": "After the Arima Kinen: Way, Way Better",
        "c": [
         {
@@ -31080,7 +31080,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2568,
+       "i": 2585,
        "n": "After the Arima Kinen: Way, Way Better",
        "c": [
         {
@@ -31127,7 +31127,7 @@
  "105602": {
   "wchoice": [
    {
-    "i": 3006,
+    "i": 3023,
     "n": "Cursed Camera",
     "c": [
      {
@@ -31151,7 +31151,7 @@
     ]
    },
    {
-    "i": 3007,
+    "i": 3024,
     "n": "Manhattan's Dream",
     "c": [
      {
@@ -31178,7 +31178,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3007,
+       "i": 3024,
        "n": "Manhattan's Dream",
        "c": [
         {
@@ -31206,7 +31206,7 @@
     ]
    },
    {
-    "i": 3009,
+    "i": 3026,
     "n": "Pretty Gunslingers",
     "c": [
      {
@@ -31234,7 +31234,7 @@
     ]
    },
    {
-    "i": 3010,
+    "i": 3027,
     "n": "Which One is the Lucky Card?!",
     "c": [
      {
@@ -31278,7 +31278,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 3010,
+       "i": 3027,
        "n": "Which One is the Lucky Card?!",
        "c": [
         {
@@ -31380,7 +31380,7 @@
   ],
   "nochoice": [
    {
-    "i": 3000,
+    "i": 3017,
     "n": "Scarier than a Ghost!",
     "c": [
      {
@@ -31395,7 +31395,7 @@
     ]
    },
    {
-    "i": 3001,
+    "i": 3018,
     "n": "Dream Crossroads",
     "c": [
      {
@@ -31410,7 +31410,7 @@
     ]
    },
    {
-    "i": 3002,
+    "i": 3019,
     "n": "Divine Punishment",
     "c": [
      {
@@ -31425,7 +31425,7 @@
     ]
    },
    {
-    "i": 3003,
+    "i": 3020,
     "n": "Lifespans",
     "c": [
      {
@@ -31440,7 +31440,7 @@
     ]
    },
    {
-    "i": 3004,
+    "i": 3021,
     "n": "Hear My Vow!",
     "c": [
      {
@@ -31459,7 +31459,7 @@
     ]
    },
    {
-    "i": 3008,
+    "i": 3025,
     "n": "Terror! An Ominous Sign",
     "c": [
      {
@@ -31632,7 +31632,7 @@
   ],
   "version": [
    {
-    "i": 3019,
+    "i": 3036,
     "n": "I'll Protect You!",
     "c": [
      {
@@ -31657,7 +31657,7 @@
     ]
    },
    {
-    "i": 3020,
+    "i": 3037,
     "n": "Now or Never! Sacred Sites",
     "c": [
      {
@@ -31685,7 +31685,7 @@
     ]
    },
    {
-    "i": 3021,
+    "i": 3038,
     "n": "When Fukukitaru Comes, Fortune Follows",
     "c": [
      {
@@ -31731,7 +31731,7 @@
   ],
   "outings": [
    {
-    "i": 3011,
+    "i": 3028,
     "n": "Fukukitaru's Protection against Misfortune",
     "c": [
      {
@@ -31755,7 +31755,7 @@
     ]
    },
    {
-    "i": 3012,
+    "i": 3029,
     "n": "Punch in a Pinch",
     "c": [
      {
@@ -31783,7 +31783,7 @@
     ]
    },
    {
-    "i": 3013,
+    "i": 3030,
     "n": "Fukukitaru's Unique Good-Luck Spell",
     "c": [
      {
@@ -31824,7 +31824,7 @@
     ]
    },
    {
-    "i": 3014,
+    "i": 3031,
     "n": "Taking the Plunge",
     "c": [
      {
@@ -31852,7 +31852,7 @@
     ]
    },
    {
-    "i": 3015,
+    "i": 3032,
     "n": "Shrine Visit",
     "c": [
      {
@@ -31886,7 +31886,7 @@
   ],
   "secret": [
    {
-    "i": 3005,
+    "i": 3022,
     "n": "Imminent Fortune, Quiet Resolve",
     "c": [
      {
@@ -31931,7 +31931,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 3005,
+       "i": 3022,
        "n": "Imminent Fortune, Quiet Resolve",
        "c": [
         {
@@ -31982,7 +31982,7 @@
  "105802": {
   "wchoice": [
    {
-    "i": 3079,
+    "i": 3096,
     "n": "Best Shot",
     "c": [
      {
@@ -32006,7 +32006,7 @@
     ]
    },
    {
-    "i": 3080,
+    "i": 3097,
     "n": "First Step to Flawlessness",
     "c": [
      {
@@ -32030,7 +32030,7 @@
     ]
    },
    {
-    "i": 3082,
+    "i": 3099,
     "n": "Words of Aid",
     "c": [
      {
@@ -32059,7 +32059,7 @@
     ]
    },
    {
-    "i": 3083,
+    "i": 3100,
     "n": "Positively Tickled!",
     "c": [
      {
@@ -32164,7 +32164,7 @@
   ],
   "nochoice": [
    {
-    "i": 3074,
+    "i": 3091,
     "n": "The Derby?! Already?!",
     "c": [
      {
@@ -32179,7 +32179,7 @@
     ]
    },
    {
-    "i": 3075,
+    "i": 3092,
     "n": "Arrival of the Lone Star",
     "c": [
      {
@@ -32194,7 +32194,7 @@
     ]
    },
    {
-    "i": 3076,
+    "i": 3093,
     "n": "How the River Runs...",
     "c": [
      {
@@ -32209,7 +32209,7 @@
     ]
    },
    {
-    "i": 3077,
+    "i": 3094,
     "n": "Air Shakur's Derby",
     "c": [
      {
@@ -32224,7 +32224,7 @@
     ]
    },
    {
-    "i": 3078,
+    "i": 3095,
     "n": "Steadfast Steps",
     "c": [
      {
@@ -32239,7 +32239,7 @@
     ]
    },
    {
-    "i": 3081,
+    "i": 3098,
     "n": "Huh? That's Strange",
     "c": [
      {
@@ -32258,7 +32258,7 @@
     ]
    },
    {
-    "i": 3084,
+    "i": 3101,
     "n": "Sleepy Stumble",
     "c": [
      {
@@ -32273,7 +32273,7 @@
     ]
    },
    {
-    "i": 3085,
+    "i": 3102,
     "n": "Eyes Wide Open",
     "c": [
      {
@@ -32450,7 +32450,7 @@
   ],
   "version": [
    {
-    "i": 3097,
+    "i": 3114,
     "n": "A Friendly Halloween Parade",
     "c": [
      {
@@ -32491,7 +32491,7 @@
     ]
    },
    {
-    "i": 3098,
+    "i": 3115,
     "n": "Doto's Party Palace?!",
     "c": [
      {
@@ -32543,7 +32543,7 @@
     ]
    },
    {
-    "i": 3099,
+    "i": 3116,
     "n": "Friends Cry Together",
     "c": [
      {
@@ -32577,7 +32577,7 @@
   ],
   "outings": [
    {
-    "i": 3086,
+    "i": 3103,
     "n": "Pack a Punch",
     "c": [
      {
@@ -32601,7 +32601,7 @@
     ]
    },
    {
-    "i": 3087,
+    "i": 3104,
     "n": "Lost and Alone",
     "c": [
      {
@@ -32625,7 +32625,7 @@
     ]
    },
    {
-    "i": 3088,
+    "i": 3105,
     "n": "Are My Feelings Reaching You?",
     "c": [
      {
@@ -32658,7 +32658,7 @@
     ]
    },
    {
-    "i": 3089,
+    "i": 3106,
     "n": "Twilight Ice Cream",
     "c": [
      {
@@ -32686,7 +32686,7 @@
     ]
    },
    {
-    "i": 3090,
+    "i": 3107,
     "n": "Equivalent Exchange?",
     "c": [
      {
@@ -32712,7 +32712,7 @@
   ],
   "secret": [
    {
-    "i": 3091,
+    "i": 3108,
     "n": "After the Debut: Feeling... Dizzy...",
     "c": [
      {
@@ -32747,7 +32747,7 @@
     ]
    },
    {
-    "i": 3092,
+    "i": 3109,
     "n": "Goal Achieved: A Fallen Star",
     "c": [
      {
@@ -32788,7 +32788,7 @@
     ]
    },
    {
-    "i": 3093,
+    "i": 3110,
     "n": "Triumph! I'm the Overlord?!",
     "c": [
      {
@@ -32852,7 +32852,7 @@
  "105902": {
   "wchoice": [
    {
-    "i": 3160,
+    "i": 3177,
     "n": "Seeking the Summit",
     "c": [
      {
@@ -32880,7 +32880,7 @@
     ]
    },
    {
-    "i": 3161,
+    "i": 3178,
     "n": "A Lovely Tea Time",
     "c": [
      {
@@ -32908,7 +32908,7 @@
     ]
    },
    {
-    "i": 3163,
+    "i": 3180,
     "n": "Hot Pot Derby?!",
     "c": [
      {
@@ -32933,7 +32933,7 @@
     ]
    },
    {
-    "i": 3164,
+    "i": 3181,
     "n": "Karaoke Challenge",
     "c": [
      {
@@ -33033,7 +33033,7 @@
   ],
   "nochoice": [
    {
-    "i": 3155,
+    "i": 3172,
     "n": "Our Promise",
     "c": [
      {
@@ -33048,7 +33048,7 @@
     ]
    },
    {
-    "i": 3156,
+    "i": 3173,
     "n": "A Trembling Heart",
     "c": [
      {
@@ -33063,7 +33063,7 @@
     ]
    },
    {
-    "i": 3157,
+    "i": 3174,
     "n": "Heating Up",
     "c": [
      {
@@ -33078,7 +33078,7 @@
     ]
    },
    {
-    "i": 3158,
+    "i": 3175,
     "n": "Dazzled by Sunlight",
     "c": [
      {
@@ -33093,7 +33093,7 @@
     ]
    },
    {
-    "i": 3159,
+    "i": 3176,
     "n": "A Yellow Flower, Proudly in Bloom",
     "c": [
      {
@@ -33108,7 +33108,7 @@
     ]
    },
    {
-    "i": 3162,
+    "i": 3179,
     "n": "Unexpected Fragrance",
     "c": [
      {
@@ -33281,7 +33281,7 @@
   ],
   "version": [
    {
-    "i": 3178,
+    "i": 3195,
     "n": "Nostalgia, with a Side Of...",
     "c": [
      {
@@ -33318,7 +33318,7 @@
     ]
    },
    {
-    "i": 3179,
+    "i": 3196,
     "n": "Dressed Up in Emotion",
     "c": [
      {
@@ -33342,7 +33342,7 @@
     ]
    },
    {
-    "i": 3180,
+    "i": 3197,
     "n": "Overlapping Fragrances",
     "c": [
      {
@@ -33373,7 +33373,7 @@
   ],
   "outings": [
    {
-    "i": 3165,
+    "i": 3182,
     "n": "Who I Am Now",
     "c": [
      {
@@ -33397,7 +33397,7 @@
     ]
    },
    {
-    "i": 3166,
+    "i": 3183,
     "n": "I'll Give It a Shot",
     "c": [
      {
@@ -33421,7 +33421,7 @@
     ]
    },
    {
-    "i": 3167,
+    "i": 3184,
     "n": "A Wish to Light Up the Sky",
     "c": [
      {
@@ -33454,7 +33454,7 @@
     ]
    },
    {
-    "i": 3168,
+    "i": 3185,
     "n": "Friends and Fangirls",
     "c": [
      {
@@ -33478,7 +33478,7 @@
     ]
    },
    {
-    "i": 3169,
+    "i": 3186,
     "n": "Fluttering Hearts at Sunset",
     "c": [
      {
@@ -33504,7 +33504,7 @@
   ],
   "secret": [
    {
-    "i": 3170,
+    "i": 3187,
     "n": "An Ounce of Courage",
     "c": [
      {
@@ -33528,7 +33528,7 @@
     ]
    },
    {
-    "i": 3171,
+    "i": 3188,
     "n": "Proof of Progress",
     "c": [
      {
@@ -33561,7 +33561,7 @@
     ]
    },
    {
-    "i": 3172,
+    "i": 3189,
     "n": "After the Tenno Sho (Spring): Blinding Brilliance",
     "c": [
      {
@@ -33584,7 +33584,7 @@
     ]
    },
    {
-    "i": 3173,
+    "i": 3190,
     "n": "After the Tenno Sho (Spring): Flickering Spring Light",
     "c": [
      {
@@ -33607,7 +33607,7 @@
     ]
    },
    {
-    "i": 3174,
+    "i": 3191,
     "n": "From Admiring to Admired",
     "c": [
      {
@@ -33659,7 +33659,7 @@
  "106002": {
   "wchoice": [
    {
-    "i": 3446,
+    "i": 3463,
     "n": "Rainy-Day Fun",
     "c": [
      {
@@ -33691,7 +33691,7 @@
     ]
    },
    {
-    "i": 3447,
+    "i": 3464,
     "n": "Not My Style",
     "c": [
      {
@@ -33723,7 +33723,7 @@
     ]
    },
    {
-    "i": 3449,
+    "i": 3466,
     "n": "Whirlwind Advice",
     "c": [
      {
@@ -33817,7 +33817,7 @@
   ],
   "nochoice": [
    {
-    "i": 3439,
+    "i": 3456,
     "n": "Doting Family",
     "c": [
      {
@@ -33832,7 +33832,7 @@
     ]
    },
    {
-    "i": 3440,
+    "i": 3457,
     "n": "What Cheers Me Up",
     "c": [
      {
@@ -33847,7 +33847,7 @@
     ]
    },
    {
-    "i": 3441,
+    "i": 3458,
     "n": "Behind the Throne",
     "c": [
      {
@@ -33862,7 +33862,7 @@
     ]
    },
    {
-    "i": 3442,
+    "i": 3459,
     "n": "Nature at the Mejiro's",
     "c": [
      {
@@ -33881,7 +33881,7 @@
     ]
    },
    {
-    "i": 3443,
+    "i": 3460,
     "n": "Flash of Light",
     "c": [
      {
@@ -33896,7 +33896,7 @@
     ]
    },
    {
-    "i": 3444,
+    "i": 3461,
     "n": "Experience Leads to Strength",
     "c": [
      {
@@ -33911,7 +33911,7 @@
     "did_not_exist": "pre_first_anni"
    },
    {
-    "i": 3448,
+    "i": 3465,
     "n": "Farewell... My Greatest Comfort",
     "c": [
      {
@@ -33930,7 +33930,7 @@
     ]
    },
    {
-    "i": 3451,
+    "i": 3468,
     "n": "Care for Some Squid?",
     "c": [
      {
@@ -34106,7 +34106,7 @@
   ],
   "version": [
    {
-    "i": 3464,
+    "i": 3481,
     "n": "Cheers on Video!",
     "c": [
      {
@@ -34135,7 +34135,7 @@
     ]
    },
    {
-    "i": 3465,
+    "i": 3482,
     "n": "Cheers at the Game!",
     "c": [
      {
@@ -34163,7 +34163,7 @@
     ]
    },
    {
-    "i": 3466,
+    "i": 3483,
     "n": "Your Cheers",
     "c": [
      {
@@ -34186,7 +34186,7 @@
   ],
   "outings": [
    {
-    "i": 3452,
+    "i": 3469,
     "n": "A Phone Call from Mom",
     "c": [
      {
@@ -34210,7 +34210,7 @@
     ]
    },
    {
-    "i": 3453,
+    "i": 3470,
     "n": "Once in a While",
     "c": [
      {
@@ -34242,7 +34242,7 @@
     ]
    },
    {
-    "i": 3454,
+    "i": 3471,
     "n": "Bittersweet Twilight",
     "c": [
      {
@@ -34275,7 +34275,7 @@
     ]
    },
    {
-    "i": 3455,
+    "i": 3472,
     "n": "Snapshot of Emotions",
     "c": [
      {
@@ -34299,7 +34299,7 @@
     ]
    },
    {
-    "i": 3456,
+    "i": 3473,
     "n": "Let's Watch the Fish",
     "c": [
      {
@@ -34325,7 +34325,7 @@
   ],
   "secret": [
    {
-    "i": 3445,
+    "i": 3462,
     "n": "Choosing to Do My Best",
     "c": [
      {
@@ -34370,7 +34370,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 3445,
+       "i": 3462,
        "n": "Choosing to Do My Best",
        "c": [
         {
@@ -34412,7 +34412,7 @@
     ]
    },
    {
-    "i": 3450,
+    "i": 3467,
     "n": "Very \"Me\" Results",
     "c": [
      {
@@ -34437,7 +34437,7 @@
     ]
    },
    {
-    "i": 3457,
+    "i": 3474,
     "n": "After the Satsuki Sho: An Unsatisfying Victory",
     "c": [
      {
@@ -34464,7 +34464,7 @@
     ]
    },
    {
-    "i": 3458,
+    "i": 3475,
     "n": "After the Satsuki Sho: Still Can't Catch Up",
     "c": [
      {
@@ -34491,7 +34491,7 @@
     ]
    },
    {
-    "i": 3459,
+    "i": 3476,
     "n": "After the Japanese Derby: No Matter What",
     "c": [
      {
@@ -34518,7 +34518,7 @@
     ]
    },
    {
-    "i": 3460,
+    "i": 3477,
     "n": "After the Japanese Derby: The Spotlight",
     "c": [
      {
@@ -34554,7 +34554,7 @@
  "106102": {
   "wchoice": [
    {
-    "i": 2806,
+    "i": 2823,
     "n": "Movies Are Full of Learning Opportunities",
     "c": [
      {
@@ -34582,7 +34582,7 @@
     ]
    },
    {
-    "i": 2807,
+    "i": 2824,
     "n": "The King Knows No Exhaustion",
     "c": [
      {
@@ -34610,7 +34610,7 @@
     ]
    },
    {
-    "i": 2809,
+    "i": 2826,
     "n": "First-Rate in Studies Too",
     "c": [
      {
@@ -34639,7 +34639,7 @@
     ]
    },
    {
-    "i": 2810,
+    "i": 2827,
     "n": "After-School Soda",
     "c": [
      {
@@ -34670,7 +34670,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2810,
+       "i": 2827,
        "n": "After-School Soda",
        "c": [
         {
@@ -34697,7 +34697,7 @@
     ]
    },
    {
-    "i": 2811,
+    "i": 2828,
     "n": "Three Heads Are Better than One",
     "c": [
      {
@@ -34727,7 +34727,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 2811,
+       "i": 2828,
        "n": "Three Heads Are Better than One",
        "c": [
         {
@@ -34815,7 +34815,7 @@
   ],
   "nochoice": [
    {
-    "i": 2800,
+    "i": 2817,
     "n": "To Pursue and Be Pursued",
     "c": [
      {
@@ -34830,7 +34830,7 @@
     ]
    },
    {
-    "i": 2801,
+    "i": 2818,
     "n": "We Made Our Debut",
     "c": [
      {
@@ -34845,7 +34845,7 @@
     ]
    },
    {
-    "i": 2802,
+    "i": 2819,
     "n": "My Legs",
     "c": [
      {
@@ -34860,7 +34860,7 @@
     ]
    },
    {
-    "i": 2803,
+    "i": 2820,
     "n": "First-Rate Resolve",
     "c": [
      {
@@ -34875,7 +34875,7 @@
     ]
    },
    {
-    "i": 2804,
+    "i": 2821,
     "n": "Beyond the Limelight",
     "c": [
      {
@@ -34890,7 +34890,7 @@
     ]
    },
    {
-    "i": 2808,
+    "i": 2825,
     "n": "The King's Worries",
     "c": [
      {
@@ -35063,7 +35063,7 @@
   ],
   "version": [
    {
-    "i": 2822,
+    "i": 2839,
     "n": "Encouragement on Demand",
     "c": [
      {
@@ -35091,7 +35091,7 @@
     ]
    },
    {
-    "i": 2823,
+    "i": 2840,
     "n": "To Be Continued?",
     "c": [
      {
@@ -35116,7 +35116,7 @@
     ]
    },
    {
-    "i": 2824,
+    "i": 2841,
     "n": "Urara Returns the Favor",
     "c": [
      {
@@ -35139,7 +35139,7 @@
   ],
   "outings": [
    {
-    "i": 2812,
+    "i": 2829,
     "n": "First-Rate Spot",
     "c": [
      {
@@ -35163,7 +35163,7 @@
     ]
    },
    {
-    "i": 2813,
+    "i": 2830,
     "n": "First-Rate Harvest",
     "c": [
      {
@@ -35195,7 +35195,7 @@
     ]
    },
    {
-    "i": 2814,
+    "i": 2831,
     "n": "First-Rate Terms",
     "c": [
      {
@@ -35228,7 +35228,7 @@
     ]
    },
    {
-    "i": 2815,
+    "i": 2832,
     "n": "Crowds Are No Problem",
     "c": [
      {
@@ -35252,7 +35252,7 @@
     ]
    },
    {
-    "i": 2816,
+    "i": 2833,
     "n": "Breaking Curfew is Second-Rate",
     "c": [
      {
@@ -35286,7 +35286,7 @@
   ],
   "secret": [
    {
-    "i": 2805,
+    "i": 2822,
     "n": "A Kingly Smile",
     "c": [
      {
@@ -35329,7 +35329,7 @@
     "did_not_exist": "pre_first_anni"
    },
    {
-    "i": 2817,
+    "i": 2834,
     "n": "After the Arima Kinen: Royal Inheritance",
     "c": [
      {
@@ -35369,7 +35369,7 @@
        null
       ],
       "data": {
-       "i": 2818,
+       "i": 2835,
        "n": "After the Arima Kinen: With Gratitude and a Vow",
        "c": [
         {
@@ -35448,6 +35448,1595 @@
   "dance": [
    "gu",
    "sp"
+  ]
+ },
+ "106702": {
+  "wchoice": [
+   {
+    "i": 3846,
+    "n": "Hiccup SOS",
+    "c": [
+     {
+      "o": "頑張って動いたな。お疲れ様！",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "規模が想像以上だった……",
+      "r": [
+       {
+        "t": "po",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3847,
+    "n": "The Forbidden Blend",
+    "c": [
+     {
+      "o": "その前に基本を学んでみない？",
+      "r": [
+       {
+        "t": "in",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "美味しくなるまでチャレンジしよう！",
+      "r": [
+       {
+        "t": "mo",
+        "v": "+1"
+       },
+       {
+        "t": "st",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3849,
+    "n": "A Dream Too Big",
+    "c": [
+     {
+      "o": "今のままでも十分鍛えられている",
+      "r": [
+       {
+        "t": "po",
+        "v": "+10"
+       },
+       {
+        "t": "gu",
+        "v": "+5"
+       }
+      ]
+     },
+     {
+      "o": "学園に想いをぶつけよう！",
+      "r": [
+       {
+        "t": "sk",
+        "v": "+1",
+        "d": 200362
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3850,
+    "n": "Follow Those You Admire",
+    "c": [
+     {
+      "o": "レッスンルームへ熱唱しに行ったのかも？",
+      "r": [
+       {
+        "t": "gu",
+        "v": "+15"
+       },
+       {
+        "t": "sk",
+        "v": "+1",
+        "d": 200742
+       }
+      ]
+     },
+     {
+      "o": "カフェテリアで頭を抱えてそう",
+      "r": [
+       {
+        "t": "en",
+        "v": "+10"
+       },
+       {
+        "t": "in",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "トレーニングコースで鍛えているはず！",
+      "r": [
+       {
+        "t": "po",
+        "v": "+10"
+       },
+       {
+        "t": "se",
+        "v": null,
+        "d": 10
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "An Appetite to Reach the Top",
+    "c": [
+     {
+      "o": "カロリーオーバーだ",
+      "r": [
+       {
+        "v": "+10",
+        "t": "en"
+       },
+       {
+        "v": "+5",
+        "t": "pt"
+       }
+      ]
+     },
+     {
+      "o": "挑戦してみるか？",
+      "r": [
+       {
+        "t": "di",
+        "d": "~90"
+       },
+       {
+        "v": "+30",
+        "t": "en"
+       },
+       {
+        "v": "+10",
+        "t": "pt"
+       },
+       {
+        "t": "di",
+        "d": "~10"
+       },
+       {
+        "v": "+30",
+        "t": "en"
+       },
+       {
+        "v": "+10",
+        "t": "pt"
+       },
+       {
+        "v": "-5",
+        "t": "sp"
+       },
+       {
+        "v": "+5",
+        "t": "po"
+       },
+       {
+        "t": "se",
+        "d": 4
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "nochoice": [
+   {
+    "i": 3839,
+    "n": "That Which Strengthens Me",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "st",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3840,
+    "n": "A Long Ways to Go",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "in",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3841,
+    "n": "That Which Hinders Me",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "st",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3842,
+    "n": "Chasing the Distant Future",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3843,
+    "n": "A Luster Like None Other",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "no"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3844,
+    "n": "Challenges and Breaking New Ground",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "no"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3848,
+    "n": "Overshooting the Mark",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "mo",
+        "v": "-1"
+       },
+       {
+        "t": "st",
+        "v": "-5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Master Trainer",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+10"
+       },
+       {
+        "t": "se",
+        "d": 10,
+        "r": true
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Leaving a Brilliant Record",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "5s",
+        "v": "+5"
+       },
+       {
+        "t": "pt",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Unexpected Error",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "mo",
+        "v": "-1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Nighty Night, Kitty",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "en",
+        "v": "-10"
+       },
+       {
+        "t": "mo",
+        "v": "-1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "The Right Path",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "5s",
+        "v": "+5"
+       },
+       {
+        "t": "pt",
+        "v": "+30"
+       },
+       {
+        "t": "mo",
+        "v": "+2"
+       },
+       {
+        "t": "se",
+        "d": 7,
+        "r": true
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Beyond the Crowds",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "en",
+        "v": "+15"
+       },
+       {
+        "t": "mo",
+        "v": "-1"
+       },
+       {
+        "t": "gu",
+        "v": "-5"
+       },
+       {
+        "t": "di"
+       },
+       {
+        "t": "en",
+        "v": "+15"
+       },
+       {
+        "t": "gu",
+        "v": "-5"
+       },
+       {
+        "t": "se",
+        "d": 2
+       },
+       {
+        "t": "di"
+       },
+       {
+        "t": "en",
+        "v": "+15"
+       },
+       {
+        "t": "mo",
+        "v": "-1"
+       },
+       {
+        "t": "gu",
+        "v": "-5"
+       },
+       {
+        "t": "se",
+        "d": 2
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "version": [
+   {
+    "i": 3859,
+    "n": "Year-End Cleaning Detail",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       },
+       {
+        "t": "sk",
+        "v": "+1",
+        "d": 201692
+       },
+       {
+        "t": "di"
+       },
+       {
+        "t": "st",
+        "v": "+30"
+       },
+       {
+        "t": "sk",
+        "v": "+3",
+        "d": 201692
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3860,
+    "n": "Modernizing Traditions",
+    "c": [
+     {
+      "o": "思うままに落書き",
+      "r": [
+       {
+        "t": "po",
+        "v": "+20"
+       }
+      ]
+     },
+     {
+      "o": "桜のスタンプはどうかな？",
+      "r": [
+       {
+        "t": "sk",
+        "v": "+2",
+        "d": 200172
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3861,
+    "n": "Bridging the World",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "po",
+        "v": "+15"
+       },
+       {
+        "t": "se",
+        "v": null,
+        "d": 8,
+        "r": true
+       },
+       {
+        "t": "he",
+        "v": null,
+        "d": null,
+        "r": true
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "outings": [
+   {
+    "i": 3851,
+    "n": "Back-Alley Adventure",
+    "c": [
+     {
+      "o": "ほら、早く帰ろう！",
+      "r": [
+       {
+        "t": "in",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "急に話しかけたことを謝っておこう",
+      "r": [
+       {
+        "t": "po",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3852,
+    "n": "Fresh and Tasty!",
+    "c": [
+     {
+      "o": "何事も前向きがイチバン！",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "どんなジンクスでも吹き飛ばせる？",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3853,
+    "n": "Heart-Pounding Thrills",
+    "c": [
+     {
+      "o": "心の準備がまだ……",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "よし、乗ろう！",
+      "r": [
+       {
+        "t": "gu",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "他の冒険も探してみない？",
+      "r": [
+       {
+        "t": "in",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3854,
+    "n": "Shopfront Showdown",
+    "c": [
+     {
+      "o": "綺麗な袋",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "くしゃくしゃの袋",
+      "r": [
+       {
+        "t": "gu",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 3855,
+    "n": "The Key to Color Coordination",
+    "c": [
+     {
+      "o": "大人っぽさを優先する",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "マヤノトップガンに似合うものを優先する",
+      "r": [
+       {
+        "t": "gu",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "secret": [
+   {
+    "i": 3845,
+    "n": "Join Those You Admire",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+10"
+       },
+       {
+        "t": "st",
+        "v": "+10"
+       },
+       {
+        "t": "gu",
+        "v": "+10"
+       },
+       {
+        "t": "pt",
+        "v": "+10"
+       },
+       {
+        "t": "sk",
+        "v": "+2",
+        "d": 200192
+       }
+      ]
+     }
+    ],
+    "conditions": [
+     [
+      "autumn_triple_crown_senior"
+     ]
+    ],
+    "history": [
+     {
+      "period": "pre_2nd_anni",
+      "data": {
+       "i": 3845,
+       "n": "Join Those You Admire",
+       "c": [
+        {
+         "o": "",
+         "r": [
+          {
+           "t": "sp",
+           "v": "+10"
+          },
+          {
+           "t": "st",
+           "v": "+10"
+          },
+          {
+           "t": "gu",
+           "v": "+10"
+          },
+          {
+           "t": "sk",
+           "v": "+2",
+           "d": 200192
+          }
+         ]
+        }
+       ],
+       "conditions": [
+        [
+         "autumn_triple_crown_senior"
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "nyear": "st",
+  "dance": [
+   "sp",
+   "po"
+  ]
+ },
+ "106802": {
+  "wchoice": [
+   {
+    "i": 2869,
+    "n": "Kitasan and the Witch",
+    "c": [
+     {
+      "o": "悪い魔女からのイビリに耐え忍んで……！？",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "スイープトウショウに嫌われたくないんだな",
+      "r": [
+       {
+        "t": "mo",
+        "v": "+1"
+       },
+       {
+        "t": "sp",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2870,
+    "n": "My Dependable Upperclassman!",
+    "c": [
+     {
+      "o": "併走の相手をお願いしたいかな！",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "一緒にご飯を食べない？",
+      "r": [
+       {
+        "t": "en",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2872,
+    "n": "A Prime Time Cameo",
+    "c": [
+     {
+      "o": "根性と優しさにあふれた子だからね",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+5"
+       },
+       {
+        "t": "gu",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "そして得たスキルで未来の銀幕スタァに……",
+      "r": [
+       {
+        "t": "sk",
+        "v": "+1",
+        "d": 200332
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2873,
+    "n": "Kitasan the Traveling Masseuse!",
+    "c": [
+     {
+      "o": "足をお願いする",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+20"
+       }
+      ]
+     },
+     {
+      "o": "腰をお願いする",
+      "r": [
+       {
+        "t": "en",
+        "v": "+10"
+       },
+       {
+        "t": "gu",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "肩をお願いする",
+      "r": [
+       {
+        "t": "sk",
+        "v": "+2",
+        "d": 200352
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Eat up the Festival!",
+    "c": [
+     {
+      "o": "カロリーゼロにはならないと思うよ",
+      "r": [
+       {
+        "v": "+10",
+        "t": "en"
+       },
+       {
+        "v": "+5",
+        "t": "pt"
+       }
+      ]
+     },
+     {
+      "o": "思い切り堪能しよう！",
+      "r": [
+       {
+        "t": "di",
+        "d": "~90"
+       },
+       {
+        "v": "+30",
+        "t": "en"
+       },
+       {
+        "v": "+10",
+        "t": "pt"
+       },
+       {
+        "t": "di",
+        "d": "~10"
+       },
+       {
+        "v": "+30",
+        "t": "en"
+       },
+       {
+        "v": "+10",
+        "t": "pt"
+       },
+       {
+        "v": "-5",
+        "t": "sp"
+       },
+       {
+        "v": "+5",
+        "t": "po"
+       },
+       {
+        "t": "se",
+        "d": 4
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "nochoice": [
+   {
+    "i": 2864,
+    "n": "Twinned Ships, Seperate Paths",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "gu",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2865,
+    "n": "New Friends",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "in",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2866,
+    "n": "Of the Empress's Blood",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "po",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2867,
+    "n": "Dark Clouds in the Spring Sky",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2871,
+    "n": "A Soul-Shaking Voice",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "mo",
+        "v": "-1"
+       },
+       {
+        "t": "po",
+        "v": "-5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Master Trainer",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       },
+       {
+        "t": "se",
+        "d": 10,
+        "r": true
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "The Northern Sun",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "5s",
+        "v": "+5"
+       },
+       {
+        "t": "pt",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Bad Timing",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "mo",
+        "v": "-1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Speak Not of One's Age",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "en",
+        "v": "-10"
+       },
+       {
+        "t": "mo",
+        "v": "-1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "A Sparkling Smile",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "5s",
+        "v": "+5"
+       },
+       {
+        "t": "pt",
+        "v": "+30"
+       },
+       {
+        "t": "mo",
+        "v": "+2"
+       },
+       {
+        "t": "se",
+        "d": 7,
+        "r": true
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": "Singing Under the Bright, Blue Sky",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "en",
+        "v": "+15"
+       },
+       {
+        "t": "mo",
+        "v": "-1"
+       },
+       {
+        "t": "gu",
+        "v": "-5"
+       },
+       {
+        "t": "di"
+       },
+       {
+        "t": "en",
+        "v": "+15"
+       },
+       {
+        "t": "gu",
+        "v": "-5"
+       },
+       {
+        "t": "se",
+        "d": 2
+       },
+       {
+        "t": "di"
+       },
+       {
+        "t": "en",
+        "v": "+15"
+       },
+       {
+        "t": "mo",
+        "v": "-1"
+       },
+       {
+        "t": "gu",
+        "v": "-5"
+       },
+       {
+        "t": "se",
+        "d": 2
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "version": [
+   {
+    "i": 2884,
+    "n": "Our Differences Bring Us Closer",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "gu",
+        "v": "+10"
+       },
+       {
+        "t": "sk",
+        "v": "+1",
+        "d": 201272
+       },
+       {
+        "t": "di"
+       },
+       {
+        "t": "gu",
+        "v": "+30"
+       },
+       {
+        "t": "sk",
+        "v": "+3",
+        "d": 201272
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2885,
+    "n": "Praise the Clutch Maiden!",
+    "c": [
+     {
+      "o": "ばっちりだよ！",
+      "r": [
+       {
+        "t": "sk",
+        "v": "+2",
+        "d": 201102
+       }
+      ]
+     },
+     {
+      "o": "もうひと声、アンコール！",
+      "r": [
+       {
+        "t": "po",
+        "v": "+20"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2886,
+    "n": "The Clutch Captain Is Number One!",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "en",
+        "v": "+15"
+       },
+       {
+        "t": "se",
+        "v": null,
+        "d": 7,
+        "r": true
+       },
+       {
+        "t": "he",
+        "v": null,
+        "d": null,
+        "r": true
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "outings": [
+   {
+    "i": 2874,
+    "n": "Come, One and All!",
+    "c": [
+     {
+      "o": "粋なお礼だな！",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "呼び込み、楽しかったしな",
+      "r": [
+       {
+        "t": "in",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2875,
+    "n": "I’m Not Afraid of Any Ghosts!",
+    "c": [
+     {
+      "o": "本番が楽しみだな！",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+5"
+       },
+       {
+        "t": "st",
+        "v": "+5"
+       }
+      ]
+     },
+     {
+      "o": "怖がりながら、頑張った成果だな！",
+      "r": [
+       {
+        "t": "gu",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2876,
+    "n": "The Star of the Show, the Heart of the Festival!",
+    "c": [
+     {
+      "o": "ああ、楽しかったな！",
+      "r": [
+       {
+        "t": "in",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "全部キタサンのおかげだ",
+      "r": [
+       {
+        "t": "po",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "大変なこともあったような……？",
+      "r": [
+       {
+        "t": "sp",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2877,
+    "n": "Toffee-Tinted Memories",
+    "c": [
+     {
+      "o": "思い出の味なんだ？",
+      "r": [
+       {
+        "t": "st",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "お父さんたちのこと大好きなんだな",
+      "r": [
+       {
+        "t": "gu",
+        "v": "+5"
+       },
+       {
+        "t": "in",
+        "v": "+5"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "i": 2878,
+    "n": "A Voice Like None Other",
+    "c": [
+     {
+      "o": "誰か知り合いの声に似てるのかな？",
+      "r": [
+       {
+        "t": "in",
+        "v": "+10"
+       }
+      ]
+     },
+     {
+      "o": "演歌の発声のおかげかも",
+      "r": [
+       {
+        "t": "po",
+        "v": "+10"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "secret": [
+   {
+    "i": 2868,
+    "n": "Doing the Step with You!",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "sk",
+        "v": "+2",
+        "d": 200172
+       },
+       {
+        "t": "sk",
+        "v": "+2",
+        "d": 201142
+       }
+      ]
+     }
+    ],
+    "conditions": [
+     [
+      "spring_triple_crown"
+     ]
+    ]
+   },
+   {
+    "i": 2879,
+    "n": "After the Kikuka Sho: Three Cheers for the Triple Crown Festival!",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "5s",
+        "v": "+13"
+       },
+       {
+        "t": "pt",
+        "v": "+54"
+       },
+       {
+        "t": "mo",
+        "v": "+1"
+       },
+       {
+        "t": "sk",
+        "v": "+2",
+        "d": 201192
+       },
+       {
+        "t": "sk",
+        "v": "+1",
+        "d": 202462
+       },
+       {
+        "t": "bo",
+        "v": "+4",
+        "d": 9002
+       }
+      ]
+     }
+    ],
+    "conditions": [
+     [
+      "triple_crown"
+     ]
+    ],
+    "history": [
+     {
+      "period": "pre_first_anni",
+      "data": {
+       "i": 2879,
+       "n": "After the Kikuka Sho: Three Cheers for the Triple Crown Festival!",
+       "c": [
+        {
+         "o": "",
+         "r": [
+          {
+           "t": "5s",
+           "v": "+10"
+          },
+          {
+           "t": "pt",
+           "v": "+45"
+          },
+          {
+           "t": "mo",
+           "v": "+1"
+          },
+          {
+           "t": "sk",
+           "v": "+2",
+           "d": 201192
+          },
+          {
+           "t": "bo",
+           "v": "+4",
+           "d": 9002
+          }
+         ]
+        }
+       ],
+       "conditions": [
+        [
+         "triple_crown"
+        ]
+       ]
+      }
+     },
+     {
+      "period": "pre_2nd_anni",
+      "data": {
+       "i": 2879,
+       "n": "After the Kikuka Sho: Three Cheers for the Triple Crown Festival!",
+       "c": [
+        {
+         "o": "",
+         "r": [
+          {
+           "t": "5s",
+           "v": "+13"
+          },
+          {
+           "t": "pt",
+           "v": "+45"
+          },
+          {
+           "t": "mo",
+           "v": "+1"
+          },
+          {
+           "t": "sk",
+           "v": "+2",
+           "d": 201192
+          },
+          {
+           "t": "bo",
+           "v": "+4",
+           "d": 9002
+          }
+         ]
+        }
+       ],
+       "conditions": [
+        [
+         "triple_crown"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "i": 2880,
+    "n": "After the Arima Kinen: Surpassing One's Hero",
+    "c": [
+     {
+      "o": "",
+      "r": [
+       {
+        "t": "5s",
+        "v": "+3"
+       },
+       {
+        "t": "pt",
+        "v": "+45"
+       },
+       {
+        "t": "sk",
+        "v": "+2",
+        "d": 200452
+       },
+       {
+        "t": "bo",
+        "v": "+3",
+        "d": 9002
+       }
+      ]
+     }
+    ],
+    "conditions": [
+     [
+      "triple_crown"
+     ],
+     [
+      "win",
+      "102301|3"
+     ]
+    ]
+   }
+  ],
+  "nyear": "sp",
+  "dance": [
+   "gu",
+   "in"
   ]
  }
 }

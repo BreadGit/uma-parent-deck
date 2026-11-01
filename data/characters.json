@@ -108165,6 +108165,999 @@
   ]
  },
  {
+  "cardId": 106702,
+  "charId": 1067,
+  "name": "Satono Diamond",
+  "title": "[Jade's Prosperity]",
+  "rarity": 3,
+  "releaseEn": "2026-10-20",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "G",
+   "pace": "B",
+   "late": "A",
+   "end": "D"
+  },
+  "growth": [
+   15,
+   15,
+   0,
+   0,
+   0
+  ],
+  "baseStats": [
+   88,
+   95,
+   82,
+   92,
+   93
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   98,
+   106,
+   91,
+   102,
+   103
+  ],
+  "fiveStarStats": [
+   102,
+   118,
+   102,
+   113,
+   115
+  ],
+  "innateSkills": [
+   202422,
+   201222,
+   202122
+  ],
+  "awakeningSkills": [
+   201382,
+   202421,
+   202452,
+   201221
+  ],
+  "eventSkills": [
+   200362,
+   200742,
+   201692,
+   200172,
+   200192
+  ],
+  "uniqueSkills": [
+   110671
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "That Which Strengthens Me",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "A Long Ways to Go",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "That Which Hinders Me",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "Chasing the Distant Future",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "A Luster Like None Other",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "no"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "Challenges and Breaking New Ground",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "no"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Overshooting the Mark",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "st",
+         "v": "-5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "Leaving a Brilliant Record",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "Unexpected Error",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "Nighty Night, Kitty",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "The Right Path",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 13,
+    "name": "Beyond the Crowds",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "Hiccup SOS",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "The Forbidden Blend",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "A Dream Too Big",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200362
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "Follow Those You Admire",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200742
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "An Appetite to Reach the Top",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "Back-Alley Adventure",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "Fresh and Tasty!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "Heart-Pounding Thrills",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "Shopfront Showdown",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "The Key to Color Coordination",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "Join Those You Admire",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200192
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win_all",
+      "races": [
+       {
+        "raceId": 1016,
+        "year": 3
+       },
+       {
+        "raceId": 1019,
+        "year": 3
+       },
+       {
+        "raceId": 1023,
+        "year": 3
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 14,
+    "name": "Year-End Cleaning Detail",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201692
+        }
+       ],
+       [
+        {
+         "t": "st",
+         "v": "+30"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201692
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "Modernizing Traditions",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200172
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 15,
+    "name": "Bridging the World",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+15"
+        },
+        {
+         "t": "se",
+         "d": 8,
+         "r": true
+        },
+        {
+         "t": "he",
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9391,
+      "name": "Junior Make Debut",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 30,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1005,
+      "name": "Satsuki Sho",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 4500,
+      "fansGain": 11000
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1010,
+      "name": "Tokyo Yushun (Japanese Derby)",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 6000,
+      "fansGain": 20000
+     }
+    ]
+   },
+   {
+    "slot": 43,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1015,
+      "name": "Kikuka Sho",
+      "distance": 3000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 7500,
+      "fansGain": 12000
+     }
+    ]
+   },
+   {
+    "slot": 47,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 53,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1003,
+      "name": "Osaka Hai",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 13500
+     }
+    ]
+   },
+   {
+    "slot": 55,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1006,
+      "name": "Tenno Sho (Spring)",
+      "distance": 3200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 66,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 2027,
+      "name": "Kyoto Daishoten",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 200,
+      "fansNeeded": 2000,
+      "fansGain": 6700
+     }
+    ]
+   },
+   {
+    "slot": 67,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1016,
+      "name": "Tenno Sho (Autumn)",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   }
+  ]
+ },
+ {
   "cardId": 106801,
   "charId": 1068,
   "name": "Kitasan Black",
@@ -109084,6 +110077,1077 @@
         {
          "t": "se",
          "d": 8,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9250,
+      "name": "Junior Make Debut",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 41,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 2023,
+      "name": "St. Lite Kinen",
+      "distance": 2200,
+      "surface": "turf",
+      "grade": 200,
+      "fansNeeded": 1750,
+      "fansGain": 5400
+     }
+    ]
+   },
+   {
+    "slot": 43,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1015,
+      "name": "Kikuka Sho",
+      "distance": 3000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 7500,
+      "fansGain": 12000
+     }
+    ]
+   },
+   {
+    "slot": 47,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 53,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1003,
+      "name": "Osaka Hai",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 13500
+     }
+    ]
+   },
+   {
+    "slot": 55,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1006,
+      "name": "Tenno Sho (Spring)",
+      "distance": 3200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 59,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1012,
+      "name": "Takarazuka Kinen",
+      "distance": 2200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 67,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1016,
+      "name": "Tenno Sho (Autumn)",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 69,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1019,
+      "name": "Japan Cup",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "cardId": 106802,
+  "charId": 1068,
+  "name": "Kitasan Black",
+  "title": "[Crane's Ambition]",
+  "rarity": 3,
+  "releaseEn": "2026-10-20",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "C",
+   "medium": "A",
+   "long": "A",
+   "front": "A",
+   "pace": "B",
+   "late": "C",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   0,
+   10,
+   0,
+   10
+  ],
+  "baseStats": [
+   99,
+   85,
+   88,
+   82,
+   96
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   111,
+   94,
+   98,
+   91,
+   106
+  ],
+  "fiveStarStats": [
+   122,
+   104,
+   108,
+   100,
+   116
+  ],
+  "innateSkills": [
+   201262,
+   200532,
+   200542
+  ],
+  "awakeningSkills": [
+   200712,
+   200541,
+   201601,
+   200531
+  ],
+  "eventSkills": [
+   200332,
+   200352,
+   201272,
+   201102,
+   200172,
+   201142,
+   201192,
+   202462,
+   200452
+  ],
+  "uniqueSkills": [
+   110681
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "Twinned Ships, Seperate Paths",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "New Friends",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "Of the Empress's Blood",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "Dark Clouds in the Spring Sky",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "A Soul-Shaking Voice",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "po",
+         "v": "-5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "The Northern Sun",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "Bad Timing",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "Speak Not of One's Age",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "A Sparkling Smile",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "Singing Under the Bright, Blue Sky",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "Kitasan and the Witch",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sp",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "My Dependable Upperclassman!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "A Prime Time Cameo",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200332
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "Kitasan the Traveling Masseuse!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200352
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Eat up the Festival!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "Come, One and All!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "I’m Not Afraid of Any Ghosts!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "The Star of the Show, the Heart of the Festival!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "Toffee-Tinted Memories",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "A Voice Like None Other",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "Doing the Step with You!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200172
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201142
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win_all",
+      "races": [
+       {
+        "raceId": 1003,
+        "year": 3
+       },
+       {
+        "raceId": 1006,
+        "year": 3
+       },
+       {
+        "raceId": 1012,
+        "year": 3
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 2,
+    "name": "After the Kikuka Sho: Three Cheers for the Triple Crown Festival!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+13"
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        },
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201192
+        },
+        {
+         "t": "bo",
+         "v": "+4",
+         "d": 9002
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win_all",
+      "races": [
+       {
+        "raceId": 1005,
+        "year": 2
+       },
+       {
+        "raceId": 1010,
+        "year": 2
+       },
+       {
+        "raceId": 1015,
+        "year": 2
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 3,
+    "name": "After the Arima Kinen: Surpassing One's Hero",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+3"
+        },
+        {
+         "t": "pt",
+         "v": "+45"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200452
+        },
+        {
+         "t": "bo",
+         "v": "+3",
+         "d": 9002
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win_all",
+      "races": [
+       {
+        "raceId": 1005,
+        "year": 2
+       },
+       {
+        "raceId": 1010,
+        "year": 2
+       },
+       {
+        "raceId": 1015,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1023,
+        "year": 3
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "Our Differences Bring Us Closer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201272
+        }
+       ],
+       [
+        {
+         "t": "gu",
+         "v": "+30"
+        },
+        {
+         "t": "sk",
+         "v": "+3",
+         "d": 201272
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "Praise the Clutch Maiden!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201102
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 13,
+    "name": "The Clutch Captain Is Number One!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        },
+        {
+         "t": "he",
          "r": true
         }
        ]
@@ -117013,6 +119077,1043 @@
       "grade": 100,
       "fansNeeded": 12000,
       "fansGain": 8000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1106,
+      "name": "Tokyo Daishoten",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "cardId": 109901,
+  "charId": 1099,
+  "name": "Hokko Tarumae",
+  "title": "[Starry Lightship]",
+  "rarity": 3,
+  "releaseEn": "2026-10-24",
+  "aptitudes": {
+   "turf": "G",
+   "dirt": "A",
+   "sprint": "F",
+   "mile": "A",
+   "medium": "A",
+   "long": "E",
+   "front": "B",
+   "pace": "A",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   10,
+   10,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   95,
+   95,
+   78,
+   85,
+   97
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   105,
+   106,
+   87,
+   94,
+   108
+  ],
+  "fiveStarStats": [
+   111,
+   118,
+   97,
+   105,
+   119
+  ],
+  "innateSkills": [
+   202202,
+   201672,
+   200562
+  ],
+  "awakeningSkills": [
+   201332,
+   200561,
+   200861,
+   201671
+  ],
+  "eventSkills": [
+   202312,
+   201581,
+   201682,
+   202262
+  ],
+  "uniqueSkills": [
+   100991
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "The Brilliance at the Summit",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "Not Good Enough",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "A Challenge from Falco",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "Your Hometown",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "Shine On, Star of Tomakomai",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "A Song About Home?",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "st",
+         "v": "-5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "My Hometown",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "And Next, the News",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "Deep Purple",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "Twinkly Veering",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "My Duty as Tourism Ambassador",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "A Legendary Local Idol(?)",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "An All-Purpose Condiment!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "The Sweet Sound of Home",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202312
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "Tarumae's Tour Rehearsal",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "he",
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201581
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Dishes of Tomakomai!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "Hokko Tarumae, Crying Out of Love",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "Hokko Tarumae, Racking Her Brains",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "Hokko Tarumae, Off for Reconnaissance(?)",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "The Secrets to Growth",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "Unwavering Stance",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "The Days Past and the Days to Come",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201682
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "date"
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "dt_gn_race_w",
+       "trn",
+       2,
+       100,
+       10
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 2,
+    "name": "After the Tokyo Daishoten: Thank You, I Mean It",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+3"
+        },
+        {
+         "t": "sp",
+         "v": "+45"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 202262
+        },
+        {
+         "t": "bo",
+         "v": "+4",
+         "d": 9002
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "date"
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "gn_race_w",
+       100,
+       9
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1106
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "A Page Out of Tomakomai",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 7,
+    "name": "Priming Prank Reactions!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 8,
+    "name": "Fashion Research",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 8,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 8,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9406,
+      "name": "Junior Make Debut",
+      "distance": 1800,
+      "surface": "dirt",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 38,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 3045,
+      "name": "Leopard Stakes",
+      "distance": 1800,
+      "surface": "dirt",
+      "grade": 300,
+      "fansNeeded": 1250,
+      "fansGain": 4000
+     }
+    ]
+   },
+   {
+    "slot": 46,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1020,
+      "name": "Champions Cup",
+      "distance": 1800,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 10000
+     }
+    ]
+   },
+   {
+    "slot": 50,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1107,
+      "name": "Kawasaki Kinen",
+      "distance": 2100,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 6000
+     }
+    ]
+   },
+   {
+    "slot": 56,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1109,
+      "name": "Kashiwa Kinen",
+      "distance": 1600,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     }
+    ]
+   },
+   {
+    "slot": 59,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1101,
+      "name": "Teio Sho",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 6000
+     }
+    ]
+   },
+   {
+    "slot": 68,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1105,
+      "name": "JBC Classic",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     },
+     {
+      "raceId": 1113,
+      "name": "JBC Classic",
+      "distance": 2100,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     },
+     {
+      "raceId": 1116,
+      "name": "JBC Classic",
+      "distance": 1800,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     },
+     {
+      "raceId": 1119,
+      "name": "JBC Classic",
+      "distance": 2000,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 8000
+     }
+    ]
+   },
+   {
+    "slot": 70,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1020,
+      "name": "Champions Cup",
+      "distance": 1800,
+      "surface": "dirt",
+      "grade": 100,
+      "fansNeeded": 12000,
+      "fansGain": 10000
      }
     ]
    },

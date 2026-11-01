@@ -35,8 +35,8 @@
    "fujikiseki-insights-2026-09-04.html": "f4f58167d8455160d447bd0f96e2603a60bf76f36c1c23cdaafa4654b3dc9b57"
   },
   "inputs": {
-   "data/cards.json": "eeb02da70c8621080faa04600052bafb145120dca8229ae7986d954e115ca965",
-   "data/characters.json": "d4f91aa5a79276c0ecf1f01e1ecb8f5fbf5428e8fe36cc2a457d4a359c714893",
+   "data/cards.json": "b627f7c36d8621f0b9ace5ba55769c67d211949137f715c298c3161beb3f6d57",
+   "data/characters.json": "21cdfe48e9697ebfe077738c144fce1589325bdcb11d37324a67356fa0e29077",
    "docs/umamusume/loopacord-independent-training-research.xlsx": "4d2f5aa778c028deabee77c76661a8be05b31298d808ea47e64168a06484e14b",
    "docs/umamusume/fujikiseki-insights-2026-09-04.html": "f4f58167d8455160d447bd0f96e2603a60bf76f36c1c23cdaafa4654b3dc9b57",
    "analysis/fit_stat_model.py": "8c2487452858234db82cd9da44980e33ed920d2971f938350463059fc21cb3d3",
