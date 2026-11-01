@@ -1,37 +1,15 @@
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
+import { isPlainObject } from '../src/types.ts';
 
-/** The official site's in-game notice feed, also shown at https://umamusume.com/news/. See docs/umamusume/refs/official-notices.md. */
-export const NOTICE_FEED = {
-  url: 'https://umamusume.com/api/ajax/pr_info_index?format=json',
-  request: { announce_label: 0, limit: 50, offset: 0 },
-} as const;
-export interface Notice { title: string; postedAt: Date }
-/** The notices in a feed response. Times in the feed are UTC, as the notice text states. */
-export function noticesFrom(feed: unknown): Notice[] {
-  const list = (feed as { information_list?: unknown } | null)?.information_list;
-  if (!Array.isArray(list)) throw new Error('The notice feed has no information_list.');
-  return list.map((notice: { title?: unknown; post_at?: unknown }) => {
-    const postedAt = new Date(typeof notice.post_at === 'string' ? notice.post_at.replace(' ', 'T') + 'Z' : NaN);
-    if (typeof notice.title !== 'string' || Number.isNaN(postedAt.getTime())) throw new Error(`Unexpected notice: ${JSON.stringify(notice)}`);
-    return { title: notice.title, postedAt };
-  });
-}
-/** Notices posted when content the snapshot covers goes live: cards, trainees, scenarios, events and their missions. */
-export const RELEASE_TITLE = /\b(?:out now|is here|now available|latest updates)\b/i;
-// The schedule in .github/workflows/update-data.yml runs about one and four hours after the daily 22:00 UTC
-// release slot. The window also covers the next day's runs, so a release GameTora reflected late is retried.
-export const RELEASE_WINDOW_HOURS = [0, 26] as const;
-// The fallback for releases the feed misses: the first run on Monday, 23:xx UTC.
-export const WEEKLY_CHECK = { utcDay: 1, utcHour: 23 } as const;
-export function refreshDue(now: Date, notices: Notice[]): boolean {
-  const [from, until] = RELEASE_WINDOW_HOURS;
-  const weekly = now.getUTCDay() === WEEKLY_CHECK.utcDay && now.getUTCHours() === WEEKLY_CHECK.utcHour;
-  return weekly || notices.some(notice => {
-    const hours = (now.getTime() - notice.postedAt.getTime()) / 3_600_000;
-    return RELEASE_TITLE.test(notice.title) && hours >= from && hours < until;
-  });
+/** The record of the static feed files last downloaded, by key, with the manifest hash of each. */
+export const RECORDED_HASHES = 'data/raw/hashes.json';
+/** The recorded source files whose hash in GameTora's manifest differs from the version last downloaded. */
+export function changedSources(manifest: unknown, recorded: unknown): string[] {
+  if (!isPlainObject(manifest)) throw new Error('The GameTora manifest is not an object.');
+  if (!isPlainObject(recorded) || !Object.keys(recorded).length) throw new Error(`${RECORDED_HASHES} records no source files.`);
+  return Object.keys(recorded).filter(key => manifest[key] !== recorded[key]);
 }
 
 // The complete data snapshot includes source caches, generated artwork and fitted extracts.

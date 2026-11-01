@@ -60,10 +60,10 @@ button forces a refresh.
 If a newer release appears during validation or upload, the data deployment skips promotion and
 explains why in its summary. The validated data remains on `main` for the next release or refresh.
 
-Run `node scripts/refresh-data.ts --help` for the scheduling and change-detection policy. The
-schedule follows the game's own release notices ([official notices](umamusume/refs/official-notices.md)),
-so nothing needs to be entered by hand. If the feed changes shape, the run logs a warning and only
-the weekly fallback refreshes until `scripts/data-refresh.ts` is updated.
+Each scheduled run first asks GameTora's manifest whether any source file the snapshot uses has
+changed, and refreshes only then; run `node scripts/refresh-data.ts --help` for the details. GitHub
+can start scheduled runs hours late, which only delays a refresh. A run that cannot reach the manifest
+fails, so an outage or a refresh the importer rejects shows as a failed run until it is resolved.
 
 GitHub can
 [disable scheduled workflows after 60 days without repository activity](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/disabling-and-enabling-a-workflow);

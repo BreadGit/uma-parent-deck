@@ -9,6 +9,8 @@ export const GAMETORA = {
   userAgent: BROWSER_USER_AGENT,
   delayMs: 1_100,
 } as const;
+/** GameTora's list of its static feed files, each with the hash of its current version. */
+export const GAMETORA_MANIFEST = `${GAMETORA.base}/data/manifests/umamusume.json`;
 
 /** Spaces requests at least `delayMs` apart and counts them. Pass `wait` to requestSource. */
 export function createThrottle(delayMs: number = GAMETORA.delayMs) {

@@ -67,6 +67,9 @@ For goal-parent probabilities, start with:
 Support-chain measurements are in `../loopacord-independent-training-research.xlsx`, sheet
 "Chain Finish Rate Data".
 
+[Official in-game notices](official-notices.md) records the Global notice feed and the daily
+22:00 UTC release slot.
+
 GameTora's [scenario guide](gametora-our-grand-concert.md) and the [JP research memo](umasim-grand-live-memo.md)
 omit manual skill-event timing and final-concert unlock instructions that this independent-training
 project does not use. Older SP observations are not current Global training values.

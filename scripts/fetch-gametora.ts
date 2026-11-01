@@ -13,7 +13,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { GAMETORA, createThrottle, requestSource } from './source-request.ts';
+import { GAMETORA, GAMETORA_MANIFEST, createThrottle, requestSource } from './source-request.ts';
 import { exists, readJson, readJsonOr, writeFileAtomic, writeJson } from './json-file.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
 import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
@@ -63,12 +63,13 @@ async function fetchStatic(keys: readonly string[] = STATIC_KEYS) {
   await fs.mkdir(RAW, { recursive: true });
   const manifestFile = path.join(RAW, 'manifest.json');
   console.log('manifest');
-  const status = await fetchTo(`${BASE}/data/manifests/umamusume.json`, manifestFile, 'object');
+  const status = await fetchTo(GAMETORA_MANIFEST, manifestFile, 'object');
   if (status !== 200) throw new Error(`manifest ${status}`);
   const manifest = await readJson(manifestFile);
   for (const key of keys) if (typeof manifest[key] !== 'string' || !manifest[key]) throw new Error(`manifest has no valid hash for required source ${key}`);
   const hashesFile = path.join(RAW, 'hashes.json');
-  const hashes: Record<string, string> = await readJsonOr(hashesFile, {});
+  const recorded: Record<string, string> = await readJsonOr(hashesFile, {});
+  const hashes = Object.fromEntries(Object.entries(recorded).filter(([key]) => (STATIC_KEYS as readonly string[]).includes(key)));
   for (const key of keys) {
     const hash = manifest[key];
     const file = rawName(key);
