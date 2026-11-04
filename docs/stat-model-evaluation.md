@@ -298,10 +298,9 @@ adds, separately, what the displayed extras would cost at full price. Extras are
 so they never trigger the warning. Unknown prices make both figures lower bounds. Unlisted hints
 outside those families affect Rank's spending efficiency but do not contribute to either cost.
 
-Both calculations use the same modeled trainee, deck, scenario and lineage sources. Unlisted
-choice rewards are not credited, including when every extra is hidden and the list is empty.
-Rewards that require no choice survive. Shared event outcomes stay correlated. Contested
-required-target orders use the same joint required-goal scorer as deck search, including required
+Both calculations use the same modeled trainee, deck, scenario and lineage sources. An event no
+listed skill steers gives its top option, including when every extra is hidden and the list is
+empty. Shared event outcomes stay correlated. Contested required-target orders use the same joint required-goal scorer as deck search, including required
 star thresholds and fallback subsets, with no near-tie tolerance. Only the contested targets change
 places; an uncontested required target keeps the position the goal gives it. Stats and SP are
 predicted once per deck and reused for every order tried, since the list changes only skill sources.

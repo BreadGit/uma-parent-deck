@@ -30,7 +30,7 @@ function check(targets: Target[], sources: Map<number, SkillSource[]>, priority:
   return joint;
 }
 
-test("Twin Turbo's chain reward counts only while the target is listed", () => {
+test("Twin Turbo's chain reward is on its event's top option, so it counts whether or not the target is listed", () => {
   const card = must(data.cardById.get(30026)), target = resolveTarget(200532, data)!;
   const sources = cardSourcesForTarget(card, 4, target, 20, 72, data, settings);
   const listed = check([target], new Map([[target.id, sources]]), [target.id]);
@@ -38,8 +38,8 @@ test("Twin Turbo's chain reward counts only while the target is listed", () => {
   close(listed.available[0]!, .12);
   close(listed.each[0]!, .12 * .5 * .4 + .12 * .5 * .2);
   const unlisted = check([target], new Map([[target.id, sources]]), [200352]);
-  close(unlisted.available[0]!, 0);
-  close(unlisted.each[0]!, 0);
+  close(unlisted.available[0]!, listed.available[0]!);
+  close(unlisted.each[0]!, listed.each[0]!);
 });
 
 test('a shared reward gives both families, and a later chain stage guarantees the earlier ones', () => {
@@ -68,7 +68,7 @@ test('simultaneous forms in one outcome count once at the best form', () => {
   close(joint.each[0]!, .6 * .4);
 });
 
-test('unlisted automatic event rewards survive while unlisted choice rewards do not', () => {
+test('an unlisted automatic event reward survives', () => {
   const target = resolveTarget(200352, data)!;
   const automatic = { ...source(target.id, { pFire: .6, outcomes: [[{ t: 'sk', d: target.id }]] }), pObtain: .6, isChoice: false };
   for (const priority of [[], [201601]]) {
@@ -78,7 +78,7 @@ test('unlisted automatic event rewards survive while unlisted choice rewards do 
   }
 });
 
-test('unsteered common rewards keep one option and do not credit its choice-gated sibling', () => {
+test('an event no listed skill steers gives its top option, and a choice there with it', () => {
   const a = resolveTarget(201601, data)!, b = resolveTarget(200352, data)!;
   const both = { pFire: .6, outcomes: [[{ t: 'sk', d: a.id }, { t: 'sk', d: b.id }]] };
   const onlyA = { pFire: .6, outcomes: [[{ t: 'sk', d: a.id }]] };
@@ -86,11 +86,13 @@ test('unsteered common rewards keep one option and do not credit its choice-gate
   const second = { ...source(a.id, onlyA), pObtain: .6, isChoice: false, event: { ...first.event, optionIndex: 1 } };
   const choice = { ...source(b.id, both), pObtain: .6 };
   const coverage = pruneConflicts(new Map([[a.id, [first, second]], [b.id, [choice]]]), [999], [], settings, [a, b]).map;
-  assert.equal(coverage.get(a.id)!.length, 1);
-  assert.equal(coverage.get(b.id)!.length, 0);
+  assert.deepEqual(coverage.get(a.id)!.map((s) => (s as EventSource).event.optionIndex), [0]);
+  assert.equal(coverage.get(b.id)!.length, 1);
   const joint = whiteGenerationMoments(jointSkillForms([a, b], coverage, data), [], settings);
   close(joint.available[0]!, .6);
-  close(joint.available[1]!, 0);
+  close(joint.available[1]!, .6);
+  const lower = { ...choice, event: { ...choice.event, optionIndex: 1 } };
+  assert.equal(pruneConflicts(new Map([[a.id, [first, second]], [b.id, [lower]]]), [999], [], settings, [a, b]).map.get(b.id)!.length, 0, 'a lower option needs a listing');
 });
 
 test('the unlisted scenario completion reward retains its exclusive gold and white outcomes', () => {
