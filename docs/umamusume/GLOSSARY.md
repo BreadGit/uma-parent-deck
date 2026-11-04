@@ -45,7 +45,7 @@ For application behavior, see the [tool glossary](../GLOSSARY.md).
   Each option is tied to Smart Falcon, Mihono Bourbon, Silence Suzuka, or Agnes Tachyon;
   picking that option with her in the run (trainee or card) gives the gold skill, otherwise the
   normal version. The unaffiliated option gives Lane Legerdemain.
-- **Independent training**: the hands-off career mode. Inputs: deck, parents,
+- **Independent training** (JP 自主トレ育成; not Auto-Train, JP おまかせ育成): the hands-off career mode. Inputs: deck, parents,
   training focus, agenda, up to 10 **prioritized skills**. Card stat contributions are near
   deterministic.
 - **Training focus**: Balanced / Stamina / Sprint, shifts the stat split.

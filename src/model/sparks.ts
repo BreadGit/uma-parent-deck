@@ -439,7 +439,7 @@ function bestOption(ss: EventSource[], settings: Settings, target?: Target): Eve
 /**
  * One event yields one option. A blocker listed above every target on the event wins it; otherwise the target first in
  * `priority` takes the option worth most to it. An event no listed skill is offered by takes its top option
- * (docs/umamusume/refs/independent-training-event-choices.md). A null `priority` lists every target; an empty one steers
+ * (docs/umamusume/refs/independent-training-prioritized-skills.md). A null `priority` lists every target; an empty one steers
  * nothing.
  */
 export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[] | null, blockers: Blocker[], settings: Settings, targets: Target[]): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {

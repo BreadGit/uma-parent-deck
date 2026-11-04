@@ -58,8 +58,9 @@ For goal-parent probabilities, start with:
   audit of uma.moe's activation calculator. Separates activation odds from hidden increase sizes.
 - [Independent-training race odds](shoppo-independent-training-race-odds.md). Corrected
   measurements now used by the local uma.guide independent-training table.
-- [Independent-training event choices](independent-training-event-choices.md). JP guides: the
-  run takes each event's top option unless a prioritized skill is on another.
+- [Independent-training prioritized skills](independent-training-prioritized-skills.md). JP and Global
+  guides: the run takes each event's top option unless a prioritized skill is on another. No source
+  says whether the list affects training hints.
 - [Fan rewards](fan-rewards.md). Race placing rewards, support effects by level, and vendored
   primary concert measurements. Identifies gaps in the independent-training evidence.
 - [Skill evaluation](skill-evaluation.md). Individual rating values, hint discounts and prerequisite costs.

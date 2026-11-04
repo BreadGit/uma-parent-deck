@@ -215,7 +215,7 @@ export interface WishlistLayout {
 
 /**
  * The run gets a target with no event choice, and a skill on an event's first option, without a listing, since it takes
- * each event's first option unless a listed skill is on another (docs/umamusume/refs/independent-training-event-choices.md).
+ * each event's first option unless a listed skill is on another (docs/umamusume/refs/independent-training-prioritized-skills.md).
  */
 export const getsUnlisted = (w: WishlistEntry) => w.events.length ? w.events.every((e) => e.optionIndex === 0) : w.isTarget && !w.gated;
 const optionAt = (w: WishlistEntry, key: string) => w.events.find((e) => e.key === key)!.optionIndex;
