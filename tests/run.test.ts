@@ -205,6 +205,21 @@ test('prioritized skills: a candidate whose every event a higher entry takes is 
   assert.ok(plan.wl.every((w) => w.isTarget || (plan.wlLayout.steers.get(w.key)?.length ?? 0) > 0), 'every listed non-target steers an event');
 });
 
+test('prioritized skills: hints-only targets and top options sit below the rest unless a lower entry would take a top option away', () => {
+  const ev = (key: string, optionIndex: number) => ({ key, label: key, option: '', optionIndex });
+  const on = (skillId: number, events: [string, number][], isTarget = false) => ({ ...entry(skillId, 9 - skillId), isTarget, gated: events.length > 0, events: events.map(([key, i]) => ev(key, i)) });
+  const hintsOnly = on(1, [], true), top = on(2, [['a', 0]], true), defended = on(3, [['b', 0]], true), lower = on(4, [['c', 1]], true);
+  const rival = on(5, [['b', 1]]), topExtra = on(6, [['d', 0]]), lowerExtra = on(7, [['e', 2]]);
+  const layout = layoutWishlist([hintsOnly, top, defended, lower, rival, topExtra, lowerExtra]);
+  assert.deepEqual(layout.live.map((w) => w.key), [3, 4, 7, 1, 2, 6], 'the top option of event b stays above the extra that would take the event to another option');
+  assert.deepEqual([...layout.deferred].sort(), [1, 2, 6]);
+  assert.deepEqual(layout.steers.get(3), ['b']);
+  assert.deepEqual(layout.shadowed.map((s) => [s.entry.key, s.by]), [[5, [3]]]);
+  const short = layoutWishlist([hintsOnly, top, defended, lower, rival, topExtra, lowerExtra], 1);
+  assert.deepEqual(short.live.slice(0, 2).map((w) => w.key), [4, 5], 'the extra past the list takes nothing, so the top option it shares need not be listed');
+  assert.ok(short.deferred.has(3));
+});
+
 test("planRun: the goal's priorities decide a shared event; arranging the list does not; an extra never takes an event from a listed target", () => {
   const groundwork = resolveTarget(201601, data)!;
   const focus = resolveTarget(byName('Focus').id, data)!;

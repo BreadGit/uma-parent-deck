@@ -200,13 +200,39 @@ export interface WishlistLayout {
   /** For each listed entry, the events it takes; a listed target with none is only a filler for its hints. */
   steers: Map<number, string[]>;
   events: WishlistEvent[];
+  /** Entries the run gets without a listing, which sit below every other entry. */
+  deferred: Set<number>;
 }
 
 /**
- * An entry takes every event no entry above it took. Only the first `max` live entries take events, since only they are
- * entered in the game. A non-target whose events are all taken is hidden; a target in that position stays as a filler.
+ * The run gets a target with no event choice, and a skill on an event's top option, without a listing, since it takes
+ * each event's top option unless a listed skill is on another (docs/umamusume/refs/independent-training-event-choices.md).
+ */
+export const getsUnlisted = (w: WishlistEntry) => w.events.length ? w.events.every((e) => e.optionIndex === 0) : w.isTarget && !w.gated;
+
+/**
+ * Entries the run gets without a listing move below the rest, in their order. One stays in place while an entry below it
+ * would otherwise take its event to another option. Then an entry takes every event no entry above it took. Only the
+ * first `max` live entries take events, since only they are entered in the game. A non-target whose events are all taken
+ * is hidden; a target in that position stays as a filler.
  */
 export function layoutWishlist(ordered: WishlistEntry[], max = PRIORITIZED_SKILLS_MAX): WishlistLayout {
+  const at = new Map(ordered.map((w, i) => [w.key, i]));
+  const deferred = new Set(ordered.filter(getsUnlisted).map((w) => w.key));
+  for (;;) {
+    const layout = assignEvents([...ordered.filter((w) => !deferred.has(w.key)), ...ordered.filter((w) => deferred.has(w.key))], max);
+    const takenBy = new Map<string, WishlistEntry>();
+    for (const [key, events] of layout.steers) for (const e of events) takenBy.set(e, layout.entries.get(key)!);
+    const pulled = ordered.filter((w) => deferred.has(w.key) && w.events.some((e) => {
+      const by = takenBy.get(e.key);
+      return by && at.get(by.key)! > at.get(w.key)! && by.events.find((b) => b.key === e.key)!.optionIndex !== e.optionIndex;
+    }));
+    if (!pulled.length) return { ...layout, deferred };
+    for (const w of pulled) deferred.delete(w.key);
+  }
+}
+
+function assignEvents(ordered: WishlistEntry[], max: number): Omit<WishlistLayout, 'deferred'> {
   const winner = new Map<string, WishlistEvent>();
   const live: WishlistEntry[] = [], shadowed: WishlistLayout['shadowed'] = [];
   const steers = new Map<number, string[]>();
