@@ -57,7 +57,7 @@ values wherever a default is nonempty.
 | 8 | Pinned support cards | Game card IDs in user order |
 | 9 | Borrow from all | 0 or 1 |
 | 10 | Prioritized order | Game skill IDs of the extras in user order |
-| 11 | Prioritized exclusions | Game skill IDs of the hidden extras |
+| 11 | Prioritized exclusions | Game skill IDs of the hidden extras, hints-only targets and default picks |
 | 12 | Training focus | Fixed focus index |
 | 13 | Win threshold | Number 0–1 |
 | 14 | Schedule overrides, format 3 onward | Format 6: `[calendar ID, flag]` per override; 1 forces the race in, 0 forces it out. Formats 3 to 5: signed calendar IDs; positive forces in, negative forces out |

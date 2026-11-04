@@ -27,7 +27,7 @@ export interface RunInput {
   targets: WhiteTarget[];                  // one entry per family
   targetLineage: Record<string, Lineage>;  // by target id
   wishlistOrder: number[];                 // extras only; targets keep the goal's order
-  wishlistExcluded: number[];              // extras the user hid
+  wishlistExcluded: number[];              // extras the user hid, and targets hidden while the run gets them without a listing
   traineeCardId: number | null;
   traineeStars: number;
   aptOverrides: Partial<Aptitudes>;
@@ -76,7 +76,7 @@ export interface RunPlan {
   spCost: SpCost;
   wl: WishlistEntry[];                     // the prioritized list as shown
   wlRest: WishlistEntry[];                 // candidates past the list's length that would steer something if listed
-  wlHidden: WishlistEntry[];               // extras the user hid
+  wlHidden: WishlistEntry[];               // extras and deferred targets the user hid
   wlLayout: WishlistLayout;
 }
 
@@ -202,6 +202,8 @@ export interface WishlistLayout {
   events: WishlistEvent[];
   /** Entries the run gets without a listing, which sit below every other entry. */
   deferred: Set<number>;
+  /** Targets in `deferred` the user hid. */
+  hidden: WishlistEntry[];
 }
 
 /**
@@ -214,25 +216,26 @@ export const getsUnlisted = (w: WishlistEntry) => w.events.length ? w.events.eve
  * Entries the run gets without a listing move below the rest, in their order. One stays in place while an entry below it
  * would otherwise take its event to another option. Then an entry takes every event no entry above it took. Only the
  * first `max` live entries take events, since only they are entered in the game. A non-target whose events are all taken
- * is hidden; a target in that position stays as a filler.
+ * is hidden; a target in that position stays as a filler. A target in `excluded` leaves the list while it is deferred.
  */
-export function layoutWishlist(ordered: WishlistEntry[], max = PRIORITIZED_SKILLS_MAX): WishlistLayout {
+export function layoutWishlist(ordered: WishlistEntry[], max = PRIORITIZED_SKILLS_MAX, excluded: readonly number[] = []): WishlistLayout {
   const at = new Map(ordered.map((w, i) => [w.key, i]));
   const deferred = new Set(ordered.filter(getsUnlisted).map((w) => w.key));
   for (;;) {
-    const layout = assignEvents([...ordered.filter((w) => !deferred.has(w.key)), ...ordered.filter((w) => deferred.has(w.key))], max);
+    const hidden = ordered.filter((w) => deferred.has(w.key) && w.isTarget && excluded.includes(w.key));
+    const layout = assignEvents([...ordered.filter((w) => !deferred.has(w.key)), ...ordered.filter((w) => deferred.has(w.key) && !hidden.includes(w))], max);
     const takenBy = new Map<string, WishlistEntry>();
     for (const [key, events] of layout.steers) for (const e of events) takenBy.set(e, layout.entries.get(key)!);
     const pulled = ordered.filter((w) => deferred.has(w.key) && w.events.some((e) => {
       const by = takenBy.get(e.key);
       return by && at.get(by.key)! > at.get(w.key)! && by.events.find((b) => b.key === e.key)!.optionIndex !== e.optionIndex;
     }));
-    if (!pulled.length) return { ...layout, deferred };
+    if (!pulled.length) return { ...layout, deferred, hidden };
     for (const w of pulled) deferred.delete(w.key);
   }
 }
 
-function assignEvents(ordered: WishlistEntry[], max: number): Omit<WishlistLayout, 'deferred'> {
+function assignEvents(ordered: WishlistEntry[], max: number): Omit<WishlistLayout, 'deferred' | 'hidden'> {
   const winner = new Map<string, WishlistEvent>();
   const live: WishlistEntry[] = [], shadowed: WishlistLayout['shadowed'] = [];
   const steers = new Map<number, string[]>();
@@ -358,7 +361,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const orders = contested.length >= 2 && contested.length <= CONTESTED_REQUIRED_MAX ? permutations(contested).map((p) => withRequiredOrder(derived, p)) : [derived];
     return orders.map((base) => {
       const ordered = display ? applyExtrasOrder(base, input.wishlistOrder, input.wishlistExcluded) : base;
-      const layout = layoutWishlist(ordered);
+      const layout = display ? layoutWishlist(ordered, PRIORITIZED_SKILLS_MAX, input.wishlistExcluded) : layoutWishlist(ordered);
       return { candidates, layout, priority: derivePriority(layout.live, targets, data) };
     });
   };
@@ -441,7 +444,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const deckResult = describeDeck(entries, targets, ctx);
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);
   const goalEstimate = evaluateParentGoal(goal, input.pinkLineage, apt, deckResult, ctx, goalStats, issues, basis, sources.forms);
-  const hidden = candidates.filter((w) => w.role === 'extra' && input.wishlistExcluded.includes(w.key));
+  const hidden = [...candidates.filter((w) => w.role === 'extra' && input.wishlistExcluded.includes(w.key)), ...layout.hidden];
   if (search) {
     deckResult.steps = [`Best deck found after fully evaluating ${search.evaluated} legal decks${search.screened ? ` and screening ${search.screened} decks with a cheaper estimate` : ''}${search.exhaustive ? '; every legal deck in this small pool was checked' : '; bounded search does not guarantee the global best'}.`,
       `Required goals come first. Preferred sparks on successful parents can decide within ${(settings.goalTieTolerance * 100).toLocaleString()}% of the best required chance found.`,

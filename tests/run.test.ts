@@ -218,6 +218,9 @@ test('prioritized skills: hints-only targets and top options sit below the rest 
   const short = layoutWishlist([hintsOnly, top, defended, lower, rival, topExtra, lowerExtra], 1);
   assert.deepEqual(short.live.slice(0, 2).map((w) => w.key), [4, 5], 'the extra past the list takes nothing, so the top option it shares need not be listed');
   assert.ok(short.deferred.has(3));
+  const hiding = layoutWishlist([hintsOnly, top, defended, lower, rival, topExtra, lowerExtra], 10, [1, 3, 4]);
+  assert.deepEqual(hiding.live.map((w) => w.key), [3, 4, 7, 2, 6], 'a deferred target can be hidden; one that steers or defends an event cannot');
+  assert.deepEqual(hiding.hidden.map((w) => w.key), [1]);
 });
 
 test("planRun: the goal's priorities decide a shared event; arranging the list does not; an extra never takes an event from a listed target", () => {

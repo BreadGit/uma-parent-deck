@@ -10,14 +10,14 @@ import { TITLE } from '../copy.ts';
 import { skillTipText, skillWithTip } from '../format.ts';
 import { panel } from '../panel.ts';
 
-const TARGETS_FIXED = `Target skills cannot be removed from the prioritized skills list. Change targets and their order in ${TITLE.goal}.`;
+const TARGETS_FIXED = `Target skills that steer an event choice cannot be removed from the prioritized skills list. Change targets and their order in ${TITLE.goal}.`;
 const ROLE_TAGS = {
   required: { label: 'required', tip: 'A required target of the parent goal.' },
   preferred: { label: 'preferred', tip: 'A preferred target of the parent goal.' },
   extra: { label: 'extra', tip: 'Not a target. Listing it steers the run to this event option and its skill; the run buys it if it gets it.' },
 };
-const HINTS_ONLY_MARK = { label: 'hints only', tip: 'The run gets this target without choosing anything at an event, so it sits below the entries that steer event choices. It is listed so the run chases its hints, and drops off the list when it is full.' };
-const TOP_OPTION_MARK = { label: 'top option', tip: 'The run takes each event\'s top option unless a listed skill is on another, so it gets this one without a listing. It sits below the entries that steer event choices and drops off the list when it is full.' };
+const HINTS_ONLY_MARK = { label: 'hints only', tip: 'The run gets this target without choosing anything at an event, so it sits below the entries that steer event choices. Listing it may make the run chase its hints. It drops off a full list and can be hidden.' };
+const DEFAULT_PICK_MARK = { label: 'default pick', tip: 'Independent training takes the first option of an event unless a listed skill is on another option. This skill is on a first option, so the run gets it without a listing. It sits below the entries that steer event choices, drops off a full list, and can be hidden.' };
 const LOST_EVENT_MARK = { label: 'lost event', tip: `Another target listed higher takes every event option that gives this one, so it gets nothing from those events and keeps only its hints. To change that, raise its priority in ${TITLE.goal} or change the competing target there.` };
 
 const isExtra = (w: WishlistEntry) => w.role === 'extra';
@@ -92,7 +92,7 @@ function tags(c: RunPlan, w: WishlistEntry) {
   const role = ROLE_TAGS[w.role];
   const cls = w.role === 'required' ? 'gold' : w.role === 'preferred' ? 'ok' : '';
   const deferred = c.wlLayout.deferred.has(w.key);
-  const mark = w.isTarget && !w.gated ? HINTS_ONLY_MARK : w.isTarget && !c.wlLayout.steers.get(w.key)?.length ? LOST_EVENT_MARK : deferred ? TOP_OPTION_MARK : null;
+  const mark = w.isTarget && !w.gated ? HINTS_ONLY_MARK : w.isTarget && !c.wlLayout.steers.get(w.key)?.length ? LOST_EVENT_MARK : deferred ? DEFAULT_PICK_MARK : null;
   return html`<span class="tag ${cls} wl-kind" data-tip=${role.tip}>${role.label}</span>${mark
     ? html`<span class="tag ${mark === LOST_EVENT_MARK ? 'danger' : ''} wl-kind" data-wl-mark data-tip=${mark.tip}>${mark.label}</span>` : nothing}`;
 }
@@ -106,6 +106,7 @@ function swapChip(c: RunPlan, sibling: WishlistEntry, winner: WishlistEntry, loc
 
 function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
   const extra = isExtra(w);
+  const hideable = extra || c.wlLayout.deferred.has(w.key);
   const extras = c.wl.filter(isExtra);
   const canMove = (delta: number) => { if (!extra || locked) return false; const next = extras[extras.indexOf(w) + delta]; return !!next && sameSide(c, w.key, next.key); };
   const sources = !w.gated && w.targetId !== null ? (c.deckResult.coverage.get(w.targetId) ?? [])
@@ -117,17 +118,17 @@ function row(c: RunPlan, w: WishlistEntry, i: number, locked: boolean) {
   return html`<li draggable="${extra && !locked ? 'true' : 'false'}" data-wl-key="${w.key}" data-wl-role="${w.role}" class="${extra ? 'wl-extra' : 'wl-target'} ${view.drag.key === w.key ? 'dragging' : ''} ${view.drag.over === w.key && view.drag.key !== w.key ? 'drop-target' : ''}">
     <span class="wl-num">${i + 1}.</span><span class="grip ${extra ? '' : 'grip-disabled'}" aria-hidden="true">⋮⋮</span>
     <span class="wl-body">${tags(c, w)}${name}</span>
-    <span class="wl-actions ${extra ? '' : 'wl-fixed'}" tabindex=${extra ? nothing : 0} role=${extra ? nothing : 'group'} aria-label=${extra ? nothing : TARGETS_FIXED} data-tip=${extra ? nothing : TARGETS_FIXED}>
+    <span class="wl-actions ${hideable ? '' : 'wl-fixed'}" tabindex=${hideable ? nothing : 0} role=${hideable ? nothing : 'group'} aria-label=${hideable ? nothing : TARGETS_FIXED} data-tip=${hideable ? nothing : TARGETS_FIXED}>
       <button class="small wl-move" data-action="wl-up" data-id="${w.key}" aria-label="Move ${w.name} up" data-tip="Move up" ?disabled=${!canMove(-1)} @click=${() => nudgeSkill(w.key, -1)}>▲</button>
       <button class="small wl-move" data-action="wl-down" data-id="${w.key}" aria-label="Move ${w.name} down" data-tip="Move down" ?disabled=${!canMove(1)} @click=${() => nudgeSkill(w.key, 1)}>▼</button>
-      <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Hide ${w.name}" data-tip="Hide from the list" ?disabled=${!extra || locked} @click=${() => hideSkill(w.key)}>✕</button>
+      <button class="small wl-x" data-action="wl-exclude" data-id="${w.key}" aria-label="Hide ${w.name}" data-tip="Hide from the list" ?disabled=${!hideable || locked} @click=${() => hideSkill(w.key)}>✕</button>
     </span>
     ${sibs.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">or instead:</span>${sibs.map((s) => swapChip(c, s, w, locked))}</div>` : nothing}</li>`;
 }
 
 /** The run gets an entry below the others without a listing, so it needs no add button. */
 function restChip(c: RunPlan, w: WishlistEntry, locked: boolean) {
-  if (c.wlLayout.deferred.has(w.key)) return html`<span class="chip small" data-tip=${(w.isTarget && !w.gated ? HINTS_ONLY_MARK : TOP_OPTION_MARK).tip}>${w.name}</span>`;
+  if (c.wlLayout.deferred.has(w.key)) return html`<span class="chip small" data-tip=${(w.isTarget && !w.gated ? HINTS_ONLY_MARK : DEFAULT_PICK_MARK).tip}>${w.name}</span>`;
   return html`<span class="chip small">${w.name}${isExtra(w) ? html` <button data-action="wl-add" data-id="${w.key}" aria-label="Add ${w.name} to the list" ?disabled=${locked} @click=${() => addSkill(w.key)}>+</button>` : nothing}</span>`;
 }
 
@@ -151,7 +152,7 @@ export function renderPriorities(c: RunPlan) {
   const actions = customized ? html`<button class="small" data-action="wl-reset" ?disabled=${locked} @click=${resetExtras}>Reset</button>` : nothing;
   const hidden = c.wlLayout.shadowed.length;
   const subtitle = [`up to ${PRIORITIZED_SKILLS_MAX}`, ...(hidden ? [`${hidden} taken option${hidden === 1 ? '' : 's'} not listed`] : []), ...(locked ? ['updating with the deck search'] : [])].join(', ');
-  return panel({ title: 'Prioritized skills', kind: 'result', subtitle, tip: `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices, and the run takes each event's top option unless a listed skill is on another. Targets follow ${TITLE.goal}: required first, then preferred by priority. The extras below them are yours to arrange; the deck search does not read that order. Hints-only targets and top-option skills come last, since the run gets them without a listing, and drop off when the list is full. The run takes one option per event, so an option a higher entry already takes is not listed; the chips under that entry swap it in.`, actions }, html`
+  return panel({ title: 'Prioritized skills', kind: 'result', subtitle, tip: `Enter these in independent training's prioritized skills list, in this order. Only these ${PRIORITIZED_SKILLS_MAX} steer the run's event choices, and the run takes the first option of an event unless a listed skill is on another option. Targets follow ${TITLE.goal}: required first, then preferred by priority. The extras below them are yours to arrange; the deck search does not read that order. Hints-only targets and default picks (skills on an event's first option) come last, since the run gets them without a listing. They drop off a full list and can be hidden. The run takes one option per event, so an option a higher entry already takes is not listed; the chips under that entry swap it in.`, actions }, html`
     ${c.wl.length ? html`<ol class="wishlist ${locked ? 'wl-locked' : ''}" data-wl-locked=${locked ? 'true' : nothing} @dragstart=${drag.dragstart} @dragover=${drag.dragover} @drop=${drag.drop} @dragend=${drag.dragend}>${repeat(c.wl, (w) => w.key, (w, i) => row(c, w, i, locked))}</ol>` : html`<div class="muted small">Nothing to prioritize yet.</div>`}
     ${candidates(c, locked)}`);
 }
