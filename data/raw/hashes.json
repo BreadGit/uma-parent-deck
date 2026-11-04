@@ -1,7 +1,7 @@
 {
  "support-cards": "5287792b",
  "support_effects": "ca447e53",
- "skills": "42176dc6",
+ "skills": "11a2e552",
  "character-cards": "897e63ea",
  "characters": "690aa811",
  "races": "51478888",
@@ -19,6 +19,6 @@
  "status-effects": "708dc075",
  "training_events/scenario": "a4d26228",
  "ura-objectives": "ead4bbfe",
- "training_events/char": "3cbabfc4",
+ "training_events/char": "42c0499d",
  "en/missions/limited": "47b5ec6e"
 }
