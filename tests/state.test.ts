@@ -178,8 +178,8 @@ test('saved IDs follow the share-code rule: invalid entries drop, duplicates kee
   assert.equal(s.run.traineeCardId, null);
   assert.deepEqual(s.run.pinnedIds, [30052, unknown]);
   assert.deepEqual(s.run.ignoredIds, [30001]);
-  assert.deepEqual(s.run.wishlistOrder, [200012, unknown]);
-  assert.deepEqual(s.run.wishlistExcluded, [200022]);
+  assert.deepEqual(s.run.addedExtras, [200012, unknown], 'the arranged extras of earlier saves become the added extras');
+  assert.ok(!('wishlistExcluded' in s.run));
   assert.deepEqual(s.run.raceOverrides, { 1011: true, '79_2': false }, 'overrides keep calendar IDs, including a later year\'s running, and drop other keys');
   assert.deepEqual(s.run.targetLineage, { 201601: [0, 2, 0, 0, 0, 1] }, 'lineage keys follow the inventory key rule');
   assert.deepEqual([s.missions.eventIds, s.missions.customRaceIds, s.missions.traineeCardId], [[3], [1011], null]);

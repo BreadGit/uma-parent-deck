@@ -26,8 +26,7 @@ export interface RunInput {
   pinkLineage: (PinkSpark | null)[];
   targets: WhiteTarget[];                  // one entry per family
   targetLineage: Record<string, Lineage>;  // by target id
-  wishlistOrder: number[];                 // extras only; targets keep the goal's order
-  wishlistExcluded: number[];              // extras the user hid, and targets hidden while the run gets them without a listing
+  addedExtras: number[];                   // extras the user added to the prioritized list, in the order added
   traineeCardId: number | null;
   traineeStars: number;
   aptOverrides: Partial<Aptitudes>;
@@ -74,10 +73,7 @@ export interface RunPlan {
   statCaps: StatCaps | null;
   rank: RankEstimate;
   spCost: SpCost;
-  wl: WishlistEntry[];                     // the prioritized list as shown
-  wlRest: WishlistEntry[];                 // candidates past the list's length that would steer something if listed
-  wlHidden: WishlistEntry[];               // extras and deferred targets the user hid
-  wlLayout: WishlistLayout;
+  priorities: PriorityList;
 }
 
 export interface GoalSearchSummary {
@@ -128,13 +124,6 @@ export function deriveOrder(cands: WishlistEntry[], goal: ResolvedGoal): Wishlis
   const key = (w: WishlistEntry): [number, number, number] => w.role === 'required' ? [0, requiredAt.get(w.targetId!) ?? 0, 0]
     : w.role === 'preferred' ? [1, preferredPriority.get(w.targetId!) ?? 0, preferredAt.get(w.targetId!) ?? 0] : [2, -w.weight, 0];
   return cands.map((w, i) => ({ w, i, k: key(w) })).sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2] || (a.w.role === 'extra' ? a.w.key - b.w.key : a.i - b.i)).map((x) => x.w);
-}
-
-/** The user's arrangement of the extras, used for display and for the estimate of the deck shown. */
-export function applyExtrasOrder(ordered: WishlistEntry[], order: number[], hidden: number[]): WishlistEntry[] {
-  const at = (w: WishlistEntry) => { const i = order.indexOf(w.key); return i < 0 ? Infinity : i; };
-  const extras = ordered.filter((w) => w.role === 'extra' && !hidden.includes(w.key)).map((w, i) => ({ w, i })).sort((a, b) => at(a.w) - at(b.w) || a.i - b.i).map((x) => x.w);
-  return [...ordered.filter((w) => w.role !== 'extra'), ...extras];
 }
 
 /** Required targets that share a choice event with another required target, whose relative order the joint chance decides. */
@@ -189,95 +178,88 @@ export function isLegalRunSelection(selection: DeckSelection, input: RunInput, s
   return !!constraints?.legal(selection.map((e) => ({ ...e, card: data.cardById.get(e.id)! })));
 }
 
-/** An event that candidates on different options are offered by. The run takes one option, so the candidate ranked first takes it. */
-export interface WishlistEvent { key: string; label: string; winner: number; keys: number[] }
-export interface WishlistLayout {
+/** Why a target is not in the list: no event choice, its events' first options, an option a higher target takes, or none left. */
+export type UnlistedReason = 'hints' | 'first' | 'along' | 'lost';
+/**
+ * What listing an unlisted extra would do. `add` steers an event no listed skill takes, `full` would too but the list
+ * has no room, `swap` competes with listed extra `with` on another option, `blocked` with target `by`, and `anyway`
+ * is a skill the run gets without a listing, beside entry `with` or from an event's first option when `with` is null.
+ */
+export type ExtraStatus = { kind: 'add' | 'full' } | { kind: 'swap'; with: number } | { kind: 'blocked'; by: number } | { kind: 'anyway'; with: number | null };
+export interface PriorityList {
   entries: Map<number, WishlistEntry>;
-  /** Candidates that steer an event no higher entry took, or are targets; the first PRIORITIZED_SKILLS_MAX are the list. */
-  live: WishlistEntry[];
-  /**
-   * Non-target candidates whose every event goes to another option: a listed entry's, or a deferred entry's first option
-   * that listing them would take away. `by` are the entries holding those events.
-   */
-  shadowed: { entry: WishlistEntry; by: number[] }[];
-  /** For each listed entry, the events it takes; a listed target with none is only a filler for its hints. */
-  steers: Map<number, string[]>;
-  events: WishlistEvent[];
-  /** Entries the run gets without a listing, which sit below every other entry. */
-  deferred: Set<number>;
-  /** Entries that get their skill from an option a higher entry takes, by the entry holding it. */
-  along: Map<number, number>;
-  /** Listed targets whose every event goes to another option, so they keep only their hints. */
-  lost: Set<number>;
-  /** Targets in `deferred` the user hid. */
-  hidden: WishlistEntry[];
+  /** What to enter in the game, in order: targets in the goal's order, then the extras the user added. */
+  listed: WishlistEntry[];
+  /** Targets that need a listing past the game's limit. */
+  overflow: WishlistEntry[];
+  /** Targets the run does not need listed; `by` is the target holding their event for `along` and `lost`. */
+  unlisted: { entry: WishlistEntry; reason: UnlistedReason; by: number | null }[];
+  /** Every extra not listed, in candidate order. */
+  extras: { entry: WishlistEntry; status: ExtraStatus }[];
 }
 
-/**
- * The run gets a target with no event choice, and a skill on an event's first option, without a listing, since it takes
- * each event's first option unless a listed skill is on another (docs/umamusume/refs/independent-training-prioritized-skills.md).
- */
-export const getsUnlisted = (w: WishlistEntry) => w.events.length ? w.events.every((e) => e.optionIndex === 0) : w.isTarget && !w.gated;
 const optionAt = (w: WishlistEntry, key: string) => w.events.find((e) => e.key === key)!.optionIndex;
 
 /**
- * Entries the run gets without a listing move below the rest, in their order: hints-only targets, first options, and
- * skills on an option a higher entry takes. A first option keeps its event from a lower extra, which leaves the list; it
- * stays in place instead while a lower target would take the event to another option. Then an entry takes every event no
- * entry above it took. Only the first `max` live entries take events, since only they are entered in the game. A
- * non-target whose every event goes to another option is hidden; a target in that position stays as a filler. A target
- * in `excluded` leaves the list while it is deferred, and still keeps its first option from lower extras.
+ * The run takes each event's first option unless a listed skill is on another
+ * (docs/umamusume/refs/independent-training-prioritized-skills.md), so only skills that move it off a first option need
+ * a listing. Targets come in `ordered`'s order; each event goes to the first target offering it. A target on first
+ * options only is listed when a listed target family below it is on another option of one of its events. Extras the user
+ * `added` follow in that order while they steer an event no listed skill or target holds, up to `max` entries.
  */
-export function layoutWishlist(ordered: WishlistEntry[], max = PRIORITIZED_SKILLS_MAX, excluded: readonly number[] = []): WishlistLayout {
-  const at = new Map(ordered.map((w, i) => [w.key, i]));
-  const deferred = new Set(ordered.filter(getsUnlisted).map((w) => w.key));
-  const pinned = new Set<number>();
-  for (;;) {
-    const hidden = ordered.filter((w) => deferred.has(w.key) && w.isTarget && excluded.includes(w.key));
-    const reserved = new Map<string, WishlistEntry>();
-    for (const w of ordered) if (deferred.has(w.key)) for (const e of w.events) if (e.optionIndex === 0 && !reserved.has(e.key)) reserved.set(e.key, w);
-    const layout = assignEvents([...ordered.filter((w) => !deferred.has(w.key)), ...ordered.filter((w) => deferred.has(w.key) && !hidden.includes(w))], max, reserved, at);
-    const takenBy = new Map<string, WishlistEntry>();
-    for (const [key, events] of layout.steers) for (const e of events) takenBy.set(e, layout.entries.get(key)!);
-    const pulled = ordered.filter((w) => deferred.has(w.key) && w.events.some((e) => {
-      const by = takenBy.get(e.key);
-      return by && at.get(by.key)! > at.get(w.key)! && optionAt(by, e.key) !== e.optionIndex;
-    }));
-    const riding = [...layout.along.keys()].filter((key) => !deferred.has(key) && !pinned.has(key));
-    if (!pulled.length && !riding.length) return { ...layout, deferred, hidden };
-    for (const w of pulled) { deferred.delete(w.key); pinned.add(w.key); }
-    for (const key of riding) deferred.add(key);
+export function arrangePriorities(ordered: WishlistEntry[], added: readonly number[], max = PRIORITIZED_SKILLS_MAX): PriorityList {
+  const entries = new Map(ordered.map((w) => [w.key, w]));
+  const holder = new Map<string, WishlistEntry>();
+  const unlisted: PriorityList['unlisted'] = [];
+  const steering = new Set<WishlistEntry>(), firsts: WishlistEntry[] = [];
+  for (const t of ordered.filter((w) => w.isTarget)) {
+    if (!t.events.length) { unlisted.push({ entry: t, reason: 'hints', by: null }); continue; }
+    const free = t.events.filter((e) => !holder.has(e.key));
+    if (!free.length) {
+      const same = t.events.find((e) => optionAt(holder.get(e.key)!, e.key) === e.optionIndex);
+      unlisted.push({ entry: t, reason: same ? 'along' : 'lost', by: holder.get((same ?? t.events[0]!).key)!.key });
+      continue;
+    }
+    for (const e of free) holder.set(e.key, t);
+    if (free.some((e) => e.optionIndex !== 0)) steering.add(t); else firsts.push(t);
   }
+  // The game ranks every form of a listed target, so each of its entries can take an event.
+  const pulls = (d: WishlistEntry) => ordered.some((t) => t.isTarget && t.targetId !== d.targetId && [...steering].some((s) => s.targetId === t.targetId)
+    && t.events.some((e) => holder.get(e.key) === d && e.optionIndex !== optionAt(d, e.key)));
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const d of firsts) if (!steering.has(d) && pulls(d)) { steering.add(d); grew = true; }
+  }
+  for (const d of firsts) if (!steering.has(d)) unlisted.push({ entry: d, reason: 'first', by: null });
+  const needed = ordered.filter((w) => steering.has(w));
+  const listed = needed.slice(0, max);
+  const taken = new Map<string, WishlistEntry>();
+  const statusOf = (x: WishlistEntry): ExtraStatus => {
+    let anyway: ExtraStatus | null = null, swap: ExtraStatus | null = null, blocked: ExtraStatus | null = null;
+    for (const e of x.events) {
+      const by = holder.get(e.key) ?? taken.get(e.key);
+      if (!by) {
+        if (e.optionIndex !== 0) return { kind: listed.length < max ? 'add' : 'full' };
+        anyway ??= { kind: 'anyway', with: null };
+      } else if (optionAt(by, e.key) === e.optionIndex) anyway ??= { kind: 'anyway', with: by.key };
+      else if (by.isTarget) blocked ??= { kind: 'blocked', by: by.key };
+      else swap ??= { kind: 'swap', with: by.key };
+    }
+    return anyway ?? swap ?? blocked!;
+  };
+  for (const key of added) {
+    const x = entries.get(key);
+    if (!x || x.isTarget || listed.includes(x) || statusOf(x).kind !== 'add') continue;
+    for (const e of x.events) if (!holder.has(e.key) && !taken.has(e.key)) taken.set(e.key, x);
+    listed.push(x);
+  }
+  const extras = ordered.filter((w) => !w.isTarget && !listed.includes(w)).map((entry) => ({ entry, status: statusOf(entry) }));
+  return { entries, listed, overflow: needed.slice(max), unlisted, extras };
 }
 
-/** A non-target entry loses an event held by a deferred first option ranked above it, which the run takes unless it is listed. */
-function assignEvents(ordered: WishlistEntry[], max: number, reserved: Map<string, WishlistEntry>, at: Map<number, number>): Omit<WishlistLayout, 'deferred' | 'hidden'> {
-  const winner = new Map<string, WishlistEntry>();
-  const live: WishlistEntry[] = [], shadowed: WishlistLayout['shadowed'] = [];
-  const steers = new Map<number, string[]>(), along = new Map<number, number>(), lost = new Set<number>();
-  const holderOf = (w: WishlistEntry, key: string) => {
-    const r = reserved.get(key);
-    return winner.get(key) ?? (r && r !== w && !w.isTarget && at.get(r.key)! < at.get(w.key)! ? r : undefined);
-  };
-  const holders = new Map<string, WishlistEntry>();
-  for (const w of ordered) {
-    const held = w.events.map((e) => ({ e, by: holderOf(w, e.key) }));
-    const free = held.filter((h) => !h.by).map((h) => h.e);
-    const shared = held.find((h) => h.by && optionAt(h.by, h.e.key) === h.e.optionIndex);
-    for (const h of held) if (h.by && !holders.has(h.e.key)) holders.set(h.e.key, h.by);
-    if (!free.length && shared) along.set(w.key, shared.by!.key);
-    if (w.events.length && !free.length && !shared && !w.isTarget) { shadowed.push({ entry: w, by: [...new Set(held.map((h) => h.by!.key))] }); continue; }
-    if (live.length < max) {
-      for (const e of free) { winner.set(e.key, w); holders.set(e.key, w); }
-      steers.set(w.key, free.map((e) => e.key));
-      if (w.isTarget && w.events.length && !free.length && !shared) lost.add(w.key);
-    }
-    live.push(w);
-  }
-  const events = [...holders].map(([key, by]) => ({ key, label: by.events.find((e) => e.key === key)!.label, winner: by.key,
-    keys: ordered.filter((w) => w === by || w.events.some((e) => e.key === key && e.optionIndex !== optionAt(by, key))).map((w) => w.key) }));
-  return { entries: new Map(ordered.map((w) => [w.key, w])), live, shadowed, steers, along, lost, events: events.filter((e) => e.keys.length > 1) };
-}
+/** Unlisted extras on another option of a listed extra's events, which a swap would list instead. */
+export const alternativesTo = (list: PriorityList, key: number) =>
+  list.extras.filter((x) => x.status.kind === 'swap' && x.status.with === key).map((x) => x.entry);
 
 /**
  * Every form of a family ranks together at its first appearance, so a gold/normal flip keeps the same rank. Only the
@@ -378,7 +360,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   const goal = goalWithTargets(input.goal, activeTargets);
   const required = new Set(goal.required.map((r) => r.id));
   /**
-   * The search sees the derived order; the deck shown is evaluated with the user's extras (`display`), so the estimate
+   * The search lists targets only; the deck shown is evaluated with the user's extras too (`display`), so the estimate
    * matches what they will type. Required targets that share events are tried in every order.
    */
   const listsFor = (entries: GoalDeckEntry[], ctx: Ctx, display: boolean) => {
@@ -387,9 +369,8 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const contested = contestedRequired(derived);
     const orders = contested.length >= 2 && contested.length <= CONTESTED_REQUIRED_MAX ? permutations(contested).map((p) => withRequiredOrder(derived, p)) : [derived];
     return orders.map((base) => {
-      const ordered = display ? applyExtrasOrder(base, input.wishlistOrder, input.wishlistExcluded) : base;
-      const layout = display ? layoutWishlist(ordered, PRIORITIZED_SKILLS_MAX, input.wishlistExcluded) : layoutWishlist(ordered);
-      return { candidates, layout, priority: derivePriority(layout.live, targets, data) };
+      const list = arrangePriorities(base, display ? input.addedExtras : []);
+      return { candidates, list, priority: derivePriority(list.listed, targets, data) };
     });
   };
   const pink = pinkGoalsEstimate(apt, goal.pink, input.pinkLineage, settings.affinity, settings.pinkInspirationRates);
@@ -423,7 +404,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const candidateCtx: Ctx = { ...baseCtx, fansBefore: (slot) => fansBeforeSlot(fans, slot) };
     const pred = predictCandidateStats(scoringEntries, candidateCtx, sum.expectedLosses);
     const statPower = deckStatPower(scoringEntries, candidateCtx);
-    const evaluated = listsFor(scoringEntries, candidateCtx, display).map(({ candidates, layout, priority }, i) => {
+    const evaluated = listsFor(scoringEntries, candidateCtx, display).map(({ candidates, list, priority }, i) => {
       const ctx: Ctx = { ...candidateCtx, priority };
       const prediction = predictCandidate(scoringEntries, input, ctx, apt, pred, preparedPrediction);
       const goalStats = goalStatsOf(prediction, settings);
@@ -431,7 +412,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
       const forms = projectForms(prediction.purchases.forms, [...goal.required, ...goal.preferred].map((t) => prediction.purchases.targets.findIndex((p) => p.id === t.id)));
       const sources = goalSources(goal, forms, ctx);
       const score = scoreGoal(goal, sources, basis, pink, settings);
-      return { key: String(i), score, statPower, value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, layout } };
+      return { key: String(i), score, statPower, value: { entries, ctx, fans, prediction, goalStats, basis, sources, candidates, list } };
     });
     // Shared outcomes, required star thresholds and fallback subsets use the same scorer as the deck search.
     const { key: _order, ...chosen } = chooseGoal(evaluated, 0);
@@ -466,12 +447,11 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     // Re-evaluate with the user's extras (display).
     if (found) { chosen = evaluateCandidate(found.best.value.entries, FINAL_GOAL_SAMPLES, true); search = summarize(found); }
   }
-  const { entries, ctx, fans, goalStats, basis, sources, candidates, layout } = chosen.value;
+  const { entries, ctx, fans, goalStats, basis, sources, list } = chosen.value;
   const prediction = finishPrediction(chosen.value.prediction, input, ctx, basis.pSS);
   const deckResult = describeDeck(entries, targets, ctx);
   const existing = traineeCoverage(targets, ctx), ranking = rankCards(pool, targets, existing, ctx);
   const goalEstimate = evaluateParentGoal(goal, input.pinkLineage, apt, deckResult, ctx, goalStats, issues, basis, sources.forms);
-  const hidden = [...candidates.filter((w) => w.role === 'extra' && input.wishlistExcluded.includes(w.key)), ...layout.hidden];
   if (search) {
     deckResult.steps = [`Best deck found after fully evaluating ${search.evaluated} legal decks${search.screened ? ` and screening ${search.screened} decks with a cheaper estimate` : ''}${search.exhaustive ? '; every legal deck in this small pool was checked' : '; bounded search does not guarantee the global best'}.`,
       `Required goals come first. Preferred sparks on successful parents can decide within ${(settings.goalTieTolerance * 100).toLocaleString()}% of the best required chance found.`,
@@ -480,7 +460,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
   return {
     search, goalEstimate, issues, trainee, apt, schedule, sum: { ...sum, expectedFans: fans.total }, fans, ctx, targets, pool, unowned, pinnedIds, ownedPinIds, ignoredIds, existing, ranking, deckResult,
     ...prediction, spCost: prediction.purchases.goalCost,
-    wl: layout.live.slice(0, PRIORITIZED_SKILLS_MAX), wlRest: layout.live.slice(PRIORITIZED_SKILLS_MAX), wlHidden: hidden, wlLayout: layout,
+    priorities: list,
   };
 }
 
@@ -492,7 +472,7 @@ export function unavailableRunChoices(input: RunInput, data: Data) {
     skills: [...new Set([
       ...input.targets.filter((t) => goalFamily(t.id, data) !== t.id).map((t) => t.id),
       ...Object.keys(input.targetLineage).map(Number).filter((id) => goalFamily(id, data) !== id),
-      ...[...input.wishlistOrder, ...input.wishlistExcluded].filter((id) => !data.skillById.has(id)),
+      ...input.addedExtras.filter((id) => !data.skillById.has(id)),
     ])],
   };
 }

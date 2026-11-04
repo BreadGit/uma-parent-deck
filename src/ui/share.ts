@@ -49,7 +49,6 @@ async function loadShare(code: string) {
     view.targetEditorId = null;
     view.goalTemplateId = '';
     view.requiredQuery = ''; view.preferredQuery = ''; view.traineeQuery = ''; view.cardQuery = ''; view.ignoreQuery = ''; view.activeSearch = null;
-    view.drag = { key: null, over: null };
     if (shareKey(choices) !== shareKey(sharedChoices(store))) {
       update((s) => applySharedChoices(s, choices));
     }

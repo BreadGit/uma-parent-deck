@@ -22,7 +22,7 @@ const deck = selection.map((d) => ({ card: must(data.cardById.get(d.id)), lb: d.
 const inventory = Object.fromEntries(selection.map((d) => [d.id, d.lb]));
 const input: RunInput = {
   goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(), targets: [], targetLineage: {},
-  wishlistOrder: [], wishlistExcluded: [], traineeCardId: shared.traineeCardId, traineeStars: shared.stars,
+  addedExtras: [], traineeCardId: shared.traineeCardId, traineeStars: shared.stars,
   aptOverrides: observations.runs[0]!.reportedFinalAptitudes as Aptitudes, raceOverrides: {},
   pinnedIds: selection.map((d) => d.id), borrowFromAll: false, ignoredIds: [], borrowIgnored: false,
   parentSparks: shared.parentStartingGains.map((gains) => must(parentSparksFromGains(gains as StatValues), 'parent sparks from the recorded gains')),

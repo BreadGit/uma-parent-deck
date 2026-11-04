@@ -90,18 +90,15 @@ test('rank discloses its reference pool when no obtainable form has a known pric
   assert.deepEqual(rating, { score: 1500, pointsPerSp: 1.5, referenceRate: 1.5, referenceSp: 1000, fallback: true, unverified: [] });
 });
 
-test('hiding every extra leaves an explicit empty list that cannot steer choice rewards', () => {
+test('with no target to list and no extra added, the empty list steers no choice rewards', () => {
   const saved = defaultState(data);
   saved.run.traineeCardId = 100501;
   saved.run.targets = [];
-  const first = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
-  const selection = first.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed }));
-  saved.run.wishlistExcluded = [...first.wlLayout.entries.keys()];
-  const hidden = planRun(saved.run, saved.settings, saved.inventory, data, { selection, search: false });
-  assert.deepEqual(hidden.wl, []);
+  const hidden = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
+  assert.deepEqual(hidden.priorities.listed, []);
   assert.deepEqual(hidden.ctx.priority, []);
   const coverage = purchaseCoverage(hidden.deckResult.deck, [focus], hidden.ctx).get(focus.id)!;
-  assert.equal(coverage.filter((s) => s.isChoice).length, 0, 'no hidden choice reward is credited');
+  assert.equal(coverage.filter((s) => s.isChoice && s.event.optionIndex > 0).length, 0, 'no later option is credited');
   assert.deepEqual(coverage, purchaseCoverage(hidden.deckResult.deck, [focus], { ...hidden.ctx, priority: [-1] }).get(focus.id));
   assert.equal(hidden.purchases.goalCost.total + hidden.purchases.extrasCost.total, 0);
   assert.ok(hidden.skillRating.score > 0, 'Rank still spends the full SP budget');

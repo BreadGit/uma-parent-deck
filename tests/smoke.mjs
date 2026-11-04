@@ -263,18 +263,6 @@ assert.equal(await page.locator('[data-inputs]').count(), 1, 'showing restores t
 assert.equal(await page.locator('[data-run-summary]').count(), 0);
 assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'hide-inputs', 'showing moves focus back to the hide button');
 await assertFieldsMatchState(page, 'with the inputs shown again');
-// A row that takes a shared event lists the options it displaced; a chip puts that option in the row's place and back.
-const swapChip = page.locator('[data-action="wl-swap"]:not([disabled])').first();
-if (await swapChip.count()) {
-  const [sibling, winner] = await swapChip.evaluate((b) => [b.dataset.id, b.dataset.for]);
-  await swapChip.click();
-  await savedState(`st.run.wishlistOrder.indexOf(${sibling}) === st.run.wishlistOrder.indexOf(${winner}) - 1`);
-  await settled(page);
-  assert.equal(await page.locator(`.wishlist li[data-wl-key="${sibling}"] [data-action="wl-swap"][data-id="${winner}"]`).count(), 1, 'the displaced entry is a chip under the one that took its place');
-  await page.click(`[data-action="wl-swap"][data-id="${winner}"][data-for="${sibling}"]`);
-  await savedState(`st.run.wishlistOrder.indexOf(${winner}) === st.run.wishlistOrder.indexOf(${sibling}) - 1`);
-  await assertFieldsMatchState(page, 'after swapping an event option in and back');
-}
 const bodyText = await page.textContent('body');
 assert.ok(!bodyText.includes('blue spark 1★'), 'predicted run still shows blue spark odds');
 assert.ok(!bodyText.includes('Card / event / inherited stats'), 'predicted run still shows stat-source totals');
@@ -558,6 +546,32 @@ await assertFieldsMatchState(page, 'with both advanced legacy forms open');
 await releaseSearch(page);
 await waitForPlan(page);
 await assertFieldsMatchState(page, 'after the native worker publishes the completed deck');
+// Extras are opt-in: the pool adds one to the end of the list, a swap puts a competitor in its place, and ✕ removes it.
+await page.locator('[data-wl-pool] summary').click();
+const addButton = page.locator('[data-wl-pool] [data-action="wl-add"]:not([disabled])').first();
+await addButton.waitFor({ timeout: 10_000 });
+const added = await addButton.getAttribute('data-id');
+await addButton.click();
+await savedState(`st.run.addedExtras.at(-1) === ${added}`);
+await settled(page);
+assert.equal(await page.locator(`.wishlist li[data-wl-key="${added}"][data-wl-role="extra"]`).count(), 1, 'the added extra is listed');
+const swapChip = page.locator(`.wishlist [data-action="wl-swap"][data-for="${added}"]:not([disabled])`).first();
+let listedExtra = added;
+if (await swapChip.count()) {
+  const alternative = await swapChip.getAttribute('data-id');
+  await swapChip.click();
+  await savedState(`st.run.addedExtras.includes(${alternative}) && !st.run.addedExtras.includes(${added})`);
+  await settled(page);
+  listedExtra = alternative;
+}
+await assertFieldsMatchState(page, 'after adding and swapping an extra');
+if (await page.locator(`.wishlist li[data-wl-key="${listedExtra}"]`).count()) {
+  await page.click(`.wishlist [data-action="wl-remove"][data-id="${listedExtra}"]`);
+  await savedState(`!st.run.addedExtras.includes(${listedExtra})`);
+  await settled(page);
+  assert.equal(await page.locator(`.wishlist li[data-wl-key="${listedExtra}"]`).count(), 0, 'a removed extra leaves the list');
+}
+assert.equal(await page.locator('.wishlist li.wl-target button').count(), 0, 'target rows have no controls; Parent goal owns them');
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: scheme });

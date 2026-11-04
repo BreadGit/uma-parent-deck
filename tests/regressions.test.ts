@@ -79,7 +79,7 @@ test('a normal hint permits buying its circle upgrade without inventing a circle
   assert.ok(Math.abs(p.deckResult.sparks.get(200012)! - hints.pAny * 0.25) < 1e-9, `spark ${p.deckResult.sparks.get(200012)} != hint ${hints.pAny} * 0.25`);
   assert.equal(p.spCost.total, 200);
   assert.equal(p.spCost.items[0]!.skill!.name, 'Right-Handed ◎');
-  assert.ok(!p.wl.some((w) => w.skillId === 200011), 'the event priority still asks for the available hint');
+  assert.ok(!p.priorities.listed.some((w) => w.skillId === 200011), 'the event priority still asks for the available hint');
 });
 
 test('circle upgrades follow actual skill families, not the normal skill name or icon color', () => {

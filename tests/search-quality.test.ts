@@ -40,8 +40,7 @@ const cases: { name: string; setup: (saved: AppState) => void | Promise<void>; r
       const shared = await decodeShare('3dXZHJbUMxDEQbIoKZ0fZdi6AOjNzSf0BKtj99GjzuyyTQQPv9ez5tqphsThjXWjanwA4aTIZlUx6sDwK1yfhGqt8RYEal4E7eUDXlUl-Va8J2SnFX5iOhkL0jY8vYM5aMpy_v9yhWrFn_XETH4DHNmtGzqz2MNWy-qJv60Xr02opYa9Jq-Bz6y-_5xZus14_2DGfycwt_RQlj8XGcQlrR3sN_LEhXmAcjcyBIw0W6PIQlCLUF-RvO-b1VVCV2iLx4DIWfsf4B');
       Object.assign(saved.run, shared.run);
       // Search evaluates its derived list. Custom extras can change the displayed rank after selection.
-      saved.run.wishlistOrder = [];
-      saved.run.wishlistExcluded = [];
+      saved.run.addedExtras = [];
       Object.assign(saved.settings, shared.settings);
       saved.inventory = {
         ...Object.fromEntries(data.cards.map((c) => [c.id, 4])),

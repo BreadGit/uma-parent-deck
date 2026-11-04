@@ -16,7 +16,7 @@ const empty: SharedChoices = {
     goal: { blueStats: ['speed', 'stamina', 'power', 'guts', 'wit'], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] },
     targets: [], targetLineage: {}, parentSparks: [[null, null, null], [null, null, null]],
     pinkLineage: [null, null, null, null, null, null], aptOverrides: {}, pinnedIds: [], borrowFromAll: false,
-    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {}, ignoredIds: [], borrowIgnored: false,
+    addedExtras: [], raceOverrides: {}, ignoredIds: [], borrowIgnored: false,
   },
   settings: { focus: 'stamina', winThreshold: 0.8 },
 };
@@ -29,7 +29,7 @@ const populated: SharedChoices = {
     parentSparks: [[{ stat: 'speed', stars: 3 }, null, { stat: 'power', stars: 2 }], [null, null, null]],
     pinkLineage: [{ aptitude: 'mile', stars: 3, inferred: true }, null, null, null, null, null],
     aptOverrides: { mile: 'A' }, pinnedIds: [30160], borrowFromAll: true,
-    wishlistOrder: [201601, 200472], wishlistExcluded: [200012], raceOverrides: {}, ignoredIds: [], borrowIgnored: false,
+    addedExtras: [201601, 200472], raceOverrides: {}, ignoredIds: [], borrowIgnored: false,
   },
   settings: { focus: 'sprint', winThreshold: 0.65 },
 };
@@ -139,7 +139,7 @@ test('unavailable required targets are ignored by calculations without deleting 
   const local = defaultState(data);
   applySharedChoices(local, populated);
   local.run.targets.push({ id: 99999991, role: 'required', stars: 3, priority: 0 });
-  local.run.wishlistOrder.push(99999991); local.run.wishlistExcluded.push(99999992);
+  local.run.addedExtras.push(99999991);
   local.run.targetLineage['99999991'] = [3, 3, 3, 3, 3, 3];
   const before = structuredClone(local);
   const result = planRun(local.run, local.settings, local.inventory, data, { search: false });
@@ -297,7 +297,7 @@ test('every choice a save keeps can be shared: migration applies the share-code 
   const saved = defaultState(data);
   const raw = JSON.parse(JSON.stringify(saved));
   Object.assign(raw.run, { traineeCardId: 100101, pinnedIds: [1.5, -1, 0, 30052, 30052, unknown], ignoredIds: [30001, 30001],
-    wishlistOrder: [200012, 200012], wishlistExcluded: [0, 200022], raceOverrides: { abc: true, 1011: false, '79_2': true } });
+    addedExtras: [200012, 200012], wishlistExcluded: [0, 200022], raceOverrides: { abc: true, 1011: false, '79_2': true } });
   const state = migrate({ current: raw }, data);
   const decoded = await decodeShare(await encodeShare(sharedChoices(state)));
   assert.deepEqual(decoded, sharedChoices(state));

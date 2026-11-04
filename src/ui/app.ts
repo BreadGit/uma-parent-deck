@@ -1,7 +1,7 @@
 import { html, nothing, type TemplateResult } from 'lit-html';
 import meta from '../../data/meta.json' with { type: 'json' };
 import { resetRun } from '../state.ts';
-import { data, onRender, plan, renderNow, renderTracked, store, trackedPanel, update, view } from './context.ts';
+import { data, onRender, plan, renderNow, renderTracked, store, trackedPanel, update } from './context.ts';
 import { TITLE } from './copy.ts';
 import { confirmDialog } from './dialog.ts';
 import { installSuggestDismiss } from './fields.ts';
@@ -103,35 +103,9 @@ function page() {
     <div class="footer">Version ${__APP_VERSION__}. Card, skill, character and race data from <a href="https://gametora.com">GameTora</a>, fetched ${String(meta.fetchedAt).slice(0, 10)} (${data.cards.length} Global cards). Stat model fitted on the Loopacord research sheet and cross-checked with fujikiseki.xyz. Game assets belong to Cygames; this is a personal tool.</div>`;
 }
 
-/** Recheck chip bounds after layout, including content edits and resizing an expanded list. */
-function watchCandidates(root: HTMLElement) {
-  let watched: HTMLElement | null = null;
-  let frame = 0;
-  const measure = () => {
-    frame = 0;
-    const bottom = watched ? watched.getBoundingClientRect().top + parseFloat(getComputedStyle(watched).getPropertyValue('--wl-candidates-height')) : 0;
-    const overflow = !!watched && [...watched.children].some((chip) => chip.getBoundingClientRect().bottom > bottom + 1);
-    if (overflow === view.candidatesOverflow && (overflow || !view.showAllCandidates)) return;
-    view.candidatesOverflow = overflow;
-    if (!overflow) view.showAllCandidates = false;
-  };
-  const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
-  const observer = new ResizeObserver(schedule);
-  return () => {
-    const el = root.querySelector<HTMLElement>('[data-candidates]');
-    if (el !== watched) {
-      if (watched) observer.unobserve(watched);
-      watched = el;
-      if (el) observer.observe(el);
-    }
-    schedule();
-  };
-}
-
 export function mount(root: HTMLElement) {
   const preserveScroll = installScrollAnchor(root);
-  const watch = watchCandidates(root);
-  const draw = () => { applyTheme(store.ui.theme); preserveScroll(() => renderTracked(page(), root)); watch(); };
+  const draw = () => { applyTheme(store.ui.theme); preserveScroll(() => renderTracked(page(), root)); };
   onRender(draw);
   followTheme(() => store.ui.theme);
   installTooltips(root);

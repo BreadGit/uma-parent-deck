@@ -382,48 +382,6 @@ suite('editor browser regressions', { concurrency: Number(process.env.BROWSER_TE
   });
 
 
-  test('candidate toggle disappears when all chips fit, including after resizing an expanded list', async (t) => {
-    const saved = defaultState(data);
-    saved.run.traineeCardId = 100501;
-    const page = await fresh(t, saved);
-    const hide = page.locator('[data-action="wl-exclude"]:not([disabled])');
-    for (let i = 0; await hide.count(); i++) {
-      assert.ok(i < 40, 'hiding extras terminates');
-      await hide.first().click();
-    }
-    const toggle = page.locator('[data-action="wl-candidates"]');
-    await page.setViewportSize({ width: 390, height: 1000 });
-    await toggle.waitFor();
-    await toggle.click();
-    assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
-    assert.equal(await page.locator('[data-candidates]').evaluate((el) => el.scrollHeight > el.clientHeight + 1), false, 'expanding shows every candidate');
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.waitForFunction(() => {
-      const el = document.querySelector('[data-candidates]');
-      const height = parseFloat(getComputedStyle(el).getPropertyValue('--wl-candidates-height'));
-      return [...el.children].every((chip) => chip.getBoundingClientRect().bottom <= el.getBoundingClientRect().top + height + 1);
-    });
-    await toggle.waitFor({ state: 'detached' });
-    await page.setViewportSize({ width: 390, height: 1000 });
-    await toggle.waitFor();
-    assert.equal(await toggle.getAttribute('aria-expanded'), 'false', 'the list collapses again when more rows need hiding');
-    await toggle.focus();
-    await page.keyboard.press('Enter');
-    assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
-    await page.keyboard.press('Enter');
-    assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
-    assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'wl-candidates');
-    await toggle.click();
-    const restore = page.locator('[data-action="wl-restore"]');
-    for (let i = 0; await restore.count(); i++) {
-      assert.ok(i < 40, 'restoring extras terminates');
-      await restore.first().click();
-    }
-    await toggle.waitFor({ state: 'detached' });
-    await assertFieldsMatchState(page, 'after resizing, toggling and restoring candidates');
-  });
-
-
   test('search suggestions open inside the pinned input column and keyboard rows stay in view', async (t) => {
     const page = await editor(t, fujiState());
     const column = page.locator('[data-inputs]');

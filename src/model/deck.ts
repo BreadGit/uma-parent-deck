@@ -304,9 +304,10 @@ export function buildDeck(pool: { card: Card; lb: number }[], targets: Target[],
 export type EntryRole = 'required' | 'preferred' | 'extra';
 /**
  * `events` are the choice events that offer the skill (one per event, whichever options), empty for a skill given
- * without a choice. `targetId` is the family's target for a target entry.
+ * without a choice. `targetId` is the family's target for a target entry. `owner` names the first card, trainee or
+ * scenario event that offers an extra.
  */
-export interface WishlistEntry { key: number; skillId: number; name: string; form: string | null; gated: boolean; isTarget: boolean; role: EntryRole; targetId: number | null; reason: string; weight: number; events: EventRef[] }
+export interface WishlistEntry { key: number; skillId: number; name: string; form: string | null; gated: boolean; isTarget: boolean; role: EntryRole; targetId: number | null; reason: string; weight: number; events: EventRef[]; owner: string }
 const uniqueEvents = (events: EventRef[]) => [...new Map(events.map((e) => [e.key, e])).values()];
 function sourceReasons(sources: SkillSource[], ctx: Ctx): string {
   return [...new Set(sources.map((s) => {
@@ -338,13 +339,13 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
         const sk = ctx.data.skillById.get(skillId);
         const gold = !!srcs[0]?.gold;
         entries.push({ key: skillId, skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: true, isTarget: true, role: roleOf(t), targetId: t.id,
-          weight: 2 + spark + (gold ? 0.5 : 0), reason: sourceReasons(srcs, ctx), events: uniqueEvents(srcs.map((s) => s.event)) });
+          weight: 2 + spark + (gold ? 0.5 : 0), reason: sourceReasons(srcs, ctx), events: uniqueEvents(srcs.map((s) => s.event)), owner: '' });
         seen.add(skillId);
       }
     } else {
       const src = all.find((s) => s.gold) ?? all[0]!;
       const sk = ctx.data.skillById.get(src.skillId);
-      entries.push({ key: src.skillId, skillId: src.skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: false, isTarget: true, role: roleOf(t), targetId: t.id, weight: spark, reason: sourceReasons(all.filter((s) => s.skillId === src.skillId), ctx), events: [] });
+      entries.push({ key: src.skillId, skillId: src.skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: false, isTarget: true, role: roleOf(t), targetId: t.id, weight: spark, reason: sourceReasons(all.filter((s) => s.skillId === src.skillId), ctx), events: [], owner: '' });
       seen.add(src.skillId);
     }
   }
@@ -354,7 +355,7 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     const sk = ctx.data.skillById.get(o.skillId);
     if (!sk || sk.unreleasedEn || isDebuff(sk)) continue;
     seen.add(o.skillId);
-    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, role: 'extra', targetId: null, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (isGold(sk) ? 1.2 : 1), reason: o.detail, events: [o.event] });
+    entries.push({ key: o.skillId, skillId: o.skillId, name: sk.name, form: null, gated: true, isTarget: false, role: 'extra', targetId: null, weight: 1 + 0.5 * ctx.settings.scenarioPickRate * (isGold(sk) ? 1.2 : 1), reason: o.detail, events: [o.event], owner: o.event.label });
   }
   // Other choice-gated skills from the deck's and the trainee's events (not targets): listing them steers the AI to that option.
   const offered = [...deck.map((d) => ({ owner: d.card.name, sources: eventSources(d.card, ctx.settings, ctx.data) })), ...(ctx.trainee ? [{ owner: ctx.trainee.name, sources: traineeEventSources(ctx.trainee, ctx.raceWins, ctx.settings, ctx.data) }] : [])];
@@ -366,7 +367,7 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     if (!sk || sk.unreleasedEn || isDebuff(sk)) continue;
     const pObtain = Math.max(...offers.map((o) => o.src.pObtain));
     entries.push({ key: skillId, skillId, name: sk.name, form: null, gated: true, isTarget: false, role: 'extra', targetId: null, weight: 1 + 0.5 * pObtain * (isGold(sk) ? 1.2 : 1),
-      reason: offers.map((o) => `${o.owner}: ${o.src.detail}`).join('; '), events: uniqueEvents(offers.map((o) => o.src.event)) });
+      reason: offers.map((o) => `${o.owner}: ${o.src.detail}`).join('; '), events: uniqueEvents(offers.map((o) => o.src.event)), owner: offers[0]!.owner });
   }
   return entries.sort((a, b) => b.weight - a.weight);
 }

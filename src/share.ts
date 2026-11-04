@@ -23,7 +23,7 @@ const DEFAULTS: SharedChoices = {
     goal: { blueStats: ['speed', 'stamina', 'power', 'guts', 'wit'], blueStars: 2, pink: [{ aptitude: 'any', stars: 1 }] },
     targets: [], targetLineage: {}, parentSparks: [[null, null, null], [null, null, null]],
     pinkLineage: [null, null, null, null, null, null], aptOverrides: {}, pinnedIds: [], borrowFromAll: false,
-    wishlistOrder: [], wishlistExcluded: [], raceOverrides: {}, ignoredIds: [], borrowIgnored: false,
+    addedExtras: [], raceOverrides: {}, ignoredIds: [], borrowIgnored: false,
   },
   settings: { focus: 'stamina', winThreshold: 0.8 },
 };
@@ -64,7 +64,7 @@ export function sharedChoices(state: AppState): SharedChoices {
     run: { traineeCardId: r.traineeCardId, traineeStars: r.traineeStars, goal: r.goal, targets: r.targets,
       targetLineage: r.targetLineage, parentSparks: r.parentSparks, pinkLineage: r.pinkLineage,
       aptOverrides: r.aptOverrides, pinnedIds: r.pinnedIds, borrowFromAll: r.borrowFromAll,
-      wishlistOrder: r.wishlistOrder, wishlistExcluded: r.wishlistExcluded, raceOverrides: r.raceOverrides, ignoredIds: r.ignoredIds, borrowIgnored: r.borrowIgnored },
+      addedExtras: r.addedExtras, raceOverrides: r.raceOverrides, ignoredIds: r.ignoredIds, borrowIgnored: r.borrowIgnored },
     settings: { focus: state.settings.focus, winThreshold: state.settings.winThreshold },
   });
 }
@@ -84,7 +84,7 @@ function pack({ run: r, settings: s }: SharedChoices, version = FORMAT): unknown
     r.parentSparks.map((side) => side.map((p) => p === null ? 0 : STATS.indexOf(p.stat) * 3 + p.stars)),
     r.pinkLineage.map((p) => p === null ? 0 : [APTITUDES.indexOf(p.aptitude), p.stars, p.inferred ? 1 : 0]),
     APTITUDES.flatMap((apt, i) => r.aptOverrides[apt] === undefined ? [] : [[i, GRADES.indexOf(r.aptOverrides[apt]!)]]),
-    r.pinnedIds, r.borrowFromAll ? 1 : 0, r.wishlistOrder, r.wishlistExcluded, FOCUSES.indexOf(s.focus), s.winThreshold,
+    r.pinnedIds, r.borrowFromAll ? 1 : 0, r.addedExtras, [], FOCUSES.indexOf(s.focus), s.winThreshold,
     Object.entries(r.raceOverrides ?? {}).sort(([a], [b]) => calendarOrder(a, b))
       .map(([key, included]) => [calendarId(key), typeof included === 'boolean' ? Number(included) : invalid()]),
     r.ignoredIds, r.borrowIgnored ? 1 : 0];
@@ -133,6 +133,7 @@ function unpack(raw: unknown, version = FORMAT): SharedChoices {
   const threshold = a[13];
   if (typeof threshold !== 'number' || !Number.isFinite(threshold) || threshold < 0 || threshold > 1) invalid();
   const pinnedIds = ids(a[8]), ignoredIds = ids(a[15]);
+  ids(a[11]); // read and ignored, as docs/sharing.md describes
   if (ignoredIds.some((id) => pinnedIds.includes(id))) invalid();
   return {
     run: {
@@ -141,7 +142,7 @@ function unpack(raw: unknown, version = FORMAT): SharedChoices {
       targetLineage: Object.fromEntries(lineage.map((l) => [l.id, l.value])), parentSparks, pinkLineage,
       aptOverrides: Object.fromEntries(overrides.map((p) => [p.aptitude, p.grade])), pinnedIds,
       ...(version === 2 ? {} : { raceOverrides: Object.fromEntries(races) }),
-      borrowFromAll: !!integer(a[9], 0, 1), wishlistOrder: ids(a[10]), wishlistExcluded: ids(a[11]), ignoredIds, borrowIgnored: !!integer(a[16], 0, 1),
+      borrowFromAll: !!integer(a[9], 0, 1), addedExtras: ids(a[10]), ignoredIds, borrowIgnored: !!integer(a[16], 0, 1),
     },
     settings: { focus: choice(a[12], FOCUSES), winThreshold: threshold as number },
   };
@@ -154,8 +155,9 @@ function decodePrototype(raw: unknown): SharedChoices {
   const a = list(raw);
   if (a[0] !== 20) throw new ShareCodeError('version');
   const fields = ['traineeCardId', 'traineeStars', 'goal', 'targets', 'targetLineage', 'parentSparks',
-    'pinkLineage', 'aptOverrides', 'pinnedIds', 'borrowFromAll', 'wishlistOrder', 'wishlistExcluded'] as const;
+    'pinkLineage', 'aptOverrides', 'pinnedIds', 'borrowFromAll', 'addedExtras'] as const;
   if (a.length > 15) invalid();
+  ids(a[12] ?? []);
   const run = { ...structuredClone(DEFAULTS.run), ...Object.fromEntries(fields.map((key, i) => [key, a[i + 1] ?? structuredClone(DEFAULTS.run[key])])) };
   delete run.raceOverrides;
   const original = { run, settings: { focus: a[13] ?? DEFAULTS.settings.focus, winThreshold: a[14] ?? DEFAULTS.settings.winThreshold } } as SharedChoices;

@@ -1,7 +1,7 @@
 # Sharing
 
-A share is a snapshot of panels 1–4, the user's arrangement of the extra prioritized skills (their
-order and the hidden ones), and manual G1 schedule overrides.
+A share is a snapshot of panels 1–4, the extras the user added to the prioritized skills, and manual
+G1 schedule overrides.
 It contains the trainee, parent goal, targets and their lineage, blue and pink legacy sparks,
 aptitude overrides, pinned and ignored cards, borrowing choice, training focus and win threshold.
 It excludes inventory, advanced settings, theme, transient UI state and cached
@@ -56,8 +56,8 @@ values wherever a default is nonempty.
 | 7 | Aptitude overrides | `[aptitude index, grade index]` per override |
 | 8 | Pinned support cards | Game card IDs in user order |
 | 9 | Borrow from all | 0 or 1 |
-| 10 | Prioritized order | Game skill IDs of the extras in user order |
-| 11 | Prioritized exclusions | Game skill IDs of the hidden extras, hints-only targets and default picks |
+| 10 | Added extras | Game skill IDs of the extras the user added to the prioritized skills, in the order added; earlier versions stored the arranged extras here, which now read as added |
+| 11 | Unused | Game skill IDs, validated and ignored; earlier versions stored hidden extras here. Encoders write it empty |
 | 12 | Training focus | Fixed focus index |
 | 13 | Win threshold | Number 0–1 |
 | 14 | Schedule overrides, format 3 onward | Format 6: `[calendar ID, flag]` per override; 1 forces the race in, 0 forces it out. Formats 3 to 5: signed calendar IDs; positive forces in, negative forces out |

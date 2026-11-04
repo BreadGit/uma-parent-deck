@@ -263,7 +263,7 @@ suite('sharing browser regressions', { concurrency: Number(process.env.BROWSER_T
     saved.run.targets.push({ id: 99999991, role: 'required', stars: 3, priority: 0 });
     saved.run.targetLineage['99999991'] = [3, 3, 3, 3, 3, 3];
     saved.run.pinnedIds.push(99999992);
-    saved.run.wishlistOrder.push(99999993);
+    saved.run.addedExtras.push(99999993);
     const page = await editor(t, saved);
     await waitForShare(page);
     assert.match(await page.locator('[data-unavailable-choices]').innerText(), /99999991/);

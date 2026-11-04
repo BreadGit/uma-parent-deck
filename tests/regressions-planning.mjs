@@ -166,9 +166,11 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     await page.evaluate(() => { window.retainedDeck = document.querySelector('.deck'); window.retainedList = document.querySelector('.wishlist'); });
     const heading = page.locator('h2').filter({ hasText: 'Prioritized skills' });
     await heading.scrollIntoViewIfNeeded();
+    await page.locator('[data-wl-pool] summary').click();
     const position = () => heading.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
     assert.equal(await page.locator('[data-wl-locked]').count(), 1, 'the list is marked as updating');
-    assert.equal(await page.locator('[data-action="wl-down"]:not([disabled]), [data-action="wl-exclude"]:not([disabled]), [data-action="wl-swap"]:not([disabled])').count(), 0, 'extras controls are disabled while a search runs');
+    assert.ok(await page.locator('[data-action="wl-add"]').count(), 'the pool offers extras');
+    assert.equal(await page.locator('[data-action="wl-add"]:not([disabled]), [data-action="wl-remove"]:not([disabled]), [data-action="wl-swap"]:not([disabled])').count(), 0, 'extras controls are disabled while a search runs');
     await page.evaluate(() => {
       const field = document.querySelector('[data-goal-stars="pink"]');
       for (const value of ['3', '1', '2']) { field.value = value; field.dispatchEvent(new Event('change', { bubbles: true })); }
@@ -184,7 +186,7 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     await page.evaluate((selection) => window.searchWorkers[0].deliver(selection), alternative);
     assert.deepEqual(await cards(), original, 'a cancelled search cannot publish a late result');
     assert.equal(await page.evaluate(() => window.retainedDeck === document.querySelector('.deck') && window.retainedList === document.querySelector('.wishlist')), true);
-    const retainedControl = page.locator('.wishlist [data-wl-key="201601"] .tip').first();
+    const retainedControl = page.locator('[data-wl-pool] summary');
     await retainedControl.evaluate((el) => { el.focus({ preventScroll: true }); window.scrollTo(0, el.getBoundingClientRect().top + scrollY - 200); });
     await page.waitForTimeout(220);
     const anchorBefore = await retainedControl.evaluate((el) => ({ viewport: el.getBoundingClientRect().top, document: el.getBoundingClientRect().top + scrollY }));
@@ -192,52 +194,43 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     await waitForPlan(page);
     await settled(page);
     const anchorAfter = await retainedControl.evaluate((el) => ({ viewport: el.getBoundingClientRect().top, document: el.getBoundingClientRect().top + scrollY }));
-    assert.ok(Math.abs(anchorAfter.document - anchorBefore.document) > 20, 'the final deck changes the content height above the skill');
-    assert.ok(Math.abs(anchorAfter.viewport - anchorBefore.viewport) <= 1, 'the skill control stays at the same screen position');
+    assert.ok(Math.abs(anchorAfter.document - anchorBefore.document) > 20, 'the final deck changes the content height above the pool');
+    assert.ok(Math.abs(anchorAfter.viewport - anchorBefore.viewport) <= 1, 'the pool stays at the same screen position');
     assert.notDeepEqual(await cards(), original, 'the final result replaces the cards once');
     assert.equal(await page.locator('.deck .slot').count(), 6);
     assert.equal(await page.locator('[data-wl-locked]').count(), 0, 'the list unlocks once the search publishes');
     const published = await position();
-    await page.locator('[data-action="wl-down"]:not([disabled])').first().click();
-    assert.ok(Math.abs(await position() - published) <= 1, 'reordering does not collapse the content above the editor');
-    assert.equal(await page.evaluate(() => window.searchWorkers.length), 2, 'arranging the extras starts no search');
-    await assertFieldsMatchState(page, 'after debounced search and skill reordering');
+    await page.locator('[data-action="wl-add"]:not([disabled])').first().click();
+    assert.ok(Math.abs(await position() - published) <= 1, 'adding an extra does not collapse the content above the editor');
+    assert.equal(await page.evaluate(() => window.searchWorkers.length), 2, 'adding an extra starts no search');
+    await assertFieldsMatchState(page, 'after debounced search and adding an extra');
   });
 
 
-  test('target rows show disabled controls with explanations; only extras can be arranged or hidden', async (t) => {
+  test('targets follow Parent goal with no controls of their own; the user adds and removes extras', async (t) => {
     const saved = defaultState(data);
     const focus = data.skills.find((s) => s.name === 'Focus');
     const falcon = data.cards.find((c) => c.charName === 'Smart Falcon' && c.rarity === 'SSR' && c.type === 'power');
     saved.run.traineeCardId = 100101;
     saved.run.pinnedIds.push(falcon.id);
     saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }];
-    saved.run.wishlistOrder = [focus.id, 201601];
+    saved.run.addedExtras = [focus.id, 201601];
     const page = await fresh(t, saved);
-    const first = page.locator('.wishlist li').first();
-    assert.equal(await first.getAttribute('data-wl-key'), '201601', 'the required target is first whatever the saved order says');
-    assert.match(await first.innerText(), /required/);
-    assert.equal(await first.getAttribute('draggable'), 'false');
-    const targets = page.locator('.wishlist li.wl-target');
-    assert.ok(await targets.count() >= 2);
-    assert.equal(await targets.locator('.wl-actions button').count(), 3 * await targets.count(), 'targets show both arrows and the hide control');
-    assert.equal(await targets.locator('.wl-actions button:not([disabled])').count(), 0, 'target controls cannot change the list');
-    const controls = first.locator('.wl-actions');
-    await controls.hover();
-    await page.waitForSelector('#tooltip.show');
-    assert.match(await page.locator('#tooltip').innerText(), /targets.*cannot be hidden/i);
-    await controls.focus();
-    assert.match(await page.locator('#tooltip').innerText(), /Parent goal/);
-    assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder, 'the saved order is kept even where it names targets');
-    assert.equal(await page.locator('[data-action="wl-export"]').count(), 0, 'the list has no export button');
-    const extra = page.locator('.wishlist li[data-wl-role="extra"]').first();
-    const key = await extra.getAttribute('data-wl-key');
-    await page.click(`[data-action="wl-exclude"][data-id="${key}"]`);
-    assert.equal(await page.locator(`.wishlist [data-wl-key="${key}"]`).count(), 0, 'a hidden extra leaves the list');
-    assert.equal(await page.locator(`[data-action="wl-restore"][data-id="${key}"]`).count(), 1, 'and can be put back');
-    assert.equal(await page.locator('[data-priority-conflict]').count(), 0, 'hiding raises no warning');
-    assert.equal(await first.getAttribute('data-wl-key'), '201601');
-    await assertFieldsMatchState(page, 'after hiding an extra');
+    assert.equal(await page.locator('.wishlist li[data-wl-role="extra"]').count(), 0, 'target ids among the added extras list nothing');
+    assert.equal(await page.locator('.wishlist li.wl-target button').count(), 0, 'target rows have no controls');
+    const shown = [...await page.locator('.wishlist li.wl-target').evaluateAll((els) => els.map((el) => el.dataset.wlKey)),
+      ...await page.locator('[data-wl-unlisted] .chip').evaluateAll((els) => els.map((el) => el.textContent))];
+    assert.ok(shown.length >= 2, 'every target is listed or named with its reason');
+    assert.deepEqual((await state(page)).run.addedExtras, saved.run.addedExtras, 'the saved ids are kept even where they name targets');
+    await page.locator('[data-wl-pool] summary').click();
+    const add = page.locator('[data-wl-pool] [data-action="wl-add"]:not([disabled])').first();
+    const key = await add.getAttribute('data-id');
+    await add.click();
+    assert.equal(await page.locator(`.wishlist li[data-wl-key="${key}"][data-wl-role="extra"]`).count(), 1, 'an added extra is listed after the targets');
+    await page.click(`[data-action="wl-remove"][data-id="${key}"]`);
+    assert.equal(await page.locator(`.wishlist [data-wl-key="${key}"]`).count(), 0, 'a removed extra leaves the list');
+    assert.equal(await page.locator(`[data-wl-pool] [data-action="wl-add"][data-id="${key}"]`).count(), 1, 'and returns to the pool');
+    await assertFieldsMatchState(page, 'after adding and removing an extra');
   });
 
 

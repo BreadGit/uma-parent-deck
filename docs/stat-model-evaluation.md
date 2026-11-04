@@ -231,7 +231,7 @@ two fields in the snapshot, matching a share import in the app. The JSON report 
 The default multipliers are `0.5,1,2` relative to that baseline's hint scale. They are stress-test
 scenarios, not measured confidence bounds. The JSON compares fresh recommendations and also
 rescores the unchanged baseline deck, separating changed card selection from changed estimates.
-It reports the search objective separately from the displayed chance, which follows saved extras.
+It reports the search objective separately from the displayed chance, which follows the added extras.
 Use `--multipliers 0.75,1,1.25` for a narrower comparison. A changed winner indicates sensitivity;
 an unchanged winner over these scenarios does not prove robustness to every source of uncertainty.
 
@@ -294,7 +294,7 @@ form plus prerequisites, without probability weighting or a budget cap, read fro
 directly so gold-only families and rare outcomes omitted by joint sampling still count. Target coverage
 applies it to every target (a target without a source still costs its white form) and warns when the
 total exceeds estimated SP. Prediction details repeats that target figure with the same warning and
-adds, separately, what the displayed extras would cost at full price. Extras are optional purchases,
+adds, separately, what the listed extras would cost at full price. Extras are optional purchases,
 so they never trigger the warning. Unknown prices make both figures lower bounds. Unlisted hints
 outside those families affect Rank's spending efficiency but do not contribute to either cost.
 

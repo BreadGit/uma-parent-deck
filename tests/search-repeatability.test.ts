@@ -23,7 +23,7 @@ test('the shared run is independent of previous recommendations and card order',
   const before = structuredClone(saved);
   const fresh = planRun(saved.run, saved.settings, saved.inventory, data);
   const reference = [30078, 30052, 30057, 20005, 30045, 30074].map((id, i) => ({ id, borrowed: i === 0, lb: i === 0 ? 4 : saved.inventory[String(id)]! }));
-  const referencePlan = planRun({ ...saved.run, wishlistOrder: [], wishlistExcluded: [] }, saved.settings, saved.inventory, data, { selection: reference });
+  const referencePlan = planRun({ ...saved.run, addedExtras: [] }, saved.settings, saved.inventory, data, { selection: reference });
   assert.ok(fresh.search!.score.probability >= referencePlan.goalEstimate.probability! * (1 - saved.settings.goalTieTolerance),
     'the search retains the known Gold Ship alternative within the required-goal tolerance');
   const previous = [30078, 30052, 30045, 20005, 30101, 30074].map((id, i) => ({ id, borrowed: i === 0, lb: i === 0 ? 4 : saved.inventory[String(id)]! }));
@@ -37,11 +37,11 @@ test('the shared run is independent of previous recommendations and card order',
   assert.deepEqual(saved, before, 'search leaves saved priorities and inventory unchanged');
 
   const pearl = [30078, 30052, 20023, 20005, 20029, 30074].map((id, i) => ({ id, borrowed: i === 0, lb: i === 0 ? 4 : saved.inventory[String(id)]! }));
-  const run = { ...saved.run, wishlistOrder: [], wishlistExcluded: [] };
+  const run = { ...saved.run, addedExtras: [] };
   const forward = planRun(run, saved.settings, saved.inventory, data, { selection: pearl });
   for (const permuted of [pearl.slice().reverse(), [...pearl.slice(2), ...pearl.slice(0, 2)]]) {
     const reversed = planRun(run, saved.settings, saved.inventory, data, { selection: permuted });
-    assert.deepEqual(reversed.wl.map((w) => w.key), forward.wl.map((w) => w.key), 'tied extra skills have the same default order');
+    assert.deepEqual(reversed.priorities.extras.map((x) => x.entry.key), forward.priorities.extras.map((x) => x.entry.key), 'tied extra skills have the same order');
     assert.deepEqual(reversed.rank, forward.rank);
     assert.deepEqual(reversed.finalMean, forward.finalMean);
     assert.equal(reversed.goalEstimate.probability, forward.goalEstimate.probability);

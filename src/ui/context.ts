@@ -45,11 +45,7 @@ const viewState = {
   expandedRankingCards: [] as readonly number[],
   /** Advanced settings whose last typed value was rejected, with the accepted range. */
   settingErrors: {} as Readonly<Record<string, Readonly<{ value: string; message: string }>>>,
-  /** The prioritized-skill row being dragged and the row under the pointer. */
-  drag: { key: null, over: null } as Readonly<{ key: number | null; over: number | null }>,
-  showAllCandidates: false,
-  /** Measured after layout by app.ts: whether the clamped candidates hide any. */
-  candidatesOverflow: false,
+  showExtras: false,
   showLineageParents: false,
   scannerOpen: false,
   scannerLoading: false,
@@ -148,7 +144,7 @@ export function update(fn: (s: AppState) => void): boolean {
 }
 
 /** The search key plus the user's arrangement of the extras, which changes the plan shown but not the search. */
-const displayKey = () => `${inputKey}${JSON.stringify([store.run.wishlistOrder, store.run.wishlistExcluded])}`;
+const displayKey = () => `${inputKey}${JSON.stringify(store.run.addedExtras)}`;
 let cache: { searchKey: string; displayKey: string; value: RunPlan } | null = null;
 let worker: Worker | null = null, requestId = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;

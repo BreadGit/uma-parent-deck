@@ -17,7 +17,7 @@ export interface SavedRecommendation {
  * migration; array ordering remains part of the input.
  */
 export function planningKey(run: RunInput, settings: Settings, inventory: Inventory): string {
-  const { wishlistOrder: _order, wishlistExcluded: _hidden, ...searched } = run;
+  const { addedExtras: _added, ...searched } = run;
   return JSON.stringify([searched, settings, inventory], (_, value: unknown) => isPlainObject(value)
     ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, value[key]])) : value);
 }

@@ -101,8 +101,7 @@ function shareFixture() {
   saved.run.targets = [{ id: 201601, role: 'required', stars: 3, priority: 0 }];
   saved.run.targetLineage = { 201601: [3, 2, 0, 3, 0, 0] };
   saved.run.parentSparks = [[{ stat: 'speed', stars: 3 }, null, null], [null, null, null]];
-  saved.run.wishlistOrder = [201601, 200472];
-  saved.run.wishlistExcluded = [200012];
+  saved.run.addedExtras = [201601, 200472];
   saved.settings.focus = 'sprint'; saved.settings.winThreshold = 0.65;
   return saved;
 }

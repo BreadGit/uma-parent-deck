@@ -78,7 +78,7 @@ test('reported Fuji build counts 22 races and shares one probability basis', asy
   assert.ok(suggested.goalEstimate.blue < biko.goalEstimate.blue);
   // Biko's chance is within the tie tolerance, so the preferred sparks decide for Throne's Assemblage.
   assert.ok(suggested.goalEstimate.probability! >= biko.goalEstimate.probability! * (1 - settings.goalTieTolerance));
-  const derived = planRun({ ...input, wishlistOrder: [], wishlistExcluded: [] }, settings, inventory, limited,
+  const derived = planRun({ ...input, addedExtras: [] }, settings, inventory, limited,
     { selection: suggested.deckResult.deck.map((e) => ({ id: e.card.id, lb: e.lb, borrowed: e.borrowed })), search: false });
   assert.ok(Math.abs(suggested.search!.score.probability - derived.goalEstimate.probability!) < 1e-12, 'search scores its derived list; the displayed estimate follows custom extras');
   assert.equal(p.skillRating.score, p.pred.sp * p.skillRating.pointsPerSp);

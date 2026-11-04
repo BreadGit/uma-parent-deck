@@ -229,8 +229,8 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     const page = await fresh(t, saved, { clock: true });
     const finished = await state(page);
     assert.ok(finished.recommendation?.summary.evaluated > 0);
-    const { wishlistOrder: _order, wishlistExcluded: _hidden, ...searched } = finished.run;
-    assert.deepEqual(JSON.parse(finished.recommendation.key), [searched, finished.settings, finished.inventory], 'the key leaves the extras arrangement out');
+    const { addedExtras: _added, ...searched } = finished.run;
+    assert.deepEqual(JSON.parse(finished.recommendation.key), [searched, finished.settings, finished.inventory], 'the key leaves the added extras out');
     const deck = () => page.locator('.deck .card-link').evaluateAll((els) => els.map((e) => e.getAttribute('href')));
     const original = await deck();
     const originalChance = await page.locator('[data-goal-probability]').innerText();

@@ -613,8 +613,7 @@ suite('goals browser regressions', { concurrency: Number(process.env.BROWSER_TES
     saved.run.traineeCardId = 100101;
     saved.run.targets = [{ id: 210052, role: 'required', stars: 3, priority: 0 }];
     saved.run.targetLineage = { 210052: [2, 0, 0, 0, 0, 0] };
-    saved.run.wishlistOrder = [201601, 200452];
-    saved.run.wishlistExcluded = [200012];
+    saved.run.addedExtras = [201601, 200452];
     saved.settings.affinity = 175;
     saved.inventory['30028'] = 2;
     const page = await editor(t, saved);

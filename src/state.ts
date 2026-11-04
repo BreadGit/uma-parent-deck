@@ -23,7 +23,7 @@ const LEGACY_KEYS = { state: 'uma-parent-deck.state', settings: 'uma-parent-deck
 
 export const DEFAULT_RUN: RunInput = {
   goal: structuredClone(DEFAULT_GOAL), pinkLineage: emptyPinkLineage(),
-  targets: [], targetLineage: {}, wishlistOrder: [], wishlistExcluded: [], traineeCardId: null, traineeStars: 3,
+  targets: [], targetLineage: {}, addedExtras: [], traineeCardId: null, traineeStars: 3,
   aptOverrides: {}, raceOverrides: {}, pinnedIds: [], borrowFromAll: false, ignoredIds: [], borrowIgnored: false, parentSparks: [defaultParentSparks(), defaultParentSparks()],
 };
 export const DEFAULT_UI: UiState = { sortKey: 'score', theme: 'system', showUnowned: true, inputsHidden: false };
@@ -61,7 +61,8 @@ const savedStats = (raw: unknown): StatValues => perStat((_, i) => {
 
 function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   const run: RunInput = { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) };
-  for (const k of ['wishlistOrder', 'wishlistExcluded'] as const) if (k in raw) run[k] = gameIds(raw[k]);
+  // the extras' arrangement (wishlistOrder, through v25) became the extras the user added
+  if ('addedExtras' in raw || 'wishlistOrder' in raw) run.addedExtras = gameIds(raw.addedExtras ?? raw.wishlistOrder);
   if (isGameId(raw.traineeCardId)) run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;
   // Legacy saves clamp to the trainee's rarity. Current saves keep the entered count; planRun applies today's rarity.

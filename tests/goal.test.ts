@@ -67,7 +67,7 @@ test('negative skills cannot generate or inherit white sparks, and saved targets
   assert.deepEqual(unavailableRunChoices(migrated.run, data).skills, [gatekept.id]);
   const plan = planRun(migrated.run, settings, migrated.inventory, data, { search: false });
   assert.deepEqual(plan.goalEstimate.required, []);
-  assert.ok(!plan.wl.some((w) => w.skillId === gatekept.id), 'a negative skill does not consume a prioritized slot');
+  assert.ok(!plan.priorities.listed.some((w) => w.skillId === gatekept.id), 'a negative skill does not consume a prioritized slot');
 });
 
 test('generation defaults use audited star tables and inclusive blue boundaries', () => {

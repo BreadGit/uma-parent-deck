@@ -217,18 +217,16 @@ test('required targets outrank custom preferred ordering and excluded choices re
   saved.run.traineeCardId = 100101;
   saved.run.pinnedIds.push(falcon.id);
   saved.run.targets = [{ id: 201601, role: 'required', stars: 2, priority: 0 }, { id: focus.id, role: 'preferred', stars: 2, priority: 0 }];
-  // arranging or hiding targets in the list changes nothing: the goal orders them
-  saved.run.wishlistOrder = [focus.id, 201601];
-  const arranged = structuredClone(saved.run.wishlistOrder);
+  // naming targets among the added extras changes nothing: the goal orders them
+  saved.run.addedExtras = [focus.id, 201601];
+  const named = structuredClone(saved.run.addedExtras);
   const plan = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
-  assert.equal(plan.wl[0]!.skillId, 201601, 'the required target is listed first');
+  const plain = planRun({ ...saved.run, addedExtras: [] }, saved.settings, saved.inventory, data, { search: false });
+  assert.deepEqual(plan.priorities.listed.map((w) => w.key), plain.priorities.listed.map((w) => w.key));
+  assert.ok(!plan.priorities.listed.some((w) => w.role === 'extra'));
   assert.equal(plan.deckResult.conflicts.find((c) => c.eventKey.startsWith(`${falcon.id}:chain`))?.taken.target, 201601);
-  assert.deepEqual(saved.run.wishlistOrder, arranged);
-  saved.run.wishlistExcluded = [201601];
-  const hidden = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
-  assert.ok(hidden.wl.some((w) => w.skillId === 201601), 'a target cannot be hidden from the list');
-  assert.deepEqual(hidden.wlHidden, []);
-  assert.ok(hidden.deckResult.coverage.get(201601)!.some((s) => s.isChoice && s.skillId === 201601), 'its choice source still counts');
+  assert.deepEqual(saved.run.addedExtras, named);
+  assert.ok(plan.deckResult.coverage.get(201601)!.some((s) => s.isChoice && s.skillId === 201601), 'its choice source counts');
 });
 
 test('complete search and displayed goal agree; fallback preserves the original requirements', () => {
@@ -250,15 +248,15 @@ test('complete search and displayed goal agree; fallback preserves the original 
   assert.deepEqual(saved.run, before);
 });
 
-test('hidden ids that are not extras of this deck are kept in the input and change nothing', () => {
+test('added ids that are not extras of this deck are kept in the input and change nothing', () => {
   const saved = defaultState(data);
   const id = must(data.skills.find((s) => s.name === 'Runaway')).id;
   saved.run.traineeCardId = 100101;
   saved.run.targets = [{ id, role: 'required', stars: 2, priority: 0 }];
-  saved.run.wishlistExcluded = [id, 999];
+  saved.run.addedExtras = [id, 999];
   const result = planRun(saved.run, saved.settings, saved.inventory, data, { search: false });
-  assert.deepEqual(result.wlHidden, [], 'neither id is an extra this deck offers');
-  assert.deepEqual(saved.run.wishlistExcluded, [id, 999]);
+  assert.ok(!result.priorities.listed.some((w) => w.role === 'extra'), 'neither id is an extra this deck offers');
+  assert.deepEqual(saved.run.addedExtras, [id, 999]);
 });
 
 test('screening scores never replace fully evaluated scores or discard a stronger incumbent', () => {
