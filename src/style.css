@@ -413,6 +413,7 @@ td.target-chances { min-width: 260px; }
 .wishlist .grip { display: inline-block; width: var(--wl-grip); color: var(--muted); user-select: none; }
 /* the options a row displaced: a full-width line under the row, indented to the name so the chips can run under the buttons */
 .wishlist { --wl-grip: 18px; }
+.wl-group { flex-basis: 100%; margin: 4px 0 2px calc(30px + var(--wl-grip)); padding-top: 4px; border-top: 1px solid var(--line); }
 .wl-alts { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin: 1px 0 0 calc(30px + var(--wl-grip)); }
 .wl-swap { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); font-size: var(--fs-sm); color: var(--text); }
 .wl-swap:hover { border-color: var(--accent); }

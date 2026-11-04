@@ -225,7 +225,7 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     const controls = first.locator('.wl-actions');
     await controls.hover();
     await page.waitForSelector('#tooltip.show');
-    assert.match(await page.locator('#tooltip').innerText(), /target skills.*cannot be removed/i);
+    assert.match(await page.locator('#tooltip').innerText(), /targets.*cannot be hidden/i);
     await controls.focus();
     assert.match(await page.locator('#tooltip').innerText(), /Parent goal/);
     assert.deepEqual((await state(page)).run.wishlistOrder, saved.run.wishlistOrder, 'the saved order is kept even where it names targets');

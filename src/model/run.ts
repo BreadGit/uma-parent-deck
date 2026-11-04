@@ -189,67 +189,94 @@ export function isLegalRunSelection(selection: DeckSelection, input: RunInput, s
   return !!constraints?.legal(selection.map((e) => ({ ...e, card: data.cardById.get(e.id)! })));
 }
 
-/** An event that more than one candidate is offered by. The run takes one option, so the candidate ranked first takes it. */
+/** An event that candidates on different options are offered by. The run takes one option, so the candidate ranked first takes it. */
 export interface WishlistEvent { key: string; label: string; winner: number; keys: number[] }
 export interface WishlistLayout {
   entries: Map<number, WishlistEntry>;
   /** Candidates that steer an event no higher entry took, or are targets; the first PRIORITIZED_SKILLS_MAX are the list. */
   live: WishlistEntry[];
-  /** Non-target candidates whose every event a listed entry took: listing them steers nothing. `by` are the entries that took them. */
+  /**
+   * Non-target candidates whose every event goes to another option: a listed entry's, or a deferred entry's first option
+   * that listing them would take away. `by` are the entries holding those events.
+   */
   shadowed: { entry: WishlistEntry; by: number[] }[];
   /** For each listed entry, the events it takes; a listed target with none is only a filler for its hints. */
   steers: Map<number, string[]>;
   events: WishlistEvent[];
   /** Entries the run gets without a listing, which sit below every other entry. */
   deferred: Set<number>;
+  /** Entries that get their skill from an option a higher entry takes, by the entry holding it. */
+  along: Map<number, number>;
+  /** Listed targets whose every event goes to another option, so they keep only their hints. */
+  lost: Set<number>;
   /** Targets in `deferred` the user hid. */
   hidden: WishlistEntry[];
 }
 
 /**
- * The run gets a target with no event choice, and a skill on an event's top option, without a listing, since it takes
- * each event's top option unless a listed skill is on another (docs/umamusume/refs/independent-training-event-choices.md).
+ * The run gets a target with no event choice, and a skill on an event's first option, without a listing, since it takes
+ * each event's first option unless a listed skill is on another (docs/umamusume/refs/independent-training-event-choices.md).
  */
 export const getsUnlisted = (w: WishlistEntry) => w.events.length ? w.events.every((e) => e.optionIndex === 0) : w.isTarget && !w.gated;
+const optionAt = (w: WishlistEntry, key: string) => w.events.find((e) => e.key === key)!.optionIndex;
 
 /**
- * Entries the run gets without a listing move below the rest, in their order. One stays in place while an entry below it
- * would otherwise take its event to another option. Then an entry takes every event no entry above it took. Only the
- * first `max` live entries take events, since only they are entered in the game. A non-target whose events are all taken
- * is hidden; a target in that position stays as a filler. A target in `excluded` leaves the list while it is deferred.
+ * Entries the run gets without a listing move below the rest, in their order: hints-only targets, first options, and
+ * skills on an option a higher entry takes. A first option keeps its event from a lower extra, which leaves the list; it
+ * stays in place instead while a lower target would take the event to another option. Then an entry takes every event no
+ * entry above it took. Only the first `max` live entries take events, since only they are entered in the game. A
+ * non-target whose every event goes to another option is hidden; a target in that position stays as a filler. A target
+ * in `excluded` leaves the list while it is deferred, and still keeps its first option from lower extras.
  */
 export function layoutWishlist(ordered: WishlistEntry[], max = PRIORITIZED_SKILLS_MAX, excluded: readonly number[] = []): WishlistLayout {
   const at = new Map(ordered.map((w, i) => [w.key, i]));
   const deferred = new Set(ordered.filter(getsUnlisted).map((w) => w.key));
+  const pinned = new Set<number>();
   for (;;) {
     const hidden = ordered.filter((w) => deferred.has(w.key) && w.isTarget && excluded.includes(w.key));
-    const layout = assignEvents([...ordered.filter((w) => !deferred.has(w.key)), ...ordered.filter((w) => deferred.has(w.key) && !hidden.includes(w))], max);
+    const reserved = new Map<string, WishlistEntry>();
+    for (const w of ordered) if (deferred.has(w.key)) for (const e of w.events) if (e.optionIndex === 0 && !reserved.has(e.key)) reserved.set(e.key, w);
+    const layout = assignEvents([...ordered.filter((w) => !deferred.has(w.key)), ...ordered.filter((w) => deferred.has(w.key) && !hidden.includes(w))], max, reserved, at);
     const takenBy = new Map<string, WishlistEntry>();
     for (const [key, events] of layout.steers) for (const e of events) takenBy.set(e, layout.entries.get(key)!);
     const pulled = ordered.filter((w) => deferred.has(w.key) && w.events.some((e) => {
       const by = takenBy.get(e.key);
-      return by && at.get(by.key)! > at.get(w.key)! && by.events.find((b) => b.key === e.key)!.optionIndex !== e.optionIndex;
+      return by && at.get(by.key)! > at.get(w.key)! && optionAt(by, e.key) !== e.optionIndex;
     }));
-    if (!pulled.length) return { ...layout, deferred, hidden };
-    for (const w of pulled) deferred.delete(w.key);
+    const riding = [...layout.along.keys()].filter((key) => !deferred.has(key) && !pinned.has(key));
+    if (!pulled.length && !riding.length) return { ...layout, deferred, hidden };
+    for (const w of pulled) { deferred.delete(w.key); pinned.add(w.key); }
+    for (const key of riding) deferred.add(key);
   }
 }
 
-function assignEvents(ordered: WishlistEntry[], max: number): Omit<WishlistLayout, 'deferred' | 'hidden'> {
-  const winner = new Map<string, WishlistEvent>();
+/** A non-target entry loses an event held by a deferred first option ranked above it, which the run takes unless it is listed. */
+function assignEvents(ordered: WishlistEntry[], max: number, reserved: Map<string, WishlistEntry>, at: Map<number, number>): Omit<WishlistLayout, 'deferred' | 'hidden'> {
+  const winner = new Map<string, WishlistEntry>();
   const live: WishlistEntry[] = [], shadowed: WishlistLayout['shadowed'] = [];
-  const steers = new Map<number, string[]>();
+  const steers = new Map<number, string[]>(), along = new Map<number, number>(), lost = new Set<number>();
+  const holderOf = (w: WishlistEntry, key: string) => {
+    const r = reserved.get(key);
+    return winner.get(key) ?? (r && r !== w && !w.isTarget && at.get(r.key)! < at.get(w.key)! ? r : undefined);
+  };
+  const holders = new Map<string, WishlistEntry>();
   for (const w of ordered) {
-    const free = w.events.filter((e) => !winner.has(e.key));
-    if (w.events.length && !free.length && !w.isTarget) { shadowed.push({ entry: w, by: [...new Set(w.events.map((e) => winner.get(e.key)!.winner))] }); continue; }
+    const held = w.events.map((e) => ({ e, by: holderOf(w, e.key) }));
+    const free = held.filter((h) => !h.by).map((h) => h.e);
+    const shared = held.find((h) => h.by && optionAt(h.by, h.e.key) === h.e.optionIndex);
+    for (const h of held) if (h.by && !holders.has(h.e.key)) holders.set(h.e.key, h.by);
+    if (!free.length && shared) along.set(w.key, shared.by!.key);
+    if (w.events.length && !free.length && !shared && !w.isTarget) { shadowed.push({ entry: w, by: [...new Set(held.map((h) => h.by!.key))] }); continue; }
     if (live.length < max) {
-      for (const e of free) winner.set(e.key, { key: e.key, label: e.label, winner: w.key, keys: [] });
+      for (const e of free) { winner.set(e.key, w); holders.set(e.key, w); }
       steers.set(w.key, free.map((e) => e.key));
+      if (w.isTarget && w.events.length && !free.length && !shared) lost.add(w.key);
     }
     live.push(w);
   }
-  for (const w of ordered) for (const e of w.events) winner.get(e.key)?.keys.push(w.key);
-  return { entries: new Map(ordered.map((w) => [w.key, w])), live, shadowed, steers, events: [...winner.values()].filter((e) => e.keys.length > 1) };
+  const events = [...holders].map(([key, by]) => ({ key, label: by.events.find((e) => e.key === key)!.label, winner: by.key,
+    keys: ordered.filter((w) => w === by || w.events.some((e) => e.key === key && e.optionIndex !== optionAt(by, key))).map((w) => w.key) }));
+  return { entries: new Map(ordered.map((w) => [w.key, w])), live, shadowed, steers, along, lost, events: events.filter((e) => e.keys.length > 1) };
 }
 
 /**

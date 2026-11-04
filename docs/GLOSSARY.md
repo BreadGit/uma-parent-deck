@@ -31,9 +31,10 @@ For current behavior, inspect the [model](../src/model/) and [UI](../src/ui/).
 - **Prioritized skills**: the ordered list to enter in independent training, derived from the parent
   goal and deck. **Extras** are offered skills outside the target families. **Hints only** marks a
   target with access that does not require an event choice; **default pick** marks a skill on an event's
-  first option, which the run takes unless a listed skill is on another; **lost event** marks a target
-  whose event options are taken by higher entries. Hints-only entries and default picks sit below the
-  rest and can be hidden.
+  first option, which the run takes unless a listed skill is on another; **same option** marks a skill
+  on the option a higher entry takes; **lost event** marks a target whose event options go to another
+  option. Hints-only entries, default picks and same-option skills sit below the rest and can be
+  hidden.
   The tool assumes list order resolves event-choice conflicts;
   that is not a confirmed game rule.
 - **Choice conflict**: targets or extras competing for one event's single option.
