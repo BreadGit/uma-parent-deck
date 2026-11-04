@@ -412,10 +412,11 @@ td.target-chances { min-width: 260px; }
 .wl-kind { display: inline-block; margin-right: 6px; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
 .wl-x:disabled { opacity: .3; cursor: default; }
-.wl-note { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 6px; }
-.chip.danger { background: var(--tag-danger-bg); color: var(--tag-danger-fg); border-color: transparent; }
+.wl-section { margin-top: 8px; }
+.wl-section summary, .wl-pool summary { cursor: pointer; color: var(--muted); }
+table.wl-unlisted { margin-top: 4px; }
+table.wl-unlisted td { white-space: normal; }
 .wl-pool { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--line); }
-.wl-pool summary { cursor: pointer; color: var(--muted); }
 .wl-pool > p { margin: 6px 0; }
 .wl-owner { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin: 4px 0; }
 .wl-owner > .muted:first-child { flex-basis: 100%; }
