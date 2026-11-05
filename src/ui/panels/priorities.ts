@@ -32,14 +32,28 @@ const defaultLabel = (w: WishlistEntry) => w.events.some((e) => defaultOption(e)
 const PLUS = html`<svg class="wl-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9" /></svg>`;
 const CHECK = html`<svg class="wl-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" /></svg>`;
 
-/** Shows Parent goal's targeted skills, with `targetId`'s editor open when given. */
-function showGoal(targetId?: number | null) {
+/** Replays the highlight on an element outside the panel each time it is shown; lit leaves the class alone. */
+function flash(el: HTMLElement) {
+  el.classList.remove('goal-flash');
+  void el.offsetWidth;
+  el.classList.add('goal-flash');
+}
+/**
+ * Shows Parent goal's targeted skills: `targetId`'s editor when given, or the preferred search filled in with `addName`,
+ * so the skill can be added as a target white spark. Scrolls only as far as needed, so repeated clicks stay put.
+ */
+function showGoal(targetId?: number | null, addName?: string) {
   if (store.ui.inputsHidden) update((s) => { s.ui.inputsHidden = false; });
   if (targetId != null) view.targetEditorId = targetId;
+  if (addName) { view.targetGroupsOpen = { ...view.targetGroupsOpen, preferred: true }; view.preferredQuery = addName; }
   renderNow();
   const editor = targetId == null ? null : document.querySelector<HTMLElement>(`[data-target-editor="${targetId}"]`);
-  (editor ?? document.getElementById(GOAL_TARGETS_ID))?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  editor?.querySelector<HTMLElement>('[data-action="remove-target"]')?.focus({ preventScroll: true });
+  const search = addName ? document.getElementById(`target-search-preferred`) : null;
+  const shown = editor ?? search?.closest<HTMLElement>('.target-search') ?? document.getElementById(GOAL_TARGETS_ID);
+  if (!shown) return;
+  shown.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  flash(shown);
+  (editor?.querySelector<HTMLElement>('[data-action="remove-target"]') ?? search)?.focus({ preventScroll: true });
 }
 
 const addExtra = (key: number) => update((s) => { s.run.addedExtras = [...s.run.addedExtras.filter((k) => k !== key), key]; });
@@ -117,7 +131,7 @@ function heldLine(list: PriorityList, holderKey: number) {
   const tipFor = (w: WishlistEntry) => w.isTarget
     ? `${entryName(w)} is a targeted skill below ${holder} in ${TITLE.goal}, and they share an event that the run takes one option of. To list ${entryName(w)} instead, raise it above ${holder} in ${TITLE.goal}. Opens ${TITLE.goal}.`
     : `${entryName(w)} shares an event with ${holder}, a targeted skill, and the run takes only one option. To list ${entryName(w)} instead, add it as a target white spark above ${holder} in ${TITLE.goal}. Opens ${TITLE.goal}.`;
-  return html`<div class="wl-alts small" data-wl-held=${holderKey}><span class="muted">or instead:</span>${items.map((w) => html`<span class="wl-chip held">${icon(w)}${nameTip(w, 'wl-chip-name')}<button class="wl-chip-btn" data-action="wl-goal" data-id=${w.key} data-tip=${tipFor(w)} aria-label="List ${entryName(w)} instead of ${holder}: opens ${TITLE.goal}" @click=${() => showGoal(w.isTarget ? w.targetId : null)}>${PLUS}</button></span>`)}</div>`;
+  return html`<div class="wl-alts small" data-wl-held=${holderKey}><span class="muted">or instead:</span>${items.map((w) => html`<span class="wl-chip held">${icon(w)}${nameTip(w, 'wl-chip-name')}<button class="wl-chip-btn" data-action="wl-goal" data-id=${w.key} data-tip=${tipFor(w)} aria-label="List ${entryName(w)} instead of ${holder}: opens ${TITLE.goal}" @click=${() => (w.isTarget ? showGoal(w.targetId) : showGoal(null, w.name))}>${PLUS}</button></span>`)}</div>`;
 }
 function comesWithLine(list: PriorityList, key: number) {
   const items = extrasWhere(list, (s) => s.kind === 'anyway' && s.with === key);
@@ -187,7 +201,7 @@ function unlistedTargets(list: PriorityList) {
       ${rows.map(({ entry, reason, by }) => {
         const r = REASONS[reason], holder = by === null ? '' : nameOf(list, by);
         return html`<tr data-wl-unlisted-reason=${reason}><td><span class="wl-body">${roleTag(entry)}${icon(entry)}${nameTip(entry)}</span>${heldLine(list, entry.key)}${comesWithLine(list, entry.key)}</td>
-          <td class="wl-reason ${reason === 'lost' || reason === 'overflow' ? 'warn' : ''}">${r.label(holder, entry)}${tip(r.tip(holder, entry))}</td></tr>`;
+          <td class="wl-reason ${reason === 'lost' || reason === 'overflow' ? 'warn' : ''}"><span class="wl-reason-line">${r.label(holder, entry)}${tip(r.tip(holder, entry))}</span></td></tr>`;
       })}</tbody></table></div>` : nothing}
   </details>`;
 }

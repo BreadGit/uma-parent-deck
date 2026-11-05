@@ -453,6 +453,9 @@ td.target-chances { min-width: 260px; }
 .wl-chip.held .wl-chip-btn:hover, .wl-chip.held .wl-chip-btn:focus-visible { opacity: 1; color: var(--text); border-color: var(--line-strong); }
 .wl-warning { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0 8px; padding: 8px 10px; border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); background: var(--tag-warn-bg); color: var(--tag-warn-fg); }
 .wl-warning p { flex: 1; margin: 0; }
+/* a target or search shown from the prioritized skills panel */
+@keyframes goal-flash { from { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 65%, transparent); } to { box-shadow: 0 0 0 3px transparent; } }
+.goal-flash { animation: goal-flash 1.4s ease-out; border-radius: var(--radius); }
 .wl-dismiss { flex: none; padding: 0 6px; border: none; background: none; color: inherit; line-height: 18px; }
 .wl-section { margin-top: 8px; }
 .wl-section summary, .wl-row > summary { cursor: pointer; color: var(--muted); }
@@ -460,6 +463,8 @@ td.target-chances { min-width: 260px; }
 table.wl-unlisted { width: auto; margin-top: 4px; }
 table.wl-unlisted td { white-space: normal; vertical-align: top; }
 table.wl-unlisted td.wl-reason { white-space: nowrap; }
+/* the reason sits on the skill's first line, whose tag and icon make it taller than text */
+table.wl-unlisted .wl-body, table.wl-unlisted .wl-reason-line { display: flex; align-items: center; min-height: 24px; }
 table.wl-unlisted .wl-alts { margin-left: 0; }
 .wl-pool { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); container-type: inline-size; }
 .wl-pool-head { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
@@ -467,7 +472,12 @@ table.wl-unlisted .wl-alts { margin-left: 0; }
 .wl-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 7px 0; border-top: 1px solid var(--line); }
 .wl-row:first-of-type { border-top: none; }
 details.wl-row:not([open]) { display: block; }
-@container (min-width: 560px) { .wl-row { grid-template-columns: 172px minmax(0, 1fr); gap: 10px; align-items: start; } .wl-row-k { padding-top: 3px; } }
+/* beside the chips the label column is narrow, so a long label wraps rather than pushing every chip right */
+@container (min-width: 560px) {
+  .wl-row { grid-template-columns: 112px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .wl-pool .wl-row-k { display: block; padding-top: 3px; white-space: normal; line-height: 1.5; }
+  .wl-pool .wl-row-k .wl-ic { vertical-align: -1px; margin-right: 5px; }
+}
 .wl-row-k { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-weight: 600; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
 .wl-row-k .muted { font-weight: 400; }
 .wl-row-add { color: var(--accent); }
