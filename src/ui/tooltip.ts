@@ -58,12 +58,15 @@ export function installTooltips(root: HTMLElement) {
     shownFor = null;
     if (force) { pinned?.classList.remove('pinned'); pinned = null; }
   };
+  /** Closing a tip from the keyboard puts focus back on what opened it, without opening it again. */
+  let restoring = false;
+  const closeTo = (el: HTMLElement | null) => { hide(true); restoring = true; el?.focus(); restoring = false; };
   /** A pinned box takes the pointer, so its text can be selected and its links followed, until it is closed. */
   const pin = (el: HTMLElement) => { hide(true); pinned = el; el.classList.add('pinned'); show(el); box.classList.add('pinned'); place(el); };
   root.addEventListener('mousemove', () => { awaitingMove = false; });
   root.addEventListener('mouseover', (ev) => { if (pinned || awaitingMove) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('mouseout', (ev) => { if (tipOf(ev)) hide(); });
-  root.addEventListener('focusin', (ev) => { if (pinned) return; const el = tipOf(ev); if (el) show(el); });
+  root.addEventListener('focusin', (ev) => { if (pinned || restoring) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('focusout', (ev) => { if (tipOf(ev)) hide(); });
   document.addEventListener('click', (ev) => {
     if ((ev.target as HTMLElement).closest('#tooltip')) { if ((ev.target as HTMLElement).closest('.tt-close')) hide(true); return; }
@@ -90,11 +93,9 @@ export function installTooltips(root: HTMLElement) {
   });
   document.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Escape' || !shownFor) return;
-    const back = box.contains(document.activeElement) ? pinned : null;
-    hide(true);
-    back?.focus();
+    if (box.contains(document.activeElement)) closeTo(pinned); else hide(true);
   });
-  close.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); const back = pinned; hide(true); back?.focus(); } });
+  close.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); closeTo(pinned); } });
   window.addEventListener('scroll', () => { if (pinned) place(pinned); }, { passive: true, capture: true });
   // lit replaces the element a tip was opened from when it re-renders that part; its box then belongs to nothing.
   new MutationObserver(() => { if (shownFor && !shownFor.isConnected) hide(true); }).observe(root, { childList: true, subtree: true });
