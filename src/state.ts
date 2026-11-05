@@ -14,7 +14,7 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface UiState { sortKey: string; theme: Theme; showUnowned: boolean; inputsHidden: boolean }
 export interface AppState { version: number; run: RunInput; settings: Settings; inventory: Inventory; ui: UiState; missions: MissionState; recommendation?: SavedRecommendation }
 
-export const STATE_VERSION = 25;
+export const STATE_VERSION = 26;
 export const STATE_KEY = 'uma-parent-deck.v4'; // the key name stays; the version field inside tells the shapes apart
 /** A save this app could not read is moved here when the page loads, until the user removes it. */
 export const UNREADABLE_KEY = `${STATE_KEY}.unreadable`;
