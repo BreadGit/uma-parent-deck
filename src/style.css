@@ -222,16 +222,32 @@ tr.ignored td:not(:first-child):not(:nth-child(2)) { opacity: .45; }
 .tag.danger { --tag-bg: var(--tag-danger-bg); --tag-fg: var(--tag-danger-fg); }
 .tag.borrow { --tag-bg: var(--tag-borrow-bg); --tag-fg: var(--tag-borrow-fg); }
 .tag.goal { --tag-bg: var(--tag-goal-bg); --tag-fg: var(--tag-goal-fg); font-weight: 600; }
-.tag[data-tip] { cursor: help; }
+.tag[data-tip] { cursor: pointer; }
 
 /* pills and tooltips */
 .pill { display: inline-block; padding: 0 6px; border-radius: var(--radius); background: var(--pill); color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.5; }
 .pill.warn { background: var(--pill-warn-bg); color: var(--pill-warn); }
-.tip { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 14px; min-width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--muted); color: var(--muted); font-size: 10px; line-height: 1; margin-left: 4px; cursor: help; vertical-align: middle; user-select: none; }
+.tip { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 14px; min-width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--muted); color: var(--muted); font-size: 10px; line-height: 1; margin-left: 4px; cursor: pointer; vertical-align: middle; user-select: none; }
 .tip:hover, .tip:focus, .tip.pinned { color: var(--accent); border-color: var(--accent); outline: none; }
 .tip.pinned { background: var(--soft); }
 #tooltip { position: fixed; z-index: 50; max-width: 360px; padding: 8px 10px; border-radius: var(--radius); background: var(--panel); color: var(--text); border: 1px solid var(--line); font-size: var(--fs-sm); line-height: 1.4; box-shadow: 0 6px 18px var(--shadow); pointer-events: none; white-space: pre-line; display: none; }
 #tooltip.show { display: block; }
+/* a clicked tip stays open: the box takes the pointer so its text can be selected and its links followed, and gets a close button */
+#tooltip.pinned { pointer-events: auto; user-select: text; padding-right: 30px; border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+#tooltip .tt-close { display: none; position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; padding: 0; border: none; border-radius: 10px; background: none; color: var(--muted); line-height: 20px; }
+#tooltip .tt-close:hover { background: var(--soft); color: var(--text); }
+#tooltip.pinned .tt-close { display: block; }
+#tooltip.rich { white-space: normal; }
+#tooltip .tt-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+#tooltip .tt-head b, #tooltip .tt-k { display: block; }
+#tooltip .tt-k { color: var(--muted); }
+#tooltip .tt-art { width: 40px; height: 40px; flex: none; border-radius: 6px; object-fit: cover; }
+#tooltip .tt-scenario { display: inline-flex; align-items: center; justify-content: center; background: var(--soft); color: var(--muted); font-size: var(--fs-lg); }
+#tooltip .tt-ev { color: var(--muted); }
+#tooltip .tt-sec { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+#tooltip .type-icon { width: 14px; height: 14px; vertical-align: -2px; }
+/* the text whose tip is pinned */
+.pinned:not(.tip):not(#tooltip) { background: color-mix(in srgb, var(--accent) 18%, transparent); border-radius: 3px; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 2px; }
 
 /* legacy screen: per-parent start gains above the game's stat boxes, aptitudes below */
 .legacy-legend { display: flex; gap: 10px; align-items: center; font-size: var(--fs-xs); color: var(--muted); margin: 2px 0 4px; }
@@ -397,43 +413,65 @@ td.target-chances { min-width: 260px; }
 /* prioritized skills */
 /* numbers are rendered in the template: Chromium leaves ::marker counters stale after lit's repeat() moves items */
 .wishlist { list-style: none; padding-left: 0; margin: 4px 0; }
-.wishlist li { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px; margin: 2px 0; padding: 3px 4px; border-radius: 4px; }
+.wishlist li { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 2px 0; padding: 3px 4px; border-radius: 4px; }
 /* while a search runs the deck may change, so the extras are shown but not editable */
 .wishlist.wl-locked li.wl-extra, .wishlist.wl-locked ~ .wl-pool { opacity: .55; }
-.wishlist .wl-body { flex: 1; min-width: 0; }
 .wishlist li:hover { background: var(--soft2); }
 .wishlist .wl-num { display: inline-block; flex: none; min-width: 24px; text-align: right; margin-right: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
-/* the extras sharing a row's event: a full-width line under the row, indented to the name */
-.wl-alts { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin: 1px 0 0 30px; }
-.wl-swap { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); font-size: var(--fs-sm); color: var(--text); }
-.wl-swap:hover { border-color: var(--accent); }
-.wl-swap:disabled { opacity: .5; cursor: default; }
-.wl-swap:disabled:hover { border-color: var(--line); }
-.wl-kind { display: inline-block; min-width: 4.6em; margin-right: 6px; text-align: center; }
+.wl-body { flex: 1; min-width: 0; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.wl-kind { display: inline-block; min-width: 4.6em; text-align: center; }
+.wl-icon { width: 20px; height: 20px; flex: none; }
+.wl-name, .wl-chip-name { border-bottom: 1px dotted var(--muted); }
+.wl-ic { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
 .wl-x:disabled { opacity: .3; cursor: default; }
 /* a targeted skill's ✕ only leads to Parent goal, so it looks inactive */
 .wl-x.wl-x-goal { opacity: .45; }
 .wl-x.wl-x-goal:hover, .wl-x.wl-x-goal:focus-visible { opacity: .8; }
+/* the lines under a row: a full-width line indented to the name */
+.wl-alts { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 3px 0 2px 30px; }
+.wl-swap { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px 1px 4px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); font-size: var(--fs-sm); color: var(--text); }
+.wl-swap .wl-icon, .wl-chip .wl-icon { width: 18px; height: 18px; }
+.wl-swap:hover { border-color: var(--accent); }
+.wl-swap:disabled { opacity: .5; cursor: default; }
+.wl-swap:disabled:hover { border-color: var(--line); }
+.wl-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 1px 4px 1px 5px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); max-width: 100%; }
+.wl-chip .tip { margin-left: 0; margin-right: 4px; }
+.wl-chip-name { min-width: 0; overflow-wrap: anywhere; line-height: 1.2; }
+.wl-chip-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 22px; height: 22px; padding: 0; border-radius: 11px; }
+.wl-chip.add { background: color-mix(in srgb, var(--accent) 9%, var(--panel)); border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+.wl-chip.add .wl-chip-btn { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.wl-chip.add .wl-chip-btn:disabled { background: var(--soft); color: var(--muted); border-color: var(--line); opacity: 1; }
+.wl-chip.quiet { padding-right: 8px; background: none; }
+.wl-chip.quiet .wl-chip-name { color: var(--muted); border-bottom-color: transparent; }
+.wl-chip.quiet .wl-icon { opacity: .7; }
+/* a held option's + leads to Parent goal rather than adding here, so it looks inactive until pointed at */
+.wl-chip.held { color: var(--muted); background: none; border-style: dashed; }
+.wl-chip.held .wl-icon { opacity: .7; }
+.wl-chip.held .wl-chip-btn { border: 1px solid var(--line); background: var(--soft); color: var(--muted); opacity: .55; }
+.wl-chip.held .wl-chip-btn:hover, .wl-chip.held .wl-chip-btn:focus-visible { opacity: 1; color: var(--text); border-color: var(--line-strong); }
+.wl-warning { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0 8px; padding: 8px 10px; border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); background: var(--tag-warn-bg); color: var(--tag-warn-fg); }
+.wl-warning p { flex: 1; margin: 0; }
+.wl-dismiss { flex: none; padding: 0 6px; border: none; background: none; color: inherit; line-height: 18px; }
 .wl-section { margin-top: 8px; }
-.wl-section summary, .wl-pool summary { cursor: pointer; color: var(--muted); }
+.wl-section summary, .wl-row > summary { cursor: pointer; color: var(--muted); }
+.wl-note { margin: 6px 0 0; }
 table.wl-unlisted { width: auto; margin-top: 4px; }
-table.wl-unlisted td { white-space: normal; }
+table.wl-unlisted td { white-space: normal; vertical-align: top; }
 table.wl-unlisted td.wl-reason { white-space: nowrap; }
-.wl-pool { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--line); }
-.wl-pool > p { margin: 6px 0; }
-.wl-legend { margin: 6px 0 2px; }
-.wl-owner { margin: 10px 0 0; }
-.wl-owner-name { font-weight: 600; color: var(--text); }
-.wl-event { margin: 4px 0 0 10px; padding-left: 8px; border-left: 2px solid var(--line); }
-.wl-options { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
-.wl-option { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
-.wl-option-n { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; border-radius: 9px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
-.wl-skill { display: inline-flex; align-items: center; gap: 4px; }
-.wl-name { border-bottom: 1px dotted var(--muted); cursor: help; }
-.wl-skill.muted .wl-name { border-bottom-color: transparent; }
-.wl-held { margin-top: 2px; }
-button.wl-add { padding: 0 8px; line-height: 18px; border-color: var(--accent); color: var(--accent); }
+table.wl-unlisted .wl-alts { margin-left: 0; }
+.wl-pool { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); container-type: inline-size; }
+.wl-pool-head { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.panel .wl-pool-head h3 { margin: 0; font-size: var(--fs-md); text-transform: none; letter-spacing: normal; color: var(--text); }
+.wl-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 7px 0; border-top: 1px solid var(--line); }
+.wl-row:first-of-type { border-top: none; }
+details.wl-row:not([open]) { display: block; }
+@container (min-width: 560px) { .wl-row { grid-template-columns: 172px minmax(0, 1fr); gap: 10px; align-items: start; } .wl-row-k { padding-top: 3px; } }
+.wl-row-k { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-weight: 600; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.wl-row-k .muted { font-weight: 400; }
+.wl-row-add { color: var(--accent); }
+.wl-row-default .wl-ic { color: var(--ok); }
+.wl-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 button.link { border: none; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
 
 /* advanced settings: each field shows its default and marks a changed value */

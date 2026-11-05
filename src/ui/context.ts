@@ -45,8 +45,11 @@ const viewState = {
   expandedRankingCards: [] as readonly number[],
   /** Advanced settings whose last typed value was rejected, with the accepted range. */
   settingErrors: {} as Readonly<Record<string, Readonly<{ value: string; message: string }>>>,
-  showExtras: true,
-  showUnlisted: false,
+  /** Null until the user toggles it: the not-listed targeted skills open when one needs attention. */
+  showUnlisted: null as boolean | null,
+  showDefaultExtras: false,
+  /** Prioritized-skill warnings the user dismissed, by what they named. */
+  dismissedWarnings: [] as readonly string[],
   showLineageParents: false,
   scannerOpen: false,
   scannerLoading: false,

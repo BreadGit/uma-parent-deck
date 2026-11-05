@@ -238,6 +238,31 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
   });
 
 
+  test('a targeted skill that loses its event warns until dismissed and opens the not-listed table; skill tips pin with a close button', async (t) => {
+    const saved = defaultState(data);
+    saved.inventory = Object.fromEntries(data.cards.map((card) => [card.id, 4]));
+    saved.run.traineeCardId = 100101;
+    saved.run.targets = [{ id: 200432, role: 'preferred', stars: 2, priority: 0 }, { id: 200712, role: 'preferred', stars: 2, priority: 1 }];
+    const page = await fresh(t, saved);
+    const warning = page.locator('[data-wl-warning="lost"]');
+    assert.match(await warning.innerText(), /Rosy Outlook gets only hints.*Consider changing their order if that isn't what you want/);
+    assert.equal(await page.locator('[data-wl-unlisted]').evaluate((el) => el.open), true, 'a warning opens the not-listed table');
+    assert.ok(await page.locator('[data-wl-held] .wl-chip', { hasText: 'Rosy Outlook' }).count(), 'the lost targeted skill is an alternative under the one holding its event');
+    await warning.locator('[data-action="wl-dismiss"]').click();
+    assert.equal(await page.locator('[data-wl-warning]').count(), 0, 'dismissing hides the warning');
+    const name = page.locator('.wishlist .wl-name').first();
+    await name.focus();
+    await page.waitForSelector('#tooltip.show.rich');
+    assert.ok(await page.locator('#tooltip .tt-head').count(), 'the tip shows the card or event that offers the skill');
+    await name.click();
+    assert.equal(await page.locator('#tooltip').evaluate((el) => el.classList.contains('pinned')), true, 'clicking the name pins its tip');
+    assert.equal(await name.evaluate((el) => el.classList.contains('pinned')), true, 'and marks the name');
+    await page.locator('#tooltip .tt-close').click();
+    assert.equal(await page.locator('#tooltip').isVisible(), false, 'the close button hides the pinned tip');
+    await assertFieldsMatchState(page, 'after dismissing the warning and pinning a skill tip');
+  });
+
+
   test('ranking pins persist and an unowned pin requests a borrowed card', async (t) => {
     const saved = defaultState(data);
     saved.inventory['30028'] = null;

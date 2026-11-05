@@ -1,9 +1,17 @@
-// The box lives outside the lit root, like the dialogs, so writing its text and position directly is allowed.
-import { html } from 'lit-html';
+// The box lives outside the lit root, like the dialogs, so writing its content and position directly is allowed.
+import { html, render, type TemplateResult } from 'lit-html';
 
 export const tip = (text: string) => html`<span class="tip" tabindex="0" data-tip="${text}" aria-label="${text}">i</span>`;
 
-const tipOf = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('[data-tip]');
+/** Rich tips: an element with `data-rich="kind:id"` shows what the provider registered for `kind` returns for `id`. */
+const richTips = new Map<string, (id: string) => TemplateResult | null>();
+export function registerRichTip(kind: string, provider: (id: string) => TemplateResult | null) { richTips.set(kind, provider); }
+function richContent(el: HTMLElement): TemplateResult | null {
+  const [kind = '', id = ''] = (el.dataset.rich ?? '').split(':');
+  return richTips.get(kind)?.(id) ?? null;
+}
+
+const tipOf = (ev: Event) => (ev.target as HTMLElement).closest<HTMLElement>('[data-tip], [data-rich]');
 /** A click on a control must reach its own handler, and closes the box, whose text would go stale once the label changes. */
 const interactive = (el: HTMLElement) => !!el.closest('button, a, select, input, summary, label');
 
@@ -11,14 +19,20 @@ export function installTooltips(root: HTMLElement) {
   const box = document.createElement('div');
   box.id = 'tooltip';
   box.setAttribute('role', 'tooltip');
+  const text = document.createElement('div');
+  const rich = document.createElement('div');
+  const close = document.createElement('button');
+  close.className = 'tt-close';
+  close.textContent = '✕';
+  close.setAttribute('aria-label', 'Close');
+  box.append(text, rich, close);
   document.body.append(box);
   let pinned: HTMLElement | null = null;
+  let shownFor: HTMLElement | null = null;
   /** After a click, hover tips wait for the pointer to move: a re-render can put another control under a still pointer,
    * and the browser then reports a hover the user never made. */
   let awaitingMove = false;
-  const show = (el: HTMLElement) => {
-    box.textContent = el.dataset.tip ?? '';
-    box.classList.add('show');
+  const place = (el: HTMLElement) => {
     // A fixed box shrinks to the room right of its last position, so it is measured from the corner.
     box.style.left = '0px'; box.style.top = '0px';
     const r = el.getBoundingClientRect();
@@ -28,26 +42,44 @@ export function installTooltips(root: HTMLElement) {
     if (top + h > window.innerHeight - 8) top = r.top - h - 6;
     box.style.left = `${left}px`; box.style.top = `${top}px`;
   };
+  const show = (el: HTMLElement) => {
+    const content = el.dataset.rich ? richContent(el) : null;
+    box.classList.toggle('rich', !!content);
+    render(content ?? html``, rich);
+    text.textContent = content ? '' : el.dataset.tip ?? '';
+    text.hidden = !!content; rich.hidden = !content;
+    box.classList.add('show');
+    shownFor = el;
+    place(el);
+  };
   const hide = (force = false) => {
     if (pinned && !force) return;
-    box.classList.remove('show');
+    box.classList.remove('show', 'pinned');
+    shownFor = null;
     if (force) { pinned?.classList.remove('pinned'); pinned = null; }
   };
+  /** A pinned box takes the pointer, so its text can be selected and its links followed, until it is closed. */
+  const pin = (el: HTMLElement) => { hide(true); pinned = el; el.classList.add('pinned'); show(el); box.classList.add('pinned'); place(el); };
   root.addEventListener('mousemove', () => { awaitingMove = false; });
   root.addEventListener('mouseover', (ev) => { if (pinned || awaitingMove) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('mouseout', (ev) => { if (tipOf(ev)) hide(); });
   root.addEventListener('focusin', (ev) => { if (pinned) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('focusout', (ev) => { if (tipOf(ev)) hide(); });
   document.addEventListener('click', (ev) => {
+    if ((ev.target as HTMLElement).closest('#tooltip')) { if ((ev.target as HTMLElement).closest('.tt-close')) hide(true); return; }
     const el = tipOf(ev);
     if (el && (el.classList.contains('tip') || !interactive(el))) {
       ev.preventDefault();
       ev.stopPropagation();
       if (pinned === el) { hide(true); return; }
-      hide(true); pinned = el; el.classList.add('pinned'); show(el);
+      pin(el);
       return;
     }
     hide(true);
     awaitingMove = true;
   }, true);
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && shownFor) hide(true); });
+  window.addEventListener('scroll', () => { if (pinned) place(pinned); }, { passive: true, capture: true });
+  // lit replaces the element a tip was opened from when it re-renders that part; its box then belongs to nothing.
+  new MutationObserver(() => { if (shownFor && !shownFor.isConnected) hide(true); }).observe(root, { childList: true, subtree: true });
 }
