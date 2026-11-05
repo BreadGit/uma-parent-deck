@@ -105,3 +105,13 @@ test('the unlisted scenario completion reward retains its exclusive gold and whi
   close(own.pGold, .8);
   close(own.pWhite, .2);
 });
+
+test('with every target listed, a conflict reports the gold form its winning option gives', () => {
+  const a = resolveTarget(200352, data)!, b = resolveTarget(201601, data)!;
+  const roll = { pFire: .6, outcomes: [[{ t: 'sk', d: a.id }]] };
+  const white = source(a.id, roll), gold = { ...source(a.gold!.id, roll), gold: true };
+  const other = { ...source(b.id, roll), event: { ...white.event, optionIndex: 1 } };
+  const { conflicts } = pruneConflicts(new Map([[a.id, [white, gold]], [b.id, [other]]]), null, [], settings, [a, b]);
+  assert.equal(conflicts[0]?.taken.skillId, a.gold!.id);
+  assert.deepEqual(conflicts[0]?.dropped.map((d) => d.target), [b.id]);
+});

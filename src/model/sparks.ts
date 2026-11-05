@@ -481,16 +481,20 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
     const pickBest = (steered: typeof offers) => steered[0]!.blocker ? steered[0]!.optionIndex
       : bestOption(steered.map((o) => o.source!), settings, targets.find((t) => t.id === steered[0]!.tid)).event.optionIndex;
     const first = Math.min(...tids);
+    const rankAt = (tid: number) => Math.min(Infinity, ...sourcesFor(tid).map((s) => rank(s.skillId)));
+    const ordered = [...tids].sort((a, b) => rankAt(a) - rankAt(b) || a - b);
     const { option: chosen, steeredBy } = priority === null
       ? { option: pickBest(offers.filter((o) => o.tid === first)), steeredBy: offers.filter((o) => o.tid === first) }
       : chooseOption(offers, rank, defaultOption(offers[0]!.source!.event), pickBest);
     taken.set(key, chosen);
-    const top = steeredBy.find((o) => o.optionIndex === chosen);
-    if (!top) continue;
-    const takenOption: ConflictOption = top.blocker ? { skillId: top.skillId, option: top.blocker.event.option, target: null } : { skillId: top.skillId, option: top.source!.event.option, target: top.tid! };
-    const dropped = [...tids].filter((tid) => !sourcesFor(tid).some((s) => s.event.optionIndex === chosen)).sort((a, b) => a - b)
+    const atChosen = steeredBy.filter((o) => o.optionIndex === chosen);
+    if (!atChosen.length) continue;
+    const blocker = atChosen[0]!.blocker;
+    const won = blocker ? null : bestSource(atChosen.map((o) => o.source!));
+    const takenOption: ConflictOption = blocker ? { skillId: blocker.skillId, option: blocker.event.option, target: null } : { skillId: won!.skillId, option: won!.event.option, target: atChosen[0]!.tid! };
+    const dropped = ordered.filter((tid) => !sourcesFor(tid).some((s) => s.event.optionIndex === chosen))
       .map((tid) => { const s = bestSource(sourcesFor(tid)); return { skillId: s.skillId, option: s.event.option, target: tid }; });
-    if (top.blocker || dropped.length) conflicts.push({ eventKey: key, label: top.blocker?.event.label || (top.source ?? sourcesFor(first)[0]!).event.label, taken: takenOption, dropped });
+    if (blocker || dropped.length) conflicts.push({ eventKey: key, label: blocker?.event.label || sourcesFor(ordered[0]!)[0]!.event.label, taken: takenOption, dropped });
   }
   const out = new Map<number, SkillSource[]>();
   for (const [tid, sources] of map) out.set(tid, sources.filter((s) => !isEventSource(s) || taken.get(s.event.key) === s.event.optionIndex));
