@@ -45,7 +45,7 @@ const viewState = {
   expandedRankingCards: [] as readonly number[],
   /** Advanced settings whose last typed value was rejected, with the accepted range. */
   settingErrors: {} as Readonly<Record<string, Readonly<{ value: string; message: string }>>>,
-  showExtras: false,
+  showExtras: true,
   showUnlisted: false,
   showLineageParents: false,
   scannerOpen: false,

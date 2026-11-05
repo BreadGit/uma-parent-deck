@@ -166,7 +166,6 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     await page.evaluate(() => { window.retainedDeck = document.querySelector('.deck'); window.retainedList = document.querySelector('.wishlist'); });
     const heading = page.locator('h2').filter({ hasText: 'Prioritized skills' });
     await heading.scrollIntoViewIfNeeded();
-    await page.locator('[data-wl-pool] summary').click();
     const position = () => heading.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
     assert.equal(await page.locator('[data-wl-locked]').count(), 1, 'the list is marked as updating');
     assert.ok(await page.locator('[data-action="wl-add"]').count(), 'the pool offers extras');
@@ -228,7 +227,6 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
       ...await page.locator('[data-wl-unlisted] .chip').evaluateAll((els) => els.map((el) => el.textContent))];
     assert.ok(shown.length >= 2, 'every target is listed or named with its reason');
     assert.deepEqual((await state(page)).run.addedExtras, saved.run.addedExtras, 'the saved ids are kept even where they name targets');
-    await page.locator('[data-wl-pool] summary').click();
     const add = page.locator('[data-wl-pool] [data-action="wl-add"]:not([disabled])').first();
     const key = await add.getAttribute('data-id');
     await add.click();

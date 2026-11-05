@@ -19,6 +19,8 @@ export function installTooltips(root: HTMLElement) {
   const show = (el: HTMLElement) => {
     box.textContent = el.dataset.tip ?? '';
     box.classList.add('show');
+    // A fixed box shrinks to the room right of its last position, so it is measured from the corner.
+    box.style.left = '0px'; box.style.top = '0px';
     const r = el.getBoundingClientRect();
     const w = box.offsetWidth, h = box.offsetHeight;
     const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8));

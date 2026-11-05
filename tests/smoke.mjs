@@ -547,7 +547,6 @@ await releaseSearch(page);
 await waitForPlan(page);
 await assertFieldsMatchState(page, 'after the native worker publishes the completed deck');
 // Extras are opt-in: the pool adds one to the end of the list, a swap puts a competitor in its place, and ✕ removes it.
-await page.locator('[data-wl-pool] summary').click();
 const addButton = page.locator('[data-wl-pool] [data-action="wl-add"]:not([disabled])').first();
 await addButton.waitFor({ timeout: 10_000 });
 const added = await addButton.getAttribute('data-id');

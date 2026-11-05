@@ -65,7 +65,7 @@ function row(list: PriorityList, w: WishlistEntry, i: number, locked: boolean) {
     <span class="wl-num">${i + 1}.</span>
     <span class="wl-body">${roleTag(w)}${skillWithTip(w.skillId, w.form ? html`${w.name} <span class="muted">(for ${w.form})</span>` : w.name, `Source: ${w.reason}`)}</span>
     ${extra ? html`<button class="small wl-x" data-action="wl-remove" data-id="${w.key}" aria-label="Remove ${w.name}" data-tip="Remove from the list" ?disabled=${locked} @click=${() => removeExtra(w.key)}>✕</button>`
-      : html`<button class="small wl-x" data-action="wl-goal-target" data-id="${w.targetId}" aria-label="Edit ${w.name} in ${TITLE.goal}" data-tip=${TARGET_REMOVE} @click=${() => showGoal(w.targetId!)}>✕</button>`}
+      : html`<button class="small wl-x wl-x-goal" data-action="wl-goal-target" data-id="${w.targetId}" aria-label="Edit ${w.name} in ${TITLE.goal}" data-tip=${TARGET_REMOVE} @click=${() => showGoal(w.targetId!)}>✕</button>`}
     ${alternatives.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">or instead:</span>${alternatives.map((a) => swapButton(list, a, w.key, locked, entryName(a)))}</div>` : nothing}</li>`;
 }
 
@@ -169,9 +169,8 @@ const POOL_TIP = `Skills this deck's events offer outside the targeted skills, b
 
 function pool(list: PriorityList, locked: boolean) {
   if (!list.extras.length) return nothing;
-  const addable = list.extras.filter((x) => x.status.kind === 'add').length;
   return html`<details class="wl-pool small" data-wl-pool ?open=${view.showExtras} @toggle=${(e: Event) => { view.showExtras = isOpen(e); }}>
-    <summary>Other skills from this deck${addable ? ` (${addable} to add)` : ''}</summary>
+    <summary>Extra skills (${list.extras.length})</summary>
     ${view.showExtras ? html`<p class="muted wl-legend">${POOL_TIP}<br>+ Add steers the run to that option · ✓ the run gets it anyway · Swap in replaces the listed skill on that event</p>
     ${[...poolEvents(list)].map(([owner, events]) => html`<div class="wl-owner"><div class="wl-owner-name">${owner}</div>
       ${events.map((ev) => html`<div class="wl-event" data-wl-event=${ev.key}>${ev.label ? html`<div class="muted wl-event-name">${ev.label}</div>` : nothing}
@@ -189,6 +188,6 @@ export function renderPriorities(c: RunPlan) {
     ${lostWarning(list)}
     <ol class="wishlist ${locked ? 'wl-locked' : ''}" data-wl-locked=${locked ? 'true' : nothing}>${repeat(list.listed, (w) => w.key, (w, i) => row(list, w, i, locked))}</ol>
     ${list.listed.length ? nothing : html`<p class="muted small" data-wl-empty>${list.unlisted.some((u) => u.reason === 'lost') ? 'Nothing to list.' : 'Nothing needs listing: the run gets every targeted skill without steering an event.'}</p>`}
-    ${unlistedTargets(list)}
-    ${pool(list, locked)}`);
+    ${pool(list, locked)}
+    ${unlistedTargets(list)}`);
 }

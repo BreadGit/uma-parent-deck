@@ -412,6 +412,9 @@ td.target-chances { min-width: 260px; }
 .wl-kind { display: inline-block; min-width: 4.6em; margin-right: 6px; text-align: center; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
 .wl-x:disabled { opacity: .3; cursor: default; }
+/* a targeted skill's ✕ only leads to Parent goal, so it looks inactive */
+.wl-x.wl-x-goal { opacity: .45; }
+.wl-x.wl-x-goal:hover, .wl-x.wl-x-goal:focus-visible { opacity: .8; }
 .wl-section { margin-top: 8px; }
 .wl-section summary, .wl-pool summary { cursor: pointer; color: var(--muted); }
 table.wl-unlisted { width: auto; margin-top: 4px; }
