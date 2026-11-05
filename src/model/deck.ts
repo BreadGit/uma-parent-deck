@@ -5,7 +5,7 @@ import { uniqueExtras } from './support-effects.ts';
 import { BORROWED_SLOTS, DECK_SIZE } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import type { PreparedRunSources } from './run-sources.ts';
-import { hasWhiteSpark, isDebuff, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type ScenarioOption, type SkillSource, type Target } from './sparks.ts';
+import { bestOption, hasWhiteSpark, isDebuff, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type ScenarioOption, type SkillSource, type Target } from './sparks.ts';
 
 /** Everything a run evaluation needs besides the cards. */
 export interface Ctx {
@@ -308,7 +308,18 @@ export type EntryRole = 'required' | 'preferred' | 'extra';
  * scenario event that offers an extra.
  */
 export interface WishlistEntry { key: number; skillId: number; name: string; form: string | null; gated: boolean; isTarget: boolean; role: EntryRole; targetId: number | null; reason: string; weight: number; events: EventRef[]; owner: string }
-const uniqueEvents = (events: EventRef[]) => [...new Map(events.map((e) => [e.key, e])).values()];
+/** The first offer of each event, as the estimate steers an extra: a blocker takes the first of its options it meets. */
+function uniqueEvents(events: EventRef[]): EventRef[] {
+  const first = new Map<string, EventRef>();
+  for (const e of events) if (!first.has(e.key)) first.set(e.key, e);
+  return [...first.values()];
+}
+/** For a targeted skill, the option of each event that the estimate would steer to, so the panel's claims match it. */
+export function steeredEvents(srcs: EventSource[], target: Target, settings: Settings): EventRef[] {
+  const byEvent = new Map<string, EventSource[]>();
+  for (const s of srcs) byEvent.set(s.event.key, [...(byEvent.get(s.event.key) ?? []), s]);
+  return [...byEvent.values()].map((ss) => bestOption(ss, settings, target).event);
+}
 function sourceReasons(sources: SkillSource[], ctx: Ctx): string {
   return [...new Set(sources.map((s) => {
     const owner = s.cardName ?? (s.kind === 'scenario' ? s.event.label : ctx.trainee?.name);
@@ -339,7 +350,7 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
         const sk = ctx.data.skillById.get(skillId);
         const gold = !!srcs[0]?.gold;
         entries.push({ key: skillId, skillId, name: sk?.name ?? t.name, form: sk && sk.id !== (t.white?.id ?? t.id) ? t.name : null, gated: true, isTarget: true, role: roleOf(t), targetId: t.id,
-          weight: 2 + spark + (gold ? 0.5 : 0), reason: sourceReasons(srcs, ctx), events: uniqueEvents(srcs.map((s) => s.event)), owner: '' });
+          weight: 2 + spark + (gold ? 0.5 : 0), reason: sourceReasons(srcs, ctx), events: steeredEvents(srcs, t, ctx.settings), owner: '' });
         seen.add(skillId);
       }
     } else {

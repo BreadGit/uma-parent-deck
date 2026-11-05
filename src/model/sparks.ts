@@ -429,7 +429,7 @@ export interface Blocker { skillId: number; event: EventRef }
 
 const bestSource = (ss: EventSource[]) => ss.slice().sort((a, b) => Number(b.gold) - Number(a.gold) || b.pObtain - a.pObtain)[0]!;
 /** Values options by combined spark chance, so gold with a white fallback beats gold alone. */
-function bestOption(ss: EventSource[], settings: Settings, target?: Target): EventSource {
+export function bestOption(ss: EventSource[], settings: Settings, target?: Target): EventSource {
   const byOption = new Map<number, EventSource[]>();
   for (const s of ss) byOption.set(s.event.optionIndex, [...(byOption.get(s.event.optionIndex) ?? []), s]);
   let best: { value: number; source: EventSource } | null = null;

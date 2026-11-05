@@ -9,11 +9,11 @@ import { alternativesTo, arrangePriorities, contestedRequired, deriveOrder, deri
 import { targetSpCost } from '../src/model/skill-purchases.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankMoments, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
-import { combineSources, resolveTarget, scenarioOptions } from '../src/model/sparks.ts';
+import { combineSources, pruneConflicts, resolveTarget, scenarioOptions, type EventSource } from '../src/model/sparks.ts';
 import { displayedStat, statMasses } from '../src/model/stat-outcomes.ts';
 import { BORROWED_LB, SCENARIO_COMPLETION_SKILLS, SCENARIO_STAT_CAPS } from '../src/model/rules.ts';
 import { raceScale } from '../src/model/stats.ts';
-import { buildDeck, type EntryRole, type WishlistEntry } from '../src/model/deck.ts';
+import { buildDeck, steeredEvents, type EntryRole, type WishlistEntry } from '../src/model/deck.ts';
 import { goalDeckConstraints } from '../src/model/goal-deck.ts';
 import type { Target } from '../src/model/sparks.ts';
 
@@ -233,6 +233,18 @@ test('prioritized skills: added extras follow the targets while they steer a fre
   assert.equal(arrangePriorities([a, b, c], [23], 2).listed.length, 0, 'the chain needs room for all three');
   const plan = planRun(empty, settings, inventory, data, { budget: 8 });
   assert.ok(plan.priorities.listed.every((w) => w.isTarget), 'nothing is added by default');
+});
+
+test('a skill on several options of one event is entered at the option the estimate steers to', () => {
+  const a = resolveTarget(byName('Focus').id, data)!, b = byName('Lane Legerdemain').id;
+  const at = (skillId: number, optionIndex: number): EventSource => ({ kind: 'random', skillId, gold: false, circle: false, pObtain: 0.5, isChoice: true, detail: '',
+    event: { key: 'e', label: 'e', option: `option ${optionIndex + 1}`, optionIndex } });
+  const sources = [at(a.id, 1), at(a.id, 0)];
+  const events = steeredEvents(sources, a, settings);
+  const kept = pruneConflicts(new Map([[a.id, sources]]), [a.id], [], settings, [a]).map.get(a.id)!;
+  assert.deepEqual(events.map((e) => e.optionIndex), (kept as EventSource[]).map((s) => s.event.optionIndex), 'the panel and the estimate pick the same option of a tie');
+  const list = arrangePriorities([{ ...targetEntry(a, 'preferred', 1), events }, { ...entry(b, 1), events: [at(b, 1).event] }], []);
+  assert.notEqual(list.extras[0]!.status.kind, 'anyway', 'a skill on the other option does not come with it');
 });
 
 test('the scenario skill event defaults to its unaffiliated option, which an unsteered run takes', () => {
