@@ -5,7 +5,7 @@ import { uniqueExtras } from './support-effects.ts';
 import { BORROWED_SLOTS, DECK_SIZE } from './rules.ts';
 import type { RaceWins } from './races.ts';
 import type { PreparedRunSources } from './run-sources.ts';
-import { hasWhiteSpark, isDebuff, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type ScenarioOption, type SkillSource, type Target } from './sparks.ts';
+import { hasWhiteSpark, isDebuff, cardSourcesForTarget, combineSources, purchasedOwnership, eventSources, type EventRef, type EventSource, isChoiceSource, lineageSources, lineageCount, pruneConflicts, resolveTarget, scenarioCompletionSources, scenarioOptions, scenarioSources, sparkChance, type Blocker, traineeEventSources, traineeSources, type Conflict, type Lineage, type Ownership, type ScenarioOption, type SkillSource, type Target } from './sparks.ts';
 
 /** Everything a run evaluation needs besides the cards. */
 export interface Ctx {
@@ -350,7 +350,8 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     }
   }
   // The scenario's own options happen every run whoever is in the deck: list the ones that are not targets too.
-  for (const o of scenarioOptions(ctx.data, ctx.settings, state.chars)) {
+  const options = scenarioOptions(ctx.data, ctx.settings, state.chars);
+  for (const o of options) {
     if (seen.has(o.skillId) || targetFamilies.has(o.skillId)) continue;
     const sk = ctx.data.skillById.get(o.skillId);
     if (!sk || sk.unreleasedEn || isDebuff(sk)) continue;
@@ -368,6 +369,15 @@ export function wishlistCandidates(deck: { card: Card; lb: number }[], targets: 
     const pObtain = Math.max(...offers.map((o) => o.src.pObtain));
     entries.push({ key: skillId, skillId, name: sk.name, form: null, gated: true, isTarget: false, role: 'extra', targetId: null, weight: 1 + 0.5 * pObtain * (isGold(sk) ? 1.2 : 1),
       reason: offers.map((o) => `${o.owner}: ${o.src.detail}`).join('; '), events: uniqueEvents(offers.map((o) => o.src.event)), owner: offers[0]!.owner });
+  }
+  // A listed extra ranks every form of its skill, so it steers every event that offers one.
+  const choiceEvents = new Map<number, EventRef[]>();
+  const offer = (skillId: number, event: EventRef) => choiceEvents.set(skillId, [...(choiceEvents.get(skillId) ?? []), event]);
+  for (const o of options) offer(o.skillId, o.event);
+  for (const { sources } of offered) for (const src of sources) if (src.isChoice) offer(src.skillId, src.event);
+  for (const e of entries) if (!e.isTarget) {
+    const family = (ctx.sources ? ctx.sources.target(e.skillId) : resolveTarget(e.skillId, ctx.data))?.familyIds ?? new Set([e.skillId]);
+    e.events = uniqueEvents([...e.events, ...[...family].flatMap((id) => choiceEvents.get(id) ?? [])]);
   }
   return entries.sort((a, b) => b.weight - a.weight);
 }
