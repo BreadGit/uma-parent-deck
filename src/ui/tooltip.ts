@@ -25,7 +25,7 @@ export function installTooltips(root: HTMLElement) {
   close.className = 'tt-close';
   close.textContent = '✕';
   close.setAttribute('aria-label', 'Close');
-  box.append(text, rich, close);
+  box.append(close, text, rich);
   document.body.append(box);
   let pinned: HTMLElement | null = null;
   let shownFor: HTMLElement | null = null;
@@ -40,6 +40,8 @@ export function installTooltips(root: HTMLElement) {
     const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8));
     let top = r.bottom + 6;
     if (top + h > window.innerHeight - 8) top = r.top - h - 6;
+    // A box taller than the room on either side stays on screen; its height is capped, so the rest scrolls.
+    top = Math.max(8, Math.min(top, window.innerHeight - h - 8));
     box.style.left = `${left}px`; box.style.top = `${top}px`;
   };
   const show = (el: HTMLElement) => {

@@ -271,6 +271,12 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     assert.equal(await page.locator('#tooltip').isVisible(), false, 'the close button closes it from the keyboard too');
     assert.equal(await name.evaluate((el) => el === document.activeElement), true);
     assert.equal(await name.evaluate((el) => getComputedStyle(el).cursor), 'pointer');
+    await page.setViewportSize({ width: 1280, height: 240 });
+    await name.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await name.click();
+    const box = await page.locator('#tooltip').evaluate((el) => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: innerHeight }; });
+    assert.ok(box.top >= 0 && box.bottom <= box.height, `a tall tip stays inside a short viewport: ${JSON.stringify(box)}`);
+    assert.equal(await page.locator('#tooltip .tt-close').isVisible(), true, 'and its close button stays reachable');
     await assertFieldsMatchState(page, 'after dismissing the warning and pinning a skill tip');
   });
 

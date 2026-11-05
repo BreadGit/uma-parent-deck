@@ -234,10 +234,11 @@ tr.ignored td:not(:first-child):not(:nth-child(2)) { opacity: .45; }
 #tooltip.show { display: block; }
 /* a clicked tip stays open: the box takes the pointer so its text can be selected and its links followed, and gets a close button */
 #tooltip.pinned { pointer-events: auto; user-select: text; padding-right: 30px; border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
-#tooltip .tt-close { display: none; position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; padding: 0; border: none; border-radius: 10px; background: none; color: var(--muted); line-height: 20px; }
+/* the close button comes first and sticks to the top, so a tall tip that scrolls keeps it in reach */
+#tooltip .tt-close { display: none; position: sticky; top: 0; float: right; margin: -3px -25px 0 0; width: 20px; height: 20px; padding: 0; border: none; border-radius: 10px; background: var(--panel); color: var(--muted); line-height: 20px; }
 #tooltip .tt-close:hover { background: var(--soft); color: var(--text); }
 #tooltip.pinned .tt-close { display: block; }
-#tooltip.rich { white-space: normal; }
+#tooltip.rich { white-space: normal; max-height: calc(100vh - 16px); overflow-y: auto; }
 #tooltip .tt-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 #tooltip .tt-head b, #tooltip .tt-k { display: block; }
 #tooltip .tt-k { color: var(--muted); }
