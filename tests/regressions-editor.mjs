@@ -328,6 +328,12 @@ suite('editor browser regressions', { concurrency: Number(process.env.BROWSER_TE
       await icon.tap();
       assert.equal(await page.locator('#tooltip').isVisible(), false);
     }
+    const summaryIcon = advanced.locator('summary .tip');
+    await summaryIcon.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await summaryIcon.evaluate((el) => el.classList.contains('pinned')), true, 'Enter pins a help icon inside a summary');
+    assert.equal(await advanced.evaluate((el) => el.open), false, 'without toggling the disclosure');
+    await page.keyboard.press('Escape');
     await page.locator('[data-action="reset-all"]').tap();
     assert.equal(await page.locator('dialog[open]').count(), 1, 'ordinary buttons retain their action');
     await page.locator('[data-dialog-cancel]').tap();

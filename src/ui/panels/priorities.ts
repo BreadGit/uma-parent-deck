@@ -232,7 +232,7 @@ export function renderPriorities(c: RunPlan) {
   const list = c.priorities;
   const lost = list.unlisted.some((u) => u.reason === 'lost');
   const subtitle = [`${list.listed.length} of ${PRIORITIZED_SKILLS_MAX}`, ...(locked ? ['updating with the deck search'] : [])].join(', ');
-  return panel({ title: 'Prioritized skills', kind: 'result', subtitle, tip: `Enter these in independent training's prioritized skills, in this order. ${OPTION_1} So only skills that move the run off that option are listed. Targeted skills come from ${TITLE.goal}, in its order; change them there. Below the list, add other skills from this deck; the deck search does not consider them.` }, html`
+  return panel({ title: 'Prioritized skills', kind: 'result', subtitle, tip: `Enter these in independent training's prioritized skills, in this order. ${OPTION_1} So the list holds the skills that move the run off that option, and a targeted skill on it only when a lower entry would otherwise take its event. Targeted skills come from ${TITLE.goal}, in its order; change them there. Below the list, add other skills from this deck; the deck search does not consider them.` }, html`
     ${warnings(list)}
     <ol class="wishlist ${locked ? 'wl-locked' : ''}" data-wl-locked=${locked ? 'true' : nothing}>${repeat(list.listed, (w) => w.key, (w, i) => row(list, w, i, locked))}</ol>
     ${list.listed.length ? nothing : html`<p class="muted small" data-wl-empty>${lost ? 'Nothing to list.' : 'Nothing needs listing: the run gets every targeted skill without steering an event.'}</p>`}

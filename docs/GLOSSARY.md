@@ -30,10 +30,12 @@ For current behavior, inspect the [model](../src/model/) and [UI](../src/ui/).
   option per event can be taken.
 - **Prioritized skills**: the ordered list to enter in independent training. The run takes each
   event's default option (the top one; the scenario skill event's unaffiliated option) unless a listed
-  skill is on another, so the list holds only skills that move it off a default option: targets in
-  parent-goal order, then the extras the user added. **Extras** are offered skills outside the target families; the deck search does not consider them. A target is not
-  listed when it needs no event choice, sits on a default option, comes with an option a higher target
-  takes, or loses every event to a higher target. The tool assumes list order resolves event-choice
+  skill is on another, so the list holds the skills that move it off a default option, and a target
+  on one only when a lower entry would otherwise take its event: targets in parent-goal order, then
+  the extras the user added. **Extras** are offered skills outside the target families; the deck
+  search does not consider them. A target is otherwise not listed when it needs no event choice, sits
+  on a default option, comes with an option a higher target takes, or loses every event to a higher
+  target. The tool assumes list order resolves event-choice
   conflicts; that is not a confirmed game rule.
 - **Choice conflict**: targets or extras competing for one event's single option.
 - **Spark chance**: the estimated chance a target becomes a white spark at run end.

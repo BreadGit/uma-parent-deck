@@ -61,7 +61,6 @@ const savedStats = (raw: unknown): StatValues => perStat((_, i) => {
 
 function migrateRun(raw: Json, data: Data, preserveIds = false): RunInput {
   const run: RunInput = { ...structuredClone(DEFAULT_RUN), pinnedIds: defaultPins(data) };
-  // the extras' arrangement (wishlistOrder, through v25) became the extras the user added
   if ('addedExtras' in raw || 'wishlistOrder' in raw) run.addedExtras = gameIds(raw.addedExtras ?? raw.wishlistOrder);
   if (isGameId(raw.traineeCardId)) run.traineeCardId = raw.traineeCardId;
   if (typeof raw.traineeStars === 'number') run.traineeStars = raw.traineeStars;

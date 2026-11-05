@@ -33,7 +33,7 @@ export function installTooltips(root: HTMLElement) {
    * and the browser then reports a hover the user never made. */
   let awaitingMove = false;
   const place = (el: HTMLElement) => {
-    // A fixed box shrinks to the room right of its last position, so it is measured from the corner.
+    // A fixed box's width depends on its position, so it is measured at the corner.
     box.style.left = '0px'; box.style.top = '0px';
     const r = el.getBoundingClientRect();
     const w = box.offsetWidth, h = box.offsetHeight;
@@ -87,7 +87,7 @@ export function installTooltips(root: HTMLElement) {
   root.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
     const el = tipOf(ev);
-    if (!el || el !== ev.target || interactive(el)) return;
+    if (!el || el !== ev.target || (!el.classList.contains('tip') && interactive(el))) return;
     ev.preventDefault();
     if (pinned === el) { hide(true); return; }
     pin(el);
