@@ -263,23 +263,33 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
   };
   let listedTargets = close(new Set(targets.filter((t) => claims.get(t)!.some((e) => e.optionIndex !== defaultOption(e)))), []);
   const extras: WishlistEntry[] = [];
+  /** What the run takes now and with `x` listed after `extrasNow`, and whether `x` gains an event and fits. */
+  const assess = (x: WishlistEntry, extrasNow: WishlistEntry[]) => {
+    const now = run([...inGoalOrder(listedTargets), ...extrasNow]);
+    const kept = close(listedTargets, [...extrasNow, x]);
+    // Only the targeted skills that fit steer anything; x is checked as if there were room for it, and the count decides.
+    const withX = run([...inGoalOrder(kept).slice(0, max), ...extrasNow, x], Infinity);
+    const gains = gets(x, withX).some((e) => now.get(e.key)!.option !== e.optionIndex);
+    const lists = inGoalOrder(kept).filter((t) => !listedTargets.has(t)).map((t) => t.key);
+    return { now, withX, gains, lists, fits: kept.size + extrasNow.length + 1 <= max };
+  };
   /** What listing `x` after the current list would do. */
   const statusOf = (x: WishlistEntry): ExtraStatus => {
-    const now = run([...inGoalOrder(listedTargets), ...extras]);
-    const kept = close(listedTargets, [...extras, x]);
-    // Only the targeted skills that fit steer anything; x is checked as if there were room for it, and the count decides.
-    const withX = run([...inGoalOrder(kept).slice(0, max), ...extras, x], Infinity);
-    if (gets(x, withX).some((e) => now.get(e.key)!.option !== e.optionIndex)) {
-      const lists = inGoalOrder(kept).filter((t) => !listedTargets.has(t));
-      return { kind: kept.size + extras.length + 1 <= max ? 'add' : 'full', lists: lists.map((t) => t.key) };
-    }
-    const held = gets(x, now)[0];
-    if (held) return { kind: 'anyway', with: holderAt(now, held.key)?.key ?? null };
+    const a = assess(x, extras);
+    if (a.gains) return { kind: a.fits ? 'add' : 'full', lists: a.lists };
+    const held = gets(x, a.now)[0];
+    if (held) return { kind: 'anyway', with: holderAt(a.now, held.key)?.key ?? null };
     // A targeted skill claiming the event on another option keeps it even if the listed extra holding it is swapped out.
     const e = x.events[0]!, claim = claimer.get(e.key);
     if (claim && optionAt(claim, e.key) !== e.optionIndex) return { kind: 'blocked', by: claim.key };
-    const by = holderAt(withX, e.key)!;
-    return by.isTarget ? { kind: 'blocked', by: by.key } : { kind: 'swap', with: by.key };
+    const by = holderAt(a.withX, e.key)!;
+    if (by.isTarget) return { kind: 'blocked', by: by.key };
+    // A listed extra holds it: swapping it out, with the added extras sharing its events (see swapAdded), must free the event.
+    const shared = new Set(by.events.map((o) => o.key));
+    const b = assess(x, extras.filter((w) => w !== by && !w.events.some((o) => shared.has(o.key))));
+    if (b.gains) return b.fits ? { kind: 'swap', with: by.key } : { kind: 'full', lists: b.lists };
+    const still = holderAt(b.withX, e.key);
+    return still?.isTarget ? { kind: 'blocked', by: still.key } : { kind: 'swap', with: by.key };
   };
   for (const key of added) {
     const x = entries.get(key);
@@ -311,6 +321,23 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
   for (const key of events.keys()) { const h = holderAt(final, key); if (h) holders.set(key, h.key); }
   return { entries, listed, overflow, unlisted: [...unlisted, ...firsts], extras: pool, holders };
 }
+
+/**
+ * The added extras after swapping `alternative` in for the listed extra `listed`: it takes `listed`'s place, and the other
+ * added extras on the events they share leave too, since they would otherwise take the event back from it.
+ */
+export function swapAdded(list: PriorityList, added: readonly number[], alternative: number, listed: number): number[] {
+  const shared = new Set(list.entries.get(listed)!.events.map((e) => e.key));
+  const competes = (key: number) => key !== listed && key !== alternative && !!list.entries.get(key)?.events.some((e) => shared.has(e.key));
+  const rest = added.filter((k) => k !== alternative && !competes(k));
+  const i = rest.indexOf(listed);
+  return i < 0 ? [...rest, alternative] : [...rest.slice(0, i), alternative, ...rest.slice(i + 1)];
+}
+/** Added extras a swap of `listed` would also remove. */
+export const swappedOut = (list: PriorityList, added: readonly number[], alternative: number, listed: number) => {
+  const after = new Set(swapAdded(list, added, alternative, listed));
+  return added.filter((k) => k !== listed && !after.has(k));
+};
 
 /** Unlisted extras on another option of a listed extra's events, which a swap would list instead. */
 export const alternativesTo = (list: PriorityList, key: number) =>

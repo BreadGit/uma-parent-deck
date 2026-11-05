@@ -3,7 +3,7 @@
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { defaultOption } from '../../model/sparks.ts';
-import { alternativesTo, type ExtraStatus, type PriorityList, type RunPlan, type UnlistedReason } from '../../model/run.ts';
+import { alternativesTo, swapAdded, swappedOut, type ExtraStatus, type PriorityList, type RunPlan, type UnlistedReason } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { isGold, type Card } from '../../types.ts';
@@ -44,12 +44,7 @@ function showGoal(targetId?: number | null) {
 
 const addExtra = (key: number) => update((s) => { s.run.addedExtras = [...s.run.addedExtras.filter((k) => k !== key), key]; });
 const removeExtra = (key: number) => update((s) => { s.run.addedExtras = s.run.addedExtras.filter((k) => k !== key); });
-/** `alternative` takes `listed`'s place, so it steers the event they share instead. */
-const swapExtra = (alternative: number, listed: number) => update((s) => {
-  const rest = s.run.addedExtras.filter((k) => k !== alternative);
-  const i = rest.indexOf(listed);
-  s.run.addedExtras = i < 0 ? [...rest, alternative] : [...rest.slice(0, i), alternative, ...rest.slice(i + 1)];
-});
+const swapExtra = (alternative: number, listed: number) => update((s) => { s.run.addedExtras = swapAdded(plan().priorities, s.run.addedExtras, alternative, listed); });
 const dismiss = (key: string) => { view.dismissedWarnings = [...view.dismissedWarnings, key]; };
 
 /* The skill tooltip: each card, trainee or scenario event that offers the skill, its event and option, then the skill. */
@@ -106,9 +101,11 @@ function addTip(list: PriorityList, w: WishlistEntry, lists: readonly number[]) 
 }
 function swapTip(list: PriorityList, alternative: WishlistEntry, listed: number) {
   const shared = list.entries.get(listed)!.events.map((e) => e.key);
-  return alternative.events.some((e) => shared.includes(e.key) && e.optionIndex === defaultOption(e))
+  const also = swappedOut(list, store.run.addedExtras, alternative.key, listed).map((k) => nameOf(list, k));
+  const removes = also.length ? ` Also removes ${also.join(', ')}, added on the same event, which would take it back.` : '';
+  return (alternative.events.some((e) => shared.includes(e.key) && e.optionIndex === defaultOption(e))
     ? `Removes ${nameOf(list, listed)}, so the run takes ${defaultLabel(alternative)} of the event they share and gets ${entryName(alternative)} there.`
-    : `Lists ${entryName(alternative)} instead of ${nameOf(list, listed)}: they share an event, and the run takes only one of its options.`;
+    : `Lists ${entryName(alternative)} instead of ${nameOf(list, listed)}: they share an event, and the run takes only one of its options.`) + removes;
 }
 
 /** Options a targeted skill keeps the run from taking, and targeted skills that lose their event to it; each + opens Parent goal. */

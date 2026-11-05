@@ -3,7 +3,7 @@
 // the listed skills as the priority, is the ground truth for which options the run takes.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { arrangePriorities, derivePriority, type PriorityList } from '../src/model/run.ts';
+import { arrangePriorities, derivePriority, swapAdded, type PriorityList } from '../src/model/run.ts';
 import { pruneConflicts, type EventSource } from '../src/model/sparks.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import type { WishlistEntry } from '../src/model/deck.ts';
@@ -58,11 +58,9 @@ test('across random event setups, what the panel says each skill gets matches wh
     for (const x of list.extras) {
       if (x.status.kind === 'anyway') assert.ok(gets(x.entry.key), `extra ${x.entry.key} (anyway) gets an event without a listing; ${where()}`);
       if (x.status.kind === 'blocked' || x.status.kind === 'swap') assert.ok(!gets(x.entry.key), `extra ${x.entry.key} (${x.status.kind}) gets none of its events; ${where()}`);
-      // Another added extra on the swapped event can take it once the listed one leaves; the panel does not model that.
-      const contested = (w: WishlistEntry) => c.added.some((k) => k !== w.key && c.ordered.find((o) => o.key === k)!.events.some((e) => w.events.some((f) => f.key === e.key)));
-      if (x.status.kind === 'swap' && !contested(x.entry)) {
+      if (x.status.kind === 'swap') {
         const listedWith = x.status.with;
-        const swapped = arrangePriorities(c.ordered, c.added.map((k) => k === listedWith ? x.entry.key : k), c.max);
+        const swapped = arrangePriorities(c.ordered, swapAdded(list, c.added, x.entry.key, listedWith), c.max);
         assert.ok(credited(c.ordered, swapped).get(x.entry.key)!.size > 0, `swapping ${x.entry.key} in for ${listedWith} gets it an event, listed or by default; ${where()}`);
       }
       if (x.status.kind === 'full') assert.ok(list.listed.length + 1 + x.status.lists.length > c.max, `${x.entry.key} (full) and the targeted skills it brings do not fit; ${where()}`);
