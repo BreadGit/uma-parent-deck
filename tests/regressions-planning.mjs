@@ -259,6 +259,13 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     assert.equal(await name.evaluate((el) => el.classList.contains('pinned')), true, 'and marks the name');
     await page.locator('#tooltip .tt-close').click();
     assert.equal(await page.locator('#tooltip').isVisible(), false, 'the close button hides the pinned tip');
+    await name.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('#tooltip').evaluate((el) => el.classList.contains('pinned') && el.contains(document.activeElement)), true, 'Enter pins the tip and moves focus into it');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#tooltip.pinned').count(), 0);
+    assert.equal(await name.evaluate((el) => el === document.activeElement), true, 'Escape returns focus to the name');
+    assert.equal(await name.evaluate((el) => getComputedStyle(el).cursor), 'pointer');
     await assertFieldsMatchState(page, 'after dismissing the warning and pinning a skill tip');
   });
 

@@ -78,7 +78,23 @@ export function installTooltips(root: HTMLElement) {
     hide(true);
     awaitingMove = true;
   }, true);
-  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && shownFor) hide(true); });
+  // Enter or Space pins a focused tip and moves focus into it, so its links and close button can be reached; Escape returns.
+  root.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    const el = tipOf(ev);
+    if (!el || el !== ev.target || interactive(el)) return;
+    ev.preventDefault();
+    if (pinned === el) { hide(true); return; }
+    pin(el);
+    (box.querySelector<HTMLElement>('a[href]') ?? close).focus();
+  });
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Escape' || !shownFor) return;
+    const back = box.contains(document.activeElement) ? pinned : null;
+    hide(true);
+    back?.focus();
+  });
+  close.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); const back = pinned; hide(true); back?.focus(); } });
   window.addEventListener('scroll', () => { if (pinned) place(pinned); }, { passive: true, capture: true });
   // lit replaces the element a tip was opened from when it re-renders that part; its box then belongs to nothing.
   new MutationObserver(() => { if (shownFor && !shownFor.isConnected) hide(true); }).observe(root, { childList: true, subtree: true });

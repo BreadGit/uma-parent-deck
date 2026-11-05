@@ -421,7 +421,7 @@ td.target-chances { min-width: 260px; }
 .wl-body { flex: 1; min-width: 0; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
 .wl-kind { display: inline-block; min-width: 4.6em; text-align: center; }
 .wl-icon { width: 20px; height: 20px; flex: none; }
-.wl-name, .wl-chip-name { border-bottom: 1px dotted var(--muted); }
+.wl-name, .wl-chip-name { border-bottom: 1px dotted var(--muted); cursor: pointer; }
 .wl-ic { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
 .wl-x:disabled { opacity: .3; cursor: default; }

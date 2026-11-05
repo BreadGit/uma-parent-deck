@@ -212,15 +212,22 @@ test('prioritized skills: added extras follow the targets while they steer a fre
   assert.deepEqual(list.listed.map((w) => w.key), [1, 15], 'an added extra on a held event, a target id and an unknown id are not listed');
   assert.deepEqual(list.extras.map((x) => [x.entry.key, x.status]), [
     [11, { kind: 'blocked', by: 1 }], [12, { kind: 'blocked', by: 2 }], [13, { kind: 'anyway', with: 1 }], [14, { kind: 'swap', with: 15 }],
-    [16, { kind: 'swap', with: 15 }], [17, { kind: 'add' }]]);
+    [16, { kind: 'swap', with: 15 }], [17, { kind: 'add', lists: [] }]]);
   assert.deepEqual(alternativesTo(list, 15).map((w) => w.key), [14, 16], 'the first option it moved the run off is an alternative too');
   assert.deepEqual(arrangePriorities(ordered, []).extras.find((x) => x.entry.key === 14)?.status, { kind: 'anyway', with: null }, 'unlisted, the run takes the first option');
-  assert.deepEqual(arrangePriorities(ordered, [15], 2).extras.find((x) => x.entry.key === 17)?.status, { kind: 'full' });
+  assert.deepEqual(arrangePriorities(ordered, [15], 2).extras.find((x) => x.entry.key === 17)?.status, { kind: 'full', lists: [] });
   const twoEvents = optionEntry(18, [['g', 1], ['b', 2]]);
   const defending = arrangePriorities([...ordered, twoEvents], [18]);
   assert.deepEqual(defending.listed.map((w) => w.key), [1, 2, 18], 'an extra that would move the run off a targeted skill\'s option 1 lists that targeted skill above it');
   assert.ok(!defending.unlisted.some((u) => u.entry.key === 2));
   assert.equal(arrangePriorities([...ordered, twoEvents], [18], 2).extras.find((x) => x.entry.key === 18)?.status.kind, 'full', 'the targeted skill it lists needs room too');
+  // A on X's default; B on X's other option and Y's default; C on Y's other option and a free event.
+  const a = optionEntry(21, [['x', 0]], true), b = optionEntry(22, [['x', 1], ['y', 0]], true), c = optionEntry(23, [['y', 1], ['z', 1]]);
+  assert.deepEqual(arrangePriorities([a, b, c], []).extras[0]!.status, { kind: 'add', lists: [21, 22] }, 'adding C lists B, which in turn needs A above it');
+  const chained = arrangePriorities([a, b, c], [23]);
+  assert.deepEqual(chained.listed.map((w) => w.key), [21, 22, 23]);
+  assert.ok(!chained.unlisted.some((u) => u.entry.key === 21), 'A keeps its event and is listed, not left as option 1');
+  assert.equal(arrangePriorities([a, b, c], [23], 2).listed.length, 0, 'the chain needs room for all three');
   const plan = planRun(empty, settings, inventory, data, { budget: 8 });
   assert.ok(plan.priorities.listed.every((w) => w.isTarget), 'nothing is added by default');
 });

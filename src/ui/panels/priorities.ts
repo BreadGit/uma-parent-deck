@@ -3,7 +3,7 @@
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { defaultOption } from '../../model/sparks.ts';
-import { alternativesTo, defendedBy, type ExtraStatus, type PriorityList, type RunPlan, type UnlistedReason } from '../../model/run.ts';
+import { alternativesTo, type ExtraStatus, type PriorityList, type RunPlan, type UnlistedReason } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { isGold, type Card } from '../../types.ts';
@@ -88,7 +88,7 @@ function skillTip(key: string) {
 registerRichTip('wl', skillTip);
 
 const icon = (w: WishlistEntry) => { const src = skillIcon(data.skillById.get(w.skillId)); return src ? html`<img class="wl-icon" src=${src} alt="" />` : nothing; };
-const nameTip = (w: WishlistEntry, cls = 'wl-name') => html`<span class=${cls} data-rich="wl:${w.key}" tabindex="0">${entryName(w)}</span>`;
+const nameTip = (w: WishlistEntry, cls = 'wl-name') => html`<span class=${cls} data-rich="wl:${w.key}" tabindex="0" role="button" aria-describedby="tooltip">${entryName(w)}</span>`;
 function roleTag(w: WishlistEntry) {
   const role = ROLE_TAGS[w.role];
   return html`<span class="tag ${w.role === 'required' ? 'gold' : w.role === 'preferred' ? 'ok' : ''} wl-kind" data-tip=${role.tip}>${role.label}</span>`;
@@ -96,12 +96,12 @@ function roleTag(w: WishlistEntry) {
 const extrasWhere = (list: PriorityList, test: (s: ExtraStatus) => boolean) => list.extras.filter((x) => test(x.status)).map((x) => x.entry);
 
 /** What adding `w` moves the run off: the default option of each event it would steer, and any targeted skill it also lists. */
-function addTip(list: PriorityList, w: WishlistEntry) {
+function addTip(list: PriorityList, w: WishlistEntry, lists: readonly number[]) {
   const parts = w.events.filter((e) => e.optionIndex !== defaultOption(e) && !list.holders.has(e.key)).map((e) => {
     const given = [...list.entries.values()].filter((x) => x !== w && x.events.some((o) => o.key === e.key && o.optionIndex === defaultOption(e))).map(entryName);
     return `${e.label}: option ${e.optionIndex + 1} instead of option ${defaultOption(e) + 1} (${given.length ? `giving up ${given.join(', ')}` : 'which gives no skill this deck tracks'})`;
   });
-  const kept = defendedBy(list, w).map(entryName);
+  const kept = lists.map((key) => nameOf(list, key));
   return `Add to the list. ${parts.join('. ')}.${kept.length ? ` Also lists ${kept.join(', ')} above it, so ${kept.length === 1 ? 'that targeted skill keeps its option' : 'those targeted skills keep their options'}.` : ''}`;
 }
 function swapTip(list: PriorityList, alternative: WishlistEntry, listed: number) {
@@ -198,7 +198,7 @@ function unlistedTargets(list: PriorityList) {
 function poolChip(list: PriorityList, w: WishlistEntry, status: ExtraStatus, locked: boolean) {
   if (status.kind !== 'add' && status.kind !== 'full') return html`<span class="wl-chip quiet" data-wl-extra=${status.kind}>${icon(w)}${nameTip(w, 'wl-chip-name')}</span>`;
   const full = status.kind === 'full';
-  return html`<span class="wl-chip add" data-wl-extra=${status.kind}>${icon(w)}${nameTip(w, 'wl-chip-name')}<button class="wl-chip-btn" data-action="wl-add" data-id=${w.key} aria-label="Add ${entryName(w)} to the list" data-tip=${full ? `The game takes ${PRIORITIZED_SKILLS_MAX} skills and the list is full.` : addTip(list, w)} ?disabled=${locked || full} @click=${() => addExtra(w.key)}>${PLUS}</button></span>`;
+  return html`<span class="wl-chip add" data-wl-extra=${status.kind}>${icon(w)}${nameTip(w, 'wl-chip-name')}<button class="wl-chip-btn" data-action="wl-add" data-id=${w.key} aria-label="Add ${entryName(w)} to the list" data-tip=${full ? `The game takes ${PRIORITIZED_SKILLS_MAX} skills and the list is full.` : addTip(list, w, status.lists)} ?disabled=${locked || full} @click=${() => addExtra(w.key)}>${PLUS}</button></span>`;
 }
 const POOL_TIP = `Skills this deck's events offer outside the targeted skills. Hover or tap a skill for its card, event and option. The deck search does not consider them; it follows ${TITLE.goal}.`;
 
