@@ -5,7 +5,7 @@ import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { isNormal, perStat, RARITIES, type StatValues } from '../src/types.ts';
 import { DEFAULT_SETTINGS, parseSetting } from '../src/settings.ts';
-import { alternativesTo, arrangePriorities, contestedRequired, deriveOrder, derivePriority, effectiveLb, isLegalRunSelection, permutations, planRun, withRequiredOrder, type RunInput } from '../src/model/run.ts';
+import { alternativesTo, arrangePriorities, sharingOverflow, contestedRequired, deriveOrder, derivePriority, effectiveLb, isLegalRunSelection, permutations, planRun, withRequiredOrder, type RunInput } from '../src/model/run.ts';
 import { targetSpCost } from '../src/model/skill-purchases.ts';
 import { clampStars, hasExactStarTable, statsAtStars } from '../src/model/trainee.ts';
 import { rankMoments, skillPointsOf, uniqueSkillLevel } from '../src/model/rank.ts';
@@ -198,6 +198,9 @@ test('prioritized skills: a target is listed only to move the run off an event\'
   const byDefault = arrangePriorities([unaffiliated(10, 4, true), unaffiliated(11, 0)], []);
   assert.deepEqual([byDefault.unlisted.map((u) => u.reason), byDefault.extras.map((x) => x.status.kind)], [['first'], ['blocked']],
     'an event with its own default option: the targeted skill there needs no listing and holds the event against its option 1');
+  const crowded = arrangePriorities([steering, lower, optionEntry(30, [['d', 0]], true), optionEntry(31, [['h', 1]])], [], 1);
+  assert.deepEqual([crowded.overflow.map((w) => w.key), sharingOverflow(crowded).map((w) => w.key)], [[5], [30]],
+    'a targeted skill on an event of one that does not fit has a status that may be wrong; one on another event does not');
   const short = arrangePriorities([steering, defended, lower], [], 2);
   assert.deepEqual([short.listed.map((w) => w.key), short.overflow.map((w) => w.key)], [[1, 4], [5]], 'targets past the game\'s limit overflow');
 });

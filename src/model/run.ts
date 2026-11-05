@@ -277,6 +277,15 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
   return { entries, listed, overflow: needed.slice(max), unlisted, extras: pool, holders };
 }
 
+/**
+ * Skills sharing an event with a targeted skill that does not fit. The arrangement still gives that event to the skill that
+ * does not fit, so their statuses can be wrong: the run takes the event's default option instead.
+ */
+export function sharingOverflow(list: PriorityList): WishlistEntry[] {
+  const keys = new Set(list.overflow.flatMap((w) => w.events.map((e) => e.key)));
+  return [...list.entries.values()].filter((w) => !list.overflow.includes(w) && !list.listed.includes(w) && w.events.some((e) => keys.has(e.key)));
+}
+
 /** Unlisted extras on another option of a listed extra's events, which a swap would list instead. */
 export const alternativesTo = (list: PriorityList, key: number) =>
   list.extras.filter((x) => x.status.kind === 'swap' && x.status.with === key).map((x) => x.entry);
