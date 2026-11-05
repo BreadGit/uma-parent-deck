@@ -7,7 +7,7 @@ import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, ra
 import { chooseGoal, goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { EXPLORE_SAMPLES, SCREENED_DECKS, SCREEN_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
-import { defaultOption, lineageCount, resolveTarget, type Lineage, type Target } from './sparks.ts';
+import { chooseOption, defaultOption, lineageCount, resolveTarget, type Lineage, type Offer, type Target } from './sparks.ts';
 import { BLUE_STAR_BANDS, predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
@@ -203,87 +203,101 @@ export interface PriorityList {
 const optionAt = (w: WishlistEntry, key: string) => w.events.find((e) => e.key === key)!.optionIndex;
 
 /**
- * The run takes each event's default option, usually the top one, unless a listed skill is on another
- * (docs/umamusume/refs/independent-training-prioritized-skills.md), so only skills that move it off a default option need
- * a listing. Targets come in `ordered`'s order; each event goes to the first target offering it. A target on default
- * options only is listed when a listed target below it is on another option of one of its events. Extras the user
- * `added` follow in that order while they steer an event no listed skill or target holds, up to `max` entries; one that
- * would also move the run off a targeted skill's default option lists that targeted skill too, which then keeps its event.
+ * Proposes the list and checks it with the game's own rule, `chooseOption`, so what the panel says each skill gets is
+ * what the estimate credits. Each event is claimed by the first targeted skill in `ordered`'s order that offers it. The
+ * list holds the targeted skills whose claim needs a listing: those claiming an option other than the default, then any
+ * whose claim a listed skill would take away, until none is left. The extras the user `added` follow in that order while
+ * they gain an event and fit in `max`, each listing the targeted skills it would otherwise take an event from. Every
+ * status comes from what the run takes with the final list, of which the game reads the first `max` entries. Without
+ * `withExtras`, the unlisted extras' statuses are left out, since only the panel shows them.
  */
-export function arrangePriorities(ordered: WishlistEntry[], added: readonly number[], max = PRIORITIZED_SKILLS_MAX): PriorityList {
+export function arrangePriorities(ordered: WishlistEntry[], added: readonly number[], max = PRIORITIZED_SKILLS_MAX, withExtras = true): PriorityList {
   const entries = new Map(ordered.map((w) => [w.key, w]));
-  const holder = new Map<string, WishlistEntry>();
-  const unlisted: PriorityList['unlisted'] = [];
-  const steered = new Set<WishlistEntry>(), firsts: WishlistEntry[] = [];
-  for (const t of ordered.filter((w) => w.isTarget)) {
-    if (!t.events.length) { unlisted.push({ entry: t, reason: 'hints', by: null }); continue; }
-    const free = t.events.filter((e) => !holder.has(e.key));
-    if (!free.length) {
-      const same = t.events.find((e) => optionAt(holder.get(e.key)!, e.key) === e.optionIndex);
-      unlisted.push({ entry: t, reason: same ? 'along' : 'lost', by: holder.get((same ?? t.events[0]!).key)!.key });
-      continue;
-    }
-    for (const e of free) holder.set(e.key, t);
-    if (free.some((e) => e.optionIndex !== defaultOption(e))) steered.add(t); else firsts.push(t);
+  const targets = ordered.filter((w) => w.isTarget);
+  const events = new Map<string, { defaultIndex: number; offers: (Offer & { entry: WishlistEntry })[] }>();
+  for (const w of ordered) for (const e of w.events) {
+    const ev = events.get(e.key) ?? { defaultIndex: defaultOption(e), offers: [] };
+    ev.offers.push({ skillId: w.skillId, optionIndex: e.optionIndex, entry: w });
+    events.set(e.key, ev);
   }
-  /** `listed` with every default-option targeted skill that one of them would otherwise take an event from, recursively. */
-  const closeOver = (listed: Set<WishlistEntry>) => {
-    const out = new Set(listed);
-    const pulls = (d: WishlistEntry) => [...out].some((s) => s.events.some((e) => holder.get(e.key) === d && e.optionIndex !== optionAt(d, e.key)));
-    for (let grew = true; grew;) {
-      grew = false;
-      for (const d of firsts) if (!out.has(d) && pulls(d)) { out.add(d); grew = true; }
+  /** What the run takes at each event when `list` is entered and the game reads its first `limit` skills. */
+  const run = (list: WishlistEntry[], limit = max) => {
+    const rank = new Map(list.slice(0, limit).map((w, i) => [w.skillId, i] as const));
+    const out = new Map<string, { option: number; by: WishlistEntry | null }>();
+    for (const [key, ev] of events) {
+      const { option, steeredBy } = chooseOption(ev.offers, (id) => rank.get(id) ?? Infinity, ev.defaultIndex);
+      out.set(key, { option, by: steeredBy[0]?.entry ?? null });
     }
     return out;
   };
-  let steering = closeOver(steered);
-  const extras: WishlistEntry[] = [];
-  const taken = new Map<string, WishlistEntry>();
-  const listedTargets = () => ordered.filter((w) => steering.has(w)).slice(0, max);
-  /** The targeted skills listing `x` would also list: those on another option of its events, and any they in turn pull. */
-  const defends = (x: WishlistEntry) => {
-    const direct = x.events.flatMap((e) => { const h = holder.get(e.key); return h && !steering.has(h) && optionAt(h, e.key) !== e.optionIndex ? [h] : []; });
-    const closed = closeOver(new Set([...steering, ...direct]));
-    return ordered.filter((w) => closed.has(w) && !steering.has(w));
+  type Outcome = ReturnType<typeof run>;
+  const gets = (w: WishlistEntry, outcome: Outcome) => w.events.filter((e) => outcome.get(e.key)!.option === e.optionIndex);
+
+  const claimer = new Map<string, WishlistEntry>();
+  const claims = new Map<WishlistEntry, WishlistEntry['events']>();
+  for (const t of targets) {
+    const free = t.events.filter((e) => !claimer.has(e.key));
+    for (const e of free) claimer.set(e.key, t);
+    claims.set(t, free);
+  }
+  /** The skill whose option an event takes: the listed one that steered it, or the targeted skill claiming its default. */
+  const holderAt = (outcome: Outcome, key: string) => {
+    const { option, by } = outcome.get(key)!;
+    if (by) return by;
+    const c = claimer.get(key);
+    return c && optionAt(c, key) === option ? c : null;
   };
-  const statusOf = (x: WishlistEntry): ExtraStatus => {
-    let anyway: ExtraStatus | null = null, swap: ExtraStatus | null = null, blocked: ExtraStatus | null = null;
-    for (const e of x.events) {
-      const by = holder.get(e.key) ?? taken.get(e.key);
-      if (!by) {
-        if (e.optionIndex !== defaultOption(e)) {
-          const lists = defends(x);
-          return { kind: listedTargets().length + extras.length + 1 + lists.length <= max ? 'add' : 'full', lists: lists.map((w) => w.key) };
-        }
-        anyway ??= { kind: 'anyway', with: null };
-      } else if (optionAt(by, e.key) === e.optionIndex) anyway ??= { kind: 'anyway', with: by.key };
-      else if (by.isTarget) blocked ??= { kind: 'blocked', by: by.key };
-      else swap ??= { kind: 'swap', with: by.key };
+  const inGoalOrder = (set: ReadonlySet<WishlistEntry>) => targets.filter((t) => set.has(t));
+  /** `set` with every targeted skill whose claim the list would take away, until the list keeps every claim it can. */
+  const close = (set: ReadonlySet<WishlistEntry>, extras: WishlistEntry[]) => {
+    const out = new Set(set);
+    for (;;) {
+      const outcome = run([...inGoalOrder(out), ...extras]);
+      const missing = targets.filter((t) => !out.has(t) && claims.get(t)!.some((e) => outcome.get(e.key)!.option !== e.optionIndex));
+      if (!missing.length) return out;
+      for (const t of missing) out.add(t);
     }
-    return anyway ?? swap ?? blocked!;
+  };
+  let listedTargets = close(new Set(targets.filter((t) => claims.get(t)!.some((e) => e.optionIndex !== defaultOption(e)))), []);
+  const extras: WishlistEntry[] = [];
+  /** What listing `x` after the current list would do. */
+  const statusOf = (x: WishlistEntry): ExtraStatus => {
+    const now = run([...inGoalOrder(listedTargets), ...extras]);
+    const kept = close(listedTargets, [...extras, x]);
+    const withX = run([...inGoalOrder(kept), ...extras, x], Infinity);
+    if (gets(x, withX).some((e) => now.get(e.key)!.option !== e.optionIndex)) {
+      const lists = inGoalOrder(kept).filter((t) => !listedTargets.has(t));
+      return { kind: kept.size + extras.length + 1 <= max ? 'add' : 'full', lists: lists.map((t) => t.key) };
+    }
+    const held = gets(x, now)[0];
+    if (held) return { kind: 'anyway', with: holderAt(now, held.key)?.key ?? null };
+    const by = holderAt(withX, x.events[0]!.key)!;
+    return by.isTarget ? { kind: 'blocked', by: by.key } : { kind: 'swap', with: by.key };
   };
   for (const key of added) {
     const x = entries.get(key);
     if (!x || x.isTarget || extras.includes(x) || statusOf(x).kind !== 'add') continue;
-    steering = new Set([...steering, ...defends(x)]);
-    for (const e of x.events) if (!holder.has(e.key) && !taken.has(e.key)) taken.set(e.key, x);
+    listedTargets = close(listedTargets, [...extras, x]);
     extras.push(x);
   }
-  for (const d of firsts) if (!steering.has(d)) unlisted.push({ entry: d, reason: 'first', by: null });
-  const needed = ordered.filter((w) => steering.has(w));
-  const listed = [...needed.slice(0, max), ...extras];
-  const pool = ordered.filter((w) => !w.isTarget && !extras.includes(w)).map((entry) => ({ entry, status: statusOf(entry) }));
-  const holders = new Map([...holder, ...taken].map(([key, w]) => [key, w.key]));
-  return { entries, listed, overflow: needed.slice(max), unlisted, extras: pool, holders };
-}
 
-/**
- * Skills sharing an event with a targeted skill that does not fit. The arrangement still gives that event to the skill that
- * does not fit, so their statuses can be wrong: the run takes the event's default option instead.
- */
-export function sharingOverflow(list: PriorityList): WishlistEntry[] {
-  const keys = new Set(list.overflow.flatMap((w) => w.events.map((e) => e.key)));
-  return [...list.entries.values()].filter((w) => !list.overflow.includes(w) && !list.listed.includes(w) && w.events.some((e) => keys.has(e.key)));
+  const needed = inGoalOrder(listedTargets);
+  const listed = [...needed.slice(0, max), ...extras];
+  const final = run(listed);
+  const unlisted: PriorityList['unlisted'] = [], firsts: PriorityList['unlisted'] = [];
+  for (const t of targets) {
+    if (listedTargets.has(t)) continue;
+    if (!t.events.length) { unlisted.push({ entry: t, reason: 'hints', by: null }); continue; }
+    const got = gets(t, final)[0];
+    if (!got) { unlisted.push({ entry: t, reason: 'lost', by: holderAt(final, t.events[0]!.key)?.key ?? null }); continue; }
+    const holder = holderAt(final, got.key);
+    if (holder && holder !== t) unlisted.push({ entry: t, reason: 'along', by: holder.key });
+    else firsts.push({ entry: t, reason: 'first', by: null });
+  }
+  const pool = withExtras ? ordered.filter((w) => !w.isTarget && !extras.includes(w)).map((entry) => ({ entry, status: statusOf(entry) })) : [];
+  const holders = new Map<string, number>();
+  for (const key of events.keys()) { const h = holderAt(final, key); if (h) holders.set(key, h.key); }
+  return { entries, listed, overflow: needed.slice(max), unlisted: [...unlisted, ...firsts], extras: pool, holders };
 }
 
 /** Unlisted extras on another option of a listed extra's events, which a swap would list instead. */
@@ -387,7 +401,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const contested = contestedRequired(derived);
     const orders = contested.length >= 2 && contested.length <= CONTESTED_REQUIRED_MAX ? permutations(contested).map((p) => withRequiredOrder(derived, p)) : [derived];
     return orders.map((base) => {
-      const list = arrangePriorities(base, display ? input.addedExtras : []);
+      const list = arrangePriorities(base, display ? input.addedExtras : [], PRIORITIZED_SKILLS_MAX, display);
       return { candidates, list, priority: derivePriority(list.listed) };
     });
   };

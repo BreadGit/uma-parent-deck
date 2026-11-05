@@ -3,7 +3,7 @@
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { defaultOption } from '../../model/sparks.ts';
-import { alternativesTo, sharingOverflow, type ExtraStatus, type PriorityList, type RunPlan, type UnlistedReason } from '../../model/run.ts';
+import { alternativesTo, type ExtraStatus, type PriorityList, type RunPlan, type UnlistedReason } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
 import { isGold, type Card } from '../../types.ts';
@@ -162,9 +162,8 @@ function warning(key: string, body: string) {
 }
 function warnings(list: PriorityList) {
   const lost = list.unlisted.filter((u) => u.reason === 'lost');
-  const over = list.overflow, one = over.length === 1, sharing = sharingOverflow(list);
-  const caveat = sharing.length ? ` ${sharing.map(entryName).join(', ')} ${sharing.length === 1 ? 'shares an event' : 'share events'} with ${one ? 'it' : 'them'}, so ${sharing.length === 1 ? 'its status' : 'their statuses'} here may be wrong: the run takes the default option of an event no listed skill steers.` : '';
-  return html`${over.length ? warning(`overflow:${over.map((w) => w.key).join(',')}`, `The game takes ${PRIORITIZED_SKILLS_MAX} skills, so ${one ? 'this targeted skill does' : 'these targeted skills do'} not fit and the run does not steer ${one ? 'its' : 'their'} events: ${over.map(entryName).join(', ')}.${caveat} Consider removing targeted skills or lowering their priority if that isn't what you want.`) : nothing}
+  const over = list.overflow, one = over.length === 1;
+  return html`${over.length ? warning(`overflow:${over.map((w) => w.key).join(',')}`, `The game takes ${PRIORITIZED_SKILLS_MAX} skills, so ${one ? 'this targeted skill does' : 'these targeted skills do'} not fit and the run does not steer ${one ? 'its' : 'their'} events: ${over.map(entryName).join(', ')}. Consider removing targeted skills or lowering their priority if that isn't what you want.`) : nothing}
     ${lost.length ? warning(`lost:${lost.map((u) => u.entry.key).join(',')}`, lost.length === 1
       ? `${entryName(lost[0]!.entry)} gets only hints, because ${nameOf(list, lost[0]!.by!)}, a higher targeted skill, takes every event that gives it. Consider changing their order if that isn't what you want.`
       : `${lost.length} targeted skills get only hints, because a higher targeted skill takes every event that gives them: ${lost.map((u) => `${entryName(u.entry)} (${nameOf(list, u.by!)} takes its event)`).join(', ')}. Consider changing their order if that isn't what you want.`) : nothing}`;
