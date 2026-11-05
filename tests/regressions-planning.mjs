@@ -217,7 +217,13 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     saved.run.addedExtras = [focus.id, 201601];
     const page = await fresh(t, saved);
     assert.equal(await page.locator('.wishlist li[data-wl-role="extra"]').count(), 0, 'target ids among the added extras list nothing');
-    assert.equal(await page.locator('.wishlist li.wl-target button').count(), 0, 'target rows have no controls');
+    const targetRemove = page.locator('.wishlist li.wl-target [data-action="wl-goal-target"]').first();
+    assert.ok(await targetRemove.count(), 'a targeted skill is listed');
+    const targetId = await targetRemove.getAttribute('data-id');
+    await targetRemove.click();
+    await page.locator(`[data-target-editor="${targetId}"]`).waitFor();
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'remove-target', 'its ✕ opens its editor in Parent goal');
+    assert.deepEqual((await state(page)).run.targets.length, 2, 'without removing it');
     const shown = [...await page.locator('.wishlist li.wl-target').evaluateAll((els) => els.map((el) => el.dataset.wlKey)),
       ...await page.locator('[data-wl-unlisted] .chip').evaluateAll((els) => els.map((el) => el.textContent))];
     assert.ok(shown.length >= 2, 'every target is listed or named with its reason');

@@ -409,17 +409,28 @@ td.target-chances { min-width: 260px; }
 .wl-swap:hover { border-color: var(--accent); }
 .wl-swap:disabled { opacity: .5; cursor: default; }
 .wl-swap:disabled:hover { border-color: var(--line); }
-.wl-kind { display: inline-block; margin-right: 6px; }
+.wl-kind { display: inline-block; min-width: 4.6em; margin-right: 6px; text-align: center; }
 .wl-x { padding: 0 5px; font-size: var(--fs-xs); line-height: 16px; margin-left: 2px; color: var(--muted); }
 .wl-x:disabled { opacity: .3; cursor: default; }
 .wl-section { margin-top: 8px; }
 .wl-section summary, .wl-pool summary { cursor: pointer; color: var(--muted); }
-table.wl-unlisted { margin-top: 4px; }
+table.wl-unlisted { width: auto; margin-top: 4px; }
 table.wl-unlisted td { white-space: normal; }
+table.wl-unlisted td.wl-reason { white-space: nowrap; }
 .wl-pool { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--line); }
 .wl-pool > p { margin: 6px 0; }
-.wl-owner { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin: 4px 0; }
-.wl-owner > .muted:first-child { flex-basis: 100%; }
+.wl-legend { margin: 6px 0 2px; }
+.wl-owner { margin: 10px 0 0; }
+.wl-owner-name { font-weight: 600; color: var(--text); }
+.wl-event { margin: 4px 0 0 10px; padding-left: 8px; border-left: 2px solid var(--line); }
+.wl-options { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.wl-option { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
+.wl-option-n { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; border-radius: 9px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+.wl-skill { display: inline-flex; align-items: center; gap: 4px; }
+.wl-name { border-bottom: 1px dotted var(--muted); cursor: help; }
+.wl-skill.muted .wl-name { border-bottom-color: transparent; }
+.wl-held { margin-top: 2px; }
+button.wl-add { padding: 0 8px; line-height: 18px; border-color: var(--accent); color: var(--accent); }
 button.link { border: none; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
 
 /* advanced settings: each field shows its default and marks a changed value */

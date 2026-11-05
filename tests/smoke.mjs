@@ -571,7 +571,13 @@ if (await page.locator(`.wishlist li[data-wl-key="${listedExtra}"]`).count()) {
   await settled(page);
   assert.equal(await page.locator(`.wishlist li[data-wl-key="${listedExtra}"]`).count(), 0, 'a removed extra leaves the list');
 }
-assert.equal(await page.locator('.wishlist li.wl-target button').count(), 0, 'target rows have no controls; Parent goal owns them');
+const targetRemove = page.locator('.wishlist li.wl-target [data-action="wl-goal-target"]').first();
+if (await targetRemove.count()) {
+  const id = await targetRemove.getAttribute('data-id');
+  await targetRemove.click();
+  await page.locator(`[data-target-editor="${id}"]`).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'remove-target', 'a targeted skill\'s ✕ opens its editor in Parent goal');
+}
 for (const width of [390, 768, 1280, 1440, 1680, 1920]) {
   for (const scheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: scheme });
