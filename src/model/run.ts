@@ -192,7 +192,7 @@ export interface PriorityList {
   listed: WishlistEntry[];
   /** Targets that need a listing past the game's limit. */
   overflow: WishlistEntry[];
-  /** Targets the run does not need listed; `by` is the target holding their event for `along` and `lost`. */
+  /** Targets the run does not need listed; `by` is the skill holding their event for `along` and `lost`. */
   unlisted: { entry: WishlistEntry; reason: UnlistedReason; by: number | null }[];
   /** Every extra not listed, in candidate order. */
   extras: { entry: WishlistEntry; status: ExtraStatus }[];
@@ -248,11 +248,14 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
     return c && optionAt(c, key) === option ? c : null;
   };
   const inGoalOrder = (set: ReadonlySet<WishlistEntry>) => targets.filter((t) => set.has(t));
-  /** `set` with every targeted skill whose claim the list would take away, until the list keeps every claim it can. */
+  /**
+   * `set` with every targeted skill whose claim the list would take away, until the list keeps every claim it can. Only the
+   * targeted skills that fit steer; the extras count in full, so a hypothetical extra past the limit is seen too.
+   */
   const close = (set: ReadonlySet<WishlistEntry>, extras: WishlistEntry[]) => {
     const out = new Set(set);
     for (;;) {
-      const outcome = run([...inGoalOrder(out), ...extras]);
+      const outcome = run([...inGoalOrder(out).slice(0, max), ...extras], Infinity);
       const missing = targets.filter((t) => !out.has(t) && claims.get(t)!.some((e) => outcome.get(e.key)!.option !== e.optionIndex));
       if (!missing.length) return out;
       for (const t of missing) out.add(t);
@@ -264,14 +267,18 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
   const statusOf = (x: WishlistEntry): ExtraStatus => {
     const now = run([...inGoalOrder(listedTargets), ...extras]);
     const kept = close(listedTargets, [...extras, x]);
-    const withX = run([...inGoalOrder(kept), ...extras, x], Infinity);
+    // Only the targeted skills that fit steer anything; x is checked as if there were room for it, and the count decides.
+    const withX = run([...inGoalOrder(kept).slice(0, max), ...extras, x], Infinity);
     if (gets(x, withX).some((e) => now.get(e.key)!.option !== e.optionIndex)) {
       const lists = inGoalOrder(kept).filter((t) => !listedTargets.has(t));
       return { kind: kept.size + extras.length + 1 <= max ? 'add' : 'full', lists: lists.map((t) => t.key) };
     }
     const held = gets(x, now)[0];
     if (held) return { kind: 'anyway', with: holderAt(now, held.key)?.key ?? null };
-    const by = holderAt(withX, x.events[0]!.key)!;
+    // A targeted skill claiming the event on another option keeps it even if the listed extra holding it is swapped out.
+    const e = x.events[0]!, claim = claimer.get(e.key);
+    if (claim && optionAt(claim, e.key) !== e.optionIndex) return { kind: 'blocked', by: claim.key };
+    const by = holderAt(withX, e.key)!;
     return by.isTarget ? { kind: 'blocked', by: by.key } : { kind: 'swap', with: by.key };
   };
   for (const key of added) {
@@ -284,12 +291,17 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
   const needed = inGoalOrder(listedTargets);
   const listed = [...needed.slice(0, max), ...extras];
   const final = run(listed);
-  const unlisted: PriorityList['unlisted'] = [], firsts: PriorityList['unlisted'] = [];
+  const unlisted: PriorityList['unlisted'] = [], firsts: PriorityList['unlisted'] = [], overflow = needed.slice(max);
   for (const t of targets) {
     if (listedTargets.has(t)) continue;
     if (!t.events.length) { unlisted.push({ entry: t, reason: 'hints', by: null }); continue; }
     const got = gets(t, final)[0];
-    if (!got) { unlisted.push({ entry: t, reason: 'lost', by: holderAt(final, t.events[0]!.key)?.key ?? null }); continue; }
+    if (!got) {
+      // Its event was claimed by a targeted skill that does not fit, so nothing listed holds it: it needs room too.
+      const by = t.events.map((e) => holderAt(final, e.key)).find((h) => h);
+      if (by) unlisted.push({ entry: t, reason: 'lost', by: by.key }); else overflow.push(t);
+      continue;
+    }
     const holder = holderAt(final, got.key);
     if (holder && holder !== t) unlisted.push({ entry: t, reason: 'along', by: holder.key });
     else firsts.push({ entry: t, reason: 'first', by: null });
@@ -297,7 +309,7 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
   const pool = withExtras ? ordered.filter((w) => !w.isTarget && !extras.includes(w)).map((entry) => ({ entry, status: statusOf(entry) })) : [];
   const holders = new Map<string, number>();
   for (const key of events.keys()) { const h = holderAt(final, key); if (h) holders.set(key, h.key); }
-  return { entries, listed, overflow: needed.slice(max), unlisted: [...unlisted, ...firsts], extras: pool, holders };
+  return { entries, listed, overflow, unlisted: [...unlisted, ...firsts], extras: pool, holders };
 }
 
 /** Unlisted extras on another option of a listed extra's events, which a swap would list instead. */

@@ -21,7 +21,7 @@ function makeCase(rand: () => number): Case {
     return { key, skillId: key, name: `s${key}`, form: null, gated: true, isTarget, role: isTarget ? 'preferred' : 'extra', targetId: isTarget ? key : null, reason: '', weight: 1, owner: '',
       events: picked.map((e) => ({ key: e.key, label: e.key, option: '', optionIndex: int(e.options), ...(e.defaultIndex ? { defaultIndex: e.defaultIndex } : {}) })) };
   };
-  const targets = Array.from({ length: 1 + int(6) }, (_, i) => entry(i + 1, true));
+  const targets = Array.from({ length: 1 + int(rand() < 0.2 ? 13 : 6) }, (_, i) => entry(i + 1, true));
   const extras = Array.from({ length: int(6) }, (_, i) => entry(i + 101, false));
   const added = extras.filter(() => rand() < 0.5).map((w) => w.key).sort(() => rand() - 0.5);
   return { ordered: [...targets, ...extras], added, max: 2 + int(9) };
@@ -48,17 +48,29 @@ test('across random event setups, what the panel says each skill gets matches wh
     const where = () => `case ${n}: ${describe(c, list)}`;
     assert.ok(list.listed.length <= c.max, `the list fits the game's limit; ${where()}`);
     for (const w of list.listed) assert.ok(gets(w.key), `listed ${w.key} gets one of its events; ${where()}`);
+    const named = (key: number | null) => key === null || list.entries.has(key);
     for (const u of list.unlisted) {
       if (u.reason === 'first' || u.reason === 'along') assert.ok(gets(u.entry.key), `${u.entry.key} (${u.reason}) gets an event without a listing; ${where()}`);
       if (u.reason === 'lost') assert.ok(!gets(u.entry.key), `${u.entry.key} (lost) gets none of its events; ${where()}`);
+      if (u.reason === 'lost' || u.reason === 'along') assert.ok(u.by !== null && named(u.by) && gets(u.by), `${u.entry.key} (${u.reason}) names a holder that gets the event; ${where()}`);
     }
+    for (const [event, holder] of list.holders) assert.ok(got.get(holder)!.has(event), `the holder of ${event} gets it; ${where()}`);
     for (const x of list.extras) {
       if (x.status.kind === 'anyway') assert.ok(gets(x.entry.key), `extra ${x.entry.key} (anyway) gets an event without a listing; ${where()}`);
       if (x.status.kind === 'blocked' || x.status.kind === 'swap') assert.ok(!gets(x.entry.key), `extra ${x.entry.key} (${x.status.kind}) gets none of its events; ${where()}`);
+      // Another added extra on the swapped event can take it once the listed one leaves; the panel does not model that.
+      const contested = (w: WishlistEntry) => c.added.some((k) => k !== w.key && c.ordered.find((o) => o.key === k)!.events.some((e) => w.events.some((f) => f.key === e.key)));
+      if (x.status.kind === 'swap' && !contested(x.entry)) {
+        const listedWith = x.status.with;
+        const swapped = arrangePriorities(c.ordered, c.added.map((k) => k === listedWith ? x.entry.key : k), c.max);
+        assert.ok(credited(c.ordered, swapped).get(x.entry.key)!.size > 0, `swapping ${x.entry.key} in for ${listedWith} gets it an event, listed or by default; ${where()}`);
+      }
+      if (x.status.kind === 'full') assert.ok(list.listed.length + 1 + x.status.lists.length > c.max, `${x.entry.key} (full) and the targeted skills it brings do not fit; ${where()}`);
       if (x.status.kind !== 'add') continue;
       const after = arrangePriorities(c.ordered, [...c.added, x.entry.key], c.max);
       const gotAfter = credited(c.ordered, after);
       assert.ok(after.listed.some((w) => w.key === x.entry.key) && gotAfter.get(x.entry.key)!.size > 0, `adding ${x.entry.key} lists it and it gets an event; ${where()}`);
+      for (const key of x.status.lists) assert.ok(after.listed.some((w) => w.key === key), `adding ${x.entry.key} lists ${key} as it said; ${where()}`);
       for (const [key, events] of got) if (key < 100 && events.size && !gotAfter.get(key)!.size) assert.fail(`adding ${x.entry.key} takes every event of targeted skill ${key}; ${where()}`);
     }
   }
