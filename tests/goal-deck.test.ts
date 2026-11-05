@@ -224,7 +224,7 @@ test('required targets outrank custom preferred ordering and excluded choices re
   const plain = planRun({ ...saved.run, addedExtras: [] }, saved.settings, saved.inventory, data, { search: false });
   assert.deepEqual(plan.priorities.listed.map((w) => w.key), plain.priorities.listed.map((w) => w.key));
   assert.ok(!plan.priorities.listed.some((w) => w.role === 'extra'));
-  assert.equal(plan.deckResult.conflicts.find((c) => c.eventKey.startsWith(`${falcon.id}:chain`))?.taken.target, 201601);
+  assert.ok(!plan.deckResult.coverage.get(focus.id)!.some((s) => s.isChoice && s.event.key.startsWith(`${falcon.id}:chain`)), 'the required target keeps the chain event');
   assert.deepEqual(saved.run.addedExtras, named);
   assert.ok(plan.deckResult.coverage.get(201601)!.some((s) => s.isChoice && s.skillId === 201601), 'its choice source counts');
 });

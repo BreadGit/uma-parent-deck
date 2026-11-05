@@ -28,6 +28,13 @@ Not stated by any source: which option the run takes when some prioritized skill
 offered by the event (presumably the top one), and which option wins when two listed skills sit on
 different options of one event. The 自主トレ育成 guides describe the JP client; Global is assumed to match.
 
+## The scenario skill event
+
+Our Grand Concert's lyrics-choice event lists four character-affiliated options and one unaffiliated option, which
+gives Lane Legerdemain ([GameTora](gametora-our-grand-concert.md#skills)). The user reported on 2026-11-04 that an
+unsteered run takes the unaffiliated option, since it needs no linked character. No guide found states it; the tool
+assumes it.
+
 ## Training hints
 
 No source found says whether prioritized skills change which training independent training picks, for

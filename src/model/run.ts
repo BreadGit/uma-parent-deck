@@ -7,7 +7,7 @@ import { buildDeck, deckStatPower, describeDeck, evaluate as evaluateSources, ra
 import { chooseGoal, goalSources, scoreGoal, type GoalScore } from './goal-objective.ts';
 import { EXPLORE_SAMPLES, SCREENED_DECKS, SCREEN_SAMPLES } from './goal-population.ts';
 import { goalDeckConstraints, searchGoalDeck, type GoalDeckEntry, type GoalSearchResult } from './goal-deck.ts';
-import { lineageCount, resolveTarget, type Lineage, type Target } from './sparks.ts';
+import { defaultOption, lineageCount, resolveTarget, type Lineage, type Target } from './sparks.ts';
 import { BLUE_STAR_BANDS, predictDeck, totalTurns, type Prediction } from './stats.ts';
 import { buildSchedule, goalRaces, racePopularity, raceWinChances, scheduleSummary, traineeAptitudes, type Aptitudes, type ScheduledRace } from './races.ts';
 import { estimateFans, fansBeforeSlot, type FanEstimate } from './fans.ts';
@@ -178,12 +178,12 @@ export function isLegalRunSelection(selection: DeckSelection, input: RunInput, s
   return !!constraints?.legal(selection.map((e) => ({ ...e, card: data.cardById.get(e.id)! })));
 }
 
-/** Why a target is not in the list: no event choice, its events' first options, an option a higher target takes, or none left. */
+/** Why a target is not in the list: no event choice, its events' default options, an option a higher target takes, or none left. */
 export type UnlistedReason = 'hints' | 'first' | 'along' | 'lost';
 /**
  * What listing an unlisted extra would do. `add` steers an event no listed skill takes, `full` would too but the list
  * has no room, `swap` competes with listed extra `with` on another option, `blocked` with target `by`, and `anyway`
- * is a skill the run gets without a listing, beside entry `with` or from an event's first option when `with` is null.
+ * is a skill the run gets without a listing, beside entry `with` or from an event's default option when `with` is null.
  */
 export type ExtraStatus = { kind: 'add' | 'full' } | { kind: 'swap'; with: number } | { kind: 'blocked'; by: number } | { kind: 'anyway'; with: number | null };
 export interface PriorityList {
@@ -203,12 +203,12 @@ export interface PriorityList {
 const optionAt = (w: WishlistEntry, key: string) => w.events.find((e) => e.key === key)!.optionIndex;
 
 /**
- * The run takes each event's first option unless a listed skill is on another
- * (docs/umamusume/refs/independent-training-prioritized-skills.md), so only skills that move it off a first option need
- * a listing. Targets come in `ordered`'s order; each event goes to the first target offering it. A target on first
- * options only is listed when a listed target family below it is on another option of one of its events. Extras the user
+ * The run takes each event's default option, usually the top one, unless a listed skill is on another
+ * (docs/umamusume/refs/independent-training-prioritized-skills.md), so only skills that move it off a default option need
+ * a listing. Targets come in `ordered`'s order; each event goes to the first target offering it. A target on default
+ * options only is listed when a listed target below it is on another option of one of its events. Extras the user
  * `added` follow in that order while they steer an event no listed skill or target holds, up to `max` entries; one that
- * would also move the run off a targeted skill's option 1 lists that targeted skill too, which then keeps its event.
+ * would also move the run off a targeted skill's default option lists that targeted skill too, which then keeps its event.
  */
 export function arrangePriorities(ordered: WishlistEntry[], added: readonly number[], max = PRIORITIZED_SKILLS_MAX): PriorityList {
   const entries = new Map(ordered.map((w) => [w.key, w]));
@@ -224,11 +224,9 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
       continue;
     }
     for (const e of free) holder.set(e.key, t);
-    if (free.some((e) => e.optionIndex !== 0)) steering.add(t); else firsts.push(t);
+    if (free.some((e) => e.optionIndex !== defaultOption(e))) steering.add(t); else firsts.push(t);
   }
-  // The game ranks every form of a listed target, so each of its entries can take an event.
-  const pulls = (d: WishlistEntry) => ordered.some((t) => t.isTarget && t.targetId !== d.targetId && [...steering].some((s) => s.targetId === t.targetId)
-    && t.events.some((e) => holder.get(e.key) === d && e.optionIndex !== optionAt(d, e.key)));
+  const pulls = (d: WishlistEntry) => [...steering].some((s) => s.events.some((e) => holder.get(e.key) === d && e.optionIndex !== optionAt(d, e.key)));
   for (let grew = true; grew;) {
     grew = false;
     for (const d of firsts) if (!steering.has(d) && pulls(d)) { steering.add(d); grew = true; }
@@ -246,7 +244,7 @@ export function arrangePriorities(ordered: WishlistEntry[], added: readonly numb
     for (const e of x.events) {
       const by = holder.get(e.key) ?? taken.get(e.key);
       if (!by) {
-        if (e.optionIndex !== 0) return { kind: listedTargets().length + extras.length + 1 + defends(x).length <= max ? 'add' : 'full' };
+        if (e.optionIndex !== defaultOption(e)) return { kind: listedTargets().length + extras.length + 1 + defends(x).length <= max ? 'add' : 'full' };
         anyway ??= { kind: 'anyway', with: null };
       } else if (optionAt(by, e.key) === e.optionIndex) anyway ??= { kind: 'anyway', with: by.key };
       else if (by.isTarget) blocked ??= { kind: 'blocked', by: by.key };
@@ -279,20 +277,9 @@ export const defendedBy = (list: PriorityList, x: WishlistEntry) => [...new Set(
 export const alternativesTo = (list: PriorityList, key: number) =>
   list.extras.filter((x) => x.status.kind === 'swap' && x.status.with === key).map((x) => x.entry);
 
-/**
- * Every form of a family ranks together at its first appearance, so a gold/normal flip keeps the same rank. Only the
- * entries the game takes are in it, so a target outside them steers no choice.
- */
-export function derivePriority(ordered: WishlistEntry[], targets: Target[], data: Data): number[] {
-  const priority: number[] = [];
-  const pushFamily = (ids: Iterable<number>) => { for (const id of ids) if (!priority.includes(id)) priority.push(id); };
-  for (const w of ordered.slice(0, PRIORITIZED_SKILLS_MAX)) {
-    const target = targets.find((t) => t.familyIds.has(w.skillId));
-    if (target) { pushFamily(target.familyIds); continue; }
-    const fam = resolveTarget(w.skillId, data);
-    pushFamily(fam ? fam.familyIds : [w.skillId]);
-  }
-  return priority;
+/** The listed skills the game takes, in order. A listed skill steers only the options that give it, so its family's other forms are not ranked. */
+export function derivePriority(ordered: WishlistEntry[]): number[] {
+  return [...new Set(ordered.slice(0, PRIORITIZED_SKILLS_MAX).map((w) => w.skillId))];
 }
 
 export type DeckPrediction = Pick<RunPlan, 'pred' | 'parentGains' | 'inherited' | 'rawFinalMean' | 'rawFinalSd' | 'finalMean' | 'finalSd' | 'statChances' | 'purchases' | 'skillRating' | 'statCaps' | 'rank'>;
@@ -388,7 +375,7 @@ export function planRun(input: RunInput, settings: Settings, inventory: Inventor
     const orders = contested.length >= 2 && contested.length <= CONTESTED_REQUIRED_MAX ? permutations(contested).map((p) => withRequiredOrder(derived, p)) : [derived];
     return orders.map((base) => {
       const list = arrangePriorities(base, display ? input.addedExtras : []);
-      return { candidates, list, priority: derivePriority(list.listed, targets, data) };
+      return { candidates, list, priority: derivePriority(list.listed) };
     });
   };
   const pink = pinkGoalsEstimate(apt, goal.pink, input.pinkLineage, settings.affinity, settings.pinkInspirationRates);

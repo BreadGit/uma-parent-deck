@@ -2,6 +2,7 @@
 // search runs the extras are locked, since the deck found may offer different ones.
 import { html, nothing } from 'lit-html';
 import { repeat } from 'lit-html/directives/repeat.js';
+import { defaultOption } from '../../model/sparks.ts';
 import { alternativesTo, defendedBy, type PriorityList, type RunPlan, type UnlistedReason } from '../../model/run.ts';
 import type { WishlistEntry } from '../../model/deck.ts';
 import { PRIORITIZED_SKILLS_MAX } from '../../model/rules.ts';
@@ -13,7 +14,9 @@ import { panel } from '../panel.ts';
 import { tip } from '../tooltip.ts';
 
 const GOAL_TARGETS_ID = 'goal-white-targets';
-const OPTION_1 = 'Independent training takes option 1, the top option, of every event unless a listed skill is on another option. Guides confirm this when nothing is listed; with other skills listed it is assumed.';
+const OPTION_1 = 'Independent training takes option 1, the top option, of every event unless a listed skill is on another option; the scenario skill event takes its unaffiliated option instead. Guides confirm this for option 1 when nothing is listed; with other skills listed it is assumed.';
+/** `already option 1`, or the default option's own name where an event has one. */
+const defaultLabel = (w: WishlistEntry) => w.events.some((e) => defaultOption(e) !== 0) ? 'the default option' : 'option 1';
 const ROLE_TAGS = {
   required: { label: 'required', tip: `A required target white spark from ${TITLE.goal}. Change targeted skills and their order there.` },
   preferred: { label: 'preferred', tip: `A preferred target white spark from ${TITLE.goal}. Change targeted skills and their order there.` },
@@ -46,8 +49,8 @@ const swapExtra = (alternative: number, listed: number) => update((s) => {
 
 function swapButton(list: PriorityList, alternative: WishlistEntry, listed: number, locked: boolean, label: string) {
   const shared = list.entries.get(listed)!.events.map((e) => e.key);
-  const first = alternative.events.some((e) => shared.includes(e.key) && e.optionIndex === 0);
-  const swap = first ? `Removes ${nameOf(list, listed)}, so the run takes option 1 of the event they share and gets ${entryName(alternative)} there.`
+  const first = alternative.events.some((e) => shared.includes(e.key) && e.optionIndex === defaultOption(e));
+  const swap = first ? `Removes ${nameOf(list, listed)}, so the run takes ${defaultLabel(alternative)} of the event they share and gets ${entryName(alternative)} there.`
     : `Lists ${entryName(alternative)} instead of ${nameOf(list, listed)}: they share an event, and the run takes only one of its options.`;
   const tip = skillTipText(alternative.skillId, `${swap}\n\nSource: ${alternative.reason}`);
   return html`<button class="wl-swap" data-action="wl-swap" data-id="${alternative.key}" data-for="${listed}" aria-label="List ${entryName(alternative)} instead of ${nameOf(list, listed)}" ?disabled=${locked} data-tip=${tip} @click=${() => swapExtra(alternative.key, listed)}>${label}</button>`;
@@ -69,9 +72,9 @@ function row(list: PriorityList, w: WishlistEntry, i: number, locked: boolean) {
     ${alternatives.length ? html`<div class="wl-alts small" data-alternatives="${w.key}"><span class="muted">or instead:</span>${alternatives.map((a) => swapButton(list, a, w.key, locked, entryName(a)))}</div>` : nothing}</li>`;
 }
 
-const REASONS: Record<UnlistedReason, { label: (by: string) => string; tip: (by: string) => string }> = {
+const REASONS: Record<UnlistedReason, { label: (by: string, w: WishlistEntry) => string; tip: (by: string, w: WishlistEntry) => string }> = {
   hints: { label: () => 'no event choice', tip: () => 'The run gets this skill from hints and events without choosing an option, so listing it changes nothing.' },
-  first: { label: () => 'already option 1', tip: () => `${OPTION_1} This skill is on option 1, so the run gets it without a listing.` },
+  first: { label: (_, w) => `already ${defaultLabel(w)}`, tip: (_, w) => `${OPTION_1} This skill is on ${defaultLabel(w)}, so the run gets it without a listing.` },
   along: { label: (by) => `comes with ${by}`, tip: (by) => `The option ${by} takes at this event also gives this skill, so it needs no listing of its own.` },
   lost: { label: (by) => `${by} takes its event`, tip: (by) => `${by}, higher in ${TITLE.goal}, takes another option of every event that gives this skill, so it gets only hints. Change their order in ${TITLE.goal}.` },
 };
@@ -84,8 +87,9 @@ function unlistedTargets(list: PriorityList) {
     ${view.showUnlisted ? html`<p class="muted wl-legend">${UNLISTED_TIP}</p><div class="scroll-x"><table class="wl-unlisted"><thead><tr><th>Targeted skill</th><th>Why it is not listed</th></tr></thead><tbody>
       ${list.unlisted.map(({ entry, reason, by }) => {
         const r = REASONS[reason], holder = by === null ? '' : nameOf(list, by);
+        const label = r.label(holder, entry), tipText = r.tip(holder, entry);
         return html`<tr data-wl-unlisted-reason=${reason}><td>${roleTag(entry)}${skillWithTip(entry.skillId, entryName(entry), `Source: ${entry.reason}`)}</td>
-          <td class="wl-reason ${reason === 'lost' ? 'warn' : ''}">${r.label(holder)}${tip(r.tip(holder))}</td></tr>`;
+          <td class="wl-reason ${reason === 'lost' ? 'warn' : ''}">${label}${tip(tipText)}</td></tr>`;
       })}</tbody></table></div>` : nothing}
   </details>`;
 }
@@ -103,11 +107,11 @@ function overflow(list: PriorityList) {
   return html`<p class="small warn" data-wl-overflow>The game takes ${PRIORITIZED_SKILLS_MAX} skills, so these targeted skills do not fit and the run does not steer their events: ${list.overflow.map(entryName).join(', ')}. Remove targeted skills or lower their priority in ${goalLink}.</p>`;
 }
 
-/** What listing `w` moves the run away from: option 1 of each event it would steer, and the skills there. */
+/** What listing `w` moves the run away from: the default option of each event it would steer, and the skills there. */
 function addTip(list: PriorityList, w: WishlistEntry) {
-  const parts = w.events.filter((e) => e.optionIndex !== 0 && !list.holders.has(e.key)).map((e) => {
-    const given = list.extras.filter((x) => x.entry.events.some((o) => o.key === e.key && o.optionIndex === 0)).map((x) => entryName(x.entry));
-    return `${e.label}: option ${e.optionIndex + 1} instead of option 1 (${given.length ? `giving up ${given.join(', ')}` : 'which gives no skill this deck tracks'})`;
+  const parts = w.events.filter((e) => e.optionIndex !== defaultOption(e) && !list.holders.has(e.key)).map((e) => {
+    const given = list.extras.filter((x) => x.entry.events.some((o) => o.key === e.key && o.optionIndex === defaultOption(e))).map((x) => entryName(x.entry));
+    return `${e.label}: option ${e.optionIndex + 1} instead of option ${defaultOption(e) + 1} (${given.length ? `giving up ${given.join(', ')}` : 'which gives no skill this deck tracks'})`;
   });
   const kept = defendedBy(list, w).map((t) => entryName(t));
   return `Add to the list. ${parts.join('. ')}.${kept.length ? ` Also lists ${kept.join(', ')} above it, so ${kept.length === 1 ? 'that targeted skill keeps its option' : 'those targeted skills keep their options'}.` : ''}`;
@@ -130,7 +134,7 @@ function optionSkill(list: PriorityList, w: WishlistEntry, locked: boolean) {
     }
     case 'swap': return html`<span class="wl-skill" data-wl-extra="swap">${quietName(w)} ${swapButton(list, w, status.with, locked, 'Swap in')}</span>`;
     case 'blocked': return html`<span class="wl-skill muted" data-wl-extra="blocked">${quietName(w)}</span>`;
-    case 'anyway': return html`<span class="wl-skill muted" data-wl-extra="anyway" data-tip=${status.with === null ? `${OPTION_1} This skill is on option 1, so the run gets it without a listing.` : `The option ${nameOf(list, status.with)} takes also gives this skill, so the run gets it without a listing.`}>✓ ${quietName(w)}</span>`;
+    case 'anyway': return html`<span class="wl-skill muted" data-wl-extra="anyway" data-tip=${status.with === null ? `${OPTION_1} This skill is on ${defaultLabel(w)}, so the run gets it without a listing.` : `The option ${nameOf(list, status.with)} takes also gives this skill, so the run gets it without a listing.`}>✓ ${quietName(w)}</span>`;
   }
 }
 
@@ -183,7 +187,7 @@ export function renderPriorities(c: RunPlan) {
   const locked = view.searchPending;
   const list = c.priorities;
   const subtitle = [`${list.listed.length} of ${PRIORITIZED_SKILLS_MAX}`, ...(locked ? ['updating with the deck search'] : [])].join(', ');
-  return panel({ title: 'Prioritized skills', kind: 'result', subtitle, tip: `Enter these in independent training's prioritized skills, in this order. ${OPTION_1} So only skills that move the run off option 1 are listed. Targeted skills come from ${TITLE.goal}, in its order; change them there. Below the list, add other skills from this deck; the deck search does not consider them.` }, html`
+  return panel({ title: 'Prioritized skills', kind: 'result', subtitle, tip: `Enter these in independent training's prioritized skills, in this order. ${OPTION_1} So only skills that move the run off that option are listed. Targeted skills come from ${TITLE.goal}, in its order; change them there. Below the list, add other skills from this deck; the deck search does not consider them.` }, html`
     ${overflow(list)}
     ${lostWarning(list)}
     <ol class="wishlist ${locked ? 'wl-locked' : ''}" data-wl-locked=${locked ? 'true' : nothing}>${repeat(list.listed, (w) => w.key, (w, i) => row(list, w, i, locked))}</ol>

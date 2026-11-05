@@ -45,7 +45,9 @@ export function formOf(id: number, data: Data): SkillForm {
 }
 
 /** Sources sharing a key come from one event, of which one option is taken per run. */
-export interface EventRef { key: string; label: string; option: string; optionIndex: number }
+/** `defaultIndex` is the option the run takes when no listed skill is on another; absent, it is the top option, 0. */
+export interface EventRef { key: string; label: string; option: string; optionIndex: number; defaultIndex?: number }
+export const defaultOption = (e: EventRef) => e.defaultIndex ?? 0;
 /** A stage of a card's chain (or a Pal card's dates): reaching stage k means every earlier stage happened too. */
 export interface ChainRef { key: string; stage: number; pReach: number }
 
@@ -383,9 +385,12 @@ function computeScenarioOptions(data: Data, settings: Settings, present: Set<num
   for (const ev of data.scenarioEvents) {
     if (ev.scenarioId !== settings.scenarioId) continue;
     const key = `scenario:${ev.eventId}`;
+    // An unsteered run takes the unaffiliated option (docs/umamusume/refs/independent-training-prioritized-skills.md).
+    const unaffiliated = ev.choices.findIndex((ch) => ch.linkedCharId == null);
+    const defaults = unaffiliated >= 0 ? { defaultIndex: unaffiliated } : {};
     ev.choices.forEach((ch, optionIndex) => {
       if (ch.linkedCharId == null) {
-        if (ch.skill != null) out.push({ skillId: ch.skill, event: { key, label: SCENARIO_EVENT_LABEL, option: 'unaffiliated option', optionIndex }, detail: 'Scenario skill event, unaffiliated option' });
+        if (ch.skill != null) out.push({ skillId: ch.skill, event: { key, label: SCENARIO_EVENT_LABEL, option: 'unaffiliated option', optionIndex, ...defaults }, detail: 'Scenario skill event, unaffiliated option' });
         return;
       }
       const here = present.has(ch.linkedCharId);
@@ -393,7 +398,7 @@ function computeScenarioOptions(data: Data, settings: Settings, present: Set<num
       if (skill == null) return;
       const name = charName(ch.linkedCharId);
       out.push({ skillId: skill, linkedCharId: ch.linkedCharId,
-        event: { key, label: SCENARIO_EVENT_LABEL, option: here ? `${name}'s option, gold version because she is in the run` : `${name}'s option, normal version because she is not in the run`, optionIndex },
+        event: { key, label: SCENARIO_EVENT_LABEL, option: here ? `${name}'s option, gold version because she is in the run` : `${name}'s option, normal version because she is not in the run`, optionIndex, ...defaults },
         detail: here ? `Scenario skill event, ${name}'s option (she is in the run)` : `Scenario skill event, ${name}'s option (she is not in the run)` });
     });
   }
@@ -437,10 +442,11 @@ function bestOption(ss: EventSource[], settings: Settings, target?: Target): Eve
 }
 
 /**
- * One event yields one option. A blocker listed above every target on the event wins it; otherwise the target first in
- * `priority` takes the option worth most to it. An event no listed skill is offered by takes its top option
- * (docs/umamusume/refs/independent-training-prioritized-skills.md). A null `priority` lists every target; an empty one steers
- * nothing.
+ * One event yields one option. A listed skill steers the run to the option that gives it, so the event goes to the
+ * highest listed skill it offers: a blocker's, or a target's, which takes the best of the options giving that skill.
+ * An event no listed skill is offered by takes its default option, usually the top one
+ * (docs/umamusume/refs/independent-training-prioritized-skills.md). A null `priority` lists every target; an empty one
+ * steers nothing.
  */
 export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number[] | null, blockers: Blocker[], settings: Settings, targets: Target[]): { map: Map<number, SkillSource[]>; conflicts: Conflict[] } {
   const byEvent = new Map<string, Set<number>>();
@@ -454,13 +460,18 @@ export function pruneConflicts(map: Map<number, SkillSource[]>, priority: number
   const conflicts: Conflict[] = [];
   for (const [key, tids] of byEvent) {
     const sourcesFor = (tid: number) => (map.get(tid) ?? []).filter((s): s is EventSource => isEventSource(s) && s.event.key === key);
-    const ordered = [...tids].sort((a, b) => rank(a) - rank(b) || a - b);
+    const rankAt = (tid: number) => Math.min(Infinity, ...sourcesFor(tid).map((s) => rank(s.skillId)));
+    const ordered = [...tids].sort((a, b) => rankAt(a) - rankAt(b) || a - b);
     const top = ordered[0]!;
     const label = sourcesFor(top)[0]?.event.label ?? key;
-    const blocker = blockers.filter((b) => b.event.key === key && rank(b.skillId) < rank(top)).sort((a, b) => rank(a.skillId) - rank(b.skillId))[0];
-    let chosen = 0, takenOption: ConflictOption | null = null;
+    const blocker = blockers.filter((b) => b.event.key === key && rank(b.skillId) < rankAt(top)).sort((a, b) => rank(a.skillId) - rank(b.skillId))[0];
+    let chosen = defaultOption(sourcesFor(top)[0]!.event), takenOption: ConflictOption | null = null;
     if (blocker) { chosen = blocker.event.optionIndex; takenOption = { skillId: blocker.skillId, option: blocker.event.option, target: null }; }
-    else if (everyoneListed || rank(top) < Infinity) { const best = bestOption(sourcesFor(top), settings, targets.find((t) => t.id === top)); chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: top }; }
+    else if (everyoneListed || rankAt(top) < Infinity) {
+      const steered = everyoneListed ? sourcesFor(top) : sourcesFor(top).filter((s) => rank(s.skillId) === rankAt(top));
+      const best = bestOption(steered, settings, targets.find((t) => t.id === top));
+      chosen = best.event.optionIndex; takenOption = { skillId: best.skillId, option: best.event.option, target: top };
+    }
     taken.set(key, chosen);
     const dropped = ordered.filter((tid) => !sourcesFor(tid).some((s) => s.event.optionIndex === chosen)).map((tid) => { const s = bestSource(sourcesFor(tid)); return { skillId: s.skillId, option: s.event.option, target: tid }; });
     if (takenOption && (blocker || dropped.length)) conflicts.push({ eventKey: key, label: blocker?.event.label || label, taken: takenOption, dropped });

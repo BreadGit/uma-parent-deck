@@ -29,10 +29,10 @@ For current behavior, inspect the [model](../src/model/) and [UI](../src/ui/).
 - **Choice-gated**: a source that only happens if the run picks that option at an event. Only one
   option per event can be taken.
 - **Prioritized skills**: the ordered list to enter in independent training. The run takes each
-  event's first option unless a listed skill is on another, so the list holds only skills that move it
-  off a first option: targets in parent-goal order, then the extras the user added. **Extras** are
-  offered skills outside the target families; the deck search does not consider them. A target is not
-  listed when it needs no event choice, sits on a first option, comes with an option a higher target
+  event's default option (the top one; the scenario skill event's unaffiliated option) unless a listed
+  skill is on another, so the list holds only skills that move it off a default option: targets in
+  parent-goal order, then the extras the user added. **Extras** are offered skills outside the target families; the deck search does not consider them. A target is not
+  listed when it needs no event choice, sits on a default option, comes with an option a higher target
   takes, or loses every event to a higher target. The tool assumes list order resolves event-choice
   conflicts; that is not a confirmed game rule.
 - **Choice conflict**: targets or extras competing for one event's single option.
