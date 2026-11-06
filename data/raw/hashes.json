@@ -1,9 +1,9 @@
 {
- "support-cards": "5287792b",
+ "support-cards": "a0eae3af",
  "support_effects": "ca447e53",
- "skills": "11a2e552",
- "character-cards": "897e63ea",
- "characters": "690aa811",
+ "skills": "1e76ad11",
+ "character-cards": "0e9f93ec",
+ "characters": "72be98b8",
  "races": "51478888",
  "ura-races": "5d8f7b78",
  "scenarios": "bbd1d764",
@@ -18,7 +18,7 @@
  "dict/evrew": "fbc86c82",
  "status-effects": "708dc075",
  "training_events/scenario": "a4d26228",
- "ura-objectives": "ead4bbfe",
+ "ura-objectives": "6a950ace",
  "training_events/char": "42c0499d",
- "en/missions/limited": "47b5ec6e"
+ "en/missions/limited": "967c7eaf"
 }

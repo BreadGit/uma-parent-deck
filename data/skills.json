@@ -1919,10 +1919,12 @@
    "med",
    "lng"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   106501
+  ],
   "eventChars": [],
   "desc": "Moderately crank the velocity when vibing toward the front sometime upon approaching late-race. If it's like a sprint or mile race or smth, moderately crank the velocity CONTINUOUSLY!"
  },
@@ -3997,7 +3999,7 @@
    "l_1",
    "med"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -4082,7 +4084,7 @@
    "l_1",
    "nac"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -7780,6 +7782,7 @@
    20038,
    20043,
    20045,
+   20055,
    10001,
    10029,
    10031,
@@ -7787,7 +7790,8 @@
    10039,
    10066,
    10067,
-   10071
+   10071,
+   10087
   ],
   "eventCards": [
    30027,
@@ -8806,6 +8810,7 @@
    30057,
    20021,
    20023,
+   20055,
    10022,
    10060,
    10083
@@ -9038,6 +9043,7 @@
    106002,
    106401,
    107801,
+   106501,
    105201
   ],
   "eventChars": [
@@ -9251,6 +9257,7 @@
   "eventCards": [
    30031,
    30070,
+   30130,
    20011,
    10034
   ],
@@ -10570,11 +10577,13 @@
    30121,
    20009,
    20050,
+   20055,
    10002,
    10004,
    10032,
    10051,
-   10054
+   10054,
+   10087
   ],
   "eventCards": [
    30022,
@@ -11743,7 +11752,8 @@
    101002
   ],
   "eventChars": [
-   108701
+   108701,
+   106501
   ],
   "desc": "Slightly widen the margin when positioned toward the front upon approaching mid-race. (Mile)"
  },
@@ -11864,6 +11874,7 @@
    30082,
    30094,
    30124,
+   30130,
    30145,
    20027,
    20039,
@@ -13140,9 +13151,11 @@
    20029,
    20042,
    20044,
+   20055,
    10018,
    10061,
-   10073
+   10073,
+   10087
   ],
   "eventCards": [
    30020,
@@ -13226,6 +13239,7 @@
    30015,
    30040,
    30083,
+   30130,
    20042,
    20051,
    10018,
@@ -13367,6 +13381,7 @@
    30015,
    30040,
    30083,
+   30130,
    20042,
    20051,
    10018,
@@ -13374,7 +13389,8 @@
    10080
   ],
   "eventCards": [
-   30018
+   30018,
+   20055
   ],
   "innateChars": [
    104101
@@ -13436,7 +13452,8 @@
    10073
   ],
   "eventCards": [
-   30068
+   30068,
+   20055
   ],
   "innateChars": [
    102801,
@@ -13497,6 +13514,7 @@
   "eventCards": [
    30068,
    20044,
+   20055,
    10073
   ],
   "innateChars": [
@@ -13550,8 +13568,10 @@
   "hintCards": [
    30020,
    30114,
+   20055,
    10042,
-   10079
+   10079,
+   10087
   ],
   "eventCards": [
    30056,
@@ -13619,6 +13639,7 @@
   "innateChars": [
    101001,
    110001,
+   106501,
    100801
   ],
   "eventChars": [
@@ -13717,6 +13738,7 @@
    101901,
    104201,
    101902,
+   106501,
    106201
   ],
   "desc": "Slightly increase velocity on a corner. (Mile)"
@@ -13766,7 +13788,8 @@
    100401,
    101001,
    102202,
-   107801
+   107801,
+   106501
   ],
   "eventChars": [],
   "desc": "Increase passing ability when positioned toward the front mid-race. (Mile)"
@@ -13814,7 +13837,8 @@
    100501,
    101001,
    102202,
-   107801
+   107801,
+   106501
   ],
   "eventChars": [
    105101,
@@ -13973,6 +13997,7 @@
    101902,
    107801,
    100902,
+   106501,
    100901
   ],
   "desc": "Slightly increase passing ability. (Mile)"
@@ -14033,7 +14058,8 @@
    103101
   ],
   "eventChars": [
-   102602
+   102602,
+   106501
   ],
   "desc": "Slightly steal velocity from runners behind when positioned toward the front mid-race. (Mile)"
  },
@@ -15377,7 +15403,7 @@
    "run",
    "cor"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -15426,7 +15452,9 @@
   "unreleasedEn": false,
   "hintCards": [
    30028,
-   10055
+   20055,
+   10055,
+   10087
   ],
   "eventCards": [
    30008,
@@ -15648,7 +15676,9 @@
   "unreleasedEn": false,
   "hintCards": [
    30017,
-   10039
+   20055,
+   10039,
+   10087
   ],
   "eventCards": [
    30002
@@ -15703,6 +15733,7 @@
    30102,
    30109,
    30113,
+   30130,
    30146,
    20033,
    20035,
@@ -16405,7 +16436,7 @@
    "btw",
    "cor"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -17339,6 +17370,7 @@
    30113,
    30119,
    30126,
+   30130,
    20003,
    20028,
    20034,
@@ -17746,10 +17778,12 @@
    20004,
    20048,
    20050,
+   20055,
    10005,
    10006,
    10013,
-   10025
+   10025,
+   10087
   ],
   "eventCards": [
    30017,
@@ -18035,7 +18069,8 @@
   ],
   "innateChars": [
    104001,
-   103101
+   103101,
+   106501
   ],
   "eventChars": [
    104401
@@ -18442,7 +18477,8 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [
-   30093
+   30093,
+   30130
   ],
   "innateChars": [
    102202,
@@ -18781,8 +18817,11 @@
   "eventCards": [
    30083,
    30095,
+   30130,
    20051,
-   10080
+   20055,
+   10080,
+   10087
   ],
   "innateChars": [
    104201,
@@ -18813,7 +18852,8 @@
   "innateChars": [],
   "eventChars": [
    100201,
-   106401
+   106401,
+   106501
   ],
   "desc": "Attempt to gain an especially large lead and keep it until the finish. (Front Runner)"
  },
@@ -19365,7 +19405,7 @@
    "slo",
    "nac"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
@@ -20562,6 +20602,7 @@
   "unreleasedEn": false,
   "hintCards": [
    30101,
+   30130,
    20051,
    10080
   ],
@@ -20666,7 +20707,9 @@
    30112,
    30116
   ],
-  "eventCards": [],
+  "eventCards": [
+   20055
+  ],
   "innateChars": [],
   "eventChars": [],
   "desc": "Greatly expend endurance and moderately increase velocity in the early part of mid-race. (Front Runner)"
@@ -21211,7 +21254,9 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   106501
+  ],
   "eventChars": [],
   "desc": "Increase velocity when positioned toward the front upon approaching late-race. (Mile)"
  },
@@ -21233,7 +21278,9 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   106501
+  ],
   "eventChars": [
    101001,
    101002
@@ -21252,11 +21299,13 @@
   "tags": [
    "nac"
   ],
-  "unreleasedEn": true,
+  "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
-  "eventChars": [],
+  "eventChars": [
+   106501
+  ],
   "desc": "Press coverage goes to the skill user's head, moderately increasing chance of rushing."
  },
  {
@@ -41171,7 +41220,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   106501
+  ],
   "eventChars": [],
   "desc": "Increase velocity for a medium duration when positioned toward the front mid-race. (Mile)"
  },
@@ -41191,7 +41242,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   106501
+  ],
   "eventChars": [],
   "desc": "Increase velocity for a medium duration when positioned toward the front upon approaching late-race. (Mile)"
  },

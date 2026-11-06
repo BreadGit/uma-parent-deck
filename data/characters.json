@@ -107162,6 +107162,1275 @@
   ]
  },
  {
+  "cardId": 106501,
+  "charId": 1065,
+  "name": "Daitaku Helios",
+  "title": "[Fun☆Fun☆Party Night]",
+  "rarity": 3,
+  "releaseEn": "2026-11-05",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "B",
+   "mile": "A",
+   "medium": "B",
+   "long": "E",
+   "front": "A",
+   "pace": "A",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   15,
+   0,
+   15,
+   0,
+   0
+  ],
+  "baseStats": [
+   100,
+   89,
+   97,
+   87,
+   77
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   111,
+   99,
+   108,
+   97,
+   85
+  ],
+  "fiveStarStats": [
+   122,
+   108,
+   119,
+   106,
+   95
+  ],
+  "innateSkills": [
+   202502,
+   200302,
+   201052
+  ],
+  "awakeningSkills": [
+   201032,
+   201051,
+   201651,
+   202501
+  ],
+  "eventSkills": [
+   201082,
+   201042,
+   200682,
+   201072,
+   202511,
+   202051
+  ],
+  "uniqueSkills": [
+   100651
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "Two Little Cuties ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "Our Lives Are a Sprint",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "Literally Clueless!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "Nature's Got Nothin' on You! ♪",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "Up to Eleven",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "My Sun",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Mad Stannin' at the Sprinters S.!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "Say It Ain't So, Fave...",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "po",
+         "v": "-5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "Living Up to the Hype",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-5"
+        },
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+50"
+        },
+        {
+         "t": "sre",
+         "d": 202511
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "What an Upset!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-5"
+        },
+        {
+         "t": "rs",
+         "v": "+20",
+         "d": 1
+        },
+        {
+         "t": "pt",
+         "v": "+50"
+        },
+        {
+         "t": "sre",
+         "d": 202511
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "Defying Expectations",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-5"
+        },
+        {
+         "t": "rs",
+         "v": "+20",
+         "d": 1
+        },
+        {
+         "t": "pt",
+         "v": "+50"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "Fruit Sandwich Party Day ★",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201042
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 13,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 14,
+    "name": "Besties Bringin' the Hype ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 15,
+    "name": "Where's the Party?!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 16,
+    "name": "I'll Die Without My Phone",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 17,
+    "name": "Run Awaaaaay! ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 18,
+    "name": "No Gettin' Off This Ride ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "Gotta Wait for Friends",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "Crash the Party, not the Vibes! ♪",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "We're Bringin' the Heat!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "in",
+         "v": "-5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201082
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "We're Goin' All In ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "All's Well That Ends Well!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "Bring the Party to the Forest, People!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "We're Literally The Best!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "Mad Myths, My Star Watcher ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "Teensy ★ Toothache!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "Party-Loving Ruler of the Mile ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+30"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200682
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201072
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1011,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1011,
+        "year": 3
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1018,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1018,
+        "year": 3
+       }
+      ]
+     },
+     {
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 2,
+    "name": "Reading the Paper",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "+1"
+        },
+        {
+         "t": "sg",
+         "d": 202511
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "pop",
+       1
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 3,
+    "name": "After the Arima Kinen: It's a Miracle",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rr"
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "sc",
+         "d": [
+          "use_strategy",
+          1
+         ]
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202051
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1023,
+        "year": 3
+       }
+      ]
+     },
+     {
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 4,
+    "name": "After the Arima Kinen: Our Miracle",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rr"
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "sc",
+         "d": [
+          "race_w2",
+          101101
+         ]
+        },
+        {
+         "t": "sc",
+         "d": [
+          "race_w2",
+          101801
+         ]
+        },
+        {
+         "t": "sc",
+         "d": [
+          "use_strategy",
+          1
+         ]
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202051
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "lose_to_rival",
+       "102301|3",
+       1064
+      ]
+     },
+     {
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 5,
+    "name": "After the Arima Kinen: A New Miracle",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "rr"
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "sc",
+         "d": [
+          "race_w2",
+          101101
+         ]
+        },
+        {
+         "t": "sc",
+         "d": [
+          "race_w2",
+          101801
+         ]
+        },
+        {
+         "t": "sc",
+         "d": [
+          "use_strategy",
+          1
+         ]
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 202051
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "rival_draw",
+       "102301|3",
+       1064
+      ]
+     },
+     {
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Officially Vibin'!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "T-Rain ☆ Endless Fever ☆",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+20"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 7,
+    "name": "Express Yourself!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9407,
+      "name": "Junior Make Debut",
+      "distance": 1400,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 22,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1021,
+      "name": "Hanshin Juvenile Fillies",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 1000,
+      "fansGain": 6500
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 4050,
+      "name": "Aoi Stakes",
+      "distance": 1200,
+      "surface": "turf",
+      "grade": 300,
+      "fansNeeded": 1250,
+      "fansGain": 3800
+     }
+    ]
+   },
+   {
+    "slot": 45,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1018,
+      "name": "Mile Championship",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 15000,
+      "fansGain": 11000
+     }
+    ]
+   },
+   {
+    "slot": 53,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1002,
+      "name": "Takamatsunomiya Kinen",
+      "distance": 1200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 15000,
+      "fansGain": 13000
+     }
+    ]
+   },
+   {
+    "slot": 55,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 2014,
+      "name": "Milers Cup",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 200,
+      "fansNeeded": 1900,
+      "fansGain": 5900
+     }
+    ]
+   },
+   {
+    "slot": 58,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1011,
+      "name": "Yasuda Kinen",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 15000,
+      "fansGain": 13000
+     }
+    ]
+   },
+   {
+    "slot": 69,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1018,
+      "name": "Mile Championship",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 15000,
+      "fansGain": 11000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   }
+  ]
+ },
+ {
   "cardId": 106701,
   "charId": 1067,
   "name": "Satono Diamond",

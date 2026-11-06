@@ -1,6 +1,107 @@
 {
- "fetchedAt": "2026-11-04T02:59:00.817Z",
+ "fetchedAt": "2026-11-06T03:22:42.525Z",
  "events": [
+  {
+   "id": 278,
+   "name": "G1 Celebration Missions: February Stakes",
+   "start": 1795532400000,
+   "end": 1796137199000,
+   "missions": [
+    {
+     "id": "1001471",
+     "text": "February S.: Complete a Career playthrough having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1795532400000,
+     "end": 1796137199000
+    },
+    {
+     "id": "1001472",
+     "text": "February S.: Complete 2 Career playthroughs having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1795532400000,
+     "end": 1796137199000
+    },
+    {
+     "id": "1001473",
+     "text": "February S.: Win the Tokai Stakes in Career",
+     "raceInstanceIds": [
+      200201
+     ],
+     "start": 1795532400000,
+     "end": 1796137199000
+    },
+    {
+     "id": "1001474",
+     "text": "February S.: Win the Negishi Stakes in Career",
+     "raceInstanceIds": [
+      300801
+     ],
+     "start": 1795532400000,
+     "end": 1796137199000
+    },
+    {
+     "id": "1001475",
+     "text": "February S.: Win the February Stakes in Career",
+     "raceInstanceIds": [
+      100101
+     ],
+     "start": 1795532400000,
+     "end": 1796137199000
+    },
+    {
+     "id": "1001476",
+     "text": "February S.: Complete all special missions",
+     "raceInstanceIds": [],
+     "start": 1795532400000,
+     "end": 1796137199000
+    }
+   ]
+  },
+  {
+   "id": 277,
+   "name": "G1 Celebration Missions: Kawasaki Kinen",
+   "start": 1795039200000,
+   "end": 1795618799000,
+   "missions": [
+    {
+     "id": "1001461",
+     "text": "Kawasaki Kinen: Complete a Career playthrough having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1795039200000,
+     "end": 1795618799000
+    },
+    {
+     "id": "1001462",
+     "text": "Kawasaki Kinen: Complete 2 Career playthroughs having cleared all Career goals",
+     "raceInstanceIds": [],
+     "start": 1795039200000,
+     "end": 1795618799000
+    },
+    {
+     "id": "1001463",
+     "text": "Kawasaki Kinen: Win 10 G1 races in Career",
+     "raceInstanceIds": [],
+     "start": 1795039200000,
+     "end": 1795618799000
+    },
+    {
+     "id": "1001464",
+     "text": "Kawasaki Kinen: Win the Kawasaki Kinen in Career",
+     "raceInstanceIds": [
+      110701
+     ],
+     "start": 1795039200000,
+     "end": 1795618799000
+    },
+    {
+     "id": "1001465",
+     "text": "Kawasaki Kinen: Complete all special missions",
+     "raceInstanceIds": [],
+     "start": 1795039200000,
+     "end": 1795618799000
+    }
+   ]
+  },
   {
    "id": 209,
    "name": "Fall G1 Celebration Missions, Part 3: Tokyo Daishoten",
