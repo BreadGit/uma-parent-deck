@@ -68,10 +68,13 @@ already running for that worktree, or start one on the lowest free port. Before 
 belongs to the checkout you are working in: find its directory with `readlink /proc/<pid>/cwd` (the pid is
 in `ss -ltnp`). In a worktree, run `npm ci` first (a fresh worktree has no `node_modules`), start
 `npm run dev -- --port <n> --strictPort`, and pass `URL=http://localhost:<n>/` to the browser checks.
-Start the server detached from the agent session, as in
-`setsid nohup npm run dev > /tmp/uma-dev.log 2>&1 < /dev/null &`, and poll it with `curl`: agent harnesses
-stop their own background tasks after a time limit, which took the server down mid-session. Do not `pkill`
-vite, since the running server is the one the user reviews from.
+Run the server as a systemd user service so it outlives the agent session, named after the checkout
+directory:
+`systemd-run --user --unit="uma-dev-$(basename "$PWD")" --same-dir --setenv=PATH="$PATH" -p Restart=on-failure npm run dev -- --port <n> --strictPort`.
+Poll it with `curl`. Its output is in `journalctl --user -u uma-dev-<dir>`; restart it with
+`systemctl --user restart uma-dev-<dir>`. If the unit name is taken by a stopped or failed unit, run
+`systemctl --user reset-failed uma-dev-<dir>` first. Do not `pkill` vite, since the running server is the
+one the user reviews from.
 
 The preview browser tools (`preview_open`, `preview_navigate`) cannot reach `localhost`. Navigate with
 `{kind: 'environment-port', port: <n>}`, which resolves to the LAN address, and confirm the returned
