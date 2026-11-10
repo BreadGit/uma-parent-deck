@@ -4002,7 +4002,9 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102702
+  ],
   "eventChars": [],
   "desc": "Increase velocity for a moderate duration when 2nd or worse and within 4 lengths of the lead on a downhill just before late-race. If the race is medium, also very slightly increase acceleration."
  },
@@ -4087,7 +4089,9 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103102
+  ],
   "eventChars": [],
   "desc": "Moderately increase velocity continuously when positioned toward the front in the early part of mid-race. Oh, and have a dollop of moderate endurance recovery too!"
  },
@@ -6827,6 +6831,7 @@
    30074,
    30089,
    30108,
+   30131,
    20015,
    10006,
    10043,
@@ -7817,6 +7822,7 @@
    102601,
    102602,
    107401,
+   102702,
    101401,
    102701
   ],
@@ -8363,6 +8369,7 @@
    30041,
    30116,
    30125,
+   30133,
    20018,
    10011,
    10046,
@@ -8374,6 +8381,7 @@
    30007,
    30040,
    30102,
+   30133,
    20033,
    10011
   ],
@@ -8497,6 +8505,7 @@
    30048,
    30075,
    30097,
+   30132,
    20008,
    20010,
    20049,
@@ -8966,7 +8975,9 @@
    10009,
    10038
   ],
-  "innateChars": [],
+  "innateChars": [
+   102702
+  ],
   "eventChars": [
    105301
   ],
@@ -9629,6 +9640,7 @@
   "eventCards": [
    30084,
    30105,
+   30131,
    20049
   ],
   "innateChars": [
@@ -9739,7 +9751,8 @@
   ],
   "innateChars": [
    100201,
-   102602
+   102602,
+   103102
   ],
   "eventChars": [],
   "desc": "Decrease time lost to slow starts."
@@ -9792,7 +9805,8 @@
    103701,
    102602,
    106801,
-   101303
+   101303,
+   103102
   ],
   "eventChars": [],
   "desc": "Slightly decrease time lost to slow starts."
@@ -10082,7 +10096,9 @@
   ],
   "unreleasedEn": false,
   "hintCards": [],
-  "eventCards": [],
+  "eventCards": [
+   30131
+  ],
   "innateChars": [
    105801,
    107401,
@@ -10110,6 +10126,7 @@
   "hintCards": [
    30030,
    30103,
+   30131,
    20004,
    20029,
    10025,
@@ -10272,6 +10289,7 @@
    30108,
    30111,
    30127,
+   30132,
    30146,
    20007,
    20028,
@@ -10611,7 +10629,8 @@
    101302,
    102602,
    103101,
-   101303
+   101303,
+   103102
   ],
   "desc": "Slightly increase ability to go to the front early-race. (Front Runner)"
  },
@@ -10743,6 +10762,7 @@
    30062,
    30076,
    30115,
+   30133,
    10002,
    10064
   ],
@@ -11120,6 +11140,7 @@
    30088,
    30099,
    30124,
+   30132,
    20035,
    10009,
    10016,
@@ -11210,6 +11231,7 @@
    10082
   ],
   "eventCards": [
+   30132,
    20018
   ],
   "innateChars": [
@@ -11231,6 +11253,7 @@
    103502,
    104901,
    100802,
+   102702,
    100801,
    102401,
    102701,
@@ -11573,6 +11596,7 @@
    30068,
    30083,
    30095,
+   30132,
    20029,
    20042,
    20044,
@@ -11583,6 +11607,7 @@
   "eventCards": [
    30040,
    30114,
+   30133,
    10064
   ],
   "innateChars": [
@@ -12086,6 +12111,7 @@
    105802,
    108701,
    102102,
+   102702,
    101101
   ],
   "desc": "Slightly increase positioning ability when positioned toward the front mid-race. (Medium)"
@@ -12593,7 +12619,9 @@
    10014,
    10027
   ],
-  "eventCards": [],
+  "eventCards": [
+   30132
+  ],
   "innateChars": [],
   "eventChars": [
    103801,
@@ -13159,6 +13187,7 @@
   ],
   "eventCards": [
    30020,
+   30132,
    20051,
    10042
   ],
@@ -13240,6 +13269,7 @@
    30040,
    30083,
    30130,
+   30133,
    20042,
    20051,
    10018,
@@ -13355,7 +13385,8 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [
-   30020
+   30020,
+   30133
   ],
   "innateChars": [],
   "eventChars": [],
@@ -13382,6 +13413,7 @@
    30040,
    30083,
    30130,
+   30133,
    20042,
    20051,
    10018,
@@ -13446,6 +13478,7 @@
    30020,
    30040,
    30068,
+   30133,
    20044,
    10042,
    10064,
@@ -14055,7 +14088,8 @@
   "eventCards": [],
   "innateChars": [
    100402,
-   103101
+   103101,
+   103102
   ],
   "eventChars": [
    102602,
@@ -14328,6 +14362,7 @@
    109801,
    100802,
    104701,
+   102702,
    103201
   ],
   "eventChars": [
@@ -14760,6 +14795,7 @@
    30110,
    30118,
    30123,
+   30131,
    20008,
    10031,
    10072,
@@ -15161,6 +15197,7 @@
    30110,
    30125,
    30129,
+   30131,
    20008,
    10031,
    10076,
@@ -15297,7 +15334,8 @@
   "eventChars": [
    102001,
    102002,
-   103101
+   103101,
+   103102
   ],
   "desc": "Slightly increase velocity on a straight. (Front Runner)"
  },
@@ -15380,7 +15418,8 @@
   ],
   "innateChars": [
    102601,
-   104602
+   104602,
+   103102
   ],
   "eventChars": [
    100902
@@ -15406,7 +15445,9 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103102
+  ],
   "eventChars": [],
   "desc": "Increase velocity on a corner. (Front Runner)"
  },
@@ -15464,7 +15505,8 @@
    106802
   ],
   "eventChars": [
-   103101
+   103101,
+   103102
   ],
   "desc": "Moderately avoid becoming surrounded early-race. (Front Runner)"
  },
@@ -15857,7 +15899,8 @@
    103802,
    101002,
    102901,
-   104701
+   104701,
+   102702
   ],
   "eventChars": [
    101702,
@@ -15972,7 +16015,8 @@
    103001,
    102201,
    105101,
-   102901
+   102901,
+   102702
   ],
   "eventChars": [],
   "desc": "Moderately improve running on a downhill. (Pace Chaser)"
@@ -16010,7 +16054,8 @@
    101702,
    102201,
    105101,
-   102901
+   102901,
+   102702
   ],
   "eventChars": [
    102201,
@@ -16071,6 +16116,7 @@
    30040,
    30044,
    30069,
+   30133,
    30146,
    20043,
    10001,
@@ -16392,6 +16438,7 @@
    30099,
    30118,
    30122,
+   30132,
    20013,
    20016,
    10038,
@@ -16438,7 +16485,9 @@
   ],
   "unreleasedEn": false,
   "hintCards": [],
-  "eventCards": [],
+  "eventCards": [
+   30132
+  ],
   "innateChars": [],
   "eventChars": [],
   "desc": "Increase velocity on a corner. (Late Surger)"
@@ -17314,7 +17363,8 @@
   "innateChars": [
    102001,
    104601,
-   102602
+   102602,
+   103102
   ],
   "eventChars": [
    106401,
@@ -17624,7 +17674,9 @@
    100602,
    105601
   ],
-  "eventChars": [],
+  "eventChars": [
+   103102
+  ],
   "desc": "Slightly gain energy with 777m remaining."
  },
  {
@@ -17792,7 +17844,8 @@
   "innateChars": [
    102602,
    108701,
-   106802
+   106802,
+   103102
   ],
   "eventChars": [],
   "desc": "Slightly increase acceleration after activating many skills early-race."
@@ -17842,6 +17895,7 @@
    30097,
    30113,
    30120,
+   30131,
    20015,
    20032,
    20049,
@@ -18136,7 +18190,8 @@
   "eventChars": [
    107201,
    103101,
-   101303
+   101303,
+   103102
   ],
   "desc": "Slightly increase velocity when followed by another runner directly behind for a long time."
  },
@@ -18409,6 +18464,7 @@
    30090,
    30108,
    30127,
+   30131,
    30146,
    10067,
    10077
@@ -18435,6 +18491,7 @@
    105802,
    103402,
    100802,
+   102702,
    100801,
    106201
   ],
@@ -18981,6 +19038,7 @@
   "unreleasedEn": false,
   "hintCards": [
    30122,
+   30131,
    30145,
    10084
   ],
@@ -19099,6 +19157,7 @@
   ],
   "unreleasedEn": false,
   "hintCards": [
+   30131,
    30145,
    10084
   ],
@@ -19220,6 +19279,7 @@
    30114,
    30118,
    30124,
+   30132,
    20048,
    10079,
    10082
@@ -19408,7 +19468,9 @@
   "unreleasedEn": false,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102702
+  ],
   "eventChars": [],
   "desc": "Increase velocity on a downhill."
  },
@@ -19431,7 +19493,8 @@
   "hintCards": [],
   "eventCards": [],
   "innateChars": [
-   103502
+   103502,
+   102702
   ],
   "eventChars": [
    105902,
@@ -20758,7 +20821,9 @@
    "mil"
   ],
   "unreleasedEn": false,
-  "hintCards": [],
+  "hintCards": [
+   30132
+  ],
   "eventCards": [],
   "innateChars": [],
   "eventChars": [],
@@ -20867,6 +20932,7 @@
   "hintCards": [
    30118,
    30125,
+   30131,
    10082,
    10085
   ],
@@ -21077,7 +21143,8 @@
   ],
   "eventChars": [
    106801,
-   106802
+   106802,
+   103102
   ],
   "desc": "Moderately increase velocity when leading on the final straight and there's another runner within 1 length behind. (Front Runner)"
  },
@@ -36781,7 +36848,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102702
+  ],
   "eventChars": [],
   "desc": "Increase acceleration on a downhill. (Pace Chaser)"
  },
@@ -36801,7 +36870,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102702
+  ],
   "eventChars": [],
   "desc": "Greatly increase velocity on a downhill."
  },
@@ -36821,7 +36892,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   102702
+  ],
   "eventChars": [],
   "desc": "At a random point on a random downhill, your speed will increase"
  },
@@ -37248,7 +37321,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103102
+  ],
   "eventChars": [],
   "desc": "Decrease time lost to slow starts and very slightly increase all attributes."
  },
@@ -37268,7 +37343,9 @@
   "unreleasedEn": true,
   "hintCards": [],
   "eventCards": [],
-  "innateChars": [],
+  "innateChars": [
+   103102
+  ],
   "eventChars": [],
   "desc": "Increase velocity and slightly increase acceleration on a corner. (Front Runner)"
  },

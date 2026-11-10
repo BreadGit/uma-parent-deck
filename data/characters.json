@@ -56530,6 +56530,944 @@
   ]
  },
  {
+  "cardId": 102702,
+  "charId": 1027,
+  "name": "Mejiro Ryan",
+  "title": "[Marguerite Latte]",
+  "rarity": 3,
+  "releaseEn": "2026-11-09",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "E",
+   "mile": "C",
+   "medium": "A",
+   "long": "B",
+   "front": "F",
+   "pace": "A",
+   "late": "A",
+   "end": "F"
+  },
+  "growth": [
+   20,
+   0,
+   0,
+   0,
+   10
+  ],
+  "baseStats": [
+   102,
+   74,
+   100,
+   90,
+   84
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   113,
+   82,
+   111,
+   101,
+   93
+  ],
+  "fiveStarStats": [
+   125,
+   91,
+   122,
+   111,
+   101
+  ],
+  "innateSkills": [
+   202172,
+   201342,
+   200292
+  ],
+  "awakeningSkills": [
+   201112,
+   201341,
+   201322,
+   202171
+  ],
+  "eventSkills": [
+   200162,
+   200722,
+   201702,
+   200602
+  ],
+  "uniqueSkills": [
+   110271
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "McQueen's Dilemma",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "Catch Me at Nakayama ♪",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "Leave Our Cares to the Wind",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "In Pursuit of Her Rival",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "Swole but Sore",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "-5"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "Muscles Can Do Anything!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "po",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 10
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "st",
+         "v": "+20"
+        },
+        {
+         "t": "po",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 11
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "Mejiro Maker",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "If Only I Could",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "A Glum Gut",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "New Heights of Muscle",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "Training for... Love Stories?!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "Muscle Jealousy",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "The Pony Girl and the Wolf Prince",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+5"
+        },
+        {
+         "t": "sp",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "Real Gains",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 200162
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "Rest Day",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "Nerve-Racking Rest Time",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "Flush with Feelings",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "With Relaxation and Trust Comes...",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "Ryan to the Rescue!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "The Little Fans of the Umadol",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "A Fresh Wind",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+15"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200602
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "win_all",
+      "races": [
+       {
+        "raceId": 1005,
+        "year": 2
+       },
+       {
+        "raceId": 1010,
+        "year": 2
+       },
+       {
+        "raceId": 1015,
+        "year": 2
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 13,
+    "name": "Cupid's Chocolate",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 14,
+    "name": "White Day Tingles",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200722
+        }
+       ],
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Lovestruck Noble Competition",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 8,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201702
+        },
+        {
+         "t": "se",
+         "d": 8,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9250,
+      "name": "Junior Make Debut",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 24,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 4002,
+      "name": "Junior Cup",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 400,
+      "fansNeeded": 350,
+      "fansGain": 2000
+     }
+    ]
+   },
+   {
+    "slot": 30,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1005,
+      "name": "Satsuki Sho",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 4500,
+      "fansGain": 11000
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1010,
+      "name": "Tokyo Yushun (Japanese Derby)",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 6000,
+      "fansGain": 20000
+     }
+    ]
+   },
+   {
+    "slot": 43,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1015,
+      "name": "Kikuka Sho",
+      "distance": 3000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 7500,
+      "fansGain": 12000
+     }
+    ]
+   },
+   {
+    "slot": 47,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 55,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1006,
+      "name": "Tenno Sho (Spring)",
+      "distance": 3200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 59,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1025,
+      "name": "Takarazuka Kinen",
+      "distance": 2200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   }
+  ]
+ },
+ {
   "cardId": 102801,
   "charId": 1028,
   "name": "Hishi Akebono",
@@ -61504,6 +62442,1033 @@
         {
          "t": "se",
          "d": 9,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "goals": [
+   {
+    "slot": 11,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 9396,
+      "name": "Junior Make Debut",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 900,
+      "fansNeeded": 0,
+      "fansGain": 700
+     }
+    ]
+   },
+   {
+    "slot": 22,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1022,
+      "name": "Asahi Hai Futurity Stakes",
+      "distance": 1600,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 1000,
+      "fansGain": 7000
+     }
+    ]
+   },
+   {
+    "slot": 30,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1005,
+      "name": "Satsuki Sho",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 4500,
+      "fansGain": 11000
+     }
+    ]
+   },
+   {
+    "slot": 33,
+    "required": 5,
+    "races": [
+     {
+      "raceId": 1010,
+      "name": "Tokyo Yushun (Japanese Derby)",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 6000,
+      "fansGain": 20000
+     }
+    ]
+   },
+   {
+    "slot": 43,
+    "required": 0,
+    "races": [
+     {
+      "raceId": 1015,
+      "name": "Kikuka Sho",
+      "distance": 3000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 7500,
+      "fansGain": 12000
+     }
+    ]
+   },
+   {
+    "slot": 53,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1003,
+      "name": "Osaka Hai",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 13500
+     }
+    ]
+   },
+   {
+    "slot": 59,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1025,
+      "name": "Takarazuka Kinen",
+      "distance": 2200,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 67,
+    "required": 3,
+    "races": [
+     {
+      "raceId": 1016,
+      "name": "Tenno Sho (Autumn)",
+      "distance": 2000,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 20000,
+      "fansGain": 15000
+     }
+    ]
+   },
+   {
+    "slot": 69,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1019,
+      "name": "Japan Cup",
+      "distance": 2400,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   },
+   {
+    "slot": 71,
+    "required": 1,
+    "races": [
+     {
+      "raceId": 1023,
+      "name": "Arima Kinen",
+      "distance": 2500,
+      "surface": "turf",
+      "grade": 100,
+      "fansNeeded": 25000,
+      "fansGain": 30000
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "cardId": 103102,
+  "charId": 1031,
+  "name": "Ines Fujin",
+  "title": "[Melt Your Heart]",
+  "rarity": 3,
+  "releaseEn": "2026-11-09",
+  "aptitudes": {
+   "turf": "A",
+   "dirt": "G",
+   "sprint": "G",
+   "mile": "A",
+   "medium": "A",
+   "long": "C",
+   "front": "A",
+   "pace": "C",
+   "late": "G",
+   "end": "G"
+  },
+  "growth": [
+   14,
+   0,
+   0,
+   8,
+   8
+  ],
+  "baseStats": [
+   102,
+   95,
+   72,
+   85,
+   96
+  ],
+  "twoStarStats": null,
+  "threeStarStats": null,
+  "fourStarStats": [
+   114,
+   106,
+   80,
+   95,
+   105
+  ],
+  "fiveStarStats": [
+   125,
+   116,
+   88,
+   104,
+   117
+  ],
+  "innateSkills": [
+   201601,
+   200432,
+   201252
+  ],
+  "awakeningSkills": [
+   201522,
+   200431,
+   201082,
+   201253
+  ],
+  "eventSkills": [
+   201661,
+   201262,
+   202462,
+   201571,
+   200532,
+   201242
+  ],
+  "uniqueSkills": [
+   110311
+  ],
+  "events": [
+   {
+    "kind": "story",
+    "index": 1,
+    "name": "It's Like This Every Day for Her",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 2,
+    "name": "Cheering You On",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 3,
+    "name": "The Sound of Spring on the Breeze",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 4,
+    "name": "Taking the Next Step",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 5,
+    "name": "Master Trainer",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "se",
+         "d": 10,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 6,
+    "name": "I'm Gonna Keep Being Me",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 7,
+    "name": "Any Savings Will Do",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 8,
+    "name": "Front Tire Trouble",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "-10"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 9,
+    "name": "A New Challenge!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "5s",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+30"
+        },
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 10,
+    "name": "Ines Fujin's in Your Corner!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+15"
+        },
+        {
+         "t": "mo",
+         "v": "-1"
+        },
+        {
+         "t": "gu",
+         "v": "-5"
+        },
+        {
+         "t": "se",
+         "d": 2
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 1,
+    "name": "In Need of Ines!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 2,
+    "name": "The Battle of the Big Sisters!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+15"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 3,
+    "name": "It's Not Enough to Be Nice!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "in",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201661
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 4,
+    "name": "One Too Many Toughness Bars!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "st",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "st",
+         "v": "+5"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201262
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 5,
+    "name": "Taiyaki Party!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "en",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+5"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "en",
+         "v": "+30"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        },
+        {
+         "t": "sp",
+         "v": "-5"
+        },
+        {
+         "t": "po",
+         "v": "+5"
+        },
+        {
+         "t": "se",
+         "d": 4
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 1,
+    "name": "Part-Time Fair!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "in",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 2,
+    "name": "Part-Time Practice!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 3,
+    "name": "Full-Time Gratitude!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 4,
+    "name": "Not Even Big Sisters Are Perfect",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "po",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "outing",
+    "index": 5,
+    "name": "Against the Norm",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+10"
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "secret",
+    "index": 1,
+    "name": "You Are the Wind",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sc",
+         "d": [
+          "s_gn_race_wn_c",
+          1,
+          100,
+          7
+         ]
+        },
+        {
+         "t": "sp",
+         "v": "+15"
+        },
+        {
+         "t": "gu",
+         "v": "+15"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 200532
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201242
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "sc",
+         "d": [
+          "s_gn_race_wn_c",
+          1,
+          100,
+          4
+         ]
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "gu",
+         "v": "+10"
+        },
+        {
+         "t": "sk",
+         "v": "+1",
+         "d": 201242
+        },
+        {
+         "t": "nl"
+        },
+        {
+         "t": "sc",
+         "d": [
+          "s_gn_race_wn_c",
+          1,
+          100,
+          1
+         ]
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 11,
+    "name": "The Chocorizzler",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sp",
+         "v": "+20"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "mo",
+         "v": "+2"
+        },
+        {
+         "t": "sp",
+         "v": "+10"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ],
+       [
+        {
+         "t": "mo",
+         "v": "+3"
+        },
+        {
+         "t": "pt",
+         "v": "+10"
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "story",
+    "index": 12,
+    "name": "Thanks for Dinner",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "st",
+         "v": "+20"
+        },
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 202462,
+         "r": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "kind": "choice",
+    "index": 6,
+    "name": "Everyone's Big Sis!",
+    "choices": [
+     {
+      "outcomes": [
+       [
+        {
+         "t": "sk",
+         "v": "+2",
+         "d": 201571
+        },
+        {
+         "t": "se",
+         "d": 7,
+         "r": true
+        }
+       ]
+      ]
+     },
+     {
+      "outcomes": [
+       [
+        {
+         "t": "gu",
+         "v": "+20"
+        },
+        {
+         "t": "se",
+         "d": 7,
          "r": true
         }
        ]

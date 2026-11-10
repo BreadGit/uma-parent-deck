@@ -49,6 +49,9 @@
  "30128": "Gain Specialty Priority (40) when the bond gauge is at least 80",
  "30129": "Gain Training Effectiveness (10) when the bond gauge is at least 80",
  "30130": "Gain Power Bonus (2) when the bond gauge is at least 80",
+ "30131": "Gain Training Effectiveness (15) when the bond gauge is full",
+ "30132": "Gain Training Effectiveness (5%); gain additional 3% Training Effectiveness for every 4 points of maximum Energy above 100, up to (20%) at 120",
+ "30133": "Gain Wit Bonus (2) when the bond gauge is at least 80",
  "30145": "Gain Power Bonus (2) when the bond gauge is at least 80",
  "30146": "All support cards gain Initial Friendship Gauge (5)"
 }
