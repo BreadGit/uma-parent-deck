@@ -5977,6 +5977,27 @@
   "desc": "Betweener・During the Middle Leg, your stamina will recover; (Long only) then, during the second half of the race, if you're in the middle of the pack, you will get a speed boost"
  },
  {
+  "id": 120291,
+  "name": "Time to Reap, Time to Celebrate",
+  "altName": "Time to Reap, Time to Celebrate",
+  "nameJp": "今ぞ刈りどき祝祭の季",
+  "rarity": 5,
+  "cost": null,
+  "iconId": 20013,
+  "versions": [],
+  "tags": [
+   "mil",
+   "med",
+   "nac"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "If you're trying to overtake someone during the first half of the Middle Leg, your speed will increase; the effect is stronger in Mile and Medium races"
+ },
+ {
   "id": 120301,
   "name": "Clear Sky Cooking♪",
   "altName": "Clear Sky Cooking♪",
@@ -30051,6 +30072,50 @@
   "desc": "Long・At a random point during your Zenkai Spurt, your Zenkai acceleration will slightly increase"
  },
  {
+  "id": 204771,
+  "name": "March to Battle",
+  "altName": "March to Battle",
+  "nameJp": "出陣",
+  "rarity": 2,
+  "cost": 140,
+  "iconId": 20012,
+  "versions": [
+   204772
+  ],
+  "tags": [
+   "btw",
+   "l_1"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・At a random point during the Middle Leg, your speed will increase"
+ },
+ {
+  "id": 204772,
+  "name": "Raise the Smoke Signal",
+  "altName": "Raise the Smoke Signal",
+  "nameJp": "狼煙を上げて",
+  "rarity": 1,
+  "cost": 140,
+  "iconId": 20011,
+  "versions": [
+   204771
+  ],
+  "tags": [
+   "btw",
+   "l_1"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・At a random point during the Middle Leg, your speed will slightly increase"
+ },
+ {
   "id": 204792,
   "name": "Playful Spirit",
   "altName": "Playful Spirit",
@@ -37133,6 +37198,46 @@
   "innateChars": [],
   "eventChars": [],
   "desc": "Mile・At a random point during the Final Corner, your acceleration will increase; the effect lasts longer in Turf races"
+ },
+ {
+  "id": 102903111,
+  "name": "'Scuse Me, Com'n Through!",
+  "altName": "'Scuse Me, Com'n Through!",
+  "nameJp": "もっす、通してくなンしぇ！",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 20016,
+  "versions": [],
+  "tags": [
+   "ldr"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Leader・If you try to overtake someone in the second half of the race, your speed will increase; if you're in the first half of the pack at that time, the speed of all your teammates will also slightly increase (including you, as a bonus to the base effect)"
+ },
+ {
+  "id": 102903211,
+  "name": "Boundless Bounty",
+  "altName": "Boundless Bounty",
+  "nameJp": "万果豊穣",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 20016,
+  "versions": [],
+  "tags": [
+   "l_3",
+   "mil",
+   "med"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Mile/Medium・If you're in a last spurt at a random point during the first half of the Last Spurt, your speed will greatly increase, and the speed of all your teammates will also slightly increase"
  },
  {
   "id": 103001111,
@@ -46582,7 +46687,7 @@
   "eventCards": [],
   "innateChars": [],
   "eventChars": [],
-  "desc": "Leader/Betweener・At a random point on a random downhill, you will get a great speed boost; in Mile or Medium races, your acceleration will also slightly increase"
+  "desc": "Leader/Betweener・At a random point on a random downhill, you will get a great speed boost; in Mile and Medium races, your acceleration will also slightly increase"
  },
  {
   "id": 114901211,
