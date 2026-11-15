@@ -13,9 +13,11 @@ browser.
 `YYYY.MM.N`, where `N` counts that month's releases from 1: `2026.10.1`, `2026.10.2`, `2026.11.1`.
 The release version carries no compatibility meaning; the share-link format and the saved-state
 migration carry their own versions ([sharing](sharing.md)). Cut a release from a validated `main`
-commit:
+commit. Pushes to `main` skip the browser suites, so first run CI manually on `main` and wait for it to pass;
+a failure on GitHub's runners then costs no version number, since tags cannot be moved or deleted:
 
 ```sh
+gh workflow run ci.yml --ref main   # runs the browser suites too; watch it with gh run watch
 npm version 2026.10.1   # writes package.json, commits, and tags v2026.10.1
 git push --follow-tags
 ```

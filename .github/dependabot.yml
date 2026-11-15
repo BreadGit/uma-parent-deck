@@ -1,4 +1,4 @@
-# One grouped pull request a month per ecosystem; its CI run includes the browser suites.
+# One grouped pull request per ecosystem each quarter, assigned to the owner; its CI run includes the browser suites.
 version: 2
 updates:
   # Actions are pinned by commit SHA, so nothing else updates them.
@@ -6,7 +6,8 @@ updates:
     # The composite action pins actions too and is outside the workflows directory.
     directories: ['/', '/.github/actions/setup']
     schedule:
-      interval: monthly
+      interval: quarterly
+    assignees: ['BreadGit']
     groups:
       actions:
         patterns: ['*']
@@ -14,7 +15,8 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: monthly
+      interval: quarterly
+    assignees: ['BreadGit']
     groups:
       npm:
         update-types: [minor, patch]
@@ -25,7 +27,8 @@ updates:
   - package-ecosystem: pip
     directory: /analysis
     schedule:
-      interval: monthly
+      interval: quarterly
+    assignees: ['BreadGit']
     groups:
       python:
         patterns: ['*']
