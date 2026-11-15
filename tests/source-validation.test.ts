@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { readFileSync } from 'node:fs';
-import { checkSkillPlaces, decodeRewards, eventOnGlobal, goalRaceKeys, isOutcomeBreak, normalizeCondition, normalizeReward, staticEventOnGlobal, validateGlobalPeriod, type ConditionRaces } from '../scripts/event-import.ts';
+import { decodeRewards, eventOnGlobal, goalRaceKeys, isOutcomeBreak, normalizeCondition, normalizeReward, skillBranchConditions, staticEventOnGlobal, validateGlobalPeriod, type ConditionRaces } from '../scripts/event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables, type NormalizedTables, type PageSources, type SourceTables } from '../scripts/source-validation.ts';
 import { pageRevision, pageInputs, PAGE_SOURCE_FILES, type PageRevision } from '../scripts/page-cache.ts';
 
@@ -100,13 +100,18 @@ test('page conditions resolve objective, placing and date forms against G1s and 
   assert.deepEqual(normalizeCondition(['beat_rival', '101901|3', 1014], races), { type: 'unknown', raw: ['beat_rival', '101901|3', 1014] });
 });
 
-test('event rewards split into outcomes at either break marker, and skills on a later place branch stop the import', () => {
+test('event rewards split into outcomes at either break marker, and a skill branch adds its own conditions', () => {
   assert.ok(isOutcomeBreak({ t: 'di' }) && isOutcomeBreak({ t: 'di_s' }) && !isOutcomeBreak({ t: 'nl' }));
-  const branches = (r: { t: string; d?: unknown }[]) => ({ n: 'After the race', c: [{ r }] });
-  assert.doesNotThrow(() => checkSkillPlaces(branches([{ t: 'pl', d: [1] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'pl', d: [2, 3] }, { t: 'rr' }])));
-  assert.doesNotThrow(() => checkSkillPlaces(branches([{ t: 'pl', d: [2, 3] }, { t: 'rr' }, { t: 'nl' }, { t: 'sk', d: 1 }])), 'a branch ends at nl');
-  assert.throws(() => checkSkillPlaces(branches([{ t: 'pl', d: [1] }, { t: 'rr' }, { t: 'nl' }, { t: 'pl', d: [2, 3] }, { t: 'sk', d: 1 }])), /\[2,3\] place branch/);
-  assert.throws(() => checkSkillPlaces(branches([{ t: 'pl', d: [2] }, { t: 'sr', d: [{ d: 1 }] }])), /place branch/);
+  const event = (...choices: { t: string; d?: unknown }[][]) => ({ n: 'After the race', c: choices.map((r) => ({ r })) });
+  assert.deepEqual(skillBranchConditions(event([{ t: 'pl', d: [1] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'pl', d: [2, 3] }, { t: 'rr' }])), [], 'first place is already the event\'s win');
+  assert.deepEqual(skillBranchConditions(event([{ t: 'pl', d: [2, 3] }, { t: 'rr' }, { t: 'nl' }, { t: 'sk', d: 1 }])), [], 'a branch ends at nl');
+  assert.deepEqual(skillBranchConditions(event([{ t: 'sc', d: ['triple_tiara'] }, { t: 'sc', d: ['obj_win', 100801] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'sc', d: ['no_triple_tiara'] }, { t: 'gu' }])),
+    [['triple_tiara'], ['obj_win', 100801]], 'every condition of the skill branch must hold');
+  assert.deepEqual(skillBranchConditions(event([{ t: 'result_good' }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'result_bad' }, { t: 'sp' }])), [['result_good']]);
+  assert.deepEqual(skillBranchConditions(event([{ t: 'sc', d: ['a'] }, { t: 'sk', d: 1 }], [{ t: 'sc', d: ['a'] }, { t: 'sk', d: 2 }])), [['a']], 'options that need the same thing agree');
+  assert.throws(() => skillBranchConditions(event([{ t: 'sc', d: ['a'] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'sk', d: 2 }])), /different conditions/);
+  assert.throws(() => skillBranchConditions(event([{ t: 'pl', d: [1] }, { t: 'rr' }, { t: 'nl' }, { t: 'pl', d: [2, 3] }, { t: 'sk', d: 1 }])), /\[2,3\] place branch/);
+  assert.throws(() => skillBranchConditions(event([{ t: 'pl', d: [2] }, { t: 'sr', d: [{ d: 1 }] }])), /place branch/);
 });
 
 test('Global release boundary changes force review of the historical-period assumption', () => {

@@ -20080,8 +20080,8 @@
     ]
    },
    {
-    "kind": "story",
-    "index": 14,
+    "kind": "secret",
+    "index": 11,
     "name": "The Beach House (Family)",
     "choices": [
      {
@@ -20126,6 +20126,16 @@
          "v": "+20"
         }
        ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "ev_cn_on",
+       501007800,
+       1
       ]
      }
     ]
@@ -38556,7 +38566,7 @@
     ]
    },
    {
-    "kind": "story",
+    "kind": "secret",
     "index": 13,
     "name": "You're My Trainer",
     "choices": [
@@ -38606,6 +38616,16 @@
          "v": "+10"
         }
        ]
+      ]
+     }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "ev_cn_on",
+       501013803,
+       2
       ]
      }
     ]
@@ -67644,8 +67664,8 @@
     ]
    },
    {
-    "kind": "story",
-    "index": 6,
+    "kind": "secret",
+    "index": 1,
     "name": "Our Method",
     "choices": [
      {
@@ -67706,11 +67726,19 @@
        ]
       ]
      }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "result_good"
+      ]
+     }
     ]
    },
    {
     "kind": "secret",
-    "index": 1,
+    "index": 2,
     "name": "Unruly Equation",
     "choices": [
      {
@@ -67749,7 +67777,7 @@
    },
    {
     "kind": "story",
-    "index": 7,
+    "index": 6,
     "name": "Master Trainer",
     "choices": [
      {
@@ -67771,7 +67799,7 @@
    },
    {
     "kind": "story",
-    "index": 8,
+    "index": 7,
     "name": "Dear Sister",
     "choices": [
      {
@@ -67792,7 +67820,7 @@
    },
    {
     "kind": "story",
-    "index": 9,
+    "index": 8,
     "name": "Expanding Gloom",
     "choices": [
      {
@@ -67809,7 +67837,7 @@
    },
    {
     "kind": "story",
-    "index": 10,
+    "index": 9,
     "name": "Unforeseen Circumstances",
     "choices": [
      {
@@ -67830,7 +67858,7 @@
    },
    {
     "kind": "story",
-    "index": 11,
+    "index": 10,
     "name": "Emphasis on Nutrition?",
     "choices": [
      {
@@ -67851,7 +67879,7 @@
    },
    {
     "kind": "story",
-    "index": 12,
+    "index": 11,
     "name": "If You're All Watching",
     "choices": [
      {
@@ -67881,7 +67909,7 @@
    },
    {
     "kind": "story",
-    "index": 13,
+    "index": 12,
     "name": "Optimal Glasses",
     "choices": [
      {
@@ -68213,7 +68241,7 @@
    },
    {
     "kind": "secret",
-    "index": 2,
+    "index": 3,
     "name": "After the Debut: Discussion",
     "choices": [
      {
@@ -68244,7 +68272,7 @@
    },
    {
     "kind": "secret",
-    "index": 3,
+    "index": 4,
     "name": "After the Asahi Hai F.S.: Introduction",
     "choices": [
      {
@@ -68276,7 +68304,7 @@
    },
    {
     "kind": "secret",
-    "index": 4,
+    "index": 5,
     "name": "After the Satsuki Sho: Apprehensive",
     "choices": [
      {
@@ -68307,7 +68335,7 @@
    },
    {
     "kind": "secret",
-    "index": 5,
+    "index": 6,
     "name": "After the Satsuki Sho: Pretending",
     "choices": [
      {
@@ -68350,7 +68378,7 @@
    },
    {
     "kind": "secret",
-    "index": 6,
+    "index": 7,
     "name": "After the Satsuki Sho: Vision",
     "choices": [
      {
@@ -68393,7 +68421,7 @@
    },
    {
     "kind": "secret",
-    "index": 7,
+    "index": 8,
     "name": "After the Japanese Derby: Clamor",
     "choices": [
      {
@@ -68424,7 +68452,7 @@
    },
    {
     "kind": "secret",
-    "index": 8,
+    "index": 9,
     "name": "After the Japanese Derby: Reason",
     "choices": [
      {
@@ -68467,7 +68495,7 @@
    },
    {
     "kind": "secret",
-    "index": 9,
+    "index": 10,
     "name": "After the Japanese Derby: Reflection",
     "choices": [
      {
@@ -68510,7 +68538,7 @@
    },
    {
     "kind": "secret",
-    "index": 10,
+    "index": 11,
     "name": "After the Kikuka Sho: Warcry",
     "choices": [
      {
@@ -68541,7 +68569,7 @@
    },
    {
     "kind": "secret",
-    "index": 11,
+    "index": 12,
     "name": "After the Kikuka Sho: Advance",
     "choices": [
      {
@@ -68576,7 +68604,7 @@
    },
    {
     "kind": "secret",
-    "index": 12,
+    "index": 13,
     "name": "After the Tenno Sho (Spring): Results",
     "choices": [
      {
@@ -68616,7 +68644,7 @@
    },
    {
     "kind": "secret",
-    "index": 13,
+    "index": 14,
     "name": "After the Tenno Sho (Spring): Regret",
     "choices": [
      {
@@ -68659,7 +68687,7 @@
    },
    {
     "kind": "secret",
-    "index": 14,
+    "index": 15,
     "name": "After the Takarazuka Kinen: The Top",
     "choices": [
      {
@@ -68696,7 +68724,7 @@
    },
    {
     "kind": "secret",
-    "index": 15,
+    "index": 16,
     "name": "After the Tenno Sho (Autumn): Prize",
     "choices": [
      {
@@ -68737,7 +68765,7 @@
    },
    {
     "kind": "secret",
-    "index": 16,
+    "index": 17,
     "name": "After the Tenno Sho (Autumn): Obtain",
     "choices": [
      {
@@ -68780,7 +68808,7 @@
    },
    {
     "kind": "secret",
-    "index": 17,
+    "index": 18,
     "name": "After the Arima Kinen: Acknowledgement",
     "choices": [
      {
@@ -69216,8 +69244,8 @@
     ]
    },
    {
-    "kind": "story",
-    "index": 6,
+    "kind": "secret",
+    "index": 1,
     "name": "Our Method",
     "choices": [
      {
@@ -69278,11 +69306,19 @@
        ]
       ]
      }
+    ],
+    "conditions": [
+     {
+      "type": "unknown",
+      "raw": [
+       "result_good"
+      ]
+     }
     ]
    },
    {
     "kind": "secret",
-    "index": 1,
+    "index": 2,
     "name": "Unruly Equation",
     "choices": [
      {
@@ -69321,7 +69357,7 @@
    },
    {
     "kind": "story",
-    "index": 7,
+    "index": 6,
     "name": "Master Trainer",
     "choices": [
      {
@@ -69343,7 +69379,7 @@
    },
    {
     "kind": "story",
-    "index": 8,
+    "index": 7,
     "name": "Dear Sister",
     "choices": [
      {
@@ -69364,7 +69400,7 @@
    },
    {
     "kind": "story",
-    "index": 9,
+    "index": 8,
     "name": "Expanding Gloom",
     "choices": [
      {
@@ -69381,7 +69417,7 @@
    },
    {
     "kind": "story",
-    "index": 10,
+    "index": 9,
     "name": "Unforeseen Circumstances",
     "choices": [
      {
@@ -69402,7 +69438,7 @@
    },
    {
     "kind": "story",
-    "index": 11,
+    "index": 10,
     "name": "Emphasis on Nutrition?",
     "choices": [
      {
@@ -69423,7 +69459,7 @@
    },
    {
     "kind": "story",
-    "index": 12,
+    "index": 11,
     "name": "If You're All Watching",
     "choices": [
      {
@@ -69453,7 +69489,7 @@
    },
    {
     "kind": "story",
-    "index": 13,
+    "index": 12,
     "name": "Optimal Glasses",
     "choices": [
      {
@@ -69785,7 +69821,7 @@
    },
    {
     "kind": "secret",
-    "index": 2,
+    "index": 3,
     "name": "After the Debut: Discussion",
     "choices": [
      {
@@ -69816,7 +69852,7 @@
    },
    {
     "kind": "secret",
-    "index": 3,
+    "index": 4,
     "name": "After the Asahi Hai F.S.: Introduction",
     "choices": [
      {
@@ -69848,7 +69884,7 @@
    },
    {
     "kind": "secret",
-    "index": 4,
+    "index": 5,
     "name": "After the Satsuki Sho: Apprehensive",
     "choices": [
      {
@@ -69879,7 +69915,7 @@
    },
    {
     "kind": "secret",
-    "index": 5,
+    "index": 6,
     "name": "After the Satsuki Sho: Pretending",
     "choices": [
      {
@@ -69922,7 +69958,7 @@
    },
    {
     "kind": "secret",
-    "index": 6,
+    "index": 7,
     "name": "After the Satsuki Sho: Vision",
     "choices": [
      {
@@ -69965,7 +70001,7 @@
    },
    {
     "kind": "secret",
-    "index": 7,
+    "index": 8,
     "name": "After the Japanese Derby: Clamor",
     "choices": [
      {
@@ -69996,7 +70032,7 @@
    },
    {
     "kind": "secret",
-    "index": 8,
+    "index": 9,
     "name": "After the Japanese Derby: Reason",
     "choices": [
      {
@@ -70039,7 +70075,7 @@
    },
    {
     "kind": "secret",
-    "index": 9,
+    "index": 10,
     "name": "After the Japanese Derby: Reflection",
     "choices": [
      {
@@ -70082,7 +70118,7 @@
    },
    {
     "kind": "secret",
-    "index": 10,
+    "index": 11,
     "name": "After the Kikuka Sho: Warcry",
     "choices": [
      {
@@ -70113,7 +70149,7 @@
    },
    {
     "kind": "secret",
-    "index": 11,
+    "index": 12,
     "name": "After the Kikuka Sho: Advance",
     "choices": [
      {
@@ -70148,7 +70184,7 @@
    },
    {
     "kind": "secret",
-    "index": 12,
+    "index": 13,
     "name": "After the Tenno Sho (Spring): Results",
     "choices": [
      {
@@ -70188,7 +70224,7 @@
    },
    {
     "kind": "secret",
-    "index": 13,
+    "index": 14,
     "name": "After the Tenno Sho (Spring): Regret",
     "choices": [
      {
@@ -70231,7 +70267,7 @@
    },
    {
     "kind": "secret",
-    "index": 14,
+    "index": 15,
     "name": "After the Takarazuka Kinen: The Top",
     "choices": [
      {
@@ -70268,7 +70304,7 @@
    },
    {
     "kind": "secret",
-    "index": 15,
+    "index": 16,
     "name": "After the Tenno Sho (Autumn): Prize",
     "choices": [
      {
@@ -70309,7 +70345,7 @@
    },
    {
     "kind": "secret",
-    "index": 16,
+    "index": 17,
     "name": "After the Tenno Sho (Autumn): Obtain",
     "choices": [
      {
@@ -70352,7 +70388,7 @@
    },
    {
     "kind": "secret",
-    "index": 17,
+    "index": 18,
     "name": "After the Arima Kinen: Acknowledgement",
     "choices": [
      {
@@ -82562,8 +82598,8 @@
     ]
    },
    {
-    "kind": "story",
-    "index": 6,
+    "kind": "secret",
+    "index": 1,
     "name": "The Path Beyond the Tiara",
     "choices": [
      {
@@ -82652,11 +82688,38 @@
        ]
       ]
      }
+    ],
+    "conditions": [
+     {
+      "type": "win_all",
+      "races": [
+       {
+        "raceId": 1004,
+        "year": 2
+       },
+       {
+        "raceId": 1009,
+        "year": 2
+       },
+       {
+        "raceId": 1014,
+        "year": 2
+       }
+      ]
+     },
+     {
+      "type": "win",
+      "races": [
+       {
+        "raceId": 1008
+       }
+      ]
+     }
     ]
    },
    {
     "kind": "story",
-    "index": 7,
+    "index": 6,
     "name": "Master Trainer",
     "choices": [
      {
@@ -82678,7 +82741,7 @@
    },
    {
     "kind": "story",
-    "index": 8,
+    "index": 7,
     "name": "Yukino Bijin",
     "choices": [
      {
@@ -82699,7 +82762,7 @@
    },
    {
     "kind": "story",
-    "index": 9,
+    "index": 8,
     "name": "Staying On Trend! ...Or Not!",
     "choices": [
      {
@@ -82716,7 +82779,7 @@
    },
    {
     "kind": "story",
-    "index": 10,
+    "index": 9,
     "name": "Beauty Is Pain...",
     "choices": [
      {
@@ -82737,7 +82800,7 @@
    },
    {
     "kind": "story",
-    "index": 11,
+    "index": 10,
     "name": "Snow That Doesn't Melt?",
     "choices": [
      {
@@ -82758,7 +82821,7 @@
    },
    {
     "kind": "story",
-    "index": 12,
+    "index": 11,
     "name": "Teach an Uma to Fish",
     "choices": [
      {
@@ -82788,7 +82851,7 @@
    },
    {
     "kind": "story",
-    "index": 13,
+    "index": 12,
     "name": "The Call of the City...",
     "choices": [
      {
@@ -83170,7 +83233,7 @@
    },
    {
     "kind": "secret",
-    "index": 1,
+    "index": 2,
     "name": "After the Debut: Start'n Out!",
     "choices": [
      {
@@ -83201,7 +83264,7 @@
    },
    {
     "kind": "secret",
-    "index": 2,
+    "index": 3,
     "name": "After the Hanshin J.F.: Temporary Parting",
     "choices": [
      {
@@ -83233,7 +83296,7 @@
    },
    {
     "kind": "secret",
-    "index": 3,
+    "index": 4,
     "name": "After the Oka Sho: A Li'l Sprout",
     "choices": [
      {
@@ -83265,7 +83328,7 @@
    },
    {
     "kind": "secret",
-    "index": 4,
+    "index": 5,
     "name": "After the Japanese Oaks: An Angel?",
     "choices": [
      {
@@ -83301,7 +83364,7 @@
    },
    {
     "kind": "secret",
-    "index": 5,
+    "index": 6,
     "name": "After the Japanese Oaks: An Angel!",
     "choices": [
      {
@@ -83336,7 +83399,7 @@
    },
    {
     "kind": "secret",
-    "index": 6,
+    "index": 7,
     "name": "After the Queen S.: This Time for Sure!",
     "choices": [
      {
@@ -83376,7 +83439,7 @@
    },
    {
     "kind": "secret",
-    "index": 7,
+    "index": 8,
     "name": "After the Queen S.: I've Got This!",
     "choices": [
      {
@@ -83419,7 +83482,7 @@
    },
    {
     "kind": "secret",
-    "index": 8,
+    "index": 9,
     "name": "After the Mile Ch. Nambu Hai: Dazzl'n Ties",
     "choices": [
      {
@@ -83465,7 +83528,7 @@
    },
    {
     "kind": "secret",
-    "index": 9,
+    "index": 10,
     "name": "After the Shuka Sho: Recognizing Change",
     "choices": [
      {
@@ -83505,7 +83568,7 @@
    },
    {
     "kind": "secret",
-    "index": 10,
+    "index": 11,
     "name": "After the Shuka Sho: Recognizing Change",
     "choices": [
      {
@@ -83548,7 +83611,7 @@
    },
    {
     "kind": "secret",
-    "index": 11,
+    "index": 12,
     "name": "After the Osaka Hai: Restart",
     "choices": [
      {
@@ -83580,7 +83643,7 @@
    },
    {
     "kind": "secret",
-    "index": 12,
+    "index": 13,
     "name": "After the Victoria Mile: Ever Forward",
     "choices": [
      {
@@ -83612,7 +83675,7 @@
    },
    {
     "kind": "secret",
-    "index": 13,
+    "index": 14,
     "name": "After the Mile Ch. Nambu Hai: Dazzl'n Ties",
     "choices": [
      {
@@ -83665,7 +83728,7 @@
    },
    {
     "kind": "secret",
-    "index": 14,
+    "index": 15,
     "name": "After the Queen Elizabeth II Cup: Message Received",
     "choices": [
      {
@@ -83697,7 +83760,7 @@
    },
    {
     "kind": "secret",
-    "index": 15,
+    "index": 16,
     "name": "After the Japan Cup: Glitz and Glam",
     "choices": [
      {
@@ -160140,6 +160203,13 @@
         "year": 3
        }
       ]
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "use_strategy",
+       1
+      ]
      }
     ]
    },
@@ -160201,6 +160271,27 @@
        "102301|3",
        1064
       ]
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "race_w2",
+       101101
+      ]
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "race_w2",
+       101801
+      ]
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "use_strategy",
+       1
+      ]
      }
     ]
    },
@@ -160261,6 +160352,27 @@
        "rival_draw",
        "102301|3",
        1064
+      ]
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "race_w2",
+       101101
+      ]
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "race_w2",
+       101801
+      ]
+     },
+     {
+      "type": "unknown",
+      "raw": [
+       "use_strategy",
+       1
       ]
      }
     ]

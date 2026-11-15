@@ -147,16 +147,29 @@ export function normalizeCondition(cond: unknown[], races: ConditionRaces): Even
   }
 }
 
-/** Place branches open with a `pl` marker and end at `nl`. A skill on a branch after first place needs a finish the model cannot score. */
-export function checkSkillPlaces(event: { n?: unknown; c?: { r?: { t: string; d?: unknown }[] }[] }): void {
+type PageReward = { t: string; d?: unknown };
+
+/**
+ * The conditions under which a page event gives its skills, beyond the event's own. An option's rewards split at `nl`
+ * into branches; markers in a branch say when it applies: `sc` carries a condition, `result_*` a race result, and
+ * `pl` the finishing places. A skill branch on first place adds nothing, since a placing range that includes first
+ * is already scored as a win. Skill branches that need different things, or a later place, stop the import.
+ */
+export function skillBranchConditions(event: { n?: unknown; c?: { r?: PageReward[] }[] }): unknown[][] {
+  const fail = (why: string) => { throw new Error(`event ${String(event.n)}: ${why}; decide how to score it before importing`); };
+  let found: unknown[][] | null = null;
   for (const choice of event.c ?? []) {
-    let places: unknown = null;
-    for (const r of choice.r ?? []) {
-      if (r.t === 'nl') places = null;
-      else if (r.t === 'pl') places = r.d;
-      else if ((r.t === 'sk' || r.t === 'sr') && places != null && JSON.stringify(places) !== '[1]') {
-        throw new Error(`event ${String(event.n)}: skill reward on the ${JSON.stringify(places)} place branch; decide how to score that finish before importing`);
-      }
+    const branches: PageReward[][] = [[]];
+    for (const r of choice.r ?? []) if (r.t === 'nl') branches.push([]); else branches.at(-1)!.push(r);
+    for (const branch of branches) {
+      if (!branch.some((r) => r.t === 'sk' || r.t === 'sr')) continue;
+      const places = branch.find((r) => r.t === 'pl');
+      if (places && JSON.stringify(places.d) !== '[1]') fail(`skill reward on the ${JSON.stringify(places.d)} place branch`);
+      const gates = branch.filter((r) => r.t === 'sc' || r.t.startsWith('result_')).map((r) => r.t === 'sc' ? r.d : [r.t]);
+      if (!gates.every(Array.isArray)) fail('a branch condition is not a list');
+      if (found && JSON.stringify(found) !== JSON.stringify(gates)) fail('skill branches have different conditions');
+      found = gates as unknown[][];
     }
   }
+  return found ?? [];
 }

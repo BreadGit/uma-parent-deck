@@ -162,6 +162,8 @@ test('post-race events, objective wins, outcome breaks and history snapshots dec
   assert.ok(!rivals.afterRace && rivals.conditions?.length === 5 && rivals.conditions.every((c) => c.type === 'win'), 'objective wins decode like other wins');
   assert.equal(must(card(102001).events.find((e) => e.name === 'Got a Bite')).choices[0]!.outcomes.length, 5, 'di_s separates the five facility outcomes');
   assert.equal(must(card(102501).events.find((e) => e.name === 'The Tireless Wonder')).kind, 'secret', 'a history snapshot without conditions keeps the current ones');
+  const tiara = eventGiving(102901, 200342);
+  assert.deepEqual(tiara.conditions?.map((c) => c.type), ['win_all', 'win'], 'the skill branch\'s triple tiara and Victoria Mile conditions gate the event');
   assert.ok(data.characters.every((c) => c.events.filter((e) => e.afterRace).length > 0), 'every trainee has race events');
 });
 

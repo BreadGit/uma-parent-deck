@@ -16,7 +16,7 @@ import path from 'node:path';
 import { GAMETORA, GAMETORA_MANIFEST, createThrottle, requestSource } from './source-request.ts';
 import { exists, readJson, readJsonOr, writeFileAtomic, writeJson } from './json-file.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
-import { CHAR_PAGE_GROUPS, G1_GRADE, checkSkillPlaces, decodeRewards, eventOnGlobal, goalRaceKeys, isOutcomeBreak, normalizeCondition, normalizeReward, staticEventOnGlobal, validateGlobalPeriod, type ConditionRaces } from './event-import.ts';
+import { CHAR_PAGE_GROUPS, G1_GRADE, decodeRewards, eventOnGlobal, goalRaceKeys, isOutcomeBreak, normalizeCondition, normalizeReward, skillBranchConditions, staticEventOnGlobal, validateGlobalPeriod, type ConditionRaces } from './event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables, type PageSources, type Row } from './source-validation.ts';
 import { normalizeMissionCatalog } from './mission-import.ts';
 import { isNormalOrGold } from '../src/types.ts';
@@ -234,10 +234,9 @@ function normalizeCharEvents(pageEvents: Row | undefined, outfitPage: Row | unde
     if (!raw || typeof raw !== 'object') return;
     const ev = eventOnGlobal(raw);
     if (!ev) return;
-    checkSkillPlaces(ev);
     // A history snapshot may omit the conditions, which then stay those of the current event.
-    const listed = ev.conditions ?? raw.conditions;
-    const conditions = Array.isArray(listed) && listed.length ? listed : null;
+    const listed = [...(ev.conditions ?? raw.conditions ?? []), ...skillBranchConditions(ev)];
+    const conditions = listed.length ? listed : null;
     const kind = conditions ? 'secret' : groupKind;
     const event = decodePageEvent(ev, kind, ++counters[kind]);
     out.push({
