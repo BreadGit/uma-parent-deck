@@ -265,6 +265,14 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#tooltip').isVisible(), false, 'Escape closes the tip');
     assert.equal(await name.evaluate((el) => el === document.activeElement), true, 'and returns focus to the name');
+    const chip = page.locator('.wishlist .wl-chip-name').first();
+    await chip.dispatchEvent('mouseover');
+    assert.equal(await page.locator('#tooltip').isVisible(), false, 'a hover reported under the still pointer once the box is gone opens nothing');
+    await chip.hover();
+    await page.waitForSelector('#tooltip.show');
+    await page.mouse.move(0, 0);
+    await page.waitForSelector('#tooltip.show', { state: 'hidden' });
+    await name.focus();
     await page.keyboard.press('Enter');
     await page.locator('#tooltip .tt-close').focus();
     await page.keyboard.press('Enter');

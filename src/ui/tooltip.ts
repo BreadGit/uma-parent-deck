@@ -29,8 +29,8 @@ export function installTooltips(root: HTMLElement) {
   document.body.append(box);
   let pinned: HTMLElement | null = null;
   let shownFor: HTMLElement | null = null;
-  /** After a click, hover tips wait for the pointer to move: a re-render can put another control under a still pointer,
-   * and the browser then reports a hover the user never made. */
+  /** After a click or a closed tip, hover tips wait for the pointer to move: a re-render or the vanished box can put
+   * another control under a still pointer, and the browser then reports a hover the user never made. */
   let awaitingMove = false;
   const place = (el: HTMLElement) => {
     // A fixed box's width depends on its position, so it is measured at the corner.
@@ -60,18 +60,25 @@ export function installTooltips(root: HTMLElement) {
     shownFor = null;
     if (force) { pinned?.classList.remove('pinned'); pinned = null; }
   };
+  const dismiss = () => { hide(true); awaitingMove = true; };
   /** Closing a tip from the keyboard puts focus back on what opened it, without opening it again. */
   let restoring = false;
-  const closeTo = (el: HTMLElement | null) => { hide(true); restoring = true; el?.focus(); restoring = false; };
+  const closeTo = (el: HTMLElement | null) => { dismiss(); restoring = true; el?.focus(); restoring = false; };
   /** A pinned box takes the pointer, so its text can be selected and its links followed, until it is closed. */
   const pin = (el: HTMLElement) => { hide(true); pinned = el; el.classList.add('pinned'); show(el); box.classList.add('pinned'); place(el); };
-  root.addEventListener('mousemove', () => { awaitingMove = false; });
+  // The first real move opens the tip under the pointer, which reported no new hover while it waited.
+  root.addEventListener('mousemove', (ev) => {
+    if (!awaitingMove) return;
+    awaitingMove = false;
+    const el = pinned ? null : tipOf(ev);
+    if (el) show(el);
+  });
   root.addEventListener('mouseover', (ev) => { if (pinned || awaitingMove) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('mouseout', (ev) => { if (tipOf(ev)) hide(); });
   root.addEventListener('focusin', (ev) => { if (pinned || restoring) return; const el = tipOf(ev); if (el) show(el); });
   root.addEventListener('focusout', (ev) => { if (tipOf(ev)) hide(); });
   document.addEventListener('click', (ev) => {
-    if ((ev.target as HTMLElement).closest('#tooltip')) { if ((ev.target as HTMLElement).closest('.tt-close')) hide(true); return; }
+    if ((ev.target as HTMLElement).closest('#tooltip')) { if ((ev.target as HTMLElement).closest('.tt-close')) dismiss(); return; }
     const el = tipOf(ev);
     if (el && (el.classList.contains('tip') || !interactive(el))) {
       ev.preventDefault();
@@ -95,7 +102,7 @@ export function installTooltips(root: HTMLElement) {
   });
   document.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Escape' || !shownFor) return;
-    if (box.contains(document.activeElement)) closeTo(pinned); else hide(true);
+    if (box.contains(document.activeElement)) closeTo(pinned); else dismiss();
   });
   close.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); closeTo(pinned); } });
   window.addEventListener('scroll', () => { if (pinned) place(pinned); }, { passive: true, capture: true });
