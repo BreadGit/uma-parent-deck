@@ -5,7 +5,7 @@ import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { DEFAULT_SETTINGS } from '../src/settings.ts';
 import { conditionChance, resolveTarget, traineeEventSources, traineeSources } from '../src/model/sparks.ts';
-import { buildSchedule, goalRaces, raceWinChances, traineeAptitudes, type RaceWins } from '../src/model/races.ts';
+import { buildSchedule, goalRaces, raceWinChances, raceWinKey, traineeAptitudes, type RaceWins } from '../src/model/races.ts';
 import { evaluate, makeCtx, traineeCoverage, wishlistCandidates } from '../src/model/deck.ts';
 import { planRun, type RunInput } from '../src/model/run.ts';
 
@@ -78,6 +78,17 @@ test('a post-race event is labelled a race event and scored from the agenda like
   assert.match(src.event.label, /^Special Week's race event \d+ "After the Japan Cup: To the Top!"$/);
   const ev = must(sw.events.find((e) => e.name === 'After the Japan Cup: To the Top!'));
   assert.ok(Math.abs(src.pObtain - ev.conditions!.reduce((a, c) => a * conditionChance(c, w, settings), 1)) < 1e-9 && src.pObtain > 0);
+});
+
+test('a first-place skill after beating a rival needs the race won, so an agenda without the race cannot give it', () => {
+  const tannhauser = must(data.characters.find((c) => c.name === 'Matikanetannhauser'));
+  const ev = must(tannhauser.events.find((e) => e.name === 'After the Mile Championship: High-Key Happy'));
+  const mile = must(ev.conditions?.flatMap((c) => c.type === 'win' ? c.races : [])[0]);
+  assert.ok(ev.conditions?.some((c) => c.type === 'unknown'), 'beating the rival is still a fallback');
+  const of = (w: RaceWins) => traineeEventSources(tannhauser, w, settings, data).filter((s) => s.event.label.includes('High-Key Happy'));
+  assert.equal(of(new Map()).length, 0, 'the Mile Championship is not run');
+  const src = must(of(wins([[raceWinKey(mile.raceId, mile.year), 0.6]]))[0]);
+  assert.ok(Math.abs(src.pObtain - 0.6 * settings.charConditionFallbackRate) < 1e-9, `got ${src.pObtain}`);
 });
 
 test("the trainee's choice and outing events: choice-gated at their own rates, one option per event by prioritized order, a non-target option can block a target", () => {

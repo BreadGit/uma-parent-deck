@@ -149,13 +149,20 @@ export function normalizeCondition(cond: unknown[], races: ConditionRaces): Even
 
 type PageReward = { t: string; d?: unknown };
 
+/** Page conditions that normalizeCondition scores as a win of their race. */
+const scoredAsWin = (c: unknown[]) => ['win', 'obj_win', 'pick_and_win'].includes(String(c[0]))
+  || (['race_place', 'obj_race_place'].includes(String(c[0])) && Array.isArray(c[2]) && c[2][0] === 1);
+/** Page conditions whose first argument is the race the event follows. */
+const RACE_CONDITIONS = new Set(['beat_rival', 'lose_to_rival', 'rival_wins', 'rival_draw', 'participate', 'obj_participate', 'race_place', 'obj_race_place']);
+
 /**
- * The conditions under which a page event gives its skills, beyond the event's own. An option's rewards split at `nl`
- * into branches; markers in a branch say when it applies: `sc` carries a condition, `result_*` a race result, and
- * `pl` the finishing places. A skill branch on first place adds nothing, since a placing range that includes first
- * is already scored as a win. Skill branches that need different things, or a later place, stop the import.
+ * The conditions under which a page event gives its skills, beyond the event's own `conditions`. An option's rewards
+ * split at `nl` into branches; markers in a branch say when it applies: `sc` carries a condition, `result_*` a race
+ * result, and `pl` the finishing places. A first-place branch needs a win of the race the event follows, unless the
+ * event's conditions are already scored as one. Skill branches that need different things, a later place, or a first
+ * place with no race named stop the import.
  */
-export function skillBranchConditions(event: { n?: unknown; c?: { r?: PageReward[] }[] }): unknown[][] {
+export function skillBranchConditions(event: { n?: unknown; c?: { r?: PageReward[] }[] }, conditions: unknown[][]): unknown[][] {
   const fail = (why: string) => { throw new Error(`event ${String(event.n)}: ${why}; decide how to score it before importing`); };
   let found: unknown[][] | null = null;
   for (const choice of event.c ?? []) {
@@ -167,6 +174,11 @@ export function skillBranchConditions(event: { n?: unknown; c?: { r?: PageReward
       if (places && JSON.stringify(places.d) !== '[1]') fail(`skill reward on the ${JSON.stringify(places.d)} place branch`);
       const gates = branch.filter((r) => r.t === 'sc' || r.t.startsWith('result_')).map((r) => r.t === 'sc' ? r.d : [r.t]);
       if (!gates.every(Array.isArray)) fail('a branch condition is not a list');
+      if (places && !conditions.some(scoredAsWin)) {
+        const race = conditions.find((c) => RACE_CONDITIONS.has(String(c[0])))?.[1];
+        if (race == null) fail('first-place skill reward with no race named');
+        gates.push(['win', race]);
+      }
       if (found && JSON.stringify(found) !== JSON.stringify(gates)) fail('skill branches have different conditions');
       found = gates as unknown[][];
     }

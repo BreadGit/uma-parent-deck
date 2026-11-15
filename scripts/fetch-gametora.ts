@@ -235,7 +235,8 @@ function normalizeCharEvents(pageEvents: Row | undefined, outfitPage: Row | unde
     const ev = eventOnGlobal(raw);
     if (!ev) return;
     // A history snapshot may omit the conditions, which then stay those of the current event.
-    const listed = [...(ev.conditions ?? raw.conditions ?? []), ...skillBranchConditions(ev)];
+    const own: unknown[][] = ev.conditions ?? raw.conditions ?? [];
+    const listed = [...own, ...skillBranchConditions(ev, own)];
     const conditions = listed.length ? listed : null;
     const kind = conditions ? 'secret' : groupKind;
     const event = decodePageEvent(ev, kind, ++counters[kind]);

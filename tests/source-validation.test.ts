@@ -103,15 +103,19 @@ test('page conditions resolve objective, placing and date forms against G1s and 
 test('event rewards split into outcomes at either break marker, and a skill branch adds its own conditions', () => {
   assert.ok(isOutcomeBreak({ t: 'di' }) && isOutcomeBreak({ t: 'di_s' }) && !isOutcomeBreak({ t: 'nl' }));
   const event = (...choices: { t: string; d?: unknown }[][]) => ({ n: 'After the race', c: choices.map((r) => ({ r })) });
-  assert.deepEqual(skillBranchConditions(event([{ t: 'pl', d: [1] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'pl', d: [2, 3] }, { t: 'rr' }])), [], 'first place is already the event\'s win');
-  assert.deepEqual(skillBranchConditions(event([{ t: 'pl', d: [2, 3] }, { t: 'rr' }, { t: 'nl' }, { t: 'sk', d: 1 }])), [], 'a branch ends at nl');
-  assert.deepEqual(skillBranchConditions(event([{ t: 'sc', d: ['triple_tiara'] }, { t: 'sc', d: ['obj_win', 100801] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'sc', d: ['no_triple_tiara'] }, { t: 'gu' }])),
+  const firstPlace = event([{ t: 'pl', d: [1] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'pl', d: [2, 3] }, { t: 'rr' }]);
+  assert.deepEqual(skillBranchConditions(firstPlace, [['obj_race_place', '101901|3', [1, 3]]]), [], 'the event\'s placing range is already scored as a win');
+  assert.deepEqual(skillBranchConditions(firstPlace, [['beat_rival', '101801|2', 1065]]), [['win', '101801|2']], 'beating a rival does not make first place');
+  assert.throws(() => skillBranchConditions(firstPlace, [['use_strategy', 1]]), /no race named/);
+  const none: unknown[][] = [];
+  assert.deepEqual(skillBranchConditions(event([{ t: 'pl', d: [2, 3] }, { t: 'rr' }, { t: 'nl' }, { t: 'sk', d: 1 }]), none), [], 'a branch ends at nl');
+  assert.deepEqual(skillBranchConditions(event([{ t: 'sc', d: ['triple_tiara'] }, { t: 'sc', d: ['obj_win', 100801] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'sc', d: ['no_triple_tiara'] }, { t: 'gu' }]), none),
     [['triple_tiara'], ['obj_win', 100801]], 'every condition of the skill branch must hold');
-  assert.deepEqual(skillBranchConditions(event([{ t: 'result_good' }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'result_bad' }, { t: 'sp' }])), [['result_good']]);
-  assert.deepEqual(skillBranchConditions(event([{ t: 'sc', d: ['a'] }, { t: 'sk', d: 1 }], [{ t: 'sc', d: ['a'] }, { t: 'sk', d: 2 }])), [['a']], 'options that need the same thing agree');
-  assert.throws(() => skillBranchConditions(event([{ t: 'sc', d: ['a'] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'sk', d: 2 }])), /different conditions/);
-  assert.throws(() => skillBranchConditions(event([{ t: 'pl', d: [1] }, { t: 'rr' }, { t: 'nl' }, { t: 'pl', d: [2, 3] }, { t: 'sk', d: 1 }])), /\[2,3\] place branch/);
-  assert.throws(() => skillBranchConditions(event([{ t: 'pl', d: [2] }, { t: 'sr', d: [{ d: 1 }] }])), /place branch/);
+  assert.deepEqual(skillBranchConditions(event([{ t: 'result_good' }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'result_bad' }, { t: 'sp' }]), none), [['result_good']]);
+  assert.deepEqual(skillBranchConditions(event([{ t: 'sc', d: ['a'] }, { t: 'sk', d: 1 }], [{ t: 'sc', d: ['a'] }, { t: 'sk', d: 2 }]), none), [['a']], 'options that need the same thing agree');
+  assert.throws(() => skillBranchConditions(event([{ t: 'sc', d: ['a'] }, { t: 'sk', d: 1 }, { t: 'nl' }, { t: 'sk', d: 2 }]), none), /different conditions/);
+  assert.throws(() => skillBranchConditions(event([{ t: 'pl', d: [1] }, { t: 'rr' }, { t: 'nl' }, { t: 'pl', d: [2, 3] }, { t: 'sk', d: 1 }]), none), /\[2,3\] place branch/);
+  assert.throws(() => skillBranchConditions(event([{ t: 'pl', d: [2] }, { t: 'sr', d: [{ d: 1 }] }]), none), /place branch/);
 });
 
 test('Global release boundary changes force review of the historical-period assumption', () => {
