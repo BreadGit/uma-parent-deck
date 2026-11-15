@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { must } from './helpers.ts';
 import { loadData } from '../src/data.ts';
 import { isCalendarId, RARITIES, STATS, type AptKey } from '../src/types.ts';
+import { raceWinKey } from '../src/model/races.ts';
+import { goalRaceKeys } from '../scripts/event-import.ts';
 import { uniqueExtras } from '../src/model/support-effects.ts';
 import { RACES_REFERENCE } from '../src/settings.ts';
 import fixtureJson from '../data/unique-extras-fixture.json' with { type: 'json' };
@@ -132,6 +134,7 @@ test('trainee events are decoded with resolvable skills and race references', ()
   let secrets = 0, choiceEvents = 0;
   for (const ch of data.characters) {
     assert.ok(Array.isArray(ch.events) && ch.events.length > 0, `${ch.name} has events`);
+    const goals = goalRaceKeys(ch.goals);
     for (const ev of ch.events) {
       assert.ok(kinds.has(ev.kind), `${ch.name} event kind ${ev.kind}`);
       for (const c of ev.choices) for (const o of c.outcomes) for (const r of o) if (r.t === 'sk') assert.ok(typeof r.d === 'number' && skillExists(r.d), `${ch.name} event skill ${String(r.d)}`);
@@ -139,12 +142,27 @@ test('trainee events are decoded with resolvable skills and race references', ()
       if (ev.kind === 'choice') choiceEvents++;
       for (const cond of ev.conditions ?? []) {
         const refs = 'races' in cond ? cond.races : 'race' in cond ? [cond.race] : [];
-        for (const r of refs) { assert.ok(raceIds.has(r.raceId), `${ch.name} condition race ${r.raceId} is a calendar G1`); if (r.year != null) assert.ok(r.year >= 1 && r.year <= 3); }
+        for (const r of refs) { assert.ok(raceIds.has(r.raceId) || goals.has(raceWinKey(r.raceId, r.year)), `${ch.name} condition race ${r.raceId} is a calendar G1 or her goal`); if (r.year != null) assert.ok(r.year >= 1 && r.year <= 3); }
         if (cond.type === 'win_n_of') assert.ok(cond.n >= 1 && cond.n <= cond.races.length, `${ch.name} win_n_of needs 1..${cond.races.length}, got ${cond.n}`);
       }
     }
   }
   assert.ok(secrets > 100 && choiceEvents > 200, `secret ${secrets}, choice ${choiceEvents}`);
+});
+
+test('post-race events, objective wins, outcome breaks and history snapshots decode as the model reads them', () => {
+  const card = (id: number) => must(data.characters.find((c) => c.cardId === id));
+  const eventGiving = (id: number, skill: number) => must(card(id).events.find((e) => e.choices.some((c) => c.outcomes.flat().some((r) => r.t === 'sk' && r.d === skill))));
+  const japanCup = must(data.races.find((r) => r.name === 'Japan Cup' && r.year === 3));
+  const toTheTop = eventGiving(100101, 200132);
+  assert.ok(toTheTop.afterRace && toTheTop.kind === 'secret', 'Special Week\'s After the Japan Cup: To the Top! is a race event with conditions');
+  assert.deepEqual(toTheTop.conditions?.map((c) => c.type), ['win', 'unknown'], 'a top-two finish counts as a win; beating the rival cannot be scored');
+  assert.deepEqual(toTheTop.conditions?.[0], { type: 'win', races: [{ raceId: japanCup.raceId, year: 3 }] });
+  const rivals = must(card(100101).events.find((e) => e.name === 'Rivals in Arms'));
+  assert.ok(!rivals.afterRace && rivals.conditions?.length === 5 && rivals.conditions.every((c) => c.type === 'win'), 'objective wins decode like other wins');
+  assert.equal(must(card(102001).events.find((e) => e.name === 'Got a Bite')).choices[0]!.outcomes.length, 5, 'di_s separates the five facility outcomes');
+  assert.equal(must(card(102501).events.find((e) => e.name === 'The Tireless Wonder')).kind, 'secret', 'a history snapshot without conditions keeps the current ones');
+  assert.ok(data.characters.every((c) => c.events.filter((e) => e.afterRace).length > 0), 'every trainee has race events');
 });
 
 test('races sit on the three-year calendar and ranks include SS and UE where the white bands expect it', () => {

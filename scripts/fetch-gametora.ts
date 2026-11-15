@@ -16,7 +16,7 @@ import path from 'node:path';
 import { GAMETORA, GAMETORA_MANIFEST, createThrottle, requestSource } from './source-request.ts';
 import { exists, readJson, readJsonOr, writeFileAtomic, writeJson } from './json-file.ts';
 import { normalizeSupportEffects, normalizeSupportMechanics, validateSupportCards } from './support-import.ts';
-import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal, validateGlobalPeriod } from './event-import.ts';
+import { CHAR_PAGE_GROUPS, G1_GRADE, checkSkillPlaces, decodeRewards, eventOnGlobal, goalRaceKeys, isOutcomeBreak, normalizeCondition, normalizeReward, staticEventOnGlobal, validateGlobalPeriod, type ConditionRaces } from './event-import.ts';
 import { parseSourceDownload, reconcileSources, validatePageRevisions, validateSourceTables, type PageSources, type Row } from './source-validation.ts';
 import { normalizeMissionCatalog } from './mission-import.ts';
 import { isNormalOrGold } from '../src/types.ts';
@@ -93,8 +93,6 @@ async function normalizeMissions() {
 }
 
 const RARITY: Record<number, string> = { 1: 'R', 2: 'SR', 3: 'SSR' };
-/** GameTora's grade code of a G1 race, the only grade on the tool's calendar. */
-const G1_GRADE = 100;
 /** GameTora's `cond_type` of a career objective to place in a race. */
 const RACE_OBJECTIVE = 1;
 const TYPE: Record<string, string> = { intelligence: 'wit', speed: 'speed', stamina: 'stamina', power: 'power', guts: 'guts', friend: 'pal', group: 'group' };
@@ -108,7 +106,7 @@ function decodeEvent(evrew: unknown[], entry: unknown[], kind: string, index: nu
     let outcome: Reward[] = [];
     const outcomes = [outcome];
     for (const rw of rewardIds.flatMap((rid) => decodeRewards(evrew, rid))) {
-      if (rw.t === 'di') { outcomes.push(outcome = []); continue; }
+      if (isOutcomeBreak(rw)) { outcomes.push(outcome = []); continue; }
       outcome.push(rw);
     }
     return { outcomes };
@@ -116,13 +114,13 @@ function decodeEvent(evrew: unknown[], entry: unknown[], kind: string, index: nu
   return { kind, index, choices };
 }
 
-// Page-format event ({i, n, c: [{o, r: [{t, v, d}]}]}) -> normalized event with outcomes split at 'di'.
+// Page-format event ({i, n, c: [{o, r: [{t, v, d}]}]}) -> normalized event with outcomes split at each outcome break.
 function decodePageEvent(ev: Row, kind: string, index: number) {
   const choices = (ev.c ?? []).map((ch: Row) => {
     let outcome: Reward[] = [];
     const outcomes = [outcome];
     for (const r of ch.r ?? []) {
-      if (r.t === 'di') { outcomes.push(outcome = []); continue; }
+      if (isOutcomeBreak(r)) { outcomes.push(outcome = []); continue; }
       outcome.push(normalizeReward(r));
     }
     return { outcomes };
@@ -220,66 +218,36 @@ const APT_KEYS = ['turf', 'dirt', 'sprint', 'mile', 'medium', 'long', 'front', '
 // The feed occasionally carries a skill id as a string (Super Creek's event skill 201352); ids are numbers here.
 const ids = (list: unknown[] | undefined) => (list ?? []).map(Number);
 
-// Sets of races behind GameTora's crown shorthands, by Global race name and career year.
-const CROWNS: Record<string, [string, number][]> = {
-  triple_crown: [['Satsuki Sho', 2], ['Tokyo Yushun (Japanese Derby)', 2], ['Kikuka Sho', 2]],
-  triple_tiara: [['Oka Sho', 2], ['Japanese Oaks', 2], ['Shuka Sho', 2]],
-  spring_triple_crown: [['Osaka Hai', 3], ['Tenno Sho (Spring)', 3], ['Takarazuka Kinen', 3]],
-  autumn_triple_crown_senior: [['Tenno Sho (Autumn)', 3], ['Japan Cup', 3], ['Arima Kinen', 3]],
-};
-/**
- * A page condition -> a form the model can evaluate against the agenda. Race references are instance ids with an
- * optional "|year"; they become { raceId, year? } via the raw races table. Anything else is kept verbatim as
- * { type: 'unknown', raw } so the model can apply its fallback rate.
- */
-function normalizeCondition(cond: unknown[], instances: Map<number, Row>, raceIdByName: Map<string, number>) {
-  // A condition naming a race off the calendar cannot be scored, so it stays unknown.
-  const ref = (v: unknown) => {
-    const [id, year] = String(v).split('|');
-    const race = instances.get(Number(id));
-    if (!race || race.grade !== G1_GRADE) return null;
-    return year ? { raceId: race.race_id, year: Number(year) } : { raceId: race.race_id };
-  };
-  const refs = (list: unknown[]) => { const out = list.map(ref); return out.every(Boolean) ? out : null; };
-  const unknown = { type: 'unknown', raw: cond };
-  const [type, ...args] = cond;
-  switch (type) {
-    case 'win': case 'pick_and_win': { const r = ref(args[0]); return r ? { type: 'win', races: [r] } : unknown; }
-    case 'participate': { const r = ref(args[0]); return r ? { type: 'participate', race: r } : unknown; }
-    case 'do_not_participate': { const r = ref(args[0]); return r ? { type: 'do_not_participate', race: r } : unknown; }
-    case 'win_or': { const r = refs(args); return r ? { type: 'win_any', races: r } : unknown; }
-    case 'win_all': { const r = refs((args[0] ?? []) as unknown[]); return r ? { type: 'win_all', races: r } : unknown; }
-    case 'win_n_of': { const r = refs((args[1] ?? []) as unknown[]); return r ? { type: 'win_n_of', n: Number(args[0]), races: r } : unknown; }
-    case 'date': return { type: 'date' }; // a timing condition: always satisfiable
-    default: {
-      const crown = CROWNS[String(type)];
-      if (crown) {
-        const races = crown.map(([name, year]) => ({ raceId: raceIdByName.get(name), year })).filter((r) => r.raceId != null);
-        if (races.length === crown.length) return { type: 'win_all', races };
-      }
-      return unknown;
-    }
-  }
-}
 type CharEventKind = 'story' | 'choice' | 'outing' | 'secret';
-const PAGE_GROUPS: [string, CharEventKind][] = [['nochoice', 'story'], ['wchoice', 'choice'], ['outings', 'outing'], ['secret', 'secret']];
+const GROUP_KIND: Record<(typeof CHAR_PAGE_GROUPS)[number], CharEventKind> = { nochoice: 'story', wchoice: 'choice', outings: 'outing', race: 'story' };
+
 /**
- * A character's events on Global, grouped by kind, with skill rewards decoded like card events. The character's
- * page carries the events every outfit shares; each outfit's own page carries that outfit's events under
- * `version` (a story or choice event by its option count), so those come from `outfitPage`.
+ * A character's events on Global, grouped by kind, with skill rewards decoded like card events. An event with
+ * conditions is a secret event, whatever its page group. The character's page carries the events every outfit
+ * shares; each outfit's own page carries that outfit's events under `version` (a story or choice event by its
+ * option count), so those come from `outfitPage`.
  */
-function normalizeCharEvents(pageEvents: Row | undefined, outfitPage: Row | undefined, instances: Map<number, Row>, raceIdByName: Map<string, number>) {
-  const out: (ReturnType<typeof decodePageEvent> & { conditions?: Row[] })[] = [];
+function normalizeCharEvents(pageEvents: Row | undefined, outfitPage: Row | undefined, races: ConditionRaces) {
+  const out: (ReturnType<typeof decodePageEvent> & { conditions?: Row[]; afterRace?: true })[] = [];
   const counters = { story: 0, choice: 0, outing: 0, secret: 0 };
-  const push = (raw: Row | null | undefined, kind: CharEventKind) => {
+  const push = (raw: Row | null | undefined, groupKind: CharEventKind, afterRace: boolean) => {
     if (!raw || typeof raw !== 'object') return;
     const ev = eventOnGlobal(raw);
     if (!ev) return;
+    checkSkillPlaces(ev);
+    // A history snapshot may omit the conditions, which then stay those of the current event.
+    const listed = ev.conditions ?? raw.conditions;
+    const conditions = Array.isArray(listed) && listed.length ? listed : null;
+    const kind = conditions ? 'secret' : groupKind;
     const event = decodePageEvent(ev, kind, ++counters[kind]);
-    out.push(kind === 'secret' ? { ...event, conditions: (ev.conditions ?? []).map((c: unknown[]) => normalizeCondition(c, instances, raceIdByName)) } : event);
+    out.push({
+      ...event,
+      ...(afterRace ? { afterRace: true as const } : {}),
+      ...(conditions ? { conditions: conditions.map((c: unknown[]) => normalizeCondition(c, races)) } : {}),
+    });
   };
-  for (const [group, kind] of PAGE_GROUPS) for (const raw of pageEvents?.[group] ?? []) push(raw, kind);
-  for (const raw of outfitPage?.version ?? []) push(raw, Array.isArray(raw?.c) && raw.c.length > 1 ? 'choice' : 'story');
+  for (const group of CHAR_PAGE_GROUPS) for (const raw of pageEvents?.[group] ?? []) push(raw, GROUP_KIND[group], group === 'race');
+  for (const raw of outfitPage?.version ?? []) push(raw, Array.isArray(raw?.c) && raw.c.length > 1 ? 'choice' : 'story', false);
   return out;
 }
 
@@ -326,7 +294,7 @@ function normalizeCharacters(raw: RawTables, charEvents: PageSources['charEvents
       eventSkills: ids(c.skills_event),
       uniqueSkills: ids(c.skills_unique),
       // shared events from the character's page; the outfit's own events from its page (the base outfit's page is the character's)
-      events: normalizeCharEvents(charEvents[c.char_id], charEventsByCard[c.card_id] ?? charEvents[c.char_id], instances, raceIdByName),
+      events: normalizeCharEvents(charEvents[c.char_id], charEventsByCard[c.card_id] ?? charEvents[c.char_id], { instances, raceIdByName, goalRaces: goalRaceKeys(goalsByChar.get(c.char_id) ?? []) }),
       goals: goalsByChar.get(c.char_id) ?? [],
     });
   }

@@ -78,6 +78,8 @@ test('missing or changed page event structures cannot become successful cache en
     { random: [event], future_events: [event] }, { random: [{ ...event, c: [{ r: [{ skill: 123 }] }] }] }]) {
     assert.throws(() => pageEvents(value, 'support', 'test'));
   }
+  assert.deepEqual(pageEvents({ nochoice: [event], race: [event] }, 'character', 'test'), { nochoice: [event], race: [event] });
+  assert.throws(() => pageEvents({ nochoice: [event], secret: [event] }, 'character', 'test'), /unfamiliar event group secret/);
 });
 
 test('all saved character and pal/group page payloads pass event validation', () => {

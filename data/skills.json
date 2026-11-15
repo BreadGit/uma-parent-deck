@@ -6545,6 +6545,7 @@
   ],
   "eventChars": [
    100201,
+   104201,
    104701
   ],
   "desc": "Moderately increase performance on left-handed tracks."
@@ -6652,7 +6653,9 @@
    100102,
    103701,
    103702,
-   100103
+   100103,
+   103502,
+   103501
   ],
   "desc": "Moderately increase performance at Tokyo Racecourse."
  },
@@ -6958,6 +6961,7 @@
    103001,
    103002,
    102101,
+   107401,
    101902,
    102102
   ],
@@ -7121,7 +7125,10 @@
   ],
   "eventCards": [],
   "innateChars": [],
-  "eventChars": [],
+  "eventChars": [
+   101802,
+   101801
+  ],
   "desc": "Moderately increase performance at Sapporo Racecourse."
  },
  {
@@ -7488,9 +7495,12 @@
    103201
   ],
   "eventChars": [
+   100101,
+   100102,
    103701,
    103702,
-   107201
+   107201,
+   100103
   ],
   "desc": "Moderately increase performance over standard distances (multiples of 400m)."
  },
@@ -7581,10 +7591,13 @@
   ],
   "eventChars": [
    101501,
+   102801,
    101502,
    107401,
+   106002,
    100702,
-   100701
+   100701,
+   106001
   ],
   "desc": "Moderately increase performance over non-standard distances (non-multiples of 400m)."
  },
@@ -8179,7 +8192,8 @@
    107801,
    102102,
    103402,
-   106702
+   106702,
+   106501
   ],
   "desc": "Moderately increase performance in fall."
  },
@@ -8297,7 +8311,8 @@
    102901,
    107801,
    100802,
-   100902
+   100902,
+   104701
   ],
   "desc": "Moderately increase performance in winter."
  },
@@ -8550,8 +8565,10 @@
    102701
   ],
   "eventChars": [
+   101001,
    101701,
-   101702
+   101702,
+   101002
   ],
   "desc": "Moderately increase performance in rainy weather."
  },
@@ -8912,7 +8929,9 @@
   ],
   "eventChars": [
    101102,
-   101101
+   102702,
+   101101,
+   102701
   ],
   "desc": "Moderately increase performance when many other runners are using the same strategy."
  },
@@ -9525,9 +9544,11 @@
    101401
   ],
   "eventChars": [
+   101601,
    102402,
    103301,
    106701,
+   101602,
    106702,
    102401
   ],
@@ -10340,10 +10361,15 @@
    102401
   ],
   "eventChars": [
+   100301,
+   100302,
+   101601,
+   104401,
    103502,
    104901,
    100802,
    100902,
+   101602,
    100801,
    100901,
    103501
@@ -10424,7 +10450,9 @@
   ],
   "eventChars": [
    101402,
-   101802
+   101701,
+   101802,
+   101702
   ],
   "desc": "Moderately increase navigation late-race."
  },
@@ -10523,13 +10551,16 @@
    101901,
    103901,
    103702,
+   103301,
    107201,
    106002,
+   106102,
    100103,
    105301,
    101902,
    101801,
-   106001
+   106001,
+   106101
   ],
   "desc": "Slightly increase velocity in the last spurt."
  },
@@ -10731,7 +10762,11 @@
   "eventChars": [
    100402,
    102001,
-   102002
+   104601,
+   102002,
+   103101,
+   104602,
+   103102
   ],
   "desc": "Slightly increase ability to go to the front mid-race. (Front Runner)"
  },
@@ -10988,9 +11023,11 @@
   ],
   "eventChars": [
    100501,
+   103801,
    102201,
    100502,
-   102202
+   102202,
+   103802
   ],
   "desc": "Slightly decrease fatigue mid-race. (Pace Chaser)"
  },
@@ -11090,6 +11127,7 @@
    100302,
    100501,
    101001,
+   101402,
    102301,
    105801,
    104502,
@@ -11099,9 +11137,11 @@
    101502,
    107101,
    100502,
+   107201,
    102202,
    101002,
    105802,
+   101401,
    104501
   ],
   "desc": "Slightly increase ability to break out of the pack on the final corner. (Pace Chaser)"
@@ -11181,7 +11221,9 @@
    103501
   ],
   "eventChars": [
+   102402,
    103502,
+   102401,
    103501
   ],
   "desc": "Slightly increase velocity when positioned midpack or further back mid-race. (Late Surger)"
@@ -11361,9 +11403,12 @@
    102701
   ],
   "eventChars": [
+   101601,
    103901,
+   102501,
    106102,
    103502,
+   101602,
    103501,
    106101
   ],
@@ -11565,6 +11610,7 @@
   "eventChars": [
    102402,
    103301,
+   103601,
    102401
   ],
   "desc": "Slightly increase acceleration on a straight in the last spurt. (End Closer)"
@@ -11798,6 +11844,8 @@
    101002
   ],
   "eventChars": [
+   100401,
+   100402,
    108701,
    106501
   ],
@@ -11865,7 +11913,10 @@
    104001,
    106102
   ],
-  "eventChars": [],
+  "eventChars": [
+   101901,
+   101902
+  ],
   "desc": "Slightly decrease fatigue, then very slightly decrease velocity of runners ahead when positioned toward the back upon approaching mid-race. (Mile)"
  },
  {
@@ -11945,11 +11996,14 @@
   ],
   "eventChars": [
    101901,
+   104001,
+   104002,
    102201,
    102101,
    105101,
    102202,
    105902,
+   105301,
    101902,
    102102,
    106201
@@ -12222,11 +12276,13 @@
   "eventChars": [
    101201,
    102001,
+   105801,
    104502,
    107101,
    107401,
    102002,
    105101,
+   105802,
    100902,
    100901
   ],
@@ -12314,7 +12370,8 @@
    103002,
    106701,
    102002,
-   106702
+   106702,
+   106201
   ],
   "desc": "Take a breather and slightly decrease fatigue mid-race. (Long)"
  },
@@ -12388,8 +12445,10 @@
    103402
   ],
   "eventChars": [
+   105602,
    107401,
-   106201
+   106201,
+   105601
   ],
   "desc": "Slightly increase velocity when near the inner rail on the final corner. (Long)"
  },
@@ -12454,7 +12513,10 @@
   "innateChars": [
    102602
   ],
-  "eventChars": [],
+  "eventChars": [
+   104502,
+   104501
+  ],
   "desc": "Slightly regain the energy to run when close to exhausting strength. (Long)"
  },
  {
@@ -12612,7 +12674,9 @@
   ],
   "innateChars": [],
   "eventChars": [
-   103002
+   101102,
+   103002,
+   101101
   ],
   "desc": "Increase time needed for pace chasers to calm down when they become rushed."
  },
@@ -13216,7 +13280,8 @@
    104201
   ],
   "eventChars": [
-   105301
+   105301,
+   108701
   ],
   "desc": "Slightly increase velocity on a straight. (Sprint)"
  },
@@ -13513,7 +13578,11 @@
    102801,
    103801
   ],
-  "eventChars": [],
+  "eventChars": [
+   105202,
+   105301,
+   105201
+  ],
   "desc": "Moderately prepare to make for the finish line for a medium duration mid-race. (Sprint)"
  },
  {
@@ -13895,6 +13964,7 @@
    106501
   ],
   "eventChars": [
+   106901,
    105101,
    101002,
    108701,
@@ -13967,6 +14037,7 @@
   ],
   "eventChars": [
    101901,
+   106901,
    101902
   ],
   "desc": "Slightly increase acceleration when passing another runner in the second half of the race. (Mile)"
@@ -14264,7 +14335,10 @@
    103201
   ],
   "eventChars": [
+   105001,
    103301,
+   105002,
+   104701,
    106802
   ],
   "desc": "Slightly increase velocity on a straight. (Medium)"
@@ -14389,6 +14463,7 @@
   "eventChars": [
    103502,
    105002,
+   102901,
    104201,
    105802
   ],
@@ -14538,7 +14613,10 @@
    100301,
    102101
   ],
-  "eventChars": [],
+  "eventChars": [
+   100601,
+   100602
+  ],
   "desc": "Moderately avoid becoming surrounded for a medium duration mid-race. (Medium)"
  },
  {
@@ -14763,7 +14841,8 @@
    106001
   ],
   "eventChars": [
-   103702
+   103702,
+   103201
   ],
   "desc": "Slightly disturb runners directly ahead mid-race. (Medium)"
  },
@@ -14835,7 +14914,9 @@
   ],
   "eventChars": [
    102501,
-   103502
+   106701,
+   103502,
+   106702
   ],
   "desc": "Slightly increase velocity on a straight. (Long)"
  },
@@ -14926,7 +15007,8 @@
   "eventChars": [
    102501,
    107401,
-   105002
+   105002,
+   104701
   ],
   "desc": "Slightly increase velocity on a corner. (Long)"
  },
@@ -15162,8 +15244,12 @@
   ],
   "eventChars": [
    102302,
+   102101,
    107101,
-   105002
+   100702,
+   105002,
+   102102,
+   100701
   ],
   "desc": "Slightly increase velocity and very minimally increase acceleration after passing another runner late-race. (Long)"
  },
@@ -15443,7 +15529,9 @@
    103102
   ],
   "eventChars": [
-   100902
+   103101,
+   100902,
+   103102
   ],
   "desc": "Slightly increase velocity on a corner. (Front Runner)"
  },
@@ -15596,7 +15684,9 @@
    102401
   ],
   "eventChars": [
+   102001,
    104601,
+   102002,
    104602,
    106802
   ],
@@ -15668,6 +15758,8 @@
    100902
   ],
   "eventChars": [
+   106801,
+   106802,
    104101
   ],
   "desc": "Slightly reduce fatigue on an uphill. (Front Runner)"
@@ -15926,6 +16018,7 @@
   "eventChars": [
    101702,
    102201,
+   105101,
    102202
   ],
   "desc": "Slightly increase velocity on a corner. (Pace Chaser)"
@@ -16009,7 +16102,9 @@
    100502,
    109901
   ],
-  "eventChars": [],
+  "eventChars": [
+   107801
+  ],
   "desc": "Slightly increase ability to navigate smoothly. (Pace Chaser)"
  },
  {
@@ -16167,8 +16262,13 @@
    100301,
    100302,
    100601,
+   101301,
+   101302,
+   101601,
    104502,
    100602,
+   101303,
+   101602,
    104501
   ],
   "desc": "Slightly recover endurance mid-race. (Pace Chaser)"
@@ -16383,6 +16483,7 @@
    106702
   ],
   "eventChars": [
+   104801,
    103502,
    103501
   ],
@@ -17263,7 +17364,9 @@
   "innateChars": [
    103601
   ],
-  "eventChars": [],
+  "eventChars": [
+   101201
+  ],
   "desc": "Slightly widen field of view when positioned toward the back late-race. (End Closer)"
  },
  {
@@ -17542,7 +17645,10 @@
    104002,
    106002
   ],
-  "eventChars": [],
+  "eventChars": [
+   105901,
+   105902
+  ],
   "desc": "Moderately increase ability to get into a good position. (Late Surger)"
  },
  {
@@ -17735,6 +17841,7 @@
   ],
   "eventChars": [
    102001,
+   103901,
    102002,
    109901
   ],
@@ -17943,8 +18050,10 @@
   "eventChars": [
    102101,
    103401,
+   105301,
    102102,
-   103402
+   103402,
+   104701
   ],
   "desc": "Slightly increase velocity after activating many skills mid-race."
  },
@@ -18148,7 +18257,8 @@
    106501
   ],
   "eventChars": [
-   104401
+   104401,
+   107801
   ],
   "desc": "Slightly decrease wind resistance when following directly behind another runner."
  },
@@ -18504,11 +18614,13 @@
    101001,
    105901,
    102201,
+   106901,
    107101,
    102202,
    103401,
    101002,
    105902,
+   100702,
    105802,
    103402,
    100802,
@@ -18534,7 +18646,9 @@
   "hintCards": [],
   "eventCards": [],
   "innateChars": [],
-  "eventChars": [],
+  "eventChars": [
+   104801
+  ],
   "desc": "Moderately decrease performance on firm ground."
  },
  {
@@ -18615,6 +18729,7 @@
    102202,
    101002,
    102901,
+   110001,
    100902,
    100901,
    102401
@@ -18669,7 +18784,10 @@
   "innateChars": [
    103401
   ],
-  "eventChars": [],
+  "eventChars": [
+   103401,
+   103402
+  ],
   "desc": "Slightly recover endurance when positioned toward the back mid-race. (Dirt)"
  },
  {
@@ -20180,7 +20298,8 @@
   "innateChars": [],
   "eventChars": [
    104602,
-   102901
+   102901,
+   109901
   ],
   "desc": "Slightly increase velocity when positioned toward the front in the last spurt. (Dirt)"
  },
@@ -21273,7 +21392,9 @@
   "innateChars": [
    101602
   ],
-  "eventChars": [],
+  "eventChars": [
+   104701
+  ],
   "desc": "Slightly increase acceleration late-race if the skill user led or was within 4 lengths of the lead just before late-race. (Pace, Long)"
  },
  {
@@ -25485,8 +25606,8 @@
  },
  {
   "id": 203501,
-  "name": "Unpredecented Prodigy",
-  "altName": "Unpredecented Prodigy",
+  "name": "Unprecedented Prodigy",
+  "altName": "Unprecedented Prodigy",
   "nameJp": "英俊豪傑",
   "rarity": 2,
   "cost": 200,

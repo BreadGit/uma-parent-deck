@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { isPlainObject } from '../src/types.ts';
-import { REWARD_ID_OFFSET } from './event-import.ts';
+import { CHAR_PAGE_GROUPS, REWARD_ID_OFFSET } from './event-import.ts';
 
 export type PageRevision = { input: string; payload: string };
 /** The source row a page belongs to: a support card, or a character card for character and outfit pages. */
@@ -79,7 +79,7 @@ export function pageEvents(value: unknown, kind: 'support' | 'character', source
   const data: unknown = typeof value === 'string' ? JSON.parse(value) : value;
   if (!isPlainObject(data)) throw new Error(`${source}: missing English event data`);
   const groups = kind === 'support' ? ['arrows', 'special', 'random', 'dates', 'dates_random']
-    : ['wchoice', 'nochoice', 'version', 'outings', 'secret'];
+    : [...CHAR_PAGE_GROUPS, 'version'];
   const allowed = new Set([...groups, ...(kind === 'character' ? ['nyear', 'dance'] : [])]);
   for (const [key, entries] of Object.entries(data)) {
     if (!allowed.has(key)) throw new Error(`${source}: unfamiliar event group ${key}`);

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { decodeRewards, eventOnGlobal, normalizeReward, staticEventOnGlobal } from './event-import.ts';
+import { CHAR_PAGE_GROUPS, decodeRewards, eventOnGlobal, isOutcomeBreak, normalizeReward, staticEventOnGlobal } from './event-import.ts';
 import { pageCacheMatches, pageInputs, PAGE_SOURCE_FILES, type PageRevision } from './page-cache.ts';
 import { isPlainObject } from '../src/types.ts';
 import { isCompoundUniqueEffect } from '../src/model/rules.ts';
@@ -38,7 +38,7 @@ function idsMatch(source: Row[], result: Row[], sourceKey: string, key: string, 
 
 function validatePage(page: Row, label: string): void {
   check(isPlainObject(page), `${label} is missing; refresh page data before normalizing`);
-  const eventGroups = new Set(['nochoice', 'wchoice', 'outings', 'secret', 'version', 'random', 'dates', 'dates_random', 'special']);
+  const eventGroups = new Set([...CHAR_PAGE_GROUPS, 'version', 'random', 'dates', 'dates_random', 'special']);
   for (const [group, events] of Object.entries(page)) {
     if (group === 'dance' || group === 'nyear') continue; // Stat selections, not events with skill rewards.
     check(eventGroups.has(group), `${label}.${group} is an unfamiliar event group`);
@@ -65,12 +65,12 @@ function staticRewards(event: unknown[], dictionary: unknown[]) {
   return choices.flatMap((choice) => {
     check(Array.isArray(choice) && Array.isArray(choice[1]), `event ${String(selected[2])} reward list is missing`);
     return choice[1].flatMap((id: number) => decodeRewards(dictionary, id));
-  }).filter((reward) => reward.t !== 'di');
+  }).filter((reward) => !isOutcomeBreak(reward));
 }
 
 function pageRewards(source: Row) {
   const event = eventOnGlobal(source);
-  return event ? event.c.flatMap((choice: Row) => choice.r.map(normalizeReward)).filter((reward: Row) => reward.t !== 'di') : [];
+  return event ? event.c.flatMap((choice: Row) => choice.r.map(normalizeReward)).filter((reward: { t: string }) => !isOutcomeBreak(reward)) : [];
 }
 
 /** Legacy snapshots have no revision file. Once revisions exist, an interrupted refresh must not mix source versions. */
@@ -203,7 +203,7 @@ export function reconcileSources(raw: SourceTables, pages: PageSources, out: Nor
     for (const [target, key] of [['growth', 'stat_bonus'], ['baseStats', 'base_stats'], ['twoStarStats', 'two_star_stats'], ['threeStarStats', 'three_star_stats'], ['fourStarStats', 'four_star_stats'], ['fiveStarStats', 'five_star_stats']]) equal(char[target!], source[key!] ?? null, `outfit ${char.cardId} ${target}`);
     equal(char.awakeningSkills, (source.skills_awakening_en ?? source.skills_awakening ?? []).map(Number), `outfit ${char.cardId} Global awakening skills`);
     const page = pages.charEvents[char.charId]!, outfit = pages.charEventsByCard[char.cardId] ?? page;
-    const expectedEvents = [...['nochoice', 'wchoice', 'outings', 'secret'].flatMap((group) => page[group] ?? []), ...(outfit.version ?? [])].filter((event) => eventOnGlobal(event));
+    const expectedEvents = [...CHAR_PAGE_GROUPS.flatMap((group) => page[group] ?? []), ...(outfit.version ?? [])].filter((event) => eventOnGlobal(event));
     equal(char.events.length, expectedEvents.length, `outfit ${char.cardId} event completeness`);
     char.events.forEach((event: Row, i: number) => equal(event.choices.flatMap((choice: Row) => choice.outcomes.flat()), pageRewards(expectedEvents[i]!), `outfit ${char.cardId} event ${i} rewards`));
     const objective = raw['ura-objectives']!.find((entry) => entry.char_id === char.charId)!;

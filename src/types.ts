@@ -32,9 +32,10 @@ export type EventCondition =
   | { type: 'unknown'; raw: unknown[] };
 /**
  * A trainee's own event. Story events play in every career, choice events offer two or three options, outings
- * happen when the run takes her out, and secret events fire once their race conditions are met.
+ * happen when the run takes her out, and secret events fire once their conditions are met. `afterRace` marks an
+ * event that plays after a race, usually on a result.
  */
-export interface TraineeEvent { kind: 'story' | 'choice' | 'outing' | 'secret'; index: number; name?: string; choices: EventChoice[]; conditions?: EventCondition[] }
+export interface TraineeEvent { kind: 'story' | 'choice' | 'outing' | 'secret'; index: number; name?: string; choices: EventChoice[]; conditions?: EventCondition[]; afterRace?: true }
 
 export interface UniqueEffect { type: number; value: number; value_1?: number; value_2?: number; value_3?: number; value_4?: number }
 export interface Card {

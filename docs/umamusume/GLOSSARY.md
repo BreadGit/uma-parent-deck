@@ -35,7 +35,8 @@ For application behavior, see the [tool glossary](../GLOSSARY.md).
   cards' own sequence; the last one is the **finale**.
 - **Trainee events**: the Trainee's own events. **Story events** play in every career; **choice events** offer
   two or three options; her **outings** happen when the run takes her out; **secret events** (hidden events)
-  fire only once their conditions are met, usually winning specific G1s in a given year, and often give a skill.
+  fire only once their conditions are met, usually winning specific G1s in a given year, and often give a skill;
+  **race events** play after a race, usually depending on the result, and some give a skill hint.
 - **Scenario**: the career mode. **Our Grand Concert** (Global 2026-07-22) has base stat
   caps of 1600 Speed, 1300 Stamina, 1300 Power, 1500 Guts and 1300 Wit. **Scenario completion skill**:
   the finale can award a hint for I Wanna Win with You or On the Way to Our Dream.
