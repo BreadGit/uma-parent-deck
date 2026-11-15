@@ -71,6 +71,15 @@ test("Special Week's secret event needs runnings the default agenda skips; force
   assert.ok((withRuns.deckResult.sparks.get(stamina.id) ?? 0) > (plainRun.deckResult.sparks.get(stamina.id) ?? 0), 'the secret event raises the spark chance');
 });
 
+test('a post-race event is labelled a race event and scored from the agenda like a secret event', () => {
+  const plain = specialWeekAgenda(false);
+  const w = raceWinChances(plain.sched);
+  const src = must(traineeEventSources(sw, w, settings, data).find((s) => s.event.label.includes('After the Japan Cup: To the Top!')));
+  assert.match(src.event.label, /^Special Week's race event \d+ "After the Japan Cup: To the Top!"$/);
+  const ev = must(sw.events.find((e) => e.name === 'After the Japan Cup: To the Top!'));
+  assert.ok(Math.abs(src.pObtain - ev.conditions!.reduce((a, c) => a * conditionChance(c, w, settings), 1)) < 1e-9 && src.pObtain > 0);
+});
+
 test("the trainee's choice and outing events: choice-gated at their own rates, one option per event by prioritized order, a non-target option can block a target", () => {
   const pace = resolveTarget(byName('Pace Strategy').id, data)!;
   const choice = must(traineeSources(sw, pace, data, settings, new Map()).find((s) => s.kind === 'choice'));

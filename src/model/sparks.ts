@@ -278,7 +278,7 @@ function computeTraineeEventSources(trainee: Character, wins: RaceWins, settings
     for (const c of ev.choices) for (const o of c.outcomes) for (const id of outcomeSkillShares(o, data, settings).keys()) offered.add(id);
     const rate = traineeEventRate(ev, wins, settings);
     if (rate <= 0) continue;
-    out.push(...scanEvent(ev, rate, TRAINEE_EVENT_LABEL[ev.kind], trainee.name, 'trainee', settings, data));
+    out.push(...scanEvent(ev, rate, ev.afterRace ? 'Race event' : TRAINEE_EVENT_LABEL[ev.kind], trainee.name, 'trainee', settings, data));
   }
   // Skills GameTora lists for her events that no decoded event gives: usually an alternate outfit's events, whose
   // page is not fetched, so a placeholder rate applies.
