@@ -219,6 +219,7 @@ suite('sharing browser regressions', { concurrency: Number(process.env.BROWSER_T
     await page.waitForSelector('#target-search-required');
     await page.waitForFunction(() => !new URL(location.href).searchParams.has('run'));
     assert.deepEqual(sharedChoices(await state(page)), sharedChoices(source));
+    await waitForShare(page);
     assert.deepEqual(await decodeShare(shareCode(page.url())), sharedChoices(source), 'the code moved into the fragment');
     requests.length = 0;
     await page.reload();

@@ -19,10 +19,10 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     await page.selectOption('[data-gain="0-0"]', '63');
     await page.selectOption('[data-setting="focus"]', 'sprint');
     await page.setInputFiles('#import-file', inventoryFile({ 30028: 2 }));
-    await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).inventory['30028'] === 2, STATE_KEY);
+    await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key))?.inventory?.['30028'] === 2, STATE_KEY);
     await page.click('[data-action="reset-all"]');
     await confirmDialog(page);
-    await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).run.traineeCardId === null, STATE_KEY);
+    await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key))?.run?.traineeCardId === null, STATE_KEY);
     assert.equal(await page.locator('.target-row').count(), 0);
     const saved = await state(page);
     assert.deepEqual(saved.run.targets, []);
@@ -174,7 +174,7 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
   test('invalid inventory imports preserve inventory, while valid export and import round-trip', async (t) => {
     const page = await editor(t);
     await page.setInputFiles('#import-file', inventoryFile({ 30052: null, 30028: 2, 20009: 0 }));
-    await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).inventory['30052'] === null, STATE_KEY);
+    await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key))?.inventory?.['30052'] === null, STATE_KEY);
     const before = (await state(page)).inventory;
     for (const value of [{ garbage: 'data' }, [], { 30052: 4, 30028: 7 }]) {
       await page.setInputFiles('#import-file', inventoryFile(value));
@@ -192,7 +192,7 @@ suite('storage browser regressions', { concurrency: Number(process.env.BROWSER_T
     assert.equal(Object.keys(inventory).length, data.cards.length);
     for (const [id, lb] of Object.entries(before)) assert.equal(inventory[id], lb);
     await page.setInputFiles('#import-file', inventoryFile(inventory));
-    await page.waitForFunction(({ key, n }) => Object.keys(JSON.parse(localStorage.getItem(key)).inventory).length === n, { key: STATE_KEY, n: data.cards.length });
+    await page.waitForFunction(({ key, n }) => Object.keys(JSON.parse(localStorage.getItem(key))?.inventory ?? {}).length === n, { key: STATE_KEY, n: data.cards.length });
     assert.deepEqual((await state(page)).inventory, inventory);
   });
 

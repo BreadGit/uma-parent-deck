@@ -77,7 +77,7 @@ export async function checkMissions(page, url, overflowReport) {
   // A frozen or restored tab can miss the storage event. Its next edit still starts from the latest save.
   await page.evaluate(() => { window.holdStorageEvents = true; });
   await otherTab.locator('[data-custom-race-complete="1011"]').check();
-  await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key)).missions.completedCustomRaceIds.includes(1011), STATE_KEY);
+  await page.waitForFunction((key) => JSON.parse(localStorage.getItem(key))?.missions?.completedCustomRaceIds?.includes(1011), STATE_KEY);
   assert.equal(await page.locator('[data-custom-race-complete="1011"]').isChecked(), false, 'the event was not delivered');
   const selected = (await read()).missions.eventIds;
   await page.locator('[data-mission-event="201"]').click();

@@ -368,7 +368,7 @@ suite('planning browser regressions', { concurrency: Number(process.env.BROWSER_
       const inventory = noCards();
       cards.slice(0, n).forEach((id) => { inventory[id] = 4; });
       await page.setInputFiles('#import-file', inventoryFile(inventory));
-      await page.waitForFunction(({ key, n }) => Object.values(JSON.parse(localStorage.getItem(key)).inventory).filter((v) => v !== null).length === n, { key: STATE_KEY, n });
+      await page.waitForFunction(({ key, n }) => Object.values(JSON.parse(localStorage.getItem(key))?.inventory ?? {}).filter((v) => v !== null).length === n, { key: STATE_KEY, n });
       assert.equal(await predictions(page).count(), n === 5 ? 1 : 0);
       assert.equal(await page.locator('.results-split').count(), n === 5 ? 1 : 0, 'the two-column split appears only with a complete deck');
       const detailsSub = page.locator('section.panel').filter({ has: page.locator('details[data-prediction-details]') }).locator('[data-panel-sub]');
