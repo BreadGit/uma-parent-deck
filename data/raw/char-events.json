@@ -63400,7 +63400,7 @@
  "1050": {
   "wchoice": [
    {
-    "i": 4563,
+    "i": 4582,
     "n": "Report Submitted",
     "c": [
      {
@@ -63428,7 +63428,7 @@
     ]
    },
    {
-    "i": 4564,
+    "i": 4583,
     "n": "Unknown Music",
     "c": [
      {
@@ -63452,7 +63452,7 @@
     ]
    },
    {
-    "i": 4565,
+    "i": 4584,
     "n": "Distance",
     "c": [
      {
@@ -63481,7 +63481,7 @@
     ]
    },
    {
-    "i": 4566,
+    "i": 4585,
     "n": "Extra Training to Blow Off Steam",
     "c": [
      {
@@ -63541,7 +63541,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4566,
+       "i": 4585,
        "n": "Extra Training to Blow Off Steam",
        "c": [
         {
@@ -63602,7 +63602,7 @@
     ]
    },
    {
-    "i": 4567,
+    "i": 4586,
     "n": "Extra Training to De-stress?",
     "c": [
      {
@@ -63662,7 +63662,7 @@
      {
       "period": "pre_first_anni",
       "data": {
-       "i": 4567,
+       "i": 4586,
        "n": "Extra Training to De-stress?",
        "c": [
         {
@@ -63784,7 +63784,7 @@
   ],
   "nochoice": [
    {
-    "i": 4557,
+    "i": 4576,
     "n": "B&W",
     "c": [
      {
@@ -63804,7 +63804,7 @@
     "turn": 18
    },
    {
-    "i": 4558,
+    "i": 4577,
     "n": "[W]inner",
     "c": [
      {
@@ -63820,7 +63820,7 @@
     "turn": 32
    },
    {
-    "i": 4559,
+    "i": 4578,
     "n": "Don't Say It",
     "c": [
      {
@@ -63842,7 +63842,7 @@
      {
       "period": "pre_2nd_anni",
       "data": {
-       "i": 4559,
+       "i": 4578,
        "n": "Don't Say It",
        "c": [
         {
@@ -63866,7 +63866,7 @@
     "turn": 43
    },
    {
-    "i": 4560,
+    "i": 4579,
     "n": "I Believe",
     "c": [
      {
@@ -63882,7 +63882,7 @@
     "turn": 45
    },
    {
-    "i": 4561,
+    "i": 4580,
     "n": "I Said I'm Fine",
     "c": [
      {
@@ -63898,7 +63898,7 @@
     "turn": 55
    },
    {
-    "i": 4562,
+    "i": 4581,
     "n": "Forever Fervent",
     "c": [
      {
@@ -64175,7 +64175,7 @@
   ],
   "version": [
    {
-    "i": 4588,
+    "i": 4607,
     "n": "Strong Just the Way I Am",
     "c": [
      {
@@ -64199,7 +64199,7 @@
     ]
    },
    {
-    "i": 4589,
+    "i": 4608,
     "n": "Taishin's SOS",
     "c": [
      {
@@ -64227,7 +64227,7 @@
     ]
    },
    {
-    "i": 4590,
+    "i": 4609,
     "n": "Anxious Survival",
     "c": [
      {
@@ -64269,7 +64269,7 @@
   ],
   "outings": [
    {
-    "i": 4568,
+    "i": 4587,
     "n": "git gud noob",
     "c": [
      {
@@ -64293,7 +64293,7 @@
     ]
    },
    {
-    "i": 4569,
+    "i": 4588,
     "n": "ggez",
     "c": [
      {
@@ -64317,7 +64317,7 @@
     ]
    },
    {
-    "i": 4570,
+    "i": 4589,
     "n": "ggwp",
     "c": [
      {
@@ -64350,7 +64350,7 @@
     ]
    },
    {
-    "i": 4571,
+    "i": 4590,
     "n": "The Taciturn Two",
     "c": [
      {
@@ -64374,7 +64374,7 @@
     ]
    },
    {
-    "i": 4572,
+    "i": 4591,
     "n": "Open the Cage Door with Your Own Hands",
     "c": [
      {
@@ -64408,7 +64408,7 @@
   ],
   "race": [
    {
-    "i": 4573,
+    "i": 4592,
     "n": "After the Debut: Starting Shot",
     "c": [
      {
@@ -64434,7 +64434,7 @@
     "turn": 12
    },
    {
-    "i": 4574,
+    "i": 4593,
     "n": "After the Hopeful Stakes: Scattering Sparks",
     "c": [
      {
@@ -64464,7 +64464,7 @@
     "turn": 24
    },
    {
-    "i": 4575,
+    "i": 4594,
     "n": "After the Satsuki Sho: Serves You Right",
     "c": [
      {
@@ -64495,7 +64495,7 @@
     "secret": 5
    },
    {
-    "i": 4576,
+    "i": 4595,
     "n": "After the Satsuki Sho: Birth of a Demon",
     "c": [
      {
@@ -64525,7 +64525,7 @@
     "turn": 31
    },
    {
-    "i": 4577,
+    "i": 4596,
     "n": "After the Japanese Derby: Radiant Visage",
     "c": [
      {
@@ -64550,7 +64550,7 @@
     "turn": 34
    },
    {
-    "i": 4578,
+    "i": 4597,
     "n": "After the Japanese Derby: A Winner Is...",
     "c": [
      {
@@ -64585,7 +64585,7 @@
     "turn": 34
    },
    {
-    "i": 4579,
+    "i": 4598,
     "n": "After the Japanese Derby: Something in Those Eyes",
     "c": [
      {
@@ -64620,7 +64620,7 @@
     "turn": 34
    },
    {
-    "i": 4580,
+    "i": 4599,
     "n": "After the Kikuka Sho: Limit",
     "c": [
      {
@@ -64645,7 +64645,7 @@
     "turn": 44
    },
    {
-    "i": 4581,
+    "i": 4600,
     "n": "After the Kikuka Sho: Overflowing",
     "c": [
      {
@@ -64680,7 +64680,7 @@
     "turn": 44
    },
    {
-    "i": 4582,
+    "i": 4601,
     "n": "After the Kikuka Sho: Empty Hands",
     "c": [
      {
@@ -64715,7 +64715,7 @@
     "turn": 44
    },
    {
-    "i": 4583,
+    "i": 4602,
     "n": "After the Nikkei Sho: Here Is Fine",
     "c": [
      {
@@ -64732,11 +64732,11 @@
        },
        {
         "t": "5s",
-        "v": "+20"
+        "v": "+25"
        },
        {
         "t": "pt",
-        "v": "+70"
+        "v": "+80"
        },
        {
         "t": "se",
@@ -64762,7 +64762,7 @@
        },
        {
         "t": "5s",
-        "v": "+15"
+        "v": "+20"
        },
        {
         "t": "pt",
@@ -64787,10 +64787,84 @@
       201101
      ]
     ],
-    "turn": 54
+    "history": [
+     {
+      "period": "pre_2nd_anni",
+      "data": {
+       "i": 4602,
+       "n": "After the Nikkei Sho: Here Is Fine",
+       "c": [
+        {
+         "o": "",
+         "r": [
+          {
+           "t": "se_h",
+           "v": null,
+           "d": 6
+          },
+          {
+           "t": "mo",
+           "v": "+4"
+          },
+          {
+           "t": "5s",
+           "v": "+20"
+          },
+          {
+           "t": "pt",
+           "v": "+70"
+          },
+          {
+           "t": "se",
+           "v": null,
+           "d": 11
+          },
+          {
+           "t": "bo",
+           "v": "+4",
+           "d": 9002
+          },
+          {
+           "t": "nl"
+          },
+          {
+           "t": "se_nh",
+           "v": null,
+           "d": 6
+          },
+          {
+           "t": "mo",
+           "v": "+4"
+          },
+          {
+           "t": "5s",
+           "v": "+15"
+          },
+          {
+           "t": "pt",
+           "v": "+60"
+          },
+          {
+           "t": "he",
+           "v": null,
+           "d": 6
+          },
+          {
+           "t": "bo",
+           "v": "+4",
+           "d": 9002
+          }
+         ]
+        }
+       ]
+      }
+     }
+    ],
+    "turn": 54,
+    "secret": 4
    },
    {
-    "i": 4584,
+    "i": 4603,
     "n": "After the Tenno Sho (Spring): The Trio's Future",
     "c": [
      {
@@ -64825,7 +64899,7 @@
     "turn": 56
    },
    {
-    "i": 4585,
+    "i": 4604,
     "n": "After the Tenno Sho (Spring): All Together, Time and Time Again",
     "c": [
      {
@@ -64860,7 +64934,7 @@
     "turn": 56
    },
    {
-    "i": 4586,
+    "i": 4605,
     "n": "After the Tenno Sho (Autumn): BNW, Full Speed Ahead",
     "c": [
      {
@@ -64885,7 +64959,7 @@
     "turn": 68
    },
    {
-    "i": 4587,
+    "i": 4606,
     "n": "After the Arima Kinen: I Am Strong",
     "c": [
      {

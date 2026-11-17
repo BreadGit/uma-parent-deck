@@ -2119,6 +2119,27 @@
   "desc": "From the midpack in the second half of the race, slightly increase velocity steadily for a duration based on remaining endurance."
  },
  {
+  "id": 100751,
+  "name": "Crown of Drifting Snow",
+  "altName": "Crown of Drifting Snow",
+  "nameJp": "灰雪の冠",
+  "rarity": 5,
+  "cost": null,
+  "iconId": 20013,
+  "versions": [],
+  "tags": [
+   "l_1",
+   "tur",
+   "l_3"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Turf・Your speed will slightly increase three times (at the start of the second half of the Middle Leg, halfway through the race, and at the start of the Last Spurt); the effect is stronger in Mile and Medium races"
+ },
+ {
   "id": 100761,
   "name": "World in Bloom",
   "altName": "Blossoming World",
@@ -27556,7 +27577,7 @@
   "eventCards": [],
   "innateChars": [],
   "eventChars": [],
-  "desc": "Leader・At a random point during the Middle Leg, your speed will slightly increase; the effect is stronger if you're at least 10 lengths behind the first place"
+  "desc": "Leader・At a random point during the Middle Leg, your speed will slightly increase; the effect is stronger if you're at least 10 meters behind the first place"
  },
  {
   "id": 204021,
@@ -30363,6 +30384,50 @@
   "innateChars": [],
   "eventChars": [],
   "desc": "Runner・At a random point during the Middle Leg, your speed will slightly increase; the effect is stronger if you didn't have a late start"
+ },
+ {
+  "id": 204911,
+  "name": "Wild Hunt",
+  "altName": "Wild Hunt",
+  "nameJp": "ワイルドハント",
+  "rarity": 2,
+  "cost": 190,
+  "iconId": 20012,
+  "versions": [
+   204912
+  ],
+  "tags": [
+   "btw",
+   "l_1"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・If you're not in the front at a random point during the second half of the Middle Leg, your speed will slightly increase"
+ },
+ {
+  "id": 204912,
+  "name": "Rending the Silence",
+  "altName": "Rending the Silence",
+  "nameJp": "静寂を裂いて",
+  "rarity": 1,
+  "cost": 190,
+  "iconId": 20011,
+  "versions": [
+   204911
+  ],
+  "tags": [
+   "btw",
+   "l_1"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・If you're not in the front at a random point during the second half of the Middle Leg, your speed will marginally increase"
  },
  {
   "id": 210011,
@@ -34267,7 +34332,7 @@
   "eventCards": [],
   "innateChars": [],
   "eventChars": [],
-  "desc": "Leader・Long・2500 m・Nakayama・During the Final Leg, your acceleration will increase; it will increase greatly if you were within 10 lengths from the lead around the end of the Middle Leg"
+  "desc": "Leader・Long・2500 m・Nakayama・During the Final Leg, your acceleration will increase; it will increase greatly if you were within 10 meters from the lead around the end of the Middle Leg"
  },
  {
   "id": 100603221,
@@ -34288,7 +34353,7 @@
   "eventCards": [],
   "innateChars": [],
   "eventChars": [],
-  "desc": "Leader・Mile・If you're in the first half of the pack at a random point during the first half of the Final Leg, your acceleration will greatly increase; it will increase tremendously if you were within 10 lengths from the lead around the end of the Middle Leg"
+  "desc": "Leader・Mile・If you're in the first half of the pack at a random point during the first half of the Final Leg, your acceleration will greatly increase; it will increase tremendously if you were within 10 meters from the lead around the end of the Middle Leg"
  },
  {
   "id": 100701111,
@@ -39809,7 +39874,7 @@
   "eventCards": [],
   "innateChars": [],
   "eventChars": [],
-  "desc": "Betweener・If you're less than 10 lengths away from the first place during the Final Straight, your speed will greatly increase; (Medium only) if you've overtaken someone during the Final Leg, you will also get a small (immediate) speed boost"
+  "desc": "Betweener・If you're less than 10 meters away from the first place during the Final Straight, your speed will greatly increase; (Medium only) if you've overtaken someone during the Final Leg, you will also get a small (immediate) speed boost"
  },
  {
   "id": 104902211,
@@ -42559,6 +42624,71 @@
   "desc": "Betweener・2000 m+・If you have enough stamina for a full spurt at a random point during the first half of the Final Leg, you will get a great speed boost"
  },
  {
+  "id": 107501111,
+  "name": "Diana's Arrow",
+  "altName": "Diana's Arrow",
+  "nameJp": "ディアナの弓矢",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 20016,
+  "versions": [],
+  "tags": [
+   "btw",
+   "l_1",
+   "mil",
+   "med"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・At a random point during the second half of the Middle Leg, your speed will increase; (Mile/Medium only) then, if you're in the middle of the pack at a random point during your Zenkai Spurt, your Zenkai acceleration will increase"
+ },
+ {
+  "id": 107501211,
+  "name": "Pine in the Snow",
+  "altName": "Pine in the Snow",
+  "nameJp": "雪中の松柏",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 20046,
+  "versions": [],
+  "tags": [
+   "btw",
+   "med",
+   "l_3"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・Medium・During your last spurt, your acceleration will increase; then, at a random point during the first half of the Last Spurt, you will get a great speed boost"
+ },
+ {
+  "id": 107501221,
+  "name": "A Snowscape to Remember",
+  "altName": "A Snowscape to Remember",
+  "nameJp": "忘れじの雪景色",
+  "rarity": 6,
+  "cost": null,
+  "iconId": 20046,
+  "versions": [],
+  "tags": [
+   "btw",
+   "mil",
+   "l_2",
+   "l_3"
+  ],
+  "unreleasedEn": true,
+  "hintCards": [],
+  "eventCards": [],
+  "innateChars": [],
+  "eventChars": [],
+  "desc": "Betweener・Mile・At a random point during the first half of the Final Leg, your acceleration will increase; then, at a random point during the first half of the Last Spurt, you will get a slight speed boost"
+ },
+ {
   "id": 107601111,
   "name": "Open All the Buds",
   "altName": "Advancing Sakura Front!",
@@ -43527,7 +43657,7 @@
   "eventCards": [],
   "innateChars": [],
   "eventChars": [],
-  "desc": "Runner・At the start of the race, your acceleration will slightly increase; if you didn't have a late start and you're in the first half of the pack, then at a random point during the Middle Leg, your speed will increase"
+  "desc": "Runner・Short・At the start of the race, your acceleration will slightly increase; if you didn't have a late start and you're in the first half of the pack, then at a random point during the Middle Leg, your speed will increase"
  },
  {
   "id": 108702211,
