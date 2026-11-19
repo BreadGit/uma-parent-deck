@@ -76,25 +76,25 @@
  },
  "floor": 23.0,
  "roleConstants": {
-  "guts.primary": 12.178952891327327,
-  "guts.secondary": -16.25980474762391,
-  "power.primary": 13.048821078486576,
-  "power.secondary": -10.841109532768634,
-  "speed.primary": 13.011101421409293,
-  "speed.secondary": -14.808660029732142,
-  "stamina.primary": 11.952665905088878,
-  "stamina.secondary": -10.637946560806071,
-  "wit.primary": 14.362388441633328,
-  "wit.secondary": -25.372586817371836
+  "guts.primary": 12.17895289132737,
+  "guts.secondary": -16.25980474762395,
+  "power.primary": 13.04882107848664,
+  "power.secondary": -10.841109532768552,
+  "speed.primary": 13.011101421409371,
+  "speed.secondary": -14.808660029732078,
+  "stamina.primary": 11.95266590508892,
+  "stamina.secondary": -10.63794656080599,
+  "wit.primary": 14.362388441633371,
+  "wit.secondary": -25.37258681737178
  },
  "slopes": {
-  "fr": 0.8456547015729503,
-  "mo": 0.2155286492209232,
-  "te": 1.0203986629257757,
-  "sb": 11.028944328589226
+  "fr": 0.8456547015729488,
+  "mo": 0.21552864922092255,
+  "te": 1.0203986629257735,
+  "sb": 11.028944328589246
  },
  "effectSlopes": {
-  "14": 0.09429058625951035
+  "14": 0.09429058625951062
  },
  "fit": {
   "n": 223,
@@ -109,8 +109,8 @@
    "innerFolds": 4,
    "metric": "RMSE of primary/secondary stats, equal weight per card",
    "cards": 91,
-   "baselineRmse": 2.6134651659180705,
-   "expandedRmse": 2.511354516030721,
+   "baselineRmse": 2.6134651659180737,
+   "expandedRmse": 2.5113545160307056,
    "retained": true,
    "selectedFeatures": [
     "fr",
@@ -186,28 +186,28 @@
    "byType": {
     "guts": {
      "cards": 10,
-     "baselineRmse": 2.5219927583538118,
-     "expandedRmse": 2.167289708982205
+     "baselineRmse": 2.5219927583537913,
+     "expandedRmse": 2.167289708982187
     },
     "power": {
      "cards": 23,
-     "baselineRmse": 2.3932019461433147,
-     "expandedRmse": 2.165694016333015
+     "baselineRmse": 2.39320194614333,
+     "expandedRmse": 2.165694016332992
     },
     "speed": {
      "cards": 22,
-     "baselineRmse": 2.526585679622011,
-     "expandedRmse": 2.4136965661929657
+     "baselineRmse": 2.526585679622012,
+     "expandedRmse": 2.413696566192974
     },
     "stamina": {
      "cards": 19,
-     "baselineRmse": 1.8000210905998566,
-     "expandedRmse": 1.670365057587239
+     "baselineRmse": 1.8000210905998397,
+     "expandedRmse": 1.6703650575872275
     },
     "wit": {
      "cards": 17,
-     "baselineRmse": 3.6316562933397547,
-     "expandedRmse": 3.740859710829654
+     "baselineRmse": 3.631656293339769,
+     "expandedRmse": 3.7408597108296213
     }
    },
    "folds": [
@@ -234,8 +234,8 @@
       30108,
       30111
      ],
-     "baselineRmse": 2.3947367485807,
-     "expandedRmse": 2.323187148041135,
+     "baselineRmse": 2.3947367485807005,
+     "expandedRmse": 2.323187148041103,
      "features": [
       "fr",
       "mo",
@@ -269,8 +269,8 @@
       30092,
       30114
      ],
-     "baselineRmse": 2.1509474077125637,
-     "expandedRmse": 2.026820417512269,
+     "baselineRmse": 2.1509474077125845,
+     "expandedRmse": 2.026820417512265,
      "features": [
       "fr",
       "mo",
@@ -303,8 +303,8 @@
       30096,
       30113
      ],
-     "baselineRmse": 2.7607740705833455,
-     "expandedRmse": 2.5095373107178025,
+     "baselineRmse": 2.7607740705833392,
+     "expandedRmse": 2.509537310717799,
      "features": [
       "fr",
       "mo",
@@ -337,8 +337,8 @@
       30101,
       30107
      ],
-     "baselineRmse": 2.643077476480026,
-     "expandedRmse": 2.672552949868064,
+     "baselineRmse": 2.6430774764800344,
+     "expandedRmse": 2.6725529498680043,
      "features": [
       "fr",
       "mo",
@@ -380,8 +380,8 @@
       30097,
       30104
      ],
-     "baselineRmse": 3.050303860388646,
-     "expandedRmse": 2.9514661359138294,
+     "baselineRmse": 3.050303860388642,
+     "expandedRmse": 2.951466135913846,
      "features": [
       "fr",
       "mo",
@@ -400,8 +400,8 @@
    "innerFolds": 4,
    "metric": "SP RMSE, equal weight per card",
    "cards": 97,
-   "baselineRmse": 24.34807611363363,
-   "expandedRmse": 17.777441917064074,
+   "baselineRmse": 24.348076113633635,
+   "expandedRmse": 17.777441917063882,
    "retained": true,
    "selectedFeatures": [
     "spb",
@@ -505,37 +505,37 @@
     "group": {
      "cards": 1,
      "baselineRmse": 67.7389630639105,
-     "expandedRmse": 33.742595549928986
+     "expandedRmse": 33.742595549930115
     },
     "guts": {
      "cards": 10,
      "baselineRmse": 17.12618582363324,
-     "expandedRmse": 4.933107665530367
+     "expandedRmse": 4.933107665530315
     },
     "pal": {
      "cards": 5,
      "baselineRmse": 57.30135267175864,
-     "expandedRmse": 70.8854711262397
+     "expandedRmse": 70.88547112623817
     },
     "power": {
      "cards": 23,
      "baselineRmse": 18.938315963506458,
-     "expandedRmse": 3.2494075473906214
+     "expandedRmse": 3.249407547390696
     },
     "speed": {
      "cards": 22,
      "baselineRmse": 23.913459450876037,
-     "expandedRmse": 9.35548500949277
+     "expandedRmse": 9.355485009492911
     },
     "stamina": {
      "cards": 19,
-     "baselineRmse": 15.193143324838125,
-     "expandedRmse": 6.279760975287373
+     "baselineRmse": 15.193143324838129,
+     "expandedRmse": 6.279760975287964
     },
     "wit": {
      "cards": 17,
-     "baselineRmse": 22.162217331160388,
-     "expandedRmse": 8.513966884611039
+     "baselineRmse": 22.162217331160413,
+     "expandedRmse": 8.513966884611515
     }
    },
    "folds": [
@@ -563,7 +563,7 @@
       30111
      ],
      "baselineRmse": 27.117203954151133,
-     "expandedRmse": 34.16835082872868,
+     "expandedRmse": 34.16835082872814,
      "features": [
       "spb",
       "bond",
@@ -607,7 +607,7 @@
       30114
      ],
      "baselineRmse": 22.616003303738346,
-     "expandedRmse": 13.446119288958894,
+     "expandedRmse": 13.446119288958915,
      "features": [
       "spb",
       "bond",
@@ -650,7 +650,7 @@
       30113
      ],
      "baselineRmse": 24.878771036600927,
-     "expandedRmse": 5.960130798068872,
+     "expandedRmse": 5.96013079806902,
      "features": [
       "spb",
       "bond",
@@ -692,8 +692,8 @@
       30101,
       30107
      ],
-     "baselineRmse": 18.706460176347996,
-     "expandedRmse": 6.095533652781326,
+     "baselineRmse": 18.70646017634802,
+     "expandedRmse": 6.095533652781604,
      "features": [
       "spb",
       "bond",
@@ -736,7 +736,7 @@
       30104
      ],
      "baselineRmse": 27.29859682716684,
-     "expandedRmse": 11.024494830655138,
+     "expandedRmse": 11.024494830655087,
      "features": [
       "spb",
       "bond",
@@ -769,23 +769,23 @@
   "spRatio23": 1.1195484831179412
  },
  "sp": {
-  "base": 52.68643437573857,
-  "wit": 7.629974333968505,
-  "friend": 60.31996768739896,
-  "skillPointBonus": 67.74969621296958,
+  "base": 52.68643437573823,
+  "wit": 7.629974333972655,
+  "friend": 60.31996768740083,
+  "skillPointBonus": 67.74969621296844,
   "effectSlopes": {
-   "14": 0.9516148613058493,
-   "19": 0.03340442005207992,
-   "25": 2.499243675442004,
-   "26": -1.1618351112307435,
-   "27": 5.267864528920352,
-   "28": -3.3983949957804143,
-   "31": 3.242932045231337,
-   "17": 0.376791793338814,
-   "18": -0.019330286125790366,
-   "1": 1.969624239712932,
-   "2": 0.6089187634132789,
-   "8": 2.938491670335362
+   "14": 0.9516148613058759,
+   "19": 0.03340442005206751,
+   "25": 2.499243675442024,
+   "26": -1.1618351112307803,
+   "27": 5.267864528920348,
+   "28": -3.3983949957804924,
+   "31": 3.242932045230492,
+   "17": 0.37679179333892243,
+   "18": -0.01933028612578647,
+   "1": 1.9696242397129855,
+   "2": 0.6089187634132527,
+   "8": 2.9384916703353
   },
   "fittedTypes": [
    "speed",
